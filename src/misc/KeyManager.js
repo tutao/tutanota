@@ -159,7 +159,7 @@ class KeyManager {
 						                          .setDisabled()
 				                          })
 				this._helpDialog = module.Dialog.largeDialog({
-					right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
+					left: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
 					middle: () => lang.get("keyboardShortcuts_title")
 				}, {
 					view: () => {

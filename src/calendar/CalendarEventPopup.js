@@ -15,12 +15,14 @@ import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEv
 import type {MailboxDetail} from "../mail/MailModel"
 import {UserError} from "../api/common/error/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../gui/base/DropdownN"
+import {Keys} from "../api/common/TutanotaConstants"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent;
 	_rect: ClientRect;
 	_viewModel: CalendarEventViewModel;
 	_onEditEvent: () => mixed;
+	_shortcuts: Shortcut[]
 
 	constructor(calendarEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>, mailboxDetail: MailboxDetail, rect: ClientRect,
 	            onEditEvent: () => mixed
@@ -37,6 +39,34 @@ export class CalendarEventPopup implements ModalComponent {
 		}
 		this._viewModel = createCalendarEventViewModel(getEventStart(calendarEvent, getTimeZone()), calendars, mailboxDetail,
 			calendarEvent, null, true)
+
+		this._shortcuts = [
+			{
+				key: Keys.ESC,
+				exec: () => this._close(),
+				help: "close_alt"
+			},
+
+		]
+		if (!this._viewModel.isReadOnlyEvent()) {
+			this._shortcuts.push({
+					key: Keys.E,
+					exec: () => {
+						this._onEditEvent()
+						this._close()
+					},
+					help: "edit_action"
+				},
+				{
+					key: Keys.DELETE,
+					exec: () => {
+						deleteEvent(this._viewModel).then(confirmed => {
+							if (confirmed) this._close()
+						})
+					},
+					help: "delete_action"
+				})
+		}
 	}
 
 	show() {
@@ -108,7 +138,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	shortcuts(): Shortcut[] {
-		return []
+		return this._shortcuts
 	}
 
 	popState(e: Event): boolean {

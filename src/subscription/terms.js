@@ -950,3 +950,39 @@ export const privacy_en = `<section id="privacy-en" class="content">
         with the request and getting in contact with the affected person. We will not disclose this personal data to
         third parties.</p>
 </section>`
+
+// phrase key 'faq.gift-cards-terms_markdown'
+export const giftCards_en = `<section id="gift-cards-terms-en" class="content">
+<h3>Terms and conditions of Tutanota gift cards</h3>
+<p>These Terms and Conditions for Tutanota gift cards are valid as of December 14, 2020.</p>
+<p>These Terms and Conditions for Tutanota gift cards are provided in English for your convenience. Please note that in case of a dispute or discrepancy between the German Terms and Conditions and the English translation, the German version shall prevail.</p>
+<ol>
+<li><p>The gift card is valid to be redeemed in the country specified by the purchaser.</p></li>
+<li><p>The gift card can be redeemed by anyone who has access to the gift card link. It may be applied to any private account (free or paid), but not business accounts.</p></li>
+<li><p>The gift card is valid for three years, starting from the end of the year in which it was purchased.</p></li>
+<li><p>A customer may purchase a maximum of 10 gift cards within a six-month period.</p></li>
+<li><p>When redeemed on an existing or newly signed up Free account, the account will automatically be upgraded to a yearly Premium subscription with automatic renewal, at the standard price of €12 (deducted from the gift card amount), the remaining balance will be applied as credit to the account.</p></li>
+<li><p>When redeemed on an existing paid account, the full value of the gift card will be applied as credit to the account.</p></li>
+<li><p>Account balance can be used to book further features up to the available amount. Further purchases will require a payment method to be added or another gift card to be applied.</p></li>
+<li><p>Gift cards can only be purchased by customers who have provided credit card details or PayPal as a payment method.</p></li>
+<li><p>Gift cards are non-refundable.</p></li>
+<li><p>Account credit obtained via gift card can be neither refunded nor paid out.</p></li>
+<li><p>We reserve the right to deactivate gift cards in the case that the purchasing account of said gift cards is found to have abused our service.</p></li>
+</ol>
+</section>`
+
+export const giftCards_de = `<section id="gift-cards-terms-de" class="content">
+<h3>Diese AGB für Tutanota-Gutscheine sind ab dem 14. Dezember 2020 gültig.
+<ol>
+<li><p>Der Gutschein kann nur in dem vom Käufer angegebenen Land eingelöst werden.</p></li>
+<li><p>Der Gutschein kann von jedem eingelöst werden, der Zugriff auf den Gutschein-Link hat. Er kann nur für private Tutanota-Accounts (kostenlos oder bezahlt) verwendet werden, jedoch nicht für geschäftlich genutzte Accounts.</p></li>
+<li><p>Der Gutschein ist drei Jahre lang gültig, beginnend am Ende des Jahres, in dem dieser erworben wurde.</p></li>
+<li><p>Ein Kunde kann innerhalb von sechs Monaten maximal 10 Gutscheine erwerben.</p></li>
+<li><p>Bei Einlösung in einem bestehenden oder neu angemeldeten Free-Account wird der Gutschein automatisch auf ein jährliches Premium-Abonnement mit automatischer Verlängerung zum Standardpreis von 12 € erweitert. Der Restbetrag wird dem Account als Guthaben gutgeschrieben.</p></li>
+<li><p>Bei Einlösung in einem bestehenden bezahlten Account wird der volle Wert des Gutscheins dem Account als Guthaben gutgeschrieben.</p></li>
+<li><p>Das Guthaben kann für die Buchung weiterer Leistungen bis zum verfügbaren Betrag verwendet werden. Für weitere Buchungen muss eine Zahlungsmethode hinzugefügt oder ein weiterer Gutschein verwendet werden.</p></li>
+<li><p>Gutscheine können nur von Kunden erworben werden, die Kreditkarte oder PayPal als Zahlungsmethode angegeben haben.</p></li>
+<li><p>Gutscheine sind nicht erstattungsfähig.</p></li>
+<li><p>Über Gutscheine erhaltenes Guthaben kann weder zurückerstattet noch ausgezahlt werden.</p></li>
+<li><p>Wir behalten uns das Recht vor, Gutscheine zu deaktivieren, wenn sich herausstellt, dass der Käufer dieser Gutscheine unseren Service missbräuchlich verwendet hat.</p></li>
+</ol></section>`

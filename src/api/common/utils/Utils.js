@@ -267,30 +267,6 @@ export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export class ProgressMonitor {
-	totalWork: number
-	workCompleted: number
-	updater: (percentageCompleted: number) => mixed
-
-	constructor(totalWork: number, updater: (percentageCompleted: number) => mixed) {
-		this.updater = updater
-		this.totalWork = totalWork
-		this.workCompleted = 0
-	}
-
-	workDone(amount: number) {
-		this.workCompleted += amount
-		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
-		this.updater(Math.min(100, result))
-	}
-
-	completed() {
-		this.workCompleted = this.totalWork
-		this.updater(100)
-	}
-}
-
-
 export function getMailBodyText(body: MailBody): string {
 	return body.compressedText || body.text || ""
 }

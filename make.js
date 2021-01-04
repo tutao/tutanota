@@ -63,6 +63,7 @@ function prepareAssets() {
 	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/images')))
 	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/images/'), path.join(__dirname, '/build/images')))
 	              .then(() => fs.copyAsync(path.join(__dirname, '/libs'), path.join(__dirname, '/build/libs')))
+	              .then(() => fs.copyAsync(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/braintree.html')))
 	              .then(() => {
 		              if (options.stage === 'test') {
 			              restUrl = 'https://test.tutanota.com'

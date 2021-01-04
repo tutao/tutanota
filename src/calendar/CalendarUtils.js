@@ -598,6 +598,7 @@ export function getNextHalfHour(): Date {
 	} else {
 		date.setMinutes(30)
 	}
+	date.setMilliseconds(0)
 	return date
 }
 

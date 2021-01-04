@@ -13,6 +13,7 @@ import {
 	appendEmailSignature,
 	conversationTypeString,
 	createInlineImage,
+	getDefaultSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
 	parseMailtoUrl,
@@ -43,7 +44,7 @@ import {
 	createAttachmentButtonAttrs,
 	createPasswordField,
 	getConfidentialStateMessage,
-	MailEditorRecipientField
+	MailEditorRecipientField,
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {newMouseEvent} from "../gui/HtmlUtils"
@@ -56,7 +57,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 
@@ -117,7 +118,6 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		a._focusEditorOnLoad = () => { this.editor.initialized.promise.then(() => this.editor.focus()) }
 
 		const onEditorChanged = () => {
-
 			cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())
 			model.setMailChanged(true)
 			m.redraw()
@@ -169,12 +169,11 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		if (a.inlineImages) {
 			a.inlineImages.then((loadedInlineImages) => {
 				try {
-					Object.keys(loadedInlineImages).forEach((key) => {
-						const {file} = loadedInlineImages[key]
-						if (!model.getAttachments().includes(file)) {
-							model.attachFiles([file])
+					for (let file of loadedInlineImages.values()) {
+						if (!model.getAttachments().includes(file.file)) {
+							model.attachFiles([file.file])
 						}
-					})
+					}
 				} catch (e) {
 					if (e instanceof UserError) {
 						showUserError(downcast(e))
@@ -189,10 +188,10 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 						createDropdown(() => [
 							{
 								label: "download_action",
-								click: () => {
-									fileController.downloadAndOpen(file, true)
-									              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-								},
+								click: () => file._type !== "DataFile" // it's a TutanotaFile
+									? fileController.downloadAndOpen(downcast(file), true)
+									                .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+									: noOp,
 								type: ButtonType.Dropdown
 							}
 						])(downcast(event), dom)
@@ -529,18 +528,18 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 	return checkApprovalStatus(false).then(sendAllowed => {
 		if (sendAllowed) {
-			return newMailEditorFromTemplate(mailboxDetails, {}, "", appendEmailSignature(""))
+			return newMailEditorFromTemplate(mailboxDetails, {}, "", appendEmailSignature("", logins.getUserController().props))
 		} else {
 			return Promise.reject(new PermissionError("not allowed to send mail"))
 		}
 	})
 }
 
-export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages: ?Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 	return _mailboxPromise(mailboxDetails)
 		.then(defaultSendMailModel)
 		.then(model => model.initAsResponse(args))
-		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages || undefined))
+		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
 }
 
 export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaFile>, bodyText: string, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
@@ -548,7 +547,6 @@ export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaF
 		.then(defaultSendMailModel)
 		.then(model => model.initWithDraft(draft, attachments, bodyText))
 		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
-
 }
 
 export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
@@ -556,7 +554,7 @@ export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean,
 	return _mailboxPromise(mailboxDetails).then(mailbox => {
 		const mailTo = parseMailtoUrl(mailtoUrl)
 		const subject = mailTo.subject
-		const body = appendEmailSignature(mailTo.body)
+		const body = appendEmailSignature(mailTo.body, logins.getUserController().props)
 		const recipients = {
 			to: mailTo.to.map(mailAddressToRecipient),
 			cc: mailTo.cc.map(mailAddressToRecipient),
@@ -632,8 +630,30 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
 	})
 }
 
+/**
+ * Create and show a new mail editor with an invite message
+ * @param link: the link to the giftcard
+ * @param svg: an SVGElement that is the DOM node of the rendered gift card (note: This should be an SVGElement, but flow doesn't have declarations for that)
+ * @param mailboxDetails
+ * @returns {*}
+ */
+export function writeGiftCardMail(link: string, svg: HTMLElement, mailboxDetails?: MailboxDetail) {
+	_mailboxPromise(mailboxDetails).then(mailbox => {
+		let bodyText = lang.get("defaultShareGiftCardBody_msg", {
+			'{link}': '<a href="' + link + '">' + link + '</a>',
+			'{username}': logins.getUserController().userGroupInfo.name,
+		}).split("\n").join("<br />");
+		const subject = lang.get("defaultShareGiftCardSubject_msg")
+		defaultSendMailModel(mailbox)
+			.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false)
+			.then(model => createMailEditorDialog(model, false))
+			.then(dialog => dialog.show())
+	})
+}
+
 function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
 	return mailbox
 		? Promise.resolve(mailbox)
 		: locator.mailModel.getUserMailboxDetails()
 }
+

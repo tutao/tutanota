@@ -78,6 +78,7 @@ const infoLinks = {
 	"phishing_link": "https://tutanota.com/faq#phishing",
 	"mailAuth_link": "https://tutanota.com/faq#mail-auth",
 	"runInBackground_link": "https://tutanota.com/faq#tray",
+	"giftCardsTerms_link": "https://tutanota.com/faq#gift-cards-terms",
 	//blog
 	"premiumProBusiness_link": "https://tutanota.com/blog/posts/premium-pro-business"
 }

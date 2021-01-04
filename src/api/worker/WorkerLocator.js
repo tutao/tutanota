@@ -23,6 +23,7 @@ import {ShareFacade} from "./facades/ShareFacade"
 import {RestClient} from "./rest/RestClient"
 import {SuspensionHandler} from "./SuspensionHandler"
 import {EntityClient} from "../common/EntityClient"
+import {GiftCardFacade} from "./facades/GiftCardFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -45,6 +46,7 @@ type WorkerLocatorType = {
 	Const: Object;
 	share: ShareFacade;
 	restClient: RestClient;
+	giftCards: GiftCardFacade;
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -82,6 +84,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.login)
+	locator.giftCards = new GiftCardFacade(locator.login)
 }
 
 export function resetLocator(): Promise<void> {

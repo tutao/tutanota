@@ -295,7 +295,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 
 	o.spec("testCompareContactsForMerge", function () {
-		o("contacts are equal", function () {
+		o("contacts are equal 1", function () {
 			const c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
 			const c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
@@ -321,7 +321,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
 		})
-		o("contacts are equal", function () {
+		o("contacts are equal 2", function () {
 			const c1 = createEmailPhoneContact("anton", "schmidt", [], [])
 			const c2 = createEmailPhoneContact("anton", "schmidt", [], [])
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
@@ -365,14 +365,14 @@ o.spec("ContactMergeUtilsTest", function () {
 		})
 
 
-		o("contacts are similar - last name matches", function () {
+		o("contacts are similar - last name matches 1", function () {
 			const c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			const c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar - last name matches", function () {
+		o("contacts are similar - last name matches 2", function () {
 			const c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			const c2 = createEmailPhoneContact("", "schmidt", [""], [""])
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
@@ -480,7 +480,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 1", function () {
 			let c1 = createEmailPhoneContact("anton", "schmidt", [], [])
 			let c2 = createEmailPhoneContact("anton", "schmidt", [], [])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "A", [], [])
@@ -489,7 +489,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 2", function () {
 			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "b", "A", [], [])
@@ -497,7 +497,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
-		o("contacts are similar", function () {
+		o("contacts are similar 3", function () {
 			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "A", ["Facebook sucks in privacy", "Google also does"], [
@@ -508,7 +508,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 4", function () {
 			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
@@ -517,7 +517,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 5", function () {
 			let c1 = createEmailPhoneContact("anton", "Bob", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
@@ -526,7 +526,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 6", function () {
 			let c1 = createEmailPhoneContact("bob", "schmidt", [""], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
@@ -535,7 +535,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 7", function () {
 			let c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
@@ -544,7 +544,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 8", function () {
 			let c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("", "schmidt", [""], [""])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "", ["A", "B", "C"], ["A", "B", "C"])
@@ -553,7 +553,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 9", function () {
 			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
@@ -562,7 +562,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 10", function () {
 			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
@@ -571,7 +571,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 11", function () {
 			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
@@ -580,7 +580,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 12", function () {
 			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
 			let c2 = createEmailPhoneContact("anton", "tom", ["anton@mail.de"], ["1234567"])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
@@ -589,7 +589,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 13", function () {
 			let c1 = createEmailPhoneContact("", "", [], [])
 			let c2 = createEmailPhoneContact("a", "tom", [], [])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
@@ -598,7 +598,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 14", function () {
 			let c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
 			let c2 = createEmailPhoneContact("a", "tom", ["a@b.de"], [])
 			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
@@ -607,7 +607,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 15", function () {
 			let c1 = createEmailPhoneContact("", "", [], ["123456"])
 			let c2 = createEmailPhoneContact("a", "tom", [], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "", "", "", "", ["Diaspora my be better than Facebook"], ["Hannover"])
@@ -616,7 +616,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 16", function () {
 			let c1 = createEmailPhoneContact("", "", [], ["123456"])
 			let c2 = createEmailPhoneContact("", "", [], ["123456"])
 			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
@@ -625,7 +625,7 @@ o.spec("ContactMergeUtilsTest", function () {
 			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 		})
 
-		o("contacts are similar", function () {
+		o("contacts are similar 17", function () {
 			let c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
 			let c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
 			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])

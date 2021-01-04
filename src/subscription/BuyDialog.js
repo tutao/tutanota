@@ -116,7 +116,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 		if (featureType === BookingItemFeatureType.Users) {
 			if (count > 0) {
 				let additionalFeatures = []
-				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding) > 0) {
+				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Whitelabel) > 0) {
 					additionalFeatures.push(lang.get("whitelabel_label"))
 				}
 				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing) > 0) {
@@ -132,11 +132,11 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			}
 
 
-		} else if (featureType === BookingItemFeatureType.Branding) {
+		} else if (featureType === BookingItemFeatureType.Whitelabel) {
 			if (count > 0) {
-				return lang.get("whitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("whitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Whitelabel)).count})
 			} else {
-				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
+				return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Whitelabel)).count})
 			}
 		} else if (featureType === BookingItemFeatureType.Sharing) {
 			if (count > 0) {
@@ -257,7 +257,7 @@ function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString
 	let item = getPriceItem(priceData, featureType)
 	let itemPrice = item ? Number(item.price) : 0
 	if (featureType === BookingItemFeatureType.Users) {
-		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)
+		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Whitelabel)
 		itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Sharing)
 	}
 	return itemPrice

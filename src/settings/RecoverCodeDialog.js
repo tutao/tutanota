@@ -75,7 +75,7 @@ export class RecoverCodeField {
 			m(".flex.flex-end.mt-m", [
 				m(ButtonN, {
 					label: "copy_action",
-					icon: () => Icons.Copy,
+					icon: () => Icons.Clipboard,
 					click: () => copyToClipboard(vnode.attrs.recoverCode)
 				}),
 				isApp() || typeof window.print !== 'function' ? null : m(ButtonN, {

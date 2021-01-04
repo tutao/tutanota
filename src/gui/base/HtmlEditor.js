@@ -58,45 +58,25 @@ export class HtmlEditor {
 		})
 
 		let focus = () => {
-			if (!this._active) {
-				this._active = true
-			}
-
-			if (this._showBorders) {
-				if (this._modeSwitcher) {
-					this._borderDomElement.classList.remove("editor-no-top-border")
-				}
-				this._borderDomElement.classList.add("editor-border-active")
-				this._borderDomElement.classList.remove("editor-border")
-			}
+			this._active = true
+			m.redraw()
 		}
 
 		let blur = () => {
-			if (this._active) {
-				this._active = false
-			}
+			this._active = false
 			if (this._mode() === Mode.WYSIWYG) {
 				this._value(this._editor.getValue())
 			} else {
 				this._value(this._domTextArea.value)
 			}
-
-			if (this._showBorders) {
-
-				if (this._modeSwitcher) {
-					this._borderDomElement.classList.add("editor-no-top-border")
-				}
-				this._borderDomElement.classList.remove("editor-border-active")
-				this._borderDomElement.classList.add("editor-border")
-			}
-			m.redraw()
 		}
 
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					oncreate: vnode => this._placeholderDomElement = vnode.dom,
-					onclick: () => this._mode()
-					=== Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
+					onclick: () => this._mode() === Mode.WYSIWYG
+						? this._editor._domElement.focus()
+						: this._domTextArea.focus()
 				},
 				(this._placeholderId ? lang.get(this._placeholderId) : "")
 			) : null
@@ -108,14 +88,19 @@ export class HtmlEditor {
 		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions)
 
 		this.view = () => {
+			const borderClasses = this._showBorders
+				? (this._active
+						? ".editor-border-active"
+						: (".editor-border" + (this._modeSwitcher ? ".editor-no-top-border" : ""))
+				)
+				: ""
+
 			return m(".html-editor" + (this._mode() === Mode.WYSIWYG ? ".text-break" : ""), [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
 				(label)
 					? m(".small.mt-form", lang.getMaybeLazy(label))
 					: null,
-				m((this._showBorders ? ".editor-border" : "") + (this._modeSwitcher ? ".editor-no-top-border" : ""), {
-					oncreate: vnode => this._borderDomElement = vnode.dom
-				}, [
+				m(borderClasses, [
 					getPlaceholder(),
 					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
 						m(".flex-end.mr-negative-s.sticky.pb-2", [

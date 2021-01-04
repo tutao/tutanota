@@ -57,6 +57,7 @@ declare class Promise<+R> {
 
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
 	catch<U, ErrorT: Error>(err: (Class<ErrorT> | (Error) => boolean), onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
+	catch<U, ErrorT1: Error, ErrorT2: Error>(e1: Class<ErrorT1>, e2: Class<ErrorT2>, onReject: (error: (ErrorT1 | ErrorT2)) => ?Promise<U> | U): Promise<U>;
 
 	finally<R>(onDone?: () => mixed): Promise<R>;
 
@@ -93,6 +94,9 @@ declare class Promise<+R> {
 	static map<T, U>(array: $Promisable<Iterable<T>>,
 	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
 	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;
+	static mapSeries<T, U>(array: $Promisable<Iterable<T>>,
+	                       mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U
+	): Promise<U[]>;
 	static each<T, U>(array: Promise<Iterable<T>> | Iterable<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
 	static join<T, A, B>(value1: $Promisable<A>, value2: $Promisable<B>, handler: (a: A, b: B) => $Promisable<T>): Promise<any>;

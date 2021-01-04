@@ -15,7 +15,7 @@ export function requiresStatusBarHack(): boolean {
 	return isApp() && client.device === "iPhone" && client.browserVersion < 11
 }
 
-function getFonts(): string {
+export function getFonts(): string {
 	// see https://bitsofco.de/the-new-system-font-stack/
 	const fonts: Array<string> = [
 		'-apple-system', 'system-ui', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'
@@ -952,6 +952,10 @@ styles.registerStyle('main', () => {
 			display: 'none'
 		},
 
+		'.resize-none': {
+			resize: 'none'
+		},
+
 		// table
 
 		'.table': {
@@ -1348,8 +1352,11 @@ styles.registerStyle('main', () => {
 		".noscreen": {
 			"display": "none",
 		},
-
 		"@media print": {
+			".color-adjust-exact": {
+				"color-adjust": "exact",
+				"-webkit-print-color-adjust": "exact"
+			},
 			".noprint": {
 				"display": "none",
 			},
@@ -1417,7 +1424,7 @@ styles.registerStyle('main', () => {
 			},
 			".expander-panel": {
 				display: "none"
-			}
+			},
 		},
 
 		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7

@@ -57,7 +57,7 @@ export type UpgradeSubscriptionData = {
 	premiumPrices: PlanPrices,
 	teamsPrices: PlanPrices,
 	proPrices: PlanPrices,
-	currentSubscription: ?SubscriptionTypeEnum
+	currentSubscription: ?SubscriptionTypeEnum,
 }
 
 const TOKEN_PARAM_NAME = "#token="
@@ -83,7 +83,7 @@ export function deleteCampaign(): void {
 	}
 }
 
-function loadUpgradePrices(): Promise<UpgradePriceServiceReturn> {
+export function loadUpgradePrices(): Promise<UpgradePriceServiceReturn> {
 	let data = createUpgradePriceServiceData()
 	data.date = Const.CURRENT_DATE
 	data.campaign = getCampaign()
@@ -220,3 +220,4 @@ export function loadSignupWizard(): Promise<Dialog> {
 		return wizard
 	})
 }
+

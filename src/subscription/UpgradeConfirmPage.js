@@ -82,7 +82,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					return this.close(a.data, vnode.dom)
 				})
 				.catch(PreconditionFailedError, e => {
-					Dialog.error(() => lang.get(getPreconditionFailedPaymentMsg(e))
+					Dialog.error(() => lang.get(getPreconditionFailedPaymentMsg(e.data))
 						+ ((a.data.upgradeType === UpgradeType.Signup) ? " "
 							+ lang.get("accountWasStillCreated_msg") : ""))
 				})

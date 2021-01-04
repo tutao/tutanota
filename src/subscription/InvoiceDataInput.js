@@ -14,6 +14,8 @@ import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServi
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import type {LocationServiceGetReturn} from "../api/entities/sys/LocationServiceGetReturn"
 import type {Country} from "../api/common/CountryList"
+import {createCountryDropdown} from "../gui/base/GuiUtils"
+
 
 export class InvoiceDataInput {
 	view: Function;
@@ -34,17 +36,8 @@ export class InvoiceDataInput {
 
 		this._vatNumberField = new TextField("invoiceVatIdNo_label", () => lang.get("invoiceVatIdNoInfoBusiness_msg"))
 
-		const countries = Countries.map(c => ({value: c, name: c.n}))
-		countries.push({value: null, name: lang.get("choose_label")});
 		this.selectedCountry = stream(null)
-
-		const countryInput = new DropDownSelector("invoiceCountry_label",
-			() => lang.get("invoiceCountryInfoConsumer_msg"),
-			countries,
-			this.selectedCountry,
-			250).setSelectionChangedHandler(value => {
-			this.selectedCountry(value)
-		})
+		const countryInput = createCountryDropdown(this.selectedCountry, () => lang.get("invoiceCountryInfoConsumer_msg"))
 
 		this._invoiceAddressComponent.setValue(invoiceData.invoiceAddress)
 		this._vatNumberField.setValue(invoiceData.vatNumber)

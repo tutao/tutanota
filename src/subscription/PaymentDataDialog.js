@@ -22,7 +22,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 /**
  * @returns {boolean} true if the payment data update was successful
  */
-export function show(accountingInfo: AccountingInfo): Promise<boolean> {
+export function show(accountingInfo: AccountingInfo, price: number): Promise<boolean> {
 	let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
 	let invoiceData = {
@@ -69,7 +69,8 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false))
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false, price
+					+ "", accountingInfo))
 					.then(success => {
 						if (success) {
 							dialog.close()

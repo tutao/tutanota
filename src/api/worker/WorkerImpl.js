@@ -12,7 +12,7 @@ import {nativeApp} from "../../native/NativeWrapper"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
-import {keyToBase64} from "./crypto/CryptoUtils"
+import {base64ToKey, keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
@@ -23,6 +23,8 @@ import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAcc
 import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
+import {LazyLoaded} from "../common/utils/LazyLoaded"
+import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()
@@ -340,6 +342,18 @@ export class WorkerImpl {
 			getEventByUid: (message: Request) => {
 				return locator.calendar.getEventByUid(...message.args)
 			},
+
+			generateGiftCard: (message: Request) => {
+				return locator.giftCards.generateGiftCard(message.args[0], message.args[1], message.args[2])
+			},
+
+			getGiftCardInfo: (message: Request) => {
+				return locator.giftCards.getGiftCardInfo(message.args[0], base64ToKey(message.args[1]))
+			},
+
+			redeemGiftCard: (message: Request) => {
+				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
+			}
 		})
 
 		// only register oncaught error handler if we are in the *real* worker scope
@@ -416,10 +430,6 @@ export class WorkerImpl {
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
 	}
 
-	updateEntityEventProgress(state: number): Promise<void> {
-		return this._queue.postMessage(new Request("updateEntityEventProgress", [state]))
-	}
-
 	updateCounter(update: WebsocketCounterData): Promise<void> {
 		return this._queue.postMessage(new Request("counterUpdate", [update]))
 	}
@@ -428,9 +438,18 @@ export class WorkerImpl {
 		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
 
+	createProgressMonitor(totalWork: number): Promise<ProgressMonitorId> {
+		return this._queue.postMessage(new Request("createProgressMonitor", [totalWork]))
+	}
+
+	progressWorkDone(reference: ProgressMonitorId, totalWork: number): Promise<void> {
+		return this._queue.postMessage(new Request("progressWorkDone", [reference, totalWork]))
+	}
+
 	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
 		return this._queue.postMessage(new Request("updateLeaderStatus", [status]))
 	}
 
 }
+
 

@@ -42,7 +42,12 @@ export class Logger {
 
 	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
 		const formattedArgs = rest.map((obj) => {
-			return (obj instanceof Error ? errorToString(obj) : JSON.stringify(obj))
+			try {
+				return (obj instanceof Error ? errorToString(obj) : JSON.stringify(obj))
+			} catch (e) {
+				return "[cyclic object]"
+			}
+
 		})
 		const message = formattedArgs.join(",")
 		return `${date.toISOString()} ${level} ${message}`

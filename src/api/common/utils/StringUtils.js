@@ -60,3 +60,12 @@ export function repeat(value: string, length: number): string {
 export function cleanMatch(s1: string, s2: string): boolean {
 	return s1.toLowerCase().trim() === s2.toLowerCase().trim()
 }
+
+/**
+ * split a string at a given index
+ * @param str
+ * @param index
+ */
+export function splitAt(str: string, index: number): [string, string] {
+	return [str.substring(0, index), str.substring(index)]
+}

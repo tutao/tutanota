@@ -23,8 +23,14 @@ import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
 import type {ILoginViewController} from "./LoginViewController"
 import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
+import {getTokenFromUrl} from "../subscription/giftcards/GiftCardUtils"
+import {Dialog} from "../gui/base/Dialog"
+import {loadRedeemGiftCardWizard} from "../subscription/giftcards/RedeemGiftCardWizard"
+import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {worker} from "../api/main/WorkerClient"
+import {UserError} from "../api/common/error/UserError"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -253,6 +259,7 @@ export class LoginView {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
+	// TODO Replace this with LoginForm
 	renderLoginForm(): Children {
 		return m("form", {
 			onsubmit: (e) => {
@@ -333,6 +340,7 @@ export class LoginView {
 		])
 	}
 
+	// TODO Replace this with CredentialsSelector
 	renderCredentialsSelector(): Children {
 		return this._knownCredentials.map(c => {
 			const credentialButtons = [];
@@ -376,6 +384,22 @@ export class LoginView {
 			this._signup()
 			return
 		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
+			return
+		} else if (requestedPath.startsWith("/giftcard")) {
+
+			const showWizardPromise =
+				Promise.resolve()
+				       .then(() => getTokenFromUrl(location.hash))
+				       .spread((id, key) => {
+					       return worker.initialized
+					                    .then(() => worker.getGiftCardInfo(id, key))
+					                    .then(giftCardInfo => loadRedeemGiftCardWizard(giftCardInfo, key))
+				       })
+
+			showProgressDialog("loading_msg", showWizardPromise)
+				.then(dialog => dialog.show())
+				.catch(NotAuthorizedError, NotFoundError, () => { throw new UserError("invalidGiftCard_msg") })
+				.catch(UserError, showUserError)
 			return
 		}
 		this._showingSignup = false

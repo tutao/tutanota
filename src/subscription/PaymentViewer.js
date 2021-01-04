@@ -8,7 +8,7 @@ import {TextField} from "../gui/base/TextField"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {createNotAvailableForFreeClickHandler, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
+import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -42,6 +42,9 @@ import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import type {CustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {locator} from "../api/main/MainLocator"
+import {BookingTypeRef} from "../api/entities/sys/Booking"
+import type {Booking} from "../api/entities/sys/Booking"
 
 assertMainOrNode()
 
@@ -50,6 +53,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_paymentMethodField: TextField;
 	_accountingInfo: ?AccountingInfo;
 	_postings: CustomerAccountPosting[]
+	_outstandingBookingsPrice: number
+	_lastBooking: ?Booking
 	_paymentBusy: boolean;
 	_invoiceVatNumber: TextField;
 	_invoiceInfo: ?InvoiceInfo;
@@ -78,7 +83,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 							country: invoiceCountry,
 							vatNumber: accountingInfo.invoiceVatIdNo
-						}
+						},
+						accountingInfo
 					)
 				}
 			}, () => logins.getUserController().isPremiumAccount()),
@@ -88,12 +94,18 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			label: "paymentMethod_label",
 			click: createNotAvailableForFreeClickHandler(true, () => {
 					if (this._accountingInfo) {
-						PaymentDataDialog.show(this._accountingInfo).then(success => {
-							if (success) {
-								if (this._isPayButtonVisible()) {
-									return this._showPayDialog(this._openBalance())
+						let lastPosting = neverNull(this._postings[0])
+						let nextPayment = Number(lastPosting.balance) * -1
+						showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
+							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
+						})).then(price => {
+							return PaymentDataDialog.show(neverNull(this._accountingInfo), price).then(success => {
+								if (success) {
+									if (this._isPayButtonVisible()) {
+										return this._showPayDialog(this._amountOwed())
+									}
 								}
-							}
+							})
 						})
 					}
 				},
@@ -106,6 +118,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._paymentMethodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._paymentMethodField._injectionsRight = () => [m(ButtonN, changePaymentDataButtonAttrs)]
 		this._postings = []
+		this._lastBooking = null
 		this._paymentBusy = false
 
 		const postingExpanded = stream(false)
@@ -140,32 +153,38 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						m.redraw()
 					})
 			})
-
-
-		this._updatePostingsTable()
+			.then(() => this._loadPostings())
+			.then(() => this._loadBookings())
 	}
 
 	_renderPostings(postingExpanded: Stream<boolean>): Children {
 		if (!this._postings || this._postings.length === 0) {
 			return null
 		} else {
+			const balance = Number.parseFloat(this._postings[0].balance)
 			return [
 				m(".h4.mt-l", lang.get('currentBalance_label')),
 				m(".flex.center-horizontally.center-vertically.col", [
-					m("div.h4.pt.pb"
-						+ (this._openBalance() ? ".content-accent-fg" : ""), formatPrice(Number(this._postings[0].balance), true)),
+					m("div.h4.pt.pb" + (this._isAmountOwed() ? ".content-accent-fg" : ""),
+						formatPrice(balance, true) + (this._accountBalance()
+						!== balance ? ` (${formatPrice(this._accountBalance(), true)})` : "")
+					),
+					this._accountBalance() !== balance
+						? m(".small" + (this._accountBalance() < 0 ? ".content-accent-fg" : ""),
+						lang.get("unprocessedBookings_msg", {"{amount}": formatPrice(this._outstandingBookingsPrice, true)}))
+						: null,
 					this._isPayButtonVisible()
 						? m(".pb", {style: {width: '200px'}}, m(ButtonN, {
 							label: "invoicePay_action",
 							type: ButtonType.Login,
-							click: () => this._showPayDialog(this._openBalance())
+							click: () => this._showPayDialog(this._amountOwed())
 						}))
 						: null,
 				]),
-				(this._openBalance() && this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice)
+				(this._isAmountOwed() && this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice)
 					? (
 						(this._invoiceInfo && this._invoiceInfo.paymentErrorInfo)
-							? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(new PreconditionFailedError("dummy-msg", this._invoiceInfo.paymentErrorInfo.errorCode))))
+							? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this._invoiceInfo.paymentErrorInfo.errorCode)))
 							: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
 					)
 					: null,
@@ -218,7 +237,14 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	_openBalance(): number {
+	_accountBalance(): number {
+		const balance = this._postings && this._postings.length > 0
+			? Number(this._postings[0].balance)
+			: 0
+		return balance - this._outstandingBookingsPrice
+	}
+
+	_amountOwed(): number {
 		if (this._postings != null && this._postings.length > 0) {
 			let balance = Number(this._postings[0].balance)
 			if (balance < 0) {
@@ -228,11 +254,29 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return 0
 	}
 
-	_updatePostingsTable() {
-		serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef).then(result => {
-			this._postings = result.postings
-			m.redraw()
-		})
+	_isAmountOwed(): boolean {
+		return this._amountOwed() < 0;
+	}
+
+	_loadBookings(): Promise<void> {
+		return logins.getUserController().loadCustomer()
+		             .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+		             .then(customerInfo => customerInfo.bookings
+			             ? locator.entityClient.loadAll(BookingTypeRef, customerInfo.bookings.items)
+			             : [])
+		             .then(bookings => {
+			             this._lastBooking = bookings[bookings.length - 1]
+			             m.redraw()
+		             })
+	}
+
+	_loadPostings(): Promise<void> {
+		return serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef)
+			.then(result => {
+				this._postings = result.postings
+				this._outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
+				m.redraw()
+			})
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
@@ -249,6 +293,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 			return load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
 				this._invoiceInfo = invoiceInfo
+				m.redraw()
 			})
 		} else {
 			return Promise.resolve()
@@ -260,7 +305,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return this._accountingInfo != null &&
 			(this._accountingInfo.paymentMethod === PaymentMethodType.CreditCard || this._accountingInfo.paymentMethod
 				=== PaymentMethodType.Paypal)
-			&& this._openBalance() < 0
+			&& this._isAmountOwed()
 	}
 
 	_showPayDialog(openBalance: number): Promise<void> {
@@ -284,7 +329,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						})
 						.catch(LockedError, e => "operationStillActive_msg")
 						.catch(PreconditionFailedError, error => {
-							return getPreconditionFailedPaymentMsg(error)
+							return getPreconditionFailedPaymentMsg(error.data)
 						}).catch(BadGatewayError, error => {
 							return "paymentProviderNotAvailableError_msg"
 						}).catch(TooManyRequestsError, error => {

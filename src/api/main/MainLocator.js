@@ -12,6 +12,7 @@ import {ContactModelImpl} from "../../contacts/ContactModel"
 import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/CalendarModel"
+import {ProgressTracker} from "./ProgressTracker"
 
 assertMainOrNode()
 
@@ -24,18 +25,21 @@ export type MainLocatorType = {|
 	init: (WorkerClient) => void;
 	contactModel: ContactModel;
 	entityClient: EntityClient;
+	progressTracker: ProgressTracker;
 |}
 
 export const locator: MainLocatorType = ({
 	init(worker: WorkerClient) {
 		this.eventController = new EventController(logins)
 		this.entropyCollector = new EntropyCollector(worker)
+		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(worker)
 		this.mailModel = new MailModel(notifications, this.eventController, worker)
-		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins)
+		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker)
 		this.contactModel = new ContactModelImpl(worker)
 		this.entityClient = new EntityClient(worker)
-	},
+
+	}
 }: any)
 
 if (typeof window !== "undefined") {

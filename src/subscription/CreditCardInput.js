@@ -1,43 +1,30 @@
 //@flow
-import {TextField} from "../gui/base/TextField"
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import {createCreditCard} from "../api/entities/sys/CreditCard"
 import type {CreditCard} from "../api/entities/sys/CreditCard"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
-
-export class CreditCardInput {
-
-	view: Function;
-
-	cardHolderName: TextField;
-	creditCardNumber: TextField;
-	cvv: TextField;
-	expirationDate: TextField;
-
+export class CreditCardAttrs {
+	cardHolderName: Stream<string>;
+	creditCardNumber: Stream<string>;
+	cvv: Stream<string>;
+	expirationDate: Stream<string>;
 
 	constructor() {
-		this.creditCardNumber = new TextField("creditCardNumber_label")
-		this.cardHolderName = new TextField("creditCardCardHolderName_label")
-		this.cvv = new TextField("creditCardCVV_label")
-		this.expirationDate = new TextField("creditCardExpirationDate_label", () => lang.get("creditCardExpirationDateFormat_msg"))
-
-		this.view = () => {
-			return [
-				m(this.creditCardNumber),
-				m(this.cardHolderName),
-				m(this.cvv),
-				m(this.expirationDate)
-			]
-		}
+		this.creditCardNumber = stream("")
+		this.cardHolderName = stream("")
+		this.cvv = stream("")
+		this.expirationDate = stream("")
 	}
 
 	getCreditCardData(): CreditCard {
-		let monthAndYear = this.expirationDate.value().split("/")
+		let monthAndYear = this.expirationDate().split("/")
 		let cc = createCreditCard();
-		cc.number = this.creditCardNumber.value()
-		cc.cardHolderName = this.cardHolderName.value()
-		cc.cvv = this.cvv.value()
+		cc.number = this.creditCardNumber()
+		cc.cardHolderName = this.cardHolderName()
+		cc.cvv = this.cvv()
 		cc.expirationMonth = monthAndYear.length > 0 ? monthAndYear[0] : ""
 		cc.expirationYear = monthAndYear.length > 1 ? monthAndYear[1] : ""
 		return cc;
@@ -45,18 +32,35 @@ export class CreditCardInput {
 
 	setCreditCardData(data: ?CreditCard): void {
 		if (data) {
-			this.creditCardNumber.value(data.number)
-			this.cardHolderName.value(data.cardHolderName)
-			this.cvv.value(data.cvv)
+			this.creditCardNumber(data.number)
+			this.cardHolderName(data.cardHolderName)
+			this.cvv(data.cvv)
 			if (data.expirationMonth && data.expirationYear) {
-				this.expirationDate.value(data.expirationMonth + "/" + data.expirationYear)
+				this.expirationDate(data.expirationMonth + "/" + data.expirationYear)
 			}
 		} else {
-			this.creditCardNumber.value("")
-			this.cardHolderName.value("")
-			this.cvv.value("")
-			this.expirationDate.value("")
+			this.creditCardNumber("")
+			this.cardHolderName("")
+			this.cvv("")
+			this.expirationDate("")
 		}
+	}
+}
+
+export class CreditCardInput {
+
+	view(vnode: Vnode<CreditCardAttrs>): Children {
+		let attrs = vnode.attrs
+		return [
+			m(TextFieldN, {label: "creditCardNumber_label", value: attrs.creditCardNumber}),
+			m(TextFieldN, {label: "creditCardCardHolderName_label", value: attrs.cardHolderName}),
+			m(TextFieldN, {label: "creditCardCVV_label", value: attrs.cvv}),
+			m(TextFieldN, {
+				label: "creditCardExpirationDate_label",
+				helpLabel: () => lang.get("creditCardExpirationDateFormat_msg"),
+				value: attrs.expirationDate
+			}),
+		]
 	}
 
 }

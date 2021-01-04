@@ -4,15 +4,17 @@ import stream from "mithril/stream/stream.js"
 import {BootIcons} from "./icons/BootIcons"
 import {Icon} from "./Icon"
 import {addFlash, removeFlash} from "./Flash"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
 
 export type CheckboxAttrs = {
 	label: lazy<string | VirtualElement>,
 	checked: Stream<boolean>,
-	helpLabel?: lazy<string>,
+	helpLabel?: TranslationKey | lazy<string>,
 	disabled?: boolean,
 }
 
-export class _Checkbox {
+export class CheckboxN implements MComponent<CheckboxAttrs> {
 	focused: Stream<boolean>;
 	_domInput: HTMLElement;
 	_domIcon: ?HTMLElement;
@@ -63,7 +65,7 @@ export class _Checkbox {
 					class: this.focused() ? "content-accent-fg" : "content-fg",
 				}, a.label()),
 			]),
-			a.helpLabel ? m("small.block.content-fg", a.helpLabel()) : [],
+			a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : [],
 		])
 	}
 
@@ -77,5 +79,3 @@ export class _Checkbox {
 		}
 	}
 }
-
-export const CheckboxN: Class<MComponent<CheckboxAttrs>> = _Checkbox
