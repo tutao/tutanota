@@ -12,7 +12,6 @@ export type CheckboxAttrs = {
 	checked: Stream<boolean>,
 	helpLabel?: TranslationKey | lazy<string>,
 	disabled?: boolean,
-	disabledTextId?: TranslationKey
 }
 
 export class CheckboxN implements MComponent<CheckboxAttrs> {
@@ -26,9 +25,7 @@ export class CheckboxN implements MComponent<CheckboxAttrs> {
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
-		const helpLabel = a.disabled
-			? a.disabledTextId ? m("small.block.content-fg", lang.get(a.disabledTextId)) : []
-			: a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
+		const helpLabel = a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
 		return m(".checkbox.click.pt", {
 			onclick: (e: MouseEvent) => {
 				if (e.target !== this._domInput) {

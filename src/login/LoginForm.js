@@ -74,6 +74,8 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 			type: Type.Password
 		}
 
+		const canSaveCredentials = !!client.localStorage()
+
 		return m("form", {
 			onsubmit: (e) => {
 				// do not post the form, the form is just here to enable browser auto-fill
@@ -96,9 +98,8 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 				? m(CheckboxN, {
 					label: () => lang.get("storePassword_action"),
 					checked: a.savePassword,
-					helpLabel: "onlyPrivateComputer_msg",
-					disabled: !client.localStorage(),
-					disabledTextId: "functionNotSupported_msg"
+					helpLabel: canSaveCredentials ? "onlyPrivateComputer_msg" : "functionNotSupported_msg",
+					disabled: !canSaveCredentials,
 				})
 				: null,
 			m(".pt", m(ButtonN, {
