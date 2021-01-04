@@ -837,6 +837,7 @@ module.exports = {
 		"paymentMethodNotAvailable_msg": "Diese Bezahlmethode ist in dem gewählten Land nicht verfügbar.",
 		"paymentMethodOnAccount_label": "Auf Rechnung",
 		"paymentMethodOnAccount_msg": "Du bezahlst die Rechnungen per Überweisung und musst Dich selbst darum kümmern. Der Betrag wird nicht automatisch von Deinem Konto eingezogen.",
+		"paymentMethodAccountBalance_msg": "Du bezahlst Rechnungen mit Guthaben aus deinem Account. Du kannst Guthaben nur durch das Einlösen von Gutscheinen aufladen",
 		"paymentMethod_label": "Zahlungsmethode",
 		"paymentProviderNotAvailableError_msg": "Der Zahlungsdienstleister ist zur Zeit nicht verfügbar. Bitte versuche es später erneut.",
 		"payPalRedirect_msg": "Du wirst zur Paypal-Webseite weitergeleitet.",

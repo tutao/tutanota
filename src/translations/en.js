@@ -1259,6 +1259,7 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"paymentMethodAccountBalance_msg": "You are paying for your account using account credit. You can top up your credit by using gift cards"
 	}
 }
