@@ -29,7 +29,7 @@ export class CheckboxN implements MComponent<CheckboxAttrs> {
 		const helpLabel = a.disabled
 			? a.disabledTextId ? m("small.block.content-fg", lang.get(a.disabledTextId)) : []
 			: a.helpLabel ? m("small.block.content-fg", lang.getMaybeLazy(a.helpLabel)) : []
-		return m(".checkbox.click", {
+		return m(".checkbox.click.pt", {
 			onclick: (e: MouseEvent) => {
 				if (e.target !== this._domInput) {
 					this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()
