@@ -7,7 +7,7 @@ import {Button} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {asyncImport, neverNull} from "../api/common/utils/Utils"
+import {asyncImport, defer, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
@@ -33,6 +33,7 @@ import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
+import type {DeferredObject} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -46,9 +47,9 @@ export class LoginView {
 	targetPath: string;
 	mailAddress: Stream<string>;
 	password: Stream<string>;
-	// we save the password dom element so that we can focus it when loginWith is passed as a param
-	// lazy because it wont have been initialized in oncreate
-	passwordInput: lazy<HTMLInputElement>;
+	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
+	// in order to focus it
+	loginForm: DeferredObject<LoginForm>;
 	helpText: Vnode<any> | string;
 	invalidCredentials: boolean;
 	accessExpired: boolean;
@@ -74,6 +75,7 @@ export class LoginView {
 		this.invalidCredentials = false
 		this.accessExpired = false
 		this.password = stream("")
+		this.loginForm = defer()
 		this.savePassword = stream(false)
 		this._knownCredentials = []
 		this._isDeleteCredentials = false;
@@ -239,7 +241,7 @@ export class LoginView {
 	renderLoginForm(): Children {
 		return m("", {
 			oncreate: vnode => {
-				this.passwordInput = () => (vnode.children[0].state: LoginForm).passwordTextField._domInput
+				this.loginForm.resolve(vnode.children[0].state)
 			}
 		}, m(LoginForm, {
 			onSubmit: () => this.login(),
@@ -391,8 +393,9 @@ export class LoginView {
 				this.accessExpired = false
 
 				this.password("")
-				const passwordInput = this.passwordInput()
-				if (passwordInput) passwordInput.focus()
+				this.loginForm.promise.then((loginForm: LoginForm) => {
+					loginForm.passwordTextField.domInput.focus()
+				})
 
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
