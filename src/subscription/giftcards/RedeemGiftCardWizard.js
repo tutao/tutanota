@@ -212,7 +212,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					      .catch(e => {
 						      // TODO when would login fail here and how does it get handled? can we attempt to login again?
 						      Dialog.error("giftCardLoginError_msg")
-						      m.route.set("/login?noAutoLogin=true")
+						      m.route.set("/login", {noAutoLogin: true})
 					      })
 				}
 			},

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-12-28T09:13:58Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -420,7 +420,6 @@ module.exports = {
 		"functionNotSupported_msg": "您的设备或浏览器不支持此功能。",
 		"germanLanguageFile_label": "德语文件",
 		"giftCardCopied_msg": "礼品卡网址已复制到剪贴板！",
-		"giftCardRedeemed_msg": "礼品卡兑换成功。",
 		"giftCards_label": "礼品卡",
 		"giftCardTerms_label": "请同意礼品卡使用条款与条件",
 		"giftCard_label": "礼品卡",

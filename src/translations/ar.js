@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2020-12-29T14:30:40Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -490,7 +490,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "للحصول على رصيد بقيمة {fullCredit} أو اشتراك Premium.",
 		"giftCardOptionTextB_msg": "للحصول على رصيد بقيمة {fullCredit} أو اشتراك مميز برصيد {remainingCredit}.",
 		"giftCardPurchaseFailed_msg": "تعذر شراء بطاقة هدية.",
-		"giftCardRedeemed_msg": "تم استرداد بطاقة هدية بنجاح.",
 		"giftCardSection_label": "شراء  وإدارة بطاقات الهدايا",
 		"giftCardSignupErrorLoggingIn_msg": "تم إنشاء حسابك بنجاح ولكن حدث خطأ أثناء تسجيل دخولك. يُرجى إعادة تحميل الصفحة واستخدام الحساب الجديد لاسترداد بطاقة الهدية.",
 		"giftCards_label": "بطاقات الهدايا ",
@@ -835,6 +834,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "يرجى النقر على زر باي بال لتسجيل الدخول. ستتم إعادة توجيهك إلى موقع باي بال الإلكتروني.",
 		"paymentDataValidation_action": "تأكيد",
 		"paymentMethodAccountBalance_label": "رصيد الحساب",
+		"paymentMethodAccountBalance_msg": "لِسداد حسابك تستخدم رصيد الحساب. يمكنك زيادة رصيدك باستخدام بطاقات الهدايا.",
 		"paymentMethodCreditCard_label": "البطاقة الائتمانية",
 		"paymentMethodNotAvailable_msg": "طريقة الدفع هذه غير متوفرة في بلدك.",
 		"paymentMethodOnAccount_label": "الشراء على الحساب",

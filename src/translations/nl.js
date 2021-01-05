@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2020-12-28T15:45:03Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -488,7 +488,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Voor {fullCredit} krediet of een premium account.",
 		"giftCardOptionTextB_msg": "Voor {fullCredit} tegoed of een premium account met {remainingCredit} tegoed.",
 		"giftCardPurchaseFailed_msg": "Cadeaubon kon niet worden besteld",
-		"giftCardRedeemed_msg": "De cadeaubon is met succes ingewisseld.",
 		"giftCardSection_label": "Koop, verzilver en beheer cadeaubonnen",
 		"giftCardSignupErrorLoggingIn_msg": "Uw account is succesvol aangemaakt. Er is echter een fout opgetreden bij het inloggen. Laad deze pagina opnieuw en gebruik uw nieuwe account om de cadeaubon in te wisselen.",
 		"giftCards_label": "Cadeaubonnen",

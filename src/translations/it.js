@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2020-12-29T08:35:44Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -488,7 +488,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Per un credito di {fullCredit} o un abbonamento Premium.",
 		"giftCardOptionTextB_msg": "Per un credito di {fullCredit} o un abbonamento Premium con credito di {remainingCredit}.",
 		"giftCardPurchaseFailed_msg": "Impossibile acquistare la carta regalo.",
-		"giftCardRedeemed_msg": "La carta regalo è stata riscattata con successo.",
 		"giftCardSection_label": "Acquista e gestisci carte regalo",
 		"giftCardSignupErrorLoggingIn_msg": "Il tuo account è stato creato con successo, ma si è verificato un errore durante l'accesso. Ricarica la pagina e utilizza il nuovo account per riscattare la carta regalo.",
 		"giftCards_label": "Carte regalo",

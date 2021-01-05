@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-12-28T19:27:17Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -484,7 +484,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Tillgodobelopp {fullCredit} eller ett premiumabonnemang.",
 		"giftCardOptionTextB_msg": "Tillgodobelopp {fullCredit} eller ett premiumkonto med saldo {remainingCredit}.",
 		"giftCardPurchaseFailed_msg": "Det går inte att köpa presentkort.",
-		"giftCardRedeemed_msg": "Presentkortet löstes in.",
 		"giftCardSection_label": "Köpa och hantera presentkort",
 		"giftCardSignupErrorLoggingIn_msg": "Ditt konto är skapat men det uppstod ett fel vid inloggningen. Ladda om sidan och använd det nya kontot för att lösa in presentkortet.",
 		"giftCards_label": "Presentkort",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2020-12-28T16:19:55Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -488,7 +488,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Para {fullCredit} de crédito o una suscripción Prémium.",
 		"giftCardOptionTextB_msg": "Para {fullCredit} de crédito o una suscripción Prémium con {remainingCredit} crédito.",
 		"giftCardPurchaseFailed_msg": "No se puede comprar la tarjeta de regalo",
-		"giftCardRedeemed_msg": "La tarjeta de regalo se canjeó con éxito.",
 		"giftCardSection_label": "Comprar y gestionar tarjetas regalo",
 		"giftCardSignupErrorLoggingIn_msg": "Tu cuenta se creó correctamente, pero se ha producido un error al iniciar sesión. Por favor, recarga la página y usa la nueva cuenta para canjear la tarjeta regalo.",
 		"giftCards_label": "Tarjetas de regalo",

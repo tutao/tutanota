@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-01-02T20:58:36Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -488,7 +488,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Por {fullCredit} créditos ou um plano Premium.",
 		"giftCardOptionTextB_msg": "Por {fullCredit} créditos ou um plano Premium com {remainingCredit} créditos.",
 		"giftCardPurchaseFailed_msg": "Impossível comprar cartão-presente.",
-		"giftCardRedeemed_msg": "Cartão de presente resgatado.",
 		"giftCardSection_label": "Compre e administre cartões de presente.",
 		"giftCardSignupErrorLoggingIn_msg": "Sua conta foi criada com sucesso, mas ocorreu um erro durante o login. Por favor, recarregue a página e use a nova conta para resgatar o cartão-presente.\n",
 		"giftCards_label": "Marcador de cartão de presentes.",

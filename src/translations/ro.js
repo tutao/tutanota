@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2020-12-29T21:52:33Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -217,7 +217,7 @@ module.exports = {
 		"confirmDeactivateWhitelabelDomain_msg": "Vrei să dezactivezi autentificarea Tutanota pentru domeniul tău și să ștergi certificatul SSL, simbolul și culorile personalizate?",
 		"confirmDeleteContactForm_msg": "Vrei să ștergi acest formular de contact?",
 		"confirmDeleteFinallyCustomFolder_msg": "Chiar vrei să ștergi definitiv dosarul {1} și toate e-mailurile stocate  în acesta? În funcție de numărul de e-mailuri această acțiune poate dura mai mult timp și va fi efectuată în ascuns.",
-		"confirmDeleteFinallySystemFolder_msg": "Chiar dorești să ștergi definitiv toate e-mailurile din dosarul de sistem \"{1}\"? În funcție de numărul de e-mailuri, această operație poate dura mai mult timp și va fi efectuată în ascuns.",
+		"confirmDeleteFinallySystemFolder_msg": "Chiar dorești să ștergi definitiv toate e-mailurile din dosarul '{1}'? În funcție de numărul de e-mailuri, această operație poate dura mai mult timp și va fi efectuată în ascuns.",
 		"confirmDeleteSecondFactor_msg": "Chiar vrei să ștergi acest al doilea factor?",
 		"confirmFreeAccount_label": "Confirmarea contului gratuit",
 		"confirmNoOtherFreeAccount_msg": "Nu dețin alt cont gratuit.",
@@ -489,7 +489,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Pentru {fullCredit} credit sau un abonament Premium.",
 		"giftCardOptionTextB_msg": "Pentru {fullCredit} credit sau un abonament Premium cu {remainingCredit} credit rămas.",
 		"giftCardPurchaseFailed_msg": "Imposibil de cumpărat cuponul cadou",
-		"giftCardRedeemed_msg": "Cuponul cadou a fost valorificat cu succes.",
 		"giftCardSection_label": "Cumpără, valorifică și gestionează cupoane cadou",
 		"giftCardSignupErrorLoggingIn_msg": "Contul tău a fost creat cu succes, dar a apărut o eroare la conectare. Conectează-te și du-te la Opțiuni -> Abonament pentru a folosi adresa cuponul cadou.",
 		"giftCards_label": "Cupoane cadou",
@@ -834,6 +833,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Faceți clic pe butonul PayPal pentru a vă conecta. Veți fi redirecționat către situl PayPal.",
 		"paymentDataValidation_action": "Confirmă",
 		"paymentMethodAccountBalance_label": "Suma din cont",
+		"paymentMethodAccountBalance_msg": "Plătești contul tău folosind creditul contului. Poți alimenta creditul folosind cupoane cadou.",
 		"paymentMethodCreditCard_label": "Card de credit",
 		"paymentMethodNotAvailable_msg": "Această modalitate de plată nu este disponibilă in țara ta.",
 		"paymentMethodOnAccount_label": "Cumpără în cont",

@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-01-02T17:50:40Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -487,7 +487,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Para {fullCredit} de crédito ou unha subscrición Premium.",
 		"giftCardOptionTextB_msg": "Para {fullCredit} de crédito ou unha subscrición Premium con {remainingCredit} de crédito.",
 		"giftCardPurchaseFailed_msg": "Non se pode mercar a tarxeta agasallo.",
-		"giftCardRedeemed_msg": "Recolleches correctamente a tarxeta agasallo.",
 		"giftCardSection_label": "Merca e xestiona tarxetas agasallo",
 		"giftCardSignupErrorLoggingIn_msg": "Creouse correctamente a túa conta pero houbo un erro ó conectarte. Recarga a páxina e utiliza a túa nova conta para recoller a tarxeta agasallo.",
 		"giftCards_label": "Tarxetas agasallo",
@@ -832,6 +831,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Por favor, pulse no botón PayPal inferior para conectar. Será redirixida ao sitio web PayPal.",
 		"paymentDataValidation_action": "Confirmar",
 		"paymentMethodAccountBalance_label": "Saldo da conta",
+		"paymentMethodAccountBalance_msg": "Estás pagando a conta utilizando o crédito dispoñible. Podes reservar o crédito utilizando tarxetas agasallo.",
 		"paymentMethodCreditCard_label": "Tarxeta de crédito",
 		"paymentMethodNotAvailable_msg": "Este método de pagamento non está dispoñible no teu país.",
 		"paymentMethodOnAccount_label": "Conta bancaria",

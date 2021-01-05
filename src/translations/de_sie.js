@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2020-12-28T15:38:59Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -488,7 +488,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Für {fullCredit} Guthaben oder einen Premium-Account.",
 		"giftCardOptionTextB_msg": "Für {fullCredit} Guthaben oder einen Premium-Account mit {remainingCredit} Guthaben.",
 		"giftCardPurchaseFailed_msg": "Gutschein konnte nicht gebucht werden.",
-		"giftCardRedeemed_msg": "Der Gutschein wurde erfolgreich eingelöst.",
 		"giftCardSection_label": "Gutscheine kaufen und verwalten",
 		"giftCardSignupErrorLoggingIn_msg": "Ihr Account wurde erfolgreich erstellt. Allerdings trat beim Login ein Fehler auf. Bitte laden Sie diese Seite erneut und benutzen Sie Ihren neuen Account zum Einlösen des Gutscheins.",
 		"giftCards_label": "Gutscheine",
@@ -554,7 +553,6 @@ module.exports = {
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
 		"invalidDateFormat_msg": "Ungültiges Format. Gültig: {1}. Jahr ist optional.",
 		"invalidGiftCardPaymentMethod_msg": "Ihr eingetragenes Zahlungsmittel erlaubt keine Bestellung von Gutscheinen.",
-		"paymentMethodAccountBalance_msg" : "Sie bezahlen Rechnungen mit Guthaben aus Ihrem Account. Sie können das Guthaben nur durch Einlösen von Gutscheinen aufladen.",
 		"invalidGiftCard_msg": "Dieser Gutschein kann nicht verwendet werden",
 		"invalidInputFormat_msg": "Ungültiges Format.",
 		"invalidInterval_msg": "Ungültiges Intervall",
@@ -834,6 +832,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Bitte klicken Sie auf den PayPal-Button, um sich bei Paypal einzuloggen. Sie werden dann auf die PayPal-Webseite weitergeleitet.",
 		"paymentDataValidation_action": "Bestätigen",
 		"paymentMethodAccountBalance_label": "Kontoguthaben",
+		"paymentMethodAccountBalance_msg": "Sie bezahlen Rechnungen mit Guthaben aus Ihrem Account. Sie können das Guthaben nur durch Einlösen von Gutscheinen aufladen.",
 		"paymentMethodCreditCard_label": "Kreditkarte",
 		"paymentMethodNotAvailable_msg": "Diese Bezahlmethode ist in dem gewählten Land nicht verfügbar.",
 		"paymentMethodOnAccount_label": "Auf Rechnung",

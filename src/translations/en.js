@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-12-28T15:38:52Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -484,7 +484,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "For {fullCredit} credit or a Premium subscription.",
 		"giftCardOptionTextB_msg": "For {fullCredit} credit or a Premium subscription with {remainingCredit} credit.",
 		"giftCardPurchaseFailed_msg": "Unable to purchase gift card.",
-		"giftCardRedeemed_msg": "The gift card was successfully redeemed.",
 		"giftCardSection_label": "Purchase and manage gift cards",
 		"giftCardSignupErrorLoggingIn_msg": "Your account was created successfully but there was an error logging you in. Please reload the page and use the new account to redeem the gift card.",
 		"giftCards_label": "Gift cards",
@@ -829,6 +828,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website.",
 		"paymentDataValidation_action": "Confirm",
 		"paymentMethodAccountBalance_label": "Account balance",
+		"paymentMethodAccountBalance_msg": "You are paying for your account using account credit. You can top up your credit by using gift cards.",
 		"paymentMethodCreditCard_label": "Credit card",
 		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
 		"paymentMethodOnAccount_label": "Purchase on account",
@@ -1259,7 +1259,6 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"paymentMethodAccountBalance_msg": "You are paying for your account using account credit. You can top up your credit by using gift cards"
+		"you_label": "You"
 	}
 }
