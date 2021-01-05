@@ -25,8 +25,8 @@ export type LoginFormAttrs = {
 export class LoginForm implements MComponent<LoginFormAttrs> {
 
 
-	mailAddressInputState: TextFieldN
-	passwordInputState: TextFieldN
+	mailAddressTextField: TextFieldN
+	passwordTextField: TextFieldN
 
 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 	// it only sends one input/change event for all fields so we didn't know if fields
@@ -39,10 +39,10 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 		this.autofillUpdateHandler = stream.combine(() => {
 			requestAnimationFrame(() => {
 				const oldAddress = a.mailAddress()
-				const newAddress = this.mailAddressInputState._domInput.value
+				const newAddress = this.mailAddressTextField._domInput.value
 
 				const oldPassword = a.password()
-				const newPassword = this.passwordInputState._domInput.value
+				const newPassword = this.passwordTextField._domInput.value
 
 				// only update values when they are different or we get stuck in an infinite loop
 				if (oldAddress !== newAddress) a.mailAddress(newAddress)
@@ -85,12 +85,12 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 		}, [
 			m("", {
 				oncreate: vnode => {
-					this.mailAddressInputState = vnode.children[0].state
+					this.mailAddressTextField = vnode.children[0].state
 				}
 			}, m(TextFieldN, mailAddressFieldAttrs)),
 			m("", {
 				oncreate: vnode => {
-					this.passwordInputState = vnode.children[0].state
+					this.passwordTextField = vnode.children[0].state
 				}
 			}, m(TextFieldN, passwordFieldAttrs)),
 			(a.savePassword && (!whitelabelCustomizations ||

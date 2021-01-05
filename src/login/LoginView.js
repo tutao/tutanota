@@ -46,6 +46,9 @@ export class LoginView {
 	targetPath: string;
 	mailAddress: Stream<string>;
 	password: Stream<string>;
+	// we save the password dom element so that we can focus it when loginWith is passed as a param
+	// lazy because it wont have been initialized in oncreate
+	passwordInput: lazy<HTMLInputElement>;
 	helpText: Vnode<any> | string;
 	invalidCredentials: boolean;
 	accessExpired: boolean;
@@ -234,7 +237,11 @@ export class LoginView {
 	}
 
 	renderLoginForm(): Children {
-		return m(LoginForm, {
+		return m("", {
+			oncreate: vnode => {
+				this.passwordInput = () => (vnode.children[0].state: LoginForm).passwordTextField._domInput
+			}
+		}, m(LoginForm, {
 			onSubmit: () => this.login(),
 			mailAddress: this.mailAddress,
 			password: this.password,
@@ -243,7 +250,7 @@ export class LoginView {
 			invalidCredentials: this.invalidCredentials,
 			showRecoveryOption: this._recoverLoginVisible(),
 			accessExpired: this.accessExpired
-		})
+		}))
 	}
 
 	renderCredentialsSelector(): Children {
@@ -384,9 +391,8 @@ export class LoginView {
 				this.accessExpired = false
 
 				this.password("")
-
-				const passwordInput = document.querySelector("input[type=password]")
-				passwordInput && passwordInput.focus()
+				const passwordInput = this.passwordInput()
+				if (passwordInput) passwordInput.focus()
 
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
