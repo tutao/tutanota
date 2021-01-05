@@ -60,6 +60,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -418,24 +419,28 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	}
 
 	const closeButtonAttrs = attachDropdown({
-			label: "close_alt",
 			click: () => dialog.close(),
 			type: ButtonType.Secondary,
+			icon: () => model.hasMailChanged() ? BootIcons.MoreVertical : Icons.Close,
 			oncreate: vnode => domCloseButton = vnode.dom
 		},
 		() => [
 			{
-				label: "discardChanges_action",
-				click: () => dialog.close(),
+				label: "saveDraft_action",
+				click: () => save(),
 				type: ButtonType.Dropdown,
 			},
 			{
-				label: "saveDraft_action",
+				label: "saveDraftAndClose_action",
 				click: () => { save().then(() => dialog.close()) },
 				type: ButtonType.Dropdown,
+			},
+			{
+				label: "discardChangesAndClose_action",
+				click: () => dialog.close(),
+				type: ButtonType.Dropdown,
 			}
-		], () => model.hasMailChanged(), 250
-	)
+		], () => model.hasMailChanged(), 250)
 
 	let windowCloseUnsubscribe = () => {}
 	const headerBarAttrs: DialogHeaderBarAttrs = {
