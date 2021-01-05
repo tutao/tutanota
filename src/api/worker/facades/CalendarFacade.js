@@ -154,7 +154,7 @@ export class CalendarFacade {
 				return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
 					[userAlarmInfoListId, id], alarmNotification
 				]))
-			})
+			}, {concurrency: 1}) // sequentially to avoid rate limiting
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -169,7 +169,7 @@ export class CalendarFacade {
 						return null
 					}
 				})
-			})
+			}, {concurrency: 1}) // rate limiting against blocking while resolving session keys (neccessary)
 			.then(maybeEncSessionKeys => {
 				const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
 				for (let notification of alarmNotifications) {
