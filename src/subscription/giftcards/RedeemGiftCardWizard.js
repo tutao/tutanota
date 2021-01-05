@@ -394,10 +394,10 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 		]
 		return createWizardDialog(giftCardRedeemData, wizardPages,
 			() => {
-				const route = giftCardRedeemData.credentialsMethod === "signup"
-					? `/login?loginWith=${giftCardRedeemData.mailAddress()}`
-					: "/login"
-				return Promise.resolve(m.route.set(route))
+				const urlParams = giftCardRedeemData.credentialsMethod === "signup"
+					? {loginWith: giftCardRedeemData.mailAddress()}
+					: {}
+				return Promise.resolve(m.route.set("/login", urlParams))
 			}).dialog
 	})
 }
