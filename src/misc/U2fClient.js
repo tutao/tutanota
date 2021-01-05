@@ -45,13 +45,13 @@ export class U2fClient {
 	 * Returns true if U2F is supported in this client. Attention: this call may take up to 1 second.
 	 */
 	isSupported(): Promise<boolean> {
-		return Promise
-			.resolve(
-				// Explicitly disable old Edge and apps so that they don'tt try to open Store for extension URL
-				!isApp() && client.browser !== BrowserType.EDGE
-				&& !!(window.u2f && window.u2f.register || this.checkVersionWithTimeout())
-			)
-			.catch(() => false)
+
+		return this.checkVersionWithTimeout()
+		           .then(versionCheckSuccess => {
+			           return !isApp() && client.browser !== BrowserType.EDGE
+				           && !!(window.u2f && window.u2f.register || versionCheckSuccess)
+		           })
+		           .catch(() => false)
 	}
 
 	checkVersionWithTimeout(): Promise<boolean> {
