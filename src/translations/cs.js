@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-04T06:41:41Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -485,7 +485,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Kredit {fullCredit} nebo předplatné účtu Premium.",
 		"giftCardOptionTextB_msg": "Kredit {fullCredit} nebo předplatné účtu Premium se zbývajícím kreditem {remainingCredit}.",
 		"giftCardPurchaseFailed_msg": "Není možné koupit dárkový poukaz.",
-		"giftCardRedeemed_msg": "Dárkový poukaz byl úspěšně uplatněn.",
 		"giftCardSection_label": "Zakoupit nebo spravovat dárkové poukazy",
 		"giftCardSignupErrorLoggingIn_msg": "Váš účet byl úspěšně vytvořen, ale nastal problém během přihlašování. Obnovte prosím stránku a k uplatnění dárkového poukazu využijte svůj nový účet.",
 		"giftCards_label": "Dárkové poukazy",
@@ -829,6 +828,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Pro přihlášení prosím klikněte na tlačítko PayPal. Budete přesměrováni na stránku PayPal.",
 		"paymentDataValidation_action": "Potvrdit",
 		"paymentMethodAccountBalance_label": "Zůstatek na účtu",
+		"paymentMethodAccountBalance_msg": "Za účet platíte kreditem. Dobít kredit můžete pomocí dárkových poukazů.",
 		"paymentMethodCreditCard_label": "Platební karta",
 		"paymentMethodNotAvailable_msg": "Tato možnost platby není ve Vaší zemi dostupná.",
 		"paymentMethodOnAccount_label": "Na účet",

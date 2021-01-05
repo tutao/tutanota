@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2020-12-29T11:11:06Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -486,7 +486,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Для {fullCredit} кредиту або підписки Premium.",
 		"giftCardOptionTextB_msg": "Для {fullCredit} кредитної або підписки Premium з {remainingCredit} кредитом.",
 		"giftCardPurchaseFailed_msg": "Неможливо придбати подарункову картку.",
-		"giftCardRedeemed_msg": "Подарункову картку було погашено.",
 		"giftCardSection_label": "Купуйте та керуйте подарунковими картками",
 		"giftCardSignupErrorLoggingIn_msg": "Обліковий запис успішно створено, але сталася помилка під час входу до системи. Перезавантажте сторінку та використовуйте новий обліковий запис, щоб погасити подарункову картку. ",
 		"giftCards_label": "Подарункові карти",
@@ -831,6 +830,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Для входу натисніть на кнопку PayPal. Ви будете перенаправлені на сторінку PayPal.",
 		"paymentDataValidation_action": "Підтвердити",
 		"paymentMethodAccountBalance_label": "Залишок на рахунку",
+		"paymentMethodAccountBalance_msg": "Ви платите за свій обліковий запис, використовуючи кредит облікового запису. За допомогою подарункових карток можна поповнити свій кредит.",
 		"paymentMethodCreditCard_label": "Кредитна картка",
 		"paymentMethodNotAvailable_msg": "Даний метод платежу відсутній у вашій країні.",
 		"paymentMethodOnAccount_label": "Купити в кредит",

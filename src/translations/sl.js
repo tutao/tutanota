@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-12-28T09:16:12Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -478,7 +478,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Za {fullCredit} dobroimetja ali Premium naročnino. ",
 		"giftCardOptionTextB_msg": "Za {fullCredit} dobroimetja ali Premium naročnino z dobroimetjem {remainingCredit}. ",
 		"giftCardPurchaseFailed_msg": "Darilnega bona ni mogoče kupiti.",
-		"giftCardRedeemed_msg": "Darilni bon je bil uspešno unovčen.",
 		"giftCardSection_label": "Nakup in upravljanje darilnih bonih",
 		"giftCards_label": "Darilni boni",
 		"giftCardTerms_label": "Prosimo, da se strinjate s pravili in pogoji darilnega bona",

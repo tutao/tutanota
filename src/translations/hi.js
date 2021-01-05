@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2020-12-31T14:30:35Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -483,7 +483,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "{fullCredit} क्रेडिट या प्रीमियम सदस्यता के लिए।",
 		"giftCardOptionTextB_msg": "{fullCredit} क्रेडिट या {remainingCredit} क्रेडिट के साथ एक प्रीमियम सदस्यता के लिए।",
 		"giftCardPurchaseFailed_msg": "गिफ्ट कार्ड खरीदने में असमर्थ।",
-		"giftCardRedeemed_msg": "गिफ्ट कार्ड को सफलतापूर्वक छुड़ाया गया।",
 		"giftCardSection_label": "उपहार कार्ड खरीदें और प्रबंधित करें",
 		"giftCardSignupErrorLoggingIn_msg": "आपका खाता सफलतापूर्वक बनाया गया था, लेकिन आपको लॉग इन करने में एक त्रुटि हुई। कृपया पृष्ठ को पुनः लोड करें और गिफ्ट कार्ड को भुनाने के लिए नए खाते का उपयोग करें।",
 		"giftCards_label": "उपहार कार्ड",
@@ -827,6 +826,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "लॉग इन करने के लिए कृपया पेपाल बटन पर क्लिक करें। आपको पेपाल वेबसाइट पर पुनः निर्देशित किया जाएगा।",
 		"paymentDataValidation_action": "पुष्टि करें",
 		"paymentMethodAccountBalance_label": "खाता शेष राशि",
+		"paymentMethodAccountBalance_msg": "आप खाता क्रेडिट का उपयोग करके अपने खाते के लिए भुगतान कर रहे हैं। आप उपहार कार्ड का उपयोग करके अपने क्रेडिट को ऊपर कर सकते हैं।",
 		"paymentMethodCreditCard_label": "क्रेडिट कार्ड",
 		"paymentMethodNotAvailable_msg": "यह भुगतान विधि आपके देश में उपलब्ध नहीं है। ",
 		"paymentMethodOnAccount_label": "खाता खरीदें ",

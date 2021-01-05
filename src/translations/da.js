@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-12-28T17:37:50Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -482,7 +482,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "Til {fullCredit} kredit eller et Premium abonnement.",
 		"giftCardOptionTextB_msg": "For {fullCredit} kredit eller et Premium abonnement med {remainingCredit} kredit.",
 		"giftCardPurchaseFailed_msg": "Købet af gavekortet kan ikke gennemføres",
-		"giftCardRedeemed_msg": "Indløsningen af gavekortet er gennemført.",
 		"giftCardSection_label": "Køb og administrer gavekort ",
 		"giftCardSignupErrorLoggingIn_msg": "Din konto er nu oprettet, men der opstod en fejl under indlogning. Prøv venligst at logge ind og gå til Indstillinger -> Abonnement for at indfri dit gavekort.",
 		"giftCards_label": "Gavekort",

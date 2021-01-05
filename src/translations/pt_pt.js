@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2020-12-23T14:20:50Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -474,7 +474,6 @@ module.exports = {
 		"functionNotSupported_msg": "Esta função não é suportada pelo seu dispositivo ou navegador.",
 		"germanLanguageFile_label": "Ficheiro de língua Alemã",
 		"giftCardPurchaseFailed_msg": "Não foi possível comprar o cartão presente",
-		"giftCardRedeemed_msg": "O cartão presente foi resgatado com sucesso.",
 		"giftCardSection_label": "Comprar e gerir cartões presente",
 		"giftCards_label": "Cartões presente",
 		"giftCardUpdateError_msg": "Impossível atualizar cartão presente",

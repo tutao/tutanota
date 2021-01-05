@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2020-12-23T14:20:50Z",
+	"updated_at": "2021-01-05T09:48:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -478,7 +478,6 @@ module.exports = {
 		"germanLanguageFile_label": "Almanca dosya",
 		"giftCardCopied_msg": "Hediye kartı bağlantısı panoya kopyalandı!",
 		"giftCardPurchaseFailed_msg": "Hediye kartı satın alınamıyor",
-		"giftCardRedeemed_msg": "Hediye kartı başarıyla kullanıldı.",
 		"giftCardSection_label": "Hediye kartlarını satın alın, kullanın ve yönetin",
 		"giftCardSignupErrorLoggingIn_msg": "Hesabınız başarıyla oluşturuldu, ancak oturum açarken bir hata oluştu. Lütfen giriş yapın ve hediye kartı bağlantısını kullanmak için abonelik ayarlarına gidin.",
 		"giftCards_label": "Hediye kartları",

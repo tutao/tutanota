@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2020-12-30T08:51:10Z",
+	"updated_at": "2021-01-05T09:48:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -483,7 +483,6 @@ module.exports = {
 		"giftCardOptionTextA_msg": "{fullCredit} tín dụng hoặc một thuê bao Premium.",
 		"giftCardOptionTextB_msg": "{fullCredit} tín dụng hoặc một thuê bao Premium với {remainingCredit} tín dụng.",
 		"giftCardPurchaseFailed_msg": "Không thể mua thẻ quà tặng.",
-		"giftCardRedeemed_msg": "Thẻ quà tặng đã được lấy thành công.",
 		"giftCardSection_label": "Mua và quản lí thẻ quà tặng",
 		"giftCardSignupErrorLoggingIn_msg": "Tài khoản của bạn đã được tạo thành công nhưng có một lỗi khi đăng nhập. Vui lòng tải lại trang và dùng tài khoản mới để lấy thẻ quà tặng.",
 		"giftCards_label": "Thẻ quà tặng",
