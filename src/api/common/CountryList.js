@@ -254,7 +254,7 @@ export const Countries: Array<Country> = [
 	{n: "Uganda", a: "UG", t: 2, d: 1},
 	{n: "Ukraine", a: "UA", t: 2, d: 0},
 	{n: "United Arab Emirates", a: "AE", t: 2, d: 2},
-	{n: "United Kingdom", a: "GB", t: 1, d: 1},
+	{n: "United Kingdom", a: "GB", t: 2, d: 1},
 	{n: "United States Minor Outlying Islands", a: "UM", t: 2, d: 2},
 	{n: "United States of America", a: "US", t: 2, d: 1},
 	{n: "Uruguay", a: "UY", t: 2, d: 0},
