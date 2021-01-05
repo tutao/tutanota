@@ -27,6 +27,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
+import {NBSP} from "../api/common/utils/StringUtils"
 
 assertMainOrNode()
 
@@ -62,8 +63,8 @@ export class MultiSearchViewer {
 								// Add spacing so the buttons are where the mail view are
 								m(".flex-space-between.button-min-height",
 									m(".flex.flex-column-reverse", [
-										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", m.trust("&nbsp;")),
-										m("small.b.flex.pt", m.trust("&nbsp;"))
+										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", NBSP),
+										m("small.b.flex.pt", NBSP)
 									])
 								),
 								m(".flex-space-between.mr-negative-s", [
@@ -72,11 +73,14 @@ export class MultiSearchViewer {
 								])
 							] : [
 								// Add spacing so buttons for contacts also align with the regular client view's buttons
-								m(".header.pt-ml",
-									m(".contact-actions.flex-space-between.flex-wrap", [
-										m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-										m(contactActionBar)
-									])
+								m(".header.pt-ml.flex-space-between",
+									m(".left.flex-grow", [
+										m(".contact-actions.flex-wrap.flex-grow-shrink", [
+											m(".h2", NBSP),
+											m(".flex-space-between", m(".flex-wrap.items-center", this._getSearchSelectionMessage(this._searchListView)))
+										]),
+									]),
+									m(".action-bar.align-self-end", m(contactActionBar))
 								)
 							]
 						)

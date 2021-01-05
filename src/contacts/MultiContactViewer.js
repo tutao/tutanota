@@ -10,6 +10,7 @@ import {ContactView} from "./ContactView"
 import {exportContacts} from "./VCardExporter"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
+import {NBSP} from "../api/common/utils/StringUtils"
 
 assertMainOrNode()
 
@@ -28,11 +29,14 @@ export class MultiContactViewer {
 				m(".fill-absolute.mt-xs.plr-l",
 					(contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
 							// Add spacing so buttons for contacts also align with the regular client view's buttons
-							m(".header.pt-ml",
-								m(".contact-actions.flex-space-between.flex-wrap", [
-									m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-									m(actionBar)
-								])
+							m(".header.pt-ml.flex-space-between",
+								m(".left.flex-grow", [
+									m(".contact-actions.flex-wrap.flex-grow-shrink", [
+										m(".h2", NBSP),
+										m(".flex-space-between", m(".flex-wrap.items-center", this._getContactSelectionMessage(contactView)))
+									]),
+								]),
+								m(".action-bar.align-self-end", m(actionBar))
 							)
 						] :
 						m(ColumnEmptyMessageBox, {

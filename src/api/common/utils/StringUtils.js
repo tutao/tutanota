@@ -62,6 +62,11 @@ export function cleanMatch(s1: string, s2: string): boolean {
 }
 
 /**
+ * Non-breaking space character
+ */
+export const NBSP = "\u00A0";
+
+/**
  * split a string at a given index
  * @param str
  * @param index
