@@ -208,9 +208,9 @@ export function loadSignupWizard(): Promise<Dialog> {
 			}
 			return promise.then(() => {
 				if (signupData.newAccountData) {
-					m.route.set("/login?loginWith=" + signupData.newAccountData.mailAddress)
+					m.route.set("/login", {loginWith: signupData.newAccountData.mailAddress})
 				} else {
-					m.route.set("/login")
+					m.route.set("/login", {noAutoLogin: true})
 				}
 			})
 		})

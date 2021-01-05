@@ -140,7 +140,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 					.catch(e => handleError(e))
 			}
 		},
-		cancelAction: () => m.route.set("/login")
+		cancelAction: () => m.route.set("/login", {noAutoLogin: true})
 	})
 	return recoverDialog
 }
