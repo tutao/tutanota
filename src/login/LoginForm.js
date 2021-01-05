@@ -24,7 +24,6 @@ export type LoginFormAttrs = {
 
 export class LoginForm implements MComponent<LoginFormAttrs> {
 
-
 	mailAddressTextField: TextFieldN
 	passwordTextField: TextFieldN
 
@@ -39,10 +38,10 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 		this.autofillUpdateHandler = stream.combine(() => {
 			requestAnimationFrame(() => {
 				const oldAddress = a.mailAddress()
-				const newAddress = this.mailAddressTextField._domInput.value
+				const newAddress = this.mailAddressTextField.domInput.value
 
 				const oldPassword = a.password()
-				const newPassword = this.passwordTextField._domInput.value
+				const newPassword = this.passwordTextField.domInput.value
 
 				// only update values when they are different or we get stuck in an infinite loop
 				if (oldAddress !== newAddress) a.mailAddress(newAddress)

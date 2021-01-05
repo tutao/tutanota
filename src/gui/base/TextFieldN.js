@@ -46,9 +46,9 @@ export const baseLabelPosition = size.text_field_label_top
 export class TextFieldN implements MComponent<TextFieldAttrs> {
 	active: boolean;
 	onblur: ?Function;
+	domInput: HTMLInputElement;
 	_domWrapper: HTMLElement;
 	_domLabel: HTMLElement;
-	_domInput: HTMLInputElement;
 	_domInputWrapper: HTMLElement;
 	_didAutofill: boolean;
 
@@ -133,9 +133,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
 					"aria-label": lang.getMaybeLazy(a.label),
 					oncreate: (vnode) => {
-						this._domInput = vnode.dom
-						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
-						this._domInput.value = a.value()
+						this.domInput = vnode.dom
+						this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
+						this.domInput.value = a.value()
 						if (a.type !== Type.Area) {
 							vnode.dom.addEventListener('animationstart', e => {
 								if (e.animationName === "onAutoFillStart") {
@@ -150,7 +150,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					},
 					onfocus: (e) => {
 						this.focus(e, a)
-						a.onfocus && a.onfocus(this._domWrapper, this._domInput)
+						a.onfocus && a.onfocus(this._domWrapper, this.domInput)
 					},
 					onblur: e => this.blur(e, a),
 					onkeydown: e => {
@@ -159,15 +159,15 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 						return a.keyHandler != null ? a.keyHandler(key) : true
 					},
 					onupdate: () => {
-						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
+						this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
-						if (this._domInput.value !== a.value()) {
-							this._domInput.value = a.value()
+						if (this.domInput.value !== a.value()) {
+							this.domInput.value = a.value()
 						}
 					},
 					oninput: () => {
-						a.value(this._domInput.value) // update the input on each change
-						a.oninput && a.oninput(this._domInput.value, this._domInput)
+						a.value(this.domInput.value) // update the input on each change
+						a.oninput && a.oninput(this.domInput.value, this.domInput)
 					},
 					style: {
 						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
@@ -203,9 +203,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 			return m("textarea.input-area.text-pre", {
 				"aria-label": lang.getMaybeLazy(a.label),
 				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-					this._domInput.value = a.value()
-					this._domInput.style.height = px(Math.max(a.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+					this.domInput = vnode.dom
+					this.domInput.value = a.value()
+					this.domInput.style.height = px(Math.max(a.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(e, a),
 				onblur: e => this.blur(e, a),
@@ -214,14 +214,14 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					return a.keyHandler != null ? a.keyHandler(key) : true
 				},
 				oninput: e => {
-					this._domInput.style.height = '0px'
-					this._domInput.style.height = px(this._domInput.scrollHeight)
-					a.value(this._domInput.value) // update the input on each change
+					this.domInput.style.height = '0px'
+					this.domInput.style.height = px(this.domInput.scrollHeight)
+					a.value(this.domInput.value) // update the input on each change
 				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
-					if (this._domInput.value !== a.value()) {
-						this._domInput.value = a.value()
+					if (this.domInput.value !== a.value()) {
+						this.domInput.value = a.value()
 					}
 				},
 				style: {
@@ -236,14 +236,14 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 	focus(e: MouseEvent, a: TextFieldAttrs) {
 		if (!this.active && !a.disabled) {
 			this.active = true
-			this._domInput.focus()
+			this.domInput.focus()
 			this._domWrapper.classList.add("active")
 		}
 	}
 
 	blur(e: MouseEvent, a: TextFieldAttrs) {
 		/*if (this.skipNextBlur) {
-		 this._domInput.focus()
+		 this.domInput.focus()
 		 } else {
 		 */
 		this._domWrapper.classList.remove("active")
