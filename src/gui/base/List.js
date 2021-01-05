@@ -753,7 +753,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			row.top = nextPosition
 			nextPosition = nextPosition + rowHeight
 			if (!row.domElement) {
-				throw new Error(`undefined dom element for virtual dom element ${this._virtualList.length}, ${row.top}`)
+				// This might happen during the window resize when things change too fast, just try again next time
+				console.log(`undefined dom element for virtual dom element ${this._virtualList.length}, ${row.top}`)
+				return
 			}
 			row.domElement.style.transform = "translateY(" + row.top + "px)"
 
