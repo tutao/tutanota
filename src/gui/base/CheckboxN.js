@@ -64,6 +64,13 @@ export class CheckboxN implements MComponent<CheckboxAttrs> {
 				}),
 				m(".pl", {
 					class: this.focused() ? "content-accent-fg" : "content-fg",
+					onclick: e => {
+						// if the label contains a link, then stop the event so that the checkbox doesnt get toggled upon clicking
+						// we still allow it to be checked if they click on the non-link part of the label
+						if (e.target.tagName.toUpperCase() === "A") {
+							e.stopPropagation()
+						}
+					}
 				}, a.label()),
 			]),
 			helpLabel,
