@@ -320,8 +320,14 @@ function _isReservedFilename(filename: string): boolean {
 }
 
 type LogFn = (...args: any) => void
-export const log = {
-	debug: ((env.mode === Mode.Test ? noOp : (...args) => console.log(args)): LogFn),
-	warn: ((env.mode === Mode.Test ? noOp : (...args) => console.warn(args)): LogFn),
-	error: ((env.mode === Mode.Test ? noOp : (...args) => console.error(args)): LogFn),
-}
+export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "undefined" && env.mode === Mode.Test)
+	? {
+		debug: noOp,
+		warn: noOp,
+		error: noOp,
+	}
+	: {
+		debug: console.log.bind(console),
+		warn: console.warn.bind(console),
+		error: console.error.bind(console)
+	}
