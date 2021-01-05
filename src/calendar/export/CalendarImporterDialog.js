@@ -60,6 +60,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              }
 							              assignEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
+							                           .catch(PreconditionFailedError, () => console.log("ignoring create calendar event with duplicate uid"))
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
 						              })

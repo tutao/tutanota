@@ -192,6 +192,7 @@ export class CalendarModelImpl implements CalendarModel {
 			event._ownerGroup = groupRoot._id
 
 			return this._worker.createCalendarEvent(event, alarmInfos, existingEvent)
+			           .catch(PreconditionFailedError, () => console.log("ignoring create calendar event with duplicate uid"))
 		})
 	}
 
