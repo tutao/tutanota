@@ -408,6 +408,7 @@ export class SearchBar implements Component {
 		}
 		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
 			this.expanded = false
+			this.focused = false
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
 					worker.enableMailIndexing().then(() => {
@@ -640,7 +641,7 @@ export class SearchBar implements Component {
 	focus() {
 		if (!locator.search.indexingSupported) {
 			Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-		} else if (!this.focused) {
+		} else if (!this.expanded) {
 			this.focused = true
 			this.expanded = true
 			// setTimeout to fix bug in current Safari with losing focus
