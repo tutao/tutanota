@@ -56,7 +56,7 @@ public final class Native {
 		this.activity = activity;
 		crypto = new Crypto(activity);
 		contact = new Contact(activity);
-		files = new FileUtil(activity);
+		files = new FileUtil(activity, new LocalNotificationsFacade(activity));
 		this.sseStorage = sseStorage;
 	}
 

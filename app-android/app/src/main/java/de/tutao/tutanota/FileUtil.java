@@ -3,6 +3,10 @@ package de.tutao.tutanota;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -16,6 +20,8 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
 
 import org.apache.commons.io.IOUtils;
@@ -43,6 +49,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.push.LocalNotificationsFacade;
+
 import static android.app.Activity.RESULT_OK;
 
 
@@ -51,6 +59,7 @@ public class FileUtil {
 	private static final int HTTP_TIMEOUT = 15 * 1000;
 
 	private final MainActivity activity;
+	private final LocalNotificationsFacade localNotificationsFacade;
 
 	private final ThreadPoolExecutor backgroundTasksExecutor = new ThreadPoolExecutor(
 			1, // core pool size
@@ -60,8 +69,9 @@ public class FileUtil {
 			new LinkedBlockingQueue<>()
 	);
 
-	public FileUtil(MainActivity activity) {
+	public FileUtil(MainActivity activity, LocalNotificationsFacade localNotificationsFacade) {
 		this.activity = activity;
+		this.localNotificationsFacade = localNotificationsFacade;
 	}
 
 
@@ -215,8 +225,10 @@ public class FileUtil {
 		updateValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
 		int updated = contentResolver.update(outputUri, updateValues, null, null);
 		Log.d(TAG, "Updated with not pending: " + updated);
+		this.localNotificationsFacade.sendDownloadFinishedNotification(fileInfo.name);
 		return outputUri.toString();
 	}
+
 
 	private String addFileToDownloadsOld(String fileUri) throws IOException {
 		File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);

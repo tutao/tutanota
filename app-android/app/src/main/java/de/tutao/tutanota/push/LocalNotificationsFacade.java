@@ -1,6 +1,7 @@
 package de.tutao.tutanota.push;
 
 import android.annotation.TargetApi;
+import android.app.DownloadManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -19,6 +20,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,6 +147,32 @@ public class LocalNotificationsFacade {
 
 		sendSummaryNotification(getNotificationManager(), title,
 				notificationInfos.get(0), true);
+	}
+
+	@TargetApi(Build.VERSION_CODES.Q)
+	public void sendDownloadFinishedNotification(String fileName) {
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
+		NotificationChannel channel = new NotificationChannel(
+				"downloads",
+				"Downloads",
+				NotificationManager.IMPORTANCE_DEFAULT
+		);
+		notificationManager.createNotificationChannel(channel);
+
+		PendingIntent pendingIntent = PendingIntent.getActivity(
+				this.context,
+				/*requestCode*/1,
+				new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
+				/*flags*/0
+		);
+		Notification notification = new Notification.Builder(this.context, channel.getId())
+				.setContentIntent(pendingIntent)
+				.setContentTitle(fileName)
+				.setContentText(context.getText(R.string.downloadCompleted_msg))
+				.setSmallIcon(R.drawable.ic_download)
+				.setAutoCancel(true)
+				.build();
+		notificationManager.notify(makeNotificationId("downloads"), notification);
 	}
 
 	private void sendSummaryNotification(NotificationManager notificationManager,
