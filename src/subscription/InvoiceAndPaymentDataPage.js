@@ -259,6 +259,8 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							// user successfully verified the card
 							progressDialog.close()
 							resolve(true)
+						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
+							// keep waiting. this error code is set before starting the 3DS2 verification and we just received the event very late
 						} else if (invoiceInfo.paymentErrorInfo && (invoiceInfo.paymentErrorInfo.errorCode !== null)) {
 							// verification error during 3ds verification
 							Dialog.error(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
