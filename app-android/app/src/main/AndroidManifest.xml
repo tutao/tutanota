@@ -24,7 +24,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:resizeableActivity="true"
-            android:usesCleartextTraffic="true">
+            android:usesCleartextTraffic="true"
+            android:exported="true">
         <activity
                 android:name=".MainActivity"
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
@@ -32,8 +33,8 @@
                 android:theme="@style/SplashTheme">
             <!--Main intent for launching from home screen-->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <!--Handler for "share" event or when another app wants to send an email-->
             <intent-filter>
@@ -51,16 +52,24 @@
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
 
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="mailto" />
+                <data android:scheme="mailto"/>
             </intent-filter>
             <!--Another handler for mailto links, when user pressed them in browser-->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="mailto" />
+                <action android:name="android.intent.action.VIEW"/>
+                <data android:scheme="mailto"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
+
+            <intent-filter>
+                <data android:scheme="tutanota" android:host="app"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+
         </activity>
         <provider
                 android:name="androidx.core.content.FileProvider"
