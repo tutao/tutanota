@@ -116,7 +116,10 @@ export class EventQueue {
 		for (const newEvent of newEvents) {
 			const elementId = newEvent.instanceId
 			const lastBatchForEntity = this._lastOperationForEntity.get(elementId)
-			if (lastBatchForEntity == null || this._processingBatch != null && this._processingBatch === lastBatchForEntity) {
+			if (lastBatchForEntity == null
+				|| this._processingBatch != null && this._processingBatch === lastBatchForEntity
+				|| groupId !== lastBatchForEntity.groupId
+			) {
 				// If there's no current operation, there's nothing to merge, just add
 				// If current operation is already being processed, don't modify it, we cannot merge anymore and should just append.
 				newBatch.events.push(newEvent)
@@ -187,7 +190,7 @@ export class EventQueue {
 					this.removeEventsForInstance(elementId, firstMoveIndex + 1)
 
 				} else {
-					throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification}`)
+					throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`)
 				}
 			}
 		}

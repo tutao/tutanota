@@ -361,6 +361,20 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
+		o("same batch in two different groups", async function () {
+			const createEvent1 = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
+			const createEvent2 = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
+
+			queue.add("batch-id-1", "group-id-1", [createEvent1])
+			queue.add("batch-id-1", "group-id-2", [createEvent2])
+			queue.resume()
+			await lastProcess.promise
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [createEvent1], batchId: "batch-id-1", groupId: "group-id-1"}],
+				[{events: [createEvent1], batchId: "batch-id-1", groupId: "group-id-2"}],
+			])
+		})
 
 		function createUpdate(type: OperationTypeEnum, listId: Id, instanceId: Id, eventId?: Id): EntityUpdate {
 			let update = createEntityUpdate()
