@@ -474,6 +474,18 @@ export class ContactView implements CurrentView {
 		return this.viewSlider
 	}
 
+	handleBackButton(): boolean {
+		// only handle back button if viewing contact
+		if (this.contactViewer) {
+			this.contactViewer = null
+			this.viewSlider.focus(this.listColumn)
+			return true
+		} else if (this._contactList.list.isMobileMultiSelectionActionActive()) {
+			this._contactList.list.selectNone()
+			return true
+		}
+		return false
+	}
 
 	/**
 	 * Used by Header to figure out when content needs to be injected there
