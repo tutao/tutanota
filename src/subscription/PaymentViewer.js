@@ -181,7 +181,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						}))
 						: null,
 				]),
-				(this._isAmountOwed() && this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice)
+				(this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice
+					&& (this._isAmountOwed() || (this._invoiceInfo && this._invoiceInfo.paymentErrorInfo)))
 					? (
 						(this._invoiceInfo && this._invoiceInfo.paymentErrorInfo)
 							? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this._invoiceInfo.paymentErrorInfo.errorCode)))
