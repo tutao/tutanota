@@ -789,7 +789,7 @@ export class SendMailModel {
 		const doCreateNewDraft = _draft
 			? this._mailModel.getMailboxFolders(_draft)
 			      .then(folders => folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM))
-			      .then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft)) != null))
+			      .then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft))) != null)
 			: Promise.resolve(true)
 
 		const savePromise = doCreateNewDraft.then(createNewDraft => createNewDraft
