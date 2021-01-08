@@ -556,14 +556,15 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			                    this._loadedEntities.push(...newItems)
 			                    this._loadedEntities.sort(this._config.sortCompare)
 			                    if (newItems.length < count) this.setLoadedCompletely() // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
-		                    }).finally(() => {
-				if (this.ready) {
-					this._displayingProgress = false
-					this._domLoadingRow.style.display = 'none'
-					this._reposition()
-				}
-			})
-		return neverNull(this._loading)
+		                    })
+		                    .finally(() => {
+			                    if (this.ready) {
+				                    this._displayingProgress = false
+				                    this._domLoadingRow.style.display = 'none'
+				                    this._reposition()
+			                    }
+		                    })
+		return this._loading
 	}
 
 
@@ -713,7 +714,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_loadMoreIfNecessary() {
 		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight)
 			- this._visibleElementsHeight * 2
-		if (lastBunchVisible && (this._loading: any).isFulfilled() && !this._loadedCompletely) {
+		if (lastBunchVisible && !this._loading.isPending() && !this._loadedCompletely) {
 			this._loadMore().then(() => {
 				this._domList.style.height = this._calculateListHeight()
 			})
@@ -887,7 +888,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				}
 				let newEntity: T = neverNull(entity)
 				// wait for any pending loading
-				return this._loading.then(() => {
+				return resolvedThen(this._loading, () => {
 					if (operation === OperationType.CREATE) {
 						if (this._loadedCompletely) {
 							this._addToLoadedEntities(newEntity)
@@ -948,7 +949,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 	_deleteLoadedEntity(elementId: Id): Promise<void> {
 		// wait for any pending loading
-		return this._loading.then(() => {
+		return resolvedThen(this._loading, () => {
 			let entity = this._loadedEntities.find(e => {
 				return getLetId(e)[1] === elementId
 			})
@@ -988,6 +989,10 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 }
 
 export const ACTION_DISTANCE = 150
+
+function resolvedThen<T, R>(promise: Promise<T>, handler: () => R): Promise<R> {
+	return promise.then(handler, handler)
+}
 
 class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 	virtualElement: ?VirtualRow<T>;
