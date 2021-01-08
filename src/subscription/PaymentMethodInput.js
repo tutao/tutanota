@@ -31,6 +31,7 @@ export class PaymentMethodInput {
 	_subscriptionOptions: SubscriptionOptions
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
+	_didLinkPaypal: boolean
 
 	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
 		this._selectedCountry = selectedCountry
@@ -41,7 +42,7 @@ export class PaymentMethodInput {
 			payPalRequestUrl,
 			accountingInfo: this._accountingInfo
 		}
-
+		this._didLinkPaypal = false
 
 		this._entityEventListener = (updates) => {
 			return Promise.each(updates, update => {
@@ -49,6 +50,7 @@ export class PaymentMethodInput {
 					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
+						this._didLinkPaypal = true
 						m.redraw()
 					})
 				}
@@ -93,6 +95,10 @@ export class PaymentMethodInput {
 		} else {
 			return false
 		}
+	}
+
+	didLinkPaypal(): boolean {
+		return this._didLinkPaypal
 	}
 
 	validatePaymentData(): ?TranslationKey {

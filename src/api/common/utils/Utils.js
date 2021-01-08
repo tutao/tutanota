@@ -341,3 +341,14 @@ export function typedKeys<K: string, V>(obj: {[K]: V}): Array<K> {
 	return downcast(Object.keys(obj))
 }
 
+export function getAsNotLazy<T>(maybe: MaybeLazy<T>): T {
+	return (typeof maybe === "function" ? downcast(maybe)() : maybe)
+}
+
+export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {
+	return (typeof maybe === "function" ? downcast(maybe) : () => maybe)
+}
+
+export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (T) => U): lazy<U> {
+	return () => mapping(getAsNotLazy(maybe))
+}
