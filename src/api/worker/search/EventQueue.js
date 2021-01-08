@@ -188,7 +188,13 @@ export class EventQueue {
 					}
 					// delete all other events
 					this.removeEventsForInstance(elementId, firstMoveIndex + 1)
-
+				} else if (newEntityModification === EntityModificationType.CREATE) {
+					if (lastEntityModification === EntityModificationType.DELETE) {
+						// It is likely custom id instance which got re-created
+						newBatch.events.push(newEvent)
+					} else {
+						throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`)
+					}
 				} else {
 					throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification} ${JSON.stringify(newEvent)}`)
 				}

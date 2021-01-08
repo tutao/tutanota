@@ -342,7 +342,7 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
-		o("create +  update + move + delete == delete (from first move)", async function () {
+		o("create + update + move + delete == delete (from first move)", async function () {
 			const createEvent = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
 			const updateEvent = createUpdate(OperationType.UPDATE, "old-mail-list", "1", "u1")
 			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u2")
@@ -358,6 +358,22 @@ o.spec("EventQueueTest", function () {
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
 				[{events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id"}],
+			])
+		})
+
+		o("delete + create == delete + create", async function () {
+			// DELETE can happen after CREATE in case of custom id. We keep it as-is
+			const deleteEvent = createUpdate(OperationType.DELETE, "mail-list", "1", "u0")
+			const createEvent = createUpdate(OperationType.CREATE, "mail-list", "1", "u1")
+
+			queue.add("batch-id-0", "group-id", [deleteEvent])
+			queue.add("batch-id-1", "group-id", [createEvent])
+			queue.resume()
+			await lastProcess.promise
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [deleteEvent], batchId: "batch-id-0", groupId: "group-id"}],
+				[{events: [createEvent], batchId: "batch-id-1", groupId: "group-id"}],
 			])
 		})
 
