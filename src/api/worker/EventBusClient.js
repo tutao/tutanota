@@ -185,6 +185,10 @@ export class EventBusClient {
 		this._worker.updateWebSocketState("connecting")
 
 		// Task for updating events are number of groups + 2. Use 2 as base for reconnect state.
+		if (this._progressMonitor) {
+			// Say that the old monitor is completed so that we don't calculate its amount as still to do.
+			this._progressMonitor.completed()
+		}
 		this._progressMonitor = (reconnect)
 			? new ProgressMonitorDelegate(this._eventGroups().length + 2, this._worker)
 			: new NoopProgressMonitor()
