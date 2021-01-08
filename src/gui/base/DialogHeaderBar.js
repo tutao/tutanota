@@ -2,9 +2,11 @@
 import m from "mithril"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
+import {getAsNotLazy} from "../../api/common/utils/Utils"
+
 
 export type DialogHeaderBarAttrs = {|
-	left?: Array<ButtonAttrs>,
+	left?: MaybeLazy<Array<ButtonAttrs>>,
 	right?: Array<ButtonAttrs>,
 	middle?: lazy<string>,
 	create?: () => void,
@@ -23,7 +25,7 @@ export class DialogHeaderBar implements MComponent<DialogHeaderBarAttrs> {
 			oncreate: () => { if (a.create) a.create() },
 			onremove: () => { if (a.remove) a.remove() },
 		}, [
-			m(columnClass + ".ml-negative-s", a.left.map(a => isVisible(a) ? m(ButtonN, a) : null)),
+			m(columnClass + ".ml-negative-s", getAsNotLazy(a.left).map(a => isVisible(a) ? m(ButtonN, a) : null)),
 			// ellipsis is not working if the text is directly in the flex element, so create a child div for it
 			a.middle ? m("#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b", [m(".text-ellipsis", a.middle())]) : null,
 			m(columnClass + ".mr-negative-s.flex.justify-end", a.right.map(a => isVisible(a) ? m(ButtonN, a) : null))

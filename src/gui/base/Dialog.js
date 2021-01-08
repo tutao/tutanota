@@ -25,6 +25,7 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 import {styles} from "../styles"
+import {getAsNotLazy, mapLazily} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -46,7 +47,7 @@ type ActionDialogProps = {|
 	child: Component | lazy<Children>,
 	validator?: ?validator,
 	okAction: null | (Dialog) => mixed,
-	allowCancel?: boolean,
+	allowCancel?: MaybeLazy<boolean>,
 	allowOkWithReturn?: boolean,
 	okActionTextId?: TranslationKey,
 	cancelAction?: ?(Dialog) => mixed,
@@ -512,7 +513,7 @@ export class Dialog {
 		}
 
 		const actionBarAttrs: DialogHeaderBarAttrs = {
-			left: allowCancel ? [{label: cancelActionTextId, click: doCancel, type: ButtonType.Secondary}] : [],
+			left: mapLazily(allowCancel, allow => allow ? [{label: cancelActionTextId, click: doCancel, type: ButtonType.Secondary}] : []),
 			right: okAction ? [{label: okActionTextId, click: doAction, type: ButtonType.Primary}] : [],
 			middle: typeof title === 'function' ? title : () => title
 		}
@@ -524,14 +525,12 @@ export class Dialog {
 			]
 		}).setCloseHandler(doCancel)
 
-		if (allowCancel) {
-			dialog.addShortcut({
-				key: Keys.ESC,
-				shift: false,
-				exec: doCancel,
-				help: "cancel_action"
-			})
-		}
+		dialog.addShortcut({
+			key: Keys.ESC,
+			shift: false,
+			exec: mapLazily(allowCancel, allow => allow && doCancel()),
+			help: "cancel_action"
+		})
 
 		if (allowOkWithReturn) {
 			dialog.addShortcut({

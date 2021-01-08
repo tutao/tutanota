@@ -90,7 +90,8 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 				])
 			},
 			okAction: confirmAction,
-			allowCancel: true,
+			// if they've just gone through the process of linking a paypal account, don't offer a cancel button
+			allowCancel: () => !(selectedPaymentMethod() === PaymentMethodType.Paypal && paymentMethodInput.didLinkPaypal()),
 			okActionTextId: "save_action",
 			cancelAction: () => cb(null, false)
 		})
