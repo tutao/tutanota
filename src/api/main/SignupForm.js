@@ -203,7 +203,19 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 					}
 					const okAction = () => {
 						let captchaTime = captchaInput.value().trim()
-						if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
+						if (captchaTime.match(/^([0-2])?[0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
+							let string_length = captchaTime.length;
+							if (captchaTime.indexOf(':') == 1) {
+								captchaTime = '0' + captchaTime;
+							} 
+							if ((Number(captchaTime.substr(0,2))) >= 12 && (Number(captchaTime.substr(0,2))) < 22) {
+								let hours = Number(captchaTime.substr(0,2))-12;
+								captchaTime = "0"+ hours + captchaTime.substr(2,string_length);
+								} else if (Number(captchaTime.substr(0,2)) > 21 && Number(captchaTime.substr(0,2)) <= 23) {
+									let hours = Number(captchaTime.substr(0,2))-12;
+									captchaTime = hours + captchaTime.substr(2,string_length);
+								} else if (Number(captchaTime.substr(0,2)) < 12) {}
+							
 							let data = createRegistrationCaptchaServiceData()
 							data.token = captchaReturn.token
 							data.response = captchaTime
