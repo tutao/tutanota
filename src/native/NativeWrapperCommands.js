@@ -4,6 +4,7 @@ import {getMimeType, getName, getSize} from "./FileApp"
 import {asyncImport} from "../api/common/utils/Utils"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "./NativeWrapper"
+import type {LoginController} from "../api/main/LoginController"
 
 const createMailEditor = (msg: Request): Promise<void> => {
 	return Promise.all([
@@ -11,7 +12,8 @@ const createMailEditor = (msg: Request): Promise<void> => {
 		_asyncImport('src/mail/MailEditor.js'),
 		_asyncImport('src/mail/MailUtils.js'),
 		_asyncImport('src/api/main/LoginController.js')
-	]).spread((mainLocatorModule, mailEditorModule, mailUtilsModule, {logins}) => {
+	]).spread((mainLocatorModule, mailEditorModule, mailUtilsModule, loginControllerModule) => {
+		const logins: LoginController = loginControllerModule.logins
 		const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 		return logins.waitForUserLogin()
 		             .then(() => Promise.join(
@@ -26,7 +28,7 @@ const createMailEditor = (msg: Request): Promise<void> => {
 						             mailboxDetails,
 						             recipients,
 						             subject || (files.length > 0 ? files[0].name : ""),
-						             (text || "") + mailUtilsModule.getEmailSignature(),
+						             mailUtilsModule.appendEmailSignature(text || "", logins.getUserController().props),
 						             files
 					             )
 				             return editorPromise.then(editor => editor.show())
