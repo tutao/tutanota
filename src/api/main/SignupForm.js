@@ -178,6 +178,20 @@ function signup(mailAddress: string, pw: string, registrationCode: string, isBus
 }
 
 /**
+ * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
+ * @param captchaInput
+ * @returns {string} HH:MM if parsed, null otherwise
+ */
+export function parseCaptchaInput(captchaInput: string): ?string {
+	if (captchaInput.match(/^[0-2]?[0-9]:[0-5]?[05]$/)) {
+		let [h, m] = captchaInput.trim().split(':').map(t => Number(t))
+		return [h % 12, m % 60].map(a => String(a).padStart(2, '0')).join(':')
+	} else {
+		return null;
+	}
+}
+
+/**
  * @returns the auth token for the signup if the captcha was solved or no captcha was necessary, null otherwise
  *
  * TODO:
@@ -201,11 +215,11 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 						callback(null)
 					}
 					const okAction = () => {
-						let captchaTime = captchaInput.value().trim()
-						if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
+						let parsedInput = parseCaptchaInput(captchaInput.value())
+						if (parsedInput) {
 							let data = createRegistrationCaptchaServiceData()
 							data.token = captchaReturn.token
-							data.response = captchaTime
+							data.response = parsedInput
 							dialog.close()
 							serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data)
 								.then(() => {
