@@ -83,3 +83,30 @@ export function isDomainOrTopLevelDomain(value: string): boolean {
 export function isRegularExpression(value: string): boolean {
 	return /^\/.*\/$/.test(value) || /^\/.*\/(?!.*(.)\1)[gimsuy]+$/.test(value)
 }
+
+/**
+ * Determine whether an input string is a valid credit card number
+ * https://en.wikipedia.org/wiki/Luhn_algorithm
+ * @param input: a string between 6 and 20 chars long that should contain only digits or spaces
+ * @returns {boolean}
+ */
+export function isValidCreditCardNumber(input: string): boolean {
+
+	const cleaned = input.match(/^[0123456789 ]+$/)
+	if (!cleaned || cleaned.length !== 1) {
+		return false
+	}
+
+	const digits = cleaned[0].split('').filter(c => !/\s/.test(c))
+	if (digits.length < 6 || digits.length > 20) {
+		return false
+	}
+	return digits.reverse()
+	             .map(num => Number(num))
+	             .reduce((acc, cur, idx) => {
+		             const num = idx % 2 === 0
+			             ? cur
+			             : cur * 2 - (cur > 4 ? 9 : 0)
+		             return acc + num
+	             }, 0) % 10 === 0
+}
