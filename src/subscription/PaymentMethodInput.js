@@ -18,6 +18,7 @@ import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
+import {isValidCreditCardNumber} from "../misc/FormatValidator"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -112,6 +113,8 @@ export class PaymentMethodInput {
 			let cc = this._creditCardAttrs.getCreditCardData()
 			if (cc.number === "") {
 				return "creditCardNumberFormat_msg"
+			} else if (!isValidCreditCardNumber(cc.number)) {
+				return "creditCardNumberInvalid_msg"
 			} else if (cc.cardHolderName === "") {
 				return "creditCardCardHolderName_msg"
 			} else if (cc.cvv === "") {
