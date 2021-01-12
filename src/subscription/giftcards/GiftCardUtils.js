@@ -187,25 +187,25 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 												label: "share_action",
 												icon: () => BootIcons.Share
 											})
-											: [
-												m(ButtonN, {
-													click: () => {
-														copyToClipboard(link)
-															.then(() => {infoMessage = "giftCardCopied_msg"})
-															.catch(() => {infoMessage = "copyLinkError_msg"})
-													},
-													label: "copyToClipboard_action",
-													icon: () => Icons.Clipboard
-												}),
-												m(ButtonN, {
-													click: () => {
-														infoMessage = "emptyString_msg"
-														window.print()
-													},
-													label: "print_action",
-													icon: () => Icons.Print
-												})
-											]
+											: m(ButtonN, {
+												click: () => {
+													copyToClipboard(link)
+														.then(() => {infoMessage = "giftCardCopied_msg"})
+														.catch(() => {infoMessage = "copyLinkError_msg"})
+												},
+												label: "copyToClipboard_action",
+												icon: () => Icons.Clipboard
+											}),
+										!isApp()
+											? m(ButtonN, {
+												click: () => {
+													infoMessage = "emptyString_msg"
+													window.print()
+												},
+												label: "print_action",
+												icon: () => Icons.Print
+											})
+											: null
 									]
 								),
 								m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage)))
