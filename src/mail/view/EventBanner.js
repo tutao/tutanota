@@ -12,7 +12,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -49,12 +49,7 @@ export class EventBanner implements MComponent<Attrs> {
 				m(".ml-negative-s.limit-width.align-self-start", m(ButtonN, {
 					label: "viewEvent_action",
 					type: ButtonType.Secondary,
-					click: () => {
-						if (logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(true)
-						} else {
-							import("../../calendar/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
-						}
+					click: () => import("../../calendar/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
 					},
 				})),
 			],

@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "67"
+	"version": "68"
 }
 
 export function createCreateCustomerServerPropertiesReturn(values?: $Shape<$Exact<CreateCustomerServerPropertiesReturn>>): CreateCustomerServerPropertiesReturn {

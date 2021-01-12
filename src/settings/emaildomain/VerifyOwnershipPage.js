@@ -12,8 +12,13 @@ import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {PreconditionFailedError} from "../../api/common/error/RestError"
+import {showBusinessFeatureRequiredDialog} from "../../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
+
+
+const FAILURE_CUSTOM_DOMAIN_LIMIT_REACHED = "customdomain.limit_reached"
 
 export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 
@@ -64,7 +69,6 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 					if (customDomainInfos.filter((domainInfo) => domainInfo.domain === this.data.domain()).length) {
 						return null
 					}
-					console.log("")
 					return () => lang.get("customDomainErrorDomainNotAvailable_msg")
 				} else {
 					let errorMessageMap = {}
@@ -84,6 +88,14 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return showErrorDialog ? Dialog.error(message).then(() => false) : false
 			}
 			return true
+		}).catch(PreconditionFailedError, e => {
+			if (e.data === FAILURE_CUSTOM_DOMAIN_LIMIT_REACHED) {
+				// ignore promise. always return false to not switch to next page.
+				showBusinessFeatureRequiredDialog("businessFeatureRequiredMultipleDomains_msg")
+			} else {
+				Dialog.error(() => e.toString())
+			}
+			return false
 		})
 	}
 

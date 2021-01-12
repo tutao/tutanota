@@ -4,6 +4,7 @@ import o from "ospec"
 import en from "../../../src/translations/en"
 import type {Guest} from "../../../src/calendar/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../../../src/calendar/CalendarEventViewModel"
+import {lang} from "../../../src/misc/LanguageViewModel"
 import {clone, downcast, noOp} from "../../../src/api/common/utils/Utils"
 import {LazyLoaded} from "../../../src/api/common/utils/LazyLoaded"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel"
@@ -16,6 +17,7 @@ import {
 	AccountType,
 	AlarmInterval,
 	CalendarAttendeeStatus,
+	FeatureType,
 	GroupType,
 	ShareCapability,
 	TimeFormat
@@ -40,20 +42,21 @@ import {SendMailModel} from "../../../src/mail/editor/SendMailModel"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import type {ContactModel} from "../../../src/contacts/model/ContactModel"
 import {EventController} from "../../../src/api/main/EventController"
-import {lang} from "../../../src/misc/LanguageViewModel"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail} from "../../../src/api/entities/tutanota/Mail"
+import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {worker} from "../../../src/api/main/WorkerClient"
 import {createCustomer} from "../../../src/api/entities/sys/Customer"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
-import type {Contact} from "../../../src/api/entities/tutanota/Contact"
-import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
-import type {MailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
+import {createCustomerInfo} from "../../../src/api/entities/sys/CustomerInfo"
+import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
+import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
+import {createFeature} from "../../../src/api/entities/sys/Feature"
+import {BusinessFeatureRequiredError} from "../../../src/api/common/error/BusinessFeatureRequiredError"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -80,7 +83,7 @@ o.spec("CalendarEventViewModel", function () {
 		              calendarModel = makeCalendarModel(),
 		              mailModel = makeMailModel(),
 		              contactModel = makeContactModel(),
-		              mail = null,
+		              mail = null
 	              }: {|
 		userController?: IUserController,
 		distributor?: CalendarUpdateDistributor,
@@ -90,7 +93,7 @@ o.spec("CalendarEventViewModel", function () {
 		mailModel?: MailModel,
 		contactModel?: ContactModel,
 		existingEvent: ?CalendarEvent,
-		mail?: ?Mail,
+		mail?: ?Mail
 	|}): CalendarEventViewModel {
 		const loginController: LoginController = downcast({
 				getUserController: () => userController,
@@ -115,10 +118,11 @@ o.spec("CalendarEventViewModel", function () {
 			}[purpose]
 		}
 
-		return new CalendarEventViewModel(
+		const viewModel = new CalendarEventViewModel(
 			userController,
 			distributor,
 			calendarModel,
+			entityClient,
 			mailboxDetail,
 			sendFactory,
 			now,
@@ -128,6 +132,8 @@ o.spec("CalendarEventViewModel", function () {
 			mail,
 			false,
 		)
+		viewModel.hasBusinessFeature(true)
+		return viewModel
 	}
 
 	let askForUpdates: OspecSpy<() => Promise<"yes" | "no" | "cancel">>
@@ -611,7 +617,8 @@ o.spec("CalendarEventViewModel", function () {
 			const calendars = makeCalendars("own")
 			const calendarModel = makeCalendarModel()
 			const distributor = makeDistributor()
-			const viewModel = init({calendars, existingEvent: null, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent: null, calendarModel, distributor})
 			const newGuest = "new-attendee@example.com"
 
 			viewModel.addGuest(newGuest)
@@ -632,6 +639,23 @@ o.spec("CalendarEventViewModel", function () {
 			o(askInsecurePassword.callCount).equals(0)
 		})
 
+		o("own calendar, new guests, premium no business feature", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM, "", false)
+			const viewModel = init({userController, calendars, existingEvent: null, calendarModel, distributor})
+			const newGuest = "new-attendee@example.com"
+
+			viewModel.addGuest(newGuest)
+			askInsecurePassword = o.spy(async () => true)
+			let errorThrown = false
+			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress}).catch(BusinessFeatureRequiredError, () => {
+				errorThrown = true
+			})
+			o(errorThrown).equals(true)
+		})
+
 		o("own calendar, same guests, agree on updates", async function () {
 			const calendars = makeCalendars("own")
 			const calendarModel = makeCalendarModel()
@@ -649,7 +673,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
@@ -689,7 +714,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
@@ -725,7 +751,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
 			await updateModel.bccRecipients()[0].resolveContactPromise
 			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
@@ -762,7 +789,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
 			viewModel.updatePassword(viewModel.attendees()[0], "123")
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
@@ -808,7 +836,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
@@ -851,7 +880,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
@@ -889,7 +919,8 @@ o.spec("CalendarEventViewModel", function () {
 				startTime: new Date(2020, 4, 5, 16),
 				endTime: new Date(2020, 4, 6, 20),
 			})
-			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(async () => "yes")
@@ -965,7 +996,8 @@ o.spec("CalendarEventViewModel", function () {
 			const calendars = makeCalendars("own")
 			const calendarModel = makeCalendarModel()
 			const distributor = makeDistributor()
-			const viewModel = init({calendars, existingEvent: null, calendarModel, distributor})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars, existingEvent: null, calendarModel, distributor})
 			const newGuest = "new-attendee@example.com"
 			viewModel.addGuest(newGuest)
 			viewModel.addGuest(encMailAddress.address)
@@ -992,7 +1024,7 @@ o.spec("CalendarEventViewModel", function () {
 				status: CalendarAttendeeStatus.DECLINED,
 			})
 			const alias = "alias@tutanota.com"
-			const userController = makeUserController([alias])
+			const userController = makeUserController([alias], AccountType.PREMIUM, "", true)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: calendarGroupId,
 				startTime: new Date(2020, 5, 1),
@@ -1000,7 +1032,7 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [ownAttendee, anotherAttendee],
 			})
-			const viewModel = init({calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
 			const askForUpdates = o.spy(() => Promise.resolve("yes"))
 
 			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
@@ -1018,7 +1050,7 @@ o.spec("CalendarEventViewModel", function () {
 				status: CalendarAttendeeStatus.DECLINED,
 			})
 			const alias = "alias@tutanota.com"
-			const userController = makeUserController([alias])
+			const userController = makeUserController([alias], AccountType.PREMIUM, "", true)
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: calendarGroupId,
 				startTime: new Date(2020, 5, 1),
@@ -1026,7 +1058,7 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [anotherAttendee],
 			})
-			const viewModel = init({calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
 			viewModel.addGuest(encMailAddress.address)
@@ -1047,14 +1079,14 @@ o.spec("CalendarEventViewModel", function () {
 				status: CalendarAttendeeStatus.NEEDS_ACTION,
 			})
 			const alias = "alias@tutanota.com"
-			const userController = makeUserController([alias])
+			const userController = makeUserController([alias], AccountType.PREMIUM, "", true)
 			const existingEvent = createCalendarEvent({
 				startTime: new Date(2020, 5, 1),
 				endTime: new Date(2020, 5, 2),
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [ownAttendee],
 			})
-			const viewModel = init({calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(askForUpdates.calls.length).equals(0)
 			o(askInsecurePassword.calls.length).equals(0)
@@ -1075,7 +1107,8 @@ o.spec("CalendarEventViewModel", function () {
 					})
 				]
 			})
-			const viewModel = init({calendarModel, calendars, existingEvent})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendarModel, calendars, existingEvent})
 
 			viewModel.addAlarm(AlarmInterval.FIVE_MINUTES)
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
@@ -1243,14 +1276,6 @@ o.spec("CalendarEventViewModel", function () {
 	})
 
 	o.spec("addGuest", function () {
-		o("as a free user", async function () {
-			const calendars = makeCalendars("own")
-			const userController = makeUserController([], AccountType.FREE)
-			const viewModel = init({calendars, userController, existingEvent: null})
-
-			o(() => viewModel.addGuest("new-attendee@example.com")).throws(ProgrammingError)
-			o(viewModel.attendees()).deepEquals([])
-		})
 
 		o("to new event", async function () {
 			const calendars = makeCalendars("own")
@@ -1332,11 +1357,11 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const viewModel = init({calendars, userController, existingEvent})
 
-			o(() => viewModel.selectGoing(CalendarAttendeeStatus.ACCEPTED)).throws(ProgrammingError)
+			viewModel.selectGoing(CalendarAttendeeStatus.ACCEPTED)
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: ownAttendee.address,
-					status: ownAttendee.status,
+					status: CalendarAttendeeStatus.ACCEPTED,
 					type: RecipientInfoType.INTERNAL,
 				}
 			])
@@ -1607,23 +1632,35 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 
-	o.spec("shouldShowInviteUnavailble", function () {
+	o.spec("shouldShowInviteNotAvailable", function () {
 		o("not available for free users", function () {
-			const userController = makeUserController([], AccountType.FREE)
+			const userController = makeUserController([], AccountType.FREE, "", false)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			o(viewModel.shouldShowInviteUnavailble()).equals(true)
+			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			o(notAvailable).equals(true)
 		})
 
-		o("available for premium users", function () {
-			const userController = makeUserController([], AccountType.PREMIUM)
+		o("not available for premium users without business subscription", async function () {
+			const userController = makeUserController([], AccountType.PREMIUM, "", false)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			o(viewModel.shouldShowInviteUnavailble()).equals(false)
+			await viewModel.updateBusinessFeature()
+			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			o(notAvailable).equals(true)
+		})
+
+		o("available for premium users with business subscription", async function () {
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
+			await viewModel.updateBusinessFeature()
+			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			o(notAvailable).equals(false)
 		})
 
 		o("available for external users", function () {
-			const userController = makeUserController([], AccountType.EXTERNAL)
+			const userController = makeUserController([], AccountType.EXTERNAL, "", false)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			o(viewModel.shouldShowInviteUnavailble()).equals(false)
+			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			o(notAvailable).equals(false)
 		})
 	})
 })
@@ -1647,8 +1684,12 @@ function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Ma
 	return new Map([[id, calendarInfo]])
 }
 
-function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string): IUserController {
-
+function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string, businessFeatureOrdered?: boolean = false): IUserController {
+	const bookingsRef = createBookingsRef({items: GENERATED_MAX_ID})
+	const customizations = []
+	if (businessFeatureOrdered) {
+		customizations.push(createFeature({feature: FeatureType.BusinessFeatureEnabled}))
+	}
 	return downcast({
 		user: createUser({
 			_id: userId,
@@ -1667,7 +1708,8 @@ function makeUserController(aliases: Array<string> = [], accountType: AccountTyp
 		},
 		isInternalUser: () => true,
 		isFreeAccount: () => true,
-		loadCustomer: () => Promise.resolve(createCustomer())
+		loadCustomer: () => Promise.resolve(createCustomer({customizations: customizations})),
+		loadCustomerInfo: () => Promise.resolve(createCustomerInfo({bookings: bookingsRef}))
 	})
 }
 

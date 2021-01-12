@@ -40,7 +40,9 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {getElementId, isSameId} from "../api/common/utils/EntityUtils";
+import {showSharingBuyDialog} from "../subscription/BuyDialog"
+import {checkPremiumSubscription} from "../subscription/SubscriptionDialogUtils"
+import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,

@@ -38,6 +38,13 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"premiumBusinessPrices": {
+			"id": 1866,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"final": false,
+			"refType": "PlanPrices"
+		},
 		"premiumPrices": {
 			"id": 1473,
 			"type": "AGGREGATION",
@@ -52,6 +59,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "PlanPrices"
 		},
+		"teamsBusinessPrices": {
+			"id": 1867,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"final": false,
+			"refType": "PlanPrices"
+		},
 		"teamsPrices": {
 			"id": 1729,
 			"type": "AGGREGATION",
@@ -61,7 +75,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "67"
+	"version": "68"
 }
 
 export function createUpgradePriceServiceReturn(values?: $Shape<$Exact<UpgradePriceServiceReturn>>): UpgradePriceServiceReturn {
@@ -75,7 +89,9 @@ export type UpgradePriceServiceReturn = {
 	business: boolean;
 	messageTextId: ?string;
 
+	premiumBusinessPrices: PlanPrices;
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
+	teamsBusinessPrices: PlanPrices;
 	teamsPrices: PlanPrices;
 }

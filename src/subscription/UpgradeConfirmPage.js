@@ -19,7 +19,7 @@ import {BadGatewayError, PreconditionFailedError} from "../api/common/error/Rest
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
@@ -41,7 +41,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 	oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		const data = vnode.attrs.data
-		this._orderField.setValue(data.type)
+		this._orderField.setValue(getDisplayNameOfSubscriptionType(data.type))
 		this._subscriptionField.setValue((data.options.paymentInterval() === 12
 			? lang.get("pricing.yearly_label")
 			: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
@@ -136,8 +136,12 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	_subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionTypeEnum): PaidSubscriptionTypeEnum {
 		if (subscriptionType === SubscriptionType.Premium) {
 			return PaidSubscriptionType.Premium
+		} else if (subscriptionType === SubscriptionType.PremiumBusiness) {
+			return PaidSubscriptionType.Premium_Business
 		} else if (subscriptionType === SubscriptionType.Teams) {
 			return PaidSubscriptionType.Teams
+		} else if (subscriptionType === SubscriptionType.TeamsBusiness) {
+			return PaidSubscriptionType.Teams_Business
 		} else if (subscriptionType === SubscriptionType.Pro) {
 			return PaidSubscriptionType.Pro
 		} else {

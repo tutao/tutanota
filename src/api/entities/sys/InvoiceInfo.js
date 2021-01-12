@@ -78,6 +78,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"specialPriceBusinessPerUser": {
+			"id": 1864,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"specialPriceContactFormSingle": {
 			"id": 1284,
 			"type": "Number",
@@ -131,7 +138,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "67"
+	"version": "68"
 }
 
 export function createInvoiceInfo(values?: $Shape<$Exact<InvoiceInfo>>): InvoiceInfo {
@@ -150,6 +157,7 @@ export type InvoiceInfo = {
 	publishInvoices: boolean;
 	reminderState: NumberString;
 	specialPriceBrandingPerUser: ?NumberString;
+	specialPriceBusinessPerUser: ?NumberString;
 	specialPriceContactFormSingle: ?NumberString;
 	specialPriceSharedGroupSingle: ?NumberString;
 	specialPriceSharingPerUser: ?NumberString;

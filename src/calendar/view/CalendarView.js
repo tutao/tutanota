@@ -86,7 +86,7 @@ import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
 import {createCalendarEventViewModel} from "../CalendarEventViewModel"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
+import {premiumSubscriptionActive, showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 

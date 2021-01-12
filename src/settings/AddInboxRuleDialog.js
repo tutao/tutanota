@@ -17,8 +17,9 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {LockedError} from "../api/common/error/RestError"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 import {isSameId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 

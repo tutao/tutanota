@@ -23,6 +23,8 @@ import {getDayShifted, getStartOfDay, getStartOfNextDay} from "../api/common/uti
 import {getDefaultNotificationLabel, getMailMembership, notificationMessagesAreValid} from "./OutOfOfficeNotificationUtils"
 import {logins} from "../api/main/LoginController"
 import {getDefaultSignature} from "../mail/MailUtils"
+import {PreconditionFailedError} from "../api/common/error/RestError"
+import {showBusinessFeatureRequiredDialog} from "../subscription/SubscriptionDialogUtils"
 
 const RecipientMessageType = Object.freeze({
 	EXTERNAL_TO_EVERYONE: 0,
@@ -30,6 +32,8 @@ const RecipientMessageType = Object.freeze({
 	INTERNAL_ONLY: 2
 })
 type RecipientMessageTypeEnum = $Values<typeof RecipientMessageType>;
+
+const FAILURE_BUSINESS_FEATURE_REQUIRED = "outofoffice.business_feature_required"
 
 class NotificationData {
 	outOfOfficeNotification: OutOfOfficeNotification
@@ -272,7 +276,14 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: ?
 				? locator.entityClient.update(sendableNotification)
 				: locator.entityClient.setup(null, sendableNotification)
 			// If the request fails the user should have to close manually. Otherwise the input data would be lost.
-			requestPromise.then(() => cancel()).catch(e => Dialog.error(() => e.toString()))
+			requestPromise.then(() => cancel())
+			              .catch(PreconditionFailedError, e => {
+				              if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
+					              return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+				              } else {
+					              return Dialog.error(() => e.toString())
+				              }
+			              })
 		}
 	}
 

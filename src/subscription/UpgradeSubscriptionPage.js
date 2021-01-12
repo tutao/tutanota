@@ -6,100 +6,87 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {getUpgradePrice, SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
+import type {SubscriptionActionButtons, SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 import {CheckboxN} from "../gui/base/CheckboxN"
+import {getSubscriptionPrice} from "./PriceUtils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const a = vnode.attrs
+		const data = vnode.attrs.data
+		const showNextPage = () => {
+			emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+		}
+		const subscriptionActionButtons: SubscriptionActionButtons = {
+			Free: {
+				view: () => {
+					return m(ButtonN, {
+						label: "pricing.select_action",
+						click: () => {
+							confirmFreeSubscription().then(confirmed => {
+								if (confirmed) {
+									data.type = SubscriptionType.Free
+									data.price = "0"
+									data.priceNextYear = "0"
+									showNextPage()
+								}
+							})
+						},
+						type: ButtonType.Login,
+					})
+				}
+			},
+			Premium: createUpgradeButton(data, showNextPage, SubscriptionType.Premium),
+			PremiumBusiness: createUpgradeButton(data, showNextPage, SubscriptionType.PremiumBusiness),
+			Teams: createUpgradeButton(data, showNextPage, SubscriptionType.Teams),
+			TeamsBusiness: createUpgradeButton(data, showNextPage, SubscriptionType.TeamsBusiness),
+			Pro: createUpgradeButton(data, showNextPage, SubscriptionType.Pro)
+		}
 		return m("#upgrade-account-dialog.pt", [
 				m(SubscriptionSelector, {
-					options: a.data.options,
-					campaignInfoTextId: a.data.campaignInfoTextId,
+					options: data.options,
+					campaignInfoTextId: data.campaignInfoTextId,
 					boxWidth: 230,
 					boxHeight: 250,
 					highlightPremium: true,
-					premiumPrices: a.data.premiumPrices,
-					teamsPrices: a.data.teamsPrices,
-					proPrices: a.data.proPrices,
-					isInitialUpgrade: a.data.upgradeType !== UpgradeType.Switch,
-					currentlyActive: a.data.currentSubscription,
+					planPrices: data.planPrices,
+					isInitialUpgrade: data.upgradeType !== UpgradeType.Switch,
+					currentSubscriptionType: data.currentSubscription,
 					currentlySharingOrdered: false,
+					currentlyBusinessOrdered: false,
 					currentlyWhitelabelOrdered: false,
-					freeActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									confirmFreeSubscription().then(confirmed => {
-										if (confirmed) {
-											a.data.type = SubscriptionType.Free
-											a.data.price = "0"
-											a.data.priceNextYear = "0"
-											emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
-										}
-									})
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					premiumActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									a.data.type = SubscriptionType.Premium
-									a.data.price = String(getUpgradePrice(a.data, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice))
-									let nextYear = String(getUpgradePrice(a.data, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice))
-									a.data.priceNextYear = (a.data.price !== nextYear) ? nextYear : null
-									emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					teamsActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									a.data.type = SubscriptionType.Teams
-									a.data.price = String(getUpgradePrice(a.data, SubscriptionType.Teams, UpgradePriceType.PlanActualPrice))
-									let nextYear = String(getUpgradePrice(a.data, SubscriptionType.Teams, UpgradePriceType.PlanNextYearsPrice))
-									a.data.priceNextYear = (a.data.price !== nextYear) ? nextYear : null
-									emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					proActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									a.data.type = SubscriptionType.Pro
-									a.data.price = String(getUpgradePrice(a.data, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice))
-									let nextYear = String(getUpgradePrice(a.data, SubscriptionType.Pro, UpgradePriceType.PlanNextYearsPrice))
-									a.data.priceNextYear = (a.data.price !== nextYear) ? nextYear : null
-									emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					}
+					orderedContactForms: 0,
+					actionButtons: subscriptionActionButtons
 				})
 			]
 		)
+	}
+}
+
+
+function createUpgradeButton(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): Component {
+	return {
+		view: () => {
+			return m(ButtonN, {
+				label: "pricing.select_action",
+				click: () => {
+					data.type = subscriptionType
+					data.price = String(getSubscriptionPrice(data, subscriptionType, UpgradePriceType.PlanActualPrice))
+					let nextYear = String(getSubscriptionPrice(data, subscriptionType, UpgradePriceType.PlanNextYearsPrice))
+					data.priceNextYear = (data.price !== nextYear) ? nextYear : null
+					showNextPage()
+				},
+				type: ButtonType.Login,
+			})
+		}
 	}
 }
 
@@ -110,11 +97,13 @@ function confirmFreeSubscription(): Promise<boolean> {
 
 		const buttons: Array<ButtonAttrs> = [
 			{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
-			{label: "ok_action", click: () => {
-				if (oneAccountValue() && privateUseValue()) {
-					closeAction(true)
-				}
-			}, type: ButtonType.Primary	},
+			{
+				label: "ok_action", click: () => {
+					if (oneAccountValue() && privateUseValue()) {
+						closeAction(true)
+					}
+				}, type: ButtonType.Primary
+			},
 		]
 		let dialog: Dialog
 		const closeAction = confirmed => {

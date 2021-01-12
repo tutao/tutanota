@@ -17,7 +17,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {createNotAvailableForFreeClickHandler, formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import type {Booking} from "../api/entities/sys/Booking"
@@ -43,16 +43,14 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
-	getIncludedAliases,
-	getIncludedStorageCapacity,
-	getNbrOfUsers,
+	getDisplayNameOfSubscriptionType,
 	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
+	isBusinessFeatureActive,
 	isSharingActive,
 	isWhitelabelActive,
-	showServiceTerms,
-	showWhitelabelBuyDialog
+	showServiceTerms
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -64,10 +62,12 @@ import {loadGiftCards, showGiftCardToShare,} from "./giftcards/GiftCardUtils"
 import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
-import {SettingsExpander} from "../settings/SettingsExpander"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "./BuyDialog"
+import {createNotAvailableForFreeClickHandler} from "./SubscriptionDialogUtils"
+import {SettingsExpander} from "../settings/SettingsExpander"
+import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
@@ -90,6 +90,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_contactFormsFieldValue: Stream<string>;
 	_whitelabelFieldValue: Stream<string>;
 	_sharingFieldValue: Stream<string>;
+	_businessFieldValue: Stream<string>;
 	_periodEndDate: ?Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
@@ -104,17 +105,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo && this._customer && this._customerInfo) {
-				showSwitchDialog(neverNull(this._customer.businessUse),
-					Number(neverNull(this._accountingInfo).paymentInterval),
-					this._currentSubscription,
-					getNbrOfUsers(this._lastBooking),
-					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
-					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
-					getIncludedStorageCapacity(neverNull(this._customerInfo)),
-					getIncludedAliases(neverNull(this._customerInfo)),
-					isSharingActive(this._lastBooking),
-					isWhitelabelActive(this._lastBooking))
+			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+				showSwitchDialog(this._customer,
+					this._customerInfo,
+					this._accountingInfo,
+					this._lastBooking)
 			}
 		}, () => Icons.Edit)
 
@@ -222,6 +217,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					.then((utils) => utils.showSharingBuyDialog(false)),
 				isPremiumPredicate
 			),
+			icon: () => Icons.Cancel,
+		}
+		const enableBusinessActionAttrs = {
+			label: "businessFeature_label",
+			click: createNotAvailableForFreeClickHandler(false,
+				() => showBusinessBuyDialog(true), isPremiumPredicate),
+			icon: () => Icons.Edit,
+		}
+		const disableBusinessActionAttrs = {
+			label: "businessFeature_label",
+			click: createNotAvailableForFreeClickHandler(false,
+				() => showBusinessBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
 		}
 		const deleteButtonAttrs = {
@@ -372,6 +379,21 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					,
 				}),
 				m(TextFieldN, {
+					label: "businessFeature_label",
+					value: this._businessFieldValue,
+					disabled: true,
+					injectionsRight: () => {
+						if (!this._customer || this._customer.businessUse && isBusinessFeatureActive(this._lastBooking)) {
+							// viewer not initialized yet or customer is business customer as they are not allowed to disable business feature
+							return null
+						} else if (isBusinessFeatureActive(this._lastBooking)) {
+							return m(ButtonN, disableBusinessActionAttrs)
+						} else {
+							return m(ButtonN, enableBusinessActionAttrs)
+						}
+					}
+				}),
+				m(TextFieldN, {
 					label: "contactForms_label",
 					value: this._contactFormsFieldValue,
 					disabled: true,
@@ -410,6 +432,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
+		this._businessFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream(null)
 		this._updatePriceInfo()
@@ -423,7 +446,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					|| this._customer.orderProcessingAgreementNeeded)))
 	}
 
-	_updateCustomerData(customer: Customer) {
+	_updateCustomerData(customer: Customer): Promise<*> {
 		let p = Promise.resolve()
 		this._customer = customer
 		this._usageTypeFieldValue(customer.businessUse ? lang.get("pricing.businessUse_label") : lang.get("pricing.privateUse_label"))
@@ -434,7 +457,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			this._orderAgreement = null
 		}
-		p.then(() => {
+		this._updateBusinessField()
+		return p.then(() => {
 			if (customer.orderProcessingAgreementNeeded) {
 				this._orderAgreementFieldValue(lang.get("signingNeeded_msg"))
 			} else if (this._orderAgreement) {
@@ -447,14 +471,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_switchToBusinessUse(): void {
-		if (this._customer && this._customer.businessUse === false) {
+		const customer = this._customer
+		if (customer && customer.businessUse === false) {
 			let accountingInfo = neverNull(this._accountingInfo)
 			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-			SwitchToBusinessInvoiceDataDialog.show(neverNull(this._customer), {
-				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-				country: invoiceCountry,
-				vatNumber: ""
-			}, accountingInfo, "pricing.businessUse_label", "businessChangeInfo_msg")
+			SwitchToBusinessInvoiceDataDialog.show(customer, {
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+					country: invoiceCountry,
+					vatNumber: ""
+				}, accountingInfo,
+				isBusinessFeatureActive(this._lastBooking),
+				"pricing.businessUse_label",
+				"businessChangeInfo_msg")
 		}
 	}
 
@@ -510,6 +538,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				              return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 				                            .then(bookings => {
 					                            this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+					                            this._customer = customer
 					                            this._isCancelled = customer.canceledPremiumAccount
 					                            this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
 					                            this._updateSubscriptionField(this._isCancelled)
@@ -520,6 +549,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							                            this._updateGroupsField(),
 							                            this._updateWhitelabelField(),
 							                            this._updateSharingField(),
+							                            this._updateBusinessField(),
 							                            this._updateContactFormsField()
 						                            ]
 					                            ).then(() => m.redraw())
@@ -603,6 +633,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
+	_updateBusinessField(): Promise<void> {
+		if (!this._customer) {
+			this._businessFieldValue("")
+		} else if (isBusinessFeatureActive(this._lastBooking)) {
+			this._businessFieldValue(lang.get("active_label"))
+		} else {
+			this._businessFieldValue(lang.get("deactivated_label"))
+		}
+		return Promise.resolve()
+	}
+
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			return this.processUpdate(update)
@@ -624,7 +665,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return this._updatePriceInfo()
 			})
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return locator.entityClient.load(CustomerTypeRef, instanceId).then(customer => this._updateCustomerData(customer))
+			return locator.entityClient.load(CustomerTypeRef, instanceId).then(customer => {
+				this._updateCustomerData(customer)
+			})
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
 			return locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId]).then(giftCard => {
 				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
@@ -638,7 +681,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTypeEnum): string {
 	if (type === AccountType.PREMIUM) {
-		return subscription
+		return getDisplayNameOfSubscriptionType(subscription)
 	} else {
 		return AccountTypeNames[Number(type)];
 	}

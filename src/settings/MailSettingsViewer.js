@@ -43,9 +43,8 @@ import {isSameId} from "../api/common/utils/EntityUtils";
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {formatDate} from "../misc/Formatter"
 import {loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
@@ -154,9 +153,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
 			label: "outOfOfficeNotification_title",
-			click: () => logins.getUserController().isPremiumAccount()
-				? this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
-				: showNotAvailableForFreeDialog(true),
+			click: () => {
+				this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
+			},
 			icon: () => Icons.Edit
 		}
 

@@ -48,7 +48,6 @@ import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {createNotAvailableForFreeClickHandler} from "../subscription/PriceUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
@@ -59,8 +58,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {isWhitelabelActive, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
 import {BrandingDomainGetReturnTypeRef} from "../api/entities/sys/BrandingDomainGetReturn"
@@ -68,8 +66,10 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
+import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
+import {createNotAvailableForFreeClickHandler, showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 

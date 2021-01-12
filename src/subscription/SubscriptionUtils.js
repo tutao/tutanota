@@ -3,10 +3,9 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
-import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType, Const, FeatureType} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
@@ -16,11 +15,10 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
-import {showProgressDialog} from "../gui/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 
 export type SubscriptionOptions = {
@@ -31,7 +29,9 @@ export type SubscriptionOptions = {
 export const SubscriptionType = Object.freeze({
 	Free: 'Free',
 	Premium: 'Premium',
+	PremiumBusiness: 'PremiumBusiness',
 	Teams: 'Teams',
+	TeamsBusiness: 'TeamsBusiness',
 	Pro: 'Pro'
 })
 export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
@@ -43,22 +43,127 @@ export const UpgradeType = {
 }
 export type UpgradeTypeEnum = $Values<typeof UpgradeType>;
 
+export type SubscriptionConfig = {|
+	nbrOfAliases: number,
+	orderNbrOfAliases: number,
+	storageGb: number,
+	orderStorageGb: number,
+	sharing: boolean,
+	business: boolean,
+	whitelabel: boolean,
+|}
 
-export const PaymentIntervalItems: SegmentControlItem<number>[] = [
-	{name: lang.get("pricing.yearly_label"), value: 12},
-	{name: lang.get("pricing.monthly_label"), value: 1}
+export const subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
+subscriptions[SubscriptionType.Free] = {
+	nbrOfAliases: 0,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Premium] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.PremiumBusiness] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: true,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Teams] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.TeamsBusiness] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: true,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Pro] = {
+	nbrOfAliases: 20,
+	orderNbrOfAliases: 20,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: true,
+	whitelabel: true
+}
+
+const descendingSubscriptionOrder = [
+	SubscriptionType.Pro,
+	SubscriptionType.TeamsBusiness,
+	SubscriptionType.Teams,
+	SubscriptionType.PremiumBusiness,
+	SubscriptionType.Premium,
 ]
 
-export const BusinessUseItems: SegmentControlItem<boolean>[] = [
-	{name: lang.get("pricing.privateUse_label"), value: false},
-	{name: lang.get("pricing.businessUse_label"), value: true}
-]
+/**
+ * Returns true if the targetSubscription plan is considered to be a lower (~ cheaper) subscription plan
+ * Is based on the order of business and non-business subscriptions as defined in descendingSubscriptionOrder
+ */
+export function isDowngrade(targetSubscription: SubscriptionTypeEnum, currentSubscription: SubscriptionTypeEnum): boolean {
+	return descendingSubscriptionOrder.indexOf(targetSubscription) > descendingSubscriptionOrder.indexOf(currentSubscription)
+}
+
+export type SubscriptionActionButtons = {|
+	Free: Component,
+	Premium: Component,
+	PremiumBusiness: Component,
+	Teams: Component,
+	TeamsBusiness: Component,
+	Pro: Component,
+|}
+
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionTypeEnum): Component {
+	switch (subscription) {
+		case SubscriptionType.Free:
+			return actionButtons.Free
+		case SubscriptionType.Premium:
+			return actionButtons.Premium
+		case SubscriptionType.PremiumBusiness:
+			return actionButtons.PremiumBusiness
+		case SubscriptionType.Teams:
+			return actionButtons.Teams
+		case SubscriptionType.TeamsBusiness:
+			return actionButtons.TeamsBusiness
+		case SubscriptionType.Pro:
+			return actionButtons.Pro
+		default:
+			throw new ProgrammingError("Plan is not valid")
+	}
+}
+
+export type SubscriptionPlanPrices = {|
+	Premium: PlanPrices,
+	PremiumBusiness: PlanPrices,
+	Teams: PlanPrices,
+	TeamsBusiness: PlanPrices,
+	Pro: PlanPrices,
+|}
 
 export type SubscriptionData = {
 	options: SubscriptionOptions,
-	premiumPrices: PlanPrices,
-	teamsPrices: PlanPrices,
-	proPrices: PlanPrices
+	planPrices: SubscriptionPlanPrices
 }
 
 export const UpgradePriceType = Object.freeze({
@@ -70,30 +175,53 @@ export const UpgradePriceType = Object.freeze({
 })
 export type UpgradePriceTypeEnum = $Values<typeof UpgradePriceType>;
 
-export function getUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
-	let prices = (subscription === SubscriptionType.Premium) ? attrs.premiumPrices :
-		((subscription === SubscriptionType.Teams) ? attrs.teamsPrices : attrs.proPrices)
-	let monthlyPriceString
-	let monthsFactor = (attrs.options.paymentInterval() === 12) ? 10 : 1
-	let discount = 0
-	if (type === UpgradePriceType.PlanReferencePrice) {
-		monthlyPriceString = prices.monthlyReferencePrice
-		if (attrs.options.paymentInterval() === 12) {
-			monthsFactor = 12
-		}
-	} else if (type === UpgradePriceType.PlanActualPrice) {
-		monthlyPriceString = prices.monthlyPrice
-		if (attrs.options.paymentInterval() === 12) {
-			discount = Number(prices.firstYearDiscount)
-		}
-	} else if (type === UpgradePriceType.PlanNextYearsPrice) {
-		monthlyPriceString = prices.monthlyPrice
-	} else if (type === UpgradePriceType.AdditionalUserPrice) {
-		monthlyPriceString = prices.additionalUserPriceMonthly
-	} else if (type === UpgradePriceType.ContactFormPrice) {
-		monthlyPriceString = prices.contactFormPriceMonthly
+export function getPlanPrices(prices: SubscriptionPlanPrices, subscription: SubscriptionTypeEnum,): ?PlanPrices {
+	switch (subscription) {
+		case SubscriptionType.Free:
+			return null
+		case SubscriptionType.Premium:
+			return prices.Premium
+		case SubscriptionType.PremiumBusiness:
+			return prices.PremiumBusiness
+		case SubscriptionType.Teams:
+			return prices.Teams
+		case SubscriptionType.TeamsBusiness:
+			return prices.TeamsBusiness
+		case SubscriptionType.Pro:
+			return prices.Pro
+		default:
+			throw new ProgrammingError("Plan is not valid")
 	}
-	return Number(monthlyPriceString) * monthsFactor - discount
+}
+
+/**
+ * @returns the corresponding subscription for business customer (Premium -> PremiumBusiness etc.)
+ */
+export function getBusinessUsageSubscriptionType(subscription: SubscriptionTypeEnum): SubscriptionTypeEnum {
+	switch (subscription) {
+		case SubscriptionType.Free:
+			throw new ProgrammingError("there is no business counterpart for free")
+		case SubscriptionType.Premium:
+			return SubscriptionType.PremiumBusiness
+		case SubscriptionType.Teams:
+			return SubscriptionType.TeamsBusiness
+		default:
+			return subscription
+	}
+}
+
+/**
+ * @returns {string|SubscriptionTypeEnum} the name to show to the user for the current subscription (PremiumBusiness -> Premium etc.)
+ */
+export function getDisplayNameOfSubscriptionType(subscription: SubscriptionTypeEnum): string {
+	switch (subscription) {
+		case SubscriptionType.PremiumBusiness:
+			return SubscriptionType.Premium
+		case SubscriptionType.TeamsBusiness:
+			return SubscriptionType.Teams
+		default:
+			return subscription
+	}
 }
 
 /**
@@ -125,6 +253,10 @@ export function getNbrOfUsers(lastBooking: ?Booking): number {
 	return getCurrentCount(BookingItemFeatureType.Users, lastBooking)
 }
 
+export function getNbrOfContactForms(lastBooking: ?Booking): number {
+	return getCurrentCount(BookingItemFeatureType.ContactForm, lastBooking)
+}
+
 export function isWhitelabelActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0
 }
@@ -133,23 +265,56 @@ export function isSharingActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0
 }
 
+export function isBusinessFeatureActive(lastBooking: ?Booking): boolean {
+	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
+}
+
+/**
+ * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
+ * for non admin users because they are not allowed to access the bookings.
+ */
+export function isUsingBusinessFeatureAllowed(customer: Customer): boolean {
+	return !!customer.customizations.find(feature => feature.feature === FeatureType.BusinessFeatureEnabled)
+}
+
 export function getIncludedAliases(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
+}
+
+export function isBusinessSubscription(subscription: SubscriptionTypeEnum): boolean {
+	switch (subscription) {
+		case SubscriptionType.PremiumBusiness:
+		case SubscriptionType.TeamsBusiness:
+		case SubscriptionType.Pro:
+			return true
+		default:
+			return false
+	}
 }
 
 export function getSubscriptionType(lastBooking: ?Booking, customer: Customer, customerInfo: CustomerInfo): SubscriptionTypeEnum {
 	if (customer.type !== AccountType.PREMIUM) {
 		return SubscriptionType.Free
 	}
-	let aliases = getTotalAliases(customer, customerInfo, lastBooking)
-	let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
-	if (isSharingActive(lastBooking) && isWhitelabelActive(lastBooking) && aliases >= 20 && storage >= 10) {
-		return SubscriptionType.Pro
-	} else if (isSharingActive(lastBooking) && storage >= 10) {
-		return SubscriptionType.Teams
-	} else {
-		return SubscriptionType.Premium
+	const currentSubscription = {
+		nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
+		orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking), // dummy value
+		storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
+		orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking), // dummy value
+		sharing: isSharingActive(lastBooking),
+		business: isBusinessFeatureActive(lastBooking),
+		whitelabel: isWhitelabelActive(lastBooking),
 	}
+	const foundPlan = descendingSubscriptionOrder.find((plan) => hasAllFeaturesInPlan(currentSubscription, subscriptions[plan]))
+	return foundPlan || SubscriptionType.Premium
+}
+
+export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, planSubscription: SubscriptionConfig): boolean {
+	return !(currentSubscription.nbrOfAliases < planSubscription.nbrOfAliases
+		|| currentSubscription.storageGb < planSubscription.storageGb
+		|| !currentSubscription.sharing && planSubscription.sharing
+		|| !currentSubscription.whitelabel && planSubscription.whitelabel
+		|| !currentSubscription.business && planSubscription.business);
 }
 
 export function getPreconditionFailedPaymentMsg(data: ?string): TranslationKey {
@@ -219,43 +384,11 @@ export function buySharing(enable: boolean): Promise<boolean> {
 }
 
 /**
- * Shows the buy dialog to enable or disable the whitelabel package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
-	return showBuyDialog(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
-}
-
-/**
- * Shows the buy dialog to enable or disable the sharing package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
-	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
-		if (ok) {
-			return showBuyDialog(BookingItemFeatureType.Sharing, enable ? 1 : 0)
-		} else {
-			return true
-		}
-	})
-}
-
-/**
  * @returns True if it failed, false otherwise
  */
-export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
-	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, freeAmount, reactivate))
-		.then(accepted => {
-			if (accepted) {
-				return bookItem(bookingItemFeatureType, amount)
-			} else {
-				return true
-			}
-		})
+export function buyBusiness(enable: boolean): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
 }
-
 
 export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 	import("./terms.js")
@@ -299,5 +432,4 @@ function getBookingItemErrorMsg(feature: BookingItemFeatureTypeEnum): Translatio
 			return "unknownError_msg"
 	}
 }
-
 

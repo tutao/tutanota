@@ -17,10 +17,12 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {formatPrice, getPriceItem} from "./PriceUtils"
+import {bookItem} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -110,6 +112,59 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 	})
 }
 
+/**
+ * Shows the buy dialog to enable or disable the whitelabel package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
+	return showBuyDialogToBookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
+}
+
+/**
+ * Shows the buy dialog to enable or disable the sharing package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialogToBookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * Shows the buy dialog to enable or disable the business package.
+ * @param enable true if the business package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("businessDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialogToBookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function showBuyDialogToBookItem(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
+	return showProgressDialog("pleaseWait_msg", show(bookingItemFeatureType, amount, freeAmount, reactivate))
+		.then(accepted => {
+			if (accepted) {
+				return bookItem(bookingItemFeatureType, amount)
+			} else {
+				return true
+			}
+		})
+}
+
 function _getBookingText(price: PriceServiceReturn, featureType: NumberString, count: number, freeAmount: number): string {
 	if (_isSinglePriceType(price.currentPriceThisPeriod, price.futurePriceNextPeriod, featureType)) {
 		if (featureType === BookingItemFeatureType.Users) {
@@ -142,6 +197,12 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 				return lang.get("sharingBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing)).count})
 			} else {
 				return lang.get("cancelSharingBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Sharing)).count})
+			}
+		} else if (featureType === BookingItemFeatureType.Business) {
+			if (count > 0) {
+				return lang.get("businessBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Business)).count})
+			} else {
+				return lang.get("cancelBusinessBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Business)).count})
 			}
 		} else if (featureType === BookingItemFeatureType.ContactForm) {
 			if (count > 0) {
@@ -261,3 +322,5 @@ function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString
 	}
 	return itemPrice
 }
+
+

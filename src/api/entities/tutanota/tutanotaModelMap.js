@@ -114,6 +114,8 @@ const map: {[string]: () => mixed} = {
     CalendarEventUpdate: () => import('./CalendarEventUpdate'),
     CalendarEventUpdateList: () => import('./CalendarEventUpdateList'),
     EntropyData: () => import('./EntropyData'),
+    OutOfOfficeNotificationMessage: () => import('./OutOfOfficeNotificationMessage'),
+    OutOfOfficeNotification: () => import('./OutOfOfficeNotification'),
     OutOfOfficeNotificationRecipientList: () => import('./OutOfOfficeNotificationRecipientList')
 }
 export default map

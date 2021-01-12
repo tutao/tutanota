@@ -28,7 +28,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

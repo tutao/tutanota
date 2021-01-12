@@ -57,7 +57,9 @@ import {UserError} from "../api/main/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {isUsingBusinessFeatureAllowed} from "../subscription/SubscriptionUtils"
+import {EntityClient} from "../api/common/EntityClient"
+import {BusinessFeatureRequiredError} from "../api/common/error/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../misc/Formatter"
 
 const TIMESTAMP_ZERO_YEAR = 1970
@@ -125,6 +127,7 @@ export class CalendarEventViewModel {
 	+_updateModel: SendMailModel;
 	+_cancelModel: SendMailModel;
 	+_ownMailAddresses: Array<string>;
+	+_entityClient: EntityClient;
 	// We want to observe changes to it. To not mutate accidentally without stream update we keep it immutable.
 	+_guestStatuses: Stream<$ReadOnlyMap<string, CalendarAttendeeStatusEnum>>;
 	+_sendModelFactory: () => SendMailModel;
@@ -133,11 +136,13 @@ export class CalendarEventViewModel {
 	_responseTo: ?Mail
 	+sendingOutUpdate: Stream<boolean>
 	_processing: boolean;
+	hasBusinessFeature: Stream<boolean>
 
 	constructor(
 		userController: IUserController,
 		distributor: CalendarUpdateDistributor,
 		calendarModel: CalendarModel,
+		entityClient: EntityClient,
 		mailboxDetail: MailboxDetail,
 		sendMailModelFactory: SendMailModelFactory,
 		date: Date,
@@ -149,6 +154,7 @@ export class CalendarEventViewModel {
 	) {
 		this._distributor = distributor
 		this._calendarModel = calendarModel
+		this._entityClient = entityClient
 		this._responseTo = responseTo
 		this._inviteModel = sendMailModelFactory(mailboxDetail, "invite")
 		this._updateModel = sendMailModelFactory(mailboxDetail, "update")
@@ -159,6 +165,7 @@ export class CalendarEventViewModel {
 		this._ownAttendee = stream(null)
 		this.sendingOutUpdate = stream(false)
 		this._processing = false
+		this.hasBusinessFeature = stream(false)
 
 		const existingOrganizer = existingEvent && existingEvent.organizer
 		this.organizer = existingOrganizer
@@ -198,7 +205,7 @@ export class CalendarEventViewModel {
 			this.startDate = getStartOfDayWithZone(date, this._zone)
 			this.endDate = getStartOfDayWithZone(date, this._zone)
 		}
-
+		this.updateBusinessFeature()
 	}
 
 	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {
@@ -307,6 +314,13 @@ export class CalendarEventViewModel {
 		return stream(newStatuses)
 	}
 
+	updateBusinessFeature(): Promise<void> {
+		return this._userController.loadCustomer()
+		           .then(customer => {
+			           this.hasBusinessFeature(isUsingBusinessFeatureAllowed(customer))
+		           }).return()
+	}
+
 	_initAttendees(): Stream<Array<Guest>> {
 		return stream.merge(
 			[this._inviteModel.onMailChanged, this._updateModel.onMailChanged, this._guestStatuses, this._ownAttendee]
@@ -373,9 +387,6 @@ export class CalendarEventViewModel {
 		// 3: if the attendee is yourself and you already exist as an attendee, remove yourself
 		// 4: add the attendee
 		// 5: add organizer if you are not already in the list
-		if (this.shouldShowInviteUnavailble()) {
-			throw new ProgrammingError("Not available for free account")
-		}
 
 		// We don't add a guest if they are already an attendee
 		// even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
@@ -416,7 +427,6 @@ export class CalendarEventViewModel {
 		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
 			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
 		}
-
 	}
 
 	getGuestPassword(guest: Guest): string {
@@ -547,8 +557,14 @@ export class CalendarEventViewModel {
 		return selectedCalendar != null && !selectedCalendar.shared && this._eventType !== EventType.INVITE
 	}
 
-	shouldShowInviteUnavailble(): boolean {
-		return this._userController.user.accountType === AccountType.FREE
+	shouldShowSendInviteNotAvailable(): boolean {
+		if (this._userController.user.accountType === AccountType.FREE) {
+			return true
+		}
+		if (this._userController.user.accountType === AccountType.EXTERNAL) {
+			return false
+		}
+		return !this.hasBusinessFeature()
 	}
 
 	removeAttendee(guest: Guest) {
@@ -713,6 +729,9 @@ export class CalendarEventViewModel {
 		return askForUpdatesAwait.then(updateResponse => {
 			if (updateResponse === "cancel") {
 				return false
+			} else if (this.shouldShowSendInviteNotAvailable() // we check again to prevent updates after cancelling business or updates for an imported event
+				&& (updateResponse === "yes" || this._inviteModel.bccRecipients().length || this._cancelModel.bccRecipients().length)) {
+				throw new BusinessFeatureRequiredError("businessFeatureRequiredInvite_msg")
 			}
 
 			// Do check passwords if there are new recipients. We already made decision for those who we invited before
@@ -779,19 +798,15 @@ export class CalendarEventViewModel {
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {
-		if (this.shouldShowInviteUnavailble()) {
-			throw new ProgrammingError("Cannot select attendance")
-		} else {
-			if (this.canModifyOwnAttendance()) {
-				const ownAttendee = this._ownAttendee()
-				if (ownAttendee) {
-					this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
-				} else if (this._eventType === EventType.OWN) {
-					// use the default sender as the organizer
-					const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
-					this._ownAttendee(newOwnAttendee)
-					this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
-				}
+		if (this.canModifyOwnAttendance()) {
+			const ownAttendee = this._ownAttendee()
+			if (ownAttendee) {
+				this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
+			} else if (this._eventType === EventType.OWN) {
+				// use the default sender as the organizer
+				const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
+				this._ownAttendee(newOwnAttendee)
+				this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
 			}
 		}
 	}
@@ -998,6 +1013,7 @@ export function createCalendarEventViewModel(date: Date, calendars: Map<Id, Cale
 			logins.getUserController(),
 			calendarUpdateDistributor,
 			locator.calendarModel,
+			locator.entityClient,
 			mailboxDetail,
 			(mailboxDetail) => model.defaultSendMailModel(mailboxDetail),
 			date,

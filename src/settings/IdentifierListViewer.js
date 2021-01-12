@@ -26,7 +26,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 type IdentifierRowAttrs = {|
 	name: string,

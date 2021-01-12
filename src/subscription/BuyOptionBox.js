@@ -3,14 +3,18 @@ import m from "mithril"
 import {px} from "../gui/size"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {PaymentIntervalItems} from "./SubscriptionUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 
+const PaymentIntervalItems: SegmentControlItem<number>[] = [
+	{name: lang.get("pricing.yearly_label"), value: 12},
+	{name: lang.get("pricing.monthly_label"), value: 1}
+]
 
 export type BuyOptionBoxAttr = {|
 	heading: string | Children,

@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {createOutOfOfficeNotification} from "../../../src/api/entities/tutanota/OutOfOfficeNotification"
 import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
@@ -87,7 +87,7 @@ o.spec("OutOfOfficeNotificationTest", function () {
 		o(isNotificationCurrentlyActive(notification, oneDayBefore)).equals(false)
 		o(isNotificationCurrentlyActive(notification, oneDayAfter)).equals(false)
 	});
-	o("is active with start and end date", function () {
+	o("is active with start and end date 2", function () {
 		const now = new Date()
 		const activeUntil = getDayShifted(now, +5);
 		const oneDayAfter = getStartOfNextDay(activeUntil)

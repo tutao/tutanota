@@ -7,485 +7,278 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import {
-	AccountType,
-	BookingItemFeatureByCode,
-	BookingItemFeatureType,
-	Const,
-	Keys,
-	UnsubscribeFailureReason
-} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureByCode, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/ProgressDialog"
-import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {buyAliases, buySharing, buyStorage, buyWhitelabel, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionActionButtons, SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {
+	buyAliases,
+	buyBusiness,
+	buySharing,
+	buyStorage,
+	buyWhitelabel,
+	getDisplayNameOfSubscriptionType,
+	isDowngrade,
+	subscriptions,
+	SubscriptionType
+} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {createPlanPrices} from "../api/entities/sys/PlanPrices"
-import {neverNull} from "../api/common/utils/Utils"
-import {getPriceFromPriceData, getPriceItem} from "./PriceUtils"
-import type {PlanPrices} from "../api/entities/sys/PlanPrices"
-import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
-
-type SubscriptionConfig = {
-	nbrOfAliases: number,
-	orderNbrOfAliases: number,
-	storageGb: number,
-	orderStorageGb: number,
-	sharing: boolean,
-	whitelabel: boolean,
-}
-
-let subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
-subscriptions[SubscriptionType.Free] = {
-	nbrOfAliases: 0,
-	orderNbrOfAliases: 0,
-	storageGb: 1,
-	orderStorageGb: 0,
-	sharing: false,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Premium] = {
-	nbrOfAliases: 5,
-	orderNbrOfAliases: 0,
-	storageGb: 1,
-	orderStorageGb: 0,
-	sharing: false,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Teams] = {
-	nbrOfAliases: 5,
-	orderNbrOfAliases: 0,
-	storageGb: 10,
-	orderStorageGb: 10,
-	sharing: true,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Pro] = {
-	nbrOfAliases: 20,
-	orderNbrOfAliases: 20,
-	storageGb: 10,
-	orderStorageGb: 10,
-	sharing: true,
-	whitelabel: true
-}
+import type {CurrentSubscriptionInfo} from "./SwitchSubscriptionDialogModel"
+import {
+	isDowngradeAliasesNeeded,
+	isDowngradeBusinessNeeded,
+	isDowngradeSharingNeeded,
+	isDowngradeStorageNeeded,
+	isDowngradeWhitelabelNeeded,
+	isUpgradeAliasesNeeded,
+	isUpgradeBusinessNeeded,
+	isUpgradeSharingNeeded,
+	isUpgradeStorageNeeded,
+	isUpgradeWhitelabelNeeded,
+	SwitchSubscriptionDialogModel
+} from "./SwitchSubscriptionDialogModel"
+import type {Customer} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {Booking} from "../api/entities/sys/Booking"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  */
-export function showSwitchDialog(businessUse: boolean,
-                                 paymentInterval: number,
-                                 currentSubscription: SubscriptionTypeEnum,
-                                 currentNbrOfUsers: number,
-                                 currentTotalStorage: number,
-                                 currentTotalAliases: number,
-                                 includedStorage: number,
-                                 includedAliases: number,
-                                 currentlySharingOrdered: boolean,
-                                 currentlyWhitelabelOrdered: boolean): Promise<void> {
+export function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
 
-	return showProgressDialog("pleaseWait_msg", getPrices(currentSubscription, currentNbrOfUsers, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered))
+	const model = new SwitchSubscriptionDialogModel(worker, customer, customerInfo, accountingInfo, lastBooking)
+
+	return showProgressDialog("pleaseWait_msg", model.loadSwitchSubscriptionPrices())
 		.then(prices => {
 			const cancelAction = () => {
 				dialog.close()
 			}
-
 			const headerBarAttrs: DialogHeaderBarAttrs = {
 				left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
 				right: [],
 				middle: () => lang.get("subscription_label")
 			}
+			const currentSubscriptionInfo = model.currentSubscriptionInfo
 			const dialog = Dialog.largeDialog(headerBarAttrs, {
 				view: () => m("#upgrade-account-dialog.pt", m(SubscriptionSelector, {
 					// paymentInterval will not be updated as isInitialUpgrade is false
-					options: {businessUse: stream(businessUse), paymentInterval: stream(paymentInterval)},
+					options: {
+						businessUse: stream(currentSubscriptionInfo.businessUse),
+						paymentInterval: stream(currentSubscriptionInfo.paymentInterval)
+					},
 					campaignInfoTextId: null,
 					boxWidth: 230,
 					boxHeight: 230,
-					currentlyActive: currentSubscription,
-					currentlySharingOrdered: currentlySharingOrdered,
-					currentlyWhitelabelOrdered: currentlyWhitelabelOrdered,
+					currentSubscriptionType: currentSubscriptionInfo.subscriptionType,
+					currentlySharingOrdered: currentSubscriptionInfo.currentlySharingOrdered,
+					currentlyBusinessOrdered: currentSubscriptionInfo.currentlyBusinessOrdered,
+					currentlyWhitelabelOrdered: currentSubscriptionInfo.currentlyWhitelabelOrdered,
+					orderedContactForms: currentSubscriptionInfo.orderedContactForms,
 					isInitialUpgrade: false,
-					premiumPrices: prices.premiumPrices,
-					teamsPrices: prices.teamsPrices,
-					proPrices: prices.proPrices,
-					freeActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => cancelSubscription(dialog,
-									currentTotalAliases,
-									currentTotalStorage,
-									includedAliases,
-									includedStorage,
-									currentlySharingOrdered,
-									currentlyWhitelabelOrdered),
-								type: ButtonType.Login,
-							})
-						}
-					},
-					premiumActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					teamsActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					proActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					}
+					planPrices: prices,
+					actionButtons: subscriptionActionButtons
 				}))
 			}).addShortcut({
 				key: Keys.ESC,
 				exec: cancelAction,
 				help: "close_alt"
 			}).setCloseHandler(cancelAction)
-			                     .show()
+			const subscriptionActionButtons: SubscriptionActionButtons = {
+				Free: {
+					view: () => {
+						return m(ButtonN, {
+							label: "pricing.select_action",
+							click: () => cancelSubscription(dialog, currentSubscriptionInfo),
+							type: ButtonType.Login,
+						})
+					}
+				},
+				Premium: createSubscriptionPlanButton(dialog, SubscriptionType.Premium, currentSubscriptionInfo),
+				PremiumBusiness: createSubscriptionPlanButton(dialog, SubscriptionType.PremiumBusiness, currentSubscriptionInfo),
+				Teams: createSubscriptionPlanButton(dialog, SubscriptionType.Teams, currentSubscriptionInfo),
+				TeamsBusiness: createSubscriptionPlanButton(dialog, SubscriptionType.TeamsBusiness, currentSubscriptionInfo),
+				Pro: createSubscriptionPlanButton(dialog, SubscriptionType.Pro, currentSubscriptionInfo)
+			}
+			dialog.show()
 		})
 }
 
-function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers: number, currentTotalStorage: number, currentTotalAliases: number, includedStorage: number, includedAliases: number, currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean): Promise<{premiumPrices: PlanPrices, teamsPrices: PlanPrices, proPrices: PlanPrices}> {
-	return Promise.join(
-		worker.getPrice(BookingItemFeatureType.Users, 1, false),
-		worker.getPrice(BookingItemFeatureType.Alias, 20, false),
-		worker.getPrice(BookingItemFeatureType.Alias, 0, false),
-		worker.getPrice(BookingItemFeatureType.Storage, 10, false),
-		worker.getPrice(BookingItemFeatureType.Storage, 0, false),
-		worker.getPrice(BookingItemFeatureType.Sharing, 1, false),
-		worker.getPrice(BookingItemFeatureType.Sharing, 0, false),
-		worker.getPrice(BookingItemFeatureType.Whitelabel, 1, false),
-		worker.getPrice(BookingItemFeatureType.Whitelabel, 0, false),
-		worker.getPrice(BookingItemFeatureType.ContactForm, 1, false),
-
-		(addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
-			let additionalFactor = neverNull(addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
-			const premiumPrices = getPrice(currentSubscription, SubscriptionType.Premium, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			const teamsPrices = getPrice(currentSubscription, SubscriptionType.Teams, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			const proPrices = getPrice(currentSubscription, SubscriptionType.Pro, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			return {premiumPrices, teamsPrices, proPrices}
+function createSubscriptionPlanButton(dialog: Dialog, targetSubscription: SubscriptionTypeEnum, currentSubscriptionInfo: CurrentSubscriptionInfo): Component {
+	return {
+		view: () => {
+			return m(ButtonN, {
+				label: "pricing.select_action",
+				click: () => {
+					switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)
+				},
+				type: ButtonType.Login,
+			})
 		}
-	)
-}
-
-function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription: SubscriptionTypeEnum,
-                  addUserReturn: PriceServiceReturn,
-                  upgrade20AliasesPrice: PriceServiceReturn, downgrade5AliasesPrice: PriceServiceReturn,
-                  upgrade10GbStoragePrice: PriceServiceReturn, downgrade1GbStoragePrice: PriceServiceReturn,
-                  upgradeSharingPrice: PriceServiceReturn, downgradeSharingPrice: PriceServiceReturn,
-                  upgradeWhitelabelPrice: PriceServiceReturn, downgradeWhitelabelPrice: PriceServiceReturn,
-                  contactFormReturn: PriceServiceReturn,
-                  paymentIntervalFactor: number,
-                  currentTotalStorage: number, currentTotalAliases: number,
-                  includedStorage: number, includedAliases: number,
-                  currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean): PlanPrices {
-	let prices = createPlanPrices()
-
-	let monthlyPrice = Number(neverNull(addUserReturn.currentPriceNextPeriod).price)
-
-	let contactFormPrice = getMonthlySinglePrice(contactFormReturn, BookingItemFeatureType.ContactForm, paymentIntervalFactor)
-	let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users, paymentIntervalFactor)
-	let currentSharingPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Sharing, paymentIntervalFactor)
-	let currentWhitelabelPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Whitelabel, paymentIntervalFactor)
-
-	prices.contactFormPriceMonthly = subscriptions[targetSubscription].whitelabel ? String(contactFormPrice) : "0"
-	prices.firstYearDiscount = "0"
-	if (currentSubscription === targetSubscription) {
-		// show the price we are currently paying
-		monthlyPrice *= paymentIntervalFactor
-		prices.includedAliases = String(currentTotalAliases)
-		prices.includedStorage = String(currentTotalStorage)
-		prices.monthlyPrice = String(monthlyPrice)
-		prices.monthlyReferencePrice = String(monthlyPrice)
-		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + currentSharingPerUserMonthly + currentWhitelabelPerUserMonthly)
-	} else if (isUpgrade(targetSubscription, currentSubscription)) {
-		// show the current price plus all features not ordered yet
-
-		if (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
-			monthlyPrice += Number(neverNull(upgradeWhitelabelPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(upgradeWhitelabelPrice.currentPriceNextPeriod).price)
-		}
-		if (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
-			monthlyPrice += Number(neverNull(upgradeSharingPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(upgradeSharingPrice.currentPriceNextPeriod).price)
-		}
-		if (isUpgradeStorageNeeded(targetSubscription, currentTotalStorage)) {
-			monthlyPrice += Number(neverNull(upgrade10GbStoragePrice.futurePriceNextPeriod).price)
-				- Number(neverNull(upgrade10GbStoragePrice.currentPriceNextPeriod).price)
-		}
-		if (isUpgradeAliasesNeeded(targetSubscription, currentTotalAliases)) {
-			monthlyPrice += Number(neverNull(upgrade20AliasesPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(upgrade20AliasesPrice.currentPriceNextPeriod).price)
-		}
-
-		monthlyPrice *= paymentIntervalFactor
-
-		prices.includedAliases = String(Math.max(currentTotalAliases, subscriptions[targetSubscription].nbrOfAliases))
-		prices.includedStorage = String(Math.max(currentTotalStorage, subscriptions[targetSubscription].storageGb))
-		prices.monthlyPrice = String(monthlyPrice)
-		prices.monthlyReferencePrice = String(monthlyPrice)
-		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly
-			+ (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? getMonthlySinglePrice(upgradeWhitelabelPrice, BookingItemFeatureType.Whitelabel, paymentIntervalFactor) : currentWhitelabelPerUserMonthly)
-			+ (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? getMonthlySinglePrice(upgradeSharingPrice, BookingItemFeatureType.Sharing, paymentIntervalFactor) : currentSharingPerUserMonthly))
-	} else {
-		// downgrade. show the current prices minus all features not in the target subscription (keep users as is)
-		if (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
-			monthlyPrice += Number(neverNull(downgradeWhitelabelPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(downgradeWhitelabelPrice.currentPriceNextPeriod).price)
-		}
-		if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
-			monthlyPrice += Number(neverNull(downgradeSharingPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(downgradeSharingPrice.currentPriceNextPeriod).price)
-		}
-		if (isDowngradeStorageNeeded(targetSubscription, currentTotalStorage, includedStorage)) {
-			monthlyPrice += Number(neverNull(downgrade1GbStoragePrice.futurePriceNextPeriod).price)
-				- Number(neverNull(downgrade1GbStoragePrice.currentPriceNextPeriod).price)
-		}
-		if (isDowngradeAliasesNeeded(targetSubscription, currentTotalAliases, includedAliases)) {
-			monthlyPrice += Number(neverNull(downgrade5AliasesPrice.futurePriceNextPeriod).price)
-				- Number(neverNull(downgrade5AliasesPrice.currentPriceNextPeriod).price)
-		}
-
-		monthlyPrice *= paymentIntervalFactor
-
-		prices.includedAliases = String(Math.max(includedAliases, subscriptions[targetSubscription].nbrOfAliases))
-		prices.includedStorage = String(Math.max(includedStorage, subscriptions[targetSubscription].storageGb))
-		prices.monthlyPrice = String(monthlyPrice)
-		prices.monthlyReferencePrice = String(monthlyPrice)
-		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly
-			+ (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? 0 : currentWhitelabelPerUserMonthly)
-			+ (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? 0 : currentSharingPerUserMonthly))
-	}
-	return prices
-}
-
-
-function getMonthlySinglePrice(priceData: PriceServiceReturn, featureType: NumberString, additionalFactor: number): number {
-	let futurePrice = getPriceFromPriceData(priceData.futurePriceNextPeriod, featureType)
-	const item = getPriceItem(priceData.futurePriceNextPeriod, featureType)
-	if (item && item.singleType) {
-		futurePrice /= Number(item.count)
-		return futurePrice * additionalFactor
-	} else {
-		return 0 // total prices do not change
 	}
 }
 
-function cancelSubscription(dialog: Dialog,
-                            currentNbrOfAliases: number,
-                            currentAmountOfStorage: number,
-                            includedAliases: number,
-                            includedStorage: number,
-                            currentlySharingOrdered: boolean,
-                            currentlyWhitelabelOrdered: boolean) {
+function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubscriptionInfo) {
 	Dialog.confirm("unsubscribeConfirm_msg").then(ok => {
-		if (ok) {
-			let d = createSwitchAccountTypeData()
-			d.accountType = AccountType.FREE
-			d.date = Const.CURRENT_DATE
-
-			showProgressDialog("pleaseWait_msg",
-				cancelAllAdditionalFeatures(SubscriptionType.Free,
-					currentNbrOfAliases,
-					currentAmountOfStorage,
-					includedAliases,
-					includedStorage,
-					currentlySharingOrdered,
-					currentlyWhitelabelOrdered)
-					.then(failed => {
-						if (!failed) {
-							return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
-								.then(() => worker.switchPremiumToFreeGroup())
-								.catch(PreconditionFailedError, (e) => {
-									const reason = e.data
-									if (reason == null) {
-										return Dialog.error("unknownError_msg")
-									} else {
-										let detailMsg;
-										switch (reason) {
-											case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
-												detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
-												break
-											case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
-												detailMsg = lang.get("accountSwitchCustomMailAddress_msg")
-												break
-											case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
-												detailMsg = lang.get("accountSwitchMultipleCalendars_msg")
-												break
-											case UnsubscribeFailureReason.CALENDAR_TYPE:
-												detailMsg = lang.get("accountSwitchSharedCalendar_msg")
-												break
-											case UnsubscribeFailureReason.TOO_MANY_ALIASES:
-												detailMsg = lang.get("accountSwitchAliases_msg")
-												break
-											default:
-												if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
-													const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
-													const featureName = BookingItemFeatureByCode[feature]
-													detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
-												} else {
-													detailMsg = lang.get("unknownError_msg")
-												}
-												break
-										}
-										return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
-									}
-								})
-								.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
-								.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
-						}
-					})).finally(() => dialog.close())
+		if (!ok) {
+			return
 		}
+		let d = createSwitchAccountTypeData()
+		d.accountType = AccountType.FREE
+		d.date = Const.CURRENT_DATE
+
+		showProgressDialog("pleaseWait_msg",
+			cancelAllAdditionalFeatures(SubscriptionType.Free, currentSubscriptionInfo)
+				.then(failed => {
+					if (failed) {
+						return
+					}
+					return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
+						.then(() => worker.switchPremiumToFreeGroup())
+						.catch(PreconditionFailedError, (e) => {
+							const reason = e.data
+							if (reason == null) {
+								return Dialog.error("unknownError_msg")
+							} else {
+								let detailMsg;
+								switch (reason) {
+									case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
+										detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
+										break
+									case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
+										detailMsg = lang.get("accountSwitchCustomMailAddress_msg")
+										break
+									case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
+										detailMsg = lang.get("accountSwitchMultipleCalendars_msg")
+										break
+									case UnsubscribeFailureReason.CALENDAR_TYPE:
+										detailMsg = lang.get("accountSwitchSharedCalendar_msg")
+										break
+									case UnsubscribeFailureReason.TOO_MANY_ALIASES:
+										detailMsg = lang.get("accountSwitchAliases_msg")
+										break
+									default:
+										if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
+											const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
+											const featureName = BookingItemFeatureByCode[feature]
+											detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
+										} else {
+											detailMsg = lang.get("unknownError_msg")
+										}
+										break
+								}
+								return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
+							}
+						})
+						.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
+						.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
+				})).finally(() => dialog.close())
 	})
 }
 
-function isUpgrade(targetSubscription: SubscriptionTypeEnum, currentSubscription: SubscriptionTypeEnum): boolean {
-	return (currentSubscription === SubscriptionType.Premium)
-		|| (currentSubscription === SubscriptionType.Teams && targetSubscription === SubscriptionType.Pro)
-}
-
-function isUpgradeAliasesNeeded(targetSubscription: SubscriptionTypeEnum, currentNbrOfAliases: number): boolean {
-	return currentNbrOfAliases < subscriptions[targetSubscription].nbrOfAliases
-}
-
-function isDowngradeAliasesNeeded(targetSubscription: SubscriptionTypeEnum, currentNbrOfAliases: number, includedAliases: number): boolean {
-	// only order the target aliases package if it is smaller than the actual number of current aliases and if we have currently ordered more than the included aliases
-	return currentNbrOfAliases > subscriptions[targetSubscription].nbrOfAliases && currentNbrOfAliases > includedAliases
-}
-
-function isUpgradeStorageNeeded(targetSubscription: SubscriptionTypeEnum, currentAmountOfStorage: number): boolean {
-	return currentAmountOfStorage < subscriptions[targetSubscription].storageGb
-}
-
-function isDowngradeStorageNeeded(targetSubscription: SubscriptionTypeEnum, currentAmountOfStorage: number, includedStorage: number): boolean {
-	return currentAmountOfStorage > subscriptions[targetSubscription].storageGb && currentAmountOfStorage > includedStorage
-}
-
-function isUpgradeSharingNeeded(targetSubscription: SubscriptionTypeEnum, currentlySharingOrdered: boolean): boolean {
-	return !currentlySharingOrdered && subscriptions[targetSubscription].sharing
-}
-
-function isDowngradeSharingNeeded(targetSubscription: SubscriptionTypeEnum, currentlySharingOrdered: boolean): boolean {
-	return currentlySharingOrdered && !subscriptions[targetSubscription].sharing
-}
-
-function isUpgradeWhitelabelNeeded(targetSubscription: SubscriptionTypeEnum, currentlyWhitelabelOrdered: boolean): boolean {
-	return !currentlyWhitelabelOrdered && subscriptions[targetSubscription].whitelabel
-}
-
-function isDowngradeWhitelabelNeeded(targetSubscription: SubscriptionTypeEnum, currentlyWhitelabelOrdered: boolean): boolean {
-	return currentlyWhitelabelOrdered && !subscriptions[targetSubscription].whitelabel
-}
-
-function switchSubscription(
-	targetSubscription: SubscriptionTypeEnum,
-	currentSubscription: SubscriptionTypeEnum,
-	dialog: Dialog,
-	currentNbrOfAliases: number,
-	currentAmountOfStorage: number,
-	includedAliases: number,
-	includedStorage: number,
-	currentlySharingOrdered: boolean,
-	currentlyWhitelabelOrdered: boolean) {
-
-	if (isUpgrade(targetSubscription, currentSubscription)) {
-		let msg = lang.get(targetSubscription === SubscriptionType.Pro ? "upgradePro_msg" : "upgradeTeams_msg")
-		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)
-			|| isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
+function getUpOrDowngradeMessage(targetSubscription: SubscriptionTypeEnum,
+                                 currentSubscriptionInfo: CurrentSubscriptionInfo): string {
+	// we can only switch from a non-business plan to a business plan and not vice verse
+	// a business customer may not have booked the business feature and be forced to book it even if downgrading: e.g. Teams -> PremiumBusiness
+	// switch to free is not allowed here.
+	let msg = ""
+	if (isDowngrade(targetSubscription, currentSubscriptionInfo.subscriptionType)) {
+		msg = lang.get(targetSubscription === SubscriptionType.Premium || targetSubscription === SubscriptionType.PremiumBusiness
+			? "downgradeToPremium_msg"
+			: "downgradeToTeams_msg")
+		if (targetSubscription === SubscriptionType.PremiumBusiness || targetSubscription === SubscriptionType.TeamsBusiness) {
+			msg = msg + " " + lang.get("businessIncluded_msg")
+		}
+	} else {
+		const planDisplayName = getDisplayNameOfSubscriptionType(targetSubscription)
+		if (targetSubscription === SubscriptionType.PremiumBusiness
+			|| targetSubscription === SubscriptionType.TeamsBusiness
+			|| targetSubscription === SubscriptionType.Pro) {
+			msg = lang.get("upgradeBusiness_msg", {"{plan}": planDisplayName})
+		} else {
+			msg = lang.get("upgradePlan_msg", {"{plan}": planDisplayName})
+		}
+		if (isDowngradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedAliases)
+			|| isDowngradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedStorage)) {
 			msg = msg + "\n\n" + lang.get("upgradeProNoReduction_msg")
 		}
-		Dialog.confirm(() => msg).then(ok => {
-			if (ok) {
-				return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-					if (isUpgradeAliasesNeeded(targetSubscription, currentNbrOfAliases)) {
-						return buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
-					}
-				}).then(() => {
-					if (isUpgradeStorageNeeded(targetSubscription, currentAmountOfStorage)) {
-						return buyStorage(subscriptions[targetSubscription].orderStorageGb)
-					}
-				}).then(() => {
-					if (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
-						return buySharing(true)
-					}
-				}).then(() => {
-					if (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
-						return buyWhitelabel(true)
-					}
-				})).then(() => dialog.close())
-			}
-		})
-	} else {
-		Dialog.confirm(targetSubscription === SubscriptionType.Premium ? "downgradeToPremium_msg" : "downgradeToTeams_msg").then(ok => {
-			if (ok) {
-				return showProgressDialog("pleaseWait_msg", cancelAllAdditionalFeatures(targetSubscription,
-					currentNbrOfAliases,
-					currentAmountOfStorage,
-					includedAliases,
-					includedStorage,
-					currentlySharingOrdered,
-					currentlyWhitelabelOrdered))
-					.then(() => dialog.close())
-			}
-		})
 	}
+	return msg
+}
+
+function switchSubscription(targetSubscription: SubscriptionTypeEnum, dialog: Dialog, currentSubscriptionInfo: CurrentSubscriptionInfo) {
+	if (targetSubscription === currentSubscriptionInfo.subscriptionType) {
+		return
+	}
+	Dialog.confirm(() => getUpOrDowngradeMessage(targetSubscription, currentSubscriptionInfo))
+	      .then(ok => {
+		      if (!ok) {
+			      return
+		      }
+		      return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
+				      if (isUpgradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases)) {
+					      return buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
+				      }
+			      }).then(() => {
+				      if (isUpgradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalStorage)) {
+					      return buyStorage(subscriptions[targetSubscription].orderStorageGb)
+				      }
+			      }).then(() => {
+				      if (isUpgradeSharingNeeded(targetSubscription, currentSubscriptionInfo.currentlySharingOrdered)) {
+					      return buySharing(true)
+				      }
+			      }).then(() => {
+				      if (isUpgradeBusinessNeeded(targetSubscription, currentSubscriptionInfo.currentlyBusinessOrdered)) {
+					      return buyBusiness(true)
+				      }
+			      }).then(() => {
+				      if (isUpgradeWhitelabelNeeded(targetSubscription, currentSubscriptionInfo.currentlyWhitelabelOrdered)) {
+					      return buyWhitelabel(true)
+				      }
+			      }).then(() => {
+				      if (isDowngrade(targetSubscription, currentSubscriptionInfo.subscriptionType)) {
+					      return cancelAllAdditionalFeatures(targetSubscription, currentSubscriptionInfo)
+				      }
+			      })
+		      ).then(() => dialog.close())
+	      })
 }
 
 /**
  * @returns True if any of the additional features could not be canceled, false otherwise
  */
 function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
-                                     currentNbrOfAliases: number,
-                                     currentAmountOfStorage: number,
-                                     includedAliases: number,
-                                     includedStorage: number,
-                                     currentlySharingOrdered: boolean,
-                                     currentlyWhitelabelOrdered: boolean): Promise<boolean> {
+                                     currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<boolean> {
 	return Promise.resolve().then(() => {
-		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)) {
+		if (isDowngradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedAliases)) {
 			return buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
 		} else {
 			return false
 		}
 	}).then(previousFailed => {
-		if (isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
+		if (isDowngradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalStorage, currentSubscriptionInfo.includedStorage)) {
 			return buyStorage(subscriptions[targetSubscription].orderStorageGb)
 				.then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed
 		}
 	}).then(previousFailed => {
-		if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
+		if (isDowngradeSharingNeeded(targetSubscription, currentSubscriptionInfo.currentlySharingOrdered)) {
 			return buySharing(false).then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed
 		}
 	}).then(previousFailed => {
-		if (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
+		if (isDowngradeBusinessNeeded(targetSubscription, currentSubscriptionInfo.currentlyBusinessOrdered)) {
+			return buyBusiness(false).then(thisFailed => thisFailed || previousFailed)
+		} else {
+			return previousFailed
+		}
+	}).then(previousFailed => {
+		if (isDowngradeWhitelabelNeeded(targetSubscription, currentSubscriptionInfo.currentlyWhitelabelOrdered)) {
 			return buyWhitelabel(false).then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed

@@ -25,18 +25,16 @@ import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {locator} from "../../api/main/MainLocator"
 import {AccountingInfoTypeRef} from "../../api/entities/sys/AccountingInfo"
 import type {GiftCardRedeemGetReturn} from "../../api/entities/sys/GiftCardRedeemGetReturn"
-import {
-	redeemGiftCard,
-	renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg,
-} from "./GiftCardUtils"
+import {redeemGiftCard, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg,} from "./GiftCardUtils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {lang} from "../../misc/LanguageViewModel"
 import {getLoginErrorMessage} from "../../misc/LoginUtils"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
-import {getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
-import {formatPrice, getPaymentMethodName} from "../PriceUtils"
+import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
+import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
@@ -330,15 +328,19 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 
-
-		const priceData = {
+		const priceData: SubscriptionPlanPrices = {
+			Premium: prices.premiumPrices,
+			PremiumBusiness: prices.premiumBusinessPrices,
+			Teams: prices.teamsPrices,
+			TeamsBusiness: prices.teamsBusinessPrices,
+			Pro: prices.proPrices
+		}
+		const subscriptionData: SubscriptionData = {
 			options: {
 				businessUse: () => false,
 				paymentInterval: () => 12
 			},
-			premiumPrices: prices.premiumPrices,
-			teamsPrices: prices.teamsPrices,
-			proPrices: prices.proPrices
+			planPrices: priceData
 		}
 
 		const giftCardRedeemData: RedeemGiftCardWizardData = {
@@ -349,7 +351,7 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),
 			key,
-			premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+			premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 		}
 
 

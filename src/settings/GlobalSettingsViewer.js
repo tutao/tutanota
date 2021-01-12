@@ -48,7 +48,7 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 
@@ -66,7 +66,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	_rejectedSenderLines: Stream<Array<TableLineAttrs>>;
 	_customDomainLines: Stream<Array<TableLineAttrs>>;
 	_auditLogLines: Stream<Array<TableLineAttrs>>;
-
 
 	/**
 	 * caches the current status for the custom email domains
@@ -86,7 +85,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._auditLogLines = stream([])
 		this._props = stream()
 		this._customer = stream()
-
 
 		let saveIpAddress = stream(false)
 		this._props.map(props => saveIpAddress(props.saveEncryptedIpAddressInSession))
@@ -144,15 +142,15 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				addButtonAttrs: {
 					label: "addCustomDomain_action",
 					click: () => {
-						if (logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(true)
-						} else {
-							this._customerInfo.getAsync().then(customerInfo => {
+						this._customerInfo.getAsync().then(customerInfo => {
+							if (logins.getUserController().isFreeAccount()) {
+								showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
+							} else {
 								showAddDomainWizard("", customerInfo).then(() => {
 									this._updateDomains()
 								})
-							})
-						}
+							}
+						})
 					},
 					icon: () => Icons.Add
 				},
@@ -398,6 +396,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			return groupInfo.name
 		}
 	}
+
 
 	_updateDomains(): Promise<void> {
 		return this._customerInfo.getAsync().then(customerInfo => {

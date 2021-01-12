@@ -3,17 +3,12 @@ import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/com
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {neverNull} from "../api/common/utils/Utils"
-import {logins} from "../api/main/LoginController"
-import {load} from "../api/main/Entity"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {Dialog} from "../gui/base/Dialog"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"
 import type {Booking} from "../api/entities/sys/Booking"
 import type {SubscriptionData, SubscriptionTypeEnum, UpgradePriceTypeEnum} from "./SubscriptionUtils"
-import {getUpgradePrice} from "./SubscriptionUtils"
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {getPlanPrices, UpgradePriceType} from "./SubscriptionUtils"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -60,8 +55,37 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	}
 }
 
-export function getFormattedUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
-	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
+export function getSubscriptionPrice(data: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
+	const prices = getPlanPrices(data.planPrices, subscription)
+	if (prices) {
+		let monthlyPriceString
+		let monthsFactor = (data.options.paymentInterval() === 12) ? 10 : 1
+		let discount = 0
+		if (type === UpgradePriceType.PlanReferencePrice) {
+			monthlyPriceString = prices.monthlyReferencePrice
+			if (data.options.paymentInterval() === 12) {
+				monthsFactor = 12
+			}
+		} else if (type === UpgradePriceType.PlanActualPrice) {
+			monthlyPriceString = prices.monthlyPrice
+			if (data.options.paymentInterval() === 12) {
+				discount = Number(prices.firstYearDiscount)
+			}
+		} else if (type === UpgradePriceType.PlanNextYearsPrice) {
+			monthlyPriceString = prices.monthlyPrice
+		} else if (type === UpgradePriceType.AdditionalUserPrice) {
+			monthlyPriceString = prices.additionalUserPriceMonthly
+		} else if (type === UpgradePriceType.ContactFormPrice) {
+			monthlyPriceString = prices.contactFormPriceMonthly
+		}
+		return Number(monthlyPriceString) * monthsFactor - discount
+	} else { // Free plan
+		return 0
+	}
+}
+
+export function getFormattedSubscriptionPrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
+	return formatPrice(getSubscriptionPrice(attrs, subscription, type), true)
 }
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
@@ -111,31 +135,3 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 	}
 }
 
-export function createNotAvailableForFreeClickHandler(includedInPremium: boolean,
-                                                      click: clickHandler,
-                                                      available: () => boolean): clickHandler {
-	return (e, dom) => {
-		if (!available()) {
-			showNotAvailableForFreeDialog(includedInPremium)
-		} else {
-			click(e, dom)
-		}
-	}
-}
-
-/**
- * Returns whether premium is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
- */
-export function checkPremiumSubscription(included: boolean): Promise<boolean> {
-	if (logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(included)
-		return Promise.resolve(false)
-	}
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-		if (customer.canceledPremiumAccount) {
-			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
-		} else {
-			return Promise.resolve(true)
-		}
-	})
-}
