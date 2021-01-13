@@ -66,11 +66,12 @@ o.spec("CalendarParser", function () {
 		o(parsePropertyKeyValue("KEY=VALUE;ANOTHERKEY=ANOTHERVALUE")).deepEquals({"KEY": "VALUE", "ANOTHERKEY": "ANOTHERVALUE"})
 	})
 
-	o("parseDuraion", function () {
+	o("parseDuration", function () {
 		o(parseDuration("PT3H15M")).deepEquals({positive: true, day: undefined, hour: 3, minute: 15, week: undefined})
 		o(parseDuration("-PT3H15M")).deepEquals({positive: false, day: undefined, hour: 3, minute: 15, week: undefined})
 		o(parseDuration("P60DT15M05S")).deepEquals({positive: true, day: 60, hour: undefined, minute: 15, week: undefined})
 		o(parseDuration("P8W")).deepEquals({positive: true, day: undefined, hour: undefined, minute: undefined, week: 8})
+		o(parseDuration("P")).deepEquals({positive: true, day: undefined, hour: undefined, minute: undefined, week: undefined})
 
 		o(() => parseDuration("P8W15M")).throws(Error)
 	})

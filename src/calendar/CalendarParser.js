@@ -643,30 +643,34 @@ const durationParser = mapParser(combineParsers(
 		)
 	),
 	makeCharacterParser("P"),
-	makeEitherParser(
-		durationDateParser,
+	maybeParse(
 		makeEitherParser(
-			durationTimeParser,
-			durationWeekParser
+			durationDateParser,
+			makeEitherParser(
+				durationTimeParser,
+				durationWeekParser
+			)
 		)
 	)
 ), ([sign, p, durationValue]) => {
 	const positive = sign !== "-"
 	let day, timeDuration, week, hour, minute
-	switch (durationValue.type) {
-		case "date":
-			day = durationValue.day
-			timeDuration = durationValue.time
-			break
-		case "time":
-			timeDuration = durationValue
-			break
-		case "week":
-			week = durationValue.week
-	}
-	if (timeDuration) {
-		hour = timeDuration.hour
-		minute = timeDuration.minute
+	if(durationValue) {
+		switch (durationValue.type) {
+			case "date":
+				day = durationValue.day
+				timeDuration = durationValue.time
+				break
+			case "time":
+				timeDuration = durationValue
+				break
+			case "week":
+				week = durationValue.week
+		}
+		if (timeDuration) {
+			hour = timeDuration.hour
+			minute = timeDuration.minute
+		}
 	}
 	return {positive, day, hour, minute, week}
 })
