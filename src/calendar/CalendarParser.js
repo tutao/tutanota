@@ -477,8 +477,17 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 				})
 			}
 		}
+		try {
+			event.uid = getPropStringValue(eventObj, "UID")
+		} catch(e) {
+			if (e instanceof ParserError) {
+				// Also parse event and create new UID if none is set
+				event.uid = `import-${Date.now()}@tutanota.com`
+			} else {
+				throw e
+			}
+		}
 
-		event.uid = getPropStringValue(eventObj, "UID")
 		return {event, alarms}
 	})
 	return {method, contents}
