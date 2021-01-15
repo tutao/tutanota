@@ -123,11 +123,6 @@ export class MailView implements CurrentView {
 							              expander.systemFolderButtons,
 							              expander.customFolderButtons,
 							              expander.folderAddButton))
-						              // return [
-						              // 	m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(expander.expanderButton)),
-						              // 	m(neverNull(expander.expanderButton).panel)
-						              //
-						              // ]
 					              }
 				              ),
 				ariaLabel: "folderTitle_label"

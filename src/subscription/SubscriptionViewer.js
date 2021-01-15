@@ -56,7 +56,6 @@ import {
 	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -70,10 +69,8 @@ import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
 import {SettingsExpander} from "../settings/SettingsExpander"
-import type {TableAttrs} from "../gui/base/TableN"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {ExpandableTable} from "../settings/ExpandableTable"
 
 assertMainOrNode()
 
@@ -320,13 +317,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
 				}),
-				m(ExpandableTable,
+				m(SettingsExpander,
 					{
 						title: "giftCards_label",
 						infoMsg: "giftCardSection_label",
-						table: makeGiftCardTableAttrs(Array.from(this._giftCards.values()), isPremiumPredicate),
 						expanded: this._giftCardsExpanded,
-					}),
+					}, renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate)),
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
 				m(TextFieldN, {
 					label: "bookingItemUsers_label",
@@ -667,7 +663,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 	}
 }
 
-function makeGiftCardTableAttrs(giftCards: GiftCard[], isPremiumPredicate: () => boolean): TableAttrs {
+function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
 	const addButtonAttrs = {
 		label: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
@@ -717,29 +713,22 @@ function makeGiftCardTableAttrs(giftCards: GiftCard[], isPremiumPredicate: () =>
 		}
 	})
 
-	return {
-		title: "giftCards_label",
-		infoMsg: "giftCardSection_label",
-		children: [
-			m(TableN, {
-				addButtonAttrs,
-				columnHeading,
-				columnWidths,
-				lines,
-				showActionButtonColumn: true,
-			}),
-			m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
-				onclick: e => {
-					if (isApp()) {
-						showServiceTerms("giftCards")
-						e.preventDefault()
-					}
+	return [
+		m(TableN, {
+			addButtonAttrs,
+			columnHeading,
+			columnWidths,
+			lines,
+			showActionButtonColumn: true,
+		}),
+		m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
+			onclick: e => {
+				if (isApp()) {
+					showServiceTerms("giftCards")
+					e.preventDefault()
 				}
-			}, lang.get("giftCardTerms_label")))
-		],
-		expanded,
-	}
-
-
+			}
+		}, lang.get("giftCardTerms_label")))
+	]
 }
 
