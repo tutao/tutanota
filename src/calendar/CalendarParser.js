@@ -380,7 +380,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
-	const contents = eventObjects.map((eventObj) => {
+	const contents = eventObjects.map((eventObj, index) => {
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
@@ -482,7 +482,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		} catch(e) {
 			if (e instanceof ParserError) {
 				// Also parse event and create new UID if none is set
-				event.uid = `import-${Date.now()}@tutanota.com`
+				event.uid = `import-${Date.now()}-${index}@tutanota.com`
 			} else {
 				throw e
 			}
