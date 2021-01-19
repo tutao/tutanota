@@ -18,6 +18,8 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import {createPaymentDataServiceGetData} from "../api/entities/sys/PaymentDataServiceGetData"
+import {getClientType} from "../api/Env"
 import type {Customer} from "../api/entities/sys/Customer"
 
 /**
@@ -114,7 +116,8 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(() => {
-		return serviceRequest(SysService.PaymentDataService, HttpMethod.GET, null, PaymentDataServiceGetReturnTypeRef)
+		const clientType = getClientType()
+		return serviceRequest(SysService.PaymentDataService, HttpMethod.GET, createPaymentDataServiceGetData({clientType}), PaymentDataServiceGetReturnTypeRef)
 			.then((result) => {
 				return result.loginUrl
 			})

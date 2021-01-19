@@ -89,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "66"
+	"version": "67"
 }
 
 export function createMissedNotification(values?: $Shape<$Exact<MissedNotification>>): MissedNotification {

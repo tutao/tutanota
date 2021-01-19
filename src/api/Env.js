@@ -121,3 +121,18 @@ export function assertWorkerOrNode() {
 export function bootFinished() {
 	boot = false
 }
+
+export const ClientType = Object.freeze({
+	Browser: "0",
+	Desktop: "1",
+	App: "2"
+})
+export type ClientTypeEnum = $Values<typeof ClientType>;
+
+export function getClientType(): ClientTypeEnum {
+	return isApp()
+		? ClientType.App
+		: isDesktop()
+			? ClientType.Desktop
+			: ClientType.Browser
+}
