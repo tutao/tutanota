@@ -28,7 +28,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 						m(".align-self-center", formatEventDuration(event, getTimeZone(), false))
 					]
 				),
-				event.location ? m(".flex.pb-s.items-center", [renderSectionIndicator(Icons.Pin), event.location]) : null,
+				event.location ? m(".flex.pb-s.items-center", [renderSectionIndicator(Icons.Pin), m(".text-ellipsis", event.location)]) : null,
 				event.attendees.length
 					? m(".flex.pb-s", [
 						renderSectionIndicator(BootIcons.Contacts),
