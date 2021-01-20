@@ -142,7 +142,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "67"
+	"version": "66"
 }
 
 export function createPushIdentifier(values?: $Shape<$Exact<PushIdentifier>>): PushIdentifier {

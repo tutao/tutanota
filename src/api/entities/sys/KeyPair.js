@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "67"
+	"version": "66"
 }
 
 export function createKeyPair(values?: $Shape<$Exact<KeyPair>>): KeyPair {
