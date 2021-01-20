@@ -55,7 +55,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "66"
+	"version": "67"
 }
 
 export function createUpdateAdminshipData(values?: $Shape<$Exact<UpdateAdminshipData>>): UpdateAdminshipData {

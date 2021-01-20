@@ -63,7 +63,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createCreateMailGroupData(values?: $Shape<$Exact<CreateMailGroupData>>): CreateMailGroupData {

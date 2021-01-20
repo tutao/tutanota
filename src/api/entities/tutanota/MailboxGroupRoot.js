@@ -3,6 +3,7 @@
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
+import type {OutOfOfficeNotificationRecipientList} from "./OutOfOfficeNotificationRecipientList"
 
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -61,6 +62,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "CalendarEventUpdateList",
 			"final": true
 		},
+		"outOfOfficeNotificationRecipientList": {
+			"name": "outOfOfficeNotificationRecipientList",
+			"id": 1151,
+			"since": 44,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OutOfOfficeNotificationRecipientList",
+			"final": true
+		},
 		"contactFormUserContactForm": {
 			"name": "contactFormUserContactForm",
 			"id": 748,
@@ -78,6 +88,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "MailBox",
+			"final": true,
+			"external": false
+		},
+		"outOfOfficeNotification": {
+			"name": "outOfOfficeNotification",
+			"id": 1150,
+			"since": 44,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OutOfOfficeNotification",
 			"final": true,
 			"external": false
 		},
@@ -123,7 +143,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
@@ -139,8 +159,10 @@ export type MailboxGroupRoot = {
 	_permissions: Id;
 
 	calendarEventUpdates: ?CalendarEventUpdateList;
+	outOfOfficeNotificationRecipientList: ?OutOfOfficeNotificationRecipientList;
 	contactFormUserContactForm: ?IdTuple;
 	mailbox: Id;
+	outOfOfficeNotification: ?Id;
 	participatingContactForms: IdTuple[];
 	serverProperties: Id;
 	targetMailGroupContactForm: ?IdTuple;

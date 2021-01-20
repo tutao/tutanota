@@ -18,11 +18,12 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {Customer} from "../api/entities/sys/Customer"
 
 /**
  * @returns {boolean} true if the payment data update was successful
  */
-export function show(accountingInfo: AccountingInfo, price: number): Promise<boolean> {
+export function show(customer: Customer, accountingInfo: AccountingInfo, price: number): Promise<boolean> {
 	let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
 	let invoiceData = {
@@ -32,7 +33,7 @@ export function show(accountingInfo: AccountingInfo, price: number): Promise<boo
 	}
 
 	const subscriptionOptions = {
-		businessUse: stream(accountingInfo.business),
+		businessUse: stream(neverNull(customer.businessUse)),
 		paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 	}
 
@@ -69,7 +70,7 @@ export function show(accountingInfo: AccountingInfo, price: number): Promise<boo
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions, invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false, price
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions.paymentInterval(), invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false, price
 					+ "", accountingInfo))
 					.then(success => {
 						if (success) {

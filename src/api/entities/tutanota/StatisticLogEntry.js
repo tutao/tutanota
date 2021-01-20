@@ -91,7 +91,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createStatisticLogEntry(values?: $Shape<$Exact<StatisticLogEntry>>): StatisticLogEntry {

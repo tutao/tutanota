@@ -36,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createUnencryptedStatisticLogRef(values?: $Shape<$Exact<UnencryptedStatisticLogRef>>): UnencryptedStatisticLogRef {

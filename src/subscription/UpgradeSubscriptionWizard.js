@@ -49,7 +49,8 @@ export type UpgradeSubscriptionData = {
 	type: SubscriptionTypeEnum,
 	price: string,
 	priceNextYear: ?string,
-	accountingInfo: ?AccountingInfo,
+	accountingInfo: ?AccountingInfo, // not initially set for signup but loaded in InvoiceAndPaymentDataPage
+	customer: ?Customer, // not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	newAccountData: ?NewAccountData,
 	campaign: ?string,
 	campaignInfoTextId: ?TranslationKey,
@@ -101,7 +102,7 @@ function loadCustomerAndInfo(): Promise<{customer: Customer, customerInfo: Custo
 
 export function showUpgradeWizard(): void {
 	loadCustomerAndInfo()
-		.then(({customerInfo, accountingInfo}) => {
+		.then(({customer, accountingInfo}) => {
 				return loadUpgradePrices().then(prices => {
 					const upgradeData: UpgradeSubscriptionData = {
 						options: {
@@ -121,6 +122,7 @@ export function showUpgradeWizard(): void {
 						type: SubscriptionType.Premium,
 						priceNextYear: null,
 						accountingInfo: accountingInfo,
+						customer: customer,
 						newAccountData: null,
 						campaign: getCampaign(),
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
@@ -171,6 +173,7 @@ export function loadSignupWizard(): Promise<Dialog> {
 			priceNextYear: null,
 			type: SubscriptionType.Free,
 			accountingInfo: null,
+			customer: null,
 			newAccountData: null,
 			campaign: getCampaign(),
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,

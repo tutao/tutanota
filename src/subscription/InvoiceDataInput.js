@@ -2,18 +2,16 @@
 import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {TextField} from "../gui/base/TextField"
+import type {Country} from "../api/common/CountryList"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {serviceRequest} from "../api/main/Entity"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {SysService} from "../api/entities/sys/Services"
-import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
-import type {SubscriptionOptions} from "./SubscriptionUtils"
 import type {LocationServiceGetReturn} from "../api/entities/sys/LocationServiceGetReturn"
-import type {Country} from "../api/common/CountryList"
+import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
 import {createCountryDropdown} from "../gui/base/GuiUtils"
 
 
@@ -23,10 +21,10 @@ export class InvoiceDataInput {
 	selectedCountry: Stream<?Country>;
 	_invoiceAddressComponent: HtmlEditor;
 	_vatNumberField: TextField;
-	_subscriptionOptions: SubscriptionOptions;
+	_businessUse: boolean;
 
-	constructor(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData) {
-		this._subscriptionOptions = subscriptionOptions
+	constructor(businessUse: boolean, invoiceData: InvoiceData) {
+		this._businessUse = businessUse
 		this._invoiceAddressComponent = new HtmlEditor()
 			.setMinHeight(120)
 			.showBorders()
@@ -45,7 +43,7 @@ export class InvoiceDataInput {
 
 		this.view = () => [
 			m(".pt", m(this._invoiceAddressComponent)),
-			m(".small", lang.get(this._subscriptionOptions.businessUse() ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
+			m(".small", lang.get(businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 			m(countryInput),
 			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
 		]
@@ -66,13 +64,11 @@ export class InvoiceDataInput {
 
 	validateInvoiceData(): ? TranslationKey {
 		let address = this._getAddress()
-		if (this._subscriptionOptions.businessUse()) {
+		if (this._businessUse) {
 			if (address.trim() === "" || address.split('\n').length > 5) {
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!this.selectedCountry()) {
 				return "invoiceCountryInfoBusiness_msg"
-			} else if (this._isVatIdFieldVisible() && this._vatNumberField.value().trim() === "") {
-				return "invoiceVatIdNoMissing_msg"
 			}
 		} else {
 			if (!this.selectedCountry()) {
@@ -87,7 +83,7 @@ export class InvoiceDataInput {
 
 	_isVatIdFieldVisible(): boolean {
 		const selectedCountry = this.selectedCountry()
-		return this._subscriptionOptions.businessUse() && selectedCountry != null && selectedCountry.t === CountryType.EU
+		return this._businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
 	getInvoiceData(): InvoiceData {
@@ -97,7 +93,7 @@ export class InvoiceDataInput {
 			invoiceAddress: address,
 			country: selectedCountry,
 			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU
-				&& this._subscriptionOptions.businessUse()) ? this._vatNumberField.value() : ""
+				&& this._businessUse) ? this._vatNumberField.value() : ""
 		}
 	}
 

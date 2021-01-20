@@ -72,7 +72,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createImapSyncConfiguration(values?: $Shape<$Exact<ImapSyncConfiguration>>): ImapSyncConfiguration {

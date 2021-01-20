@@ -36,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "66"
+	"version": "67"
 }
 
 export function createSecondFactorAuthDeleteData(values?: $Shape<$Exact<SecondFactorAuthDeleteData>>): SecondFactorAuthDeleteData {

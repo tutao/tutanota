@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createContactMailAddress(values?: $Shape<$Exact<ContactMailAddress>>): ContactMailAddress {

@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createNotificationMail(values?: $Shape<$Exact<NotificationMail>>): NotificationMail {

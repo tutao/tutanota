@@ -8,7 +8,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {serviceRequest} from "../api/main/Entity"
+import {serviceRequest, update} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
 import {Button} from "../gui/base/Button"
@@ -38,7 +38,7 @@ import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessing
 import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import * as InvoiceDataDialog from "./InvoiceDataDialog"
+import * as SwitchToBusinessInvoiceDataDialog from "./SwitchToBusinessInvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -52,7 +52,8 @@ import {
 	getTotalAliases,
 	getTotalStorageCapacity,
 	isSharingActive,
-	isWhitelabelActive, showServiceTerms,
+	isWhitelabelActive,
+	showServiceTerms,
 	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
@@ -62,9 +63,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
-import {
-	loadGiftCards, showGiftCardToShare,
-} from "./giftcards/GiftCardUtils"
+import {loadGiftCards, showGiftCardToShare,} from "./giftcards/GiftCardUtils"
 import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
@@ -107,7 +106,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	constructor() {
 		let subscriptionAction = new Button("subscription_label", () => {
 			if (this._accountingInfo && this._customer && this._customerInfo) {
-				showSwitchDialog(this._accountingInfo,
+				showSwitchDialog(neverNull(this._customer.businessUse),
+					Number(neverNull(this._accountingInfo).paymentInterval),
 					this._currentSubscription,
 					getNbrOfUsers(this._lastBooking),
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
@@ -250,8 +250,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						label: "businessOrPrivateUsage_label",
 						value: this._usageTypeFieldValue,
 						disabled: true,
-						injectionsRight: () => this._accountingInfo && !this._accountingInfo.business
-						&& this._customer && !this._customer.canceledPremiumAccount
+						injectionsRight: () => this._customer && this._customer.businessUse === false && !this._customer.canceledPremiumAccount
 							? m(ButtonN, usageTypeActionAttrs)
 							: null,
 					})
@@ -381,7 +380,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		       .then(customer => {
-			       this._updateOrderProcessingAgreement(customer)
+			       this._updateCustomerData(customer)
 			       return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		       })
 		       .then(customerInfo => {
@@ -412,16 +411,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_showOrderAgreement(): boolean {
 		return (logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount())
-			&& (this._accountingInfo != null && this._accountingInfo.business
-				|| this._customer != null && (this._customer.orderProcessingAgreement != null
-					|| this._customer.orderProcessingAgreementNeeded))
+			&& ((this._customer != null && this._customer.businessUse)
+				|| (this._customer != null && (this._customer.orderProcessingAgreement != null
+					|| this._customer.orderProcessingAgreementNeeded)))
 	}
 
-	_updateOrderProcessingAgreement(customer: Customer) {
+	_updateCustomerData(customer: Customer) {
 		let p = Promise.resolve()
 		this._customer = customer
-		if (this._customer.orderProcessingAgreement) {
-			p = locator.entityClient.load(OrderProcessingAgreementTypeRef, this._customer.orderProcessingAgreement).then(a => {
+		this._usageTypeFieldValue(customer.businessUse ? lang.get("pricing.businessUse_label") : lang.get("pricing.privateUse_label"))
+		if (customer.orderProcessingAgreement) {
+			p = locator.entityClient.load(OrderProcessingAgreementTypeRef, customer.orderProcessingAgreement).then(a => {
 				this._orderAgreement = a
 			})
 		} else {
@@ -440,13 +440,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_switchToBusinessUse(): void {
-		if (this._accountingInfo && !this._accountingInfo.business) {
+		if (this._customer && this._customer.businessUse === false) {
 			let accountingInfo = neverNull(this._accountingInfo)
 			const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-			InvoiceDataDialog.show({
-				businessUse: stream(true),
-				paymentInterval: stream(Number(accountingInfo.paymentInterval)),
-			}, {
+			SwitchToBusinessInvoiceDataDialog.show(neverNull(this._customer), {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: ""
@@ -481,7 +478,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
-		this._usageTypeFieldValue(accountingInfo.business ? lang.get("pricing.businessUse_label") : lang.get("pricing.privateUse_label"))
 		this._selectedSubscriptionInterval(Number(accountingInfo.paymentInterval))
 
 		m.redraw()
@@ -621,7 +617,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return this._updatePriceInfo()
 			})
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return locator.entityClient.load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
+			return locator.entityClient.load(CustomerTypeRef, instanceId).then(customer => this._updateCustomerData(customer))
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
 			return locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId]).then(giftCard => {
 				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
@@ -651,7 +647,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 		Dialog.confirm(confirmationMessage).then((confirmed) => {
 			if (confirmed) {
 				const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-				worker.updatePaymentData(accountingInfo.business, paymentInterval, {
+				worker.updatePaymentData(paymentInterval, {
 						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 						country: invoiceCountry,
 						vatNumber: accountingInfo.invoiceVatIdNo

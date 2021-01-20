@@ -45,12 +45,14 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {locator} from "../api/main/MainLocator"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import type {Booking} from "../api/entities/sys/Booking"
+import type {Customer} from "../api/entities/sys/Customer"
 
 assertMainOrNode()
 
 export class PaymentViewer implements UpdatableSettingsViewer {
 	_invoiceAddressField: HtmlEditor;
 	_paymentMethodField: TextField;
+	_customer: ?Customer;
 	_accountingInfo: ?AccountingInfo;
 	_postings: CustomerAccountPosting[]
 	_outstandingBookingsPrice: number
@@ -76,10 +78,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				if (this._accountingInfo) {
 					const accountingInfo = neverNull(this._accountingInfo)
 					const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
-					InvoiceDataDialog.show({
-							businessUse: stream(accountingInfo.business),
-							paymentInterval: stream(Number(accountingInfo.paymentInterval)),
-						}, {
+					InvoiceDataDialog.show(
+						neverNull(neverNull(this._customer).businessUse),
+						{
 							invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 							country: invoiceCountry,
 							vatNumber: accountingInfo.invoiceVatIdNo
@@ -99,7 +100,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
 							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
 						})).then(price => {
-							return PaymentDataDialog.show(neverNull(this._accountingInfo), price).then(success => {
+							return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
 								if (success) {
 									if (this._isPayButtonVisible()) {
 										return this._showPayDialog(this._amountOwed())
@@ -142,7 +143,10 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			.then(customer => {
+				this._customer = customer
+				return load(CustomerInfoTypeRef, customer.customerInfo)
+			})
 			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then(accountingInfo => {
 				this._updateAccountingInfoData(accountingInfo)
@@ -291,6 +295,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 			return load(AccountingInfoTypeRef, instanceId)
 				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			return load(CustomerTypeRef, instanceId)
+				.then(customer => {
+					this._customer = customer
+				})
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 			return load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
 				this._invoiceInfo = invoiceInfo

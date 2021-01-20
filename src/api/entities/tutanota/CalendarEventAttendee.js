@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createCalendarEventAttendee(values?: $Shape<$Exact<CalendarEventAttendee>>): CalendarEventAttendee {

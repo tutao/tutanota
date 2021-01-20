@@ -17,9 +17,8 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {neverNull} from "../api/common/utils/Utils"
-import {load} from "../api/main/Entity"
+import {load, update} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -31,7 +30,7 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import type {Braintree3ds2Request} from "../api/entities/sys/Braintree3ds2Request"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
-import {getHttpOrigin, getWebRoot} from "../api/Env"
+import {getWebRoot} from "../api/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 
 /**
@@ -71,15 +70,18 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
 		}
 		login.then(() => {
-			if (!data.accountingInfo) {
+			if (!data.accountingInfo || !data.customer) {
 				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-					.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+					.then(customer => {
+						data.customer = customer
+						return load(CustomerInfoTypeRef, customer.customerInfo)
+					})
 					.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 						data.accountingInfo = accountingInfo
 					}))
 			}
 		}).then(() => {
-			this._invoiceDataInput = new InvoiceDataInput(data.options, data.invoiceData)
+			this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData)
 			let payPalRequestUrl = getLazyLoadedPayPalUrl()
 			if (logins.isUserLoggedIn()) {
 				payPalRequestUrl.getAsync()
@@ -100,13 +102,19 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			} else {
 				a.data.invoiceData = this._invoiceDataInput.getInvoiceData()
 				a.data.paymentData = this._paymentMethodInput.getPaymentData()
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(a.data.options, a.data.invoiceData, a.data.paymentData, null,
+				showProgressDialog("updatePaymentDataBusy_msg", Promise.resolve().then(() => {
+					let customer = neverNull(a.data.customer)
+					if (customer.businessUse !== a.data.options.businessUse()) {
+						customer.businessUse = a.data.options.businessUse()
+						return update(customer)
+					}
+				}).then(() => updatePaymentData(a.data.options.paymentInterval(), a.data.invoiceData, a.data.paymentData, null,
 					a.data.upgradeType === UpgradeType.Signup, a.data.price, neverNull(a.data.accountingInfo))
 					.then(success => {
 						if (success) {
 							emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
 						}
-					}))
+					})))
 			}
 		}
 		return m("#upgrade-account-dialog.pt", this._availablePaymentMethods
@@ -154,8 +162,9 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 }
 
-export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean, price: string, accountingInfo: AccountingInfo): Promise<boolean> {
-	return worker.updatePaymentData(subscriptionOptions.businessUse(), subscriptionOptions.paymentInterval(), invoiceData, paymentData, confirmedCountry)
+export function updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean, price: string, accountingInfo: AccountingInfo): Promise<boolean> {
+
+	return worker.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
 	             .then(paymentResult => {
 		             const statusCode = paymentResult.result
 		             if (statusCode === PaymentDataResultType.OK) {
@@ -172,7 +181,7 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 				             const confirmMessage = lang.get("confirmCountry_msg", {"{1}": countryName})
 				             return Dialog.confirm(() => confirmMessage).then(confirmed => {
 					             if (confirmed) {
-						             return updatePaymentData(subscriptionOptions, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo)  // add confirmed invoice country
+						             return updatePaymentData(paymentInterval, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo)  // add confirmed invoice country
 					             } else {
 						             return false;
 					             }

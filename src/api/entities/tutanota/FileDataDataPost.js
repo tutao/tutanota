@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createFileDataDataPost(values?: $Shape<$Exact<FileDataDataPost>>): FileDataDataPost {

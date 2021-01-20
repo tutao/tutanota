@@ -231,8 +231,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			              return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 			                            .then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			                            .then(accountingInfo => {
-				                            if (customer.businessUse
-					                            || accountingInfo.business) {
+				                            if (customer.businessUse || accountingInfo.business) {
 					                            throw new UserError("onlyPrivateAccountFeature_msg");
 				                            }
 			                            })

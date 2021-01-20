@@ -287,7 +287,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('switchPremiumToFreeGroup', arguments))
 	}
 
-	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return this._postRequest(new Request('updatePaymentData', arguments))
 	}
 

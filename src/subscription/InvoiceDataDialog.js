@@ -6,19 +6,18 @@ import {lang} from "../misc/LanguageViewModel"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
-import type {SubscriptionOptions} from "./SubscriptionUtils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 
-export function show(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, accountingInfo: AccountingInfo, headingId: ?TranslationKey, infoMessageId: ?TranslationKey): Dialog {
+export function show(businessUse: boolean, invoiceData: InvoiceData, accountingInfo: AccountingInfo, headingId: ?TranslationKey, infoMessageId: ?TranslationKey): Dialog {
 
-	const invoiceDataInput = new InvoiceDataInput(subscriptionOptions, invoiceData)
+	const invoiceDataInput = new InvoiceDataInput(businessUse, invoiceData)
 
 	const confirmAction = () => {
 		let error = invoiceDataInput.validateInvoiceData()
 		if (error) {
 			Dialog.error(error)
 		} else {
-			updatePaymentData(subscriptionOptions, invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo).then(success => {
+			updatePaymentData(Number(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo).then(success => {
 				if (success) {
 					dialog.close()
 				}

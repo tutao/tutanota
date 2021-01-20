@@ -76,7 +76,8 @@ subscriptions[SubscriptionType.Pro] = {
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  */
-export function showSwitchDialog(accountingInfo: AccountingInfo,
+export function showSwitchDialog(businessUse: boolean,
+                                 paymentInterval: number,
                                  currentSubscription: SubscriptionTypeEnum,
                                  currentNbrOfUsers: number,
                                  currentTotalStorage: number,
@@ -85,7 +86,6 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
                                  includedAliases: number,
                                  currentlySharingOrdered: boolean,
                                  currentlyWhitelabelOrdered: boolean): Promise<void> {
-	let businessStream = stream(accountingInfo.business)
 
 	return showProgressDialog("pleaseWait_msg", getPrices(currentSubscription, currentNbrOfUsers, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered))
 		.then(prices => {
@@ -101,7 +101,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 			const dialog = Dialog.largeDialog(headerBarAttrs, {
 				view: () => m("#upgrade-account-dialog.pt", m(SubscriptionSelector, {
 					// paymentInterval will not be updated as isInitialUpgrade is false
-					options: {businessUse: businessStream, paymentInterval: stream(Number(accountingInfo.paymentInterval))},
+					options: {businessUse: stream(businessUse), paymentInterval: stream(paymentInterval)},
 					campaignInfoTextId: null,
 					boxWidth: 230,
 					boxHeight: 230,

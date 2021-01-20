@@ -388,13 +388,13 @@ export class CustomerFacade {
 			})
 	}
 
-	updatePaymentData(businessUse: boolean, paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
+	updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
-						service.business = businessUse
+						service.business = false // not used, must be set to false currently, will be removed later
 						service.paymentInterval = paymentInterval.toString()
 						service.invoiceName = ""
 						service.invoiceAddress = invoiceData.invoiceAddress
