@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2020-12-22T15:01:30Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -544,7 +544,6 @@ module.exports = {
 		"invoicePay_action": "Pagar",
 		"invoiceSettingDescription_msg": "Llista de totes les seves factures existents, i pagaments.",
 		"invoiceVatIdNoInfoBusiness_msg": "Ha de començar amb el prefix de país de dos dígits.",
-		"invoiceVatIdNoMissing_msg": "Si no teniu un nombre d'identificació fiscal, si us plau seleccioneu ús privat.",
 		"invoiceVatIdNo_label": "Número d'identificació fiscal",
 		"invoice_label": "Factura",
 		"IpAddress_label": "Adreça IP",

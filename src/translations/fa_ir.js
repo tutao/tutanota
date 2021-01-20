@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-12-26T12:53:58Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -506,7 +506,6 @@ module.exports = {
 		"invoicePay_action": "پرداخت",
 		"invoiceSettingDescription_msg": "فهرست همهٔ صورتحساب‌ها و پرداختهای موجود شما .",
 		"invoiceVatIdNoInfoBusiness_msg": "حتماً باید با پیشوند دو رقمی کشور آغاز شود.",
-		"invoiceVatIdNoMissing_msg": "اگر شما شمارهٔ شناسایی مالیات بر ارزش افزوده ندارید، لطفاً استفادهٔ شخصی را انتخاب کنید.",
 		"invoiceVatIdNo_label": "شماره شناسایی مالیات بر ارزش افزوده",
 		"invoice_label": "صورتحساب",
 		"IpAddress_label": "آدرس IP",

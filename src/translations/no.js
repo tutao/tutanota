@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2021-01-05T02:50:02Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -564,7 +564,6 @@ module.exports = {
 		"invoicePay_action": "Betal",
 		"invoiceSettingDescription_msg": "Liste over dine eksisterende fakturaer og betalinger.",
 		"invoiceVatIdNoInfoBusiness_msg": "Må starte med den tosifrede landekoden.",
-		"invoiceVatIdNoMissing_msg": "Hvis du ikke har et organisasjonsnummer velger du privat bruk.",
 		"invoiceVatIdNo_label": "MVA-nummer",
 		"invoice_label": "Faktura",
 		"IpAddress_label": "IP-adresse",

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -504,7 +504,6 @@ module.exports = {
 		"invoicePay_action": "支付",
 		"invoiceSettingDescription_msg": "您现有的所有发票清单，包括付款状态",
 		"invoiceVatIdNoInfoBusiness_msg": "必须以两个字母的国家代码前缀开始。",
-		"invoiceVatIdNoMissing_msg": "如果您没有增值税号（Value Added Tax Identification Number，欧盟地区适用），请选择“个人使用”。",
 		"invoiceVatIdNo_label": "增值税号",
 		"invoice_label": "发票",
 		"IpAddress_label": "IP地址",

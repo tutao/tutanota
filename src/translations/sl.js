@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -480,7 +480,7 @@ module.exports = {
 		"giftCardPurchaseFailed_msg": "Darilnega bona ni mogoče kupiti.",
 		"giftCardSection_label": "Nakup in upravljanje darilnih bonih",
 		"giftCards_label": "Darilni boni",
-		"giftCardTerms_label": "Prosimo, da se strinjate s pravili in pogoji darilnega bona",
+		"giftCardTerms_label": "Pravila in pogoji darilnega bona",
 		"giftCardUpdateError_msg": "Darilnega bona ni mogoče posodobiti.",
 		"giftCard_label": "Darilni bon",
 		"globalAdmin_label": "Splošni skrbnik",
@@ -574,7 +574,6 @@ module.exports = {
 		"invoicePay_action": "Plačajte",
 		"invoiceSettingDescription_msg": "Seznam vseh obstoječih računov in plačil.",
 		"invoiceVatIdNoInfoBusiness_msg": "Mora se začeti z dvomestno predpono države.",
-		"invoiceVatIdNoMissing_msg": "Če nimate VAT številke, prosimo izberite zasebno uporabo.",
 		"invoiceVatIdNo_label": "VAT številka",
 		"invoice_label": "Račun",
 		"IpAddress_label": "IP naslov",

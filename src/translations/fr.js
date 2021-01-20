@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2020-12-22T15:01:30Z",
+	"updated_at": "2021-01-20T13:46:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -553,7 +553,6 @@ module.exports = {
 		"invoicePay_action": "Paiement",
 		"invoiceSettingDescription_msg": "Liste de toutes vos factures et paiements existantes.",
 		"invoiceVatIdNoInfoBusiness_msg": "Doit commencer avec les 2 chiffres préfixe d'identification du pays (FR pour la France).",
-		"invoiceVatIdNoMissing_msg": "Si vous n'avez pas de nombre identifiant de TVA, veuillez sélectionner l'usage privé.",
 		"invoiceVatIdNo_label": "Numéro d'identification à la TVA",
 		"invoice_label": "Facture",
 		"IpAddress_label": "Adresse IP",

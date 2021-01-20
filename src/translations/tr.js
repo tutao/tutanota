@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2021-01-05T09:48:24Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -575,7 +575,6 @@ module.exports = {
 		"invoicePay_action": "Öde",
 		"invoiceSettingDescription_msg": "Mevcut faturalarınızın ve ödemelerinizin listesi.",
 		"invoiceVatIdNoInfoBusiness_msg": "İki basamaklı ülke ön ekiyle başlamalıdır.",
-		"invoiceVatIdNoMissing_msg": "KDV kimlik numaranız yoksa, lütfen özel kullanımı seçin.",
 		"invoiceVatIdNo_label": "Vergi No",
 		"invoice_label": "Fatura\n",
 		"IpAddress_label": "IP adresi",

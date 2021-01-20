@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-12-22T15:01:30Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -500,7 +500,6 @@ module.exports = {
 		"invoicePay_action": "Maksa",
 		"invoiceSettingDescription_msg": "Luettelo olemassa olevista laskuistasi ja maksuistasi.",
 		"invoiceVatIdNoInfoBusiness_msg": "Pitää alkaa kaksinumeroisella maan etuliitteellä.",
-		"invoiceVatIdNoMissing_msg": "Jos sinulla ei ole ALV-tunnusta, valitse yksityinen käyttö.",
 		"invoiceVatIdNo_label": "Arvonlisäveronumero (ALV)",
 		"invoice_label": "Lasku",
 		"IpAddress_label": "IP-osoite",

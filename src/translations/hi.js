@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2021-01-05T09:48:24Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -582,7 +582,6 @@ module.exports = {
 		"invoicePay_action": "वेतन",
 		"invoiceSettingDescription_msg": "आपके सभी मौजूदा चालानों और भुगतानों की सूची।",
 		"invoiceVatIdNoInfoBusiness_msg": "द्विअंकीय देशीय उपसर्ग से शुरू होना जरूरी। ",
-		"invoiceVatIdNoMissing_msg": "यदि आपके पास वैट आईडी नं० नहीं है, तो कृपया निजी उपभोग का चयन करें।",
 		"invoiceVatIdNo_label": "वैट पहचान संख्या",
 		"invoice_label": "बीजक",
 		"IpAddress_label": "आईपी ​​पता",

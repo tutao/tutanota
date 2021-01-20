@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2020-12-29T13:45:31Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -553,7 +553,6 @@ module.exports = {
 		"invoicePay_action": "支払う",
 		"invoiceSettingDescription_msg": "領収書と請求書の一覧",
 		"invoiceVatIdNoInfoBusiness_msg": "2字の国の接頭辞で始まる必要があります。",
-		"invoiceVatIdNoMissing_msg": "VAT ID 番号がない場合は、個人使用を選択してください。",
 		"invoiceVatIdNo_label": "VAT識別番号",
 		"invoice_label": "請求書",
 		"IpAddress_label": "IPアドレス",

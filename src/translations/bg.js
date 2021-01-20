@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2020-12-27T18:51:42Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -554,7 +554,6 @@ module.exports = {
 		"invoicePay_action": "Плащане",
 		"invoiceSettingDescription_msg": "Списък на всички фактури и състоянието им",
 		"invoiceVatIdNoInfoBusiness_msg": "Трябва да започва с двуцифрен префикс за държава.",
-		"invoiceVatIdNoMissing_msg": "Ако нямате данъчен номер, моля попълнете, че е за лично ползване",
 		"invoiceVatIdNo_label": "ДДС - Идентификационен номер",
 		"invoice_label": "Фактура",
 		"IpAddress_label": "IP адрес",

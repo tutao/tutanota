@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -567,7 +567,6 @@ module.exports = {
 		"invoicePay_action": "Pagar",
 		"invoiceSettingDescription_msg": "Lista de todas as faturas existentes e estado de pagamento.",
 		"invoiceVatIdNoInfoBusiness_msg": "Deve começar com dois dígitos do prefixo do país. ",
-		"invoiceVatIdNoMissing_msg": "Se não tem ID para IVA, por favor escolha uso privado.",
 		"invoiceVatIdNo_label": "Número de Identificação Fiscal",
 		"invoice_label": "Fatura",
 		"IpAddress_label": "Endereço IP",

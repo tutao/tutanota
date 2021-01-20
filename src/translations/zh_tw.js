@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2020-10-21T12:54:35Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -405,7 +405,6 @@ module.exports = {
 		"invoicePay_action": "付款",
 		"invoiceSettingDescription_msg": "內含現有付款狀態之全部帳務明細．",
 		"invoiceVatIdNoInfoBusiness_msg": "開頭須為二位制國家區域代碼。",
-		"invoiceVatIdNoMissing_msg": "若您沒有一道增值稅識別號碼（VAT-ID）。請選擇個人使用。",
 		"invoiceVatIdNo_label": "增值稅識別號碼（VAT-ID）",
 		"IpAddress_label": "IP 位址",
 		"keyboardShortcuts_title": "鍵盤快捷鍵",

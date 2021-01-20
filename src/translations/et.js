@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2020-09-22T06:25:02Z",
+	"updated_at": "2021-01-20T13:45:41Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -349,7 +349,6 @@ module.exports = {
 		"invoicePaymentMethodInfo_msg": "Palun valige maksemeetod. Rohkem võimalusi lisatakse tulevikus.",
 		"invoicePay_action": "Maksa",
 		"invoiceSettingDescription_msg": "Loetle kõik olemasolevad arved koos maksestaatusega.",
-		"invoiceVatIdNoMissing_msg": "Kui Teil puudub VAT ID number, palun valige isiklik kasutamine.",
 		"IpAddress_label": "IP-aadress",
 		"keyboardShortcuts_title": "Klaviatuuri otseteed",
 		"languageAlbanianref_label": "Albaania keel (reformitud)",

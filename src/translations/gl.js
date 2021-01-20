@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-20T13:46:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -586,7 +586,6 @@ module.exports = {
 		"invoicePay_action": "Pago",
 		"invoiceSettingDescription_msg": "Lista de todas as túas facturas e pagamentos.",
 		"invoiceVatIdNoInfoBusiness_msg": "Debe comezar co prefixo de pais de dous díxitos.",
-		"invoiceVatIdNoMissing_msg": "Se non tes un identificador ID do IVE, por favor escolle uso privado.",
 		"invoiceVatIdNo_label": "Número de identificación NIF",
 		"invoice_label": "Factura",
 		"IpAddress_label": "Enderezo IP",
