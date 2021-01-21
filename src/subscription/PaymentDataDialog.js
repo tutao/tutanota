@@ -65,19 +65,33 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 
 
 	return Promise.fromCallback(cb => {
+		const didLinkPaypal = () => selectedPaymentMethod() === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
 			if (error) {
 				Dialog.error(error)
 			} else {
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(subscriptionOptions.paymentInterval(), invoiceData, paymentMethodInput.getPaymentData(), invoiceData.country, false, price
-					+ "", accountingInfo))
-					.then(success => {
-						if (success) {
-							dialog.close()
-							cb(null, true)
-						}
-					})
+				const finish = success => {
+					if (success) {
+						dialog.close()
+						cb(null, true)
+					}
+				}
+				// updatePaymentData gets done when the big paypal button is clicked
+				if (didLinkPaypal()) {
+					finish(true)
+				} else {
+					showProgressDialog("updatePaymentDataBusy_msg",
+						updatePaymentData(
+							subscriptionOptions.paymentInterval(),
+							invoiceData,
+							paymentMethodInput.getPaymentData(),
+							invoiceData.country,
+							false,
+							price + "",
+							accountingInfo))
+						.then(finish)
+				}
 			}
 		}
 
@@ -91,8 +105,8 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 			},
 			okAction: confirmAction,
 			// if they've just gone through the process of linking a paypal account, don't offer a cancel button
-			allowCancel: () => !(selectedPaymentMethod() === PaymentMethodType.Paypal && paymentMethodInput.didLinkPaypal()),
-			okActionTextId: "save_action",
+			allowCancel: () => !didLinkPaypal(),
+			okActionTextId: () => didLinkPaypal() ? "close_alt" : "save_action",
 			cancelAction: () => cb(null, false)
 		})
 	})

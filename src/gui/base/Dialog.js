@@ -49,7 +49,7 @@ type ActionDialogProps = {|
 	okAction: null | (Dialog) => mixed,
 	allowCancel?: MaybeLazy<boolean>,
 	allowOkWithReturn?: boolean,
-	okActionTextId?: TranslationKey,
+	okActionTextId?: MaybeLazy<TranslationKey>,
 	cancelAction?: ?(Dialog) => mixed,
 	cancelActionTextId?: TranslationKey,
 	type?: DialogTypeEnum,
@@ -514,7 +514,7 @@ export class Dialog {
 
 		const actionBarAttrs: DialogHeaderBarAttrs = {
 			left: mapLazily(allowCancel, allow => allow ? [{label: cancelActionTextId, click: doCancel, type: ButtonType.Secondary}] : []),
-			right: okAction ? [{label: okActionTextId, click: doAction, type: ButtonType.Primary}] : [],
+			right: okAction ? [{label: mapLazily(okActionTextId, id => lang.get(id)), click: doAction, type: ButtonType.Primary}] : [],
 			middle: typeof title === 'function' ? title : () => title
 		}
 
