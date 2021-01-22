@@ -10,6 +10,7 @@ import type {ListElement} from "./utils/EntityUtils"
 import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT} from "./utils/EntityUtils"
 import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
+import gossipModelMap from "../entities/gossip/gossipModelMap"
 import {TypeRef} from "./utils/TypeRef";
 
 
@@ -39,6 +40,7 @@ const modelMaps = {
 	tutanota: tutanotaModelMap,
 	monitor: monitorModelMap,
 	accounting: accountingModelMap,
+	gossip: gossipModelMap
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {

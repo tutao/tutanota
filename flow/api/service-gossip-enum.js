@@ -1,0 +1,1 @@
+type GossipServiceEnum = "dummy-no-real-service"
