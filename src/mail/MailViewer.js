@@ -60,7 +60,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	makeMailBundle, getFolder,
+	getFolder,
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -122,7 +122,7 @@ import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
 import {fileApp} from "../native/FileApp"
-import {isNewMailActionAvailable, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {bundleMail, isNewMailActionAvailable, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import type {MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
@@ -611,7 +611,10 @@ export class MailViewer {
 		if (isDesktop() /* && env.platformId === "win32" */) { // TODO Switch properly before release
 			actions.push(m(ButtonN, {
 				label: "dragAndDropExport_action",
-				click: () => showProgressDialog("pleaseWait_msg", makeMailBundle(mail)).then(bundle => fileApp.mailBundleExport([bundle])),
+				click: () => {
+					showProgressDialog("pleaseWait_msg", bundleMail(mail))
+						.then(bundle => fileApp.mailBundleExport([bundle]))
+				},
 				icon: () => Icons.Open,
 			}))
 		}
@@ -747,12 +750,9 @@ export class MailViewer {
 	}
 
 	_exportMail() {
-		const exportPromise = mailToEmlFile(
-			this._entityClient,
-			this.mail,
-			this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""
-		)
-		showProgressDialog("pleaseWait_msg", exportPromise).then(df => fileController.open(df))
+		const exportPromise = bundleMail(this.mail).then(mailToEmlFile)
+		showProgressDialog("pleaseWait_msg", exportPromise)
+			.then(file => fileController.open(file))
 	}
 
 	_markAsNotPhishing(): Promise<void> {

@@ -11,10 +11,8 @@ import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
 
 import {legalizeFilenames} from "./PathUtils"
-import type {MailBundle} from "../mail/MailUtils"
 import {Email, AttachmentType, MessageEditorFormat} from "oxmsg"
-
-// import type {MsgEditorFormat, AttachmentType} from "oxmsg/"
+import type {MailBundle} from "../mail/MailUtils"
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -183,8 +181,11 @@ export class DesktopUtils {
 			.headers(bundle.headers || "")
 
 		for (let attachment of bundle.attachments) {
-			const data = await fs.readFile(attachment.location)
-			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
+			// When the MailBundle gets passed over via the IPC it loses some of it's type information. the Uint8Arrays stored in the
+			// attachment DataFiles cease to be Uint8Arrays and just because regular arrays, thus we have to remake them here.
+			// Oxmsg currently doesn't accept regular arrays for binary data, only Uint8Arrays, strings and booleans
+			// we could change the Oxmsg behaviour, it's kind of nice for it to be strict though.
+			email.attach(new Uint8Array(attachment.data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
 		}
 
 		return {name: `${subject}_export.msg`, content: email.msg()}

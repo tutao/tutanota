@@ -10,8 +10,8 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getSortedCustomFolders,
-	getSortedSystemFolders, makeMailBundle,
-	markMails,
+	getSortedSystemFolders,
+	markMails
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {logins} from "../api/main/LoginController";
@@ -23,7 +23,7 @@ import {theme} from "../gui/theme"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
-import {exportMails, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {bundleMail, bundleMails, exportMails, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {fileApp} from "../native/FileApp"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -92,7 +92,9 @@ export class MultiMailViewer {
 			},
 			{
 				label: "dragAndDropExport_action",
-				click: () => showProgressDialog("pleaseWait_msg", Promise.mapSeries(selectedEntities(), makeMailBundle)).then(fileApp.mailBundleExport),
+				click: () => showProgressDialog("pleaseWait_msg",
+					Promise.mapSeries(selectedEntities(), bundleMail))
+					.then(fileApp.mailBundleExport),
 				icon: () => Icons.Open,
 				isVisible: () => isDesktop() /* && env.platformId === "win32" */ // TODO disable before release
 			},
@@ -127,7 +129,7 @@ export class MultiMailViewer {
 				},
 				{
 					label: "export_action",
-					click: this._actionBarAction((mails) => exportMails(locator.entityClient, mails)),
+					click: this._actionBarAction((mails) => bundleMails(mails).then(exportMails)),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)
@@ -158,8 +160,9 @@ export class MultiMailViewer {
 					.map(f => {
 						return {
 							label: () => getFolderName(f),
-							click: () => this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
-							icon: getFolderIcon(f)
+							click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
+							icon: getFolderIcon(f),
+							type: ButtonType.Dropdown
 						}
 					})
 			}
