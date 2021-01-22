@@ -41,21 +41,16 @@ import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailA
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {EntityClient} from "../api/common/EntityClient"
+import type {EntityClient} from "../api/common/EntityClient"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {client} from "../misc/ClientDetector"
 import {getTimeZone} from "../calendar/CalendarUtils"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
-import {worker} from "../api/main/WorkerClient"
-import {FileTypeRef} from "../api/entities/tutanota/File"
-import {moveMails} from "./MailGuiUtils"
-import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
-import {locator} from "../api/main/MainLocator"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {mailToEmlFile} from "./Exporter"
-import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {fileController} from "../file/FileController"
+import {FileTypeRef} from "../api/entities/tutanota/File"
+import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
+import type {WorkerClient} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -530,104 +525,6 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 
-export function archiveMails(mails: Mail[]): Promise<*> {
-	if (mails.length > 0) {
-		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => moveMails(locator.mailModel, mails, getArchiveFolder(folders)))
-	} else {
-		return Promise.resolve()
-	}
-}
-
-export function moveToInbox(mails: Mail[]): Promise<*> {
-	if (mails.length > 0) {
-		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => moveMails(locator.mailModel, mails, getInboxFolder(folders)))
-	} else {
-		return Promise.resolve()
-	}
-}
-
-/**
- * convert a set of mail to a set of dataFiles in eml format
- * @param mails array of mails to convert
- * @returns {Promise<(DataFile|any)[]>}
- */
-export function mailsToEmlDataFiles(entityClient: EntityClient, mails: Array<Mail>): Promise<Array<DataFile>> {
-	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
-	                                   .then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	return Promise.map(mails, mapper, {concurrency: 1})
-}
-
-/**
- * export a set of mails into a zip file and offer to download
- * @param mails array of mails to export
- * @returns {Promise<void>} resolved after the fileController
- * was instructed to open the new zip File containing the mail eml
- */
-export function exportMails(client: EntityClient, mails: Mail[]): Promise<void> {
-	const exportPromise = mailsToEmlDataFiles(client, mails)
-	const zipName = `${sortableTimestamp()}-mail-export.zip`
-	return fileController.zipDataFiles(exportPromise, zipName)
-	                     .then(zip => fileController.open(zip))
-}
-
-
-/**
- * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
- * Ideally this would just be {Mail, MailHeaders, MailBody, FileReference[]}
- * but we can't send Dates over to the native side so we may as well just extract everything here
- */
-type MailBundleRecipient = {address: string, name?: string}
-export type MailBundle = {
-	subject: string,
-	body: string,
-	sender: MailBundleRecipient,
-	to: MailBundleRecipient[],
-	cc: MailBundleRecipient[],
-	bcc: MailBundleRecipient[],
-	replyTo: MailBundleRecipient[],
-	isDraft: boolean,
-	isRead: boolean,
-	sentOn: number, // UNIX timestamp
-	receivedOn: number, // UNIX timestamp,
-	headers: ?string,
-	attachments: FileReference[]
-}
-
-/**
- * Downloads the mail body and the attachments for an email, to prepare for exporting
- * @param mail
- * @returns {Promise<*>}
- */
-export function makeMailBundle(mail: Mail): Promise<MailBundle> {
-	const mailBodyPromise = locator.entityClient.load(MailBodyTypeRef, mail.body)
-	const attachmentsPromise = Promise.mapSeries(mail.attachments,
-		fileId => locator.entityClient.load(FileTypeRef, fileId).then(worker.downloadFileContentNative.bind(worker)))
-	const headersPromise = mail.headers
-		? locator.entityClient.load(MailHeadersTypeRef, mail.headers)
-		: Promise.resolve(null)
-	const recipientMapper = addr => ({address: addr.address, name: addr.name})
-	return Promise.all([mailBodyPromise, attachmentsPromise, headersPromise])
-	              .spread((mailBody, attachments, headers) => ({
-		              subject: mail.subject,
-		              body: mailBody.text,
-		              sender: recipientMapper(mail.sender),
-		              to: mail.toRecipients.map(recipientMapper),
-		              cc: mail.ccRecipients.map(recipientMapper),
-		              bcc: mail.bccRecipients.map(recipientMapper),
-		              replyTo: mail.replyTos.map(recipientMapper),
-		              isDraft: mail.state !== MailState.DRAFT,
-		              isRead: !mail.unread,
-		              sentOn: mail.sentDate.getTime(),
-		              receivedOn: mail.receivedDate.getTime(),
-		              headers: headers && headers.headers,
-		              attachments: attachments
-	              }))
-}
-
 export function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
 	return Promise.all(mails.map(mail => {
 		if (mail.unread !== unread) {
@@ -958,3 +855,61 @@ export function replaceHtmlEntities(str: string): string {
 	])
 	return str.replace(/&.*?;/, match => (m.get(match) || ""))
 }
+
+
+/**
+ * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
+ * Ideally this would just be {Mail, MailHeaders, MailBody, FileReference[]}
+ * but we can't send Dates over to the native side so we may as well just extract everything here
+ */
+export type MailBundleRecipient = {address: string, name?: string}
+export type MailBundle = {
+	subject: string,
+	body: string,
+	sender: MailBundleRecipient,
+	to: MailBundleRecipient[],
+	cc: MailBundleRecipient[],
+	bcc: MailBundleRecipient[],
+	replyTo: MailBundleRecipient[],
+	isDraft: boolean,
+	isRead: boolean,
+	sentOn: number, // UNIX timestamp
+	receivedOn: number, // UNIX timestamp,
+	headers: ?string,
+	attachments: DataFile[]
+}
+
+/**
+ * Downloads the mail body and the attachments for an email, to prepare for exporting
+ * @param mail
+ * @param entityClient
+ * @param worker
+ */
+export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: WorkerClient): Promise<MailBundle> {
+	const bodyTextPromise = entityClient.load(MailBodyTypeRef, mail.body)
+	                                    .then(getMailBodyText)
+	                                    .then(body => htmlSanitizer.sanitize(body, false).text)
+	const attachmentsPromise = Promise.mapSeries(mail.attachments,
+		fileId => entityClient.load(FileTypeRef, fileId).then(worker.downloadFileContent.bind(worker)))
+	const headersPromise = mail.headers
+		? entityClient.load(MailHeadersTypeRef, mail.headers)
+		: Promise.resolve(null)
+	const recipientMapper = addr => ({address: addr.address, name: addr.name})
+	return Promise.all([bodyTextPromise, attachmentsPromise, headersPromise])
+	              .spread((bodyText, attachments, headers) => ({
+		              subject: mail.subject,
+		              body: bodyText,
+		              sender: recipientMapper(mail.sender),
+		              to: mail.toRecipients.map(recipientMapper),
+		              cc: mail.ccRecipients.map(recipientMapper),
+		              bcc: mail.bccRecipients.map(recipientMapper),
+		              replyTo: mail.replyTos.map(recipientMapper),
+		              isDraft: mail.state !== MailState.DRAFT,
+		              isRead: !mail.unread,
+		              sentOn: mail.sentDate.getTime(),
+		              receivedOn: mail.receivedDate.getTime(),
+		              headers: headers && headers.headers,
+		              attachments: attachments
+	              }))
+}
+

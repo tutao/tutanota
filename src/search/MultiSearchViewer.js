@@ -29,7 +29,7 @@ import {NBSP} from "../api/common/utils/StringUtils"
 import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {exportMails, moveMails} from "../mail/MailGuiUtils"
+import {bundleMails, exportMails, moveMails} from "../mail/MailGuiUtils"
 
 assertMainOrNode()
 
@@ -185,19 +185,19 @@ export class MultiSearchViewer {
 			}, () => [
 				{
 					label: "markUnread_action",
-					click: this.getSelectedMails(mails => markMails(locator.entityClient, mails, true).then(this._searchListView.selectNone())),
+					click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(this._searchListView.selectNone()),
 					icon: () => Icons.NoEye,
 					type: ButtonType.Dropdown
 				},
 				{
 					label: "markRead_action",
-					click: this.getSelectedMails(mails => markMails(locator.entityClient, mails, false).then(this._searchListView.selectNone())),
+					click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(this._searchListView.selectNone()),
 					icon: () => Icons.Eye,
 					type: ButtonType.Dropdown
 				},
 				{
 					label: "export_action",
-					click: this.getSelectedMails(mails => exportMails(locator.entityClient, mails)),
+					click: () => bundleMails(this.getSelectedMails()).then(exportMails),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)
@@ -272,20 +272,17 @@ export class MultiSearchViewer {
 
 	}
 
-	getSelectedMails(action: (Mail[]) => mixed): () => void {
-		return () => {
-			let selected = this._searchListView.getSelectedEntities()
-			let selectedMails = []
-			if (selected.length > 0) {
-				if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-					selected.forEach(m => {
-						selectedMails.push(((m.entry: any): Mail))
-					})
-				}
+	getSelectedMails(): Mail[] {
+		let selected = this._searchListView.getSelectedEntities()
+		let selectedMails = []
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				selected.forEach(m => {
+					selectedMails.push(((m.entry: any): Mail))
+				})
 			}
-			action(selectedMails)
 		}
-
+		return selectedMails
 	}
 
 	actionBarButtons(): ButtonAttrs[] {

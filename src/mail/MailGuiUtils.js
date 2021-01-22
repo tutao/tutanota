@@ -5,19 +5,16 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import {Dialog} from "../gui/base/Dialog"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {locator} from "../api/main/MainLocator";
-import {EntityClient} from "../api/common/EntityClient"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {mailToEmlFile} from "./Exporter"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {getMailBodyText} from "../api/common/utils/Utils"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {fileController} from "../file/FileController"
 import {logins} from "../api/main/LoginController"
 import {FeatureType} from "../api/common/TutanotaConstants"
-import {getArchiveFolder, getFolderIcon, getInboxFolder} from "./MailUtils"
+import type {MailBundle} from "./MailUtils"
+import {getArchiveFolder, getFolderIcon, getInboxFolder, makeMailBundle} from "./MailUtils"
 import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import {worker} from "../api/main/WorkerClient"
+import {mailToEmlFile} from "./Exporter"
 
 export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
@@ -57,13 +54,19 @@ export function moveMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, tar
 	                .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 }
 
-export function exportMails(entityClient: EntityClient, mails: Mail[]): Promise<void> {
-	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
-	                                   .then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
+
+/**
+ * export a set of mails into a zip file and offer to download
+ * @param entityClient
+ * @param worker
+ * @param mails array of mails to export
+ * @returns {Promise<void>} resolved after the fileController
+ * was instructed to open the new zip File containing the mail eml
+ */
+export function exportMails(mails: Array<MailBundle>): Promise<void> {
 	const zipName = `${sortableTimestamp()}-mail-export.zip`
-	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))
-		.then(zip => fileController.open(zip))
+	return fileController.zipDataFiles(mails.map(mailToEmlFile), zipName)
+	                     .then(zip => fileController.open(zip))
 }
 
 export function isNewMailActionAvailable(): boolean {
@@ -97,4 +100,25 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 	} else {
 		return Icons.Folder
 	}
+}
+
+/**
+ * Uses the global entityClient and worker to bundle a mail
+ * (the worker and entityClient can't be imported from mailUtils, and it's nice to keep them as parameters in makeMailBundle anyway, for testing)
+ * Convenience function, should maybe be removed?
+ * @param mail
+ * @returns {Promise<MailBundle>}
+ */
+export function bundleMail(mail: Mail): Promise<MailBundle> {
+	return makeMailBundle(mail, locator.entityClient, worker)
+}
+
+/**
+ * Uses the global entityClient and worker to bundle some mails
+ * Also convenience function that should also maybe be removed
+ * @param mails
+ * @returns {Promise<MailBundle[]>}
+ */
+export function bundleMails(mails: Array<Mail>): Promise<Array<MailBundle>> {
+	return Promise.mapSeries(mails, bundleMail)
 }

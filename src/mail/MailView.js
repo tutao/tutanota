@@ -67,7 +67,6 @@ import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {FolderExpander} from "../gui/base/FolderExpander"
 import {archiveMails, isNewMailActionAvailable, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
-import {selectMsgFiles} from "./Exporter"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
@@ -225,13 +224,6 @@ export class MailView implements CurrentView {
 					if (this.mailViewer) this.mailViewer.scrollDown()
 				},
 				help: "scrollDown_action"
-			},
-			{
-				key: Keys.HOME,
-				exec: () => {
-					selectMsgFiles()
-				},
-				help: "scrollToTop_action"
 			},
 			{
 				key: Keys.END,

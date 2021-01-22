@@ -68,7 +68,7 @@ export class FileController {
 		} else {
 			downloadContent = f => worker.downloadFileContent(f)
 			concurrency = {concurrency: 1}
-			save = p => this.zipDataFiles(p, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip))
+			save = p => p.then(files => this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip)))
 		}
 
 		// We're returning dialogs here so they don't overlap each other
@@ -249,16 +249,14 @@ export class FileController {
 	 *
 	 * duplicate file names lead to the second file added overwriting the first one.
 	 *
-	 * @param dataFilesPromises Promise resolving to an array of DataFiles
+	 * @param dataFiles Promise resolving to an array of DataFiles
 	 * @param name the name of the new zip file
 	 */
-	zipDataFiles(dataFilesPromises: Promise<Array<DataFile>>, name: string): Promise<DataFile> {
+	zipDataFiles(dataFiles: Array<DataFile>, name: string): Promise<DataFile> {
 		const file = new File([], name, {type: "application/zip"})
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
-		const zipPromise = import("jszip")
-		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, jsZip) => {
+		return import("jszip").then(jsZip => {
 			const zip = jsZip.default()
-
 			dataFiles.forEach(df => {
 				zip.file(sanitizeFilename(df.name), df.data, {binary: true})
 			})
