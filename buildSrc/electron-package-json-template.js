@@ -79,7 +79,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
 			"artifactName": "${name}-${os}.${ext}",
-			"afterSign": notarize ? "buildSrc/notarize.js" : undefined,
+			"afterSign": notarize ? "buildSrc/notarize.cjs" : undefined,
 			"protocols": [
 				{
 					"name": "Mailto Links",

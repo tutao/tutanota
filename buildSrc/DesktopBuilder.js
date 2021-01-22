@@ -80,12 +80,13 @@ export async function buildDesktop({
 	await fs.promises.mkdir(outDir, {recursive: true})
 	await Promise.all(
 		fs.readdirSync(path.join(distDir, '/installers'))
-		  .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
-		  .map(file => fs.promises.rename(
-			  path.join(distDir, '/installers/', file),
-			  path.join(outDir, file)
-			  )
-		  )
+			// TODO: find out why it was needed. Check if unpacked is done correctly.
+			// .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
+          .map(file => fs.promises.rename(
+	          path.join(distDir, '/installers/', file),
+	          path.join(outDir, file)
+	          )
+          )
 	)
 	await Promise.all([
 		fs.promises.rmdir(path.join(distDir, '/installers/'), {recursive: true}),
