@@ -25,7 +25,8 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 import {styles} from "../styles"
-import {getAsNotLazy, mapLazily} from "../../api/common/utils/Utils"
+import {resolveMaybeLazy, mapLazily} from "../../api/common/utils/Utils"
+import type {MaybeLazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 

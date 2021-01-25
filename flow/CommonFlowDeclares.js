@@ -13,8 +13,6 @@ declare type lazy<T> = () => T;
 
 declare type lazyAsync<T> = () => Promise<T>;
 
-declare type MaybeLazy<T> = T | lazy<T>;
-
 declare type action = () => Promise<void>;
 
 declare type handler<T> = (T) => mixed;
