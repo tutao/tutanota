@@ -39,7 +39,6 @@ import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
 import "./worker/facades/MailFacadeTest"
 import "./worker/SuspensionHandlerTest"
-import "./common/IntegrationTest"
 import {preTest, reportTest} from "./TestUtils"
 
 (async function () {
@@ -52,6 +51,7 @@ import {preTest, reportTest} from "./TestUtils"
 		if (process.argv.includes("-i")) {
 			console.log("\nRunning with integration tests because was run with -i\n")
 			await import("./common/WorkerTest")
+			await import("./common/IntegrationTest")
 		} else {
 			console.log("\nRunning without integration tests because run without -i\n")
 		}

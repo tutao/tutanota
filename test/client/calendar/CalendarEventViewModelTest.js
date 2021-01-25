@@ -331,6 +331,8 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: encMailAddress,
 				attendees: [ownAttendee, attendee],
 				sequence: "2",
+				startTime: existingEvent.startTime,
+				endTime: existingEvent.endTime,
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel})
 
