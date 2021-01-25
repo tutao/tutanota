@@ -202,6 +202,6 @@ class PaypalInput {
 	}
 }
 
-export function isPaypalAssigned(accountingInfo: AccountingInfo): boolean {
+function isPaypalAssigned(accountingInfo: AccountingInfo): boolean {
 	return accountingInfo.paypalBillingAgreement != null
 }

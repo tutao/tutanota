@@ -25,7 +25,7 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 import {styles} from "../styles"
-import {resolveMaybeLazy, mapLazily} from "../../api/common/utils/Utils"
+import {mapLazily, getAsLazy} from "../../api/common/utils/Utils"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
@@ -530,7 +530,8 @@ export class Dialog {
 			key: Keys.ESC,
 			shift: false,
 			exec: mapLazily(allowCancel, allow => allow && doCancel()),
-			help: "cancel_action"
+			help: "cancel_action",
+			enabled: getAsLazy(allowCancel)
 		})
 
 		if (allowOkWithReturn) {
