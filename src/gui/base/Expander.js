@@ -67,7 +67,32 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 
 	lastCalculatedHeight: number
 
+	// We don't want the children to remain in the dom when hidden because they might be included in the tab sequence,
+	// but we need to delay hiding them when the user closes the expander because otherwise they will disappear before the expander is fully closed
+	// so we track this with a separate boolean
+	childrenInDom: boolean
+
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
+
+
+		this.childrenInDom = vnode.attrs.expanded()
+
+		// In case the user clicks twice really fast we don't want to hide the children in the dom (weird sentence)
+		let setChildrenInDomTimeout
+
+		vnode.attrs.expanded.map(expanded => {
+			window.clearTimeout(setChildrenInDomTimeout)
+			if (expanded) {
+				this.childrenInDom = true
+				m.redraw()
+			} else {
+				setChildrenInDomTimeout = window.setTimeout(() => {
+					this.childrenInDom = false
+					m.redraw()
+				}, DefaultAnimationTime)
+			}
+		})
+
 		this.observer = new MutationObserver(mutations => {
 			// redraw if a child has been added that wont be getting displayed
 			if (this.childDiv && this.childDiv.offsetHeight !== this.lastCalculatedHeight) {
@@ -97,8 +122,8 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 				},
 				onremove: () => {
 					this.observer.disconnect()
-				}
-			}, vnode.children))
+				},
+			}, this.childrenInDom ? vnode.children : null))
 		)
 	}
 }
