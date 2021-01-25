@@ -412,7 +412,8 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 2, 10), new Date(2019, 4, 2, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5), zone), zone)
+			const monthDate = new Date(2019, 5)
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(monthDate, zone), zone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 6).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12))],

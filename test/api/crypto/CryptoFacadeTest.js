@@ -578,6 +578,8 @@ o.spec("crypto facade", function () {
 	})
 
 	o("resolve session key: public key decryption of session key", async function () {
+		o.timeout(500) // in CI or with debugging it can take a while
+
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"

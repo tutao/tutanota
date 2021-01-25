@@ -39,7 +39,7 @@ buildWithServer({
 
 function runTest(project) {
 	return new Promise((resolve) => {
-		let testRunner = child_process.fork(`../build/test/bootstrapTests-${project}.js`, process.argv)
+		let testRunner = child_process.fork(`../build/test/bootstrapTests-${project}.js`)
 		testRunner.on('exit', (code) => {
 			resolve(code)
 		})

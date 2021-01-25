@@ -8,10 +8,10 @@ import {DesktopAlarmScheduler, MAX_SAFE_DELAY, occurrenceIterator} from "../../.
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
 const oldTimezone = process.env.TZ
 
-o.before(() => process.env.TZ = 'Europe/Berlin')
-o.after(() => process.env.TZ = oldTimezone)
-
 o.spec("DesktopAlarmSchedulerTest", function () {
+	o.before(function () { return process.env.TZ = 'Europe/Berlin' })
+	o.after(function () { return process.env.TZ = oldTimezone })
+
 	const lang = {
 		lang: {get: key => key}
 	}
