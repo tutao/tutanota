@@ -608,7 +608,7 @@ export class MailViewer {
 			icon: () => Icons.Trash,
 			colors,
 		}))
-		if (isDesktop() /* && env.platformId === "win32" */) { // TODO Switch properly before release
+		if (isDesktop() && env.platformId === "win32") { // TODO Switch properly before release
 			actions.push(m(ButtonN, {
 				label: "dragAndDropExport_action",
 				click: () => {

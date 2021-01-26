@@ -401,7 +401,6 @@ declare module 'electron' {
 		on(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		once(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		emit(BrowserWindowEvent): void;
-		// removeListener(BrowserWindowEvent, (Event, ...any) => void): BrowserWindow;
 		focus(): void;
 		hide(): void;
 		close(): void;
