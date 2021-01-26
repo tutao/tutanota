@@ -96,7 +96,7 @@ function _control(accelerator, event, modifier): ReducedEvent {
 
 export function reduceModifier({accelerator, event}: ReducedEvent, modifier: Modifier): ReducedEvent {
 	switch (modifier.toLowerCase()) {
-		case 'ommand':
+		case 'command':
 		case 'cmd': {
 			return _command(accelerator, event, modifier);
 		}
