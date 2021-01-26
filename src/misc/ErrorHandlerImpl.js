@@ -125,10 +125,7 @@ export function handleUncaughtError(e: Error) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
-			Dialog.error("insufficientStorageAdmin_msg").then(() => {
-				// tutao.locator.navigator.settings()
-				// tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE)
-			})
+			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
 		} else {
 			Dialog.error("insufficientStorageUser_msg")
 		}
