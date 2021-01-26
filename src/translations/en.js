@@ -1280,6 +1280,6 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"dragAndDropExport_action": "Drag and drop export",
+		"dragAndDropExport_action": "Drag & drop export",
 	}
 }

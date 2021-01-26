@@ -226,6 +226,13 @@ export class MailView implements CurrentView {
 				help: "scrollDown_action"
 			},
 			{
+				key: Keys.HOME,
+				exec: () => {
+					if (this.mailViewer) this.mailViewer.scrollToTop()
+				},
+				help: "scrollToTop_action"
+			},
+			{
 				key: Keys.END,
 				exec: () => {
 					if (this.mailViewer) this.mailViewer.scrollToBottom()

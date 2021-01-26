@@ -1284,6 +1284,6 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"dragAndDropExport_action": "Drag and drop exportieren"
+		"dragAndDropExport_action": "Drag & Drop exportieren"
 	}
 }

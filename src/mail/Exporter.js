@@ -109,10 +109,10 @@ function _formatSmtpDateTime(date: Date) {
 		+ pad(date.getUTCSeconds(), 2) + " +0000"
 }
 
-function _formatRecipients(key: string, recipients: string[]) {
+function _formatRecipients(key: string, recipientAddresses: string[]) {
 	let recipientsString = key
-	for (let i = 0; i < recipients.length; i++) {
-		recipientsString += recipients[i] + ",\r\n" + new Array(key.length).join(' ')
+	for (let address of recipientAddresses) {
+		recipientsString += address + ",\r\n" + new Array(key.length).join(' ')
 	}
 	return recipientsString.substr(0, recipientsString.length - (2 + key.length))
 }

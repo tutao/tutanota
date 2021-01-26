@@ -96,7 +96,7 @@ export class MultiMailViewer {
 					Promise.mapSeries(selectedEntities(), bundleMail))
 					.then(fileApp.mailBundleExport),
 				icon: () => Icons.Open,
-				isVisible: () => isDesktop() /* && env.platformId === "win32" */ // TODO disable before release
+				isVisible: () => isDesktop() && env.platformId === "win32"
 			},
 			attachDropdown({
 				label: "move_action",

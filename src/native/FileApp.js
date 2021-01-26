@@ -15,7 +15,6 @@ export const fileApp = {
 	clearFileData,
 	readFile,
 	saveBlob,
-	dragExport,
 	mailBundleExport
 }
 
@@ -129,10 +128,6 @@ export function uriToFileRef(uri: string): Promise<FileReference> {
 		size,
 		location: uri
 	}))
-}
-
-function dragExport(files: Array<{name: string, content: Base64}>): Promise<void> {
-	return nativeApp.invokeNative(new Request('dragExport', files))
 }
 
 function mailBundleExport(bundles: MailBundle[]): Promise<void> {
