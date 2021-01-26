@@ -43,12 +43,14 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {
+	compareOldestFirst,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
 	isSameTypeRef,
-	isSameTypeRefByAttr, TypeRef
+	isSameTypeRefByAttr,
+	TypeRef
 } from "../../common/utils/EntityUtils";
 
 export const Metadata = {
@@ -74,6 +76,16 @@ export class Indexer {
 	_mail: MailIndexer;
 	_groupInfo: GroupInfoIndexer;
 	_whitelabelChildIndexer: WhitelabelChildIndexer;
+	/**
+	 * Last batch id per group from initial loading.
+	 * In case we get duplicate events from loading and websocket we want to filter them out to avoid processing duplicates.
+	 * */
+	_initiallyLoadedBatchIdsPerGroup: Map<Id, Id>;
+	/**
+	 * Queue which gets all the websocket events and dispatches them to the core. It is paused until we load initial events to avoid
+	 * putting events from websocket before initial events.
+	 */
+	_realtimeEventQueue: EventQueue;
 
 	_core: IndexerCore;
 	_entity: EntityClient;
@@ -100,6 +112,15 @@ export class Indexer {
 		this._mail = new MailIndexer(this._core, this.db, worker, entityRestClient, defaultEntityRestCache, dateProvider)
 		this._groupInfo = new GroupInfoIndexer(this._core, this.db, this._entity, new SuggestionFacade(GroupInfoTypeRef, this.db))
 		this._indexedGroupIds = []
+		this._initiallyLoadedBatchIdsPerGroup = new Map()
+		this._realtimeEventQueue = new EventQueue(false, (nextElement: QueuedBatch) => {
+			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
+			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
+				this._core.addBatchesToQueue([nextElement])
+			}
+			return Promise.resolve()
+		})
+		this._realtimeEventQueue.pause()
 	}
 
 	/**
@@ -200,7 +221,7 @@ export class Indexer {
 	}
 
 	addBatchesToQueue(batches: QueuedBatch[]) {
-		this._core.addBatchesToQueue(batches)
+		this._realtimeEventQueue.addBatches(batches)
 	}
 
 	startProcessing() {
@@ -369,6 +390,7 @@ export class Indexer {
 
 	_loadNewEntities(groupIdToEventBatches: {groupId: Id, eventBatchIds: Id[]}[]): Promise<void> {
 		const batchesOfAllGroups: QueuedBatch[] = []
+		const lastLoadedBatchIdInGroup = new Map<Id, Id>()
 		return Promise
 			.each(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
@@ -381,6 +403,10 @@ export class Indexer {
 							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1
 								           && firstBiggerThanSecond(batchId, startId)) {
 								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
+								           const lastBatch = lastLoadedBatchIdInGroup.get(groupIdToEventBatch.groupId)
+								           if (lastBatch == null || firstBiggerThanSecond(batchId, lastBatch)) {
+									           lastLoadedBatchIdInGroup.set(groupIdToEventBatch.groupId, batchId)
+								           }
 							           }
 						           }
 						           // Good scenario: we know when we stopped, we can process events we did not process yet and catch up the server
@@ -411,7 +437,10 @@ export class Indexer {
 			})
 			.then(() => {
 				// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
-				this.addBatchesToQueue(batchesOfAllGroups)
+				// Add them directly to the core so that they are added before the realtime batches
+				this._core.addBatchesToQueue(batchesOfAllGroups)
+				this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
+				this._realtimeEventQueue.resume()
 				this.startProcessing()
 			})
 	}

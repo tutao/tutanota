@@ -18,13 +18,12 @@ import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/ap
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 import {browserDataStub, mock, spy} from "../../TestUtils"
-import type  {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
+import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/utils/EntityUtils";
-import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 
 const restClientMock: EntityRestClient = downcast({})
 
@@ -498,6 +497,142 @@ o.spec("Indexer test", () => {
 		)
 	})
 
+	o("load events and then receive latest again", async function () {
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
+		const groupId = "group-mail"
+		let groupIdToEventBatches = [
+			{
+				groupId,
+				eventBatchIds: [newestBatchId, oldestBatchId],
+			}
+		]
+
+		let batches = [createEntityEventBatch(), createEntityEventBatch()]
+		const loadedNewBatchId = "L0JcCmw----1"
+		batches[0]._id = ["group-mail", loadedNewBatchId] // newer than oldest but older than newest
+		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[1]._id = ["group-mail", oldestBatchId]
+		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
+
+		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		indexer._entity = ({
+			loadAll: (type, groupIdA, startId) => Promise.resolve(batches)
+		}: any)
+		downcast(indexer)._processEntityEvents = o.spy(() => Promise.resolve())
+		const queue = indexer._core.queue
+		downcast(queue).addBatches = spy()
+
+		await indexer._loadNewEntities(groupIdToEventBatches)
+
+		// Check that we actually added loaded batch
+		// two asserts, otherwise Node doesn't print deeply nested objects
+		o(queue.addBatches.invocations.length).equals(1)
+		o(queue.addBatches.invocations[0]).deepEquals(
+			[[{groupId, batchId: getElementId(batches[0]), events: batches[0].events}]]
+		)
+
+		// say we received the same batch via ws
+		const realtimeEvents = [createEntityUpdate()]
+		indexer.addBatchesToQueue([{groupId, events: realtimeEvents, batchId: loadedNewBatchId}])
+		// Check that we filtered out batch which we already loaded and added
+		o(queue.addBatches.invocations.length).equals(1)
+	})
+
+	o("load events and then receive older again", async function () {
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
+		const groupId = "group-mail"
+		let groupIdToEventBatches = [
+			{
+				groupId,
+				eventBatchIds: [newestBatchId, oldestBatchId],
+			}
+		]
+
+		let batches = [createEntityEventBatch(), createEntityEventBatch()]
+		const loadedNewBatchId = "L0JcCmy-----" // newer than newest
+		batches[0]._id = ["group-mail", loadedNewBatchId]
+		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+		batches[1]._id = ["group-mail", oldestBatchId]
+		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
+
+		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		indexer._entity = ({
+			loadAll: (type, groupIdA, startId) => Promise.resolve(batches)
+		}: any)
+		downcast(indexer)._processEntityEvents = o.spy(() => Promise.resolve())
+		const queue = indexer._core.queue
+		downcast(queue).addBatches = spy()
+
+		await indexer._loadNewEntities(groupIdToEventBatches)
+
+		// Check that we actually added loaded batch
+		// two asserts, otherwise Node doesn't print deeply nested objects
+		o(queue.addBatches.invocations.length).equals(1)
+		o(queue.addBatches.invocations[0]).deepEquals(
+			[[{groupId, batchId: getElementId(batches[0]), events: batches[0].events}]]
+		)
+
+		// say we received the older batch via ws
+		indexer.addBatchesToQueue([{groupId, events: [], batchId: newestBatchId}])
+		// Check that we filtered out batch which we already loaded and added
+		o(queue.addBatches.invocations.length).equals(1)
+	})
+
+	o("receive realtime events before init finishes", async function () {
+		const oldestBatchId = "L0JcCmw----0"
+		const loadedNewBatchId = "L0JcCmw----1" // newer than oldest but older than realtime
+		const realtimeBatchId = "L0JcCmx----0"
+		const groupId = "group-mail"
+		let groupIdToEventBatches = [
+			{
+				groupId,
+				eventBatchIds: [oldestBatchId],
+			}
+		]
+
+		let loadedBatches = [
+			createEntityEventBatch({
+				_id: ["group-mail", loadedNewBatchId],
+				events: [createEntityUpdate(), createEntityUpdate()],
+			}),
+			createEntityEventBatch({
+				_id: ["group-mail", oldestBatchId]
+			})
+		]
+
+		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+
+		const loadCompleted = defer()
+		indexer._entity = ({
+			loadAll: (type, groupIdA, startId) => loadCompleted.promise
+		}: any)
+		downcast(indexer)._processEntityEvents = o.spy(() => Promise.resolve())
+		const queue = indexer._core.queue
+		downcast(queue).addBatches = spy()
+
+		const loadPromise = indexer._loadNewEntities(groupIdToEventBatches)
+
+		const realtimeUpdates = [createEntityUpdate({instanceId: "realtime"})]
+		indexer.addBatchesToQueue([{groupId, events: realtimeUpdates, batchId: realtimeBatchId}])
+		loadCompleted.resolve(loadedBatches)
+		await loadPromise
+
+		// Check that we filtered out batch which we already loaded and added
+		o(queue.addBatches.invocations.length).equals(2)
+		o(queue.addBatches.invocations[0]).deepEquals([
+			[
+				{groupId, batchId: getElementId(loadedBatches[0]), events: loadedBatches[0].events}
+			]
+		])
+		o(queue.addBatches.invocations[1]).deepEquals([
+			[
+				{groupId, batchId: realtimeBatchId, events: realtimeUpdates}
+			]
+		])
+	})
+
 	o("_loadNewEntities batch already processed", function (done) {
 		const newestBatchId = "L0JcCmx----0"
 		const oldestBatchId = "L0JcCmw----0"
@@ -727,25 +862,28 @@ o.spec("Indexer test", () => {
 		})
 
 
-
-		const events1 = [createEntityUpdate({
-			application: MailTypeRef.app,
-			type: MailTypeRef.type,
-			operation: OperationType.CREATE,
-			instanceId: "id-1"
-		})]
+		const events1 = [
+			createEntityUpdate({
+				application: MailTypeRef.app,
+				type: MailTypeRef.type,
+				operation: OperationType.CREATE,
+				instanceId: "id-1"
+			})
+		]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch1: QueuedBatch = {
 			events: events1,
 			groupId: "group-id",
 			batchId: "batch-id-1"
 		}
-		const events2 = [createEntityUpdate({
-			application: MailTypeRef.app,
-			type: MailTypeRef.type,
-			operation: OperationType.CREATE,
-			instanceId: "id-2"
-		})]
+		const events2 = [
+			createEntityUpdate({
+				application: MailTypeRef.app,
+				type: MailTypeRef.type,
+				operation: OperationType.CREATE,
+				instanceId: "id-2"
+			})
+		]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch2: QueuedBatch = {
 			events: events2,
