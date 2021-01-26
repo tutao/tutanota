@@ -944,10 +944,14 @@ export class MailViewer {
 					this._attachmentButtons.length > spoilerLimit
 						? [
 							this._attachmentButtons.slice(0, spoilerLimit).map(m),
-							m(".pt-0.mtb-0.mlr-s", (ExpanderButtonN, {
+							m(ExpanderButtonN, {
+								style: {
+									paddingTop: "0px",
+									margin: "0px 6px"
+								},
 								label: "showAll_action",
 								expanded: this._filesExpanded,
-							})),
+							}),
 							m(ExpanderPanelN, {
 								expanded: this._filesExpanded
 							}, this._attachmentButtons.slice(spoilerLimit).map(m))
