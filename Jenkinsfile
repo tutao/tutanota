@@ -28,7 +28,7 @@ pipeline {
 				// excluding web-specific and mobile specific parts which we don't need in desktop
 				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
 				// adding web-specific parts to another bundle
-				stash includes: '**/braintree.html, **/dist/index.html, **/dist/index-index.js, **/dist/sw.js'. name: 'web_add'
+				stash includes: '**/braintree.html, **/dist/index.html, **/dist/index-index.js, **/dist/sw.js', name: 'web_add'
             }
         }
 
