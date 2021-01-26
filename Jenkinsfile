@@ -25,9 +25,10 @@ pipeline {
             steps {
             	sh 'npm ci'
 				sh 'node dist release'
-				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
-				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
-				stash includes: 'build/bundles.json', name: 'bundles'
+				// excluding web-specific and mobile specific parts which we don't need in desktop
+				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
+				// adding web-specific parts to another bundle
+				stash includes: '**/braintree.html, **/dist/index.html, **/dist/index-index.js, **/dist/sw.js'. name: 'web_add'
             }
         }
 
@@ -47,8 +48,7 @@ pipeline {
             			sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'bundles'
-						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
+						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 						    sh '''
 						    export JENKINS=TRUE;
 						    export HSM_USER_PIN=${PW};
@@ -86,7 +86,7 @@ pipeline {
                 }
 
 
-                stage('desktop-linux'){
+                stage('desktop-linux') {
                     agent {
                         label 'linux'
                     }
@@ -97,7 +97,6 @@ pipeline {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'bundles'
 						sh 'node dist -el'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
@@ -123,8 +122,7 @@ pipeline {
 				sh 'rm -rf ./build/*'
 				unstash 'web_base'
 				unstash 'web_add'
-				unstash 'bundles'
-				dir('build'){
+				dir('build') {
 					unstash 'linux_installer'
 					unstash 'mac_installer'
 					unstash 'win_installer'

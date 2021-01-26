@@ -23,11 +23,6 @@ let start = Date.now()
 const DistDir = 'build/dist'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-let bundles = {}
-const bundlesCache = "build/bundles.json"
-
-const distLoc = (filename) => `${DistDir}/${filename}`
-
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.arguments('[stage] [host]')
@@ -102,9 +97,7 @@ async function clean() {
 async function buildWebapp(version) {
 	if (options.existing) {
 		console.log("Found existing option (-e). Skipping Webapp build.")
-		return fs.readFile(path.join(__dirname, bundlesCache)).then(bundlesCache => {
-			bundles = JSON.parse(bundlesCache)
-		})
+		return
 	}
 	console.log("started cleaning", measure())
 	await clean()
@@ -210,7 +203,7 @@ System.import("./worker.js")`)
 			env.create((options.stage === 'release' || options.stage === 'local') ? null : restUrl, version, "Browser", true),
 		),
 		(options.stage !== 'release')
-			? createHtml(env.create(restUrl, version, "App", true), bundles)
+			? createHtml(env.create(restUrl, version, "App", true))
 			: null,
 	])
 
@@ -228,12 +221,13 @@ async function buildDesktopClient(version) {
 				: "https://mail.tutanota.com/desktop",
 			nameSuffix: "",
 			notarize: !options.customDesktopRelease,
+
 			outDir: options.outDir,
 			unpacked: options.unpacked
 		}
 
 		if (options.stage === "release") {
-			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true), bundles)
+			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
 			await buildDesktop(desktopBaseOpts)
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
@@ -242,7 +236,7 @@ async function buildDesktopClient(version) {
 					// Do not notarize test build
 					notarize: false
 				})
-				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true), bundles)
+				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
 				await buildDesktop(desktopTestOpts)
 			}
 		} else if (options.stage === "local") {
@@ -252,7 +246,7 @@ async function buildDesktopClient(version) {
 				nameSuffix: "-snapshot",
 				notarize: false
 			})
-			await createHtml(env.create("http://localhost:9000", version, "Desktop", true), bundles)
+			await createHtml(env.create("http://localhost:9000", version, "Desktop", true))
 			await buildDesktop(desktopLocalOpts)
 		} else if (options.stage === "test") {
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
@@ -260,7 +254,7 @@ async function buildDesktopClient(version) {
 				nameSuffix: "-test",
 				notarize: false
 			})
-			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true), bundles)
+			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
 			await buildDesktop(desktopTestOpts)
 		} else if (options.stage === "prod") {
 			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
@@ -268,7 +262,7 @@ async function buildDesktopClient(version) {
 				updateUrl: "http://localhost:9000/desktop",
 				notarize: false
 			})
-			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true), bundles)
+			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
 			await buildDesktop(desktopProdOpts)
 		} else { // stage = host
 			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
@@ -277,7 +271,7 @@ async function buildDesktopClient(version) {
 				nameSuffix: "-snapshot",
 				notarize: false
 			})
-			await createHtml(env.create(options.host, version, "Desktop", true), bundles)
+			await createHtml(env.create(options.host, version, "Desktop", true))
 			await buildDesktop(desktopHostOpts)
 		}
 	}
@@ -348,8 +342,9 @@ System.import('./app.js')`),
 	])
 }
 
-function _writeFile(targetFile, content) {
-	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+async function _writeFile(targetFile, content) {
+	await fs.mkdirs(path.dirname(targetFile))
+	await fs.writeFile(targetFile, content, 'utf-8')
 }
 
 function signDesktopClients() {
