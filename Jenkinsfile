@@ -1,6 +1,6 @@
 pipeline {
     environment {
-        NODE_PATH = "/opt/node-v10.11.0-linux-x64/bin"
+         NODE_PATH = "/opt/node-v14.15.4-linux-x64/bin"
     }
 	options {
 		preserveStashes()
@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Build Webapp') {
         	environment {
-        		PATH="${env.PATH}:${env.NODE_PATH}"
+        		PATH="${env.NODE_PATH}:${env.PATH}"
         	}
             agent {
                 label 'linux'
@@ -38,7 +38,7 @@ pipeline {
             parallel {
                 stage('desktop-win') {
 					environment {
-        		        PATH="${env.PATH}:${env.NODE_PATH}"
+        		        PATH="${env.NODE_PATH}:${env.PATH}"
 					}
                     agent {
                         label 'win'
@@ -91,7 +91,7 @@ pipeline {
                         label 'linux'
                     }
 					environment {
-						PATH="${env.PATH}:${env.NODE_PATH}"
+						PATH="${env.NODE_PATH}:${env.PATH}"
 					}
                     steps {
 						sh 'npm ci'
@@ -116,7 +116,7 @@ pipeline {
                 label 'linux'
             }
 			environment {
-				PATH="${env.PATH}:${env.NODE_PATH}"
+				PATH="${env.NODE_PATH}:${env.PATH}"
 			}
             steps {
             	sh 'npm ci'
