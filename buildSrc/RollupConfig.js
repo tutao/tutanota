@@ -15,6 +15,7 @@ export const dependencyMap = {
 	"qrcode": "./libs/qrcode.js",
 	"jszip": "./libs/jszip.js",
 	"luxon": "./libs/luxon.js",
+	"oxmsg": "./node_modules/oxmsg/dist/oxmsg.js"
 }
 
 export function resolveLibs(baseDir = ".") {
