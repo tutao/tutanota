@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "fcd7471b347c8e517663e194dcddf237",
 	"name": "en",
 	"code": "en",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-01-20T13:46:34Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -369,6 +369,7 @@ export default {
 		"downloadCompleted_msg": "Download completed",
 		"download_action": "Download",
 		"draft_action": "Drafts",
+		"dragAndDropExport_action": "Drag & drop export",
 		"duplicatedMailAddressInUserList_msg": "The email address is included more than once in your input data.",
 		"duplicatesNotification_msg": "{1} duplicate contacts were found and will be deleted.",
 		"editContactForm_label": "Edit contact form",
@@ -540,7 +541,7 @@ export default {
 		"inboxRuleValue_label": "Value",
 		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search.",
 		"indexedMails_label": "Indexed emails: {count}",
-		"indexing_error": "Indexing was aborted because of the error",
+		"indexing_error": "Indexing was aborted due to an error",
 		"insertImage_action": "Insert image",
 		"insideOnly_label": "Inside only",
 		"insideOutside_label": "Inside/outside",

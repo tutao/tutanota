@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "2001c6fdcc9cd338c1d600cb2636918b",
 	"name": "de",
 	"code": "de",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-01-20T13:47:00Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -373,6 +373,7 @@ export default {
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",
 		"draft_action": "Entwürfe",
+		"dragAndDropExport_action": "Drag & Drop exportieren",
 		"duplicatedMailAddressInUserList_msg": "Die angegebene E-Mail-Adresse kommt mehr als einmal in der Eingabe vor.",
 		"duplicatesNotification_msg": "{1} identische Kontakte wurden erkannt und werden gelöscht.",
 		"editContactForm_label": "Kontakformular bearbeiten",

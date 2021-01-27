@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "bca6e9991b687282745131bc052d31d9",
 	"name": "it",
 	"code": "it",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -371,6 +371,7 @@ export default {
 		"downloadCompleted_msg": "Download completato",
 		"download_action": "Scarica",
 		"draft_action": "Bozze",
+		"dragAndDropExport_action": "Esportazione tramite drag & drop",
 		"duplicatedMailAddressInUserList_msg": "L'indirizzo email è incluso più di una volta nei tuoi dati inseriti.",
 		"duplicatesNotification_msg": "{1} contatti duplicati sono stati trovati e verranno eliminati.",
 		"editContactForm_label": "Modifica modulo di contatto",
@@ -590,7 +591,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Scegli un metodo di pagamento. Ulteriori opzioni verranno introdotte in futuro.",
 		"invoicePay_action": "Paga",
 		"invoiceSettingDescription_msg": "Elenco di tutte le tue fatture e pagamenti esistenti.",
-		"invoiceVatIdNoInfoBusiness_msg": "Deve iniziare con il prefisso del paese a due cifre.",
+		"invoiceVatIdNoInfoBusiness_msg": "Opzionale. Se non viene fornita, l'IVA viene aggiunta alle fatture. Deve iniziare con il prefisso a due cifre del paese.",
 		"invoiceVatIdNo_label": "Numero di partita IVA",
 		"invoice_label": "Fattura",
 		"IpAddress_label": "Indirizzo IP",

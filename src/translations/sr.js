@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "e67ebbe8538e496dae0ea49ace212190",
 	"name": "sr",
 	"code": "sr",
@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",

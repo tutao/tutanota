@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "7099d69d03bc03d4e76962b7301d6b82",
 	"name": "bg",
 	"code": "bg",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",

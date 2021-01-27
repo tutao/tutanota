@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "f27aca718b4b8c5a52b30c098b4ee276",
 	"name": "zh-tw",
 	"code": "zh_tw",
@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",

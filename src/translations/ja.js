@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "4d17906973c8ce514a615a354c651ba0",
 	"name": "ja",
 	"code": "ja",
@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",

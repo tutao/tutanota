@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "89e360bddae0ae4fe387489ceb199baa",
 	"name": "hu",
 	"code": "hu",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -524,7 +524,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Válasszon egy fizetési módot. A jövőben további lehetőségek kerülnek hozzáadásra.",
 		"invoicePay_action": "Fizetés",
 		"invoiceSettingDescription_msg": "A meglévő számlái és befizetései listája.",
-		"invoiceVatIdNoInfoBusiness_msg": "A kétjegyű ország előtaggal kell kezdődnie.",
+		"invoiceVatIdNoInfoBusiness_msg": "Választható. Ha nincs megadva, az ÁFA benne van a számlában. Kétjegyű ország előtaggal kell kezdődnie.",
 		"invoiceVatIdNo_label": "Adóazonosító jel",
 		"invoice_label": "Számla",
 		"IpAddress_label": "IP-cím",
@@ -709,6 +709,7 @@ export default {
 		"onlyAccountAdminFeature_msg": "Csakis a felhasználói fiók rendszergazdája teheti ezt meg",
 		"onlyAvailableForPremiumNotIncluded_msg": "Ez a funkció csak azután rendelhető meg, miután Prémium vagy Pro fiókra váltott. Kérjük frissítse fiókját most.",
 		"onlyAvailableForPremium_msg": "Ez a funkció kizárólag a Tutanota Prémiummal érhető el. Frissítse fiókját.",
+		"onlyPrivateAccountFeature_msg": "Ajándékkártyákat kizárólag privát fiókok válthatnak ki",
 		"onlyPrivateComputer_msg": "Kizárólag akkor válassza ezt a lehetőséget, ha privát eszközt használ.",
 		"openCamera_action": "Fényképezőgép",
 		"openNewWindow_action": "Új Ablak",
@@ -1057,6 +1058,7 @@ export default {
 		"tooBigAttachment_msg": "Az alábbi fájlok nem csatolhatóak, mivel összesített méretük meghaladja a 25 MB-ot:",
 		"tooBigInlineImages_msg": "Maximum {size} KB-os fileméret engedélyezett!",
 		"tooManyAttempts_msg": "Meghaladta az engedélyezett próbálkozások számát. Kérjük próbálkozzon később.",
+		"tooManyGiftCards_msg": "Ön elérte a maximum rendelhető {amount} ajándékkártyát az utóbbi {period}.",
 		"tooManyMails_msg": "Úgy tűnik meghaladta az engedélyezett e-mailek számát. Kérjük ismételje meg később.",
 		"totpAuthenticator_label": "Hitelesítő (TOTP)",
 		"totpCodeConfirmed_msg": "A TOTP kód érvényes. Most már el tudja menteni a beállítás befejezéséhez.",
@@ -1107,7 +1109,10 @@ export default {
 		"userColumn_label": "Felhasználó",
 		"userEmailSignature_label": "Levélaláírás",
 		"userSettings_label": "Felhasználói beállítások",
+		"validGiftCardCountry_msg": "Ez az ajándékkártya csak {valid} időpontig érvényes de úgy látjuk Ön most szeretné használni {actual}",
+		"validInCountry_msg": "Érvényes {country}.",
 		"validInputFormat_msg": "A formátum megfelelő.",
+		"verifyDNSRecords_msg": "Végül, az alább felsorolt DNS rekordokat is be kell állítania ahhoz hogy az email továbbítás engedélyezve legyen a Tutanota levelező rendszerével.",
 		"viewEvent_action": "Esemény megtekintése",
 		"viewNextPeriod_action": "Következő időszak megtekintése",
 		"viewPrevPeriod_action": "Előző időszak megtekintése",

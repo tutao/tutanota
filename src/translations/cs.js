@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "19ecbe40ebe264a9f75f712bb71adfbe",
 	"name": "cs",
 	"code": "cs",
@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -368,6 +368,7 @@ export default {
 		"downloadCompleted_msg": "Úspěšně staženo",
 		"download_action": "Stáhnout",
 		"draft_action": "Koncepty",
+		"dragAndDropExport_action": "Export Drag & Drop",
 		"duplicatedMailAddressInUserList_msg": "Tato emailová adresa byla vložena vícekrát než jednou.",
 		"duplicatesNotification_msg": "Bylo nalezeno {1} zdvojených konaktů, které budou vymazány.",
 		"editContactForm_label": "Upravit kontaktní formulář",
@@ -587,7 +588,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Prosím zvolte způsob platby. V budoucnu bude přidáno více možností.",
 		"invoicePay_action": "Zaplatit",
 		"invoiceSettingDescription_msg": "Výpis všech Vašich faktur včetně údajů o platbách.",
-		"invoiceVatIdNoInfoBusiness_msg": "Musí začínat dvoupísmenným kódem země.",
+		"invoiceVatIdNoInfoBusiness_msg": "Volitelné. Pokud není uvedeno, na faktuře bude přidáno DPH. Musí začínat dvoupísmenným kódem země.",
 		"invoiceVatIdNo_label": "DIČ",
 		"invoice_label": "Faktura",
 		"IpAddress_label": "IP adresa",

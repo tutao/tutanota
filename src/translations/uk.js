@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "409275c729466acea76cbcbc9c868fde",
 	"name": "uk",
 	"code": "uk",
@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -369,6 +369,7 @@ export default {
 		"downloadCompleted_msg": "Завантаження завершено",
 		"download_action": "Завантажити",
 		"draft_action": "Чернетки",
+		"dragAndDropExport_action": "Перетягнути й скинути експорт",
 		"duplicatedMailAddressInUserList_msg": "У введених даних електронна адреса включається більше одного разу.",
 		"duplicatesNotification_msg": "{1} знайдено дублікати контактів і вони будуть видалені.\n\n\n",
 		"editContactForm_label": "Редагувати форму контакту",
@@ -588,7 +589,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Оберіть, будь ласка, метод оплати. У майбутньому буде більше опцій.",
 		"invoicePay_action": "Оплатити",
 		"invoiceSettingDescription_msg": "Список усіх ваших наявних рахунків-фактур і оплати.",
-		"invoiceVatIdNoInfoBusiness_msg": "Повинне розпочинатися з двоцифрового префіксу країни.",
+		"invoiceVatIdNoInfoBusiness_msg": "Необов'язково. Якщо цього не зробити, до рахунків-фактур додається ПДВ. Має починатися з двоцифрового префіксу країни.",
 		"invoiceVatIdNo_label": "Ідентифікаційний номер платника ПДВ",
 		"invoice_label": "Рахунок-фактура",
 		"IpAddress_label": "ІР-адреса",
