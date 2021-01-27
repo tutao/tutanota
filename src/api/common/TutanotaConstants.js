@@ -9,6 +9,7 @@ import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElemen
 import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
+import {isApp, isDesktop} from "../Env"
 
 export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
                                                                           .reduce((r, k) => {
@@ -776,4 +777,19 @@ export function assertEnumKey<K: string, V>(obj: {[K]: V}, key: string): K {
 	} else {
 		throw Error("Not valid enum value: " + key)
 	}
+}
+
+export const ClientType = Object.freeze({
+	Browser: "0",
+	Desktop: "1",
+	App: "2"
+})
+export type ClientTypeEnum = $Values<typeof ClientType>;
+
+export function getClientType(): ClientTypeEnum {
+	return isApp()
+		? ClientType.App
+		: isDesktop()
+			? ClientType.Desktop
+			: ClientType.Browser
 }

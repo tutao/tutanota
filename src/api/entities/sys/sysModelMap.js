@@ -189,6 +189,7 @@ const map: {[string]: () => mixed} = {
     GiftCardRedeemGetReturn: () => import('./GiftCardRedeemGetReturn'),
     Braintree3ds2Request: () => import('./Braintree3ds2Request'),
     Braintree3ds2Response: () => import('./Braintree3ds2Response'),
-    PaymentDataServicePostData: () => import('./PaymentDataServicePostData')
+    PaymentDataServicePostData: () => import('./PaymentDataServicePostData'),
+    PaymentDataServiceGetData: () => import('./PaymentDataServiceGetData')
 }
 export default map

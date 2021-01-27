@@ -7,7 +7,7 @@ import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream/stream.js"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
-import {Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
+import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
@@ -30,7 +30,7 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import type {Braintree3ds2Request} from "../api/entities/sys/Braintree3ds2Request"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
-import {ClientType, getClientType, getWebRoot} from "../api/Env"
+import {getWebRoot} from "../api/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 
 /**
@@ -282,14 +282,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			}).return()
 		}
 		locator.eventController.addEntityListener(entityEventListener)
-		const clientType = getClientType()
-		const clientTypeString = clientType === ClientType.App
-			? "app"
-			: clientType === ClientType.Desktop
-				? "desktop"
-				: "browser"
-
-		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${clientTypeString}`
+		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.error("creditCardVerificationNeededPopup_msg")
 		      .then(() => {
 			      window.open(`${getWebRoot()}/braintree.html#${params}`)

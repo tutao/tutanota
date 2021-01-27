@@ -228,6 +228,14 @@ public class MainActivity extends ComponentActivity {
 	}
 
 	private void handleIntent(Intent intent) {
+
+		// When we redirect to the app from outside, for example after doing payment verification,
+		// we don't want to do any kind of intent handling
+		Uri data = intent.getData();
+		if (data != null && data.toString().startsWith("tutanota://")) {
+			return;
+		}
+
 		if (intent.getAction() != null) {
 			switch (intent.getAction()) {
 				// See descriptions of actions in AndroidManifest.xml
