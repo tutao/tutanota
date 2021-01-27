@@ -27,6 +27,7 @@ import {bundleMail, bundleMails, exportMails, moveMails, promptAndDeleteMails} f
 import {attachDropdown} from "../gui/base/DropdownN"
 import {fileApp} from "../native/FileApp"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {canDoDragAndDropExport} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -96,7 +97,7 @@ export class MultiMailViewer {
 					Promise.mapSeries(selectedEntities(), bundleMail))
 					.then(fileApp.mailBundleExport),
 				icon: () => Icons.Open,
-				isVisible: () => isDesktop() && env.platformId === "win32"
+				isVisible: canDoDragAndDropExport
 			},
 			attachDropdown({
 				label: "move_action",

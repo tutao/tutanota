@@ -15,6 +15,7 @@ import type {MailBody} from "../api/entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import type {CalendarMethodEnum, InboxRuleTypeEnum, MailReportTypeEnum} from "../api/common/TutanotaConstants"
 import {
+	AccountType,
 	ConversationType,
 	FeatureType,
 	InboxRuleType,
@@ -608,7 +609,7 @@ export class MailViewer {
 			icon: () => Icons.Trash,
 			colors,
 		}))
-		if (isDesktop() && env.platformId === "win32") { // TODO Switch properly before release
+		if (canDoDragAndDropExport()) {
 			actions.push(m(ButtonN, {
 				label: "dragAndDropExport_action",
 				click: () => {
@@ -1551,4 +1552,8 @@ export class MailViewer {
 		}
 		this._lastBodyTouchEndTime = now
 	}
+}
+
+export function canDoDragAndDropExport(): boolean {
+	return isDesktop() && logins.getUserController().user.accountType === AccountType.STARTER
 }
