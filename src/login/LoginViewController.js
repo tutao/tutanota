@@ -42,6 +42,7 @@ import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
 import {formatPrice} from "../subscription/PriceUtils"
+import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -308,7 +309,7 @@ export class LoginViewController implements ILoginViewController {
 				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
 					return worker.readAvailableCustomerStorage().then(availableStorage => {
 						if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
-							return showMoreStorageNeededOrderDialog("insufficientStorageWarning_msg")
+							return showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 						}
 					})
 				}

@@ -23,7 +23,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {isIOSApp} from "../api/Env"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
-import {logins} from "../api/main/LoginController"
+import type {LoginController} from "../api/main/LoginController"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 
 
@@ -320,10 +320,12 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 }
 
 
-export function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
+export function showMoreStorageNeededOrderDialog(loginController: LoginController,
+                                                 messageIdOrMessageFunction: TranslationKey | lazy<string>
+): Promise<void> {
 	return Dialog.confirm(messageIdOrMessageFunction, "upgrade_action").then((confirm) => {
 		if (confirm) {
-			if (logins.getUserController().isPremiumAccount()) {
+			if (loginController.getUserController().isPremiumAccount()) {
 				StorageCapacityOptionsDialog.show()
 			} else {
 				showNotAvailableForFreeDialog(false)

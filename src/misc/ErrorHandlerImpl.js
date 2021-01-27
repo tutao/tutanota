@@ -37,6 +37,7 @@ import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/common/error/UserError"
+import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -125,7 +126,7 @@ export function handleUncaughtError(e: Error) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
-			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
+			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")
 		} else {
 			Dialog.error("insufficientStorageUser_msg")
 		}
