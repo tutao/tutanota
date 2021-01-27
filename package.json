@@ -24,7 +24,8 @@
 		"mithril": "2.0.4",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
-		"systemjs": "6.3.3"
+		"systemjs": "6.3.3",
+		"oxmsg": "tutao/oxmsg"
 	},
 	"devDependencies": {
 		"rollup": "^2.35.1",
