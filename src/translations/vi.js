@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "4d5760712acedcde66a193bfd917539c",
 	"name": "vi",
 	"code": "vi",
@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",

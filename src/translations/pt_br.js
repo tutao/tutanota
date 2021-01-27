@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "92b6d040e25fb7052101a48c6e755d55",
 	"name": "pt_br",
 	"code": "pt_br",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -371,6 +371,7 @@ export default {
 		"downloadCompleted_msg": "Download completado.",
 		"download_action": "Baixar",
 		"draft_action": "Rascunhos",
+		"dragAndDropExport_action": "Exportar para arrastar e exportar para soltar",
 		"duplicatedMailAddressInUserList_msg": "O endereço de email está incluído mais de uma vez nos dados.",
 		"duplicatesNotification_msg": "{1} contatos duplicados encontrados serão deletados.",
 		"editContactForm_label": "Editar formulário de contato",
@@ -590,7 +591,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Escolha um método de pagamento. Futuramente, mais opções serão adicionadas. ",
 		"invoicePay_action": "Pagar",
 		"invoiceSettingDescription_msg": "Lista de todas as suas cobranças incluindo status de pagamento.",
-		"invoiceVatIdNoInfoBusiness_msg": "Deve começar com os dois dígitos do prefixo do país.",
+		"invoiceVatIdNoInfoBusiness_msg": "Opcional. Se não for fornecido, o IVA é adicionado às suas faturas. Deve começar com o prefixo de dois dígitos do país.",
 		"invoiceVatIdNo_label": "Número de identificação VAT",
 		"invoice_label": "Fatura",
 		"IpAddress_label": "Endereço IP",

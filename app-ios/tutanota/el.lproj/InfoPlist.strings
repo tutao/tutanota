@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Για να παραχωρήσετε πρόσβασ�
 TutaoCancelAction = "Ακύρωση";
 TutaoSettingsAction = "Ρυθμίσεις";
 TutaoCalendarAlarmTitle = "Υπενθύμιση";
+TutaoScheduleAlarmError = "Δεν ήταν δυνατόν να οριστεί συναγερμός. Ενημερώστε την εφαρμογή.";

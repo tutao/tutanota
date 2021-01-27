@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "33d2a9ab1ea65cb3d7064439e005f8c1",
 	"name": "ro",
 	"code": "ro",
@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -591,7 +591,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Te rugăm sa alegi o metodă de plată.Mai multe opțiuni vor fi adăugate în viitor.",
 		"invoicePay_action": "Plătește",
 		"invoiceSettingDescription_msg": "Lista tuturor facturilor și plăților existente.",
-		"invoiceVatIdNoInfoBusiness_msg": "Este necesar să înceapă cu primele două cifre din prefixul țării.",
+		"invoiceVatIdNoInfoBusiness_msg": "Opțional. Dacă nu este furnizat, TVA se adaugă la facturile tale. Trebuie să înceapă cu prefixul de țară din două cifre.",
 		"invoiceVatIdNo_label": "Numărul de TVA",
 		"invoice_label": "Factură",
 		"IpAddress_label": "Adresa IP",

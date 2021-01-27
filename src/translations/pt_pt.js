@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 	"name": "pt",
 	"code": "pt_pt",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -542,6 +542,7 @@ export default {
 		"invalidPassword_msg": "Palavra-passe inválida. Por favor insira-a novamente.",
 		"invalidRecipients_msg": "Por favor, corrija o(s) endereço(s) de email inválido(s) no campo do destinatário.",
 		"invalidRegistrationCode_msg": "Este código de registo é inválido.",
+		"invalidTimePeriod_msg": "O período de tempo introduzido é inválido.",
 		"invalidVatIdNumber_msg": "O número de identificação fiscal é inválido.",
 		"invalidVatIdValidationFailed_msg": "Não foi possível validar o número de identificação fiscal do IVA. Por favor, tente novamente mais tarde.",
 		"invitationMailBody_msg": "Olá!<br><br>Este é o meu novo endereço de correio eletrónico. Tutanota antecipa já hoje o futuro do correio eletrónico: Tutanota oferece uma caixa de correio totalmente cifrada para proteger o nosso direito à privacidade e sem anúncios. Com cifragem automática podemos partilhar mensagens de forma tão segura como cartas lacradas. Finalmente os nossos dados pertencem-nos só a nós e mais ninguém lhes consegue aceder.<br><br>Junte-se ao Tutanota agora:<br>{registrationLink}<br><br>Cumprimentos,<br>{username}<br><br>PS: Tutanota é gratuito com 1 GB de armazenamento incluído. Mais, é código aberto: {githubLink}",
@@ -684,6 +685,8 @@ export default {
 		"mergeAllSelectedContacts_msg": "Tem a certeza que quer unir os contactos selecionados?",
 		"mergeContacts_action": "Juntar contactos",
 		"merge_action": "Unir",
+		"messageTooLong_msg": "A mensagem é demasiado longa. É permitido um máximo de {length} caracteres ",
+		"message_label": "Mensagem",
 		"microphoneUsageDescription_msg": "Usado quando se grava um vídeo como anexo.",
 		"mobile_label": "Telemóvel",
 		"modified_label": "Modificado",
@@ -776,6 +779,7 @@ export default {
 		"outdatedClient_msg": "Por favor, atualize o Tutanota. A versão atualmente instalada é muito antiga e já não é suportada.",
 		"outlookInvoiceMailBodyAutomatic_msg": "Existe uma nova fátura com o número {1} para você, disponível em anexo a este email. O valor total será debitado automaticamente. Pode visualizar também todas as suas fáturas em {2}.",
 		"outlookInvoiceMailBodyOnAccount_msg": "está disponível uma nova fatura com o número {1} anexada neste email. O pagamento vence 7 dias após a data da fatura. Pode também visualizar todas as suas faturas em {2}.",
+		"outOfOfficeTimeRange_msg": "Enviar apenas dentro deste período de tempo:",
 		"owner_label": "Proprietário",
 		"packageDowngradeUserAccounts_label": "Pacote de remoção para {1} utilizador",
 		"packageUpgradeUserAccounts_label": "Pacote de atualização para {1} utilizador",

@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "32e5c8c009e49509605a0c2c6b0c394f",
 	"name": "hi",
 	"code": "hi",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",

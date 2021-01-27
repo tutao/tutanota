@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "92297bc51fe91ba6e1288ba94a0275f0",
 	"name": "zh",
 	"code": "zh",
@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "a484448d8bc10cfbfe9c3cbb17c08392",
 	"name": "sv",
 	"code": "sv",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -170,7 +170,7 @@ export default {
 		"certificateChain_label": "Certifikatkedja",
 		"certificateError_msg": "Certifikatkedjan eller den privata nyckeln har ett felaktigt format eller matchar inte din domän.",
 		"certificateExpiryDate_label": "Certifikatet giltigt till: {date}",
-		"certificateRenewalFailureBody_msg": "Certifikatet för din domän {1} måste förnyas men vi kunde inte göra det eftersom DNS CNAME posterna inte är korrekt pekar på våra servrar. \n\nGå till inställningarna på ditt konto {2} för att få mer information och uppdatera posterna så snart som möjligt. Du får den här påminnelsen dagligen.",
+		"certificateRenewalFailureBody_msg": "Certifikatet för din domän {1} måste förnyas men vi kunde inte göra det eftersom DNS CNAME posterna inte är korrekt pekar på våra servrar. \n\nGå till \"Inställningar\" för att få mer information och uppdatera posterna så snart som möjligt. Du får den här påminnelsen dagligen.",
 		"certificateRenewalFailureSubject_msg": "Automatisk förnyelse av certifikat för {1} misslyckades",
 		"certificateStateInvalid_label": "Det gick inte att beställa certifikatet",
 		"certificateStateProcessing_label": "Bearbetar",
@@ -273,7 +273,7 @@ export default {
 		"creditCardNumberFormat_msg": "Ange ditt kreditkortsnummer.",
 		"creditCardNumberInvalid_msg": "Kreditkortsnumret är ogiltigt.",
 		"creditCardNumber_label": "Kreditkortsnummer",
-		"creditCardPaymentErrorVerificationNeeded_msg": "Uppdatera dina betalningsuppgifter. Din bank kräver ytterligare verifiering av kreditkortet.",
+		"creditCardPaymentErrorVerificationNeeded_msg": "Uppdatera dina betalningsuppgifter. Detta kommer att initiera en kontroll av kreditkortet vilket krävs av din bank.",
 		"creditCardPendingVerification_msg": "Kontrollen av ditt kreditkort är inte slutfört. Försök att verifiera din kreditkort vid ett senare tillfälle om detta problem kvarstår.",
 		"creditCardVerificationNeededPopup_msg": "Ditt kreditkort behöver verifieras med din bank. Ett nytt fönster kommer att öppnas för detta.",
 		"creditCardVerification_msg": "Ditt kreditkort kommer nu att verifieras...",
@@ -369,6 +369,7 @@ export default {
 		"downloadCompleted_msg": "Nedladdningen slutförd",
 		"download_action": "Ladda ner",
 		"draft_action": "Utkast",
+		"dragAndDropExport_action": "Dra och släpp export",
 		"duplicatedMailAddressInUserList_msg": "Denna epostadress är angiven fler än en gång.",
 		"duplicatesNotification_msg": "{1} kontaktdubbletter hittades och kommer att raderas.",
 		"editContactForm_label": "Redigera kontakt formulär",
@@ -588,7 +589,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Välj en betalningsmetod. Fler alternativ kommer att läggas till i framtiden.",
 		"invoicePay_action": "Betala",
 		"invoiceSettingDescription_msg": "Lista med alla fakturor inklusive betalningar.",
-		"invoiceVatIdNoInfoBusiness_msg": "Måste börja med det tvåsiffriga landsprefixet.",
+		"invoiceVatIdNoInfoBusiness_msg": "Valfri. Om inte angett läggs moms på dina fakturor. Måste börja med det tvåsiffriga landsprefixet.",
 		"invoiceVatIdNo_label": "Mervärdesskatt",
 		"invoice_label": "Faktura",
 		"IpAddress_label": "IP-adress",

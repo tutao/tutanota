@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "d2556ba1f6042e2e81990398edd0828a",
 	"name": "ar",
 	"code": "ar",
@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2021-01-20T13:46:34Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -278,7 +278,7 @@ export default {
 		"creditCardNumberFormat_msg": "الرجاء إدخال رقم بطاقة الائتمان الخاصة بك.",
 		"creditCardNumberInvalid_msg": "رقم بطاقة الائتمان غير صالح.",
 		"creditCardNumber_label": "رقم بطاقة الائتمان",
-		"creditCardPaymentErrorVerificationNeeded_msg": "الرجاء تحديث تفاصيل الدفع الخاصة بك. يطلب البنك الذي تتعامل معه التحقق الإضافي من بطاقة الائتمان.",
+		"creditCardPaymentErrorVerificationNeeded_msg": "الرجاء تحديث تفاصيل الدفع الخاصة بك. سيؤدي هذا إلى التحقق من بطاقة الائتمان المطلوبة من قبل البنك الذي تتعامل معه.",
 		"creditCardPendingVerification_msg": "التحقق من بطاقتك الائتمانية لم يكتمل بعد. يرجى محاولة التحقق من رصيدك في وقت لاحق إذا استمرت هذه المشكلة.",
 		"creditCardVerificationNeededPopup_msg": "يجب التحقق من بطاقتك الائتمانية لدى البنك الذي تتعامل معه. سيتم فتح نافذة جديدة لهذا الغرض.",
 		"creditCardVerification_msg": "سيتم التحقق من بطاقتك الائتمانية الآن ...",
@@ -374,6 +374,7 @@ export default {
 		"downloadCompleted_msg": "اكتملت عملية التنزيل",
 		"download_action": "تحميل",
 		"draft_action": "المسودّات",
+		"dragAndDropExport_action": "التصدير بالسحب والإفلات",
 		"duplicatedMailAddressInUserList_msg": "ُأُُُدرجَ عنوان البريد الإلكتروني أكثر من مرة في بيانات الإدخال الخاصة بك.",
 		"duplicatesNotification_msg": "تم العثور على {1} جهات الاتصال المكررة وسيتم حذفها.",
 		"editContactForm_label": "تحرير نموذج الاتصال",
@@ -592,7 +593,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "يرجى اختيار طريقة الدفع. سيتم إضافة المزيد من الخيارات في المستقبل.",
 		"invoicePay_action": "إدفع",
 		"invoiceSettingDescription_msg": "قائمة بجميع الفواتير والمدفوعات الحالية.",
-		"invoiceVatIdNoInfoBusiness_msg": "يجب أن تبدأ برقمين اثنين من بادئة البلد.",
+		"invoiceVatIdNoInfoBusiness_msg": "اختياري. إذا لم يتم توفيرها ، تتم إضافة ضريبة القيمة المضافة إلى فواتيرك. يجب أن يبدأ ببادئة البلد المكونة من رقمين.",
 		"invoiceVatIdNo_label": "رقم تعريف VAT",
 		"invoice_label": "فاتورة",
 		"IpAddress_label": "عنوان IP",

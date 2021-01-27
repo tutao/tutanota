@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "a3f708a36d08b64f86f80501fea61126",
 	"name": "sk",
 	"code": "sk",
@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",

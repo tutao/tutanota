@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "8c6ce8d414ce54afc19520f270239f41",
 	"name": "fa",
 	"code": "fa_ir",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",

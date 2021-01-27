@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "92ad6953a5b1b188f70dc44f3e29ec78",
 	"name": "nl",
 	"code": "nl",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -275,7 +275,7 @@ export default {
 		"creditCardNumberFormat_msg": "Graag uw kredietkaartnummer invullen.",
 		"creditCardNumberInvalid_msg": "Ongeldig kredietkaartnummer.",
 		"creditCardNumber_label": "Kredietkaartnummer",
-		"creditCardPaymentErrorVerificationNeeded_msg": "Werk uw betalingsgegevens bij. Uw bank vereist aanvullende creditcardverificatie.",
+		"creditCardPaymentErrorVerificationNeeded_msg": "Werk uw betalingsgegevens bij. Dit activeert een verificatie van de creditcard, die vereist is door uw bank.",
 		"creditCardPendingVerification_msg": "Uw creditcardverificatie is nog niet voltooid. Probeer het onderzoek later opnieuw als dit probleem zich blijft voordoen.",
 		"creditCardVerificationNeededPopup_msg": "Uw creditcard wordt nu gecontroleerd door uw bank. Hiervoor wordt een nieuw venster geopend.",
 		"creditCardVerification_msg": "Uw creditcard wordt nu gecontroleerd ...",
@@ -371,6 +371,7 @@ export default {
 		"downloadCompleted_msg": "Download voltooid",
 		"download_action": "Downloaden",
 		"draft_action": "Concepten",
+		"dragAndDropExport_action": "Drag & Drop exporteren",
 		"duplicatedMailAddressInUserList_msg": "Het e-mailadres is meermaals vermeld in uw ingegeven data.",
 		"duplicatesNotification_msg": "{1} identieke contacten zijn herkend en worden verwijderd.",
 		"editContactForm_label": "Contactformulier bewerken",
@@ -590,7 +591,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Graag uw betaalwijze kiezen. Meer opties worden in de toekomst toegevoegd.",
 		"invoicePay_action": "Betalen",
 		"invoiceSettingDescription_msg": "Lijst van al uw bestaande facturen en betalingen. ",
-		"invoiceVatIdNoInfoBusiness_msg": "Moet beginnen met de 2 cijferige landcode",
+		"invoiceVatIdNoInfoBusiness_msg": "Optioneel. Indien niet gespecificeerd, wordt omzetbelasting toegevoegd aan uw facturen. Moet beginnen met de tweecijferige landcode.",
 		"invoiceVatIdNo_label": "BTW nummer",
 		"invoice_label": "Factuur",
 		"IpAddress_label": "IP-adres",

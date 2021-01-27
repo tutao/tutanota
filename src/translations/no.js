@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "0ab6e705ed85671452240a810c5b25dc",
 	"name": "no",
 	"code": "no",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2021-01-20T13:46:35Z",
+	"updated_at": "2021-01-27T09:28:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",

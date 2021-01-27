@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	"id": "f5f4136a64ef8f813902c32e223bc289",
 	"name": "es",
 	"code": "es",
@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2021-01-20T13:46:34Z",
+	"updated_at": "2021-01-27T09:28:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -275,7 +275,7 @@ export default {
 		"creditCardNumberFormat_msg": "Por favor ingrese el número de su tarjeta de crédito.",
 		"creditCardNumberInvalid_msg": "El número de la tarjeta de crédito es incorrecto.",
 		"creditCardNumber_label": "Número de Tarjeta de Crédito",
-		"creditCardPaymentErrorVerificationNeeded_msg": "Por favor, actualiza tus datos de pago. Tu banco requiere una verificación adicional de la tarjeta de crédito.",
+		"creditCardPaymentErrorVerificationNeeded_msg": "Por favor, actualiza tus datos de pago. Esto lanzará una verificación de la tarjeta de crédito que requiere tu banco.",
 		"creditCardPendingVerification_msg": "La verificación de tu tarjeta de crédito aún no se ha completado. Por favor, intenta verificar tu crédito más adelante si este problema persiste.",
 		"creditCardVerificationNeededPopup_msg": "Tu tarjeta de crédito debe ser verificada con tu banco. Se abrirá una nueva ventana para este propósito.",
 		"creditCardVerification_msg": "Tu tarjeta de crédito será verificada ahora...",
@@ -371,6 +371,7 @@ export default {
 		"downloadCompleted_msg": "Descarga completada",
 		"download_action": "Descargar",
 		"draft_action": "Borradores",
+		"dragAndDropExport_action": "Arrastrar y soltar para exportar",
 		"duplicatedMailAddressInUserList_msg": "La dirección de correo está incluida más de una vez en los datos introducidos.",
 		"duplicatesNotification_msg": "Se han encontrado {1} contactos duplicados, que serán borrados.",
 		"editContactForm_label": "Editar formulario de contacto",
@@ -590,7 +591,7 @@ export default {
 		"invoicePaymentMethodInfo_msg": "Por favor, elija un método de pago. Se añadirán más opciones en el futuro.",
 		"invoicePay_action": "Pagar",
 		"invoiceSettingDescription_msg": "Lista de todas tus facturas existentes, incluyendo la situación de pago",
-		"invoiceVatIdNoInfoBusiness_msg": "Se ha de empezar con el prefijo de dos cifras de país.",
+		"invoiceVatIdNoInfoBusiness_msg": "Opcional. Si no se suministra, añadiremos IVA a tus facturas. Debe  empezar con el prefijo de dos cifras de país.",
 		"invoiceVatIdNo_label": "Número de identificación fiscal",
 		"invoice_label": "Factura",
 		"IpAddress_label": "Dirección IP",
