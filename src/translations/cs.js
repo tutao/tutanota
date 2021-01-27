@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	"id": "19ecbe40ebe264a9f75f712bb71adfbe",
 	"name": "cs",
 	"code": "cs",
@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-01-27T13:35:34Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
