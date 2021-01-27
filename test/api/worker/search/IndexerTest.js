@@ -862,6 +862,7 @@ o.spec("Indexer test", () => {
 		})
 
 
+
 		const events1 = [
 			createEntityUpdate({
 				application: MailTypeRef.app,
@@ -892,6 +893,7 @@ o.spec("Indexer test", () => {
 		}
 
 		indexer.addBatchesToQueue([batch1, batch2])
+		indexer._realtimeEventQueue.resume()
 		indexer.startProcessing()
 
 		await doneDeferred.promise
