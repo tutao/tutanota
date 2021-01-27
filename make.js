@@ -24,7 +24,10 @@ options
 	})
 	.parse(process.argv)
 
-spawn(flow, ["--quiet"], {stdio: "inherit"})
+const flowPromise = new Promise((resolve, reject) => {
+	// It's better to set listener right away
+	spawn(flow, ["--quiet"], {stdio: "inherit"}).on("exit", resolve).on("error", reject)
+})
 
 const SOCKET_PATH = "/tmp/buildServer"
 
@@ -38,17 +41,19 @@ function runBuild() {
 		socketPath: SOCKET_PATH,
 		buildOpts: opts,
 	})
-		.then(() => {
+		.then(async () => {
 			console.log("Build finished")
 			if (opts.desktop) {
 				// we don't want to quit here because we want to keep piping output to our stdout.
 				spawn("./start-desktop.sh", {stdio: "inherit"})
 			} else if (!opts.watch) {
+				await flowPromise
 				process.exit(0)
 			}
 		})
-		.catch(e => {
+		.catch(async e => {
 			console.error(e)
+			await flowPromise
 			process.exit(1)
 		})
 }
