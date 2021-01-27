@@ -290,7 +290,7 @@ o.spec("FormatterTest", function () {
 		o(_getNumDaysInMonth(12, 2020)).equals(31)
 	})
 
-	o.spec("credit card validation", function () {
+	o("credit card validation", function () {
 
 		// taken from https://developers.braintreepayments.com/guides/credit-cards/testing-go-live/php
 		const goodValues = [
@@ -331,10 +331,9 @@ o.spec("FormatterTest", function () {
 		]
 
 		// not sure why ospec doesn't print a context message when a test fails but this is my workaround
+
 		function testCreditCardNumberValidation(val: string, isValid: boolean) {
-			return o(`"${val}" is ${isValid ? "" : "in"}valid`, function () {
-				o(isValidCreditCardNumber(val)).equals(isValid)
-			})
+			o(isValidCreditCardNumber(val)).equals(isValid)(`${val} is ${isValid ? "valid" : "invalid"}`)
 		}
 
 		for (let good of goodValues) testCreditCardNumberValidation(good, true)
