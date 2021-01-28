@@ -76,7 +76,7 @@ async function doBuild() {
 		await buildDesktopClient(version)
 		await signDesktopClients()
 		await packageDeb(version)
-		await publish()
+		await publish(version)
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
 	} catch (e) {
@@ -400,7 +400,7 @@ function packageDeb(version) {
 	}
 }
 
-function publish() {
+function publish(version) {
 	if (options.publish) {
 		console.log("Create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
