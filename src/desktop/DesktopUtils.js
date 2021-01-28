@@ -11,8 +11,9 @@ import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
 
 import {legalizeFilenames} from "./PathUtils"
-import {Email, AttachmentType, MessageEditorFormat} from "oxmsg"
+import {AttachmentType, Email, MessageEditorFormat} from "oxmsg"
 import type {MailBundle} from "../mail/MailUtils"
+import {delay} from "../api/common/utils/PromiseUtils"
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -297,8 +298,3 @@ export function readJSONSync(absolutePath: string): {[string]: mixed} {
 	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
 }
 
-export function delay(ms: number): Promise<void> {
-	return new Promise((resolve, reject) => {
-		setTimeout(resolve, ms)
-	})
-}

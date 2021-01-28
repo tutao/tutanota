@@ -4,6 +4,7 @@ import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
 import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
+import graph from "../buildSrc/graph.js"
 
 export async function build(options, log) {
 	log("Build")
@@ -18,7 +19,9 @@ export async function build(options, log) {
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(".."),
-			// graph({output: "graph.dot", prune: true}),
+			// graph({
+			// 	output: "graph.dot", prune: true, exclude: "translations|entities",
+			// }),
 		],
 	})
 	return [
@@ -75,6 +78,7 @@ function resolveTestLibsPlugin() {
 				case "querystring":
 				case "events":
 				case "fs":
+				case "buffer":
 				case "electron":
 				case "winreg":
 					return false

@@ -21,7 +21,11 @@ export function buildWithServer({clean, builder, watchFolders, socketPath, build
 			// If server fails to start and you don't know hwy, set "stdio" to "inherit"
 			spawn(process.argv[0], [
 				serverPath, builder, watchFolders.join(":"), socketPath
-			], {detached: true, cwd: process.cwd()})
+			], {
+				detached: true,
+				cwd: process.cwd(),
+				// stdio: "inherit"
+			})
 			console.log("Started build server")
 			setTimeout(() => connect(clean, attempt + 1), 2000)
 		}

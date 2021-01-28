@@ -4,6 +4,8 @@ import o from "ospec"
 import {defer, noOp} from "../../../src/api/common/utils/Utils"
 import {DesktopConfigKey} from "../../../src/desktop/config/ConfigKeys"
 import {IPC} from "../../../src/desktop/IPC"
+import {assertThrows} from "../../api/TestUtils"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 o.spec("IPC tests", function () {
 	const CALLBACK_ID = 42
@@ -209,56 +211,54 @@ o.spec("IPC tests", function () {
 		}, 10)
 	})
 
-	o("sendRequest", function (done) {
+	o("sendRequest", async function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 		o(windowMock.sendMessageToWebContents.callCount).equals(0)
 
-		ipc.sendRequest(42, "print", ["nothing", "useful"])
-		   .then((resp) => {
-			   // IPC put the value into resolve
-			   o(resp).deepEquals(["some-response-value"])
-			   done()
-		   })
+		await ipc.initialized(42)
 
-		setTimeout(() => {
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			const request = windowMock.sendMessageToWebContents.args[1]
-			o(request.type).equals("print")
-			o(request.args).deepEquals(["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(42, "print", ["nothing", "useful"])
 
-			//simulate the window answering
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
-				type: 'response',
-				id: request.id,
-				value: ["some-response-value"]
-			}))
-		}, 10)
+		await delay(10)
+
+		o(windowMock.sendMessageToWebContents.callCount).equals(2)
+		o(windowMock.sendMessageToWebContents.args[0]).equals(42)
+		const request = windowMock.sendMessageToWebContents.args[1]
+		o(request.type).equals("print")
+		o(request.args).deepEquals(["nothing", "useful"])
+
+		//simulate the window answering
+		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			type: 'response',
+			id: request.id,
+			value: ["some-response-value"]
+		}))
+		o(await requestPromise).deepEquals(["some-response-value"])
 	})
 
-	o("sendRequest with requestError response", function (done) {
+	o("sendRequest with requestError response", async function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 
-		ipc.sendRequest(42, "print", ["nothing", "useful"])
-		   .catch(Error, e => {
-			   o(e.message).equals("err msg")
-			   done()
-		   })
+		await ipc.initialized(42)
 
-		setTimeout(() => {
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			const request = windowMock.sendMessageToWebContents.args[1]
-			o(request.type).equals("print")
-			o(request.args).deepEquals(["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(42, "print", ["nothing", "useful"])
 
-			//simulate the window answering
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
-				type: 'requestError',
-				error: {message: "err msg"},
-				id: request.id
-			}))
-		}, 10)
+		await delay(10)
+
+		o(windowMock.sendMessageToWebContents.callCount).equals(2)
+		o(windowMock.sendMessageToWebContents.args[0]).equals(42)
+		const request = windowMock.sendMessageToWebContents.args[1]
+		o(request.type).equals("print")
+		o(request.args).deepEquals(["nothing", "useful"])
+
+		//simulate the window answering
+		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			type: 'requestError',
+			error: {message: "err msg"},
+			id: request.id
+		}))
+		const e = await assertThrows(() => requestPromise)
+		o(e.message).equals("err msg")
 	})
 
 	o("findInPage, setSearchOverlayState & stopFindInPage", function (done) {
