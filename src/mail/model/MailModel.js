@@ -326,7 +326,7 @@ export class MailModel {
 		}).catch(() => null)
 	}
 
-	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
+	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
 		return this._worker.checkMailForPhishing(mail, links)
 	}
 

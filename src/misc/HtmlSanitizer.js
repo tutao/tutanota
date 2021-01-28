@@ -24,14 +24,20 @@ const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 
 type SanitizeConfig = SanitizeConfigExtra & SanitizeConfigBase
 
-type SanitizedHTML = {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>}
+type Link = HTMLElement
+type SanitizedHTML = {
+	html: DocumentFragment,
+	externalContent: Array<string>,
+	inlineImageCids: Array<string>,
+	links: Array<Link>
+}
 
 
 export class HtmlSanitizer {
 
 	_externalContent: string[]
 	_inlineImageCids: Array<string>
-	_links: Array<string>
+	_links: Array<Link>
 	purifier: IDOMPurify
 
 	constructor() {
@@ -213,7 +219,7 @@ export class HtmlSanitizer {
 			|| currentNode.tagName.toLowerCase() === "form")
 		) {
 			const href = currentNode.getAttribute("href")
-			href && this._links.push(href)
+			href && this._links.push(currentNode)
 
 			if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
 				currentNode.setAttribute('rel', 'noopener noreferrer')

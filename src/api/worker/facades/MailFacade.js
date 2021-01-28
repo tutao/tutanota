@@ -66,6 +66,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils";
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
+import {htmlToText} from "../search/IndexUtils"
 
 assertWorkerOrNode()
 
@@ -330,7 +331,7 @@ export class MailFacade {
 			})
 	}
 
-	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
+	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
 		let score = 0
 		const senderAddress = mail.sender.address
 		const senderAuthenticated = mail.authStatus === MailAuthStatus.AUTHENTICATED
@@ -360,16 +361,26 @@ export class MailFacade {
 			score += 3
 		}
 		for (const link of links) {
-			if (this._checkFieldForPhishing(ReportedMailFieldType.LINK, link)) {
+			if (this._checkFieldForPhishing(ReportedMailFieldType.LINK, link.href)) {
 				score += 6
 				break
 			} else {
-				const domain = getUrlDomain(link)
+				const domain = getUrlDomain(link.href)
 				if (domain && this._checkFieldForPhishing(ReportedMailFieldType.LINK_DOMAIN, domain)) {
 					score += 6
 					break
 				}
 			}
+		}
+
+		const hasSuspiciousLink = links.some(({href, innerHTML}) => {
+			const innerText = htmlToText(innerHTML)
+			const textUrl = parseUrl(innerText)
+			const hrefUrl = parseUrl(href)
+			return textUrl && hrefUrl && textUrl.hostname !== hrefUrl.hostname
+		})
+		if (hasSuspiciousLink) {
+			score += 6
 		}
 		return Promise.resolve(7 < score)
 	}
@@ -550,10 +561,15 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 	})
 }
 
-function getUrlDomain(link: string): ?string {
+function parseUrl(link: string): ?URL {
 	try {
-		return new URL(link).hostname
+		return new URL(link)
 	} catch (e) {
 		return null
 	}
+}
+
+function getUrlDomain(link: string): ?string {
+	const url = parseUrl(link)
+	return url && url.hostname
 }
