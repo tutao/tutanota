@@ -146,7 +146,7 @@ type SanitizeResult = {
 	text: string,
 	externalContent: Array<string>,
 	inlineImageCids: Array<string>,
-	links: Array<string>,
+	links: Array<HTMLElement>,
 }
 
 type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'

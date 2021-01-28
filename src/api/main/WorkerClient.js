@@ -580,7 +580,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("rejectGroupInvitation", [receivedGroupInvitationId]))
 	}
 
-	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
+	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
 		return this._queue.postMessage(new Request("checkMailForPhishing", [mail, links]))
 	}
 

@@ -6,20 +6,27 @@ import {downcast} from "../api/common/utils/Utils"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = 'data:image/svg+xml;utf8,'
+	+ ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
 const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
 
 type SanitizeConfig = {allowRelativeLinks?: boolean} & SanitizeConfigBase
 
-type SanitizedHTML = {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>}
+type Link = HTMLElement
+type SanitizedHTML = {
+	html: DocumentFragment,
+	externalContent: Array<string>,
+	inlineImageCids: Array<string>,
+	links: Array<Link>
+}
 
 class HtmlSanitizer {
 
 	_blockExternalContent: boolean
 	_externalContent: string[]
 	_inlineImageCids: Array<string>
-	_links: Array<string>
+	_links: Array<Link>
 	purifier: IDOMPurify
 
 	constructor() {
@@ -190,7 +197,7 @@ class HtmlSanitizer {
 			|| currentNode.tagName.toLowerCase() === "form")
 		) {
 			const href = currentNode.getAttribute("href")
-			href && this._links.push(href)
+			href && this._links.push(currentNode)
 
 			if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
 				currentNode.setAttribute('rel', 'noopener noreferrer')
