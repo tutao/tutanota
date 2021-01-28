@@ -1,6 +1,7 @@
 pipeline {
     environment {
          NODE_PATH="/opt/node-v14.15.4-linux-x64/bin"
+         NODE_MAC_PATH="/usr/local/bin/"
     }
 	options {
 		preserveStashes()
@@ -63,6 +64,9 @@ pipeline {
                 }
 
                 stage('desktop-mac') {
+                	environment {
+                		PATH="${env.NODE_MAC_PATH}:${env.PATH}"
+                	}
                     agent {
                         label 'mac'
                     }
