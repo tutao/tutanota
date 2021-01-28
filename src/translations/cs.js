@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-27T13:35:34Z",
+	"updated_at": "2021-01-28T10:21:01Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -566,7 +566,7 @@ export default {
 		"invalidTimePeriod_msg": "Zadané časové období je neplatné.",
 		"invalidVatIdNumber_msg": "Identifikační číslo daňe z přidané hodnoty (DPH) je neplatné.",
 		"invalidVatIdValidationFailed_msg": "Nepodařilo se ověřit identifikační číslo daně z přidané hodnoty. Prosím zkuste to znovu později.",
-		"invitationMailBody_msg": "Zdravím!<br><br>Toto je moje nová emailová adresa. Služba Tutanota nabízí kompletně zašifrovanou emailovou schránku bez reklam, aby chránila naše právo na soukromí. S automatizovaným šifrováním si můžeme posílat emaily stejně bezpečně jako v zapečetěných dopisech. Naše data tak konečně patří jen nám, nikdo jiný k nim nemá přístup.<br><br>Přidejte se i vy:<br>{registrationLink}<br><br><br>S pozdravem,<br>{username}<br><br>PS: Tutanota je zdarma včetně 1 GB úložné kapacity a navíc je open source: {githubLink}",
+		"invitationMailBody_msg": "Zdravím!<br><br>Toto je moje nová e-mailová adresa. Služba Tutanota nabízí kompletně zašifrovanou e-mailovou schránku bez reklam, aby chránila naše právo na soukromí. S automatizovaným šifrováním si můžeme posílat e-maily stejně bezpečně jako v zapečetěných dopisech. Naše data tak konečně patří jen nám, nikdo jiný k nim nemá přístup.<br><br>Přidejte se i vy:<br>{registrationLink}<br><br><br>S pozdravem,<br>{username}<br><br>PS: Tutanota je zdarma včetně 1 GB úložné kapacity a navíc je open source: {githubLink}",
 		"invitationMailSubject_msg": "Má nová e-mailová adresa - přidejte se k Tutanotě a vezměme si naše soukromí zpět.",
 		"invitation_label": "Pozvánka",
 		"invitedToEvent_msg": "Byli jste pozváni k účasti na této akci. Přejete se zúčastnit?",

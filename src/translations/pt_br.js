@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-01-28T10:21:01Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -371,7 +371,7 @@ export default {
 		"downloadCompleted_msg": "Download completado.",
 		"download_action": "Baixar",
 		"draft_action": "Rascunhos",
-		"dragAndDropExport_action": "Exportar para arrastar e exportar para soltar",
+		"dragAndDropExport_action": "Arrastar e soltar para exportar",
 		"duplicatedMailAddressInUserList_msg": "O endereço de email está incluído mais de uma vez nos dados.",
 		"duplicatesNotification_msg": "{1} contatos duplicados encontrados serão deletados.",
 		"editContactForm_label": "Editar formulário de contato",
@@ -543,7 +543,7 @@ export default {
 		"inboxRuleValue_label": "Valor",
 		"indexDeleted_msg": "Foi necessário limpar o índice de pesquisa para torná-lo mais rápido e confiável. Ele será criado novamente na próxima vez em que você efetuar uma pesquisa.",
 		"indexedMails_label": "Emails indexados: {count}",
-		"indexing_error": "A indexação foi cancelada devido ao erro ",
+		"indexing_error": "A indexação foi cancelada devido a um erro ",
 		"insertImage_action": "Inserir imagem",
 		"insideOnly_label": "Somente internos",
 		"insideOutside_label": "Interno/externo",

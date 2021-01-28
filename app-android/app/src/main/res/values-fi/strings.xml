@@ -4,4 +4,5 @@
     <string name="notificationSync_msg">Ilmoituksia synkronoidaan</string>
     <string name="scheduleAlarmError_msg">Hälytystä ei voitu asettaa. Päivitä sovellus.</string>
     <string name="wantToSendReport_msg">Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.</string>
+    <string name="downloadCompleted_msg">Lataus valmis</string>
 </resources>

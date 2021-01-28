@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-01-28T10:21:01Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -274,7 +274,7 @@ export default {
 		"creditCardNumberInvalid_msg": "Credit card number is invalid.",
 		"creditCardNumber_label": "Credit card number",
 		"creditCardPaymentErrorVerificationNeeded_msg": "Please update your payment details. This will trigger a verification of the credit card which is required by your bank.",
-		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your credit at a later time if this problem persists.",
+		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your card at a later time if this problem persists.",
 		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
 		"creditCardVerification_msg": "Your credit card will be verified now...",
 		"creditUsageOptions_msg": "Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
@@ -1279,7 +1279,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"dragAndDropExport_action": "Drag & drop export",
+		"you_label": "You"
 	}
 }
