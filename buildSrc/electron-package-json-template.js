@@ -110,7 +110,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"verifyUpdateCodeSignature": sign,
 				"publisherName": "Tutao GmbH",
 				"sign": sign
-					? "./buildSrc/winsigner.js"
+					? "./buildSrc/winsigner.cjs"
 					: undefined,
 				"signingHashAlgorithms": sign
 					? ["sha256"]
