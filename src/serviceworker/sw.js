@@ -1,6 +1,8 @@
 //@flow
 
 // set by the build script
+import {getPathBases} from "../ApplicationPaths"
+
 declare var filesToCache: () => Array<string | URL>;
 declare var version: () => string;
 declare var customDomainCacheExclusions: () => Array<string>;
@@ -190,7 +192,7 @@ if (typeof env === "undefined" || env.mode !== "Test") {
 		? filesToCache()
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
-	const applicationPaths = ["login", "signup", "recover", "takeover", "mail", "contact", "settings", "search", "contactform", "calendar"]
+	const applicationPaths = getPathBases()
 	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
 	init(sw)
 }
