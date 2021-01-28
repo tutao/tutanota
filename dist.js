@@ -401,6 +401,10 @@ function packageDeb(version) {
 }
 
 function publish(version) {
+	let webAppDebName = `tutanota_${version}_amd64.deb`
+	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
+	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
+
 	if (options.publish) {
 		console.log("Create git tag and copy .deb")
 		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
@@ -458,24 +462,4 @@ function exitOnFail(result) {
 	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
 	}
-}
-
-function printTraceReport(trace) {
-	function formatNumber(number) {
-		number = number + ""
-		while (number.length < 6) {
-			number = '0' + number
-		}
-		return number
-	}
-
-	let size = 0
-	let filesAndSizes = Object.keys(trace).map(file => {
-		return {
-			file,
-			length: trace[file].source.length
-		}
-	}).sort((a, b) => a.length - b.length)
-
-	console.log(filesAndSizes.map(o => formatNumber(o.length) + ": " + o.file).join("\n" + "  > "))
 }
