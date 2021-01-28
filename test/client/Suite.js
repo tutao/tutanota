@@ -5,6 +5,7 @@ import "./common/LanguageViewModelTest"
 import "./common/FormatterTest"
 import "./common/UrlifierTest"
 import "./common/PasswordUtilsTest"
+import "./file/FileControllerTest"
 import "./gui/animation/AnimationsTest"
 import "./gui/base/ButtonTest"
 import "./gui/base/ListTest"
@@ -31,7 +32,6 @@ import o from "ospec"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import {preTest, reportTest} from "../api/TestUtils"
-import {noOp} from "../../src/api/common/utils/Utils"
 
 (async () => {
 	if (typeof process != "undefined") {

@@ -241,13 +241,34 @@ export class FileController {
 	}
 
 	/**
+	 * Adds a numbered suffix to duplicate files. Renaming is done in-place.
+	 *
+	 * @param files
+	 */
+	renameDuplicateFiles(files: Array<DataFile>): void {
+		let lastFileName
+		let duplicateCount = 0
+		files.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(file => {
+			if (file.name === lastFileName) {
+				duplicateCount++
+				let name = file.name.substring(0, file.name.indexOf('.')) || file.name
+				let ext = file.name.substring(file.name.indexOf('.'))
+				file.name = `${name}-${duplicateCount}${ext}`
+			} else {
+				lastFileName = file.name
+				duplicateCount = 0
+			}
+		})
+	}
+
+	/**
 	 * takes a list of DataFiles and creates one DataFile from them that represents a zip
 	 * containing the the other files
 	 *
 	 * currently waits on all DataFiles being available before starting to add them to the zip.
 	 * It may be even faster to create the zip asap and adding the datafiles as they resolve.
 	 *
-	 * duplicate file names lead to the second file added overwriting the first one.
+	 * duplicate file names will be renamed with numbered suffix
 	 *
 	 * @param dataFiles Promise resolving to an array of DataFiles
 	 * @param name the name of the new zip file
@@ -257,12 +278,15 @@ export class FileController {
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		return import("jszip").then(jsZip => {
 			const zip = jsZip.default()
+			this.renameDuplicateFiles(dataFiles)
 			dataFiles.forEach(df => {
 				zip.file(sanitizeFilename(df.name), df.data, {binary: true})
 			})
+
 			return zip.generateAsync({type: 'uint8array'})
 		}).then(zf => convertToDataFile(file, zf))
 	}
+
 }
 
 
