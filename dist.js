@@ -91,7 +91,6 @@ function measure() {
 
 async function clean() {
 	await fs.emptyDir("build")
-	await fs.ensureDir(DistDir + "/translations")
 }
 
 async function buildWebapp(version) {
@@ -123,6 +122,7 @@ async function buildWebapp(version) {
 
 	console.log("started copying images", measure())
 	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
+	await fs.copy(path.join(__dirname, '/resources/favicon'), path.join(__dirname, 'build/dist/images'))
 	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 
 	console.log("stared bundling", measure())
@@ -168,8 +168,23 @@ async function buildWebapp(version) {
 		manualChunks: (id, {getModuleInfo, getModuleIds}) => {
 			if (id.includes("api/entities")) {
 				return "entities"
-			} else if (id.includes("src/translation")) {
-				return "translation-" + getModuleInfo(id).id
+			} else {
+				// Put all translations into "translation-code"
+				// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
+				// This groups chunks but does not rename them for some reason so we do chunkFileNames below
+				const match = /.*\/translations\/(\w+)+\.js/.exec(id)
+				if (match) {
+					const language = match[1]
+					return "translation-" + language
+				}
+			}
+		},
+		chunkFileNames: (chunkInfo) => {
+			// I would love to test chunkInfo.name but it will be just "en", not "translation-en" for some reason
+			if (chunkInfo.facadeModuleId && chunkInfo.facadeModuleId.includes("src/translations/")) {
+				return "translation-[name]-[hash].js"
+			} else {
+				return "[name]-[hash].js"
 			}
 		}
 	})
@@ -279,8 +294,9 @@ async function buildDesktopClient(version) {
 
 async function bundleServiceWorker(bundles, version) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
-	const filesToCache = ["index-index.js", "index.html", "polyfill.js"]
-		.concat(bundles.filter(it => !it.startsWith("translation")))
+	const filesToCache = ["index-index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
+		// we always include English
+		.concat(bundles.filter(it => it.startsWith("translation-en") || !it.startsWith("translation")))
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 	const swBundle = await rollup({
 		input: ["src/serviceworker/sw.js"],
