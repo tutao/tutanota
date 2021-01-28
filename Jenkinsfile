@@ -74,8 +74,7 @@ pipeline {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						unstash 'bundles'
-					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]){
+					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]) {
 							sh '''
 								export JENKINS=TRUE;
 								export APPLEID=${APPLEIDVAR};
