@@ -51,13 +51,14 @@ export type Theme = {
 }
 
 export const themeId: Stream<ThemeId> = stream(getThemeId())
+export const defaultTheme: Theme = getLightTheme()
+
 let customTheme: ?Theme = null
 if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
 	updateCustomTheme(whitelabelCustomizations.theme)
 }
 
 export let theme: Theme = getTheme()
-export const defaultTheme: Theme = getLightTheme()
 
 themeId.map(() => {
 	// Always overwrite light theme so that optional things are not kept when switching

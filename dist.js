@@ -295,7 +295,7 @@ async function buildDesktopClient(version, nameCache) {
 
 async function bundleServiceWorker(bundles, version, nameCache) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
-	const filesToCache = ["index-index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
+	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
 		.concat(bundles.filter(it => it.startsWith("translation-en") || !it.startsWith("translation")))
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
@@ -333,21 +333,21 @@ async function bundleServiceWorker(bundles, version, nameCache) {
 }
 
 function createHtml(env) {
-	let filenamePrefix
+	let filenameSuffix
 	switch (env.mode) {
 		case "App":
-			filenamePrefix = "app"
+			filenameSuffix = "-app"
 			break
 		case "Browser":
-			filenamePrefix = "index"
+			filenameSuffix = ""
 			break
 		case "Desktop":
-			filenamePrefix = "desktop"
+			filenameSuffix = "-desktop"
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
-	const imports = [{src: "polyfill.js"}, {src: `index-${filenamePrefix}.js`}]
+	const imports = [{src: "polyfill.js"}, {src: `index${filenameSuffix}.js`}]
 	return Promise.all([
-		_writeFile(`./build/dist/index-${filenamePrefix}.js`,
+		_writeFile(`./build/dist/index${filenameSuffix}.js`,
 			`window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 Promise.config({
@@ -355,7 +355,7 @@ Promise.config({
     warnings: false
 })
 System.import('./app.js')`),
-		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
+		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/index${filenameSuffix}.html`, content))
 	])
 }
 
