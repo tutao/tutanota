@@ -57,7 +57,7 @@ export const languages: Language[] = [
 	{code: 'uk', textId: 'languageUkrainian_label'},
 	{code: 'vi', textId: 'languageVietnamese_label'},
 	{code: 'zh', textId: 'languageChineseSimplified_label'},
-	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
+	{code: 'zh_hant', textId: 'languageChineseTraditional_label'}
 ]
 
 // FIXME: make flow less angry
@@ -143,7 +143,7 @@ const translationImportMap = {
 	// $FlowFixMe[untyped-import]
 	'zh': () => import("../translations/zh.js"),
 	// $FlowFixMe[untyped-import]
-	'zh_tw': () => import("../translations/zh_tw.js"),
+	'zh_hant': () => import("../translations/zh_hant.js"),
 }
 export const languageByCode: {[string]: Language} = languages.reduce((acc, curr) => {
 	acc[curr.code] = curr
