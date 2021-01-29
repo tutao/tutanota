@@ -13,11 +13,11 @@ import {isApp, isTutanotaDomain} from "../Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../common/TutanotaConstants"
 import {PasswordForm} from "../../settings/PasswordForm"
 import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
-import {neverNull} from "../common/utils/Utils"
+import {neverNull, noOp} from "../common/utils/Utils"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {showWorkerProgressDialog} from "../../gui/base/ProgressDialog"
+import {showProgressDialog, showWorkerProgressDialog} from "../../gui/base/ProgressDialog"
 import {worker} from "./WorkerClient"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../common/error/RestError"
 import {createRegistrationCaptchaServiceGetData} from "../entities/sys/RegistrationCaptchaServiceGetData"
@@ -32,6 +32,7 @@ import {TextField} from "../../gui/base/TextField"
 import {DialogHeaderBar} from "../../gui/base/DialogHeaderBar"
 import {uint8ArrayToBase64} from "../common/utils/Encoding"
 import {CheckboxN} from "../../gui/base/CheckboxN"
+import {CancelledError} from "../common/error/CancelledError"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -73,7 +74,6 @@ export class SignupForm implements MComponent<SignupFormAttrs> {
 			checked: this._confirmAge
 		}
 
-
 		const submit = () => {
 			if (a.readonly) {
 				return a.newSignupHandler(null)
@@ -86,11 +86,21 @@ export class SignupForm implements MComponent<SignupFormAttrs> {
 				return
 			}
 
-			const ageConfirmPromise = this._confirmAge()
-				? Promise.resolve(true)
-				: Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
+			const awaitVerification = this._mailAddressForm.awaitVerification()
+			const mailAddressVerificationPromise = awaitVerification
+				? showProgressDialog("mailAddressBusy_msg", awaitVerification)
+				: Promise.resolve(true)
 
-			ageConfirmPromise.then(confirmed => {
+			mailAddressVerificationPromise.then(verified => {
+				if (!verified) {
+					Dialog.error(() => neverNull(this._mailAddressForm.getErrorMessageId()))
+					return false
+				}
+
+				return this._confirmAge()
+					? true
+					: Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
+			}).then(confirmed => {
 				if (confirmed) {
 					return signup(
 						this._mailAddressForm.getCleanMailAddress(),
@@ -103,7 +113,7 @@ export class SignupForm implements MComponent<SignupFormAttrs> {
 						a.newSignupHandler(newAccountData)
 					})
 				}
-			})
+			}).catch(CancelledError, noOp)
 		}
 
 		return m("#signup-account-dialog.flex-center", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [

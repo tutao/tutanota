@@ -15,6 +15,9 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils.js"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {defer} from "../api/common/utils/Utils"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 
 assertMainOrNode()
@@ -30,6 +33,8 @@ export class SelectMailAddressForm {
 	_checkAddressTimeout: ?TimeoutID;
 	_availableDomains: string[];
 	injectionsRightButtonAttrs: ?ButtonAttrs;
+
+	deferredVerification: ?DeferredObject<boolean>
 
 	constructor(availableDomains: string[], injectionsRightButtonAttrs: ?ButtonAttrs = null) {
 		this.injectionsRightButtonAttrs = injectionsRightButtonAttrs
@@ -74,6 +79,8 @@ export class SelectMailAddressForm {
 
 	_verifyMailAddress() {
 		clearTimeout(neverNull(this._checkAddressTimeout))
+		this.deferredVerification && this.deferredVerification.reject(new CancelledError(""))
+		this.deferredVerification = null
 		let cleanMailAddress = this.cleanMailAddress()
 		let cleanUsername = this._username().trim().toLowerCase()
 		if (cleanUsername === "") {
@@ -86,6 +93,7 @@ export class SelectMailAddressForm {
 			return
 		}
 		this._messageId("mailAddressBusy_msg")
+		this.deferredVerification = defer()
 		this._checkAddressTimeout = setTimeout(() => {
 			if (this.cleanMailAddress() !== cleanMailAddress) return
 			worker.initialized.then(() => worker.isMailAddressAvailable(cleanMailAddress))
@@ -93,9 +101,19 @@ export class SelectMailAddressForm {
 				      if (this.cleanMailAddress() === cleanMailAddress) {
 					      this._messageId(available ? VALID_MESSAGE_ID : "mailAddressNA_msg")
 				      }
+				      this.deferredVerification && this.deferredVerification.resolve(available)
+				      this.deferredVerification = null
 			      })
-			      .catch(AccessDeactivatedError, () => this._messageId("mailAddressDelay_msg"))
+			      .catch(AccessDeactivatedError, () => {
+				      this._messageId("mailAddressDelay_msg")
+				      this.deferredVerification && this.deferredVerification.resolve(false)
+				      this.deferredVerification = null
+			      })
 		}, 500)
+	}
+
+	awaitVerification(): ?Promise<boolean> {
+		return this.deferredVerification && this.deferredVerification.promise
 	}
 
 	getCleanMailAddress(): string {
@@ -106,7 +124,7 @@ export class SelectMailAddressForm {
 	 * @return null if the entered email address is valid, the corresponding error message otherwise
 	 */
 	getErrorMessageId(): ?TranslationKey {
-		return (this._messageId() === VALID_MESSAGE_ID) ? null : this._messageId()
+		return (this._messageId() === VALID_MESSAGE_ID || this._messageId() === "mailAddressBusy_msg") ? null : this._messageId()
 	}
 }
 
