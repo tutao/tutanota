@@ -1,2 +1,14 @@
-TutaoCancelAction = "בטל";
+NSCameraUsageDescription = "צלמו תמונה או וידאו כדי להוסיפם כקבצים מצורפים.";
+NSPhotoLibraryUsageDescription = "הוסיפו תמונה מהספריה שלכם כקובץ מצורף.";
+NSMicrophoneUsageDescription = "הוסיפו תמונה מהספריה שלכם כקובץ מצורף.";
+NSMicrophoneUsageDescription = "בשימוש בעת הקלטת וידאו בתור קובץ מצורף.";
+NSContactsUsageDescription = "מצא כתובת אימייל של הנמען באנשי הקשר.";
+NSRemindersUsageDescription = "מציג התראה כאשר דוא"ל חדש מגיע.";
+TutaoShowCameraAction = "מצלמה";
+TutaoChoosePhotosAction = "תמונות";
+TutaoNoPermissionTitle = "אין הרשאה";
+TutaoChangePermissionMsg = "כדי להעניק גישה עליכם לשנות את ההרשאות עבור מכשיר זה.";
+TutaoCancelAction = "ביטול";
 TutaoSettingsAction = "הגדרות";
+TutaoCalendarAlarmTitle = "תזכורת";
+TutaoScheduleAlarmError = "לא היתה אפשרות ליצור התראה. אנא עדכנו את התוכנה.";
