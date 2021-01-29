@@ -1,7 +1,8 @@
-const fs = require("fs")
-const glob = require("glob")
+import fs from "fs"
 
-function prepareFiles(buildType) {
+import glob from "glob"
+
+export function prepareFiles(buildType) {
 	console.log("prepare mobile build for build type", buildType)
 	let prefix
 	switch (buildType) {
@@ -44,10 +45,4 @@ function prepareFiles(buildType) {
 	} else {
 		console.log("no file at", indexHtmlPath)
 	}
-}
-
-module.exports = prepareFiles
-
-if (require.main === module) {
-	prepareFiles(process.argv[2])
 }

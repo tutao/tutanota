@@ -1,5 +1,9 @@
-const options = require('commander')
-const {execFileSync} = require('child_process')
+import options from "commander"
+
+import {execFileSync} from "child_process"
+import {prepareFiles} from "./buildSrc/prepareMobileBuild.js"
+import fs from "fs"
+
 
 /**
  * Besides options below this script may require signing parameters passed as environment variables:
@@ -43,10 +47,11 @@ execFileSync('node', [options.webclient, `${options.host}`], {
 	stdio: [null, process.stdout, process.stderr]
 })
 
-execFileSync('node', ["buildSrc/prepareMobileBuild.js", options.webclient], {
-	stdio: [null, process.stdout, process.stderr],
-})
+// execFileSync('node', ["buildSrc/prepareMobileBuild.js", options.webclient], {
+// 	stdio: [null, process.stdout, process.stderr],
+// })
 
+prepareFiles(options.webclient)
 
 try {
 	execFileSync("rm", ["-r", "build/app-android"], {stdio: 'ignore'})
@@ -67,43 +72,44 @@ const getEnv = (name) => {
 	return process.env[name]
 }
 
+signAndroidApp()
 
-execFileSync("mkdir", ["-p", "build/app-android"])
-const version = require('./package.json').version
-const outPath = `./build/app-android/tutanota-${version}-${options.buildtype}.apk`
+async function signAndroidApp() {
+	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
+	execFileSync("mkdir", ["-p", "build/app-android"])
+	const outPath = `./build/app-android/tutanota-${version}-${options.buildtype}.apk`
 
-if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
-	const keyAlias = getEnv('APK_SIGN_ALIAS')
-	const storePass = getEnv('APK_SIGN_STORE_PASS')
-	const keyPass = getEnv('APK_SIGN_KEY_PASS')
-	const keyStore = getEnv('APK_SIGN_STORE')
-	const androidHome = getEnv('ANDROID_HOME')
+	if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
+		const keyAlias = getEnv('APK_SIGN_ALIAS')
+		const storePass = getEnv('APK_SIGN_STORE_PASS')
+		const keyPass = getEnv('APK_SIGN_KEY_PASS')
+		const keyStore = getEnv('APK_SIGN_STORE')
+		const androidHome = getEnv('ANDROID_HOME')
 
-	log("starting signing")
-	// see https://developer.android.com/studio/publish/app-signing#signing-manually
+		log("starting signing")
+		// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
-	// jarsigner must be run before zipalign
-	execFileSync('/opt/jdk1.8.0_112/bin/jarsigner', [
-		'-verbose',
-		'-strict',
-		'-keystore', keyStore,
-		'-storepass', storePass,
-		'-keypass', keyPass,
-		'./app-android/' + apkPath,
-		keyAlias
-	])
+		// jarsigner must be run before zipalign
+		execFileSync('/opt/jdk1.8.0_112/bin/jarsigner', [
+			'-verbose',
+			'-strict',
+			'-keystore', keyStore,
+			'-storepass', storePass,
+			'-keypass', keyPass,
+			'./app-android/' + apkPath,
+			keyAlias
+		])
 
-	log("started zipalign")
+		log("started zipalign")
 
-	// Android requires all resources to be aligned for mmap. Must be done.
-	execFileSync(`${androidHome}/build-tools/${BUILD_TOOLS_V}/zipalign`, [
-		'4',
-		'app-android/' + apkPath,
-		outPath
-	])
-} else {
-	execFileSync('mv', ['app-android/' + apkPath, outPath])
+		// Android requires all resources to be aligned for mmap. Must be done.
+		execFileSync(`${androidHome}/build-tools/${BUILD_TOOLS_V}/zipalign`, [
+			'4',
+			'app-android/' + apkPath,
+			outPath
+		])
+	} else {
+		execFileSync('mv', ['app-android/' + apkPath, outPath])
+	}
+	log(`APK was moved to\n${outPath}`)
 }
-
-log(`APK was moved to\n${outPath}`)
-
