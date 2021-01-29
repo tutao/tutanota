@@ -36,7 +36,7 @@ Promise.config({
 })
 import('./app.js')
 	`
-	await _writeFile(jsFileName, template)
+	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${htmlFileName}`, html)
 }
