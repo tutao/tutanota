@@ -72,8 +72,9 @@ doBuild().catch(e => {
 async function doBuild() {
 	try {
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
-		await buildWebapp(version)
-		await buildDesktopClient(version)
+		const nameCache = {}
+		await buildWebapp(version, nameCache)
+		await buildDesktopClient(version, nameCache)
 		await signDesktopClients()
 		await packageDeb(version)
 		await publish(version)
@@ -93,7 +94,7 @@ async function clean() {
 	await fs.emptyDir("build")
 }
 
-async function buildWebapp(version) {
+async function buildWebapp(version, nameCache) {
 	if (options.existing) {
 		console.log("Found existing option (-e). Skipping Webapp build.")
 		return
@@ -105,7 +106,7 @@ async function buildWebapp(version) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.js"],
 		plugins: [
-			terser(),
+			terser({nameCache}),
 			nodeResolve(),
 			commonjs(),
 			{
@@ -152,7 +153,7 @@ async function buildWebapp(version) {
 			commonjs({
 				exclude: "src/**",
 			}),
-			terser(),
+			terser({nameCache}),
 		],
 		perf: true,
 	})
@@ -222,10 +223,10 @@ System.import("./worker.js")`)
 			: null,
 	])
 
-	await bundleServiceWorker(chunks, version)
+	await bundleServiceWorker(chunks, version, nameCache)
 }
 
-async function buildDesktopClient(version) {
+async function buildDesktopClient(version, nameCache) {
 	if (options.desktop) {
 		const desktopBaseOpts = {
 			dirname: __dirname,
@@ -243,7 +244,7 @@ async function buildDesktopClient(version) {
 
 		if (options.stage === "release") {
 			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopBaseOpts)
+			await buildDesktop(desktopBaseOpts, nameCache)
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 					updateUrl: "https://test.tutanota.com/desktop",
@@ -252,7 +253,7 @@ async function buildDesktopClient(version) {
 					notarize: false
 				})
 				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
-				await buildDesktop(desktopTestOpts)
+				await buildDesktop(desktopTestOpts, nameCache)
 			}
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
@@ -262,7 +263,7 @@ async function buildDesktopClient(version) {
 				notarize: false
 			})
 			await createHtml(env.create("http://localhost:9000", version, "Desktop", true))
-			await buildDesktop(desktopLocalOpts)
+			await buildDesktop(desktopLocalOpts, nameCache)
 		} else if (options.stage === "test") {
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 				updateUrl: "https://test.tutanota.com/desktop",
@@ -270,7 +271,7 @@ async function buildDesktopClient(version) {
 				notarize: false
 			})
 			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopTestOpts)
+			await buildDesktop(desktopTestOpts, nameCache)
 		} else if (options.stage === "prod") {
 			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -278,7 +279,7 @@ async function buildDesktopClient(version) {
 				notarize: false
 			})
 			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopProdOpts)
+			await buildDesktop(desktopProdOpts, nameCache)
 		} else { // stage = host
 			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -287,12 +288,12 @@ async function buildDesktopClient(version) {
 				notarize: false
 			})
 			await createHtml(env.create(options.host, version, "Desktop", true))
-			await buildDesktop(desktopHostOpts)
+			await buildDesktop(desktopHostOpts, nameCache)
 		}
 	}
 }
 
-async function bundleServiceWorker(bundles, version) {
+async function bundleServiceWorker(bundles, version, nameCache) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index-index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
@@ -313,7 +314,7 @@ async function bundleServiceWorker(bundles, version) {
 				],
 				babelHelpers: "bundled",
 			}),
-			terser(),
+			terser({nameCache}),
 			{
 				name: "sw-banner",
 				banner() {
