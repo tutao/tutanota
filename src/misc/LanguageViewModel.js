@@ -32,6 +32,7 @@ export const languages: Language[] = [
 	{code: 'fi', textId: 'languageFinnish_label'},
 	{code: 'fr', textId: 'languageFrench_label'},
 	{code: 'gl', textId: 'languageGalician_label'},
+	{code: 'he', textId: 'languageHebrew_label'},
 	{code: 'hi', textId: 'languageHindi_label'},
 	{code: 'hr', textId: 'languageCroatian_label'},
 	{code: 'hu', textId: 'languageHungarian_label'},
@@ -91,6 +92,8 @@ const translationImportMap = {
 	'fr': () => import("../translations/fr.js"),
 	// $FlowFixMe[untyped-import]
 	'gl': () => import("../translations/gl.js"),
+	// $FlowFixMe[untyped-import]
+	'he': () => import("../translations/he.js"),
 	// $FlowFixMe[untyped-import]
 	'hi': () => import("../translations/hi.js"),
 	// $FlowFixMe[untyped-import]
