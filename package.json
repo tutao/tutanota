@@ -25,7 +25,7 @@
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
 		"systemjs": "6.3.3",
-		"oxmsg": "tutao/oxmsg"
+		"oxmsg": "tutao/oxmsg#d18421daaaca85de6a8c12ca927e4be96d71f61b"
 	},
 	"devDependencies": {
 		"rollup": "^2.35.1",
