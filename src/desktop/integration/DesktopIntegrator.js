@@ -19,7 +19,7 @@ export class DesktopIntegrator {
 		switch (process.platform) {
 			case 'win32':
 				this.platformIntegrator = Promise.all([import('./DesktopIntegratorWin32.js'), winreg()])
-				                                 .then(([integrator, winreg]) => new integrator.DesktopIntegratorWin32(electron, winreg))
+				                                 .then(([integrator, winreg]) => new integrator.DesktopIntegratorWin32(electron, winreg.default))
 				break
 			case 'darwin':
 				this.platformIntegrator = import('./DesktopIntegratorDarwin.js')

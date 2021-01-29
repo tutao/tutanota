@@ -23,6 +23,10 @@ let start = Date.now()
 const DistDir = 'build/dist'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// We use terser for minimifaction but we don't use nameCache because it does not work.
+// It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
+// which looks like a problem e.g. for accessing fields.
+
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.arguments('[stage] [host]')
@@ -72,9 +76,8 @@ doBuild().catch(e => {
 async function doBuild() {
 	try {
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
-		const nameCache = {}
-		await buildWebapp(version, nameCache)
-		await buildDesktopClient(version, nameCache)
+		await buildWebapp(version)
+		await buildDesktopClient(version)
 		await signDesktopClients()
 		await packageDeb(version)
 		await publish(version)
@@ -94,7 +97,7 @@ async function clean() {
 	await fs.emptyDir("build")
 }
 
-async function buildWebapp(version, nameCache) {
+async function buildWebapp(version) {
 	if (options.existing) {
 		console.log("Found existing option (-e). Skipping Webapp build.")
 		return
@@ -106,7 +109,7 @@ async function buildWebapp(version, nameCache) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.js"],
 		plugins: [
-			terser({nameCache}),
+			terser(),
 			nodeResolve(),
 			commonjs(),
 			{
@@ -153,7 +156,7 @@ async function buildWebapp(version, nameCache) {
 			commonjs({
 				exclude: "src/**",
 			}),
-			terser({nameCache}),
+			terser()
 		],
 		perf: true,
 	})
@@ -223,10 +226,10 @@ System.import("./worker.js")`)
 			: null,
 	])
 
-	await bundleServiceWorker(chunks, version, nameCache)
+	await bundleServiceWorker(chunks, version)
 }
 
-async function buildDesktopClient(version, nameCache) {
+async function buildDesktopClient(version) {
 	if (options.desktop) {
 		const desktopBaseOpts = {
 			dirname: __dirname,
@@ -244,7 +247,7 @@ async function buildDesktopClient(version, nameCache) {
 
 		if (options.stage === "release") {
 			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopBaseOpts, nameCache)
+			await buildDesktop(desktopBaseOpts)
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 					updateUrl: "https://test.tutanota.com/desktop",
@@ -253,7 +256,7 @@ async function buildDesktopClient(version, nameCache) {
 					notarize: false
 				})
 				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
-				await buildDesktop(desktopTestOpts, nameCache)
+				await buildDesktop(desktopTestOpts)
 			}
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
@@ -263,7 +266,7 @@ async function buildDesktopClient(version, nameCache) {
 				notarize: false
 			})
 			await createHtml(env.create("http://localhost:9000", version, "Desktop", true))
-			await buildDesktop(desktopLocalOpts, nameCache)
+			await buildDesktop(desktopLocalOpts)
 		} else if (options.stage === "test") {
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 				updateUrl: "https://test.tutanota.com/desktop",
@@ -271,7 +274,7 @@ async function buildDesktopClient(version, nameCache) {
 				notarize: false
 			})
 			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopTestOpts, nameCache)
+			await buildDesktop(desktopTestOpts)
 		} else if (options.stage === "prod") {
 			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -279,7 +282,7 @@ async function buildDesktopClient(version, nameCache) {
 				notarize: false
 			})
 			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopProdOpts, nameCache)
+			await buildDesktop(desktopProdOpts)
 		} else { // stage = host
 			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -288,12 +291,12 @@ async function buildDesktopClient(version, nameCache) {
 				notarize: false
 			})
 			await createHtml(env.create(options.host, version, "Desktop", true))
-			await buildDesktop(desktopHostOpts, nameCache)
+			await buildDesktop(desktopHostOpts)
 		}
 	}
 }
 
-async function bundleServiceWorker(bundles, version, nameCache) {
+async function bundleServiceWorker(bundles, version) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
@@ -314,7 +317,7 @@ async function bundleServiceWorker(bundles, version, nameCache) {
 				],
 				babelHelpers: "bundled",
 			}),
-			terser({nameCache}),
+			terser(),
 			{
 				name: "sw-banner",
 				banner() {
@@ -333,21 +336,25 @@ async function bundleServiceWorker(bundles, version, nameCache) {
 }
 
 function createHtml(env) {
-	let filenameSuffix
+	let jsFileName
+	let htmlFileName
 	switch (env.mode) {
 		case "App":
-			filenameSuffix = "-app"
+			jsFileName = "index-app.js"
+			htmlFileName = "index-app.html"
 			break
 		case "Browser":
-			filenameSuffix = ""
+			jsFileName = "index.js"
+			htmlFileName = "index.html"
 			break
 		case "Desktop":
-			filenameSuffix = "-desktop"
+			jsFileName = "index-desktop.js"
+			htmlFileName = "index-desktop.html"
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
-	const imports = [{src: "polyfill.js"}, {src: `index${filenameSuffix}.js`}]
+	const imports = [{src: "polyfill.js"}, {src: jsFileName}]
 	return Promise.all([
-		_writeFile(`./build/dist/index${filenameSuffix}.js`,
+		_writeFile(`./build/dist/${jsFileName}`,
 			`window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 Promise.config({
@@ -355,7 +362,7 @@ Promise.config({
     warnings: false
 })
 System.import('./app.js')`),
-		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/index${filenameSuffix}.html`, content))
+		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${htmlFileName}`, content))
 	])
 }
 

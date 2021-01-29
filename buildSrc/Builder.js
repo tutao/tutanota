@@ -12,18 +12,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
 
 async function createHtml(env, watch) {
-	let filenamePrefix
+	let jsFileName
+	let htmlFileName
 	switch (env.mode) {
 		case "App":
-			filenamePrefix = "app"
+			jsFileName = "bootstrap-app.js"
+			htmlFileName = "index-app.html"
 			break
 		case "Browser":
-			filenamePrefix = "index"
+			jsFileName = "bootstrap.js"
+			htmlFileName = "index.html"
 			break
 		case "Desktop":
-			filenamePrefix = "desktop"
+			jsFileName = "bootstrap-desktop.js"
+			htmlFileName = "index-desktop.html"
 	}
-	const imports = [{src: 'polyfill.js'}, {src: `${filenamePrefix}Bootstrap.js`}]
+	const imports = [{src: 'polyfill.js'}, {src: jsFileName}]
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 Promise.config({
@@ -32,9 +36,9 @@ Promise.config({
 })
 import('./app.js')
 	`
-	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, template)
+	await _writeFile(jsFileName, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
-	await _writeFile(`./build/${filenamePrefix}.html`, html)
+	await _writeFile(`./build/${htmlFileName}`, html)
 }
 
 function _writeFile(targetFile, content) {

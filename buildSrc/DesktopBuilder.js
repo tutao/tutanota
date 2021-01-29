@@ -24,7 +24,7 @@ export async function buildDesktop({
 	                                   notarize, // for the MacOs notarization feature
 	                                   outDir, // where copy the finished artifacts
 	                                   unpacked // output desktop client without packing it into an installer
-                                   }, nameCache) {
+                                   }) {
 	// The idea is that we
 	// - build desktop code into build/dist/desktop
 	// - package the whole dist directory into the app
@@ -65,7 +65,7 @@ export async function buildDesktop({
 		}
 	}
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, nameCache)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version)
 
 	console.log("Starting installer build...")
 	// package for linux, win, mac
@@ -97,7 +97,7 @@ export async function buildDesktop({
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, nameCache) {
+async function rollupDesktop(dirname, outDir, version) {
 	function babelPreset() {
 		return babel({
 			plugins: [
@@ -119,7 +119,7 @@ async function rollupDesktop(dirname, outDir, version, nameCache) {
 			resolveKeytarPlugin(),
 			nodeResolve({preferBuiltins: true}),
 			commonjs({exclude: "src/**"}),
-			terser({nameCache}),
+			terser(),
 			preludeEnvPlugin(createEnv(null, version, "Desktop", true))
 		]
 	})
