@@ -14,6 +14,7 @@ export type DateTimeFormatOptions = {
 	hourCycle?: string
 }
 
+// https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 export const languages: Language[] = [
 	{code: 'ar', textId: 'languageArabic_label'},
 	{code: 'bg', textId: 'languageBulgarian_label'},
@@ -37,6 +38,7 @@ export const languages: Language[] = [
 	{code: 'id', textId: 'languageIndonesian_label'},
 	{code: 'it', textId: 'languageItalian_label'},
 	{code: 'ja', textId: 'languageJapanese_label'},
+	{code: 'ko', textId: 'languageKorean_label'},
 	{code: 'lt', textId: 'languageLithuanian_label'},
 	{code: 'lv', textId: 'languageLatvian_label'},
 	{code: 'nl', textId: 'languageDutch_label'},
@@ -101,6 +103,8 @@ const translationImportMap = {
 	'it': () => import("../translations/it.js"),
 	// $FlowFixMe[untyped-import]
 	'ja': () => import("../translations/ja.js"),
+	// $FlowFixMe[untyped-import]
+	'ko': () => import("../translations/ko.js"),
 	// $FlowFixMe[untyped-import]
 	'lt': () => import("../translations/lt.js"),
 	// $FlowFixMe[untyped-import]
