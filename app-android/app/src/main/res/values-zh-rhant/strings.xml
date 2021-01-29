@@ -1,0 +1,4 @@
+<resources>
+    <string name="pushNewMail_msg">收到新邮件.</string>
+    <string name="wantToSendReport_msg">程式無預警出錯。請問是否要發送錯誤報告？您可在下方留言來幫助我們釐清案情。</string>
+</resources>
