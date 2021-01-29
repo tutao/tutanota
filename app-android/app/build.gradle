@@ -21,25 +21,25 @@ android {
 	buildTypes {
 		debug {
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debug']
-			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
+			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/index-app.html\""
 			applicationIdSuffix ".debug"
 		}
 		debugDist {
 			initWith debug
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/index-app.html\""
 			applicationIdSuffix ".debugdist"
 		}
 		releaseTest {
 			initWith release
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.test']
-			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/index-app.html\""
 			applicationIdSuffix ".test"
 		}
 		release {
 			minifyEnabled true
 			manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider']
-			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+			buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/index-app.html\""
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 		}
 	}
