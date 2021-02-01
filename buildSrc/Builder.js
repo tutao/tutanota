@@ -16,15 +16,15 @@ async function createHtml(env, watch) {
 	let htmlFileName
 	switch (env.mode) {
 		case "App":
-			jsFileName = "bootstrap-app.js"
+			jsFileName = "index-app.js"
 			htmlFileName = "index-app.html"
 			break
 		case "Browser":
-			jsFileName = "bootstrap.js"
+			jsFileName = "index.js"
 			htmlFileName = "index.html"
 			break
 		case "Desktop":
-			jsFileName = "bootstrap-desktop.js"
+			jsFileName = "index-desktop.js"
 			htmlFileName = "index-desktop.html"
 	}
 	const imports = [{src: 'polyfill.js'}, {src: jsFileName}]
