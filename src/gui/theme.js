@@ -4,6 +4,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/Env"
 import DOMPurify from "dompurify"
+import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -62,7 +63,8 @@ export let theme: Theme = getTheme()
 
 themeId.map(() => {
 	// Always overwrite light theme so that optional things are not kept when switching
-	theme = Object.assign(getLightTheme(), getTheme())
+	Object.keys(theme).forEach(key => delete downcast(theme)[key])
+	Object.assign(theme, getLightTheme(), getTheme())
 })
 
 function getThemeId(): ThemeId {
@@ -73,8 +75,9 @@ function getThemeId(): ThemeId {
 	}
 }
 
-export function setThemeId(themeId: ThemeId) {
-	deviceConfig.setTheme(themeId)
+export function setThemeId(newThemeId: ThemeId) {
+	themeId(newThemeId)
+	deviceConfig.setTheme(newThemeId)
 }
 
 function getTheme(): Theme {
