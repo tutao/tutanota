@@ -9,7 +9,7 @@ import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElemen
 import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
-import {isApp, isDesktop} from "../Env"
+import {isAdminClient, isApp, isDesktop} from "../Env"
 
 export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
                                                                           .reduce((r, k) => {
@@ -790,7 +790,7 @@ export type ClientTypeEnum = $Values<typeof ClientType>;
 export function getClientType(): ClientTypeEnum {
 	return isApp()
 		? ClientType.App
-		: isDesktop()
+		: (isDesktop() || isAdminClient())
 			? ClientType.Desktop
 			: ClientType.Browser
 }

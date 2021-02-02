@@ -235,11 +235,11 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 	debug(`Registering callback for ${acceleratorString} on window ${title(win)}`);
 	_checkAccelerator(acceleratorString);
 
-	debug(`${acceleratorString} seems a valid shortcut sequence.`);
+	debug(`${acceleratorString} seems to be a valid shortcut sequence`);
 
 	let shortcutsOfWindow: ?ShortcutsList = windowsWithShortcuts.get(wc)
 	if (shortcutsOfWindow == null) {
-		debug('This is the first shortcut of the window.');
+		debug('This is the first shortcut of the window');
 		shortcutsOfWindow = ([]: any);
 		windowsWithShortcuts.set(wc, shortcutsOfWindow);
 

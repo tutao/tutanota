@@ -20,7 +20,7 @@ class NativeWrapper {
 	_nativeQueue: ?Queue;
 
 	init() {
-		if (isMainOrNode() && (env.mode === Mode.App || env.mode === Mode.Desktop)) {
+		if (isMainOrNode() && (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin)) {
 			window.tutao.nativeApp = this // the native part must be able to invoke this.invokeNative without invoking System.import
 
 			this._nativeQueue = new Queue(({
@@ -81,10 +81,6 @@ class NativeWrapper {
 		neverNull(this._nativeQueue)._handleMessage(msg)
 	}
 
-	_replacement(char: string) {
-
-	}
-
 	setWorkerQueue(queue: Queue) {
 		this._workerQueue = queue;
 		this._nativeQueue = null
@@ -92,19 +88,6 @@ class NativeWrapper {
 
 	initialized(): Promise<void> {
 		return this._initialized.promise
-	}
-}
-
-function _createConnectionErrorHandler(rejectFunction) {
-	return function (errorString) {
-		if (errorString.indexOf("java.net.SocketTimeoutException") === 0 ||
-			errorString.indexOf("javax.net.ssl.SSLException") === 0 ||
-			errorString.indexOf("java.io.EOFException") === 0 ||
-			errorString.indexOf("java.net.UnknownHostException") === 0) {
-			rejectFunction(new ConnectionError(errorString))
-		} else {
-			rejectFunction(new Error(errorString))
-		}
 	}
 }
 
