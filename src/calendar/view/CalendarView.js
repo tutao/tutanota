@@ -749,8 +749,17 @@ export class CalendarView implements CurrentView {
 		} else {
 			dateToUse = date
 		}
+
+		// Disallow creation of events when there is no existing calendar
+		const calendarInfos = this._calendarInfos.isFulfilled() && this._calendarInfos.value().size > 0
+			? this._calendarInfos
+			: showProgressDialog("pleaseWait_msg",
+				worker.addCalendar("")
+				      .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
+				      .tap(infos => {this._calendarInfos = Promise.resolve(infos)})
+			)
 		Promise.all([
-			this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos),
+			calendarInfos,
 			locator.mailModel.getUserMailboxDetails()
 		]).then(([calendars, mailboxDetails]) => showCalendarEventDialog(dateToUse, calendars, mailboxDetails))
 	}
