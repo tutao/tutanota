@@ -20,13 +20,14 @@ import type {RootInstance} from "../entities/sys/RootInstance"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
 import type {VersionReturn} from "../entities/sys/VersionReturn"
 import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
-import {assertMainOrNode} from "../Env"
+import {assertMainOrNode} from "../common/Env"
 // $FlowIgnore[untyped-import]
 import {Type, ValueType} from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
-import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getEtId, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "../common/utils/EntityUtils";
+import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getEtId, getLetId, RANGE_ITEM_LIMIT} from "../common/utils/EntityUtils";
 import type {Element, ListElement} from "../common/utils/EntityUtils";
+import {TypeRef} from "../common/utils/TypeRef";
 
 assertMainOrNode()
 

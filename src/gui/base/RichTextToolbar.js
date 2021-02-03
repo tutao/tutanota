@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Icons} from "./icons/Icons"
-import type {Editor} from './Editor.js'
+import type {Editor} from '../editor/Editor.js'
 import stream from "mithril/stream/stream.js"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
 import type {ButtonAttrs} from "./ButtonN"

@@ -13,10 +13,11 @@ import {
 	_updateEntity,
 	resolveTypeReference
 } from "./EntityFunctions"
-import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "./utils/EntityUtils";
+import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils";
 import type {ListElement} from "./utils/EntityUtils";
 // $FlowIgnore[untyped-import]
 import {ValueType} from "./EntityConstants"
+import {TypeRef} from "./utils/TypeRef";
 
 function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterface): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {

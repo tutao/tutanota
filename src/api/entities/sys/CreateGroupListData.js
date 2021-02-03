@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {CreateGroupData} from "./CreateGroupData"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const CreateGroupListDataTypeRef: TypeRef<CreateGroupListData> = new TypeRef("sys", "CreateGroupListData")
 export const _TypeModel: TypeModel = {

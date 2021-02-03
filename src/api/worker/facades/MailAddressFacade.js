@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {createMailAddressAliasServiceDataDelete} from "../../entities/sys/MailAddressAliasServiceDataDelete"
 import {_service} from "../rest/ServiceRestClient"
 import {HttpMethod} from "../../common/EntityFunctions"

@@ -1,10 +1,11 @@
 //@flow
 import o from "ospec"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
+import {formatBirthdayNumeric} from "../../../src/contacts/model/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {lang} from "../../../src/misc/LanguageViewModel"
+import {compareContacts} from "../../../src/contacts/view/ContactGuiUtils";
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, expectedResult) {

@@ -1,6 +1,9 @@
 //@flow
 import stream from "mithril/stream/stream.js"
 import m from "mithril"
+import {assertMainOrNodeBoot} from "../api/common/Env"
+
+assertMainOrNodeBoot()
 
 export type RouteChangeEvent = {args: Object, requestedPath: string, currentPath: string}
 

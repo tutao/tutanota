@@ -7,7 +7,8 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {findAllAndRemove, remove} from "../../common/utils/ArrayUtils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
-import {isSameId, isSameTypeRefByAttr} from "../../common/utils/EntityUtils"
+import {isSameId} from "../../common/utils/EntityUtils"
+import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 
 export type QueuedBatch = {
 	events: EntityUpdate[], groupId: Id, batchId: Id

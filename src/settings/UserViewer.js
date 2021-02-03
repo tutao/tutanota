@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
@@ -35,11 +35,11 @@ import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
+import {HtmlEditor as Editor, Mode} from "../gui/editor/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 import {checkAndImportUserData, CSV_USER_FORMAT} from "./ImportUsersViewer"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
@@ -47,7 +47,7 @@ import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
 
 assertMainOrNode()
 

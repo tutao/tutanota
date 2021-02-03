@@ -17,7 +17,7 @@ import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
 import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecordsPage"
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 
 assertMainOrNode()

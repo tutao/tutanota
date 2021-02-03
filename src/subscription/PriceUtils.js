@@ -12,7 +12,8 @@ import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"
 import type {Booking} from "../api/entities/sys/Booking"
 import type {SubscriptionData, SubscriptionTypeEnum, UpgradePriceTypeEnum} from "./SubscriptionUtils"
-import {getUpgradePrice, showNotAvailableForFreeDialog} from "./SubscriptionUtils"
+import {getUpgradePrice} from "./SubscriptionUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -122,7 +123,10 @@ export function createNotAvailableForFreeClickHandler(includedInPremium: boolean
 	}
 }
 
-export function premiumSubscriptionActive(included: boolean): Promise<boolean> {
+/**
+ * Returns whether premium is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
+ */
+export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(included)
 		return Promise.resolve(false)

@@ -3,10 +3,8 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {liveDataAttrs} from "../api/common/utils/AriaUtils"
-import {show} from "./RecoverLoginDialog"
+import {liveDataAttrs} from "../gui/AriaUtils"
 import {lang} from "../misc/LanguageViewModel"
-import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {client} from "../misc/ClientDetector"
@@ -115,7 +113,7 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 							href: '/recover',
 							onclick: e => {
 								m.route.set('/recover')
-								show(a.mailAddress(), "password")
+								import("./recover/RecoverLoginDialog").then((dialog) => dialog.show(a.mailAddress(), "password"))
 								e.preventDefault()
 							}
 						}, lang.get("recoverAccountAccess_action"))
@@ -123,7 +121,8 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 							href: '/takeover',
 							onclick: e => {
 								m.route.set('/takeover')
-								showTakeOverDialog(a.mailAddress(), a.password())
+								import("./recover/TakeOverDeletedAddressDialog")
+									.then(({showTakeOverDialog}) => showTakeOverDialog(a.mailAddress(), a.password()))
 								e.preventDefault()
 							}
 						}, lang.get("help_label")) : null)

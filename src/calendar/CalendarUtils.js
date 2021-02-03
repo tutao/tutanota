@@ -1,6 +1,5 @@
 //@flow
 import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../api/common/utils/DateUtils"
-import {pad} from "../api/common/utils/StringUtils"
 import type {
 	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
@@ -23,14 +22,14 @@ import {
 	WeekStart
 } from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {clone, downcast, neverNull} from "../api/common/utils/Utils"
+import {clone, downcast, filterInt, neverNull} from "../api/common/utils/Utils"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
-import {formatDateTime, formatDateWithMonth, formatTime} from "../misc/Formatter"
+import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../misc/Formatter"
 import {size} from "../gui/size"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {logins} from "../api/main/LoginController"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
@@ -39,15 +38,14 @@ import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot
 import type {User} from "../api/entities/sys/User"
 import type {Group} from "../api/entities/sys/Group"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
-import {isColorLight} from "../gui/Color"
-import type {CalendarInfo} from "./CalendarView"
+import {isColorLight} from "../gui/base/Color"
+import type {CalendarInfo} from "./view/CalendarView"
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
-export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -67,67 +65,6 @@ export function generateUid(groupId: Id, timestamp: number): string {
 	return `${groupId}${timestamp}@tutanota.com`
 }
 
-/**
- * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
- */
-export function parseTime(timeString: string): ?{hours: number, minutes: number} {
-	let suffix  // am/pm indicator or undefined
-	let hours   // numeric hours
-	let minutes // numeric minutes
-	// See if the time includes a colon separating hh:mm
-	let mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-	if (mt != null) {
-		suffix = mt[3]
-		hours = parseInt(mt[1], 10)
-		minutes = parseInt(mt[2], 10)
-	} else {
-		// Interpret 127am as 1:27am or 2311 as 11:11pm, e.g.
-		mt = timeString.match(/^(\d{1,4})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-		if (mt != null) {
-			suffix = mt[2]
-			const digits = mt[1]
-			// Hours only?
-			if (digits.length <= 2) {
-				hours = parseInt(digits, 10)
-				minutes = 0
-			} else {
-				hours = parseInt(digits.substr(0, digits.length - 2), 10)
-				minutes = parseInt(digits.substr(-2, 2), 10)
-			}
-		} else {
-			return null
-		}
-	}
-	if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
-		return null
-	}
-	if (suffix) {
-		suffix = suffix.toUpperCase()
-	}
-	if (suffix === "PM" || suffix === "P.M.") {
-		if (hours > 12) return null
-		if (hours !== 12) hours = hours + 12
-	} else if (suffix === "AM" || suffix === "A.M.") {
-		if (hours > 12) return null
-		if (hours === 12) hours = 0
-	} else if (hours > 23) {
-		return null
-	}
-	return {hours, minutes}
-}
-
-/**
- * Stricter version of parseInt() from MDN. parseInt() allows some arbitrary characters at the end of the string.
- * Returns NaN in case there's anything non-number in the string.
- */
-export function filterInt(value: string): number {
-	if (/^\d+$/.test(value)) {
-		return parseInt(value, 10);
-	} else {
-		return NaN;
-	}
-}
-
 
 export function timeString(date: Date, amPm: boolean): string {
 	return timeStringFromParts(date.getHours(), date.getMinutes(), amPm)
@@ -136,24 +73,6 @@ export function timeString(date: Date, amPm: boolean): string {
 export function timeStringInZone(date: Date, amPm: boolean, zone: string): string {
 	const {hour, minute} = DateTime.fromJSDate(date, {zone})
 	return timeStringFromParts(hour, minute, amPm)
-}
-
-export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {
-	let minutesString = pad(minutes, 2)
-	if (amPm) {
-		if (hours === 0) {
-			return `12:${minutesString} am`
-		} else if (hours === 12) {
-			return `12:${minutesString} pm`
-		} else if (hours > 12) {
-			return `${hours - 12}:${minutesString} pm`
-		} else {
-			return `${hours}:${minutesString} am`
-		}
-	} else {
-		let hoursString = pad(hours, 2)
-		return hoursString + ":" + minutesString
-	}
 }
 
 export function shouldDefaultToAmPmTimeFormat(): boolean {

@@ -2,7 +2,7 @@
 import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
 import {downcast} from "../api/common/utils/Utils"
-import {search} from "../search/PlainTextSearch"
+import {search} from "./PlainTextSearch"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 
 export type FaqEntry = {

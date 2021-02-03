@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/common/Env"
 import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
@@ -14,13 +14,13 @@ import {logins} from "../api/main/LoginController"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
-import {appIdToLoginDomain} from "../login/SecondFactorHandler"
+import {appIdToLoginDomain} from "../misc/SecondFactorHandler"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {openLinkNative} from "../native/SystemApp"
+import {showProgressDialog} from "../gui/ProgressDialog"
+import {openLinkNative} from "../native/main/SystemApp"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -203,10 +203,12 @@ export class EditSecondFactorsForm {
 				const openTOTPAppAttrs: ButtonAttrs = {
 					label: "addOpenOTPApp_action",
 					click: () => {
-						openLinkNative(authUrl).then(successful => {
-							if (!successful) {
-								Dialog.error("noAppAvailable_msg")
-							}
+						import("../native/main/SystemApp").then(({openLinkNative}) => {
+							return openLinkNative(authUrl).then(successful => {
+								if (!successful) {
+									Dialog.error("noAppAvailable_msg")
+								}
+							})
 						})
 					},
 					type: ButtonType.Login

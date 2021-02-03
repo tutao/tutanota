@@ -14,9 +14,9 @@ import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 
 // $FlowIgnore[untyped-import]
 import {Type, ValueType, Cardinality, AssociationType} from "../../common/EntityConstants"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {uncompress} from "../lz4"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 assertWorkerOrNode()
 

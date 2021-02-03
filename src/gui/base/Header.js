@@ -11,13 +11,13 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
-import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
+import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {ProgressTracker} from "../../api/main/ProgressTracker"
 
 const LogoutPath = '/login?noAutoLogin=true'
@@ -27,7 +27,7 @@ export const LogoutUrl: string = location.hash.startsWith("#mail")
 		? '?r=' + encodeURIComponent(LogoutPath)
 		: LogoutPath
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export interface CurrentView extends Component {
 	+headerView?: () => Children;

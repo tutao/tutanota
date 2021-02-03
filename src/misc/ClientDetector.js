@@ -1,5 +1,5 @@
 //@flow
-import {assertMainOrNodeBoot, Mode} from "../api/Env"
+import {assertMainOrNodeBoot, Mode} from "../api/common/Env"
 import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
 import {BrowserType, DeviceType} from "./ClientConstants"
 import {neverNull} from "../api/common/utils/Utils"

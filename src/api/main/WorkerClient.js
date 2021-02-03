@@ -1,9 +1,8 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import {objToError, Queue, Request} from "../common/WorkerProtocol"
+import {Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
-import {assertMainOrNode, isMain} from "../Env"
-import {nativeApp} from "../../native/NativeWrapper"
+import {assertMainOrNode, isMain} from "../common/Env"
 import type {
 	AccountTypeEnum,
 	BookingItemFeatureTypeEnum,
@@ -17,7 +16,7 @@ import type {
 } from "../common/TutanotaConstants"
 import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity} from "../common/utils/Utils"
+import {downcast, identity, objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
@@ -51,7 +50,7 @@ import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
-import {TypeRef} from "../common/utils/EntityUtils";
+import {TypeRef} from "../common/utils/TypeRef"
 
 assertMainOrNode()
 
@@ -82,7 +81,8 @@ export class WorkerClient implements EntityRestInterface {
 		})
 		this._queue.setCommands({
 			execNative: (message: Message) =>
-				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
+				import("../../native/common/NativeWrapper").then(({nativeApp}) =>
+					nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1])))),
 			entityEvent: (message: Message) => {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
@@ -174,7 +174,7 @@ export class WorkerClient implements EntityRestInterface {
 		if (isMain()) {
 			locator.entropyCollector.start()
 		}
-		nativeApp.init()
+		import("../../native/common/NativeWrapper").then(({nativeApp}) => nativeApp.init())
 	}
 
 	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {

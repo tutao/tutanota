@@ -1,7 +1,7 @@
 //@flow
 import {worker} from "../api/main/WorkerClient"
 import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
-import {getDisplayText} from "../mail/MailUtils"
+import {getDisplayText} from "../mail/model/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {update} from "../api/main/Entity"
@@ -13,7 +13,6 @@ import {getCapabilityText} from "./CalendarUtils"
 import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {isSameId} from "../api/common/utils/EntityUtils";
 
@@ -68,28 +67,29 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 					label: "acceptInvitation_action",
 					type: ButtonType.Login,
 					click: () => {
+						import("../subscription/PriceUtils")
+							.then(utils => utils.checkPremiumSubscription(false))
+							.then(ok => {
+								if (ok) {
+									acceptInvite(invitation).then(() => {
+										dialog.close()
+										const newColor = colorStream().substring(1) // color is stored without #
+										if (existingGroupSettings) {
+											existingGroupSettings.color = newColor
+											console.log("existing group color", newColor)
+										} else {
+											const groupSettings = Object.assign(createGroupSettings(), {
+												group: invitation.sharedGroup,
+												color: newColor
+											})
+											userSettingsGroupRoot.groupSettings.push(groupSettings)
+											console.log("existing group color", newColor)
+										}
 
-						premiumSubscriptionActive(false).then(ok => {
-							if (ok) {
-								acceptInvite(invitation).then(() => {
-									dialog.close()
-									const newColor = colorStream().substring(1) // color is stored without #
-									if (existingGroupSettings) {
-										existingGroupSettings.color = newColor
-										console.log("existing group color", newColor)
-									} else {
-										const groupSettings = Object.assign(createGroupSettings(), {
-											group: invitation.sharedGroup,
-											color: newColor
-										})
-										userSettingsGroupRoot.groupSettings.push(groupSettings)
-										console.log("existing group color", newColor)
-									}
-
-									return update(userSettingsGroupRoot)
-								})
-							}
-						})
+										return update(userSettingsGroupRoot)
+									})
+								}
+							})
 					}
 				})
 			])

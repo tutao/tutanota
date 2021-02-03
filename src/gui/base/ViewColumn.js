@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/Env"
-import type {AriaLandmarksEnum} from "../../api/common/utils/AriaUtils"
-import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import {assertMainOrNode} from "../../api/common/Env"
+import type {AriaLandmarksEnum} from "../AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 
 assertMainOrNode()
 

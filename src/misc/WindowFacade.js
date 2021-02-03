@@ -1,10 +1,8 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNodeBoot, isApp, isIOSApp, Mode} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isIOSApp, Mode} from "../api/common/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
-import {reloadNative} from "../native/SystemApp"
-import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
 
@@ -35,8 +33,12 @@ class WindowFacade {
 			.then(worker => {
 				// load async to reduce size of boot bundle
 				this._worker = worker
-				return nativeApp.initialized()
-			}).then(() => this.addPageInBackgroundListener())
+				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
+					import("../native/common/NativeWrapper").then(({nativeApp}) => {
+						return nativeApp.initialized().then(() => this.addPageInBackgroundListener())
+					})
+				}
+			})
 	}
 
 	/**
@@ -192,7 +194,9 @@ class WindowFacade {
 				args.noAutoLogin = true
 			}
 			let newQueryString = m.buildQueryString(args)
-			reloadNative(newQueryString.length > 0 ? "?" + newQueryString : "")
+			import("../native/main/SystemApp").then(({reloadNative}) =>
+				reloadNative(newQueryString.length > 0 ? "?" + newQueryString : "")
+			)
 		} else {
 			window.location.reload();
 		}

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {UserAlarmInfoListType} from "./UserAlarmInfoListType"
 import type {UserAuthentication} from "./UserAuthentication"
@@ -9,6 +9,7 @@ import type {UserExternalAuthInfo} from "./UserExternalAuthInfo"
 import type {GroupMembership} from "./GroupMembership"
 import type {PhoneNumber} from "./PhoneNumber"
 import type {PushIdentifierList} from "./PushIdentifierList"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 export const _TypeModel: TypeModel = {

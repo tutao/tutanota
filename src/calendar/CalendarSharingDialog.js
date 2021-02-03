@@ -12,12 +12,12 @@ import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../misc/RecipientInfoBubbleHandler"
-import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../mail/MailUtils"
+import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../mail/model/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {findAndRemove, remove} from "../api/common/utils/ArrayUtils"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
@@ -36,12 +36,10 @@ import {locator} from "../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {showSharingBuyDialog} from "../subscription/SubscriptionUtils"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils";
 
 type CalendarSharingDialogAttrs = {
@@ -315,43 +313,46 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 }
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
-	return premiumSubscriptionActive(false).then(ok => {
-		if (ok) {
-			return showProgressDialog("calendarInvitationProgress_msg",
-				worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo, false), recipients, capability)
-			).then((groupInvitationReturn) => {
-				if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
-					let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
-					let invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
-					Dialog.error(() => {
-						let msg = ""
-						msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
-						msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
-						msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-						return msg
-					})
-				}
-				return groupInvitationReturn.invitedMailAddresses
-			}).catch(PreconditionFailedError, e => {
-				if (logins.getUserController().isGlobalAdmin()) {
-					return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
-					             .then(confirmed => {
-						             if (confirmed) {
-							             showSharingBuyDialog(true)
-						             }
-					             }).return([])
-				} else {
-					return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
-				}
-			}).catch(RecipientsNotFoundError, e => {
-				let invalidRecipients = e.message
-				return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-					+ invalidRecipients).return([])
-			})
-		} else {
-			return Promise.resolve([])
-		}
-	})
-
+	return import("../subscription/PriceUtils")
+		.then((utils) => utils.checkPremiumSubscription(false))
+		.then(ok => {
+			if (ok) {
+				return showProgressDialog("calendarInvitationProgress_msg",
+					worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo, false), recipients, capability)
+				).then((groupInvitationReturn) => {
+					if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
+						let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
+						let invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
+						Dialog.error(() => {
+							let msg = ""
+							msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n"
+								+ existingMailAddresses
+							msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
+							msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+							return msg
+						})
+					}
+					return groupInvitationReturn.invitedMailAddresses
+				}).catch(PreconditionFailedError, e => {
+					if (logins.getUserController().isGlobalAdmin()) {
+						return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+						             .then(confirmed => {
+							             if (confirmed) {
+								             import("../subscription/SubscriptionUtils")
+									             .then((utils) => utils.showSharingBuyDialog(true))
+							             }
+						             }).return([])
+					} else {
+						return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
+					}
+				}).catch(RecipientsNotFoundError, e => {
+					let invalidRecipients = e.message
+					return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+						+ invalidRecipients).return([])
+				})
+			} else {
+				return Promise.resolve([])
+			}
+		})
 }
 

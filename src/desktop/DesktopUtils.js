@@ -12,8 +12,8 @@ import {cryptoFns} from "./CryptoFns"
 
 import {legalizeFilenames} from "./PathUtils"
 import {AttachmentType, Email, MessageEditorFormat} from "oxmsg"
-import type {MailBundle} from "../mail/MailUtils"
 import {delay} from "../api/common/utils/PromiseUtils"
+import type {MailBundle} from "../mail/export/Bundler";
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {

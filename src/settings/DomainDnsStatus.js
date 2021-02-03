@@ -8,7 +8,7 @@ import {CustomDomainCheckReturnTypeRef} from "../api/entities/sys/CustomDomainCh
 import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

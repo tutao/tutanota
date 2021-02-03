@@ -4,7 +4,8 @@ import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
 	AccessBlockedError,
-	AccessDeactivatedError, AccessExpiredError,
+	AccessDeactivatedError,
+	AccessExpiredError,
 	BadRequestError,
 	ConnectionError,
 	LockedError,
@@ -13,36 +14,30 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
-import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
+import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
-import {pushServiceApp} from "../native/PushServiceApp"
 import {logins} from "../api/main/LoginController"
 import type {LoginView} from "./LoginView"
-import {PasswordForm} from "../settings/PasswordForm"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
-import {secondFactorHandler} from "./SecondFactorHandler"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {secondFactorHandler} from "../misc/SecondFactorHandler"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import {themeId} from "../gui/theme"
-import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {isMailAddress} from "../misc/FormatValidator"
-import {fileApp} from "../native/FileApp"
-import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
-import {formatPrice} from "../subscription/PriceUtils"
-import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionUtils"
+import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -70,7 +65,7 @@ export class LoginViewController implements ILoginViewController {
 			worker.initialized.then(() => {
 
 				themeId.map((theme) => {
-					changeColorTheme(theme)
+					import("../native/main/SystemApp").then(({changeColorTheme}) => changeColorTheme(theme))
 				})
 			})
 		}
@@ -209,7 +204,9 @@ export class LoginViewController implements ILoginViewController {
 
 	_enforcePasswordChange(): void {
 		if (logins.getUserController().user.requirePasswordUpdate) {
-			return PasswordForm.showChangeOwnPasswordDialog(false)
+			import("../settings/PasswordForm").then(({PasswordForm}) => {
+				return PasswordForm.showChangeOwnPasswordDialog(false)
+			})
 		}
 	}
 
@@ -229,7 +226,7 @@ export class LoginViewController implements ILoginViewController {
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 		if ((env.mode === Mode.App || env.mode === Mode.Desktop) && !isAdminClient()) {
-			pushServiceApp.register()
+			import("../native/main/PushServiceApp").then(({pushServiceApp}) => pushServiceApp.register())
 		}
 
 		// do not return the promise. loading of dialogs can be executed in parallel
@@ -251,8 +248,9 @@ export class LoginViewController implements ILoginViewController {
 			.then(() => logins.loginComplete()).then(() => {
 			// don't wait for it, just invoke
 			if (isApp()) {
-				fileApp.clearFileData()
-				       .catch((e) => console.log("Failed to clean file data", e))
+				import("../native/common/FileApp")
+					.then(({fileApp}) => fileApp.clearFileData())
+					.catch((e) => console.log("Failed to clean file data", e))
 			}
 		})
 			.then(() => {
@@ -280,11 +278,11 @@ export class LoginViewController implements ILoginViewController {
 					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 						if (properties.lastUpgradeReminder == null && (customerInfo.creationTime.getTime()
 							+ Const.UPGRADE_REMINDER_INTERVAL) < new Date().getTime()) {
-							let message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+							let message = lang.get("premiumOffer_msg")
 							let title = lang.get("upgradeReminderTitle_msg")
 							return Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link")).then(confirm => {
 								if (confirm) {
-									showUpgradeWizard()
+									import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
@@ -309,7 +307,7 @@ export class LoginViewController implements ILoginViewController {
 				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
 					return worker.readAvailableCustomerStorage().then(availableStorage => {
 						if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
-							return showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
+							showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 						}
 					})
 				}
@@ -332,6 +330,8 @@ export class LoginViewController implements ILoginViewController {
 	}
 
 	loadSignupWizard(): Promise<{+show: () => any}> {
-		return worker.initialized.then(() => loadSignupWizard())
+		return worker.initialized
+		             .then(() => import("../subscription/UpgradeSubscriptionWizard")
+			             .then((wizard) => wizard.loadSignupWizard()))
 	}
 }

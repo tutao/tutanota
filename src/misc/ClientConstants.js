@@ -1,5 +1,9 @@
 //@flow
 
+import {assertMainOrNodeBoot} from "../api/common/Env"
+
+assertMainOrNodeBoot()
+
 export const BrowserType = Object.freeze({
 	CHROME: "Chrome",
 	FIREFOX: "Firefox",

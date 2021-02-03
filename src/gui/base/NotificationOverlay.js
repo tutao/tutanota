@@ -4,11 +4,11 @@ import m from "mithril"
 import {px} from "../size"
 import {DefaultAnimationTime, transform} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 type NotificationOverlayAttrs = {|
 	message: Component,

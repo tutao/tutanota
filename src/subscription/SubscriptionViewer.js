@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isApp} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/common/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
@@ -8,7 +8,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {serviceRequest, update} from "../api/main/Entity"
+import {serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
 import {Button} from "../gui/base/Button"
@@ -52,7 +52,6 @@ import {
 	isSharingActive,
 	isWhitelabelActive,
 	showServiceTerms,
-	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -207,14 +206,22 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 		const enableSharingActionAttrs = {
 			label: "sharingFeature_label",
-			click: createNotAvailableForFreeClickHandler(false,
-				() => showSharingBuyDialog(true), isPremiumPredicate),
+			click: createNotAvailableForFreeClickHandler(
+				false,
+				() => import("../subscription/SubscriptionUtils")
+					.then((utils) => utils.showSharingBuyDialog(true)),
+				isPremiumPredicate
+			),
 			icon: () => Icons.Edit,
 		}
 		const disableSharingActionAttrs = {
 			label: "sharingFeature_label",
-			click: createNotAvailableForFreeClickHandler(false,
-				() => showSharingBuyDialog(false), isPremiumPredicate),
+			click: createNotAvailableForFreeClickHandler(
+				false,
+				() => import("../subscription/SubscriptionUtils")
+					.then((utils) => utils.showSharingBuyDialog(false)),
+				isPremiumPredicate
+			),
 			icon: () => Icons.Cancel,
 		}
 		const deleteButtonAttrs = {

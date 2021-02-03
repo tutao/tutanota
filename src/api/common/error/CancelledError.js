@@ -1,6 +1,8 @@
 // @flow
 import {TutanotaError} from "./TutanotaError"
 
+//assertMainOrNodeBoot()
+
 export class CancelledError extends TutanotaError {
 	/**
 	 * A cancelled error is thrown when a async action is aborted

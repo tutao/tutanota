@@ -2,6 +2,8 @@
 
 import {DbError} from "./DbError"
 
+//assertMainOrNodeBoot()
+
 /**
  * Error used to indicate that there's insufficient space on the device.
  */

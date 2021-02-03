@@ -6,45 +6,10 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import {isWorker} from "../Env"
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	BadGatewayError,
-	BadRequestError,
-	ConnectionError,
-	InsufficientStorageError,
-	InternalServerError,
-	InvalidDataError,
-	InvalidSoftwareVersionError,
-	LimitReachedError,
-	LockedError,
-	MethodNotAllowedError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	NotFoundError, PayloadTooLargeError,
-	PreconditionFailedError,
-	ResourceError,
-	ServiceUnavailableError,
-	SessionExpiredError,
-	TooManyRequestsError
-} from "./error/RestError"
-import {ProgrammingError} from "./error/ProgrammingError"
-import {RecipientsNotFoundError} from "./error/RecipientsNotFoundError"
-import {CryptoError} from "./error/CryptoError"
-import {PermissionError} from "./error/PermissionError"
-import {OutOfSyncError} from "./error/OutOfSyncError"
-import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
-import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
-import {DbError} from "./error/DbError"
-import {CancelledError} from "./error/CancelledError"
-import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
-import {FileNotFoundError} from "./error/FileNotFoundError"
-import {FileOpenError} from "./error/FileOpenError"
-import {SseError} from "./error/SseError"
-import {IndexingNotSupportedError} from "./error/IndexingNotSupportedError"
-import {QuotaExceededError} from "./error/QuotaExceededError"
+import {isWorker} from "./Env"
+import {objToError} from "./utils/Utils"
+
+//assertMainOrNode()
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -170,63 +135,3 @@ export function errorToObj(error: Error): {|data: any, message: any, name: any, 
 	}
 }
 
-export function objToError(o: Object): Error {
-	let errorType = ErrorNameToType[o.name]
-	let e = (errorType != null ? new errorType(o.message) : new Error(o.message): any)
-	e.name = o.name
-	e.stack = o.stack || e.stack
-	e.data = o.data
-	return e
-}
-
-const ErrorNameToType = {
-	ConnectionError,
-	BadRequestError,
-	NotAuthenticatedError,
-	SessionExpiredError,
-	NotAuthorizedError,
-	NotFoundError,
-	MethodNotAllowedError,
-	PreconditionFailedError,
-	LockedError,
-	TooManyRequestsError,
-	AccessDeactivatedError,
-	AccessExpiredError,
-	AccessBlockedError,
-	InvalidDataError,
-	InvalidSoftwareVersionError,
-	LimitReachedError,
-	InternalServerError,
-	BadGatewayError,
-	ResourceError,
-	InsufficientStorageError,
-	CryptoError,
-	SessionKeyNotFoundError,
-	SseError,
-	ProgrammingError,
-	RecipientsNotFoundError,
-	RecipientNotResolvedError,
-	OutOfSyncError,
-	SecondFactorPendingError,
-	ServiceUnavailableError,
-	DbError,
-	IndexingNotSupportedError,
-	QuotaExceededError,
-	CancelledError,
-	FileOpenError,
-	PayloadTooLargeError,
-	Error,
-	"java.net.SocketTimeoutException": ConnectionError,
-	"java.net.ConnectException": ConnectionError,
-	"javax.net.ssl.SSLException": ConnectionError,
-	"javax.net.ssl.SSLHandshakeException": ConnectionError,
-	"java.io.EOFException": ConnectionError,
-	"java.net.UnknownHostException": ConnectionError,
-	"java.lang.SecurityException": PermissionError,
-	"java.io.FileNotFoundException": FileNotFoundError,
-	"de.tutao.tutanota.CryptoError": CryptoError, // Android app exception class name
-	"de.tutao.tutanota.TutCrypto": CryptoError, // iOS app crypto error domain
-	"android.content.ActivityNotFoundException": FileOpenError,
-	"de.tutao.tutanota.TutFileViewer": FileOpenError,
-	"NSURLErrorDomain": ConnectionError
-}

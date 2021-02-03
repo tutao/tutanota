@@ -11,15 +11,14 @@ import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import type {PosRect} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 
-assertMainOrNodeBoot()
-
+assertMainOrNode()
 
 export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 
@@ -302,7 +301,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 					originalButtons,
 					Promise.all([
 						Promise.delay(100),
-						import("./ProgressDialog.js")
+						import("../ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {
 							return module.showProgressDialog("loading_msg", originalButtons)

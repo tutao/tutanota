@@ -4,6 +4,9 @@ import type {DomMutation} from "../animation/Animations"
 import {animations} from "../animation/Animations"
 import {requiresStatusBarHack} from "../main-styles"
 import {ease} from "../animation/Easing"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
+
+assertMainOrNodeBoot()
 
 export type PositionRect = {
 	top?: ?string,

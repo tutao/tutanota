@@ -7,7 +7,7 @@ import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
 import {decodeBase64, decodeQuotedPrintable} from "../api/common/utils/Encoding"

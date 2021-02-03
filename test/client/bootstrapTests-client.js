@@ -95,7 +95,7 @@ globalThis.mocks = {}
 	}
 	window.tutao = {}
 
-	const Env = await import("../../src/api/Env.js")
+	const Env = await import("../../src/api/common/Env.js")
 	Env.bootFinished()
 
 	import('./Suite.js')

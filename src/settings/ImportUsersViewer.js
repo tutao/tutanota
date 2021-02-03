@@ -4,7 +4,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {worker} from "../api/main/WorkerClient"
-import {showWorkerProgressDialog} from "../gui/base/ProgressDialog"
+import {showWorkerProgressDialog} from "../gui/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {show as showBuyDialog} from "../subscription/BuyDialog"
@@ -116,7 +116,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let notAvailableUsers = []
 	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
 		if (accepted) {
-			return showWorkerProgressDialog(() => lang.get("createActionStatus_msg", {
+			return showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 				"{index}": nbrOfCreatedUsers,
 				"{count}": userDetailsArray.length
 			}), Promise.each(userDetailsArray, (user, index) => {

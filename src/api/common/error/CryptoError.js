@@ -1,6 +1,8 @@
 // @flow
 import {TutanotaError} from "./TutanotaError"
 
+//assertMainOrNodeBoot()
+
 export class CryptoError extends TutanotaError {
 	/**
 	 * A crypto exception is thrown whenever an encryption/decryption or conversion of keys fails.

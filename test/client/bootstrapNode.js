@@ -89,6 +89,6 @@ process.on("unhandledRejection", function (e) {
 
 window.tutao = {}
 
-require("../../src/api/Env").bootFinished()
+require("../../src/api/common/Env").bootFinished()
 
 require('./Suite.js')

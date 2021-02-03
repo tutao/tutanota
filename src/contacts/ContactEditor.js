@@ -5,18 +5,14 @@ import {Dialog} from "../gui/base/Dialog"
 import {Button} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
-import {parseBirthday} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import {
-	ContactMailAddressTypeToLabel,
-	ContactPhoneNumberTypeToLabel,
-	ContactSocialTypeToLabel,
 	formatBirthdayNumeric,
 	formatBirthdayOfContact,
-	getContactAddressTypeLabel,
-	getContactPhoneNumberTypeLabel,
-	getContactSocialTypeLabel,
-} from "./ContactUtils"
+
+
+
+} from "./model/ContactUtils"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
 import type {AnimationPromise} from "../gui/animation/Animations"
 import {animations, DefaultAnimationTime, height, opacity} from "../gui/animation/Animations"
@@ -32,7 +28,7 @@ import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tut
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
@@ -42,8 +38,16 @@ import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
-import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 import {createDropDownButton} from "../gui/base/Dropdown"
+import {isSameTypeRef} from "../api/common/utils/TypeRef";
+import {
+	ContactMailAddressTypeToLabel,
+	ContactPhoneNumberTypeToLabel,
+	ContactSocialTypeToLabel, getContactAddressTypeLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactSocialTypeLabel
+} from "./view/ContactGuiUtils"
+import {parseBirthday} from "../misc/DateParser"
 
 
 assertMainOrNode()

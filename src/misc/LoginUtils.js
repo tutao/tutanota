@@ -4,7 +4,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import type {TranslationKey} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
-import {getHttpOrigin} from "../api/Env"
+import {getHttpOrigin} from "../api/common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,

@@ -2,7 +2,7 @@
 import m from "mithril"
 import {alpha, animations} from "./../animation/Animations"
 import {theme} from "../theme"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"

@@ -6,12 +6,11 @@ import {DbError} from "../api/common/error/DbError"
 import {loadAll} from "../api/main/Entity"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {Mode} from "../api/Env"
-import {findRecipients} from "../native/ContactApp"
+import {Mode} from "../api/common/Env"
 import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import type {ContactModel} from "../contacts/ContactModel"
+import type {ContactModel} from "../contacts/model/ContactModel"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -44,8 +43,8 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		// ensure match word order for email addresses mainly
 		let contactsPromise = this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
 		                          .catch(DbError, () => {
-			return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
-		})
+			                          return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
+		                          })
 
 		return contactsPromise
 			.map(contact => {
@@ -63,7 +62,9 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 			.reduce((a, b) => a.concat(b), [])
 			.then(suggestions => {
 				if (env.mode === Mode.App) {
-					return findRecipients(query, 10, suggestions).then(() => suggestions)
+					return import("../native/main/ContactApp")
+						.then(({findRecipients}) => findRecipients(query, 10, suggestions))
+						.then(() => suggestions)
 				} else {
 					return suggestions
 				}

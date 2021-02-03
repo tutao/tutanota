@@ -1,10 +1,10 @@
 //@flow
 import m from "mithril"
 import {px} from "../size"
-import {assertMainOrNodeBoot} from "../../api/Env"
-import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import {assertMainOrNode} from "../../api/common/Env"
+import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export class InfoView {
 	title: lazy<string>;

@@ -6,7 +6,7 @@ import {alpha, animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {header} from "./Header"
 
 assertMainOrNode()

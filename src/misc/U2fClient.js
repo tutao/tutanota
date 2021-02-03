@@ -1,7 +1,7 @@
 //@flow
 import {TutanotaError} from "../api/common/error/TutanotaError"
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
+import {assertMainOrNode, getHttpOrigin, isApp} from "../api/common/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"

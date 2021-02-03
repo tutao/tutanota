@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

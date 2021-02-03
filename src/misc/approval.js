@@ -4,7 +4,7 @@ import {ApprovalStatus} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {lang} from "./LanguageViewModel"
-import {getHttpOrigin} from "../api/Env"
+import {getHttpOrigin} from "../api/common/Env"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 
 /**

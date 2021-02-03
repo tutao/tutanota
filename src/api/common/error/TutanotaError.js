@@ -1,5 +1,7 @@
 //@flow
 
+//assertMainOrNodeBoot()
+
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
  * Implemented using ES5 inheritance as babel does not support extending builtin types

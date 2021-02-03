@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec"
 import {client} from "../../../src/misc/ClientDetector"
-import {Mode} from "../../../src/api/Env"
+import {Mode} from "../../../src/api/common/Env"
 import {BrowserType, DeviceType} from "../../../src/misc/ClientConstants"
 
 o.spec("ClientDetector test", function () {

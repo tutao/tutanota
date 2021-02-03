@@ -9,13 +9,13 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {isKeyPressed} from "../../misc/KeyManager"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export type NavButtonAttrs = {|
 	label: TranslationKey | lazy<string>,

@@ -1,6 +1,6 @@
 // @flow
 
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
 import {concat} from "../../common/utils/ArrayUtils"

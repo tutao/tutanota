@@ -1,24 +1,24 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatValidator"
-import {getInboxRuleTypeNameMapping} from "../mail/InboxRuleHandler"
+import {getInboxRuleTypeNameMapping} from "../mail/model/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import {createInboxRule} from "../api/entities/tutanota/InboxRule"
 import {update} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
-import {getArchiveFolder, getFolderName} from "../mail/MailUtils"
-import type {MailboxDetail} from "../mail/MailModel"
+import {getArchiveFolder, getExistingRuleForType, getFolderName} from "../mail/model/MailUtils"
+import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {LockedError} from "../api/common/error/RestError"
 import {isSameId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -92,10 +92,6 @@ export function createInboxRuleTemplate(ruleType: ?string, value: ?string): Inbo
 	return template
 }
 
-export function getExistingRuleForType(cleanValue: string, type: string): ?InboxRule {
-	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value))
-}
-
 function _validateInboxRuleInput(type: string, value: string, ruleId: Id) {
 	let currentCleanedValue = _getCleanedValue(type, value)
 	if (currentCleanedValue === "") {
@@ -107,7 +103,7 @@ function _validateInboxRuleInput(type: string, value: string, ruleId: Id) {
 		&& !isMailAddress(currentCleanedValue, false)) {
 		return "inboxRuleInvalidEmailAddress_msg"
 	} else {
-		let existingRule = getExistingRuleForType(currentCleanedValue, type)
+		let existingRule = getExistingRuleForType(logins.getUserController().props, currentCleanedValue, type)
 		if (existingRule && (!ruleId || (ruleId && !isSameId(existingRule._id, ruleId)))) {
 			return "inboxRuleAlreadyExists_msg"
 		}

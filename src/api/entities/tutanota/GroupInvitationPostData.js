@@ -1,9 +1,10 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
 import type {SharedGroupData} from "./SharedGroupData"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const GroupInvitationPostDataTypeRef: TypeRef<GroupInvitationPostData> = new TypeRef("tutanota", "GroupInvitationPostData")
 export const _TypeModel: TypeModel = {

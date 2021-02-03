@@ -1,19 +1,18 @@
 // @flow
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {getDesktopLogs, getDeviceLogs} from "../native/SystemApp"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {theme} from "../gui/theme"
-import {isApp, isDesktop} from "../api/Env"
+import {isApp, isDesktop} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
-import {isColorLight} from "../gui/Color"
+import {isColorLight} from "../gui/base/Color"
 import {lang} from "../misc/LanguageViewModel"
-import {newMailEditorFromTemplate} from "../mail/MailEditor"
-import {UserError} from "../api/common/error/UserError"
+import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
+import {UserError} from "../api/main/UserError"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -62,24 +61,26 @@ function sendDeviceLogs() {
 	const global = downcast(window)
 	let p = Promise.resolve()
 	if (global.logger) {
-		p = worker.getLog().then(workerLogEntries => {
-			const mainEntries = global.logger.getEntries()
-			attachments.push(createLogFile(timestamp.getTime(), mainEntries, "main"))
-			attachments.push(createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
-		})
+		const mainEntries = global.logger.getEntries()
+		p = createLogFile(timestamp.getTime(), mainEntries, "main")
+			.then((mainLogFile) => attachments.push(mainLogFile))
+			.then(() => worker.getLog())
+			.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
+			.then((workerLogFile) => attachments.push(workerLogFile))
 	}
 
 	if (isDesktop()) {
 		p = p
-			.then(getDesktopLogs)
-			.then(desktopEntries => {
-				attachments.push(createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
-			})
+			.then(() => import("../native/main/SystemApp"))
+			.then(({getDesktopLogs}) => getDesktopLogs())
+			.then((desktopEntries) => createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
+			.then((desktopLogFile) => attachments.push(desktopLogFile))
 	}
 
 	if (isApp()) {
 		p = p
-			.then(getDeviceLogs)
+			.then(() => import("../native/main/SystemApp"))
+			.then(({getDeviceLogs}) => getDeviceLogs())
 			.then(fileReference => {
 				fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
 				attachments.push(fileReference)

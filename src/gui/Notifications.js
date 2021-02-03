@@ -1,7 +1,7 @@
 //@flow
 
 import {noOp} from "../api/common/utils/Utils"
-import {isApp, isDesktop} from "../api/Env"
+import {isApp, isDesktop} from "../api/common/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 
 function _showNotification(title: string, options: ?NotificationOptions, onclick: clickHandler): ?Notification {

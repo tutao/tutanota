@@ -24,10 +24,10 @@ import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import {isTest} from "../../Env"
+import {isTest} from "../../common/Env"
 import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

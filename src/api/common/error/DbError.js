@@ -1,6 +1,8 @@
 // @flow
 import {TutanotaError} from "./TutanotaError"
 
+//assertMainOrNodeBoot()
+
 export class DbError extends TutanotaError {
 	error: ?Error
 	/**

@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import type {ContactForm} from "../../entities/tutanota/ContactForm"

@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../Env"
+import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../common/Env"
 import {
 	ConnectionError,
 	handleRestError,

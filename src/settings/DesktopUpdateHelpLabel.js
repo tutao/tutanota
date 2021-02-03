@@ -4,7 +4,7 @@ import m from "mithril"
 import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {nativeApp} from '../native/NativeWrapper.js'
+import {nativeApp} from '../native/common/NativeWrapper.js'
 import {Request} from "../api/common/WorkerProtocol.js"
 
 export type UpdateHelpLabelAttrs = {

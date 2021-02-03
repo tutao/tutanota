@@ -1,9 +1,20 @@
+/**
+ * Script to build and publish release versions of the app.
+ *
+ * <h2>Bundling</h2>
+ *
+ * Bundling is manual. Rollup makes no attempt to optimize chunk sizes anymore and we can do it much better manually anyway because we
+ * know what is needed together.
+ *
+ * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
+ * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
+ */
 import options from "commander"
 import Promise from "bluebird"
 import fs from "fs-extra"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
-import {spawnSync} from "child_process"
+import {spawn, spawnSync} from "child_process"
 import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
 import os from "os"
@@ -12,20 +23,23 @@ import {resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
-import analyze from "rollup-plugin-analyzer"
 import {fileURLToPath} from "url"
 import {buildDesktop} from "./buildSrc/DesktopBuilder.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
+import visualizer from "rollup-plugin-visualizer"
+import flow from "flow-bin"
 
 const {babel} = pluginBabel
 let start = Date.now()
 
-const DistDir = 'build/dist'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // We use terser for minimifaction but we don't use nameCache because it does not work.
 // It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
 // which looks like a problem e.g. for accessing fields.
+
+// change this to disable minification and name mangling.
+const MINIMIZE = true
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
@@ -75,6 +89,7 @@ doBuild().catch(e => {
 
 async function doBuild() {
 	try {
+		spawn(flow, {stdio: "inherit"})
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		await buildWebapp(version)
 		await buildDesktopClient(version)
@@ -109,7 +124,7 @@ async function buildWebapp(version) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.js"],
 		plugins: [
-			terser(),
+			MINIMIZE && terser(),
 			nodeResolve(),
 			commonjs(),
 			{
@@ -132,8 +147,21 @@ async function buildWebapp(version) {
 	console.log("stared bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.js", "src/api/worker/worker.js"],
+		preserveEntrySignatures: false,
+		perf: true,
+
+		// treeshake: {
+		// 	moduleSideEffects(id) {
+		// 		if (id.includes("src/api/common") ||
+		// 			id.includes("src/mail") ||
+		// 			id.includes("src/calendar") ||
+		// 			id.includes("src/subscription")
+		// 		) {
+		// 			return false
+		// 		}
+		// 	},
+		// },
 		plugins: [
-			analyze({limit: 10, hideDeps: true}),
 			babel({
 				plugins: [
 					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
@@ -156,9 +184,10 @@ async function buildWebapp(version) {
 			commonjs({
 				exclude: "src/**",
 			}),
-			terser()
+			MINIMIZE && terser(),
+			analyzer(),
+			visualizer({filename: "build/stats.html", gzipSize: true}),
 		],
-		perf: true,
 	})
 	console.log("bundling timings: ")
 	for (let [k, v] of Object.entries(bundle.getTimings())) {
@@ -169,9 +198,77 @@ async function buildWebapp(version) {
 		sourcemap: true,
 		format: "system",
 		dir: "build/dist",
-		manualChunks: (id, {getModuleInfo, getModuleIds}) => {
-			if (id.includes("api/entities")) {
-				return "entities"
+		manualChunks(id, {getModuleInfo, getModuleIds}) {
+			if (getModuleInfo(id).code.includes("assertMainOrNodeBoot")) {
+				// everything marked as assertMainOrNodeBoot goes into boot bundle right now
+				// (which is getting merged into app.js)
+				return id.includes("api/common") ? "common-min" : "boot"
+			} else if (id.includes("src/gui/date") ||
+				id.includes("src/misc/DateParser") ||
+				id.includes("luxon") ||
+				id.includes("src/calendar/CalendarUtils") ||
+				id.includes("src/calendar/CalendarInvites") ||
+				id.includes("src/calendar/CalendarUpdateDistributor") ||
+				id.includes("src/calendar/export")
+			) {
+				// luxon and everything that depends on it goes into date bundle
+				return "date"
+			} else if (id.includes("src/misc/HtmlSanitizer")) {
+				return "sanitizer"
+			} else if (id.includes("src/misc/Urlifier")) {
+				return "urlifier"
+			} else if (id.includes("src/gui/base") || id.includes("src/gui/nav")) {
+				// these gui elements are used from everywhere
+				return "gui-base"
+			} else if (id.includes("src/native/main") || id.includes("SearchInPageOverlay")) {
+				return "native-main"
+			} else if (id.includes("src/mail/editor") || id.includes("squire") || id.includes("src/gui/editor")) {
+				// squire is most often used with mail editor and they are both not too big so we merge them
+				return "mail-editor"
+			} else if (
+				id.includes("src/api/main") ||
+				id.includes("src/mail/model") ||
+				id.includes("src/contacts/model") ||
+				id.includes("src/calendar/model") ||
+				id.includes("src/search/model") ||
+				id.includes("src/misc/ErrorHandlerImpl") ||
+				id.includes("src/misc") ||
+				id.includes("src/file") ||
+				id.includes("src/gui")
+			) {
+				// Things which we always need for main thread anyway, at least currently
+				return "main"
+			} else if (id.includes("src/mail/view")) {
+				return "mail-view"
+			} else if (id.includes("src/native/worker")) {
+				return "worker"
+			} else if (id.includes("src/native/common")) {
+				return "native-common"
+			} else if (id.includes("src/search")) {
+				return "search"
+			} else if (id.includes("src/calendar/view")) {
+				return "calendar-view"
+			} else if (id.includes("src/contacts")) {
+				return "contacts"
+			} else if (id.includes("src/login/recover") || id.includes("src/support") || id.includes("src/login/contactform")) {
+				// Collection of small UI components which are used not too often
+				// Perhaps contact form should be separate
+				// Recover things depends on HtmlEditor which we don't want to load on each login
+				return "ui-extra"
+			} else if (id.includes("src/login")) {
+				return "login"
+			} else if (id.includes("src/api/common") || id.includes("src/api/entities")) {
+				// things that are used in both worker and client
+				// entities could be separate in theory but in practice they are anyway
+				return "common"
+			} else if (id.includes("rollupPluginBabelHelpers") || id.includes("commonjsHelpers")) {
+				return "polyfill-helpers"
+			} else if (id.includes("src/settings") || id.includes("src/subscription")) {
+				// subscription and settings depend on each other right now.
+				// subscription is also a kitchen sink with signup, utils and views, we should break it up
+				return "settings"
+			} else if (id.includes("src/api/worker")) {
+				return "worker" // avoid that crypto stuff is only put into native
 			} else {
 				// Put all translations into "translation-code"
 				// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
@@ -300,7 +397,9 @@ async function bundleServiceWorker(bundles, version) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
-		.concat(bundles.filter(it => it.startsWith("translation-en") || !it.startsWith("translation")))
+		// we still cache native-common even though we don't need it because worker has to statically depend on it
+		.concat(bundles.filter(it => it.startsWith("translation-en") ||
+			!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")))
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 	const swBundle = await rollup({
 		input: ["src/serviceworker/sw.js"],
@@ -317,7 +416,7 @@ async function bundleServiceWorker(bundles, version) {
 				],
 				babelHelpers: "bundled",
 			}),
-			terser(),
+			MINIMIZE && terser(),
 			{
 				name: "sw-banner",
 				banner() {
@@ -485,5 +584,43 @@ function publish(version) {
 function exitOnFail(result) {
 	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
+	}
+}
+
+/**
+ * A little plugin to:
+ *  - Print out each chunk size and contents
+ *  - Create a graph file with chunk dependencies.
+ */
+function analyzer() {
+	return {
+		name: "analyze",
+		async generateBundle(outOpts, bundle) {
+			const prefix = __dirname
+			let buffer = "digraph G {\n"
+			buffer += "edge [dir=back]\n"
+
+			for (const [key, value] of Object.entries(bundle)) {
+				if (key.startsWith("translation")) continue
+				for (const dep of value.imports) {
+					if (!dep.includes("translation")) {
+						buffer += `"${dep}" -> "${key}"\n`
+					}
+				}
+
+
+				console.log(key, "\t", value.code.length / 1024 + "K")
+				for (const module of Object.keys(value.modules)) {
+					if (module.includes("src/api/entities")) {
+						continue
+					}
+					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module
+					console.log("\t" + moduleName)
+				}
+			}
+
+			buffer += "}\n"
+			await fs.writeFile("build/bundles.dot", buffer)
+		},
 	}
 }

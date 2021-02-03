@@ -1,14 +1,14 @@
 //@flow
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
-import {HtmlEditor} from "../gui/base/HtmlEditor"
+import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {lang, languages} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import m from "mithril"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import {load, update} from "../api/main/Entity"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -19,9 +19,9 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {CustomerProperties} from "../api/entities/sys/CustomerProperties"
-import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
+import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
-import {UserError} from "../api/common/error/UserError"
+import {UserError} from "../api/main/UserError"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate

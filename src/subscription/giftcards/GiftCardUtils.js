@@ -12,7 +12,7 @@ import type {GiftCard} from "../../api/entities/sys/GiftCard"
 import {_TypeModel as GiftCardTypeModel, GiftCardTypeRef} from "../../api/entities/sys/GiftCard"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {UserError} from "../../api/common/error/UserError"
+import {UserError} from "../../api/main/UserError"
 import {showServiceTerms} from "../SubscriptionUtils"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -27,13 +27,12 @@ import {getByAbbreviation} from "../../api/common/CountryList"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {theme} from "../../gui/theme"
-import {writeGiftCardMail} from "../../mail/MailEditor"
+import {writeGiftCardMail} from "../../mail/editor/MailEditor"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64} from "../../api/common/utils/Encoding"
-import {getWebRoot, isAndroidApp, isApp} from "../../api/Env"
-import {shareTextNative} from "../../native/SystemApp"
+import {getWebRoot, isAndroidApp, isApp} from "../../api/common/Env"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -168,7 +167,11 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										m(ButtonN, {
 											click: () => {
 												dialog.close()
-												setTimeout(() => writeGiftCardMail(link, giftCardDomElement), DefaultAnimationTime)
+												setTimeout(
+													() => import("../../mail/editor/MailEditor")
+														.then((editor) => editor.writeGiftCardMail(link, giftCardDomElement)),
+													DefaultAnimationTime
+												)
 											},
 											label: "shareViaEmail_action",
 											icon: () => BootIcons.Mail
@@ -176,7 +179,10 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										isAndroidApp()
 											? m(ButtonN, {
 												click: () => {
-													shareTextNative(lang.get("nativeShareGiftCard_msg", {"{link}": link}), lang.get("nativeShareGiftCard_label"))
+													import("../../native/main/SystemApp").then((nativeApp) => {
+														nativeApp.shareTextNative(lang.get("nativeShareGiftCard_msg", {"{link}": link}),
+															lang.get("nativeShareGiftCard_label"))
+													})
 												},
 												label: "share_action",
 												icon: () => BootIcons.Share

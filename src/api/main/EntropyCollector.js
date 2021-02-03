@@ -2,7 +2,7 @@
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
 import type {WorkerClient} from "./WorkerClient"
-import {assertMainOrNode} from "../Env"
+import {assertMainOrNode} from "../common/Env"
 
 assertMainOrNode()
 

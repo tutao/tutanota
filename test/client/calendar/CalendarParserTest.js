@@ -1,7 +1,7 @@
 //@flow
 
 import o from "ospec"
-import {parseDuration, parseProperty, parsePropertyKeyValue, parseTime, propertySequenceParser} from "../../../src/calendar/CalendarParser"
+import {parseDuration, parseProperty, parsePropertyKeyValue, parseTime, propertySequenceParser} from "../../../src/calendar/export/CalendarParser"
 import {ParserError, StringIterator} from "../../../src/misc/parsing"
 
 o.spec("CalendarParser", function () {

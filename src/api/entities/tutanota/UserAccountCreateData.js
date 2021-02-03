@@ -1,9 +1,10 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {UserAccountUserData} from "./UserAccountUserData"
 import type {InternalGroupData} from "./InternalGroupData"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 export const _TypeModel: TypeModel = {

@@ -1,8 +1,8 @@
 // @flow
 import {ease} from "./Easing"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
 import {downcast} from "../../api/common/utils/Utils"
-import {hexToRgb} from "../Color"
+import {hexToRgb} from "../base/Color"
 import type {EasingFunction} from "./Easing"
 
 assertMainOrNodeBoot()

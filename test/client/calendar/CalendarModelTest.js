@@ -15,10 +15,10 @@ import {
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, downcast, neverNull, noOp} from "../../../src/api/common/utils/Utils"
 import {asResult, mapToObject} from "../../api/TestUtils"
-import type {CalendarModel} from "../../../src/calendar/CalendarModel"
+import type {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {
 	CalendarModelImpl
-} from "../../../src/calendar/CalendarModel"
+} from "../../../src/calendar/model/CalendarModel"
 import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
@@ -41,7 +41,7 @@ import {NotFoundError} from "../../../src/api/common/error/RestError"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {ProgressTracker} from "../../../src/api/main/ProgressTracker"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {MailModel} from "../../../src/mail/MailModel"
+import {MailModel} from "../../../src/mail/model/MailModel"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {

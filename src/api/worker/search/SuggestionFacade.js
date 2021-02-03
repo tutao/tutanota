@@ -4,7 +4,7 @@ import {SearchTermSuggestionsOS} from "./DbFacade"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import {random} from "../crypto/Randomizer"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export type SuggestionsType = {
 	[key: string]: string[]

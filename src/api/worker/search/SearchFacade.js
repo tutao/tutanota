@@ -46,7 +46,8 @@ import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
-import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, TypeRef} from "../../common/utils/EntityUtils";
+import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
+import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

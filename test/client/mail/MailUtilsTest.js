@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec"
 import {GroupType} from "../../../src/api/common/TutanotaConstants"
-import {createRecipientInfo, parseMailtoUrl} from "../../../src/mail/MailUtils"
+import {createRecipientInfo, parseMailtoUrl} from "../../../src/mail/model/MailUtils"
 import {LoginControllerImpl, logins} from "../../../src/api/main/LoginController"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import {RecipientInfoType} from "../../../src/api/common/RecipientInfo"

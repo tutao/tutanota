@@ -3,13 +3,13 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export const ButtonType = Object.freeze({
 	Action: 'action',

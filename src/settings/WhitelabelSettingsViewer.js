@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -36,10 +36,10 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
-import {DatePicker} from "../gui/base/DatePicker"
+import {DatePicker} from "../gui/date/DatePicker"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {convertToDataFile} from "../api/common/DataFile"
@@ -59,7 +59,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {isWhitelabelActive, showNotAvailableForFreeDialog, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
+import {isWhitelabelActive, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
@@ -69,6 +69,7 @@ import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
 
 assertMainOrNode()
 

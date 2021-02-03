@@ -2,10 +2,9 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {convertToDataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/Env"
-import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
+import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
 import {downcast, neverNull} from "../api/common/utils/Utils"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
@@ -16,6 +15,8 @@ import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 
 assertMainOrNode()
+
+export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export class FileController {
 
@@ -28,7 +29,8 @@ export class FileController {
 			downloadPromise = worker.downloadFileContentNative(tutanotaFile)
 			                        .then((file) => {
 				                        return (isAndroidApp() && !open
-					                        ? putFileIntoDownloadsFolder(file.location)
+					                        ? import("../native/common/FileApp")
+						                        .then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))
 					                        : this.open(file))
 					                        .finally(() => this._deleteFile(file.location))
 			                        })
@@ -60,7 +62,8 @@ export class FileController {
 		if (isAndroidApp()) {
 			downloadContent = f => worker.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
-			save = p => p.then(files => files.forEach(file => putFileIntoDownloadsFolder(file.location)))
+			save = p => p.then(files => files.forEach(file =>
+				import("../native/common/FileApp").then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))))
 		} else if (isApp()) {
 			downloadContent = f => worker.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
@@ -154,13 +157,14 @@ export class FileController {
 	}
 
 	openFileReference(file: FileReference): Promise<void> {
-		return fileApp.open(file)
+		return import("../native/common/FileApp").then(({fileApp}) => fileApp.open(file))
 	}
 
 	openDataFile(dataFile: DataFile): Promise<void> {
 		if (isApp() || isDesktop()) {
-			return fileApp.saveBlob(dataFile)
-			              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
+			return import("../native/common/FileApp").then(({fileApp}) => fileApp.saveBlob(dataFile))
+			                                         .catch(err => Dialog.error("canNotOpenFileOnDevice_msg"))
+			                                         .return()
 		}
 		let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 			|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
@@ -235,8 +239,10 @@ export class FileController {
 
 	_deleteFile(filePath: string) {
 		if (isApp()) {
-			fileApp.deleteFile(filePath)
-			       .catch((e) => console.log("failed to delete file", filePath, e))
+			import("../native/common/FileApp").then(({fileApp}) =>
+				fileApp.deleteFile(filePath)
+				       .catch((e) => console.log("failed to delete file", filePath, e))
+			)
 		}
 	}
 
@@ -269,5 +275,3 @@ export class FileController {
 export type MailExportMode = "msg" | "eml"
 
 export const fileController: FileController = new FileController()
-
-

@@ -54,7 +54,7 @@ import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
-import {isSameTypeRef} from "../../../src/api/common/utils/EntityUtils";
+import {isSameTypeRef} from "../../../src/api/common/utils/TypeRef";
 
 
 o.spec("crypto facade", function () {

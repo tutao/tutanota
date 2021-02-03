@@ -5,9 +5,6 @@ import {DropDownSelector} from "./DropDownSelector"
 import {Countries} from "../../api/common/CountryList"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {Dialog} from "./Dialog"
-import {Keys} from "../../api/common/TutanotaConstants"
-import type {Shortcut} from "../../misc/KeyManager"
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLabel?: lazy<string>, label: TranslationKey | lazy<string> = "invoiceCountry_label"): DropDownSelector<?Country> {

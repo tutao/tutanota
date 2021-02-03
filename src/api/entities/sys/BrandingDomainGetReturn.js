@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {CertificateInfo} from "./CertificateInfo"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", "BrandingDomainGetReturn")
 export const _TypeModel: TypeModel = {

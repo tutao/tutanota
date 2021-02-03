@@ -2,7 +2,7 @@
 // $FlowIgnore[untyped-import]
 import sjcl from "./lib/sjcl"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import type {EntropySrcEnum} from "../../common/TutanotaConstants"
 import {EntropySrc} from "../../common/TutanotaConstants"
 

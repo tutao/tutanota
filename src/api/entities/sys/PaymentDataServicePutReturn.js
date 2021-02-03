@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {Braintree3ds2Request} from "./Braintree3ds2Request"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const PaymentDataServicePutReturnTypeRef: TypeRef<PaymentDataServicePutReturn> = new TypeRef("sys", "PaymentDataServicePutReturn")
 export const _TypeModel: TypeModel = {

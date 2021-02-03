@@ -43,15 +43,12 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {
-	compareOldestFirst,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	getElementId,
-	isSameId,
-	isSameTypeRef,
-	isSameTypeRefByAttr,
-	TypeRef
+	isSameId
 } from "../../common/utils/EntityUtils";
+import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",

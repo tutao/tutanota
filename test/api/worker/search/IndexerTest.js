@@ -23,7 +23,8 @@ import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
-import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/utils/EntityUtils";
+import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/utils/EntityUtils";
+import {TypeRef} from "../../../../src/api/common/utils/TypeRef";
 
 const restClientMock: EntityRestClient = downcast({})
 

@@ -55,7 +55,8 @@ import {
 } from "./SearchIndexEncoding"
 import {random} from "../crypto/Randomizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import {elementIdPart, firstBiggerThanSecond, listIdPart, TypeRef} from "../../common/utils/EntityUtils";
+import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

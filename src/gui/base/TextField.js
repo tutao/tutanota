@@ -4,18 +4,14 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, fontSize, transform} from "./../animation/Animations"
+import {animations, fontSize, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {theme} from "../theme"
 import type {keyHandler} from "../../misc/KeyManager"
 import {TabIndex} from "../../api/common/TutanotaConstants"
 
-assertMainOrNodeBoot()
-
-const FALSE_CLOSURE = () => {
-	return false
-}
+assertMainOrNode()
 
 export const Type = Object.freeze({
 	Text: "text",

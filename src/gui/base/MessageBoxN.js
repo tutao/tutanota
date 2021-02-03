@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/Env"
-import {px} from "../size"
+import {assertMainOrNode} from "../../api/common/Env"
 import {theme} from "../theme"
 
 assertMainOrNode()

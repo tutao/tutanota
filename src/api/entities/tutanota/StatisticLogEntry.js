@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {ContactFormEncryptedStatisticsField} from "./ContactFormEncryptedStatisticsField"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const StatisticLogEntryTypeRef: TypeRef<StatisticLogEntry> = new TypeRef("tutanota", "StatisticLogEntry")
 export const _TypeModel: TypeModel = {

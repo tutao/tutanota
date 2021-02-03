@@ -10,11 +10,11 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {faq} from "./FaqModel"
 import {Keys} from "../api/common/TutanotaConstants"
 import {debounce} from "../api/common/utils/Utils"
-import {writeSupportMail} from "../mail/MailEditor"
+import {writeSupportMail} from "../mail/editor/MailEditor"
 
 assertMainOrNode()
 

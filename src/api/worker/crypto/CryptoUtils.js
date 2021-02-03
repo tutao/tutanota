@@ -4,7 +4,7 @@ import {base64ToBase64Url, base64ToUint8Array, hexToUint8Array,uint8ArrayToArray
 import {concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import sjcl from "./lib/sjcl"
 

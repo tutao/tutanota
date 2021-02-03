@@ -1,6 +1,8 @@
 // @flow
 import {TutanotaError} from "./TutanotaError"
 
+//assertMainOrNodeBoot()
+
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
 

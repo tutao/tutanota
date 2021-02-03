@@ -1,5 +1,5 @@
 //@flow
-import type {CalendarInfo} from "./CalendarView"
+import type {CalendarInfo} from "./view/CalendarView"
 import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {
 	AccountType,
@@ -15,9 +15,9 @@ import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
-import type {MailboxDetail} from "../mail/MailModel"
+import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream/stream.js"
-import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser} from "../mail/MailUtils"
+import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser} from "../mail/model/MailUtils"
 import {
 	createRepeatRuleWithValues,
 	generateUid,
@@ -30,16 +30,15 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getTimeZone,
-	hasCapabilityOnGroup, incrementByRepeatPeriod,
+	hasCapabilityOnGroup,
+	incrementByRepeatPeriod,
 	incrementSequence,
-	parseTime,
 	timeString,
-	timeStringFromParts,
 	timeStringInZone
 } from "./CalendarUtils"
 import {assertNotNull, clone, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {CalendarModel} from "./CalendarModel"
+import {CalendarModel} from "./model/CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
@@ -51,16 +50,15 @@ import type {IUserController} from "../api/main/UserController"
 import type {RecipientInfo, RecipientInfoTypeEnum} from "../api/common/RecipientInfo"
 import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
-import {defaultSendMailModel, SendMailModel} from "../mail/SendMailModel"
-import {firstThrow} from "../api/common/utils/ArrayUtils"
+import type {SendMailModel} from "../mail/editor/SendMailModel"
 import {addMapEntry, deleteMapEntry} from "../api/common/utils/MapUtils"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
-import {UserError} from "../api/common/error/UserError"
+import {UserError} from "../api/main/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {cleanMatch} from "../api/common/utils/StringUtils"
+import {parseTime, timeStringFromParts} from "../misc/Formatter"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -994,18 +992,20 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 
 export function createCalendarEventViewModel(date: Date, calendars: Map<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
                                              existingEvent: ?CalendarEvent, previousMail: ?Mail, resolveRecipientsLazily: boolean,
-): CalendarEventViewModel {
-	return new CalendarEventViewModel(
-		logins.getUserController(),
-		calendarUpdateDistributor,
-		locator.calendarModel,
-		mailboxDetail,
-		(mailboxDetail) => defaultSendMailModel(mailboxDetail),
-		date,
-		getTimeZone(),
-		calendars,
-		existingEvent,
-		previousMail,
-		resolveRecipientsLazily,
-	)
+): Promise<CalendarEventViewModel> {
+	return import("../mail/editor/SendMailModel").then((model) => {
+		return new CalendarEventViewModel(
+			logins.getUserController(),
+			calendarUpdateDistributor,
+			locator.calendarModel,
+			mailboxDetail,
+			(mailboxDetail) => model.defaultSendMailModel(mailboxDetail),
+			date,
+			getTimeZone(),
+			calendars,
+			existingEvent,
+			previousMail,
+			resolveRecipientsLazily,
+		)
+	})
 }

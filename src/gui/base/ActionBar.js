@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
 

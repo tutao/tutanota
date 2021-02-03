@@ -1,7 +1,7 @@
 // @flow
 import {app, dialog} from 'electron'
 import {lang} from "../misc/LanguageViewModel"
-import {LOGIN_TITLE} from "../api/Env"
+import {LOGIN_TITLE} from "../api/common/Env"
 import fs from 'fs'
 import path from 'path'
 import os from 'os'

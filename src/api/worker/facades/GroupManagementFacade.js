@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"

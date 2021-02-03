@@ -9,7 +9,9 @@ import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElemen
 import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
-import {isAdminClient, isApp, isDesktop} from "../Env"
+import {isAdminClient, isApp, isDesktop} from "./Env"
+
+//assertMainOrNodeBoot()
 
 export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
                                                                           .reduce((r, k) => {

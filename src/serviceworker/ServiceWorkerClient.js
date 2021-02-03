@@ -1,17 +1,14 @@
 //@flow
-import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
-import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
-import {ButtonType} from "../gui/base/ButtonN"
 import m from "mithril"
 import {handleUncaughtError} from "../misc/ErrorHandler"
-import {objToError} from "../api/common/WorkerProtocol"
+import {objToError} from "../api/common/utils/Utils";
 
 assertMainOrNodeBoot()
 
 function showUpdateOverlay(onUpdate: () => void) {
-
 	const notificationMessage: Component = {
 		view: () => {
 			return m("span", [
@@ -26,13 +23,15 @@ function showUpdateOverlay(onUpdate: () => void) {
 			])
 		}
 	}
-	notificationOverlay.show(notificationMessage, {label: "postpone_action"}, [
-		{
-			label: "refresh_action",
-			click: onUpdate,
-			type: ButtonType.Primary
-		}
-	])
+	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/ButtonN")]).then(([notificationOverlay, {ButtonType}]) => {
+		notificationOverlay.show(notificationMessage, {label: "postpone_action"}, [
+			{
+				label: "refresh_action",
+				click: onUpdate,
+				type: ButtonType.Primary
+			}
+		])
+	})
 }
 
 function showUpdateMessageIfNeeded(registration: ServiceWorkerRegistration) {
@@ -52,10 +51,7 @@ export function init() {
 	if (serviceWorker) {
 		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
-			let location = window.location.pathname.endsWith("/") || window.location.pathname.indexOf("contactform/") !== -1
-				? "../sw.js"
-				: "sw.js"
-			serviceWorker.register(location)
+			serviceWorker.register(window.tutao.appState.prefixWithoutFile + "/sw.js")
 			             .then((registration) => {
 				             console.log("ServiceWorker has been installed")
 				             showUpdateMessageIfNeeded(registration)

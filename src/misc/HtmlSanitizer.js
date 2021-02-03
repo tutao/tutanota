@@ -220,10 +220,4 @@ function isAllowedLink(link: string): boolean {
 	}
 }
 
-export function stringifyFragment(fragment: DocumentFragment): string {
-	let div = document.createElement("div")
-	div.appendChild(fragment)
-	return div.innerHTML
-}
-
 export const htmlSanitizer: HtmlSanitizer = new HtmlSanitizer()

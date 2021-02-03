@@ -12,12 +12,12 @@ import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {downcast} from "../api/common/utils/Utils"
 import {load, update} from "../api/main/Entity"
+import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {incrementDate} from "../api/common/utils/DateUtils"
-import {changeSystemLanguage} from "../native/SystemApp"
 import {getHourCycle} from "../misc/Formatter"
-import type {EntityUpdateData} from "../api/main/EventController"
+import {Mode} from "../api/common/Env"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -36,7 +36,10 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					? {code: value, languageTag: languageCodeToTag(value)}
 					: getLanguage()
 				lang.setLanguage(newLanguage)
-				    .then(() => changeSystemLanguage(newLanguage))
+				    .then(() => env.mode === Mode.Desktop ?
+					    import("../native/main/SystemApp").then(({changeSystemLanguage}) => changeSystemLanguage(newLanguage))
+					    : Promise.resolve()
+				    )
 				    .then(() => styles.updateStyle("main"))
 				    .then(m.redraw)
 			}

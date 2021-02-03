@@ -1,19 +1,13 @@
 //@flow
 import {client} from "./misc/ClientDetector"
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 // $FlowIgnore[untyped-import]
 import en from "./translations/en"
 import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
-import {modal} from "./gui/base/Modal"
 import "./gui/main-styles"
-import {InfoView} from "./gui/base/InfoView"
-import {Button} from "./gui/base/Button"
-import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/Env"
-import {keyManager} from "./misc/KeyManager"
+import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import {downcast, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
@@ -24,10 +18,7 @@ import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
-import {ButtonType} from "./gui/base/ButtonN"
-import {changeSystemLanguage} from "./native/SystemApp"
-import {Request} from "./api/common/WorkerProtocol"
-import {nativeApp} from "./native/NativeWrapper"
+import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -47,12 +38,8 @@ let currentView: ?Component = null
 window.tutao = {
 	client,
 	m,
-	stream,
-	modal,
 	lang,
 	root,
-	header,
-	keyManager,
 	logins,
 	currentView,
 	themeId,
@@ -62,27 +49,6 @@ window.tutao = {
 setupExceptionHandling()
 
 client.init(navigator.userAgent, navigator.platform)
-import("./serviceworker/ServiceWorkerClient").then((swModule) => swModule.init())
-if (client.isIE()) {
-	import("./gui/base/NotificationOverlay.js").then((module) => module.show({
-		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
-	}, {label: "close_alt"}, []))
-} else if (isDesktop()) {
-	nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('isUpdateAvailable', [])))
-	         .then(updateInfo => {
-		         if (updateInfo) {
-			         let message = {view: () => m("", lang.get("updateAvailable_label", {"{version}": updateInfo.version}))}
-			         import("./gui/base/NotificationOverlay.js").then(module => module.show(message, {label: "postpone_action"},
-				         [
-					         {
-						         label: "installNow_action",
-						         click: () => nativeApp.invokeNative(new Request('manualUpdate', [])),
-						         type: ButtonType.Primary
-					         }
-				         ]))
-		         }
-	         })
-}
 
 export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
@@ -103,10 +69,9 @@ if (!isDesktop() && navigator.registerProtocolHandler) {
 	}
 }
 
-let initialized = lang.init(en).then(() => {
-	if (!client.isSupported()) {
+function renderUnsupported() {
+	import("./gui/base/InfoView").then(({InfoView}) => {
 		if (isApp() && client.device === DeviceType.ANDROID) {
-
 			const androidVersion = Number(/Android (0-9)*\./.exec(client.userAgent))
 			m.render(neverNull(document.body), m(new InfoView(
 				() => "Tutanota",
@@ -130,15 +95,30 @@ let initialized = lang.init(en).then(() => {
 				m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
 			])))
 		}
+	})
+}
 
+//$FlowFixMe[untyped-import]
+let initialized = import("./translations/en").then((en) => lang.init(en.default)).then(() => {
+	if (!client.isSupported()) {
+		renderUnsupported()
 		return;
+	}
+
+	// do this after lang initialized
+	if (client.isIE()) {
+		import("./gui/base/NotificationOverlay.js").then((module) => module.show({
+			view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
+		}, {label: "close_alt"}, []))
+	} else if (isDesktop()) {
+		import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates())
 	}
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
 		const language = {code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)}
-		lang.setLanguage(language)
-		    .then(() => changeSystemLanguage(language))
+		Promise.all([lang.setLanguage(language), import("./native/main/SystemApp")])
+		       .then(([_, {changeSystemLanguage}]) => changeSystemLanguage(language))
 	}
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
@@ -165,7 +145,10 @@ let initialized = lang.init(en).then(() => {
 					} else {
 						promise = Promise.resolve(cache.view)
 					}
-					promise.then(view => {
+					Promise.all([
+						promise,
+						import("./gui/base/Header")
+					]).then(([view, {header}]) => {
 						view.updateUrl(args, requestedPath)
 						const currentPath = m.route.get()
 						routeChange({args, requestedPath, currentPath})
@@ -181,9 +164,9 @@ let initialized = lang.init(en).then(() => {
 		}
 	}
 
-	let mailViewResolver = createViewResolver(() => import("./mail/MailView.js")
+	let mailViewResolver = createViewResolver(() => import("./mail/view/MailView.js")
 		.then(module => new module.MailView()))
-	let contactViewResolver = createViewResolver(() => import("./contacts/ContactView.js")
+	let contactViewResolver = createViewResolver(() => import("./contacts/view/ContactView.js")
 		.then(module => new module.ContactView()))
 	let externalLoginViewResolver = createViewResolver(() => import("./login/ExternalLoginView.js")
 		.then(module => new module.ExternalLoginView()), false)
@@ -191,11 +174,11 @@ let initialized = lang.init(en).then(() => {
 		.then(module => module.login), false)
 	let settingsViewResolver = createViewResolver(() => import("./settings/SettingsView.js")
 		.then(module => new module.SettingsView()))
-	let searchViewResolver = createViewResolver(() => import("./search/SearchView.js")
+	let searchViewResolver = createViewResolver(() => import("./search/view/SearchView.js")
 		.then(module => new module.SearchView()))
-	let contactFormViewResolver = createViewResolver(() => import("./login/ContactFormView.js")
+	let contactFormViewResolver = createViewResolver(() => import("./login/contactform/ContactFormView.js")
 		.then(module => module.contactFormView), false)
-	const calendarViewResolver = createViewResolver(() => import("./calendar/CalendarView.js")
+	const calendarViewResolver = createViewResolver(() => import("./calendar/view/CalendarView.js")
 		.then(module => new module.CalendarView()), true)
 
 	let start = "/"
@@ -251,16 +234,23 @@ let initialized = lang.init(en).then(() => {
 		"/calendar/:view/:date": calendarViewResolver,
 		"/giftcard/": loginViewResolver,
 		"/:path...": {
-			onmatch: (args: {[string]: string}, requestedPath: string): void => {
-				console.log("Not found", args, requestedPath)
+			onmatch: (args: {[string]: string}, requestedPath: string): Promise<Component> => {
+				return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")])
+				              .then(([{InfoView}, {ButtonType, ButtonN}]) => {
+					              return {
+						              view() {
+							              return m(root, m(new InfoView(() => "404", () => [
+								              m("p", lang.get("notFound404_msg")),
+								              m(ButtonN, {
+									              label: 'back_action',
+									              click: () => window.history.back(),
+									              type: ButtonType.Primary,
+								              }),
+							              ])))
+						              }
+					              }
+				              })
 			},
-			render: (vnode: Object): VirtualElement => {
-				return m(root, m(new InfoView(() => "404", () => [
-					m("p", lang.get("notFound404_msg")),
-					m(new Button('back_action', () => window.history.back())
-						.setType(ButtonType.Primary))
-				])))
-			}
 		}
 	})
 
@@ -269,7 +259,8 @@ let initialized = lang.init(en).then(() => {
 		import("./gui/InfoMessageHandler.js")
 	})
 
-
+	// after we set up prefixWithoutFile
+	initSW()
 })
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {
@@ -289,11 +280,6 @@ function forceLogin(args: {[string]: string}, requestedPath: string) {
 			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
 		}
 	}
-}
-
-
-export function __reload(deletedModule: any) {
-	console.log('__reload');
 }
 
 function setupExceptionHandling() {

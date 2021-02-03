@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {TextField} from "../gui/base/TextField"
 import {AccountType, BookingItemFeatureType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
@@ -15,7 +15,7 @@ import {addAll} from "../api/common/utils/ArrayUtils"
 import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
-import {showProgressDialog, showWorkerProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog, showWorkerProgressDialog} from "../gui/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 
 
@@ -41,7 +41,7 @@ export function show(): Promise<void> {
 				.then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						showWorkerProgressDialog(() => lang.get("createActionStatus_msg", {
+						showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
 						}), p)

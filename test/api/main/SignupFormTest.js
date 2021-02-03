@@ -1,5 +1,5 @@
 import o from "ospec"
-import {parseCaptchaInput} from "../../../src/api/main/SignupForm";
+import {parseCaptchaInput} from "../../../src/subscription/SignupForm";
 
 o.spec("CaptchaInputParse", function () {
 	o("Hour", function () {

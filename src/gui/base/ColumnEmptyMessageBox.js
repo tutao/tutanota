@@ -2,7 +2,7 @@
 import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {AllIconsEnum} from "./Icon"
 import {Icon} from "./Icon"
 import {px, size} from "../size"

@@ -5,7 +5,7 @@ import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import type {DesktopTray} from "./tray/DesktopTray"
-import {Mode} from "../api/Env"
+import {Mode} from "../api/common/Env"
 import {log} from "./DesktopLog";
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {App} from "electron"

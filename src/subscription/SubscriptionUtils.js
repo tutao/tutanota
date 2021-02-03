@@ -4,7 +4,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
-import {formatPrice, getCurrentCount} from "./PriceUtils"
+import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
@@ -16,15 +16,11 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import * as BuyDialog from "./BuyDialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
-import {isIOSApp} from "../api/Env"
-import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
-import type {LoginController} from "../api/main/LoginController"
-import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 
 
 export type SubscriptionOptions = {
@@ -304,32 +300,4 @@ function getBookingItemErrorMsg(feature: BookingItemFeatureTypeEnum): Translatio
 	}
 }
 
-export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
-	if (isIOSApp()) {
-		Dialog.error("notAvailableInApp_msg")
-	} else {
-		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
-			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
-		      .then(confirmed => {
-			      if (confirmed) {
-				      showUpgradeWizard()
-			      }
-		      })
-	}
-}
 
-
-export function showMoreStorageNeededOrderDialog(loginController: LoginController,
-                                                 messageIdOrMessageFunction: TranslationKey | lazy<string>
-): Promise<void> {
-	return Dialog.confirm(messageIdOrMessageFunction, "upgrade_action").then((confirm) => {
-		if (confirm) {
-			if (loginController.getUserController().isPremiumAccount()) {
-				StorageCapacityOptionsDialog.show()
-			} else {
-				showNotAvailableForFreeDialog(false)
-			}
-		}
-	})
-}

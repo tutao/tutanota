@@ -4,7 +4,7 @@ import {modal} from "./Modal"
 import {px, size} from "../size"
 import {Button} from "./Button"
 import {mod} from "../../misc/MathUtils"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import stream from "mithril/stream/stream.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -15,7 +15,7 @@ import {showDropdown} from "./DropdownN"
 import type {Shortcut} from "../../misc/KeyManager"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export interface PosRect {
 	+height: number;
@@ -356,7 +356,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 					buttonPromise,
 					Promise.all([
 						Promise.delay(100),
-						import("./ProgressDialog.js")
+						import("../ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (buttonPromise.isPending()) {
 							return module.showProgressDialog("loading_msg", buttonPromise)

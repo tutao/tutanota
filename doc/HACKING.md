@@ -45,7 +45,7 @@ Worker, main thread & apps communicate through the messages. Protocol is describ
 [WorkerProtocol](../src/api/common/WorkerProtocol.js). See [WorkerClient](../src/api/main/WorkerClient.js) and
 [WorkerImpl](../src/api/worker/WorkerImpl.js) for the client and server part.
 
-Native code communicates through the [NativeWrapper](../src/native/NativeWrapper.js).
+Native code communicates through the [NativeWrapper](../src/native/common/NativeWrapper.js).
 
 ### UI code
 UI code uses [Mithril](http://mithril.js.org/). It is a tiny framework which does routing & implement virtual DOM.

@@ -7,12 +7,12 @@ import {alpha, animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
 import {styles} from "../styles"
-import type {AriaLandmarksEnum} from "../../api/common/utils/AriaUtils"
-import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
+import type {AriaLandmarksEnum} from "../AriaUtils"
+import {AriaLandmarks} from "../AriaUtils"
 
 assertMainOrNode()
 

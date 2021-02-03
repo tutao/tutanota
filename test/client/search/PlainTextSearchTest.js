@@ -1,6 +1,6 @@
 // @flow
 import o from "ospec"
-import {_findMatches, _search, search} from "../../../src/search/PlainTextSearch"
+import {_findMatches, _search, search} from "../../../src/support/PlainTextSearch"
 
 o.spec("PlainTextSearchTest", function () {
 

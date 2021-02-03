@@ -1,7 +1,6 @@
 //@flow
-import type {Recipients} from "../mail/SendMailModel"
-import {defaultSendMailModel} from "../mail/SendMailModel"
-import {getDefaultSender, getEnabledMailAddresses} from "../mail/MailUtils"
+import type {Recipients} from "../mail/editor/SendMailModel"
+import {getDefaultSender, getEnabledMailAddresses} from "../mail/model/MailUtils"
 import {getCalendarName} from "./CalendarUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -17,7 +16,7 @@ import {locator} from "../api/main/MainLocator"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {logins} from "../api/main/LoginController"
 import {MailMethod} from "../api/common/TutanotaConstants"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -68,9 +67,12 @@ function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey,
 		const bodyString = lang.get(body, replacements)
 		const confirm = _ => Promise.resolve(true)
 		const wait = showProgressDialog
-		defaultSendMailModel(mailboxDetails)
-			.initWithTemplate(recipients, subjectString, bodyString, [], true, sender)
-			.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
+		import("../mail/editor/SendMailModel").then(({defaultSendMailModel}) => {
+			return defaultSendMailModel(mailboxDetails)
+				.initWithTemplate(recipients, subjectString, bodyString, [], true, sender)
+				.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
+		})
+
 	})
 
 }

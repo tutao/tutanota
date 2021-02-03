@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/common/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
@@ -42,7 +42,7 @@ import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import {nativeApp} from "../native/NativeWrapper"
+import {nativeApp} from "../native/common/NativeWrapper"
 import {FolderExpander} from "../gui/base/FolderExpander"
 import {isSameId} from "../api/common/utils/EntityUtils";
 

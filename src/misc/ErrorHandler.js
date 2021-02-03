@@ -1,5 +1,5 @@
 // @flow
-import {assertMainOrNodeBoot, isTest} from "../api/Env"
+import {assertMainOrNodeBoot, isTest} from "../api/common/Env"
 import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 
 assertMainOrNodeBoot()

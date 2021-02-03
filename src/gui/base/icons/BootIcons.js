@@ -1,7 +1,7 @@
 // @flow
-import {assertMainOrNodeBoot} from "../../../api/Env"
+import {assertMainOrNode} from "../../../api/common/Env"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export const BootIcons = Object.freeze({
 	Android: 'Android',

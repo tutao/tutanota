@@ -1,9 +1,10 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {ImapSyncConfiguration} from "./ImapSyncConfiguration"
 import type {InboxRule} from "./InboxRule"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 export const _TypeModel: TypeModel = {

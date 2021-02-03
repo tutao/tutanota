@@ -6,7 +6,48 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {MailBody} from "../../entities/tutanota/MailBody"
 import type {MailHeaders} from "../../entities/tutanota/MailHeaders"
 import type {DomainInfo} from "../../entities/sys/DomainInfo"
-import {TypeRef} from "./EntityUtils";
+import {TypeRef} from "./TypeRef"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	BadGatewayError,
+	BadRequestError,
+	ConnectionError,
+	InsufficientStorageError,
+	InternalServerError,
+	InvalidDataError,
+	InvalidSoftwareVersionError,
+	LimitReachedError,
+	LockedError,
+	MethodNotAllowedError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	PayloadTooLargeError,
+	PreconditionFailedError,
+	ResourceError,
+	ServiceUnavailableError,
+	SessionExpiredError,
+	TooManyRequestsError
+} from "../error/RestError"
+import {CryptoError} from "../error/CryptoError"
+import {SessionKeyNotFoundError} from "../error/SessionKeyNotFoundError"
+import {SseError} from "../error/SseError"
+import {ProgrammingError} from "../error/ProgrammingError"
+import {RecipientsNotFoundError} from "../error/RecipientsNotFoundError"
+import {RecipientNotResolvedError} from "../error/RecipientNotResolvedError"
+import {OutOfSyncError} from "../error/OutOfSyncError"
+import {SecondFactorPendingError} from "../error/SecondFactorPendingError"
+import {DbError} from "../error/DbError"
+import {IndexingNotSupportedError} from "../error/IndexingNotSupportedError"
+import {QuotaExceededError} from "../error/QuotaExceededError"
+import {CancelledError} from "../error/CancelledError"
+import {FileOpenError} from "../error/FileOpenError"
+import {PermissionError} from "../error/PermissionError"
+import {FileNotFoundError} from "../error/FileNotFoundError"
+
+//assertMainOrNodeBoot()
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -353,4 +394,77 @@ export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {
 
 export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (T) => U): lazy<U> {
 	return () => mapping(resolveMaybeLazy(maybe))
+}
+
+/**
+ * Stricter version of parseInt() from MDN. parseInt() allows some arbitrary characters at the end of the string.
+ * Returns NaN in case there's anything non-number in the string.
+ */
+export function filterInt(value: string): number {
+	if (/^\d+$/.test(value)) {
+		return parseInt(value, 10);
+	} else {
+		return NaN;
+	}
+}
+
+export function objToError(o: Object): Error {
+	let errorType = ErrorNameToType[o.name]
+	let e = (errorType != null ? new errorType(o.message) : new Error(o.message): any)
+	e.name = o.name
+	e.stack = o.stack || e.stack
+	e.data = o.data
+	return e
+}
+
+const ErrorNameToType = {
+	ConnectionError,
+	BadRequestError,
+	NotAuthenticatedError,
+	SessionExpiredError,
+	NotAuthorizedError,
+	NotFoundError,
+	MethodNotAllowedError,
+	PreconditionFailedError,
+	LockedError,
+	TooManyRequestsError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	AccessBlockedError,
+	InvalidDataError,
+	InvalidSoftwareVersionError,
+	LimitReachedError,
+	InternalServerError,
+	BadGatewayError,
+	ResourceError,
+	InsufficientStorageError,
+	CryptoError,
+	SessionKeyNotFoundError,
+	SseError,
+	ProgrammingError,
+	RecipientsNotFoundError,
+	RecipientNotResolvedError,
+	OutOfSyncError,
+	SecondFactorPendingError,
+	ServiceUnavailableError,
+	DbError,
+	IndexingNotSupportedError,
+	QuotaExceededError,
+	CancelledError,
+	FileOpenError,
+	PayloadTooLargeError,
+	Error,
+	"java.net.SocketTimeoutException": ConnectionError,
+	"java.net.ConnectException": ConnectionError,
+	"javax.net.ssl.SSLException": ConnectionError,
+	"javax.net.ssl.SSLHandshakeException": ConnectionError,
+	"java.io.EOFException": ConnectionError,
+	"java.net.UnknownHostException": ConnectionError,
+	"java.lang.SecurityException": PermissionError,
+	"java.io.FileNotFoundException": FileNotFoundError,
+	"de.tutao.tutanota.CryptoError": CryptoError, // Android app exception class name
+	"de.tutao.tutanota.TutCrypto": CryptoError, // iOS app crypto error domain
+	"android.content.ActivityNotFoundException": FileOpenError,
+	"de.tutao.tutanota.TutFileViewer": FileOpenError,
+	"NSURLErrorDomain": ConnectionError
 }

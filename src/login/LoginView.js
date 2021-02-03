@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {client} from "../misc/ClientDetector"
-import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"
@@ -11,19 +11,16 @@ import {setThemeId, themeId} from "../gui/theme"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {show} from "./RecoverLoginDialog"
 import {header} from "../gui/base/Header"
-import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
 import type {ILoginViewController} from "./LoginViewController"
-import {getTokenFromUrl} from "../subscription/giftcards/GiftCardUtils"
-import {loadRedeemGiftCardWizard} from "../subscription/giftcards/RedeemGiftCardWizard"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
-import {UserError} from "../api/common/error/UserError"
+import {UserError} from "../api/main/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
@@ -82,7 +79,7 @@ export class LoginView {
 			this._signup()
 		} else if (window.location.href.endsWith('recover')) {
 			this.permitAutoLogin = false
-			show()
+			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
 		} else {
 			this.permitAutoLogin = true
 		}
@@ -183,7 +180,7 @@ export class LoginView {
 							label: "recoverAccountAccess_action",
 							click: () => {
 								m.route.set('/recover')
-								show()
+								import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
 							},
 							type: ButtonType.Secondary,
 						})
@@ -322,13 +319,14 @@ export class LoginView {
 		} else if (requestedPath.startsWith("/giftcard")) {
 
 			const showWizardPromise =
-				Promise.resolve()
-				       .then(() => getTokenFromUrl(location.hash))
-				       .spread((id, key) => {
-					       return worker.initialized
-					                    .then(() => worker.getGiftCardInfo(id, key))
-					                    .then(giftCardInfo => loadRedeemGiftCardWizard(giftCardInfo, key))
-				       })
+				import("../subscription/giftcards/GiftCardUtils")
+					.then(({getTokenFromUrl}) => getTokenFromUrl(location.hash))
+					.then(([id, key]) => {
+						return worker.initialized
+						             .then(() => worker.getGiftCardInfo(id, key))
+						             .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
+							             .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
+					})
 
 			showProgressDialog("loading_msg", showWizardPromise)
 				.then(dialog => dialog.show())

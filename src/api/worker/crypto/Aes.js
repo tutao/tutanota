@@ -6,7 +6,7 @@ import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
 import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {hash} from "./Sha256"
 import * as Sha512 from "./Sha512"
 

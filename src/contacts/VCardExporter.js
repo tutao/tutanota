@@ -1,7 +1,7 @@
 // @flow
 import type {Contact} from "../api/entities/tutanota/Contact"
-import {assertMainOrNode} from "../api/Env"
-import {convertToDataFile, createDataFile} from "../api/common/DataFile"
+import {assertMainOrNode} from "../api/common/Env"
+import {convertToDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {fileController} from "../file/FileController"

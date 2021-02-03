@@ -11,7 +11,7 @@ import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode, Mode} from "../../Env"
+import {assertWorkerOrNode, Mode} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import {BigInteger, parseBigInt, RSAKey} from "./lib/crypto-jsbn-2012-08-09_1"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
@@ -32,7 +32,7 @@ const jsRsaApp = {
  */
 const rsaApp = new LazyLoaded<typeof jsRsaApp>(() => {
 	if (env.mode === Mode.App) {
-		return import("../../../native/RsaApp").then((m) => {
+		return import("../../../native/worker/RsaApp").then((m) => {
 			const app = m.rsaApp
 			return {
 				generateRsaKey: () => app.generateRsaKey(random.generateRandomData(512)),

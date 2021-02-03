@@ -2,6 +2,9 @@
 import {CryptoError} from "../error/CryptoError"
 import {pad} from "./StringUtils"
 
+//assertMainOrNodeBoot
+// it's in the boot because deviceConfig needs it for signupToken. If we make signupToken async we can move it to just common
+
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
 
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
@@ -367,6 +370,7 @@ export function decodeQuotedPrintable(charset: string, input: string): string {
 export function decodeBase64(charset: string, input: string): string {
 	return uint8ArrayToString(charset, base64ToUint8Array(input))
 }
+
 export function stringToBase64(str: string): string {
 	return uint8ArrayToBase64(stringToUtf8Uint8Array(str))
 }

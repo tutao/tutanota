@@ -1,10 +1,10 @@
 // @flow
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {defer} from '../api/common/utils/Utils.js'
+import {defer, objToError} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
-import {errorToObj, objToError} from "../api/common/WorkerProtocol"
+import {errorToObj} from "../api/common/WorkerProtocol"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"

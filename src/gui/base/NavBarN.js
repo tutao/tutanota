@@ -3,13 +3,13 @@ import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
 import {ButtonColors, isVisible} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {size} from "../size"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {BootIcons} from "./icons/BootIcons"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 let buttonId = 0
 

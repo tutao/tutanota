@@ -2,7 +2,7 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -20,7 +20,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {header} from "../gui/base/Header"
-import {isAdministratedGroup} from "../search/SearchUtils"
+import {isAdministratedGroup} from "../search/model/SearchUtils"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -28,7 +28,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
 
 assertMainOrNode()
 

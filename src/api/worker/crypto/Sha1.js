@@ -1,7 +1,7 @@
 // @flow
 // $FlowIgnore[untyped-import]
 import sjcl from "./lib/sjcl"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

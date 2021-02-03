@@ -1,21 +1,19 @@
 //@flow
-import {parseCalendarFile} from "./CalendarImporter"
+import {parseCalendarFile} from "./export/CalendarImporter"
 import {worker} from "../api/main/WorkerClient"
-import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {locator} from "../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../api/common/TutanotaConstants"
-import {assertNotNull, clone} from "../api/common/utils/Utils"
-import {filterInt, findPrivateCalendar, getTimeZone} from "./CalendarUtils"
+import {assertNotNull, clone, filterInt} from "../api/common/utils/Utils"
+import {findPrivateCalendar, getTimeZone} from "./CalendarUtils"
 import {logins} from "../api/main/LoginController"
-import {SendMailModel} from "../mail/SendMailModel"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../gui/base/Dialog"
-import {UserError} from "../api/common/error/UserError"
+import {UserError} from "../api/main/UserError"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
@@ -38,8 +36,9 @@ export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<voi
 	return Promise.all([
 		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()),
 		locator.mailModel.getUserMailboxDetails(),
-		getLatestEvent(event)
-	]).then(([calendarInfo, mailboxDetails, latestEvent]) => {
+		getLatestEvent(event),
+		import("./view/CalendarEventEditDialog")
+	]).then(([calendarInfo, mailboxDetails, latestEvent, {showCalendarEventDialog}]) => {
 		showCalendarEventDialog(latestEvent.startTime, calendarInfo, mailboxDetails, latestEvent, mail)
 	})
 }
@@ -94,27 +93,30 @@ export function replyToEventInvitation(
 		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar),
 		locator.mailModel.getMailboxDetailsForMail(previousMail)
 	]).then(([calendar, mailboxDetails]) => {
-		const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
-		return calendarUpdateDistributor
-			.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-			.catch(UserError, (e) => Dialog.error(() => e.message))
-			.then(() => {
-				if (calendar) {
-					// if the owner group is set there is an existing event already so just update
-					if (event._ownerGroup) {
-						return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user)
-						              .then((alarms) => {
-								              const alarmInfos = alarms.map((a) => a.alarmInfo)
-								              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
-								                            .return()
-							              }
-						              )
+
+		return import("../mail/editor/SendMailModel").then(({SendMailModel}) => {
+			const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
+			return calendarUpdateDistributor
+				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
+				.catch(UserError, (e) => Dialog.error(() => e.message))
+				.then(() => {
+					if (calendar) {
+						// if the owner group is set there is an existing event already so just update
+						if (event._ownerGroup) {
+							return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user)
+							              .then((alarms) => {
+									              const alarmInfos = alarms.map((a) => a.alarmInfo)
+									              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
+									                            .return()
+								              }
+							              )
+						} else {
+							return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+						}
 					} else {
-						return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+						return Promise.resolve()
 					}
-				} else {
-					return Promise.resolve()
-				}
-			})
+				})
+		})
 	})
 }

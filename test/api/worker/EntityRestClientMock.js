@@ -15,9 +15,10 @@ import {
 	firstBiggerThanSecond,
 	getElementId,
 	getListId,
-	listIdPart, TypeRef
+	listIdPart
 } from "../../../src/api/common/utils/EntityUtils";
 import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
+import {TypeRef} from "../../../src/api/common/utils/TypeRef";
 
 export class EntityRestClientMock extends EntityRestClient {
 

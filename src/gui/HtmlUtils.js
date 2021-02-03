@@ -1,6 +1,9 @@
 //@flow
 
 import {downcast} from "../api/common/utils/Utils"
+import {assertMainOrNodeBoot} from "../api/common/Env"
+
+assertMainOrNodeBoot()
 
 export function applySafeAreaInsetMarginLR(element: HTMLElement) {
 	element.style.marginRight = 'env(safe-area-inset-right)'
@@ -18,4 +21,10 @@ export function getSafeAreaInsetRight(): string {
 export function newMouseEvent(): MouseEvent {
 	// We cannot use constructor because of IE11
 	return downcast(document.createEvent("MouseEvent"))
+}
+
+export function stringifyFragment(fragment: DocumentFragment): string {
+	let div = document.createElement("div")
+	div.appendChild(fragment)
+	return div.innerHTML
 }

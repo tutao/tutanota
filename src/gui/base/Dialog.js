@@ -6,7 +6,7 @@ import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../an
 import {ease} from "../animation/Easing"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {KeyPress, Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import {getElevatedBackground} from "../theme"
@@ -23,10 +23,10 @@ import {TextFieldN, Type} from "./TextFieldN"
 import type {SelectorItemList} from "./DropDownSelectorN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {dialogAttrs} from "../../api/common/utils/AriaUtils"
+import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
-import {mapLazily, getAsLazy} from "../../api/common/utils/Utils"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
+import {getAsLazy, mapLazily} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -509,7 +509,7 @@ export class Dialog {
 			})
 			if (validationResult instanceof Promise) {
 				// breaking hard circular dependency
-				import("./ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
+				import("../ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
 			}
 		}
 

@@ -1,12 +1,13 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {ContactAddress} from "./ContactAddress"
 import type {ContactMailAddress} from "./ContactMailAddress"
 import type {Birthday} from "./Birthday"
 import type {ContactPhoneNumber} from "./ContactPhoneNumber"
 import type {ContactSocialId} from "./ContactSocialId"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 export const _TypeModel: TypeModel = {

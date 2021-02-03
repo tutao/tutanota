@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {GeneratedIdWrapper} from "./GeneratedIdWrapper"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const SseConnectDataTypeRef: TypeRef<SseConnectData> = new TypeRef("sys", "SseConnectData")
 export const _TypeModel: TypeModel = {

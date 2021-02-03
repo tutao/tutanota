@@ -4,9 +4,7 @@ import {
 	getCalendarMonth,
 	getStartOfWeek,
 	getWeekNumber,
-	hasCapabilityOnGroup,
-	parseTime,
-	timeStringFromParts
+	hasCapabilityOnGroup
 } from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
@@ -14,6 +12,7 @@ import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {GroupType, ShareCapability} from "../../../src/api/common/TutanotaConstants"
 import type {CalendarMonth} from "../../../src/calendar/CalendarUtils";
+import {parseTime, timeStringFromParts} from "../../../src/misc/Formatter";
 
 o.spec("calendar utils tests", function () {
 	o.spec("getCalendarMonth", function () {

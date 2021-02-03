@@ -1,7 +1,7 @@
 // @flow
-import {assertMainOrNodeBoot} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/common/Env"
 import {client} from "./ClientDetector"
-import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
+import type {CalendarViewTypeEnum} from "../calendar/view/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 
 assertMainOrNodeBoot()

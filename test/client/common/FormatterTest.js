@@ -4,18 +4,16 @@ import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageView
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import {
-	_getNumDaysInMonth,
 	formatDate,
 	formatNameAndAddress,
 	fullNameToFirstAndLastName,
 	getCleanedMailAddress,
 	mailAddressToFirstAndLastName,
-	parseBirthday,
-	parseDate,
 	stringToNameAndMailAddress
 } from "../../../src/misc/Formatter"
 import {isMailAddress, isRegularExpression} from "../../../src/misc/FormatValidator"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {_getNumDaysInMonth, parseBirthday, parseDate} from "../../../src/misc/DateParser";
 
 o.spec("FormatterTest", function () {
 

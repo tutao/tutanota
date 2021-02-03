@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isApp} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
@@ -8,17 +8,16 @@ import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaC
 import {load, update} from "../api/main/Entity"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
-import * as EditSignatureDialog from "./EditSignatureDialog"
+import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
 import {EditAliasesFormN} from "./EditAliasesFormN.js"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSenderFromUser, getFolderName} from "../mail/MailUtils"
+import {getDefaultSenderFromUser, getFolderName} from "../mail/model/MailUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {worker} from "../api/main/WorkerClient"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {MailboxDetail} from "../mail/MailModel"
+import {showProgressDialog} from "../gui/ProgressDialog"
+import type {MailboxDetail} from "../mail/model/MailModel"
 import {locator} from "../api/main/MainLocator"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -41,6 +40,7 @@ import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
 import {isSameId} from "../api/common/utils/EntityUtils";
+import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 
 assertMainOrNode()
 
@@ -61,7 +61,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
 		this._senderName = stream(logins.getUserController().userGroupInfo.name)
-		this._signature = stream(EditSignatureDialog.getSignatureType(logins.getUserController().props).name)
+		this._signature = stream(getSignatureType(logins.getUserController().props).name)
 		this._defaultUnconfidential = stream(logins.getUserController().props.defaultUnconfidential)
 		this._sendPlaintext = stream(logins.getUserController().props.sendPlaintextOnly)
 		this._noAutomaticContacts = stream(logins.getUserController().props.noAutomaticContacts)
@@ -119,7 +119,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const changeSignatureButtonAttrs: ButtonAttrs = {
 			label: "userEmailSignature_label",
-			click: () => EditSignatureDialog.show(logins.getUserController().props),
+			click: () => showEditSignatureDialog(logins.getUserController().props),
 			icon: () => Icons.Edit
 		}
 
@@ -257,7 +257,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._defaultUnconfidential(props.defaultUnconfidential)
 		this._noAutomaticContacts(props.noAutomaticContacts)
 		this._sendPlaintext(props.sendPlaintextOnly)
-		this._signature(EditSignatureDialog.getSignatureType(props).name)
+		this._signature(getSignatureType(props).name)
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {

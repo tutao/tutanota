@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "./Dialog"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
@@ -18,7 +18,7 @@ export interface WizardPageAttrs<T> {
 	headerTitle(): string,
 
 	/** Action that needs to be executed before switching to the next page.
-	 * @return true if the action was successfull and the next page can be shown, false otherwise.
+	 * @return true if the action was successful and the next page can be shown, false otherwise.
 	 **/
 	nextAction(showErrorDialog: boolean): Promise<boolean>,
 

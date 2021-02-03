@@ -3,9 +3,9 @@ import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral, resolveServiceSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {neverNull} from "../../common/utils/Utils"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 assertWorkerOrNode()
 

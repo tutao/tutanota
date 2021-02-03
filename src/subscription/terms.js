@@ -1,6 +1,6 @@
 //@flow
 
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

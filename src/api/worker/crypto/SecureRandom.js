@@ -1,6 +1,6 @@
 // @flow
 import {random} from "./Randomizer"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

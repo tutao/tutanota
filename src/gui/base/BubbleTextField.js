@@ -3,7 +3,7 @@ import {size} from "../size"
 import m from "mithril"
 import {TextField} from "./TextField"
 import {animations, height} from "./../animation/Animations"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isSelected} from "./ButtonN"
@@ -206,12 +206,12 @@ export class BubbleTextField<T> {
 			case 17: // do not react on ctrl key
 				return true
 		}
-		
+
 		// Handle commas
         if (key.key === ",") {
             return this.createBubbles() || false
         }
-        
+
 		this.removeBubbleSelection()
 		return true
 	}

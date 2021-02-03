@@ -5,7 +5,7 @@ import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../commo
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {bookingFacade} from "./BookingFacade"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"

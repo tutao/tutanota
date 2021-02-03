@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {modal} from "./gui/base/Modal"
-import {assertMainOrNodeBoot} from "./api/Env"
+import {assertMainOrNodeBoot} from "./api/common/Env"
 import {overlay} from "./gui/base/Overlay"
 import {styles} from "./gui/styles"
 

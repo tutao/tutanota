@@ -1,13 +1,13 @@
 // @flow
 
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {DrawerMenu} from "../nav/DrawerMenu"
 import {theme} from "../theme"
 import m from "mithril"
 import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 
 assertMainOrNode()
 

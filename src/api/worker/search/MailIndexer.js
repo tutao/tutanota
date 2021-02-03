@@ -40,7 +40,8 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
-import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/utils/EntityUtils";
+import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 

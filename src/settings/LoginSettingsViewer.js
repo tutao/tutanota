@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/common/Env"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {lang} from "../misc/LanguageViewModel"

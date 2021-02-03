@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import {TextFieldN} from "./TextFieldN"
 import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"

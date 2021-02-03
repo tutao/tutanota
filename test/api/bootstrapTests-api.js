@@ -87,7 +87,7 @@ globalThis.isBrowser = typeof window !== "undefined"
 		globalThis.bodyParser = (await import("body-parser")).default
 	}
 
-	const Env = await import("../../src/api/Env.js")
+	const Env = await import("../../src/api/common/Env.js")
 	Env.bootFinished()
 	import('./Suite.js')
 })()

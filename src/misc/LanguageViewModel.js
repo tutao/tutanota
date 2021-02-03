@@ -1,5 +1,5 @@
 // @flow
-import {assertMainOrNodeBoot} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import type {TranslationKeyType} from "./TranslationKey"

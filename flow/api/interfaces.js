@@ -1,6 +1,6 @@
 import type {HttpMethodEnum} from "../../src/api/common/EntityFunctions"
 import type {EntropySrcEnum} from "../../src/api/common/TutanotaConstants"
-import {TypeRef} from "../../src/api/common/utils/EntityUtils";
+import {TypeRef} from "../../src/api/common/utils/TypeRef";
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.

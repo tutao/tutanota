@@ -51,12 +51,12 @@ import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel, FileTypeRef} from "../../entities/tutanota/File"
 import type {FileFacade} from "./FileFacade"
 import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData"
-import {assertWorkerOrNode, isApp} from "../../Env"
+import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import {fileApp} from "../../../native/FileApp"
+import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 // $FlowIgnore[untyped-import]
 import murmurHash from "../crypto/lib/murmurhash3_32"
@@ -64,7 +64,8 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils";
-import {containsId, getLetId, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/utils/EntityUtils";
+import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
+import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 
 assertWorkerOrNode()
 

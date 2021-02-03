@@ -1,6 +1,6 @@
 // @flow
 import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
-import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../api/common/utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {CryptoFunctions} from "./CryptoFns"
 
 

@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
@@ -12,7 +12,7 @@ import {noOp} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
 import * as EmailAliasOptionsDialog from "../subscription/EmailAliasOptionsDialog"
 import {getAvailableDomains} from "./AddUserDialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -23,7 +23,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs";
 
 assertMainOrNode()
 

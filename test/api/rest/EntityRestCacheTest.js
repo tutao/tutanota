@@ -21,11 +21,11 @@ import {
 	CUSTOM_MIN_ID,
 	GENERATED_MAX_ID, GENERATED_MIN_ID,
 	getElementId,
-	getListId, isSameTypeRef,
-	readOnlyHeaders,
+	getListId, readOnlyHeaders,
 	sortCompareById,
-	stringToCustomId, TypeRef
+	stringToCustomId
 } from "../../../src/api/common/utils/EntityUtils";
+import {isSameTypeRef, TypeRef} from "../../../src/api/common/utils/TypeRef";
 
 o.spec("entity rest cache", function () {
 

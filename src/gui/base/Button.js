@@ -4,14 +4,14 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType, getColors} from "./ButtonN"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 const TRUE_CLOSURE: lazy<boolean> = () => true
 

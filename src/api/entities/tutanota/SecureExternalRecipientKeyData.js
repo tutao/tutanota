@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {PasswordChannelPhoneNumber} from "./PasswordChannelPhoneNumber"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const SecureExternalRecipientKeyDataTypeRef: TypeRef<SecureExternalRecipientKeyData> = new TypeRef("tutanota", "SecureExternalRecipientKeyData")
 export const _TypeModel: TypeModel = {

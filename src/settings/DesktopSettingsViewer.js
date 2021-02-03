@@ -1,18 +1,18 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {nativeApp} from '../native/NativeWrapper.js'
+import {nativeApp} from '../native/common/NativeWrapper.js'
 import {Request} from "../api/common/WorkerProtocol.js"
-import {showProgressDialog} from "../gui/base/ProgressDialog.js"
+import {showProgressDialog} from "../gui/ProgressDialog.js"
 import {noOp} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {fileApp} from "../native/FileApp"
+import {fileApp} from "../native/common/FileApp"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"

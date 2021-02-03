@@ -3,10 +3,10 @@ import m from "mithril"
 import type {BootIconsEnum} from "./icons/BootIcons"
 import {BootIcons, BootIconsSvg} from "./icons/BootIcons"
 import {theme} from "../theme"
-import {assertMainOrNodeBoot} from "../../api/Env"
+import {assertMainOrNode} from "../../api/common/Env"
 import type {IconsEnum} from "./icons/Icons"
 
-assertMainOrNodeBoot()
+assertMainOrNode()
 
 export type IconAttrs = {
 	icon: AllIconsEnum,

@@ -1,87 +1,89 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {update} from "../api/main/Entity"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSignature} from "../mail/MailUtils"
-import {HtmlEditor} from "../gui/base/HtmlEditor"
+import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
-import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
+import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog} from "../gui/ProgressDialog"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
 export function show(props: TutanotaProperties) {
-	let currentCustomSignature = logins.getUserController().props.customEmailSignature
-	if (currentCustomSignature === "" && !logins.isEnabled(FeatureType.DisableDefaultSignature)) {
-		currentCustomSignature = getDefaultSignature()
-	}
-
-	let previousType = logins.getUserController().props.emailSignatureType
-
-	const editor = new HtmlEditor("preview_label", {enabled: true, imageButtonClickHandler: insertInlineImageB64ClickHandler})
-		.showBorders()
-		.setMinHeight(200)
-		.setValue(getSignature(previousType, currentCustomSignature))
-
-	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
-	typeField.selectedValue.map(type => {
-		if (previousType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-			currentCustomSignature = editor.getValue()
+	import("../mail/signature/Signature").then(({getDefaultSignature}) => {
+		const defaultSignature = getDefaultSignature()
+		let currentCustomSignature = logins.getUserController().props.customEmailSignature
+		if (currentCustomSignature === "" && !logins.isEnabled(FeatureType.DisableDefaultSignature)) {
+			currentCustomSignature = defaultSignature
 		}
-		previousType = type
-		editor.setValue(getSignature(type, currentCustomSignature))
-		editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
-	})
 
-	let form = {
-		view: () => {
-			return [
-				m(typeField),
-				m(editor),
-			]
-		}
-	}
-	let editSignatureOkAction = (dialog) => {
-		const props = logins.getUserController().props
+		let previousType = logins.getUserController().props.emailSignatureType
 
-		const newType = typeField.selectedValue()
-		const newCustomValue = editor.getValue()
+		const editor = new HtmlEditor("preview_label", {enabled: true, imageButtonClickHandler: insertInlineImageB64ClickHandler})
+			.showBorders()
+			.setMinHeight(200)
+			.setValue(getSignature(previousType, defaultSignature, currentCustomSignature))
 
-		const oldType = props.emailSignatureType
-		const oldCustomValue = props.customEmailSignature
-
-		if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {
-			return dialog.close()
-		} else {
-			props.emailSignatureType = newType
-			if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-				props.customEmailSignature = newCustomValue
+		let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
+		typeField.selectedValue.map(type => {
+			if (previousType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+				currentCustomSignature = editor.getValue()
 			}
-			const updatePromise = update(props)
-			return showProgressDialog("pleaseWait_msg", updatePromise)
-				.then(() => dialog.close())
-				.catch(PayloadTooLargeError, () => {
-					props.emailSignatureType = oldType
-					props.customEmailSignature = oldCustomValue
-					return Dialog.error("requestTooLarge_msg")
-				})
+			previousType = type
+			editor.setValue(getSignature(type, defaultSignature, currentCustomSignature))
+			editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
+		})
 
+		let form = {
+			view: () => {
+				return [
+					m(typeField),
+					m(editor),
+				]
+			}
 		}
-	}
+		let editSignatureOkAction = (dialog) => {
+			const props = logins.getUserController().props
 
-	Dialog.showActionDialog({
-		title: lang.get("userEmailSignature_label"),
-		child: form,
-		type: DialogType.EditLarge,
-		okAction: editSignatureOkAction
+			const newType = typeField.selectedValue()
+			const newCustomValue = editor.getValue()
+
+			const oldType = props.emailSignatureType
+			const oldCustomValue = props.customEmailSignature
+
+			if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {
+				return dialog.close()
+			} else {
+				props.emailSignatureType = newType
+				if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+					props.customEmailSignature = newCustomValue
+				}
+				const updatePromise = update(props)
+				return showProgressDialog("pleaseWait_msg", updatePromise)
+					.then(() => dialog.close())
+					.catch(PayloadTooLargeError, () => {
+						props.emailSignatureType = oldType
+						props.customEmailSignature = oldCustomValue
+						return Dialog.error("requestTooLarge_msg")
+					})
+
+			}
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("userEmailSignature_label"),
+			child: form,
+			type: DialogType.EditLarge,
+			okAction: editSignatureOkAction
+		})
 	})
 }
 
@@ -100,16 +102,16 @@ export function getSignatureTypes(props: TutanotaProperties): {name: string, val
 	return signatureTypes
 }
 
-export function getSignatureType(props: TutanotaProperties): {name: string, value: string} {
-	return neverNull(getSignatureTypes(props).find(t => t.value === props.emailSignatureType))
-}
-
-function getSignature(type: string, currentCustomSignature: string): string {
+function getSignature(type: string, defaultSignature: string, currentCustomSignature: string): string {
 	if (type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
-		return getDefaultSignature()
+		return defaultSignature
 	} else if (type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
 		return currentCustomSignature
 	} else {
 		return ""
 	}
+}
+
+export function getSignatureType(props: TutanotaProperties): {name: string, value: string} {
+	return neverNull(getSignatureTypes(props).find(t => t.value === props.emailSignatureType))
 }

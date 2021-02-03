@@ -19,14 +19,13 @@ import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import {mod} from "../misc/MathUtils"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
-import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
+import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./model/SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
-import {assertMainOrNode, isApp} from "../api/Env"
-import {compareContacts} from "../contacts/ContactUtils"
+import {assertMainOrNode, isApp} from "../api/common/Env"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
@@ -34,16 +33,18 @@ import {client} from "../misc/ClientDetector";
 import {debounce, downcast, noOp} from "../api/common/utils/Utils"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
-import {hasMoreResults} from "./SearchModel"
+import {hasMoreResults} from "./model/SearchModel"
 import {SearchBarOverlay} from "./SearchBarOverlay"
 import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
-import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
 import type {SearchRestriction} from "../api/worker/search/SearchTypes"
-import {elementIdPart, getElementId, isSameTypeRef, listIdPart, TypeRef} from "../api/common/utils/EntityUtils";
+import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import type {ListElement} from "../api/common/utils/EntityUtils";
+import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
+import {compareContacts} from "../contacts/view/ContactGuiUtils";
 
 assertMainOrNode()
 

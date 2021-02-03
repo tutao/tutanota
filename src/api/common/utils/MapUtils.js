@@ -1,6 +1,8 @@
 //@flow
 import {neverNull} from "./Utils"
 
+//assertMainOrNodeBoot()
+
 /**
  * Merges multiple maps into a single map with lists of values.
  * @param maps

@@ -9,9 +9,9 @@ import {
 	_updateEntity
 } from "../common/EntityFunctions"
 import {_service} from "./rest/ServiceRestClient"
-import {assertWorkerOrNode} from "../Env"
+import {assertWorkerOrNode} from "../common/Env"
 import {locator} from "./WorkerLocator"
-import {TypeRef} from "../common/utils/EntityUtils";
+import {TypeRef} from "../common/utils/TypeRef";
 
 assertWorkerOrNode()
 

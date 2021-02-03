@@ -11,7 +11,7 @@ import {flat, remove} from "../../common/utils/ArrayUtils"
 import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import {assertWorkerOrNode} from "../../Env"
+import {assertWorkerOrNode} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import {ValueType} from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
@@ -28,11 +28,10 @@ import {
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getLetId,
-	isSameTypeRef,
-	READ_ONLY_HEADER,
-	TypeRef
+	READ_ONLY_HEADER
 } from "../../common/utils/EntityUtils";
 import type {ListElement} from "../../common/utils/EntityUtils"
+import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 
 
 assertWorkerOrNode()

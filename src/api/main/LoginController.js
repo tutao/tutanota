@@ -1,6 +1,6 @@
 //@flow
 import {assertNotNull, defer} from "../common/utils/Utils"
-import {assertMainOrNodeBoot, getHttpOrigin} from "../Env"
+import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import type {WorkerClient} from "./WorkerClient"

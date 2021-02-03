@@ -6,7 +6,7 @@ function toDot(modules, output) {
 
 	modules.forEach(m => {
 		m.deps.forEach(dep => {
-			buffer += `"${dep}" -> "${m.id}\n"`
+			buffer += `"${dep}" -> "${m.id}"\n`
 		});
 	});
 	buffer += "}\n"
@@ -59,14 +59,16 @@ export default function plugin(options = {}) {
 				}
 			}
 
-			let prefix = getPrefix(ids);
-			let strip = str => str.substring(prefix.length);
+			let prefix = options.prefix || getPrefix(ids);
+			let strip = str => str.startsWith(prefix) ? str.substring(prefix.length) : str;
 
 			let modules = [];
 			ids.forEach(id => {
 				let m = {
 					id: strip(id),
-					deps: this.getModuleInfo(id).importedIds.filter(x => !exclude(x)).map(strip)
+					deps: this.getModuleInfo(id).importedIds.filter(x => !exclude(x))
+					          .concat(this.getModuleInfo(id).dynamicImporters.filter(x => !exclude(x)))
+					          .map(strip)
 				}
 				if (exclude(m.id)) {
 					return;

@@ -1,9 +1,10 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
 import type {OutOfOfficeNotificationRecipientList} from "./OutOfOfficeNotificationRecipientList"
+import {TypeRef} from "../../common/utils/TypeRef";
 
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {
