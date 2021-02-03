@@ -13,8 +13,10 @@ import {
 	_updateEntity,
 	resolveTypeReference
 } from "./EntityFunctions"
-import {GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "./utils/EntityUtils";
+import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "./utils/EntityUtils";
 import type {ListElement} from "./utils/EntityUtils";
+// $FlowIgnore[untyped-import]
+import {ValueType} from "./EntityConstants"
 
 function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterface): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
@@ -25,16 +27,22 @@ function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterf
 	})
 }
 
-function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, target: EntityRestInterface): Promise<T[]> {
-	return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false, target).then(elements => {
-		if (elements.length === RANGE_ITEM_LIMIT) {
-			let lastElementId = getLetId(elements[elements.length - 1])[1]
-			return _loadAll(typeRef, listId, lastElementId, target).then(nextElements => {
-				return elements.concat(nextElements)
-			})
-		} else {
-			return Promise.resolve(elements)
+
+function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id, target: EntityRestInterface): Promise<T[]> {
+	return resolveTypeReference(typeRef).then(typeModel => {
+		if (!start) {
+			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
+		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false, target).then(elements => {
+			if (elements.length === RANGE_ITEM_LIMIT) {
+				let lastElementId = getLetId(elements[elements.length - 1])[1]
+				return _loadAll(typeRef, listId, lastElementId, target).then(nextElements => {
+					return elements.concat(nextElements)
+				})
+			} else {
+				return Promise.resolve(elements)
+			}
+		})
 	})
 }
 
@@ -66,7 +74,7 @@ export class EntityClient {
 	}
 
 	loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
-		return _loadAll(typeRef, listId, start == null ? GENERATED_MIN_ID : start, this._target)
+		return _loadAll(typeRef, listId, start, this._target)
 	}
 
 	loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
