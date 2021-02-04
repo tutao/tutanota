@@ -63,6 +63,8 @@ import {getListId, isSameId, stringToCustomId} from "../api/common/utils/EntityU
 
 assertMainOrNode()
 
+export const TOO_MANY_VISIBLE_RECIPIENTS = 10;
+
 export type Recipient = {name: ?string, address: string, contact?: ?Contact}
 export type RecipientList = $ReadOnlyArray<Recipient>
 export type Recipients = {to?: RecipientList, cc?: RecipientList, bcc?: RecipientList}
@@ -697,16 +699,23 @@ export class SendMailModel {
 			return Promise.reject(new UserError("noRecipients_msg"))
 		}
 
-		const subjectConfirm = this.getSubject().length === 0
-			? getConfirmation("noSubject_msg").then(confirmation => {
-				if (!confirmation) {
-					throw new CancelledError("no subject")
-				}
-			})
-			: Promise.resolve()
+		const confirmOrCancel = (needsConfirmation: boolean, message: TranslationKey) =>
+			needsConfirmation
+				? getConfirmation(message).then(confirmation => {
+					if (!confirmation) {
+						throw new CancelledError("user cancelled")
+					}
+				})
+				: Promise.resolve()
 
+		const numVisibleRecipients = this.toRecipients().length + this.ccRecipients().length
+		const recipientLengthConfirm =
+			confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "manyRecipients_msg")
 
-		return subjectConfirm
+		const subjectConfirm = () => confirmOrCancel(this.getSubject().length === 0, "noSubject_msg")
+
+		return recipientLengthConfirm
+			.then(subjectConfirm)
 			.then(() => this._waitForResolvedRecipients())
 			.then(() => this._externalPasswordConfirm(getConfirmation))
 			.then(() => {

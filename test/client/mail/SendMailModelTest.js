@@ -12,7 +12,7 @@ import type {ContactModel} from "../../../src/contacts/ContactModel"
 import {downcast, identity, neverNull} from "../../../src/api/common/utils/Utils"
 import type {TutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
-import {SendMailModel} from "../../../src/mail/SendMailModel"
+import {SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS} from "../../../src/mail/SendMailModel"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/MailboxGroupRoot"
 import {createGroup} from "../../../src/api/entities/sys/Group"
@@ -45,6 +45,7 @@ import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/utils/EntityUtils";
+import {CancelledError} from "../../../src/api/common/error/CancelledError"
 
 
 type TestIdGenerator = {
@@ -823,5 +824,78 @@ o.spec("SendMailModel", function () {
 			o(updatedContact == null).equals(true)
 
 		})
+
+		o("too many to recipients dont confirm", async function () {
+			const recipients = {to: []}
+			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
+				recipients.to.push({
+					name: `person ${i}`,
+					address: `person${i}@tutanota.de`
+				})
+			}
+			const subject = "subyekt"
+			const body = "bodie"
+
+			const getConfirmation = o.spy(() => Promise.resolve(false))
+
+			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
+			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+		})
+
+		o("too many to recipients confirm", async function () {
+			const recipients = {to: []}
+			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
+				recipients.to.push({
+					name: `person ${i}`,
+					address: `person${i}@tutanota.de`
+				})
+			}
+			const subject = "subyekt"
+			const body = "bodie"
+
+			const getConfirmation = o.spy(() => Promise.resolve(true))
+
+			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
+			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+		})
+
+		o("too many cc recipients dont confirm", async function () {
+			const recipients = {cc: []}
+			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
+				recipients.cc.push({
+					name: `person ${i}`,
+					address: `person${i}@tutanota.de`
+				})
+			}
+			const subject = "subyekt"
+			const body = "bodie"
+
+			const getConfirmation = o.spy(() => Promise.resolve(false))
+
+			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
+			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+		})
+
+		o("too many cc recipients confirm", async function () {
+			const recipients = {cc: []}
+			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
+				recipients.cc.push({
+					name: `person ${i}`,
+					address: `person${i}@tutanota.de`
+				})
+			}
+			const subject = "subyekt"
+			const body = "bodie"
+
+			const getConfirmation = o.spy(() => Promise.resolve(true))
+
+			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
+			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["manyRecipients_msg"]}])
+		})
+
 	})
 })
