@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-01-28T21:28:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -356,7 +356,7 @@ export default {
 		"dnsRecordHostOrName_label": "Host/Nazwa",
 		"dnsRecordsOk_msg": "Wszystkie rekordy DNS są prawidłowe",
 		"dnsRecordValueOrPointsTo_label": "Wartość/Punkt do",
-		"domainSetup_title": "Konfiguracja domeny niestandardowej\n ",
+		"domainSetup_title": "Konfiguracja domeny niestandardowej",
 		"domain_label": "Domena",
 		"doNotAskAgain_label": "Nie pytaj ponownie dla tego pliku",
 		"downgradeToPremium_msg": "Konto zostanie zamienione na konto Premium z 5 aliasami i 1 GB przestrzeni dyskowej oraz bez zaawansowanych funkcji personalizacji.",

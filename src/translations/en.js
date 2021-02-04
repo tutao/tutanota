@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-02-04T13:14:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -369,7 +369,7 @@ export default {
 		"downloadCompleted_msg": "Download completed",
 		"download_action": "Download",
 		"draft_action": "Drafts",
-		"dragAndDropExport_action": "Drag & drop export",
+		"dragAndDropExport_action": "Drag & drop email export",
 		"duplicatedMailAddressInUserList_msg": "The email address is included more than once in your input data.",
 		"duplicatesNotification_msg": "{1} duplicate contacts were found and will be deleted.",
 		"editContactForm_label": "Edit contact form",
@@ -699,6 +699,7 @@ export default {
 		"mailSettings_label": "Email settings",
 		"mailView_action": "Switch to the email view",
 		"makeLink_action": "Create hyperlink",
+		"manyRecipients_msg": "This email has a lot of recipients who will be visible to each other. Send anyway?",
 		"markAsNotPhishing_action": "Mark as not phishing",
 		"markRead_action": "Mark read",
 		"markUnread_action": "Mark unread",
@@ -1279,7 +1280,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"manyRecipients_msg": "This email has a lot of recipients who will be visible to each other. Are you sure you didn't mean to put them in Bcc?"
+		"you_label": "You"
 	}
 }

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-29T12:22:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -543,7 +543,7 @@ export default {
 		"inboxRuleValue_label": "Waarde",
 		"indexDeleted_msg": "We moesten de zoek-index herstarten om deze sneller en betrouwbaarder te maken. De zoek-index wordt opnieuw aangemaakt bij uw volgende zoekopdracht.",
 		"indexedMails_label": "Geïndexeerde e-mails: {count}",
-		"indexing_error": "Het indexeren werd afgebroken vanwege de fout",
+		"indexing_error": "Het indexeren is geannuleerd vanwege een fout.",
 		"insertImage_action": "Voeg afbeelding toe",
 		"insideOnly_label": "Alleen van binnen",
 		"insideOutside_label": "Binnen/Buiten",

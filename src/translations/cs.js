@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-28T18:51:08Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -273,7 +273,7 @@ export default {
 		"creditCardNumberInvalid_msg": "Číslo platební karty je neplatné.",
 		"creditCardNumber_label": "Číslo platební karty",
 		"creditCardPaymentErrorVerificationNeeded_msg": "Doplňte prosím detaily k vaší platbě. Dodatečné ověření této platební karty je vyžadováno vaší bankou.",
-		"creditCardPendingVerification_msg": "Ověření vaší karty nebylo dokončeno. Pokud tento problém nadále přetrvává, zkuste ověřit vaší platební kartu později.",
+		"creditCardPendingVerification_msg": "Ověření vaší karty nebylo dokončeno. Pokud tento problém nadále přetrvává, zkuste ověřit vaši platební kartu později.",
 		"creditCardVerificationNeededPopup_msg": "Vaše kreditní karta musí být ověřena vaší bankou. Pro tento účel bude otevřeno nové okno.",
 		"creditCardVerification_msg": "Vaše karta bude nyní ověřena...",
 		"creditUsageOptions_msg": "Kredit může být využit pro nákup různých balíčků (v nastavení ⇨ předplatné). Může být také ponechán až do dalšího období pro obnovení předplatného. Kredit, který vznikl z dárkového poukazu, nemá omezenou platnost!",

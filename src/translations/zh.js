@@ -1,6 +1,6 @@
 export default {
 	"id": "92297bc51fe91ba6e1288ba94a0275f0",
-	"name": "zh",
+	"name": "zh-hans",
 	"code": "zh",
 	"default": false,
 	"main": false,
@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-01-29T17:08:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

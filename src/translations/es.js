@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-29T12:30:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -543,7 +543,7 @@ export default {
 		"inboxRuleValue_label": "Contiene",
 		"indexDeleted_msg": "Hemos tenido que restablecer el índice de búsqueda para que sea más rápido y más confiable. El índice de búsqueda se creará de nuevo la próxima vez que busques.",
 		"indexedMails_label": "Correos indexados: {count}",
-		"indexing_error": "La indexación se anuló debido al error",
+		"indexing_error": "La indexación se canceló debido a un error",
 		"insertImage_action": "Insertar imagen",
 		"insideOnly_label": "Sólo en el interior",
 		"insideOutside_label": "Interior/exterior",

@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-29T16:14:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -279,7 +279,7 @@ export default {
 		"creditCardNumberInvalid_msg": "رقم بطاقة الائتمان غير صالح.",
 		"creditCardNumber_label": "رقم بطاقة الائتمان",
 		"creditCardPaymentErrorVerificationNeeded_msg": "الرجاء تحديث تفاصيل الدفع الخاصة بك. سيؤدي هذا إلى التحقق من بطاقة الائتمان المطلوبة من قبل البنك الذي تتعامل معه.",
-		"creditCardPendingVerification_msg": "التحقق من بطاقتك الائتمانية لم يكتمل بعد. يرجى محاولة التحقق من رصيدك في وقت لاحق إذا استمرت هذه المشكلة.",
+		"creditCardPendingVerification_msg": "التحقق من بطاقتك الائتمانية لم يكتمل بعد. يرجى محاولة التحقق من بطاقتك في وقت لاحق إذا استمرت هذه المشكلة.",
 		"creditCardVerificationNeededPopup_msg": "يجب التحقق من بطاقتك الائتمانية لدى البنك الذي تتعامل معه. سيتم فتح نافذة جديدة لهذا الغرض.",
 		"creditCardVerification_msg": "سيتم التحقق من بطاقتك الائتمانية الآن ...",
 		"creditUsageOptions_msg": "يمكن استخدام الرصيد لشراء باقات مختلفة (انتقل إلى 'الإعدادات' -> 'الاشتراك' بمجرد تسجيل الدخول) ، أو يمكن الاحتفاظ به حتى فترة الاشتراك التالية للدفع مقابل التجديد. لا تنتهي صلاحية الرصيد الذي تم إنشاؤه من بطاقات الهدايا !",
@@ -545,7 +545,7 @@ export default {
 		"inboxRuleValue_label": "القيمة",
 		"indexDeleted_msg": "قد وجب علينا إعادة تعيين فهرس البحث لجعله أسرع وأكثر موثوقية. سيتم إنشاء فهرس البحث مرة أخرى في المرة القادمة التي تقوم فيها بالبحث.",
 		"indexedMails_label": "رسائل البريد الإلكتروني المفهرسة: {count}",
-		"indexing_error": "تم إحباط الفهرسة بسبب الخطأ",
+		"indexing_error": "تم إحباط الفهرسة بسبب خطأ",
 		"insertImage_action": "إدراج صورة",
 		"insideOnly_label": "بالداخل فقط",
 		"insideOutside_label": "داخل /  خارج",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-30T11:32:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -276,7 +276,7 @@ export default {
 		"creditCardNumberInvalid_msg": "Il numero della carta di credito non è valido.",
 		"creditCardNumber_label": "Numero di carta di credito",
 		"creditCardPaymentErrorVerificationNeeded_msg": "Per favore aggiorna i tuoi dettagli di pagamento. Questo attiverà una verifica della carta di credito richiesta dalla tua banca.",
-		"creditCardPendingVerification_msg": "La verifica della tua carta di credito non è stata ancora completata. Prova a verificare il tuo credito in un secondo momento se il problema persiste.",
+		"creditCardPendingVerification_msg": "La verifica della tua carta di credito non è stata ancora completata. Prova a verificare la tua carta in un secondo momento se il problema persiste.",
 		"creditCardVerificationNeededPopup_msg": "La tua carta di credito deve essere verificata con la tua banca. A tale scopo verrà aperta una nuova finestra.",
 		"creditCardVerification_msg": "La tua carta di credito verrà verificata ora...",
 		"creditUsageOptions_msg": "Il credito può essere utilizzato per acquistare vari pacchetti (vai su \"Impostazioni\" ⇨ \"Abbonamento\" una volta effettuato l'accesso), oppure può essere mantenuto fino al periodo di abbonamento successivo per pagare un rinnovo. Il credito creato dalle carte regalo non scade!",
@@ -543,7 +543,7 @@ export default {
 		"inboxRuleValue_label": "Valore",
 		"indexDeleted_msg": "Abbiamo dovuto ripristinare l'indice di ricerca per renderlo più veloce e più affidabile. L'indice di ricerca verrà creato nuovamente la prossima volta che effettuerai una ricerca.",
 		"indexedMails_label": "Email indicizzate: {count}",
-		"indexing_error": "L'indicizzazione è stata interrotta a causa dell'errore",
+		"indexing_error": "Indicizzazione è stata interrotta a causa di un errore",
 		"insertImage_action": "Inserisci immagine",
 		"insideOnly_label": "Solo all'interno",
 		"insideOutside_label": "Dentro/fuori",

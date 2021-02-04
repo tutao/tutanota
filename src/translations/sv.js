@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-01-28T10:21:01Z",
+	"updated_at": "2021-01-29T13:42:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -274,7 +274,7 @@ export default {
 		"creditCardNumberInvalid_msg": "Kreditkortsnumret är ogiltigt.",
 		"creditCardNumber_label": "Kreditkortsnummer",
 		"creditCardPaymentErrorVerificationNeeded_msg": "Uppdatera dina betalningsuppgifter. Detta kommer att initiera en kontroll av kreditkortet vilket krävs av din bank.",
-		"creditCardPendingVerification_msg": "Kontrollen av ditt kreditkort är inte slutfört. Försök att verifiera din kreditkort vid ett senare tillfälle om detta problem kvarstår.",
+		"creditCardPendingVerification_msg": "Kontrollen av ditt kreditkort är inte slutförd. Försök att verifiera ditt kort vid ett senare tillfälle om detta problem kvarstår.",
 		"creditCardVerificationNeededPopup_msg": "Ditt kreditkort behöver verifieras med din bank. Ett nytt fönster kommer att öppnas för detta.",
 		"creditCardVerification_msg": "Ditt kreditkort kommer nu att verifieras...",
 		"creditUsageOptions_msg": "Tillgodobelopp kan användas för att köpa olika paket (gå till 'Inställningar' ⇨ 'Abonnemang' när du är inloggad) eller kan behållas till nästa abonnemangsperiod för att betala en förlängning. Tillgodobelopp skapade från presentkort upphör inte att gälla!",
@@ -541,7 +541,7 @@ export default {
 		"inboxRuleValue_label": "Värde",
 		"indexDeleted_msg": "Vi var tvungna att återställa sökindex för att göra det snabbare och mer tillförlitligt. Sökindex kommer att skapas igen nästa gång du gör en sökning.",
 		"indexedMails_label": "Indexerad e-post: {count}",
-		"indexing_error": "Indexeringen avbröts på grund av felet",
+		"indexing_error": "Indexeringen avbröts på grund av ett fel",
 		"insertImage_action": "Infoga bild",
 		"insideOnly_label": "Endast inom",
 		"insideOutside_label": "Inom/Utanför",

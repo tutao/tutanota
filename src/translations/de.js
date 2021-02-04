@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-01-28T10:25:11Z",
+	"updated_at": "2021-02-04T13:15:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -373,7 +373,7 @@ export default {
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",
 		"draft_action": "Entwürfe",
-		"dragAndDropExport_action": "Drag & Drop exportieren",
+		"dragAndDropExport_action": "Mails per Drag & Drop exportieren",
 		"duplicatedMailAddressInUserList_msg": "Die angegebene E-Mail-Adresse kommt mehr als einmal in der Eingabe vor.",
 		"duplicatesNotification_msg": "{1} identische Kontakte wurden erkannt und werden gelöscht.",
 		"editContactForm_label": "Kontakformular bearbeiten",
@@ -703,6 +703,7 @@ export default {
 		"mailSettings_label": "E-Mail-Einstellungen",
 		"mailView_action": "Zur E-Mail-Ansicht wechseln",
 		"makeLink_action": "Hyperlink erstellen",
+		"manyRecipients_msg": "Diese E-Mail hat viele Empfänger, die untereinander sichtbar sind. Möchtest du die E-Mail trotzdem senden?",
 		"markAsNotPhishing_action": "Als kein Phishing markieren",
 		"markRead_action": "Gelesen",
 		"markUnread_action": "Ungelesen",
