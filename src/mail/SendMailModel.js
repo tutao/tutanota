@@ -63,7 +63,7 @@ import {getListId, isSameId, stringToCustomId} from "../api/common/utils/EntityU
 
 assertMainOrNode()
 
-export const TOO_MANY_VISIBLE_RECIPIENTS = 20; // TODO what should this be? should it be configurable/not hardcoded?
+export const TOO_MANY_VISIBLE_RECIPIENTS = 10;
 
 export type Recipient = {name: ?string, address: string, contact?: ?Contact}
 export type RecipientList = $ReadOnlyArray<Recipient>
@@ -699,11 +699,6 @@ export class SendMailModel {
 			return Promise.reject(new UserError("noRecipients_msg"))
 		}
 
-
-		if (this.toRecipients().length >= TOO_MANY_VISIBLE_RECIPIENTS) {
-
-		}
-
 		const confirmOrCancel = (needsConfirmation: boolean, message: TranslationKey) =>
 			needsConfirmation
 				? getConfirmation(message).then(confirmation => {
@@ -715,7 +710,7 @@ export class SendMailModel {
 
 		const numVisibleRecipients = this.toRecipients().length + this.ccRecipients().length
 		const recipientLengthConfirm =
-			confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "tooManyRecipients_msg")
+			confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "manyRecipients_msg")
 
 		const subjectConfirm = () => confirmOrCancel(this.getSubject().length === 0, "noSubject_msg")
 

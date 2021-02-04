@@ -1280,6 +1280,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"tooManyRecipients_msg": "This email has a lot of recipients who will be visible to each other. Are you sure you didn't mean to put them in Bcc?"
+		"manyRecipients_msg": "This email has a lot of recipients who will be visible to each other. Are you sure you didn't mean to put them in Bcc?"
 	}
 }

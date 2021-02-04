@@ -894,7 +894,7 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
-			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["manyRecipients_msg"]}])
 		})
 
 	})
