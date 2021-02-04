@@ -2,14 +2,17 @@ import {rollupDebugPlugins, writeNollupBundle} from "../buildSrc/RollupDebugConf
 import nollup from "nollup"
 import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
-import path from "path"
+import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
-import graph from "../buildSrc/graph.js"
+import {fileURLToPath} from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const root = path.dirname(__dirname)
 
 export async function build(options, log) {
 	log("Build")
 
-	const {version} = JSON.parse(await fs.readFile("../package.json", "utf8"))
+	const {version} = JSON.parse(await fs.readFile(path.join(root, "./package.json"), "utf8"))
 	const localEnv = env.create("http://localhost:9000", version, "Test")
 
 	log("Bundling...")
