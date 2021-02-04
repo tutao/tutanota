@@ -708,7 +708,7 @@ export class SendMailModel {
 			needsConfirmation
 				? getConfirmation(message).then(confirmation => {
 					if (!confirmation) {
-						throw new CancelledError("too many recipients")
+						throw new CancelledError("user cancelled")
 					}
 				})
 				: Promise.resolve()
