@@ -41,12 +41,15 @@ export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promi
 }
 
 export function promptAndDeleteMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, onConfirm: () => void): Promise<void> {
-	return showDeleteConfirmationDialog(mails).then(() => {
-		onConfirm()
-
-		return mailModel.deleteMails(mails)
-		                .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-		                .catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
+	return showDeleteConfirmationDialog(mails).then((confirmed) => {
+		if (confirmed) {
+			onConfirm()
+			return mailModel.deleteMails(mails)
+				            .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+				            .catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
+		} else {
+			return Promise.resolve()
+		}
 	})
 }
 
