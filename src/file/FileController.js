@@ -12,7 +12,7 @@ import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {sanitizeFilename} from "../api/common/utils/FileUtils"
+import {legalizeFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 
 assertMainOrNode()
 
@@ -263,8 +263,9 @@ export class FileController {
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		return import("jszip").then(jsZip => {
 			const zip = jsZip.default()
+			let legalFilenameMap = legalizeFilenames(dataFiles.map(df => df.name))
 			dataFiles.forEach(df => {
-				zip.file(sanitizeFilename(df.name), df.data, {binary: true})
+				zip.file(sanitizeFilename(legalFilenameMap[df.name].shift()), df.data, {binary: true})
 			})
 			return zip.generateAsync({type: 'uint8array'})
 		}).then(zf => convertToDataFile(file, zf))

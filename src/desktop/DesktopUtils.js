@@ -10,10 +10,12 @@ import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
 
-import {legalizeFilenames} from "./PathUtils"
+
 import {AttachmentType, Email, MessageEditorFormat} from "oxmsg"
 import {delay} from "../api/common/utils/PromiseUtils"
 import type {MailBundle} from "../mail/export/Bundler";
+import {legalizeFilenames} from "../api/common/utils/FileUtils"
+import {isReservedFilename} from "./PathUtils"
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -154,7 +156,7 @@ export class DesktopUtils {
 	// to do it's thing
 	async writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', randomHexString(12))
-		const legalNames = legalizeFilenames(files.map(f => f.name))
+		const legalNames = legalizeFilenames(files.map(f => f.name), isReservedFilename)
 		const legalFiles = files.map(f => ({
 			content: f.content,
 			name: legalNames[f.name].shift()
