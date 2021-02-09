@@ -39,7 +39,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // which looks like a problem e.g. for accessing fields.
 
 // change this to disable minification and name mangling.
-const MINIMIZE = true
+const MINIFY = true
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')

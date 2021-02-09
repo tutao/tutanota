@@ -30,6 +30,26 @@ pipeline {
 				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
 				// adding web-specific parts to another bundle
 				stash includes: '**/braintree.html, **/dist/index.html, **/dist/index-index.js, **/dist/sw.js', name: 'web_add'
+				// Bundle size stats
+				publishHTML target: [
+					allowMissing: false,
+					alwaysLinkToLastBuild: false,
+					keepAll: true,
+					reportDir: 'build',
+					reportFiles: 'stats.html',
+					reportName: 'bundle stats'
+				]
+				// Bundle dependencies graph
+				sh 'dot -Tsvg build/bundles.dot > build/bundles.svg'
+				sh """echo '<!doctype html><html><body><img src="./bundles.svg" /></body></html>' > build/bundles.html"""
+				publishHTML target: [
+					allowMissing: false,
+					alwaysLinkToLastBuild: false,
+					keepAll: true,
+					reportDir: 'build',
+					reportFiles: 'bundles.html',
+					reportName: 'bundle dependencies'
+				]
             }
         }
 
