@@ -1,6 +1,5 @@
 // @flow
-
-//assertMainOrNodeBoot()
+//@bundleInto:common-min
 
 /**
  * Returns a string which contains the given number padded with 0s.

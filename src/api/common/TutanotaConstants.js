@@ -1,5 +1,5 @@
 // @flow
-
+//@bundleInto:common-min
 import {downcast} from "./utils/Utils"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import type {MailFolder} from "../entities/tutanota/MailFolder"
@@ -11,7 +11,6 @@ import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroup
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 import {isAdminClient, isApp, isDesktop} from "./Env"
 
-//assertMainOrNodeBoot()
 
 export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
                                                                           .reduce((r, k) => {

@@ -113,3 +113,23 @@ To run tests:
 and
 
  `node test api` or `node test client`
+
+
+## Chunking rules
+ - Don't import things statically which you don't want to be bundled together (e.g. importing settings from login will
+  load whole settings at startup)
+ - `common-min` is api/common which is used by main and worker threads and is needed on startup (marked by `@bundleInto`).
+  rest of api/common is just `common`.
+ - `main` is the rest of the main thread code that is not gui related and does not depend on sanitizer/luxon
+ - `date` is luxon and everything that depends on it statically
+ - rest is obvious: `login`, `mail-view`, `mail-editor`, `calendar-view`, `search`, `settings`, `worker`
+ - anything can depend on `common-min`
+ - anything can depend on `common` except for `common-min` and `app.js`
+ - anything can depend on `app.js` except worker, common-min, common
+ - gui-related things (like `login` or `mail-view`) can depend on `gui-base`. Currently main also depends on `gui-base`
+  but it's not good
+ - don't depend on `settings`/`subscription`/`login`/`mail-view`/`mail-editor`/`calendar-view`/`contacts` things
+  statically
+ - anything that depends on luxon goes into `date` and is being imported dynamically
+ - native code is only imported from common code dynamically. Worker is exception for technical reasons.
+ - `contacts` and `mail-editor` depend on sanitizer statically, rest of the app doesn't

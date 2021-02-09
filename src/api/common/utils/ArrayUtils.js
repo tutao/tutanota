@@ -1,9 +1,7 @@
 //@flow
-
+//@bundleInto:common-min
 import {identity, neverNull} from "./Utils"
 import {getFromMap} from "./MapUtils"
-
-//assertMainOrNodeBoot()
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)

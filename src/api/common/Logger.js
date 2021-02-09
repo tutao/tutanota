@@ -1,8 +1,8 @@
 //@flow
+//@bundleInto:common-min
 
 import {errorToString} from "./utils/Utils"
 
-//assertMainOrNodeBoot()
 
 export const LOG_SIZE = 1000
 

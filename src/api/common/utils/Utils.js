@@ -1,4 +1,5 @@
 // @flow
+//@bundleInto:common-min
 import type {OperationTypeEnum} from "../TutanotaConstants"
 import type {EntityUpdateData} from "../../main/EventController"
 import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
@@ -46,8 +47,6 @@ import {CancelledError} from "../error/CancelledError"
 import {FileOpenError} from "../error/FileOpenError"
 import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
-
-//assertMainOrNodeBoot()
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,

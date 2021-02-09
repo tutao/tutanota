@@ -1,7 +1,6 @@
 //@flow
+//@bundleInto:common-min
 import {neverNull} from "./Utils"
-
-//assertMainOrNodeBoot()
 
 /**
  * Merges multiple maps into a single map with lists of values.

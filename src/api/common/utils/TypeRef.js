@@ -1,6 +1,5 @@
 //@flow
-
-//assertMainOrNodeBoot()
+//@bundleInto:common-min
 
 /**
  * Attention: TypeRef must be defined as class and not as Flow type because object types use structural typing and TypeRef does not

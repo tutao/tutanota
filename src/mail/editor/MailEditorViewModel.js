@@ -15,6 +15,7 @@ import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {Type} from "../../gui/base/TextFieldN"
 import {PasswordIndicator} from "../../gui/PasswordIndicator"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonType} from "../../gui/base/ButtonN"
@@ -24,7 +25,6 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
 import {FeatureType} from "../../api/common/TutanotaConstants"
-import {ContactEditor} from "../../contacts/ContactEditor"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {createNewContact, getDisplayText, resolveRecipientInfo, resolveRecipientInfoContact} from "../model/MailUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
@@ -34,7 +34,6 @@ import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {cleanMatch} from "../../api/common/utils/StringUtils"
 import {ConnectionError, TooManyRequestsError} from "../../api/common/error/RestError"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -292,7 +291,10 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 				? {
 					label: () => lang.get("editContact_label"),
 					type: ButtonType.Secondary,
-					click: () => new ContactEditor(recipient.contact).show()
+					click: () => {
+						import("../../contacts/ContactEditor")
+							.then(({ContactEditor}) => new ContactEditor(recipient.contact).show())
+					}
 				}
 				: {
 					label: () => lang.get("createContact_action"),
@@ -302,7 +304,9 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 						this._contactModel.contactListId()
 						    .then(contactListId => {
 							    const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
-							    new ContactEditor(newContact, contactListId, createdContactReceiver).show()
+							    import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+								    new ContactEditor(newContact, contactListId, createdContactReceiver).show()
+							    })
 						    })
 					}
 				}

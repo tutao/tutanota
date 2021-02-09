@@ -1,8 +1,7 @@
 //@flow
+//@bundleInto:common-min
 import {TutanotaError} from "./TutanotaError"
 import type {Challenge} from "../../entities/sys/Challenge"
-
-//assertMainOrNodeBoot()
 
 export class SecondFactorPendingError extends TutanotaError {
 	data: {sessionId: IdTuple, challenges: Challenge[], mailAddress: ?string};

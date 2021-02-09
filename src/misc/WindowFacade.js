@@ -34,7 +34,7 @@ class WindowFacade {
 				// load async to reduce size of boot bundle
 				this._worker = worker
 				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
-					import("../native/common/NativeWrapper").then(({nativeApp}) => {
+					return import("../native/common/NativeWrapper").then(({nativeApp}) => {
 						return nativeApp.initialized().then(() => this.addPageInBackgroundListener())
 					})
 				}

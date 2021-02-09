@@ -124,7 +124,7 @@ async function buildWebapp(version) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.js"],
 		plugins: [
-			MINIMIZE && terser(),
+			MINIFY && terser(),
 			nodeResolve(),
 			commonjs(),
 			{
@@ -149,18 +149,6 @@ async function buildWebapp(version) {
 		input: ["src/app.js", "src/api/worker/worker.js"],
 		preserveEntrySignatures: false,
 		perf: true,
-
-		// treeshake: {
-		// 	moduleSideEffects(id) {
-		// 		if (id.includes("src/api/common") ||
-		// 			id.includes("src/mail") ||
-		// 			id.includes("src/calendar") ||
-		// 			id.includes("src/subscription")
-		// 		) {
-		// 			return false
-		// 		}
-		// 	},
-		// },
 		plugins: [
 			babel({
 				plugins: [
@@ -184,7 +172,7 @@ async function buildWebapp(version) {
 			commonjs({
 				exclude: "src/**",
 			}),
-			MINIMIZE && terser(),
+			MINIFY && terser(),
 			analyzer(),
 			visualizer({filename: "build/stats.html", gzipSize: true}),
 		],
@@ -199,10 +187,14 @@ async function buildWebapp(version) {
 		format: "system",
 		dir: "build/dist",
 		manualChunks(id, {getModuleInfo, getModuleIds}) {
-			if (getModuleInfo(id).code.includes("assertMainOrNodeBoot")) {
+			// See HACKING.md for rules
+			const code = getModuleInfo(id).code
+			if (code.includes("@bundleInto:common-min")) {
+				return "common-min"
+			} else if (code.includes("assertMainOrNodeBoot")) {
 				// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 				// (which is getting merged into app.js)
-				return id.includes("api/common") ? "common-min" : "boot"
+				return "boot"
 			} else if (id.includes("src/gui/date") ||
 				id.includes("src/misc/DateParser") ||
 				id.includes("luxon") ||
@@ -222,7 +214,11 @@ async function buildWebapp(version) {
 				return "gui-base"
 			} else if (id.includes("src/native/main") || id.includes("SearchInPageOverlay")) {
 				return "native-main"
-			} else if (id.includes("src/mail/editor") || id.includes("squire") || id.includes("src/gui/editor")) {
+			} else if (id.includes("src/mail/editor") ||
+				id.includes("squire") ||
+				id.includes("src/gui/editor") ||
+				id.includes("src/mail/signature")
+			) {
 				// squire is most often used with mail editor and they are both not too big so we merge them
 				return "mail-editor"
 			} else if (
@@ -416,7 +412,7 @@ async function bundleServiceWorker(bundles, version) {
 				],
 				babelHelpers: "bundled",
 			}),
-			MINIMIZE && terser(),
+			MINIFY && terser(),
 			{
 				name: "sw-banner",
 				banner() {

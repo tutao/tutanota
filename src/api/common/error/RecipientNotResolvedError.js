@@ -1,7 +1,6 @@
 // @flow
+//@bundleInto:common-min
 import {TutanotaError} from "./TutanotaError"
-
-//assertMainOrNodeBoot()
 
 export class RecipientNotResolvedError extends TutanotaError {
 	constructor(m: string) {

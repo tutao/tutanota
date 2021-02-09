@@ -1,6 +1,5 @@
 //@flow
-
-//assertMainOrNodeBoot()
+//@bundleInto:common-min
 
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.

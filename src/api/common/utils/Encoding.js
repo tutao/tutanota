@@ -1,8 +1,8 @@
 // @flow
+//@bundleInto:common-min
 import {CryptoError} from "../error/CryptoError"
 import {pad} from "./StringUtils"
 
-//assertMainOrNodeBoot
 // it's in the boot because deviceConfig needs it for signupToken. If we make signupToken async we can move it to just common
 
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
