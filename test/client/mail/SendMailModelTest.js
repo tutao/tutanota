@@ -840,7 +840,7 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
-			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["manyRecipients_msg"]}])
 		})
 
 		o("too many to recipients confirm", async function () {
@@ -858,7 +858,7 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
-			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["manyRecipients_msg"]}])
 		})
 
 		o("too many cc recipients dont confirm", async function () {
@@ -876,7 +876,7 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
-			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["tooManyRecipients_msg"]}])
+			o(getConfirmation.calls).deepEquals([{this: undefined, args: ["manyRecipients_msg"]}])
 		})
 
 		o("too many cc recipients confirm", async function () {
