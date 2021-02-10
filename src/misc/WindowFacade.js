@@ -108,6 +108,21 @@ class WindowFacade {
 			window.addEventListener("popstate", e => this._popState(e))
 			window.addEventListener("unload", e => this._onUnload())
 		}
+
+
+		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
+		// and Cmd+Arrow to navigate a text editor
+		if(env.mode === Mode.Desktop && client.isMacOS && window.addEventListener) {
+			window.addEventListener('keydown', e => {
+				if (!e.metaKey || e.key === 'Meta') return
+				// prevent history nav if the active element is an input / squire editor
+				if (e.target && (e.target.tagName === "INPUT" || e.target.contentEditable === 'true')) {
+					e.stopPropagation()
+				} else if (e.key === 'ArrowLeft') {
+					window.history.back()
+				} else if (e.key === 'ArrowRight') window.history.forward()
+			})
+		}
 	}
 
 	_resize() {

@@ -32,6 +32,33 @@ interface Lifecycle<Attrs> {
 
 type LifecycleAttrs<T> = T & Lifecycle<T>
 
+declare interface Mithril {
+	// We would like to write a definition which allows omitting Attrs if all keys are optional
+	(component: string | Component | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
+
+	<Attrs: $ReadOnly<{[?string]: any}>>(
+		component: string | Component | Class<MComponent<Attrs>> | MComponent<Attrs>,
+		attributes: Attrs,
+		children?: Children
+	): Vnode<any>;
+
+	route: Router;
+
+	redraw(): void;
+
+	fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
+
+	trust(html: string): any;
+
+	withAttr(attrName: string, callback: Function): Function;
+
+	buildQueryString(args: {[string]: any}): string;
+
+	parseQueryString(queryString: string): {[string]: string};
+
+	render(element: HTMLElement, vnodes: Children): void;
+}
+
 declare module 'mithril' {
 	declare interface Router {
 		(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
@@ -48,33 +75,6 @@ declare module 'mithril' {
 		prefix: string;
 
 		Link: MComponent<any>;
-	}
-
-	declare interface Mithril {
-		// We would like to write a definition which allows omitting Attrs if all keys are optional
-		(component: string | Component | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
-
-		<Attrs: $ReadOnly<{[?string]: any}>>(
-			component: string | Component | Class<MComponent<Attrs>> | MComponent<Attrs>,
-			attributes: Attrs,
-			children?: Children
-		): Vnode<any>;
-
-		route: Router;
-
-		redraw(): void;
-
-		fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
-
-		trust(html: string): any;
-
-		withAttr(attrName: string, callback: Function): Function;
-
-		buildQueryString(args: {[string]: any}): string;
-
-		parseQueryString(queryString: string): {[string]: string};
-
-		render(element: HTMLElement, vnodes: Children): void;
 	}
 
 	declare export default Mithril;
@@ -241,6 +241,7 @@ declare type Squire = any
 
 declare var tutao: {
 	currentView: any;
+	m: Mithril
 }
 
 declare class ContactFindOptions { // cordova contact plugin

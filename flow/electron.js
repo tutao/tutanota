@@ -441,6 +441,7 @@ declare module 'electron' {
 		id: number;
 
 		static fromId(number): BrowserWindow;
+		static fromWebContents(WebContents): BrowserWindow;
 		static getAllWindows(): Array<BrowserWindow>
 	}
 
@@ -478,16 +479,19 @@ declare module 'electron' {
 
 	declare export type DragInfo = {files: string[] | string, icon?: NativeImage | string}
 
+	declare export type WebContentsEvent = {sender: WebContents, preventDefault: ()=>void}
+
 	declare export class WebContents {
-		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
-		once(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
-		removeListener(WebContentsEvent, (Event, ...any) => void): BrowserWindow;
-		removeAllListeners(WebContentsEvent): WebContents;
+		on(WebContentsEventType, (WebContentsEvent, ...Array<any>) => void): WebContents;
+		once(WebContentsEventType, (WebContentsEvent, ...Array<any>) => void): WebContents;
+		removeListener(WebContentsEventType, (WebContentsEvent, ...any) => void): WebContents;
+		removeAllListeners(WebContentsEventType): WebContents;
 		send(string, any): void;
 		session: ElectronSession;
 		getURL(): string;
 		getTitle(): string;
 		zoomFactor: number;
+		id: number;
 		openDevTools(opts?: {|mode: string|}): void;
 		isDevToolsOpened(): boolean;
 		isDestroyed(): boolean;
@@ -500,6 +504,8 @@ declare module 'electron' {
 		executeJavaScript(code: string): Promise<any>;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
+		setZoomFactor(f: number) : void;
+		getZoomFactor() : number;
 		copy(): void;
 		cut(): void;
 		paste(): void;
@@ -738,7 +744,7 @@ export type BrowserWindowEvent
 	| 'did-start-navigation' // passed through from webContents
 
 // https://github.com/electron/electron/blob/master/docs/api/web-contents.md#instance-events
-export type WebContentsEvent
+export type WebContentsEventType
 	= 'did-finish-load'
 	| 'did-fail-load'
 	| 'did-frame-finish-load'
@@ -781,6 +787,7 @@ export type WebContentsEvent
 	| 'did-attach-webview'
 	| 'console-message'
 	| 'closed'
+	| 'zoom-changed'
 
 export type AutoUpdaterEvent
 	= 'error'

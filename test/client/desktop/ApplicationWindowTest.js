@@ -29,6 +29,7 @@ o.spec("ApplicationWindow Test", function () {
 		ipc: {
 			addWindow: () => {
 			},
+			removeWindow: () => {},
 			sendRequest: () => Promise.resolve(),
 			initialized: () => Promise.resolve()
 		},
@@ -46,7 +47,6 @@ o.spec("ApplicationWindow Test", function () {
 	const conf = {
 		getConst: key => {
 			switch (key) {
-				case 'preloadjs':
 				case 'desktophtml':
 					return key
 				default:
@@ -97,9 +97,10 @@ o.spec("ApplicationWindow Test", function () {
 								return this.webContents.destroyed
 							},
 							send: (msg, val) => {
-								if (msg === 'set-zoom-factor') {
-									this.webContents.zoomFactor = val
-								}
+								throw new Error('used send with invalid message')
+							},
+							executeJavaScript: function() {
+
 							},
 							on: (ev: string, cb: () => void) => {
 								this.webContents.callbacks[ev] = cb
@@ -121,6 +122,12 @@ o.spec("ApplicationWindow Test", function () {
 							goBack: function () {
 							},
 							goForward: function () {
+							},
+							setZoomFactor: function(n: number) {
+								this.zoomFactor = n
+							},
+							getZoomFactor: function() {
+								return 1
 							},
 							toggleDevTools: function () {
 								this.devToolsOpened = !this.devToolsOpened
@@ -247,10 +254,10 @@ o.spec("ApplicationWindow Test", function () {
 				nodeIntegration: false,
 				nodeIntegrationInWorker: false,
 				sandbox: true,
-				contextIsolation: false,
+				contextIsolation: true,
 				webSecurity: true,
 				enableRemoteModule: false,
-				preload: '/path/to/app/preloadjs',
+				preload: '/path/to/app/desktop/preload.js',
 				spellcheck: false
 			}
 		})
@@ -270,9 +277,10 @@ o.spec("ApplicationWindow Test", function () {
 			'will-attach-webview',
 			'did-start-navigation',
 			'before-input-event',
-			'did-fail-load',
 			'did-finish-load',
-			'dom-ready'
+			'did-fail-load',
+			'zoom-changed',
+			'update-target-url'
 		])
 
 		// noAutoLogin=true
@@ -582,7 +590,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(e.preventDefault.callCount).equals(4)
 	})
 
-	o("sendMessageToWebContents checks if webContents is there", function () {
+	o("sendMessageToWebContents checks if webContents is there", async function () {
 		const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
 
 
@@ -590,45 +598,35 @@ o.spec("ApplicationWindow Test", function () {
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		let args = {p: 'args'}
-		w.sendMessageToWebContents('set-zoom-factor', args)
+		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(1)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(1)
-		o(bwInstance.webContents.send.callCount).equals(1)
-		o(bwInstance.webContents.send.args[0]).equals('set-zoom-factor')
-		o(bwInstance.webContents.send.args[1]).equals(args)
+		o(bwInstance.webContents.executeJavaScript.callCount).equals(1)
 
 		args = undefined
-		w.sendMessageToWebContents('set-zoom-factor', args)
+		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(2)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(2)
-		o(bwInstance.webContents.send.callCount).equals(2)
-		o(bwInstance.webContents.send.args[0]).equals('set-zoom-factor')
-		o(bwInstance.webContents.send.args[1]).equals(args)
+		o(bwInstance.webContents.executeJavaScript.callCount).equals(2)
 
 		args = []
-		w.sendMessageToWebContents(3, args)
+		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(3)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(3)
-		o(bwInstance.webContents.send.callCount).equals(3)
-		o(bwInstance.webContents.send.args[0]).equals("3")
-		o(bwInstance.webContents.send.args[1]).equals(args)
+		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
 
 		let args2 = "hello"
 		bwInstance.webContents.destroyed = true
-		w.sendMessageToWebContents(3, args2)
+		await w.sendMessageToWebContents(args2)
 		o(bwInstance.isDestroyed.callCount).equals(4)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.send.callCount).equals(3)
-		o(bwInstance.webContents.send.args[0]).equals("3")
-		o(bwInstance.webContents.send.args[1]).equals(args)
+		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
 
 		bwInstance.destroyed = true
-		w.sendMessageToWebContents(3, args2)
+		await w.sendMessageToWebContents(args2)
 		o(bwInstance.isDestroyed.callCount).equals(5)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.send.callCount).equals(3)
-		o(bwInstance.webContents.send.args[0]).equals("3")
-		o(bwInstance.webContents.send.args[1]).equals(args)
+		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
 	})
 
 	o("context-menu is passed to handler", function () {
@@ -646,22 +644,6 @@ o.spec("ApplicationWindow Test", function () {
 
 		o(handlerMock.callCount).equals(1)
 		o(handlerMock.args).deepEquals([{linkURL: 'dies.ist.ne/url', editFlags: "someflags"}])
-	})
-
-	o("dom-ready causes ipc setup", function (done) {
-		const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
-
-
-		const w = new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-		bwInstance.webContents.callbacks['dom-ready']()
-
-		setTimeout(() => {
-			o(bwInstance.webContents.send.callCount).equals(1)
-			o(bwInstance.webContents.send.args[0]).equals('initialize-ipc')
-			o(bwInstance.webContents.send.args[1]).deepEquals(['app version', w.id])
-			done()
-		}, 10)
 	})
 
 	o("openMailbox sends mailbox info and shows window", function (done) {

@@ -1,5 +1,5 @@
 // @flow
-import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents} from 'electron'
+import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents, WebContentsEvent} from 'electron'
 // $FlowIgnore[untyped-import]
 import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
@@ -15,6 +15,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
 import {pathToFileURL} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -79,7 +80,7 @@ export class ApplicationWindow {
 			])
 
 		log.debug("startFile: ", this._startFile)
-		const preloadPath = path.join(this._electron.app.getAppPath(), conf.getConst("preloadjs"))
+		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
 		this._createBrowserWindow(wm, preloadPath)
 		this._browserWindow.loadURL(
 			noAutoLogin
@@ -96,7 +97,7 @@ export class ApplicationWindow {
 	// windows that get their zoom factor set from the config file don't report that
 	// zoom factor back when queried via webContents.zoomFactor.
 	// we set it ourselves in the renderer thread the same way we handle mouse wheel zoom
-	setZoomFactor: ((f: number) => void) = (f: number) => this.sendMessageToWebContents('set-zoom-factor', f)
+	setZoomFactor: ((f: number) => void) = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
 	isFullScreen: (() => boolean) = () => this._browserWindow.isFullScreen()
 	isMinimized: (() => boolean) = () => this._browserWindow.isMinimized()
 	minimize: (() => void) = () => this._browserWindow.minimize()
@@ -142,9 +143,7 @@ export class ApplicationWindow {
 				// https://github.com/electron-userland/electron-builder/issues/2562
 				// https://electronjs.org/docs/api/sandbox-option
 				sandbox: true,
-				// can't use contextIsolation because this will prevent
-				// the preload script changes to the web app
-				contextIsolation: false,
+				contextIsolation: true,
 				webSecurity: true,
 				enableRemoteModule: false,
 				preload: preloadPath,
@@ -178,6 +177,10 @@ export class ApplicationWindow {
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
 			    this._browserWindow.emit('did-start-navigation')
+			    if (!isInPlace) { // reload
+				    this._ipc.removeWindow(this.id)
+				    this._ipc.addWindow(this.id)
+			    }
 			    const newURL = this._rewriteURL(url, isInPlace)
 			    if (newURL !== url) {
 				    e.preventDefault()
@@ -189,30 +192,38 @@ export class ApplicationWindow {
 				    this._skipNextSearchBarBlur = true;
 				    const [searchTerm, options] = this._lastSearchRequest
 				    options.forward = true
-				    this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
+				    this._browserWindow.webContents.once('found-in-page', (ev: WebContentsEvent, res: FindInPageResult) => {
 					    this._ipc.sendRequest(this.id, 'applySearchResultToOverlay', [res])
 				    }).findInPage(searchTerm, options)
 			    }
+		    })
+		    .on('did-finish-load', () => {
+			    // This also covers the case when window was reloaded.
+			    // the webContents needs to know on which channel to listen
+			    // Wait for IPC to be initialized so that render process can process our messages.
+			    this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
 		    })
 		    .on('did-fail-load', (evt, errorCode, errorDesc) => {
 			    log.debug("failed to load resource: ", errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
 				    log.debug("redirecting to start page...")
 				    this._browserWindow.loadURL(this._startFile + "?noAutoLogin=true")
-				        .then(() => {
-					        log.debug("...redirected")
-				        })
+				        .then(() => log.debug("...redirected"))
 			    }
 		    })
-		    .on('did-finish-load', () => {
-			    // This also covers the case when window was reloaded.
-			    // Wait for IPC to be initialized so that render process can process our messages.
-			    this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
+		    .on('zoom-changed', (ev : WebContentsEvent, direction: "in" | "out") => {
+			    const wc = ev.sender
+			    let newFactor = ((wc.getZoomFactor() * 100) + (direction === "out" ? -10 : 10)) / 100
+			    if (newFactor > 3) {
+				    newFactor = 3
+			    } else if (newFactor < 0.5) {
+				    newFactor = 0.5
+			    }
+			    wc.setZoomFactor(newFactor)
 		    })
-
-		this._browserWindow.webContents.on('dom-ready', () => {
-			this.sendMessageToWebContents('initialize-ipc', [this._electron.app.getVersion(), this.id])
-		})
+		    .on('update-target-url', (ev, url) => {
+			    this._ipc.sendRequest(this.id, 'updateTargetUrl', [url])
+		    })
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
 		this._reRegisterShortcuts()
@@ -266,16 +277,20 @@ export class ApplicationWindow {
 		wc.on('context-menu', (e, params) => handler(params))
 	}
 
-	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
+	async sendMessageToWebContents(args: any) : Promise<void> {
 		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			log.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
+			log.warn(`BrowserWindow unavailable, not sending message:\n${args}`)
 			return
 		}
 		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			log.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
+			log.warn(`WebContents unavailable, not sending message:\n${args}`)
 			return
 		}
-		this._browserWindow.webContents.send(message.toString(), args)
+		// need to wait for the nativeApp to register itself
+		return this._ipc.initialized(this.id).then(() => {
+			const messageContents = uint8ArrayToBase64(stringToUtf8Uint8Array(JSON.stringify(args)))
+			this._browserWindow.webContents.executeJavaScript("tutao.nativeApp.handleMessageFromNative('" + messageContents + "')")
+		})
 	}
 
 	setUserInfo(info: ?UserInfo) {
@@ -323,7 +338,7 @@ export class ApplicationWindow {
 				this._browserWindow.webContents
 					// the last listener might not have fired yet
 					.removeAllListeners('found-in-page')
-					.once('found-in-page', (ev: Event, res: FindInPageResult) => {
+					.once('found-in-page', (ev: WebContentsEvent, res: FindInPageResult) => {
 						this._lastSearchPromiseReject = noOp
 						resolve(res)
 					})

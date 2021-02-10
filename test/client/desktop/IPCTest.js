@@ -8,7 +8,9 @@ import {assertThrows} from "../../api/TestUtils"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 o.spec("IPC tests", function () {
-	const CALLBACK_ID = 42
+	const CALLBACK_ID = 'message'
+	const WINDOW_ID = 42
+	const dummyEvent = id => ({sender: {id}})
 
 	let electron
 	const conf = {
@@ -37,6 +39,7 @@ o.spec("IPC tests", function () {
 	let windowMock
 	const wm = {
 		get: id => id === 42 ? windowMock : null,
+		getEventSender: (ev) => ev.sender.id === 42 ? windowMock : null,
 		newWindow: () => {
 		}
 	}
@@ -100,6 +103,9 @@ o.spec("IPC tests", function () {
 				on: function (ev, cb) {
 					this.callbacks[ev] = cb
 					return this
+				},
+				handle: function (msg, handler) {
+					this.callbacks[msg] = handler
 				}
 			},
 			app: {
@@ -173,10 +179,8 @@ o.spec("IPC tests", function () {
 
 		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock, cryptoMock, dlMock, autoUpdaterMock, electronMock, desktopUtilsMock, errMock, desktopIntegratorMock)
 		o(electronMock.ipcMain.on.callCount).equals(0)
-		ipc.addWindow(42)
-		o(electronMock.ipcMain.on.callCount).equals(1)
-		o(electronMock.ipcMain.on.args[0]).equals(String(CALLBACK_ID))
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		ipc.addWindow(WINDOW_ID)
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "init",
 			id: "id",
 			value: []
@@ -188,23 +192,19 @@ o.spec("IPC tests", function () {
 	o("addWindow & init & removeWindow", function (done) {
 		n.setPlatform('minix') // init sends platform
 		const {ipc, electronMock} = setUpWithWindowAndInit()
-		o(ipc.initialized(42).isFulfilled()).equals(true)
+		o(ipc.initialized(WINDOW_ID).isFulfilled()).equals(true)
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(1)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id',
 				type: 'response',
 				value: 'minix' // there it is
 			})
 
-			ipc.removeWindow(42)
-			// one call to clear when adding window, one when removing
-			o(electronMock.ipcMain.removeAllListeners.callCount).equals(1)
-			o(electronMock.ipcMain.removeAllListeners.args[0]).equals(String(CALLBACK_ID))
+			ipc.removeWindow(WINDOW_ID)
 			let threw = false
-			ipc.initialized(42)
+			ipc.initialized(WINDOW_ID)
 			   .catch(() => threw = true)
 			   .then(() => o(threw).equals(true))
 			   .then(() => done())
@@ -215,20 +215,19 @@ o.spec("IPC tests", function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 		o(windowMock.sendMessageToWebContents.callCount).equals(0)
 
-		await ipc.initialized(42)
+		await ipc.initialized(WINDOW_ID)
 
-		const requestPromise = ipc.sendRequest(42, "print", ["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(WINDOW_ID, "print", ["nothing", "useful"])
 
 		await delay(10)
 
 		o(windowMock.sendMessageToWebContents.callCount).equals(2)
-		o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-		const request = windowMock.sendMessageToWebContents.args[1]
+		const request = windowMock.sendMessageToWebContents.args[0]
 		o(request.type).equals("print")
 		o(request.args).deepEquals(["nothing", "useful"])
 
 		//simulate the window answering
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: 'response',
 			id: request.id,
 			value: ["some-response-value"]
@@ -239,20 +238,19 @@ o.spec("IPC tests", function () {
 	o("sendRequest with requestError response", async function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 
-		await ipc.initialized(42)
+		await ipc.initialized(WINDOW_ID)
 
-		const requestPromise = ipc.sendRequest(42, "print", ["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(WINDOW_ID, "print", ["nothing", "useful"])
 
 		await delay(10)
 
 		o(windowMock.sendMessageToWebContents.callCount).equals(2)
-		o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-		const request = windowMock.sendMessageToWebContents.args[1]
+		const request = windowMock.sendMessageToWebContents.args[0]
 		o(request.type).equals("print")
 		o(request.args).deepEquals(["nothing", "useful"])
 
 		//simulate the window answering
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: 'requestError',
 			error: {message: "err msg"},
 			id: request.id
@@ -264,7 +262,7 @@ o.spec("IPC tests", function () {
 	o("findInPage, setSearchOverlayState & stopFindInPage", function (done) {
 		const {electronMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "findInPage",
 			id: "id2",
 			args: ["hello"]
@@ -272,16 +270,15 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
 			o(windowMock.findInPage.callCount).equals(1)
 			o(windowMock.findInPage.args[0]).deepEquals(["hello"])
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: {numberOfMatches: 37, currentMatch: 13}
 			})
 
-			electronMock.ipcMain.callbacks[String(CALLBACK_ID)]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[String(CALLBACK_ID)](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "setSearchOverlayState",
 				id: "id3",
 				args: [true, false]
@@ -291,8 +288,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id3',
 				type: 'response',
 				value: undefined
@@ -301,7 +297,7 @@ o.spec("IPC tests", function () {
 			o(windowMock.setSearchOverlayState.args[0]).equals(true)
 			o(windowMock.setSearchOverlayState.args[1]).equals(false)
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "stopFindInPage",
 				id: "id4",
 				args: []
@@ -311,7 +307,6 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(4)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
 			o(windowMock.stopFindInPage.callCount).equals(1)
 			o(windowMock.stopFindInPage.args[0]).equals(undefined)
 			done()
@@ -322,20 +317,21 @@ o.spec("IPC tests", function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 
 		ipc.addWindow(1337)
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		const de = dummyEvent(1337)
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "init",
 			id: "id",
 			value: []
 		}))
 
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "findInPage",
 			id: "id2",
 			args: ["hello"]
 		}))
 
 		setTimeout(() => {
-			electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 				type: "stopFindInPage",
 				id: "id3",
 				args: []
@@ -355,14 +351,15 @@ o.spec("IPC tests", function () {
 			desktopUtilsMock,
 		} = setUpWithWindowAndInit()
 
-		ipc.addWindow(1337)
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		ipc.addWindow(WINDOW_ID)
+		const de = dummyEvent(WINDOW_ID)
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "init",
 			id: "id",
 			value: []
 		}))
 
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "registerMailto",
 			id: "id2",
 			args: []
@@ -371,7 +368,7 @@ o.spec("IPC tests", function () {
 		o(desktopUtilsMock.registerAsMailtoHandler.callCount).equals(1)
 		o(desktopUtilsMock.registerAsMailtoHandler.args[0]).equals(true)
 		setTimeout(() => {
-			electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 				type: "unregisterMailto",
 				id: "id3",
 				args: []
@@ -390,14 +387,15 @@ o.spec("IPC tests", function () {
 			desktopIntegratorMock,
 		} = setUpWithWindowAndInit()
 
-		ipc.addWindow(1337)
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		ipc.addWindow(WINDOW_ID)
+		const de = dummyEvent(WINDOW_ID)
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "init",
 			id: "id",
 			value: []
 		}))
 
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 			type: "integrateDesktop",
 			id: "id2",
 			args: []
@@ -406,7 +404,7 @@ o.spec("IPC tests", function () {
 		o(desktopIntegratorMock.integrate.callCount).equals(1)
 		o(desktopIntegratorMock.integrate.args[0]).equals(undefined)
 		setTimeout(() => {
-			electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](de, JSON.stringify({
 				type: "unIntegrateDesktop",
 				id: "id3",
 				args: []
@@ -425,7 +423,7 @@ o.spec("IPC tests", function () {
 			desktopIntegratorMock,
 		} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "sendDesktopConfig",
 			id: "id2",
 			args: []
@@ -435,9 +433,8 @@ o.spec("IPC tests", function () {
 		o(desktopIntegratorMock.isAutoLaunchEnabled.callCount).equals(1)
 
 		setTimeout(() => {
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: {
@@ -456,7 +453,7 @@ o.spec("IPC tests", function () {
 		const {electronMock} = setUpWithWindowAndInit()
 
 		// open file dialog gets ignored
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "openFileChooser",
 			id: "id2",
 			args: [false]
@@ -466,14 +463,13 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: []
 			})
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "openFileChooser",
 				id: "id3",
 				args: [true, true]
@@ -483,8 +479,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id3',
 				type: 'response',
 				value: ["a", "list", "of", "paths"]
@@ -498,7 +493,7 @@ o.spec("IPC tests", function () {
 		const {electronMock, confMock} = setUpWithWindowAndInit()
 
 		// open file dialog gets ignored
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "updateDesktopConfig",
 			id: "id2",
 			args: [{more: "stuff"}]
@@ -512,8 +507,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -525,7 +519,7 @@ o.spec("IPC tests", function () {
 	o("openNewWindow", function (done) {
 		const {electronMock, wmMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "openNewWindow",
 			id: "id2",
 			args: []
@@ -537,40 +531,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
-				id: 'id2',
-				type: 'response',
-				value: undefined
-			})
-			done()
-		}, 10)
-	})
-
-	o("showWindow", function (done) {
-		const {ipc, electronMock} = setUpWithWindowAndInit()
-
-		ipc.addWindow(1337) // this will not get returned if wmMock gets asked for it
-
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
-			type: "showWindow",
-			id: "id2",
-			args: []
-		}))
-
-		// this one will get ignored because the window went AWOL
-		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
-			type: "showWindow",
-			id: "id3",
-			args: []
-		}))
-
-		setTimeout(() => {
-			o(windowMock.show.callCount).equals(1)
-			o(windowMock.show.args.length).equals(0)
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -582,7 +543,7 @@ o.spec("IPC tests", function () {
 	o("enableAutoLaunch & disableAutoLaunch", function (done) {
 		const {electronMock, desktopIntegratorMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "enableAutoLaunch",
 			id: "id2",
 			args: []
@@ -592,14 +553,13 @@ o.spec("IPC tests", function () {
 			o(desktopIntegratorMock.enableAutoLaunch.callCount).equals(1)
 			o(desktopIntegratorMock.enableAutoLaunch.length).equals(0)
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
 			})
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "disableAutoLaunch",
 				id: "id3",
 				args: []
@@ -611,8 +571,7 @@ o.spec("IPC tests", function () {
 			o(desktopIntegratorMock.disableAutoLaunch.callCount).equals(1)
 			o(desktopIntegratorMock.disableAutoLaunch.args.length).equals(0)
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id3',
 				type: 'response',
 				value: undefined
@@ -629,7 +588,7 @@ o.spec("IPC tests", function () {
 			errMock,
 		} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "getPushIdentifier",
 			id: "id2",
 			args: ["idFromWindow", "mailAddressFromWindow"]
@@ -637,7 +596,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(errMock.sendErrorReport.callCount).equals(1)
-			o(errMock.sendErrorReport.args[0]).equals(42)
+			o(errMock.sendErrorReport.args[0]).equals(WINDOW_ID)
 			o(errMock.sendErrorReport.args.length).equals(1)
 
 			o(windowMock.isHidden.callCount).equals(1)
@@ -655,8 +614,7 @@ o.spec("IPC tests", function () {
 			o(windowMock.setUserInfo.args.length).equals(1)
 
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: 'agarbledmess'
@@ -672,7 +630,7 @@ o.spec("IPC tests", function () {
 			alarmStorageMock,
 		} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "storePushIdentifierLocally",
 			id: "id2",
 			args: ["identifier", "userId", "getHttpOrigin()", "pushIdentifierElementId", "skB64"]
@@ -692,8 +650,7 @@ o.spec("IPC tests", function () {
 			o(alarmStorageMock.storePushIdentifierSessionKey.args[1]).equals("skB64")
 
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -705,7 +662,7 @@ o.spec("IPC tests", function () {
 	o("initPushNotifications", function (done) {
 		const {electronMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "initPushNotifications",
 			id: "id2",
 			args: []
@@ -713,8 +670,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -725,7 +681,7 @@ o.spec("IPC tests", function () {
 
 	o("closePushNotifications", function (done) {
 		const {electronMock} = setUpWithWindowAndInit()
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "closePushNotifications",
 			id: "id2",
 			args: []
@@ -733,8 +689,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -746,7 +701,7 @@ o.spec("IPC tests", function () {
 	o("sendSocketMessage", function (done) {
 		const {electronMock, sockMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "sendSocketMessage",
 			id: "id2",
 			args: ["thisIsASocketMessage"]
@@ -758,8 +713,7 @@ o.spec("IPC tests", function () {
 			o(sockMock.sendSocketMessage.args.length).equals(1)
 
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -772,7 +726,7 @@ o.spec("IPC tests", function () {
 		const {electronMock, dlMock} = setUpWithWindowAndInit()
 
 		setTimeout(() => {
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "open",
 				id: "id2",
 				args: ["/file/to/open", "text/plain"]
@@ -784,9 +738,9 @@ o.spec("IPC tests", function () {
 			o(dlMock.open.args[0]).equals("/file/to/open")
 
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id2', type: 'response', value: undefined}])
+			o(windowMock.sendMessageToWebContents.args).deepEquals([{id: 'id2', type: 'response', value: undefined}])
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "open",
 				id: "id3",
 				args: ["/some/invalid/path", "text/plain"]
@@ -799,7 +753,6 @@ o.spec("IPC tests", function () {
 			o(dlMock.open.args[0]).equals("/some/invalid/path")
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 			o(windowMock.sendMessageToWebContents.args).deepEquals([
-				42,
 				{id: 'id3', type: 'requestError', error: emptyError()}
 			])
 			done()
@@ -809,7 +762,7 @@ o.spec("IPC tests", function () {
 	o("download", function (done) {
 		const {electronMock, dlMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "download",
 			id: "id2",
 			args: ["url://file/to/download", "filename", {one: "somevalue", two: "anothervalue"}]
@@ -819,9 +772,9 @@ o.spec("IPC tests", function () {
 			o(dlMock.downloadNative.callCount).equals(1)
 			o(dlMock.downloadNative.args).deepEquals(['url://file/to/download', 'filename', {one: 'somevalue', two: 'anothervalue'}])
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id2', type: 'response', value: undefined}])
+			o(windowMock.sendMessageToWebContents.args).deepEquals([{id: 'id2', type: 'response', value: undefined}])
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "download",
 				id: "id3",
 				args: ["url://file/to/download", "invalid", {one: "somevalue", two: "anothervalue"}]
@@ -833,8 +786,7 @@ o.spec("IPC tests", function () {
 			o(dlMock.downloadNative.args).deepEquals(['url://file/to/download', 'invalid', {one: 'somevalue', two: 'anothervalue'}])
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 
-			o(windowMock.sendMessageToWebContents.args).deepEquals([
-				42, {
+			o(windowMock.sendMessageToWebContents.args).deepEquals([{
 					id: 'id3',
 					type: 'requestError',
 					error: emptyError()
@@ -847,7 +799,7 @@ o.spec("IPC tests", function () {
 	o("aesDecryptFile", function (done) {
 			const {electronMock, cryptoMock} = setUpWithWindowAndInit()
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 				type: "aesDecryptFile",
 				id: "id2",
 				args: ["decryption_key", "/a/path/to/a/blob"]
@@ -858,8 +810,8 @@ o.spec("IPC tests", function () {
 				o(cryptoMock.aesDecryptFile.args).deepEquals(['decryption_key', '/a/path/to/a/blob'])
 
 				o(windowMock.sendMessageToWebContents.callCount).equals(2)
-				o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id2', type: 'response', value: '/a/path/to/a/blob'}])
-				electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+				o(windowMock.sendMessageToWebContents.args).deepEquals([{id: 'id2', type: 'response', value: '/a/path/to/a/blob'}])
+				electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 					type: "aesDecryptFile",
 					id: "id3",
 					args: ["invalid_decryption_key", "/a/path/to/a/blob"]
@@ -871,7 +823,7 @@ o.spec("IPC tests", function () {
 				o(cryptoMock.aesDecryptFile.args).deepEquals(['invalid_decryption_key', '/a/path/to/a/blob'])
 
 				o(windowMock.sendMessageToWebContents.callCount).equals(3)
-				o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id3', type: 'requestError', error: emptyError()}])
+				o(windowMock.sendMessageToWebContents.args).deepEquals([{id: 'id3', type: 'requestError', error: emptyError()}])
 				done()
 			}, 20)
 		}
@@ -880,7 +832,7 @@ o.spec("IPC tests", function () {
 	o("invalid method invocation gets rejected", function (done) {
 		const {electronMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), JSON.stringify({
 			type: "invalid",
 			id: "id2",
 			args: [1, 2, 3]
@@ -888,8 +840,7 @@ o.spec("IPC tests", function () {
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
-			const arg = windowMock.sendMessageToWebContents.args[1]
+			const arg = windowMock.sendMessageToWebContents.args[0]
 			o(arg.id).equals('id2')
 			o(arg.type).equals('requestError')
 			o(typeof arg.error).equals("object")
@@ -904,24 +855,11 @@ o.spec("IPC tests", function () {
 		confMock.listeners[DesktopConfigKey.pushIdentifier][0](sseInfo)
 
 		await Promise.resolve()
-		o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+		o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
 			id: 'desktop0',
 			type: 'invalidateAlarms',
 			args: []
 		})
-	})
-
-	o("unload", function () {
-		const {ipc, electronMock} = setUpWithWindowAndInit()
-		o(ipc.initialized(CALLBACK_ID).isFulfilled()).equals(true)
-
-		electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
-			type: "unload",
-			id: "id2",
-			args: []
-		}))
-
-		o(ipc.initialized(CALLBACK_ID).isFulfilled()).equals(false)
 	})
 })
 
