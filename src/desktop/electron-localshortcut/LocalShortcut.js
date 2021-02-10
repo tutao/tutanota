@@ -1,5 +1,6 @@
 //@flow
 import {app, BrowserWindow} from "electron"
+import type {WebContentsEvent} from "electron"
 import isAccelerator from "./IsAccelerator"
 import equals from "./KeyboardEventsAreEqual"
 import {toKeyEvent} from "./KeyboardeventFromElectronAccelerator"
@@ -188,7 +189,7 @@ interface Input {
 	meta: boolean;
 }
 
-const _onBeforeInput = shortcutsOfWindow => (e: Event, input: Input): void => {
+const _onBeforeInput = shortcutsOfWindow => (e: WebContentsEvent, input: Input): void => {
 	if (input.type === 'keyUp') {
 		return;
 	}

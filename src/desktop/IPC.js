@@ -1,4 +1,5 @@
 // @flow
+import type {WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {defer, objToError} from '../api/common/utils/Utils.js'
@@ -22,7 +23,7 @@ import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
 
 /**
- * node-side endpoint for communication between the renderer thread and the node thread
+ * node-side endpoint for communication between the renderer threads and the node thread
  */
 export class IPC {
 	_conf: DesktopConfig;
@@ -79,6 +80,38 @@ export class IPC {
 		this._initialized = []
 		this._queue = {}
 		this._err = errorHandler
+		this._electron.ipcMain.handle('message', (ev: WebContentsEvent, msg: string) => {
+			const senderWindow = this._wm.getEventSender(ev)
+			if(!senderWindow) return // no one is listening anymore
+			const windowId = senderWindow.id
+			const request = JSON.parse(msg)
+			if (request.type === "response") {
+				this._queue[request.id](null, request.value);
+			} else if (request.type === "requestError") {
+				this._queue[request.id](objToError((request: any).error), null)
+				delete this._queue[request.id]
+			} else {
+				this._invokeMethod(windowId, request.type, request.args)
+				    .then(result => {
+					    const response = {
+						    id: request.id,
+						    type: "response",
+						    value: result,
+					    }
+					    const w = this._wm.get(windowId)
+					    if (w) w.sendMessageToWebContents(response)
+				    })
+				    .catch((e) => {
+					    const response = {
+						    id: request.id,
+						    type: "requestError",
+						    error: errorToObj(e),
+					    }
+					    const w = this._wm.get(windowId)
+					    if (w) w.sendMessageToWebContents(response)
+				    })
+			}
+		})
 	}
 
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
@@ -164,13 +197,6 @@ export class IPC {
 			case 'openNewWindow':
 				this._wm.newWindow(true)
 				return Promise.resolve()
-			case 'showWindow':
-				return this.initialized(windowId).then(() => {
-					const w = this._wm.get(windowId)
-					if (w) {
-						w.show()
-					}
-				})
 			case 'enableAutoLaunch':
 				return this._integrator.enableAutoLaunch()
 			case 'disableAutoLaunch':
@@ -218,11 +244,6 @@ export class IPC {
 				return Promise.resolve()
 			case 'getLog':
 				return Promise.resolve(global.logger.getEntries())
-			case 'unload':
-				// On reloading the page reset window state to non-initialized because render process starts from scratch.
-				this.removeWindow(windowId)
-				this.addWindow(windowId)
-				return Promise.resolve()
 			case 'changeLanguage':
 				return lang.setLanguage(args[0])
 			case 'manualUpdate':
@@ -236,7 +257,7 @@ export class IPC {
 			case 'mailBundleExport': {
 				const files = await Promise.all(args[0].map(async (bundle) => await this._desktopUtils.makeMsgFile(bundle)))
 				const dir = await this._desktopUtils.writeFilesToTmp(files)
-				// TODO: Are we able to select the files aswell?
+				// TODO: Are we able to select the files as well?
 				// it's possible to do so with shell.showFileInFolder but that only works for one file
 				this._electron.shell.openPath(dir)
 				return
@@ -256,7 +277,7 @@ export class IPC {
 			}
 			const w = this._wm.get(windowId)
 			if (w) {
-				w.sendMessageToWebContents(windowId, request)
+				w.sendMessageToWebContents(request)
 			}
 			return new Promise((resolve, reject) => {
 				this._queue[requestId] = (err, result) => err ? reject(err) : resolve(result)
@@ -281,34 +302,6 @@ export class IPC {
 
 	addWindow(id: number) {
 		this._initialized[id] = defer()
-		this._electron.ipcMain.on(String(id), (ev: Event, msg: string) => {
-			const request = JSON.parse(msg)
-			if (request.type === "response") {
-				this._queue[request.id](null, request.value);
-			} else if (request.type === "requestError") {
-				this._queue[request.id](objToError((request: any).error), null)
-				delete this._queue[request.id]
-			} else {
-				const w = this._wm.get(id)
-				this._invokeMethod(id, request.type, request.args)
-				    .then(result => {
-					    const response = {
-						    id: request.id,
-						    type: "response",
-						    value: result,
-					    }
-					    if (w) w.sendMessageToWebContents(id, response)
-				    })
-				    .catch((e) => {
-					    const response = {
-						    id: request.id,
-						    type: "requestError",
-						    error: errorToObj(e),
-					    }
-					    if (w) w.sendMessageToWebContents(id, response)
-				    })
-			}
-		})
 
 		const sseValueListener = (value: ?SseInfo) => {
 			if (value && value.userIds.length === 0) {
@@ -324,7 +317,6 @@ export class IPC {
 	}
 
 	removeWindow(id: number) {
-		this._electron.ipcMain.removeAllListeners(`${id}`)
 		delete this._initialized[id]
 	}
 }

@@ -3,6 +3,7 @@
 import type {App} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
 import type {WindowManager} from "./DesktopWindowManager"
+import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
 import {log} from "./DesktopLog";
 
@@ -35,11 +36,12 @@ export class Socketeer {
 		})
 	}
 
-	attachWindowManager(wm: WindowManager) {
+	attach(wm: WindowManager, ipc: IPC) {
 		this.startClient(msg => {
 			const mailAddress = JSON.parse(msg).mailAddress
 			if (typeof mailAddress === 'string' && isMailAddress(mailAddress, false)) {
-				wm.getLastFocused(false).sendMessageToWebContents('open-customer', {mailAddress})
+				const targetWindowId = wm.getLastFocused(false).id
+				ipc.sendRequest(targetWindowId, 'openCustomer', [mailAddress])
 			}
 		})
 	}

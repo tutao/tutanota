@@ -149,6 +149,34 @@ function appUpdateDownloaded(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
+function openCustomer(msg: Request): Promise<void> {
+	const mailAddress = msg.args[0]
+	if (typeof mailAddress === 'string' && tutao.m.route.get().startsWith("/customer")) {
+		tutao.m.route.set(`/customer?query=${encodeURIComponent(mailAddress)}`)
+		console.log('switching to customer', mailAddress)
+	}
+
+	return Promise.resolve()
+}
+
+function updateTargetUrl(msg: Request) : Promise<void> {
+	const url = msg.args[0]
+	let linkToolTip = document.getElementById("link-tt")
+	if (!linkToolTip) {
+		linkToolTip = document.createElement("DIV")
+		linkToolTip.id = "link-tt";
+		(document.body: any).appendChild(linkToolTip)
+	}
+	if(url === "") {
+		linkToolTip.className = ""
+	} else {
+		linkToolTip.innerText = url
+		linkToolTip.className = "reveal"
+	}
+
+	return Promise.resolve()
+}
+
 export const appCommands = {
 	createMailEditor,
 	showAlertDialog,
@@ -171,5 +199,7 @@ export const desktopCommands = {
 	applySearchResultToOverlay,
 	reportError,
 	addShortcuts,
-	appUpdateDownloaded
+	appUpdateDownloaded,
+	openCustomer,
+	updateTargetUrl,
 }

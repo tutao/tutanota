@@ -1,6 +1,6 @@
 // @flow
 
-import type {NativeImage, Rectangle} from "electron"
+import type {NativeImage, Rectangle, WebContentsEvent} from "electron"
 import {app, screen} from "electron"
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
@@ -112,6 +112,11 @@ export class WindowManager {
 		return w
 			? w
 			: null
+	}
+
+	getEventSender(ev: WebContentsEvent) : ?ApplicationWindow {
+		if(ev.sender.id == null) return null
+		return this.get(ev.sender.id)
 	}
 
 	getAll(): ApplicationWindow[] {

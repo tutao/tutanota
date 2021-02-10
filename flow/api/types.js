@@ -190,7 +190,6 @@ type NativeRequestType = 'init'
 	| 'registerMailto'
 	| 'unregisterMailto'
 	| 'openNewWindow'
-	| 'showWindow'
 	| 'sendDesktopConfig'
 	| 'updateDesktopConfig'
 	| 'enableAutoLaunch'
@@ -205,7 +204,6 @@ type NativeRequestType = 'init'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
 	| 'setSearchOverlayState'
-	| 'unload' // desktop
 	| 'changeLanguage'
 	| 'isUpdateAvailable' // check if update is ready to install
 	| 'manualUpdate' // progress update process (check, dl, install)
@@ -226,11 +224,7 @@ type JsRequestType = 'createMailEditor'
 	| 'addShortcuts'
 	| 'appUpdateDownloaded'
 	| 'openCustomer' // only for admin clients
-
-type WebContentsMessage
-	= 'initialize-ipc'
-	| 'set-zoom-factor'
-	| 'open-customer'
+	| 'updateTargetUrl'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>

@@ -77,14 +77,6 @@ class NativeWrapper {
 		neverNull(this._nativeQueue)._handleMessage(JSON.parse(msg))
 	}
 
-	/**
-	 * used by the preload script to save on encoding
-	 * @param msg
-	 */
-	handleMessageObject: ((msg: any) => void) = (msg: any) => {
-		neverNull(this._nativeQueue)._handleMessage(msg)
-	}
-
 	setWorkerQueue(queue: Queue) {
 		this._workerQueue = queue;
 		this._nativeQueue = null
