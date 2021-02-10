@@ -288,95 +288,93 @@ export class LanguageViewModel {
 
 	updateFormats(options: DateTimeFormatOptions) {
 		const tag = this.languageTag
-		if (client.dateFormat()) {
-			this.formats = {
-				simpleDate: new Intl.DateTimeFormat(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
-				dateWithMonth: new Intl.DateTimeFormat(tag, {
-					day: 'numeric',
-					month: 'short',
-					year: 'numeric'
-				}),
-				dateWithoutYear: Intl.DateTimeFormat(tag, {day: 'numeric', month: 'short'}),
-				simpleDateWithoutYear: Intl.DateTimeFormat(tag, {
-					day: 'numeric', month: 'numeric'
-				}),
-				dateWithWeekday: new Intl.DateTimeFormat(tag, {
-					weekday: 'short',
-					day: 'numeric',
-					month: 'short'
-				}),
-				dateWithWeekdayWoMonth: new Intl.DateTimeFormat(tag, {
-					weekday: 'short',
-					day: 'numeric',
-				}),
-				dateWithWeekdayAndYear: new Intl.DateTimeFormat(tag, {
-					weekday: 'short',
-					day: 'numeric',
-					month: 'short',
-					year: 'numeric'
-				}),
-				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
-					weekday: 'short',
-					day: 'numeric',
-					month: 'short',
-					hour: 'numeric',
-					minute: 'numeric'
-				}, options)),
-				time: new Intl.DateTimeFormat(tag, Object.assign({}, {hour: 'numeric', minute: 'numeric'}, options)),
-				dateTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
-					day: 'numeric',
-					month: 'short',
-					year: 'numeric',
-					hour: 'numeric',
-					minute: 'numeric'
-				}, options)),
-				dateTimeShort: new Intl.DateTimeFormat(tag, Object.assign({}, {
-					day: 'numeric',
-					month: 'numeric',
-					year: 'numeric',
-					hour: 'numeric',
-				}, options)),
-				weekdayShort: new Intl.DateTimeFormat(tag, {
-					weekday: 'short'
-				}),
-				weekdayNarrow: new Intl.DateTimeFormat(tag, {
-					weekday: 'narrow'
-				}),
-				priceWithCurrency: new Intl.NumberFormat(tag, {
-					style: 'currency',
-					currency: 'EUR',
-					minimumFractionDigits: 2
-				}),
-				priceWithCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
-					style: 'currency',
-					currency: 'EUR',
-					maximiumFractionDigits: 0,
-					minimumFractionDigits: 0
-				}),
-				priceWithoutCurrency: new Intl.NumberFormat(tag, {
-					style: 'decimal',
-					minimumFractionDigits: 2
-				}),
-				priceWithoutCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
-					style: 'decimal',
-					maximiumFractionDigits: 0,
-					minimumFractionDigits: 0
-				}),
-				monthLong: new Intl.DateTimeFormat(tag, {
-					month: 'long'
-				}),
-				monthWithYear: new Intl.DateTimeFormat(tag, {
-					month: 'long',
-					year: '2-digit'
-				}),
-				monthWithFullYear: new Intl.DateTimeFormat(tag, {
-					month: 'long',
-					year: 'numeric'
-				}),
-				yearNumeric: new Intl.DateTimeFormat(tag, {
-					year: 'numeric'
-				}),
-			}
+		this.formats = {
+			simpleDate: new Intl.DateTimeFormat(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
+			dateWithMonth: new Intl.DateTimeFormat(tag, {
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric'
+			}),
+			dateWithoutYear: Intl.DateTimeFormat(tag, {day: 'numeric', month: 'short'}),
+			simpleDateWithoutYear: Intl.DateTimeFormat(tag, {
+				day: 'numeric', month: 'numeric'
+			}),
+			dateWithWeekday: new Intl.DateTimeFormat(tag, {
+				weekday: 'short',
+				day: 'numeric',
+				month: 'short'
+			}),
+			dateWithWeekdayWoMonth: new Intl.DateTimeFormat(tag, {
+				weekday: 'short',
+				day: 'numeric',
+			}),
+			dateWithWeekdayAndYear: new Intl.DateTimeFormat(tag, {
+				weekday: 'short',
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric'
+			}),
+			dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
+				weekday: 'short',
+				day: 'numeric',
+				month: 'short',
+				hour: 'numeric',
+				minute: 'numeric'
+			}, options)),
+			time: new Intl.DateTimeFormat(tag, Object.assign({}, {hour: 'numeric', minute: 'numeric'}, options)),
+			dateTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric'
+			}, options)),
+			dateTimeShort: new Intl.DateTimeFormat(tag, Object.assign({}, {
+				day: 'numeric',
+				month: 'numeric',
+				year: 'numeric',
+				hour: 'numeric',
+			}, options)),
+			weekdayShort: new Intl.DateTimeFormat(tag, {
+				weekday: 'short'
+			}),
+			weekdayNarrow: new Intl.DateTimeFormat(tag, {
+				weekday: 'narrow'
+			}),
+			priceWithCurrency: new Intl.NumberFormat(tag, {
+				style: 'currency',
+				currency: 'EUR',
+				minimumFractionDigits: 2
+			}),
+			priceWithCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
+				style: 'currency',
+				currency: 'EUR',
+				maximiumFractionDigits: 0,
+				minimumFractionDigits: 0
+			}),
+			priceWithoutCurrency: new Intl.NumberFormat(tag, {
+				style: 'decimal',
+				minimumFractionDigits: 2
+			}),
+			priceWithoutCurrencyWithoutFractionDigits: new Intl.NumberFormat(tag, {
+				style: 'decimal',
+				maximiumFractionDigits: 0,
+				minimumFractionDigits: 0
+			}),
+			monthLong: new Intl.DateTimeFormat(tag, {
+				month: 'long'
+			}),
+			monthWithYear: new Intl.DateTimeFormat(tag, {
+				month: 'long',
+				year: '2-digit'
+			}),
+			monthWithFullYear: new Intl.DateTimeFormat(tag, {
+				month: 'long',
+				year: 'numeric'
+			}),
+			yearNumeric: new Intl.DateTimeFormat(tag, {
+				year: 'numeric'
+			}),
 		}
 	}
 
