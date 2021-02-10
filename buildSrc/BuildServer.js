@@ -8,6 +8,8 @@ import fs from "fs"
 import {fileURLToPath} from "url"
 import {default as path} from "path"
 
+const HTTP_PORT = 9001
+
 const logStream = createWriteStream("/tmp/build.log")
 
 process.on("SIGINT", () => {
@@ -197,9 +199,8 @@ function runHttpServer(log) {
 			next()
 		}
 	})
-	const PORT = 9001
-	server.listen(PORT)
-	log(`Server is serving files on ${PORT}`)
+	server.listen(HTTP_PORT)
+	log(`Server is serving files on ${HTTP_PORT}`)
 	return {
 		async close() {
 			return new Promise((resolve) => server.close(resolve))

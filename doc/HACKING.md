@@ -18,7 +18,6 @@
  * `fdroid-fix-deps`: script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
  * `fdroid-metadata-workaround`: is a link inside app-android so that F-Droid can find our metadata because our Android
  project is not in the root. Can be removed once it's fixed in F-Droid.
- * `server`: dev server to serve code (you still need to connect to real backend)
  * `tutao-pub.pem`: public key which is used to verify desktop clients
  
 ## Code structure
@@ -100,11 +99,9 @@ client tries tp stay up-to-date with the server (for caching and indexing).
 ## Workflow
 `node make -w prod`
 
-and in parallel
+This will start the dev server in hot reloading mode.
 
-`node server`
-
-Point browser of your choice to the `localhost:9000` and you should be good to go.
+Point browser of your choice to the `localhost:9001` and you should be good to go.
 
 To run tests:
 

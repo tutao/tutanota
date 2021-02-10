@@ -64,7 +64,6 @@
 		"js-yaml": "3.13.1",
 		"mithril-node-render": "2.3.0",
 		"node-forge": "0.10.0",
-		"node-static": "0.7.11",
 		"nollup": "0.15.0",
 		"ospec": "tutao/ospec#0472107629ede33be4c4d19e89f237a6d7b0cb11",
 		"request": "2.88.0",
