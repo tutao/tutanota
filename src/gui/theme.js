@@ -99,6 +99,7 @@ export function updateCustomTheme(updatedTheme: Object) {
 	if (logo) {
 		import("dompurify").then((dompurity) => {
 			nonNullTheme.logo = dompurity.default.sanitize(logo)
+			themeId("custom") // let it copy attributes in .map() listener
 			m.redraw()
 		})
 	}
