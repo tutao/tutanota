@@ -36,7 +36,6 @@ declare var System: SystemType
 
 declare function importScripts(...urls: string[]): void;
 
-declare var __moduleName: string;
 
 // // see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
 // declare class DedicatedWorkerGlobalScope {

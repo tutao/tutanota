@@ -43,8 +43,6 @@ export interface LoginController {
 	logout(sync: boolean): Promise<void>;
 }
 
-const importBase = typeof module !== "undefined" ? module.id : __moduleName
-
 export class LoginControllerImpl implements LoginController {
 	_userController: ?IUserController
 	customizations: ?NumberString[]

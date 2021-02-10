@@ -19,14 +19,13 @@ import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
 import os from "os"
 import {rollup} from "rollup"
-import {resolveLibs} from "./buildSrc/RollupConfig.js"
+import {bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import visualizer from "rollup-plugin-visualizer"
-import {bundleDependencyCheckPlugin} from "./buildSrc/RollupConfig.js"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -38,7 +37,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // which looks like a problem e.g. for accessing fields.
 
 // change this to disable minification and name mangling.
-const MINIFY = true
+// FIXME
+const MINIFY = false
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
@@ -189,17 +189,6 @@ async function buildWebapp(version) {
 					"@babel/plugin-transform-flow-strip-types",
 					"@babel/plugin-proposal-class-properties",
 					"@babel/plugin-syntax-dynamic-import",
-					"@babel/plugin-transform-arrow-functions",
-					"@babel/plugin-transform-classes",
-					"@babel/plugin-transform-computed-properties",
-					"@babel/plugin-transform-destructuring",
-					"@babel/plugin-transform-for-of",
-					"@babel/plugin-transform-parameters",
-					"@babel/plugin-transform-shorthand-properties",
-					"@babel/plugin-transform-spread",
-					"@babel/plugin-transform-template-literals",
-					"@babel/plugin-transform-block-scoping",
-					"@babel/plugin-proposal-object-rest-spread",
 				],
 				babelHelpers: "bundled",
 			}),
@@ -468,7 +457,7 @@ async function bundleServiceWorker(bundles, version) {
 	})
 }
 
-function createHtml(env) {
+async function createHtml(env) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -486,11 +475,13 @@ function createHtml(env) {
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
 	const imports = [{src: "polyfill.js"}, {src: jsFileName}]
-	return Promise.all([
-		_writeFile(`./build/dist/${jsFileName}`,
-			`window.whitelabelCustomizations = null
+	const indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
+
+	const index = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
-System.import('./app.js')`),
+${indexTemplate}`
+	return Promise.all([
+		_writeFile(`./build/dist/${jsFileName}`, index),
 		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${htmlFileName}`, content))
 	])
 }
@@ -639,13 +630,13 @@ function analyzer() {
 				}
 
 
-				console.log(key, "\t", value.code.length / 1024 + "K")
+				console.log(key, "", value.code.length / 1024 + "K")
 				for (const module of Object.keys(value.modules)) {
 					if (module.includes("src/api/entities")) {
 						continue
 					}
 					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module
-					console.log("\t" + moduleName)
+					console.log("" + moduleName)
 				}
 			}
 

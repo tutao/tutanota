@@ -12,7 +12,6 @@ import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
 import {Const} from "./api/common/TutanotaConstants"
-import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
@@ -51,7 +50,7 @@ client.init(navigator.userAgent, navigator.platform)
 // this needs to stay after client.init
 windowFacade.init()
 
-export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
+export const state: {prefix: ?string, prefixWithoutFile: ?string} = (typeof module != "undefined" && module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
 
 let startRoute = "/"
@@ -94,40 +93,10 @@ if (!isDesktop() && navigator.registerProtocolHandler) {
 	}
 }
 
-function renderUnsupported() {
-	import("./gui/base/InfoView").then(({InfoView}) => {
-		if (isApp() && client.device === DeviceType.ANDROID) {
-			const androidVersion = Number(/Android (0-9)*\./.exec(client.userAgent))
-			m.render(neverNull(document.body), m(new InfoView(
-				() => "Tutanota",
-				() => [
-					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
-					m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
-					m("p", m("a", {href: lang.getInfoLink("webview_link")}, "Learn more"))
-				].concat(androidVersion >= 7
-					? [
-						m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),
-						m("p", m("a", {href: "market://details?id=com.android.chrome"}, "Update Chrome"))
-					]
-					: []))))
-		} else {
-			m.render(neverNull(document.body), m(new InfoView(() => "Tutanota", () => [
-				m("p", lang.get("unsupportedBrowser_msg")),
-				m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
-				m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
-				m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
-				m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
-				m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)"))
-			])))
-		}
-	})
-}
-
 //$FlowFixMe[untyped-import]
-let initialized = import("./translations/en").then((en) => lang.init(en.default)).then(() => {
+import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 	if (!client.isSupported()) {
-		renderUnsupported()
-		return;
+		throw new Error("Unsupported")
 	}
 
 	// do this after lang initialized

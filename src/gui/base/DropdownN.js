@@ -290,8 +290,6 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropdownChildAtt
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 
-const importBase = typeof module !== "undefined" ? module.id : __moduleName
-
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?DropdownChildAttrs>>, width: number = 200): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {

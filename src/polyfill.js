@@ -1,13 +1,3 @@
-import "core-js/es6/symbol.js"
-import "core-js/es6/array.js"
-import "core-js/modules/es7.array.includes.js"
-import "core-js/es6/object.js"
-import "core-js/es6/string.js"
-import "core-js/es6/map.js"
-import "core-js/es6/set.js"
-import "core-js/modules/es7.object.values"
-import "core-js/modules/es7.object.entries"
-
 import "systemjs"
 import BluebirdPromise from "bluebird"
 
