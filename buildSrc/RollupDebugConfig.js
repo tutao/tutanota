@@ -33,7 +33,10 @@ export function rollupDebugPlugins(baseDir) {
 		resolveLibs(baseDir),
 		commonjs({
 			exclude: ["src/**"],
-			ignore: ["util"],
+			// nollup sometimes creates empty synthetic modules for node built-ins resulting in
+			// errors like Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'crypto?commonjs-require'
+			// adding the module here will fix that
+			ignore: ["util", "crypto"],
 			// This is for the cases when es module is imported from commonjs module.
 			// "auto" will try to wrap into namespace, "preferred" will try to use default export as a namespace which is something that
 			// we want in most cases.
