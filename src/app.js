@@ -52,6 +52,12 @@ client.init(navigator.userAgent, navigator.platform)
 
 export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
+if (state.prefix == null) {
+	const prefix = state.prefix = location.pathname[location.pathname.length - 1] !== '/'
+		? location.pathname
+		: location.pathname.substring(0, location.pathname.length - 1)
+	state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+}
 
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
 window.tutao.appState = state
@@ -183,11 +189,6 @@ let initialized = import("./translations/en").then((en) => lang.init(en.default)
 
 	let start = "/"
 	if (state.prefix == null) {
-		const prefix = state.prefix = location.pathname[location.pathname.length - 1] !== '/'
-			? location.pathname
-			: location.pathname.substring(0, location.pathname.length - 1)
-		state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
-
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
 		if (redirectTo) {

@@ -144,7 +144,7 @@ async function buildWebapp(version) {
 	await fs.copy(path.join(__dirname, '/resources/favicon'), path.join(__dirname, 'build/dist/images'))
 	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 
-	console.log("stared bundling", measure())
+	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.js", "src/api/worker/worker.js"],
 		preserveEntrySignatures: false,
