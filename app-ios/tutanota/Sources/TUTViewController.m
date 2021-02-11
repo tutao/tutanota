@@ -364,7 +364,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
         pagePath = NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"];
     }
     
-	let path = [NSBundle.mainBundle pathForResource:[NSString stringWithFormat:@"%@%@", pagePath, @"app"] ofType:@"html"];
+	let path = [NSBundle.mainBundle pathForResource:[NSString stringWithFormat:@"%@%@", pagePath, @"index-app"] ofType:@"html"];
 	// For running tests
 	if (path == nil) {
 		return NSBundle.mainBundle.resourceURL;
