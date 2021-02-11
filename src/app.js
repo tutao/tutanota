@@ -52,11 +52,29 @@ client.init(navigator.userAgent, navigator.platform)
 
 export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
+
+let startRoute = "/"
 if (state.prefix == null) {
 	const prefix = state.prefix = location.pathname[location.pathname.length - 1] !== '/'
 		? location.pathname
 		: location.pathname.substring(0, location.pathname.length - 1)
 	state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+
+	let query = m.parseQueryString(location.search)
+	let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
+	if (redirectTo) {
+		delete query['r']
+	} else {
+		redirectTo = ""
+	}
+	let newQueryString = m.buildQueryString(query)
+	if (newQueryString.length > 0) {
+		newQueryString = "?" + newQueryString
+	}
+	let target = redirectTo + newQueryString + location.hash
+	if (target === "" || target[0] !== "/") target = "/" + target
+	history.replaceState(null, "", neverNull(state.prefix) + target)
+	startRoute = target
 }
 
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
@@ -187,29 +205,11 @@ let initialized = import("./translations/en").then((en) => lang.init(en.default)
 	const calendarViewResolver = createViewResolver(() => import("./calendar/view/CalendarView.js")
 		.then(module => new module.CalendarView()), true)
 
-	let start = "/"
-	if (state.prefix == null) {
-		let query = m.parseQueryString(location.search)
-		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
-		if (redirectTo) {
-			delete query['r']
-		} else {
-			redirectTo = ""
-		}
-		let newQueryString = m.buildQueryString(query)
-		if (newQueryString.length > 0) {
-			newQueryString = "?" + newQueryString
-		}
-		let target = redirectTo + newQueryString + location.hash
-		if (target === "" || target[0] !== "/") target = "/" + target
-		history.replaceState(null, "", neverNull(state.prefix) + target)
-		start = target
-	}
 	m.route.prefix = neverNull(state.prefix)
 	styles.init()
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
-	m.route(neverNull(document.body), start, {
+	m.route(neverNull(document.body), startRoute, {
 		"/": {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
