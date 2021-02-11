@@ -41,12 +41,10 @@ import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
-import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {formatDate} from "../misc/Formatter"
-import {loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
+import {formatActivateState, loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 
 assertMainOrNode()
@@ -65,7 +63,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_identifierListViewer: IdentifierListViewer;
 	_editAliasFormAttrs: EditAliasesFormAttrs;
 	_outOfOfficeNotification: LazyLoaded<?OutOfOfficeNotification>;
-	_outOfOfficeIsEnabled: Stream<string>; // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
+	_outOfOfficeStatus: Stream<string>; // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
@@ -77,7 +75,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._enableMailIndexing = stream(locator.search.indexState().mailIndexEnabled)
 		this._inboxRulesExpanded = stream(false)
 		this._inboxRulesTableLines = stream([])
-		this._outOfOfficeIsEnabled = stream(lang.get("deactivated_label"))
+		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 		this._updateInboxRules(logins.getUserController().props)
@@ -146,7 +144,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const outOfOfficeAttrs: TextFieldAttrs = {
 			label: "outOfOfficeNotification_title",
-			value: this._outOfOfficeIsEnabled,
+			value: this._outOfOfficeStatus,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editOutOfOfficeNotificationButtonAttrs)]
 		}
@@ -313,19 +311,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateOutOfOfficeNotification(): void {
 		const notification = this._outOfOfficeNotification.getLoaded()
-		if (notification && notification.enabled) {
-			var timeRange = ""
-			if (notification.startDate) {
-				timeRange += " (" + formatDate(notification.startDate)
-				if (notification.endDate) {
-					timeRange += " - " + formatDate(notification.endDate)
-				}
-				timeRange += ")"
-			}
-			this._outOfOfficeIsEnabled(lang.get("activated_label") + timeRange)
-		} else {
-			this._outOfOfficeIsEnabled(lang.get("deactivated_label"))
-		}
+		this._outOfOfficeStatus(formatActivateState(notification))
 		m.redraw()
 	}
 
@@ -356,9 +342,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					this._editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()
 				})
-			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)
-				|| isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
-				//TODO would it be enough to use either of those, to avoid redrawing twice?
+			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			}
 			return p.then(() => {

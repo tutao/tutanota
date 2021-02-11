@@ -78,8 +78,6 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 				}
 			}, lang.getMaybeLazy(a.label)),
 			m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
-				//TODO we need to add the class "flex-wrap" to the component below for BubbleTextFieldN
-				// once we refactor to have a BubbleTextFieldN component that uses this TextFieldN instead of TextField
 				m(".flex.items-end", { // .flex-wrap
 					style: {
 						'min-height': px(size.button_height + 2), // 2 px border

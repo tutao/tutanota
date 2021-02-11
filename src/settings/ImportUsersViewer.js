@@ -8,7 +8,7 @@ import {showWorkerProgressDialog} from "../gui/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
-import * as BuyDialog from "../subscription/BuyDialog"
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 const delayTime = 900
 
@@ -114,7 +114,7 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let nbrOfCreatedUsers = 0
 	let notAvailableUsers = []
-	BuyDialog.show(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
+	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
 		if (accepted) {
 			return showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 				"{index}": nbrOfCreatedUsers,

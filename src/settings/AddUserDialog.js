@@ -13,10 +13,10 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll} from "../api/common/utils/ArrayUtils"
 import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 
 assertMainOrNode()
@@ -37,7 +37,7 @@ export function show(): Promise<void> {
 		}
 
 		let addUserOkAction = (dialog) => {
-			showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.Users, 1, 0, false))
+			showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.Users, 1, 0, false))
 				.then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)

@@ -19,7 +19,6 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
@@ -48,6 +47,7 @@ import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 
@@ -430,7 +430,7 @@ export class UserViewer {
 
 	_deleteUser(restore: boolean): Promise<void> {
 		return showProgressDialog("pleaseWait_msg",
-			BuyDialog.show(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
+			showBuyDialog(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
 				if (confirmed) {
 					return this._user.getAsync().then(user => {
 						return worker.deleteUser(user, restore)

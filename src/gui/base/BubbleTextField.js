@@ -85,8 +85,8 @@ export class BubbleTextField<T> {
 
 		this.bubbles = []
 
-		//TODO the class .flex-wrap was removed in TextFieldN and needs to be reinserted for the BubbleTextField exclusively
-		// see the related TODO in TextFieldN.js
+		// ATTENTION (When refactoring BubbleTextField to BubbleTextFieldN): The class.flex-wrap was removed in TextFieldN for injectionsLeft
+		// and needs to be reinserted for the BubbleTextField exclusively.
 		this.textField._injectionsLeft = () => this.bubbles.map((b, i) => {
 			// We need overflow: hidden on both so that ellipsis on button works.
 			// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.

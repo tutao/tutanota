@@ -18,7 +18,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {showProgressDialog} from "../gui/ProgressDialog"
 import {DatePicker} from "../gui/date/DatePicker"
 import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
@@ -31,6 +30,7 @@ import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 
@@ -143,12 +143,12 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 	_delete() {
 		Dialog.confirm("confirmDeleteContactForm_msg").then(confirmed => {
 			if (confirmed) {
-				showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.ContactForm, -1, 0, false)
-				                                              .then(accepted => {
-					                                              if (accepted) {
-						                                              return erase(this.contactForm)
-					                                              }
-				                                              }))
+				showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.ContactForm, -1, 0, false)
+					.then(accepted => {
+						if (accepted) {
+							return erase(this.contactForm)
+						}
+					}))
 			}
 		})
 	}

@@ -1286,7 +1286,11 @@ export type TranslationKeyType = "about_label"
 	| "contactAdmin_msg"
 	| "businessFeatureRequiredMultipleDomains_msg"
 	| "businessFeatureRequiredGeneral_msg"
+	| "outOfOfficeRecipientsEveryoneHelp_label"
+	| "outOfOfficeRecipientsInternalExternalHelp_label"
+	| "outOfOfficeRecipientsInternalOnlyHelp_label"
 // TODO check unused keys
 // TODO delete:
 // upgradePro_msg
 // upgradeTeams_msg
+// outOfOfficeRecipientsHelp_label

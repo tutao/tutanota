@@ -14,8 +14,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import * as BuyDialog from "./BuyDialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {showBuyDialog} from "./BuyDialog"
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -25,7 +25,7 @@ export function show(): Promise<void> {
 			return Promise.fromCallback((callback) => {
 				const changeStorageCapacityAction = (amount: number) => {
 					dialog.close()
-					BuyDialog.show(BookingItemFeatureType.Storage, amount, freeStorageCapacity, false).then(confirm => {
+					showBuyDialog(BookingItemFeatureType.Storage, amount, freeStorageCapacity, false).then(confirm => {
 						if (confirm) {
 							return buyStorage(amount)
 						}
@@ -95,7 +95,8 @@ function createStorageCapacityBoxAttr(amount: number, freeAmount: number, buyAct
 		let price = formatPrice(getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage), true)
 		attrs.price = price
 		attrs.originalPrice = price
-		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval === "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
+		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval
+			=== "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
 		m.redraw()
 	})
 	return {amount, buyOptionBoxAttr: attrs}

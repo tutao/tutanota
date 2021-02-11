@@ -1292,6 +1292,9 @@ export default {
 		"upgradeBusiness_msg": "Your subscription will be upgraded to {plan} including the business feature.",
 		"upgradePlan_msg": "Your subscription will be upgraded to {plan}.",
 		"businessIncluded_msg": "The business feature will be included.",
+		"outOfOfficeRecipientsEveryoneHelp_label": "Notifications are sent to everyone.",
+		"outOfOfficeRecipientsInternalExternalHelp_label": "Distinct notifications are sent to recipients inside and outside your organization.",
+		"outOfOfficeRecipientsInternalOnlyHelp_label": "Notifications are only sent inside your organization.",
 // TODO changed
 		"pricing.comparisonDomainPremium_msg": "1 custom domain",
 		"businessFeatureRequiredInvite_msg": "To invite people you have to order the business feature.",
@@ -1299,6 +1302,5 @@ export default {
 		"businessFeatureRequiredGeneral_msg": "To use this function you have to order the business feature.",
 		"ordertItNow_msg": "Would you like to order it now?",
 		"contactAdmin_msg": "Please contact your administrator."
-
 	}
 }

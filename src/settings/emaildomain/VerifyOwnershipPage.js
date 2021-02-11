@@ -17,8 +17,12 @@ import {showBusinessFeatureRequiredDialog} from "../../subscription/Subscription
 
 assertMainOrNode()
 
+export const CustomDomainFailureReasons = Object.freeze({
+	LIMIT_REACHED: "customdomainservice.limit_reached",
+	DOMAIN_IN_USE: "customdomainservice.domain_in_use"
+})
+export type CustomDomainFailureReasonsEnum = $Values<typeof CustomDomainFailureReasons>
 
-const FAILURE_CUSTOM_DOMAIN_LIMIT_REACHED = "customdomain.limit_reached"
 
 export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 
@@ -89,7 +93,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 			}
 			return true
 		}).catch(PreconditionFailedError, e => {
-			if (e.data === FAILURE_CUSTOM_DOMAIN_LIMIT_REACHED) {
+			if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 				// ignore promise. always return false to not switch to next page.
 				showBusinessFeatureRequiredDialog("businessFeatureRequiredMultipleDomains_msg")
 			} else {

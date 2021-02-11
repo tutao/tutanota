@@ -31,7 +31,6 @@ import stream from "mithril/stream/stream.js"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
@@ -44,6 +43,7 @@ import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLang
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {isSameId, stringToCustomId} from "../api/common/utils/EntityUtils";
 import {createDropDownButton} from "../gui/base/Dropdown";
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 
@@ -383,15 +383,15 @@ export class ContactFormEditor {
 												let p
 												if (this._createNew) {
 													this._contactForm._id = contactFormIdFromPath
-													p = BuyDialog.show(BookingItemFeatureType.ContactForm, 1, 0, false)
-													             .then(accepted => {
-														             if (accepted) {
-															             return setup(contactFormsListId, this._contactForm)
-																             .then(() => {
-																	             this._newContactFormIdReceiver(customElementIdFromPath)
-																             })
-														             }
-													             })
+													p = showBuyDialog(BookingItemFeatureType.ContactForm, 1, 0, false)
+														.then(accepted => {
+															if (accepted) {
+																return setup(contactFormsListId, this._contactForm)
+																	.then(() => {
+																		this._newContactFormIdReceiver(customElementIdFromPath)
+																	})
+															}
+														})
 												} else {
 													p = update(this._contactForm).then(() => {
 														this._newContactFormIdReceiver(customElementIdFromPath)

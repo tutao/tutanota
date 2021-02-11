@@ -90,7 +90,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_contactFormsFieldValue: Stream<string>;
 	_whitelabelFieldValue: Stream<string>;
 	_sharingFieldValue: Stream<string>;
-	_businessFieldValue: Stream<string>;
+	_businessFeatureFieldValue: Stream<string>;
 	_periodEndDate: ?Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
@@ -380,7 +380,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				}),
 				m(TextFieldN, {
 					label: "businessFeature_label",
-					value: this._businessFieldValue,
+					value: this._businessFeatureFieldValue,
 					disabled: true,
 					injectionsRight: () => {
 						if (!this._customer || this._customer.businessUse && isBusinessFeatureActive(this._lastBooking)) {
@@ -432,7 +432,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
-		this._businessFieldValue = stream(loadingString)
+		this._businessFeatureFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream(null)
 		this._updatePriceInfo()
@@ -457,7 +457,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			this._orderAgreement = null
 		}
-		this._updateBusinessField()
 		return p.then(() => {
 			if (customer.orderProcessingAgreementNeeded) {
 				this._orderAgreementFieldValue(lang.get("signingNeeded_msg"))
@@ -549,7 +548,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							                            this._updateGroupsField(),
 							                            this._updateWhitelabelField(),
 							                            this._updateSharingField(),
-							                            this._updateBusinessField(),
+							                            this._updateBusinessFeatureField(),
 							                            this._updateContactFormsField()
 						                            ]
 					                            ).then(() => m.redraw())
@@ -633,13 +632,13 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
-	_updateBusinessField(): Promise<void> {
+	_updateBusinessFeatureField(): Promise<void> {
 		if (!this._customer) {
-			this._businessFieldValue("")
+			this._businessFeatureFieldValue("")
 		} else if (isBusinessFeatureActive(this._lastBooking)) {
-			this._businessFieldValue(lang.get("active_label"))
+			this._businessFeatureFieldValue(lang.get("active_label"))
 		} else {
-			this._businessFieldValue(lang.get("deactivated_label"))
+			this._businessFeatureFieldValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
 	}

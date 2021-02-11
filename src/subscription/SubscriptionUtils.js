@@ -344,6 +344,19 @@ export function getPreconditionFailedPaymentMsg(data: ?string): TranslationKey {
 	}
 }
 
+
+const BookingFailureReason = Object.freeze({
+	TOO_MANY_DOMAINS: "bookingservice.too_many_domains",
+	BUSINESS_USE: "bookingservice.business_use",
+	TOO_MANY_ALIASES: "bookingservice.too_many_aliases",
+	TOO_MUCH_STORAGE_USED: "bookingservice.too_much_storage_used",
+	SHARED_GROUP_ACTIVE: "bookingservice.shared_group_active",
+	WHITELABEL_DOMAIN_ACTIVE: "bookingservice.whitelabel_domain_active",
+	BALANCE_INSUFFICIENT: "balance.insufficient"
+})
+export type BookingFailureReasonEnum = $Values<typeof BookingFailureReason>
+
+
 /**
  * @returns True if it failed, false otherwise
  */
@@ -353,12 +366,15 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 		featureType,
 		date: Const.CURRENT_DATE
 	})
-	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).return(false).catch(PreconditionFailedError, error => {
-		console.log(error)
-		return Dialog.error(error.data === "balance.insufficient"
-			? "insufficientBalanceError_msg"
-			: getBookingItemErrorMsg(featureType)).return(true)
-	})
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+		.return(false)
+		.catch(PreconditionFailedError, error => {
+			console.log(error)
+			return Dialog.error(error.data === "balance.insufficient"
+				? "insufficientBalanceError_msg"
+				: getBookingItemErrorMsg(featureType)).return(true)
+			// TODO handle failure reasons
+		})
 }
 
 export function buyAliases(amount: number): Promise<boolean> {

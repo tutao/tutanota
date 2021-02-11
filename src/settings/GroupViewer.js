@@ -25,7 +25,6 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/ProgressDialog"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
 import stream from "mithril/stream/stream.js"
@@ -34,6 +33,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 
@@ -129,23 +129,23 @@ export class GroupViewer {
 						let bookingItemType = (this.groupInfo.groupType
 							=== GroupType.LocalAdmin) ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
 						return showProgressDialog("pleaseWait_msg",
-							BuyDialog.show(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate)
-							         .then(confirmed => {
-								         if (confirmed) {
-									         return this._group.getAsync()
-									                    .then(group => worker.deactivateGroup(group, !deactivate)
-									                                         .catch(PreconditionFailedError, e => {
-											                                         if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-												                                         Dialog.error("localAdminGroupAssignedError_msg")
-											                                         } else if (!deactivate) {
-												                                         Dialog.error("emailAddressInUse_msg")
-											                                         } else {
-												                                         Dialog.error("stillReferencedFromContactForm_msg")
-											                                         }
-										                                         }
-									                                         ))
-								         }
-							         })
+							showBuyDialog(bookingItemType, (deactivate) ? -1 : 1, 0, !deactivate)
+								.then(confirmed => {
+									if (confirmed) {
+										return this._group.getAsync()
+										           .then(group => worker.deactivateGroup(group, !deactivate)
+										                                .catch(PreconditionFailedError, e => {
+												                                if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+													                                Dialog.error("localAdminGroupAssignedError_msg")
+												                                } else if (!deactivate) {
+													                                Dialog.error("emailAddressInUse_msg")
+												                                } else {
+													                                Dialog.error("stillReferencedFromContactForm_msg")
+												                                }
+											                                }
+										                                ))
+									}
+								})
 						)
 					}
 				}

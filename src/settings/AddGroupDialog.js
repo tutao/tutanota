@@ -11,11 +11,11 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getGroupTypeName} from "./GroupViewer"
 import * as AddUserDialog from "./AddUserDialog"
 import {showProgressDialog} from "../gui/ProgressDialog"
-import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
+import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 
@@ -42,21 +42,21 @@ export function show() {
 			}
 			let addGroupOkAction = (dialog) => {
 				if (typeField.selectedValue() === GroupType.Mail) {
-					showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.SharedMailGroup, 1, 0, false)
-					                                              .then(accepted => {
-						                                              if (accepted) {
-							                                              dialog.close()
-							                                              return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
-						                                              }
-					                                              }))
+					showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.SharedMailGroup, 1, 0, false)
+						.then(accepted => {
+							if (accepted) {
+								dialog.close()
+								return worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress())
+							}
+						}))
 				} else if (typeField.selectedValue() === GroupType.LocalAdmin) {
-					showProgressDialog("pleaseWait_msg", BuyDialog.show(BookingItemFeatureType.LocalAdminGroup, 1, 0, false)
-					                                              .then(accepted => {
-						                                              if (accepted) {
-							                                              dialog.close()
-							                                              return worker.createLocalAdminGroup(nameField.value())
-						                                              }
-					                                              }))
+					showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.LocalAdminGroup, 1, 0, false)
+						.then(accepted => {
+							if (accepted) {
+								dialog.close()
+								return worker.createLocalAdminGroup(nameField.value())
+							}
+						}))
 				}
 			}
 

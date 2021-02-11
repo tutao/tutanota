@@ -36,9 +36,6 @@ export type OutOfOfficeNotificationMessageTypeEnum = $Values<typeof OutOfOfficeN
 
 export const OUT_OF_OFFICE_SUBJECT_PREFIX = "Auto-reply: "
 
-export const OUT_OF_OFFICE_SUBJECT_MAX_LENGTH = 128
-export const OUT_OF_OFFICE_MESSAGE_MAX_LENGTH = 20 * 1024
-
 export const GroupType = Object.freeze({
 	User: "0",
 	Admin: "1",

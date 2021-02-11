@@ -29,7 +29,7 @@ assertMainOrNode()
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export function show(featureType: BookingItemFeatureTypeEnum, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return Promise.resolve(true)
 	}
@@ -155,7 +155,7 @@ export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
  * @returns True if it failed, false otherwise
  */
 export function showBuyDialogToBookItem(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
-	return showProgressDialog("pleaseWait_msg", show(bookingItemFeatureType, amount, freeAmount, reactivate))
+	return showProgressDialog("pleaseWait_msg", showBuyDialog(bookingItemFeatureType, amount, freeAmount, reactivate))
 		.then(accepted => {
 			if (accepted) {
 				return bookItem(bookingItemFeatureType, amount)
