@@ -1,3 +1,3 @@
 #!/bin/bash
 
-systemctl reload tutadb
+systemctl try-reload-or-restart tutadb
