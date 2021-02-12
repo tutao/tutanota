@@ -17,6 +17,9 @@ declare module 'electron' {
 	declare export var webFrame: WebFrame;
 	declare export var clipboard: ClipBoard;
 	declare export var dialog: ElectronDialog;
+	declare export var contextBridge: {
+		exposeInMainWorld: (string, any) => void
+	};
 	declare export var globalShortcut: {
 		register(shortcut: string, cb: Function): void;
 		unregister(shortcut: string): void;
