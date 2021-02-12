@@ -811,15 +811,15 @@ export class MailView implements CurrentView {
 	 */
 	headerView(): Children {
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.mailList && this.mailList.list
-		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
-			selectNoneHandler: () => this.mailList.list.selectNone(),
-			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			content: {
-				view: () => {
-					m(ActionBar, {buttons: this._actionBarButtons()})
+		&& this.mailList.list.isMobileMultiSelectionActionActive()
+			? m(MultiSelectionBar, {
+				selectNoneHandler: () => this.mailList.list.selectNone(),
+				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
+				content: {
+					view: () => m(ActionBar, {buttons: this._actionBarButtons()})
 				}
-			}
-		}) : null
+			})
+			: null
 	}
 }
 

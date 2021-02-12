@@ -501,7 +501,7 @@ export class ContactView implements CurrentView {
 			selectedEntiesLength: this._contactList.list.getSelectedEntities().length,
 			content: {
 				view: () => m(ActionBar, {
-					buttons: this._multiContactViewer.createActionBarButtons(() => this._contactList.list.selectNone(), true)
+					buttons: this._multiContactViewer.createActionBarButtons(() => this._contactList.list.selectNone(), false)
 				})
 			}
 		}) : null
