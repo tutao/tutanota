@@ -65,35 +65,32 @@ export class GroupInfoIndexer {
 	/**
 	 * Indexes the group infos if they are not yet indexed.
 	 */
-	indexAllUserAndTeamGroupInfosForAdmin(user: User): Promise<void> {
+	async indexAllUserAndTeamGroupInfosForAdmin(user: User): Promise<*> {
 		if (userIsLocalOrGlobalAdmin(user)) {
-			return this._entity.load(CustomerTypeRef, neverNull(user.customer)).then(customer => {
-				return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-					return t.get(GroupDataOS, customer.customerGroup).then((groupData: ?GroupData) => {
-						if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
-							return Promise.all([
-								this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
-								this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
-							]).spread((allUserGroupInfos, allTeamGroupInfos) => {
-								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(GroupInfoTypeRef))
-								allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
-									let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
-									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
-								})
-								return Promise.all([
-									this._core.writeIndexUpdate([
-										{
-											groupId: customer.customerGroup,
-											indexTimestamp: FULL_INDEXED_TIMESTAMP
-										}
-									], indexUpdate),
-									this.suggestionFacade.store()
-								])
-							})
-						}
-					})
+			const customer = await this._entity.load(CustomerTypeRef, neverNull(user.customer))
+			const t = await this._db.dbFacade.createTransaction(true, [GroupDataOS])
+			const groupData: ?GroupData = await t.get(GroupDataOS, customer.customerGroup)
+			if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
+				const [allUserGroupInfos, allTeamGroupInfos] = await Promise.all([
+					this._entity.loadAll(GroupInfoTypeRef, customer.userGroups),
+					this._entity.loadAll(GroupInfoTypeRef, customer.teamGroups)
+				])
+
+				let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(GroupInfoTypeRef))
+				allUserGroupInfos.concat(allTeamGroupInfos).forEach(groupInfo => {
+					let keyToIndexEntries = this.createGroupInfoIndexEntries(groupInfo)
+					this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 				})
-			})
+				return Promise.all([
+					this._core.writeIndexUpdate([
+						{
+							groupId: customer.customerGroup,
+							indexTimestamp: FULL_INDEXED_TIMESTAMP
+						}
+					], indexUpdate),
+					this.suggestionFacade.store()
+				])
+			}
 		} else {
 			return Promise.resolve()
 		}

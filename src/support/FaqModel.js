@@ -38,7 +38,7 @@ export class FaqModel {
 			return Promise.all([
 				this.fetchFAQ("en"),
 				this.fetchFAQ(lang.code)
-			]).spread((defaultTranslations, currentLanguageTranslations) => {
+			]).then(([defaultTranslations, currentLanguageTranslations]) => {
 					if (defaultTranslations != null || currentLanguageTranslations != null) {
 						const faqLanguageViewModel = new LanguageViewModel()
 						faqLanguageViewModel.initWithTranslations(lang.code, lang.languageTag, defaultTranslations, currentLanguageTranslations)

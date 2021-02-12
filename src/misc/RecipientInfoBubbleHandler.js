@@ -34,19 +34,19 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		this.suggestionHeight = ContactSuggestionHeight
 	}
 
-	getSuggestions(text: string): Promise<ContactSuggestion[]> {
+	async getSuggestions(text: string): Promise<ContactSuggestion[]> {
 		let query = text.trim().toLowerCase()
 		if (isMailAddress(query, false)) {
 			return Promise.resolve([])
 		}
 
 		// ensure match word order for email addresses mainly
-		let contactsPromise = this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
-		                          .catch(DbError, () => {
-			                          return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
-		                          })
+		let contacts: Array<Contact> = await this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
+		                                         .catch(DbError, () => {
+			                                         return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
+		                                         })
 
-		return contactsPromise
+		const suggestions = contacts
 			.map(contact => {
 				let name = `${contact.firstName} ${contact.lastName}`.trim()
 				let mailAddresses = []
@@ -60,19 +60,14 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 				return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
 			})
 			.reduce((a, b) => a.concat(b), [])
-			.then(suggestions => {
-				if (env.mode === Mode.App) {
-					return import("../native/main/ContactApp")
-						.then(({findRecipients}) => findRecipients(query, 10, suggestions))
-						.then(() => suggestions)
-				} else {
-					return suggestions
-				}
-			})
-			.then(suggestions => {
-				return suggestions.sort((suggestion1, suggestion2) =>
-					suggestion1.name.localeCompare(suggestion2.name))
-			})
+
+		if (env.mode === Mode.App) {
+			await import("../native/main/ContactApp")
+				.then(({findRecipients}) => findRecipients(query, 10, suggestions))
+		}
+
+		return suggestions.sort((suggestion1, suggestion2) =>
+			suggestion1.name.localeCompare(suggestion2.name))
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): ?Bubble<RecipientInfo> {

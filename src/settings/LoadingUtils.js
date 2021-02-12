@@ -2,12 +2,12 @@
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {load, loadAll, loadMultiple} from "../api/main/Entity"
 import {UserTypeRef} from "../api/entities/sys/User"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {neverNull} from "../api/common/utils/Utils"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {flat} from "../api/common/utils/ArrayUtils"
 import type {Customer} from "../api/entities/sys/Customer"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {getGroupInfoDisplayName, getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 
 /**
@@ -39,8 +39,9 @@ export function loadGroupDisplayName(groupId: Id): Promise<string> {
 	})
 }
 
-export function loadEnabledTeamMailGroups(customer: Customer): Promise<GroupData[]> {
-	return loadAll(GroupInfoTypeRef, customer.teamGroups).filter(teamGroupInfo => {
+export async function loadEnabledTeamMailGroups(customer: Customer): Promise<GroupData[]> {
+	const infos = await loadAll(GroupInfoTypeRef, customer.teamGroups)
+	return infos.filter(teamGroupInfo => {
 		if (teamGroupInfo.deleted) {
 			return false
 		} else {
@@ -49,13 +50,13 @@ export function loadEnabledTeamMailGroups(customer: Customer): Promise<GroupData
 	}).map(mailTeamGroupInfo => new GroupData(mailTeamGroupInfo.group, getGroupInfoDisplayName(mailTeamGroupInfo)))
 }
 
-export function loadEnabledUserMailGroups(customer: Customer): Promise<GroupData[]> {
-	return loadAll(GroupInfoTypeRef, customer.userGroups)
-		.filter(g => !g.deleted)
-		.map(userGroupInfo => load(GroupTypeRef, userGroupInfo.group)
-			.then(userGroup => load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-				return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
-			})))
+export async function loadEnabledUserMailGroups(customer: Customer): Promise<GroupData[]> {
+	const groupInfos = await loadAll(GroupInfoTypeRef, customer.userGroups)
+	return Promise.mapSeries(groupInfos.filter(g => !g.deleted), async (userGroupInfo) => {
+		const userGroup = await load(GroupTypeRef, userGroupInfo.group)
+		const user = await load(UserTypeRef, neverNull(userGroup.user))
+		return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
+	})
 }
 
 export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {

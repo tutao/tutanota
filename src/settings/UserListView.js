@@ -139,17 +139,14 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	_loadAdmins(): Promise<void> {
+	async _loadAdmins(): Promise<void> {
 		let adminGroupMembership = logins.getUserController()
 		                                 .user
 		                                 .memberships
 		                                 .find(gm => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) return Promise.resolve()
-		return loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0]).map(adminGroupMember => {
-			return adminGroupMember.userGroupInfo[1]
-		}).then(userGroupInfoIds => {
-			this._adminUserGroupInfoIds = userGroupInfoIds
-		})
+		const members = await loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
+		this._adminUserGroupInfoIds = members.map((adminGroupMember) => adminGroupMember.userGroupInfo[1])
 	}
 
 	_setLoadedCompletely() {

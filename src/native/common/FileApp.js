@@ -47,7 +47,8 @@ function openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>
 		"height": boundingRect.height
 	}
 
-	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect, false])).map(uriToFileRef)
+	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect, false]))
+	                .then((response) => response.map(uriToFileRef))
 }
 
 function openFolderChooser(): Promise<Array<string>> {

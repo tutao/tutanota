@@ -233,7 +233,7 @@ export class MailFacade {
 	_createAddedAttachments(providedFiles: ?Array<TutanotaFile | DataFile | FileReference>, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
 		if (providedFiles) {
 			return Promise
-				.map((providedFiles: any), providedFile => {
+				.mapSeries((providedFiles: any), providedFile => {
 					// check if this is a new attachment or an existing one
 					if (providedFile._type === "DataFile") {
 						// user added attachment
@@ -259,8 +259,8 @@ export class MailFacade {
 					} else {
 						return null
 					}
-				}, {concurrency: 1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
-				.filter(attachment => (attachment != null))
+				}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+				.then((attachments) => attachments.filter(Boolean))
 				.tap(() => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {

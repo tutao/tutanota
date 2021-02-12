@@ -81,8 +81,8 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 
 		let participantMailGroupsFieldAttrs = null
 		loadGroupInfos(contactForm.participantGroupInfos)
-			.map(groupInfo => getGroupInfoDisplayName(groupInfo))
-			.then(mailGroupNames => {
+			.then(groupInfos => {
+				const mailGroupNames = groupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
 				if (mailGroupNames.length > 0) {
 					participantMailGroupsFieldAttrs = {
 						label: "responsiblePersons_label",

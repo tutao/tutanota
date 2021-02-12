@@ -34,7 +34,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
 import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
-import {noOp} from "../../api/common/utils/Utils"
+import {filterInt, noOp} from "../../api/common/utils/Utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils";
 
@@ -197,7 +197,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 			      logins.getUserController().loadCustomerInfo(),
 			      loadUpgradePrices()
 		      ]))
-		      .spread((giftCardInfo, customerInfo, prices) => {
+		      .then(([giftCardInfo, customerInfo, prices]) => {
 			      // User can't buy too many gift cards so we have to load their giftcards in order to check how many they ordered
 			      const loadGiftCardsPromise = customerInfo.giftCards
 				      ? locator.entityClient.loadAll(GiftCardTypeRef, customerInfo.giftCards.items)
@@ -234,8 +234,8 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 					      }
 					      let dialog
 					      const attrs: GiftCardPurchaseViewAttrs = {
-						      purchaseLimit: giftCardInfo.maxPerPeriod,
-						      purchasePeriodMonths: giftCardInfo.period,
+						      purchaseLimit: filterInt(giftCardInfo.maxPerPeriod),
+						      purchasePeriodMonths: filterInt(giftCardInfo.period),
 						      availablePackages: giftCardInfo.options,
 						      initiallySelectedPackage: Math.floor(giftCardInfo.options.length / 2),
 						      message: lang.get("defaultGiftCardMessage_msg"),

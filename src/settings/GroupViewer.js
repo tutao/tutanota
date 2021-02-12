@@ -59,15 +59,11 @@ export class GroupViewer {
 		})
 		this._group.getAsync().then(() => m.redraw())
 
-		this._members = new LazyLoaded(() => {
-			return this._group.getAsync().then(group => {
-				// load only up to 200 members to avoid too long loading, like for account groups
-				return this._entityClient
-				           .loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-				           .then(members => {
-					           return Promise.mapSeries(members, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
-				           })
-			})
+		this._members = new LazyLoaded(async () => {
+			const group = await this._group.getAsync()
+			// load only up to 200 members to avoid too long loading, like for account groups
+			const groupMembers = await this._entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
+			return Promise.mapSeries(groupMembers, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 		this._updateMembers()
 
