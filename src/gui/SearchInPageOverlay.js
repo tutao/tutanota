@@ -134,7 +134,7 @@ export class SearchInPageOverlay {
 	* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
 	*/
 	handleMouseUp(e: Event) {
-		if (!(e.target instanceof Element && e.target.id === "search-overlay-input")) return
+		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
 		nativeApp.invokeNative(new Request('setSearchOverlayState', [false, true]))
 	}
 

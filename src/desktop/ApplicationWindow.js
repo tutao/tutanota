@@ -326,7 +326,6 @@ export class ApplicationWindow {
 	}
 
 	findInPage(args: Array<any>): Promise<FindInPageResult> {
-		console.log("findInPage")
 		this._findingInPage = true
 		const [searchTerm, options] = args
 		if (searchTerm !== '') {
