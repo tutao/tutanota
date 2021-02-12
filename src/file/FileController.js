@@ -83,7 +83,7 @@ export class FileController {
 					.catch(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name))
 					.catch(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name)),
 				concurrency)
-			.filter(Boolean) // filter out failed files
+			.then((results) => results.filter(Boolean)) // filter out failed files
 		// in apps, p is a  Promise<FileReference[]> that have location props.
 		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
 		return save(downcast(p)).return()

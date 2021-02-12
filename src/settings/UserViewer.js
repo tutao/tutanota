@@ -314,16 +314,18 @@ export class UserViewer {
 						return loadMultiple(ContactFormTypeRef, mailboxGroupRoot.participatingContactForms[0][0], mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]))
 					}
 					return []
-				}).map((cf: ContactForm) => {
-					let removeButton = new Button("remove_action", () => {
-						let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
-						if (match) {
-							remove(cf.participantGroupInfos, match)
-						}
-						showProgressDialog("pleaseWait_msg", update(cf))
-					}, () => Icons.Cancel)
-					return new TableLine([cf.path], removeButton)
-				}).then(tableLines => {
+				}).then((forms) => {
+					const tableLines = forms.map((cf) => {
+						let removeButton = new Button("remove_action", () => {
+							let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
+							if (match) {
+								remove(cf.participantGroupInfos, match)
+							}
+							showProgressDialog("pleaseWait_msg", update(cf))
+						}, () => Icons.Cancel)
+						return new TableLine([cf.path], removeButton)
+					})
+
 					if (this._contactFormsTable) {
 						this._contactFormsTable.updateEntries(tableLines)
 					}

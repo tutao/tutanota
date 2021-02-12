@@ -60,23 +60,12 @@ declare class Promise<+R> {
 
 	finally<R>(onDone?: () => mixed): Promise<R>;
 
-	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
-
-	map<T, U>(mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<Array<U>>;
-
-	filter<T>(iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
-
 	isFulfilled(): boolean;
 	isRejected(): boolean;
 	isPending(): boolean;
 	value(): R;
 
 	return<T>(returnValue: T): Promise<T>;
-
-	reduce<T>(mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
-
-	spread<T>(...args: Array<T>): Promise<*>;
-
 	delay<T>(millis: number): Promise<T>;
 
 	tap(handler: (R => $Promisable<mixed>)): Promise<R>;

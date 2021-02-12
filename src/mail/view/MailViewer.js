@@ -764,19 +764,26 @@ export class MailViewer {
 	}
 
 	_createAssignActionButton(mail: Mail): Button {
-		// remove the current mailbox/owner from the recipients list.
-		const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
-			if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
-				return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
-					&& userOrMailGroupInfo.group !== mail._ownerGroup
-			} else {
-				return userOrMailGroupInfo.group !== mail._ownerGroup
-			}
-		}).map(userOrMailGroupInfo => {
-			return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
-				.setType(ButtonType.Dropdown)
-		})
-		return createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250)
+		const makeButtons = async () => {
+			// remove the current mailbox/owner from the recipients list.
+			const userOrMailGroupInfos = await this._getAssignableMailRecipients()
+			return userOrMailGroupInfos.filter(userOrMailGroupInfo => {
+				if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
+					return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
+						&& userOrMailGroupInfo.group !== mail._ownerGroup
+				} else {
+					return userOrMailGroupInfo.group !== mail._ownerGroup
+				}
+			}).map(userOrMailGroupInfo => {
+				return new Button(
+					() => getDisplayText(userOrMailGroupInfo.name,
+						neverNull(userOrMailGroupInfo.mailAddress), true),
+					() => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts
+				).setType(ButtonType.Dropdown)
+			})
+		}
+
+		return createAsyncDropDownButton('forward_action', () => Icons.Forward, makeButtons, 250)
 	}
 
 	_createLoadExternalContentButton(mail: Mail, colors: ButtonColorEnum): Children {
@@ -1344,18 +1351,17 @@ export class MailViewer {
 		return this._mailModel.getMailboxDetailsForMail(this.mail)
 	}
 
-	_getAssignableMailRecipients(): Promise<GroupInfo[]> {
+	async _getAssignableMailRecipients(): Promise<GroupInfo[]> {
 		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
 			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
-			return this._entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return import("../../settings/LoadingUtils").then(({loadGroupInfos}) => {
-					return loadGroupInfos(participantGroupInfos.filter(groupInfoId => {
-						return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
-					})).filter(groupInfo => groupInfo.deleted == null)
-				})
-			})
+			const customer = await this._entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			const {loadGroupInfos} = await import("../../settings/LoadingUtils")
+			const groupInfos = await loadGroupInfos(participantGroupInfos.filter(groupInfoId => {
+				return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
+			}))
+			return groupInfos.filter(groupInfo => groupInfo.deleted == null)
 		} else {
-			return Promise.resolve([])
+			return []
 		}
 	}
 

@@ -121,7 +121,7 @@ export class MailIndexer {
 			           return Promise.all([
 				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null)),
 				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null)
-			           ]).spread((files, body) => {
+			           ]).then(([files, body]) => {
 				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
 				           return {mail, keyToIndexEntries}
 			           })
@@ -487,17 +487,17 @@ export class MailIndexer {
 	/**
 	 * Provides all non-excluded mail list ids of the given mailbox
 	 */
-	_loadMailListIds(mailbox: MailBox): Promise<Id[]> {
-		let mailListIds = []
-		return this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
-		           .filter(f => !contains(this._excludedListIds, f.mails))
-		           .map(folder => {
-			           mailListIds.push(folder.mails)
-			           return this._defaultCachingEntity.loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
-				           mailListIds.push(folder.mails)
-			           })
-		           })
-		           .return(mailListIds)
+	async _loadMailListIds(mailbox: MailBox): Promise<Id[]> {
+		const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
+		const mailListIds = []
+		for (const folder of folders) {
+			if (!this._excludedListIds.includes(folder.mails)) {
+				mailListIds.push(folder.mails)
+				const subfolders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, folder.subFolders)
+				mailListIds.push(...subfolders.map(f => f.mails))
+			}
+		}
+		return mailListIds
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {

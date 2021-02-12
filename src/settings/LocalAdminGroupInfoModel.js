@@ -14,7 +14,6 @@ class LocalAdminGroupInfoModel {
 	groupInfos: GroupInfo[];
 
 	constructor() {
-
 		this._initialization = null
 		this.groupInfos = []
 	}
@@ -32,14 +31,14 @@ class LocalAdminGroupInfoModel {
 	}
 
 	_init(): Promise<GroupInfo[]> {
-		this._initialization = logins.getUserController().loadCustomer().then(customer => {
-			return loadAll(GroupInfoTypeRef, customer.teamGroups)
-				.filter(gi => gi.groupType === GroupType.LocalAdmin)
-				.then(groupInfos => {
-					this.groupInfos = groupInfos
-					return groupInfos
-				})
-		})
+		this._initialization = logins
+			.getUserController()
+			.loadCustomer()
+			.then(async customer => {
+				const groupInfos: Array<GroupInfo> = await loadAll(GroupInfoTypeRef, customer.teamGroups)
+				this.groupInfos = groupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin)
+				return this.groupInfos
+			})
 		return this._initialization
 	}
 

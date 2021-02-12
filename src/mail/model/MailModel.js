@@ -92,7 +92,7 @@ export class MailModel {
 					this._entityClient.load(MailboxGroupRootTypeRef, mailGroupMembership.group),
 					this._entityClient.load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
 					this._entityClient.load(GroupTypeRef, mailGroupMembership.group)
-				]).spread((mailboxGroupRoot, mailGroupInfo, mailGroup) => {
+				]).then(([mailboxGroupRoot, mailGroupInfo, mailGroup]) => {
 					return this._entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then((mailbox) => {
 						return this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
 						           .then((folders) => {

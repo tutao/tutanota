@@ -72,20 +72,18 @@ export class ContactModelImpl implements ContactModel {
 	/**
 	 * @pre locator.search.indexState().indexingSupported
 	 */
-	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-		return this._worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
-		           .then(result => {
-			           const resultsByListId = groupBy(result.results, listIdPart)
-			           return Promise.map(resultsByListId, ([listId, idTuples]) => {
-				           // we try to load all contacts from the same list in one request
-				           return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
-				                      .catch(NotAuthorizedError, e => {
-					                      console.log("tried to access contact without authorization", e)
-					                      return []
-				                      })
-			           }, {concurrency: 3})
-			                         .then(flat)
-		           })
+	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+		const result = await this._worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
+		const resultsByListId = groupBy(result.results, listIdPart)
+		const loadedContacts = await Promise.map(resultsByListId, ([listId, idTuples]) => {
+			// we try to load all contacts from the same list in one request
+			return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
+			           .catch(NotAuthorizedError, e => {
+				           console.log("tried to access contact without authorization", e)
+				           return []
+			           })
+		}, {concurrency: 3})
+		return flat(loadedContacts)
 	}
 
 	/**

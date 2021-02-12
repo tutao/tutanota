@@ -142,7 +142,7 @@ export class EditSecondFactorsForm {
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
 		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise]))
-			.spread((totpKeys, u2fSupport, user) => {
+			.then(([totpKeys, u2fSupport, user]) => {
 				console.log("u2fSupport", u2fSupport)
 				const nameValue: Stream<string> = stream("")
 				const selectedType: Stream<string> = stream(SecondFactorType.totp)

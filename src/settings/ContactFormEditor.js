@@ -52,7 +52,7 @@ let PATH_PATTERN = /^[a-zA-Z0-9_\\-]+$/
 export class ContactFormEditor {
 	_createNew: boolean;
 	_contactForm: ContactForm;
-	_newContactFormIdReceiver: Function
+	_newContactFormIdReceiver: (string) => void
 
 	dialog: Dialog;
 	view: Function;
@@ -75,7 +75,9 @@ export class ContactFormEditor {
 	/**
 	 * This constructor is only used internally. See show() for the external interface.
 	 */
-	constructor(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: Function, allUserGroupInfos: GroupInfo[], allSharedMailboxGroupInfos: GroupInfo[], brandingDomain: string) {
+	constructor(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: (string) => void, allUserGroupInfos: GroupInfo[],
+	            allSharedMailboxGroupInfos: GroupInfo[], brandingDomain: string) {
+		this._createNew = createNew
 		this._contactForm = c ? c : createContactForm()
 		this._createNew = createNew
 		this._newContactFormIdReceiver = newContactFormIdReceiver
@@ -428,31 +430,25 @@ export class ContactFormEditor {
  * @param createNew If true creates a new contact form. if c is provided it is taken as template for the new form.
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
-export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: Function) {
-	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			const whitelabelDomain = getWhitelabelDomain(customerInfo)
-			if (whitelabelDomain) {
-				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
-					.filter(g => !g.deleted)
-					.then(userGroupInfos => {
-						// get and separate all enabled shared mail groups and shared team groups
-						return loadAll(GroupInfoTypeRef, customer.teamGroups)
-							.then((groupInfos) => {
-								const sharedMailGroupInfos = groupInfos.filter(g => !g.deleted && g.groupType === GroupType.Mail)
-								return {userGroupInfos, sharedMailGroupInfos}
-							})
-					}))
-					.then(({userGroupInfos, sharedMailGroupInfos}) => {
-						let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos,
-							whitelabelDomain.domain)
-						editor.dialog.show()
-					})
-			} else {
-				Dialog.error("whitelabelDomainNeeded_msg")
-			}
-		})
-	})
+export async function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: (string) => void) {
+	const customer = await load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customerInfo = await load(CustomerInfoTypeRef, customer.customerInfo)
+
+	const whitelabelDomain = getWhitelabelDomain(customerInfo)
+	if (whitelabelDomain) {
+		showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
+			.then(async allUserGroups => {
+				const userGroupInfos = allUserGroups.filter(g => !g.deleted)
+				// get and separate all enabled shared mail groups and shared team groups
+				const groupInfos = await loadAll(GroupInfoTypeRef, customer.teamGroups)
+				const sharedMailGroupInfos = groupInfos.filter(g => !g.deleted && g.groupType === GroupType.Mail)
+				let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos,
+					whitelabelDomain.domain)
+				editor.dialog.show()
+			}))
+	} else {
+		Dialog.error("whitelabelDomainNeeded_msg")
+	}
 }
 
 function getLanguageName(code: string): string {

@@ -424,7 +424,7 @@ export class EntityRestCache implements EntityRestInterface {
 	 */
 	entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
 		return Promise
-			.map(batch, (update) => {
+			.mapSeries(batch, (update) => {
 				const {instanceListId, instanceId, operation, type, application} = update
 				if (application === "monitor") return null
 
@@ -444,8 +444,8 @@ export class EntityRestCache implements EntityRestInterface {
 					case OperationType.CREATE:
 						return this._processCreateEvent(typeRef, update, batch)
 				}
-			}, {concurrency: 1})
-			.filter(Boolean)
+			})
+			.then((result) => result.filter(Boolean))
 	}
 
 	_processCreateEvent(

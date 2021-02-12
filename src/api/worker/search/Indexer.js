@@ -295,18 +295,16 @@ export class Indexer {
 	}
 
 
-	_updateIndexedGroups(): Promise<void> {
-		return this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		           .then(t => t.getAll(GroupDataOS)
-		                       .map((groupDataEntry: {key: Id, value: GroupData}) => groupDataEntry.key))
-		           .then(indexedGroupIds => {
-			           if (indexedGroupIds.length === 0) {
-				           // tried to index twice, this is probably not our fault
-				           console.log("no group ids in database, disabling indexer")
+	async _updateIndexedGroups(): Promise<void> {
+		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
+		const indexedGroupIds = (await t.getAll(GroupDataOS))
+			.map((groupDataEntry: {key: string | number, value: GroupData}) => downcast<Id>(groupDataEntry.key))
+		if (indexedGroupIds.length === 0) {
+			// tried to index twice, this is probably not our fault
+			console.log("no group ids in database, disabling indexer")
 				           this.disableMailIndexing("no group ids were found in the database")
-			           }
-			           this._indexedGroupIds = indexedGroupIds
-		           })
+		}
+		this._indexedGroupIds = indexedGroupIds
 	}
 
 
@@ -358,25 +356,26 @@ export class Indexer {
 		if (restrictTo) {
 			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
-		return Promise.map(memberships, (membership: GroupMembership) => {
-			// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
-			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
-			           .then(eventBatches => {
-				           return {
-					           groupId: membership.group,
-					           groupData: ({
-						           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
-						           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						           groupType: getMembershipGroupType(membership)
-					           }: GroupData)
-				           }
-			           })
-			           .catch(NotAuthorizedError, () => {
-				           console.log("could not download entity updates => lost permission on list")
-				           return null
-			           })
-		}, {concurrency: 1}) // sequentially to avoid rate limiting
-		              .filter(r => r != null)
+		return Promise
+			.mapSeries(memberships, (membership: GroupMembership) => {
+				// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
+				return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
+				           .then(eventBatches => {
+					           return {
+						           groupId: membership.group,
+						           groupData: ({
+							           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
+							           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+							           groupType: getMembershipGroupType(membership)
+						           }: GroupData)
+					           }
+				           })
+				           .catch(NotAuthorizedError, () => {
+					           console.log("could not download entity updates => lost permission on list")
+					           return null
+				           })
+			}) // sequentially to avoid rate limiting
+			.then((data) => data.filter(r => r != null))
 	}
 
 	/**

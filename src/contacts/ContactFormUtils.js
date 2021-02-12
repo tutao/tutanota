@@ -6,6 +6,8 @@ import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
+import {getElementId} from "../api/common/utils/EntityUtils"
+import {flat} from "../api/common/utils/ArrayUtils"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
 	let language = supportedLanguages.find(l => l.code === lang.code || l.code + '_sie' === lang.code)
@@ -22,19 +24,16 @@ export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLan
 	return language
 }
 
-export function getAdministratedGroupIds(): Promise<Id[]> {
-	return Promise.all(logins.getUserController()
-	                         .getLocalAdminGroupMemberships()
-	                         .map(gm => load(GroupTypeRef, gm.group))).map(localAdminGroup => {
+export async function getAdministratedGroupIds(): Promise<Id[]> {
+	const localAdminGroups = await Promise.mapSeries(logins.getUserController()
+	                                                       .getLocalAdminGroupMemberships(), (gm) => load(GroupTypeRef, gm.group))
+	const administratedGroupIds = await Promise.mapSeries(localAdminGroups, async (localAdminGroup) => {
 		if (localAdminGroup.administratedGroups) {
-			return loadAll(AdministratedGroupTypeRef, localAdminGroup.administratedGroups.items).map(ag => {
-				return ag._id[1]
-			})
+			const administratedGroups = await loadAll(AdministratedGroupTypeRef, localAdminGroup.administratedGroups.items)
+			return administratedGroups.map(getElementId)
+		} else {
+			return []
 		}
-	}).reduce((allAdministratedGroupIds, administratedGroupIds) => {
-		if (administratedGroupIds) {
-			return allAdministratedGroupIds.concat(administratedGroupIds)
-		}
-		return allAdministratedGroupIds
-	}, [])
+	})
+	return flat(administratedGroupIds)
 }
