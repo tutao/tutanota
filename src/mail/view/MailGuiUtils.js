@@ -40,23 +40,43 @@ export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promi
 	}
 }
 
-export function promptAndDeleteMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, onConfirm: () => void): Promise<void> {
+/**
+ * @return whether emails were deleted
+ */
+export function promptAndDeleteMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
 	return showDeleteConfirmationDialog(mails).then((confirmed) => {
 		if (confirmed) {
 			onConfirm()
 			return mailModel.deleteMails(mails)
-				            .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-				            .catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
+			                .then(() => true)
+			                .catch((e) => {
+				                //LockedError should no longer be thrown!?!
+				                if (e instanceof PreconditionFailedError || e instanceof LockedError) {
+					                return Dialog.error("operationStillActive_msg").then(() => false)
+				                } else {
+					                throw e
+				                }
+			                })
 		} else {
-			return Promise.resolve()
+			return Promise.resolve(false)
 		}
 	})
 }
 
-export function moveMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
+/**
+ * @return whether mails were actually moved
+ */
+export function moveMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<boolean> {
 	return mailModel.moveMails(mails, targetMailFolder)
-	                .catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
-	                .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+	                .then(() => true)
+	                .catch((e) => {
+		                //LockedError should no longer be thrown!?!
+		                if (e instanceof LockedError || e instanceof PreconditionFailedError) {
+			                return Dialog.error("operationStillActive_msg").then(() => false)
+		                } else {
+			                throw e
+		                }
+	                })
 }
 
 

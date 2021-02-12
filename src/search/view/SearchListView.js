@@ -171,8 +171,8 @@ export class SearchListView {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: () => Promise.resolve(),
-				swipeRight: () => Promise.resolve(),
+				swipeLeft: () => Promise.resolve(false),
+				swipeRight: () => Promise.resolve(false),
 				enabled: false,
 			},
 			elementsDraggable: false,

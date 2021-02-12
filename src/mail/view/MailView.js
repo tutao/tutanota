@@ -763,7 +763,7 @@ export class MailView implements CurrentView {
 			}
 		}
 
-	deleteMails(mails: Mail[]): Promise<void> {
+	deleteMails(mails: Mail[]): Promise<boolean> {
 		return promptAndDeleteMails(locator.mailModel, mails, noOp)
 	}
 

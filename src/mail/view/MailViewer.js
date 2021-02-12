@@ -1360,7 +1360,7 @@ export class MailViewer {
 		}
 	}
 
-	_assignMail(userGroupInfo: GroupInfo): Promise<void> {
+	_assignMail(userGroupInfo: GroupInfo): Promise<boolean> {
 		const recipient = createMailAddress()
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name

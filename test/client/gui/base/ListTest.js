@@ -14,8 +14,8 @@ const defaultSwipe = {
 	enabled: true,
 	renderLeftSpacer: () => null,
 	renderRightSpacer: () => null,
-	swipeLeft: () => Promise.resolve(),
-	swipeRight: () => Promise.resolve()
+	swipeLeft: () => Promise.resolve(false),
+	swipeRight: () => Promise.resolve(false)
 }
 
 const defaultVLE = {

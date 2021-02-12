@@ -1048,7 +1048,10 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
 			swipeActionPromise = swipeActionPromise
 				.then((commit) => commit !== false)
-				.catch(() => false)
+				.catch((e) => {
+					console.error("rejection in swipe action", e)
+					return false
+				})
 			return Promise
 				.all([
 					// animate swipe action to full width

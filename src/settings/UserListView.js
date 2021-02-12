@@ -95,8 +95,8 @@ export class UserListView implements UpdatableSettingsViewer {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: (listElement) => Promise.resolve(),
-				swipeRight: (listElement) => Promise.resolve(),
+				swipeLeft: (listElement) => Promise.resolve(false),
+				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false
 			},
 			elementsDraggable: false,

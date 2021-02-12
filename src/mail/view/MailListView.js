@@ -66,7 +66,7 @@ export class MailListView implements Component {
 				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
-						return Promise.resolve() // externals don't have an archive folder
+						return Promise.resolve(false) // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
