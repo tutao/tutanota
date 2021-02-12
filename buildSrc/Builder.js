@@ -164,7 +164,6 @@ async function buildAndStartDesktop(log, version) {
 	const nollup = (await import('nollup')).default
 	log("desktop main bundle")
 	const nodePreBundle = await nollup({
-		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
 			...rollupDebugPlugins(path.resolve(".")),
@@ -174,6 +173,7 @@ async function buildAndStartDesktop(log, version) {
 			env.preludeEnvPlugin(env.create(null, version, "Desktop", false))
 		],
 	})
+
 	const nodeBundleWrapper = {
 		bundle: nodePreBundle,
 		async generate() {
@@ -190,34 +190,16 @@ async function buildAndStartDesktop(log, version) {
 		}
 	}
 
-	log("desktop preload bundle")
-	const preloadPreBundle = await nollup({
-		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
-		input: path.join(root, "src/desktop/preload.js"),
-		plugins: [
-			...rollupDebugPlugins(path.resolve(".")),
-			{
-				name: "dynamicRequire",
-				banner() {
-					// see preload.js for explanation
-					return "const dynamicRequire = require"
-				},
-			}
-		],
-	})
+	/**
+	 * the preload script is such a weird environment that trying to pipe it through flow, babel, rollup
+	 * without anything breaking is not worth it for the 3 lines of code it contains,
+	 * so it's just written in normal commonJS and copied over to be executed directly
+	 */
 	const preloadBundleWrapper = {
-		bundle: preloadPreBundle,
+		bundle: [],
 		async generate() {
-			log("generating preload bundle")
-			// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
-			// it's not supported inside node 12 without --experimental-node-modules.
-			const preloadBundle = await preloadPreBundle.generate({
-				format: "iife",
-				sourceMap: true,
-				dir: "./build/desktop",
-				chunkFileNames: "[name].js",
-			})
-			await writeNollupBundle(preloadBundle, log, "build/desktop")
+			log("copying preload script")
+			await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
 		}
 	}
 
