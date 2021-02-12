@@ -27,7 +27,6 @@ class WindowFacade {
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
-		this.init()
 		import("../api/main/MainLocator")
 			.then(locatorModule => locatorModule.locator.initializedWorker)
 			.then(worker => {
@@ -120,7 +119,9 @@ class WindowFacade {
 					e.stopPropagation()
 				} else if (e.key === 'ArrowLeft') {
 					window.history.back()
-				} else if (e.key === 'ArrowRight') window.history.forward()
+				} else if (e.key === 'ArrowRight') {
+					window.history.forward()
+				}
 			})
 		}
 	}
