@@ -496,7 +496,7 @@ function packageDeb(version) {
 		}))
 
 		console.log("create " + webAppDebName)
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota -v ${version} dist/=${target}`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
 			cwd: __dirname + '/build',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
