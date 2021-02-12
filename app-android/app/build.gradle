@@ -7,8 +7,8 @@ android {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 21
 		targetSdkVersion 29
-		versionCode 381070
-		versionName "3.81.7"
+		versionCode 381080
+		versionName "3.81.8"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
 
