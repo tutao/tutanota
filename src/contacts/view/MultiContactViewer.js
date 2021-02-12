@@ -58,13 +58,18 @@ export class MultiContactViewer {
 	}
 
 	createActionBarButtons(actionCallback: (() => void) = () => {}, prependCancel: boolean = false): ButtonAttrs[] {
+		const cancel = prependCancel
+			? [
+				{
+					label: "cancel_action",
+					click: actionCallback,
+					icon: () => Icons.Cancel,
+					isVisible: () => prependCancel
+				}
+			]
+			: []
 		return [
-			{
-				label: "cancel_action",
-				click: actionCallback,
-				icon: () => Icons.Cancel,
-				isVisible: () => prependCancel
-			},
+			...cancel,
 			{
 				label: "delete_action",
 				click: () => this._contactView._deleteSelected().then(actionCallback),
