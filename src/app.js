@@ -49,6 +49,7 @@ window.tutao = {
 setupExceptionHandling()
 
 client.init(navigator.userAgent, navigator.platform)
+windowFacade.init()
 
 export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
