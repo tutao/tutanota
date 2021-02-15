@@ -17,6 +17,7 @@ import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
+import {applicationPaths} from "./ApplicationPaths"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -191,63 +192,60 @@ let initialized = import("./translations/en").then((en) => lang.init(en.default)
 	const paths = applicationPaths({
 		loginViewResolver: createViewResolver(() => import("./login/LoginView.js")
 			.then(module => module.login), false),
-		contactViewResolver: createViewResolver(() => import("./contacts/ContactView.js")
+		contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js")
 			.then(module => new module.ContactView())),
 		externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js")
 			.then(module => new module.ExternalLoginView()), false),
-		mailViewResolver: createViewResolver(() => import("./mail/MailView.js")
+		mailViewResolver: createViewResolver(() => import("./mail/view/MailView.js")
 			.then(module => new module.MailView())),
 		settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js")
 			.then(module => new module.SettingsView())),
-		searchViewResolver: createViewResolver(() => import("./search/SearchView.js")
+		searchViewResolver: createViewResolver(() => import("./search/view/SearchView.js")
 			.then(module => new module.SearchView())),
-		contactFormViewResolver: createViewResolver(() => import("./login/ContactFormView.js")
+		contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js")
 			.then(module => module.contactFormView), false),
-		calendarViewResolver: createViewResolver(() => import("./calendar/CalendarView.js")
+		calendarViewResolver: createViewResolver(() => import("./calendar/view/CalendarView.js")
 			.then(module => new module.CalendarView()), true)
 	})
 
 	m.route.prefix = neverNull(state.prefix)
 	styles.init()
 
+	// keep in sync with RewriteAppResourceUrlHandler.java
 	const resolvers: {[string]: RouteResolver} = {
 		"/": {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 	}
 
-	for (let path of paths) {
-		resolvers[path.root] = path.resolver
-		for (let param of path.params || []) {
-			resolvers[path.root + param] = path.resolver
-		}
+	for (let path in paths) {
+		resolvers[path] = paths[path]
 	}
 
 	// append catch all at the end because mithril will stop at the first match
 	resolvers["/:path"] = {
 		onmatch: (args: {[string]: string}, requestedPath: string): Promise<Component> => {
 			return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")])
-		.then(([{InfoView}, {ButtonType, ButtonN}]) => {
-		return {
-						              view() {
-			return m(root, m(new InfoView(() => "404", () => [
-				m("p", lang.get("notFound404_msg")),
-								              m(ButtonN, {
-									              label: 'back_action',
-									              click: () => window.history.back(),
-									              type: ButtonType.Primary,
-								              }),
-			])))
+			              .then(([{InfoView}, {ButtonType, ButtonN}]) => {
+				              return {
+					              view() {
+						              return m(root, m(new InfoView(() => "404", () => [
+							              m("p", lang.get("notFound404_msg")),
+							              m(ButtonN, {
+								              label: 'back_action',
+								              click: () => window.history.back(),
+								              type: ButtonType.Primary,
+							              }),
+						              ])))
+					              }
+				              }
+			              })
 		}
 	}
 
-
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	// flow fails to resolve RouteResolver properly
-	m.route(neverNull(document.body), start, downcast(resolvers))
-			},
-		}
-	})
+	m.route(neverNull(document.body), startRoute, downcast(resolvers))
 
 	const workerPromise = import("./api/main/WorkerClient.js")
 	workerPromise.then((worker) => {
