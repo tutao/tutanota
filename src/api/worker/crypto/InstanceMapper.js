@@ -13,10 +13,11 @@ import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 
 // $FlowIgnore[untyped-import]
-import {Type, ValueType, Cardinality, AssociationType} from "../../common/EntityConstants"
+import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../common/Env"
 import {uncompress} from "../lz4"
 import {TypeRef} from "../../common/utils/TypeRef";
+import {promiseMap} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -53,7 +54,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 			}
 		}
 	}
-	return Promise.map(Object.keys(model.associations), (associationName) => {
+	return promiseMap(Object.keys(model.associations), (associationName) => {
 		if (model.associations[associationName].type === AssociationType.Aggregation) {
 			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
 				.then((aggregateTypeModel) => {
@@ -63,7 +64,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 					} else if (instance[associationName] == null) {
 						throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
 					} else if (aggregation.cardinality === Cardinality.Any) {
-						return Promise.map(instance[associationName], (aggregate) => {
+						return promiseMap(instance[associationName], (aggregate) => {
 							return decryptAndMapToInstance(aggregateTypeModel, aggregate, sk)
 						}).then((decryptedAggregates) => {
 							decrypted[associationName] = decryptedAggregates
@@ -103,7 +104,7 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 	if (model.type === Type.Aggregated && !encrypted._id) {
 		encrypted._id = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 	}
-	return Promise.map(Object.keys(model.associations), (associationName) => {
+	return promiseMap(Object.keys(model.associations), (associationName) => {
 		if (model.associations[associationName].type === AssociationType.Aggregation) {
 			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
 				.then((aggregateTypeModel) => {
@@ -113,7 +114,7 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 					} else if (i[associationName] == null) {
 						throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
 					} else if (aggregation.cardinality === Cardinality.Any) {
-						return Promise.map(i[associationName], (aggregate) => {
+						return promiseMap(i[associationName], (aggregate) => {
 							return encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
 						}).then((encryptedAggregates) => {
 							encrypted[associationName] = encryptedAggregates
