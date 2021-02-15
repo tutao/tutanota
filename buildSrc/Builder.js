@@ -7,6 +7,7 @@ import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
+import {allowedImports, bundleDepCheckPlugin, manualChunks} from "./RollupConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -107,6 +108,7 @@ export async function build({watch, desktop, stage, host}, log) {
 		plugins: rollupDebugPlugins(path.resolve("."))
 			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : [])
 			.concat(debugModels())
+			.concat(bundleDepCheckPlugin())
 	})
 	const generateBundle = async () => {
 		log("Generating")

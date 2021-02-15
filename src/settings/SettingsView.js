@@ -42,7 +42,6 @@ import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import {nativeApp} from "../native/common/NativeWrapper"
 import {FolderExpander} from "../gui/base/FolderExpander"
 import {isSameId} from "../api/common/utils/EntityUtils";
 
@@ -71,8 +70,11 @@ export class SettingsView implements CurrentView {
 
 		if (isDesktop()) {
 			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => {
+
 				const desktopSettingsViewer = new DesktopSettingsViewer()
-				nativeApp.setAppUpdateListener(() => desktopSettingsViewer.onAppUpdateAvailable())
+				import("../native/common/NativeWrapper").then(({nativeApp}) => {
+					nativeApp.setAppUpdateListener(() => desktopSettingsViewer.onAppUpdateAvailable())
+				})
 				return desktopSettingsViewer
 			}))
 		}

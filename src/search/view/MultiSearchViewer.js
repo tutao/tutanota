@@ -21,19 +21,18 @@ import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {exportContacts} from "../../contacts/VCardExporter"
 import {lazyMemoized, noOp} from "../../api/common/utils/Utils"
+import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {locator} from "../../api/main/MainLocator"
 import {NBSP} from "../../api/common/utils/StringUtils"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {moveMails} from "../../mail/view/MailGuiUtils"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMailsInZip} from "../../mail/export/Exporter"
 import {worker} from "../../api/main/WorkerClient"
 import {makeMailBundle} from "../../mail/export/Bundler"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -202,8 +201,12 @@ export class MultiSearchViewer {
 				{
 					label: "export_action",
 					click: () => {
-						return Promise.all(this.getSelectedMails().map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
-						              .then(bundles => exportMailsInZip(bundles))
+						import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
+							return Promise
+								.all(this.getSelectedMails().map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
+								.then(bundles => exportMailsInZip(bundles))
+						})
+
 					},
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,

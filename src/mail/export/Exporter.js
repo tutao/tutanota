@@ -6,11 +6,9 @@ import {assertNotNull} from "../../api/common/utils/Utils"
 import {formatSortableDateTime, sortableTimestamp} from "../../api/common/utils/DateUtils"
 import type {MailBundle} from "./Bundler"
 import {isDesktop} from "../../api/common/Env"
-import {nativeApp} from "../../native/common/NativeWrapper"
-import {fileApp} from "../../native/common/FileApp"
 import {Request} from "../../api/common/WorkerProtocol"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
-import {isReservedFilename, sanitizeFilename} from "../../api/common/utils/FileUtils"
+import {sanitizeFilename} from "../../api/common/utils/FileUtils"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
@@ -18,17 +16,18 @@ export type MailExportMode = "msg" | "eml"
 export function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml"
 		? Promise.resolve(mailToEmlFile(bundle, fileName))
-		: fileApp.mailToMsg(bundle, fileName)
+		: import("../../native/common/FileApp").then(({fileApp}) => fileApp.mailToMsg(bundle, fileName))
 }
 
 export function getMailExportMode(): Promise<MailExportMode> {
 	return isDesktop()
-		? nativeApp.invokeNative(new Request("sendDesktopConfig", []))
-		           .then(config => config.mailExportMode)
-		           .catch(e => {
-			           console.log("error getting export mode:", e)
-			           return "eml"
-		           })
+		? import("../../native/common/NativeWrapper")
+			.then(({nativeApp}) => nativeApp.invokeNative(new Request("sendDesktopConfig", [])))
+			.then(config => config.mailExportMode)
+			.catch(e => {
+				console.log("error getting export mode:", e)
+				return "eml"
+			})
 		: Promise.resolve("eml")
 }
 

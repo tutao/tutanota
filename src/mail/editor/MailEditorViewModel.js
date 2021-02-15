@@ -6,7 +6,6 @@ import {SendMailModel} from "./SendMailModel"
 import {findAllAndRemove, remove} from "../../api/common/utils/ArrayUtils"
 import {debounce, downcast} from "../../api/common/utils/Utils"
 import {Mode} from "../../api/common/Env"
-import {fileApp} from "../../native/common/FileApp"
 import {fileController} from "../../file/FileController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {Dialog} from "../../gui/base/Dialog"
@@ -118,7 +117,7 @@ function _downloadAttachment(attachment: Attachment) {
 	{
 		let promise = Promise.resolve()
 		if (attachment._type === 'FileReference') {
-			promise = fileApp.open(downcast(attachment))
+			promise = import("../../native/common/FileApp").then(({fileApp}) => fileApp.open(downcast(attachment)))
 		} else if (attachment._type === "DataFile") {
 			promise = fileController.open(downcast(attachment))
 		} else {

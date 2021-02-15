@@ -1,20 +1,20 @@
 //@flow
-import {worker} from "../api/main/WorkerClient"
+import {worker} from "../../api/main/WorkerClient"
 import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
-import {getDisplayText} from "../mail/model/MailUtils"
-import {logins} from "../api/main/LoginController"
-import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
-import {update} from "../api/main/Entity"
+import {getDisplayText} from "../../mail/model/MailUtils"
+import {logins} from "../../api/main/LoginController"
+import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
+import {update} from "../../api/main/Entity"
 import m from "mithril"
-import {lang} from "../misc/LanguageViewModel"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {lang} from "../../misc/LanguageViewModel"
+import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
-import {getCapabilityText} from "./CalendarUtils"
-import {downcast} from "../api/common/utils/Utils"
-import {Dialog} from "../gui/base/Dialog"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
-import {isSameId} from "../api/common/utils/EntityUtils"
+import {getCapabilityText} from "../CalendarUtils"
+import {downcast} from "../../api/common/utils/Utils"
+import {Dialog} from "../../gui/base/Dialog"
+import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
+import {isSameId} from "../../api/common/utils/EntityUtils"
 
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -67,7 +67,7 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 					label: "acceptInvitation_action",
 					type: ButtonType.Login,
 					click: () => {
-						import("../misc/SubscriptionDialogs")
+						import("../../misc/SubscriptionDialogs")
 							.then(SubscriptionDialogUtils => SubscriptionDialogUtils.checkPremiumSubscription(false))
 							.then(ok => {
 								if (ok) {

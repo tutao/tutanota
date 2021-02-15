@@ -1,22 +1,22 @@
 //@flow
-import type {Recipients} from "../mail/editor/SendMailModel"
-import {getDefaultSender, getEnabledMailAddresses} from "../mail/model/MailUtils"
-import {getCalendarName} from "./CalendarUtils"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {load, loadAll} from "../api/main/Entity"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import type {GroupMember} from "../api/entities/sys/GroupMember"
-import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
-import type {Group} from "../api/entities/sys/Group"
-import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
-import {locator} from "../api/main/MainLocator"
-import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {logins} from "../api/main/LoginController"
-import {MailMethod} from "../api/common/TutanotaConstants"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import type {Recipients} from "../../mail/editor/SendMailModel"
+import {getDefaultSender, getEnabledMailAddresses} from "../../mail/model/MailUtils"
+import {getCalendarName} from "../CalendarUtils"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
+import {load, loadAll} from "../../api/main/Entity"
+import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
+import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
+import type {GroupMember} from "../../api/entities/sys/GroupMember"
+import {GroupMemberTypeRef} from "../../api/entities/sys/GroupMember"
+import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
+import type {Group} from "../../api/entities/sys/Group"
+import type {SentGroupInvitation} from "../../api/entities/sys/SentGroupInvitation"
+import {locator} from "../../api/main/MainLocator"
+import type {RecipientInfo} from "../../api/common/RecipientInfo"
+import {logins} from "../../api/main/LoginController"
+import {MailMethod} from "../../api/common/TutanotaConstants"
+import {showProgressDialog} from "../../gui/ProgressDialog"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -67,7 +67,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey,
 		const bodyString = lang.get(body, replacements)
 		const confirm = _ => Promise.resolve(true)
 		const wait = showProgressDialog
-		import("../mail/editor/SendMailModel").then(({defaultSendMailModel}) => {
+		import("../../mail/editor/SendMailModel").then(({defaultSendMailModel}) => {
 			return defaultSendMailModel(mailboxDetails)
 				.initWithTemplate(recipients, subjectString, bodyString, [], true, sender)
 				.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))

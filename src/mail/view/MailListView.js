@@ -28,12 +28,9 @@ import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {MailRow} from "./MailRow"
-import {fileApp} from "../../native/common/FileApp"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {nativeApp} from "../../native/common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap, tap} from "../../api/common/utils/PromiseUtils"
 import {AsyncResult} from "../../api/common/utils/AsyncResult"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
@@ -149,10 +146,11 @@ export class MailListView implements Component {
 		Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
 		       .then(([didComplete, fileNames]) => {
 			       if (didComplete) {
-				       fileApp.startNativeDrag(fileNames)
+				       import("../../native/common/FileApp").then(({fileApp}) => fileApp.startNativeDrag(fileNames))
 			       } else {
-				       nativeApp.invokeNative(new Request("focusApplicationWindow", []))
-				                .then(() => Dialog.error("unsuccessfulDrop_msg"))
+				       import("../../native/common/NativeWrapper")
+					       .then(({nativeApp}) => nativeApp.invokeNative(new Request("focusApplicationWindow", []))
+					                                       .then(() => Dialog.error("unsuccessfulDrop_msg")))
 			       }
 			       neverNull(document.body).style.cursor = "default"
 		       })
@@ -210,10 +208,12 @@ export class MailListView implements Component {
 						}
 						case "complete": {
 							// We have downloaded it, but we need to check if it still exists
-							return fileApp.checkFileExistsInExportDirectory(existing.fileName)
-							              .then(exists => exists
-								              ? handleDownloaded(existing.fileName, Promise.resolve())
-								              : handleNotDownloaded(mail))
+							return import("../../native/common/FileApp").then(({fileApp}) => {
+								return fileApp.checkFileExistsInExportDirectory(existing.fileName)
+								              .then(exists => exists
+									              ? handleDownloaded(existing.fileName, Promise.resolve())
+									              : handleNotDownloaded(mail))
+							})
 						}
 					}
 				}
@@ -227,12 +227,14 @@ export class MailListView implements Component {
 						promiseMap(notDownloaded, ({mail, fileName}) => {
 							const name = deduplicatedNames[fileName].shift()
 							const key = mapKey(mail)
-							const downloadPromise = makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)
-								.then(tap(() => progressMonitor.workDone(1)))
-								.then(bundle => generateMailFile(bundle, name, exportMode))
-								.then(tap(() => progressMonitor.workDone(1)))
-								.then(file => fileApp.saveToExportDir(file))
-								.then(tap(() => progressMonitor.workDone(1)))
+							const downloadPromise =
+								import("../../misc/HtmlSanitizer")
+									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
+									.then(tap(() => progressMonitor.workDone(1)))
+									.then(bundle => generateMailFile(bundle, name, exportMode))
+									.then(tap(() => progressMonitor.workDone(1)))
+									.then(file => import("../../native/common/FileApp").then(({fileApp}) => fileApp.saveToExportDir(file)))
+									.then(tap(() => progressMonitor.workDone(1)))
 							this.exportedMails.set(key, {fileName: name, result: new AsyncResult(downloadPromise)})
 							return downloadPromise.then(() => name)
 						}),

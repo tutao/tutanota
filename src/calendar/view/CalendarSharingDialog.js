@@ -1,46 +1,46 @@
 // @flow
 
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../../gui/base/Dialog"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
-import {load, loadAll} from "../api/main/Entity"
-import type {TableLineAttrs} from "../gui/base/TableN"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
-import {downcast, neverNull} from "../api/common/utils/Utils"
-import {Icons} from "../gui/base/icons/Icons"
-import {lang} from "../misc/LanguageViewModel"
-import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
-import {RecipientInfoBubbleHandler} from "../misc/RecipientInfoBubbleHandler"
-import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../mail/model/MailUtils"
-import {attachDropdown} from "../gui/base/DropdownN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonType} from "../gui/base/ButtonN"
-import {findAndRemove, remove} from "../api/common/utils/ArrayUtils"
-import {showProgressDialog} from "../gui/ProgressDialog"
-import type {Group} from "../api/entities/sys/Group"
-import {GroupTypeRef} from "../api/entities/sys/Group"
-import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
-import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
-import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
-import {worker} from "../api/main/WorkerClient"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
-import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
-import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {logins} from "../api/main/LoginController"
-import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
-import type {EntityEventsListener} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {locator} from "../api/main/MainLocator"
+import {GroupMemberTypeRef} from "../../api/entities/sys/GroupMember"
+import {load, loadAll} from "../../api/main/Entity"
+import type {TableLineAttrs} from "../../gui/base/TableN"
+import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {Icons} from "../../gui/base/icons/Icons"
+import {lang} from "../../misc/LanguageViewModel"
+import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
+import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
+import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../../mail/model/MailUtils"
+import {attachDropdown} from "../../gui/base/DropdownN"
+import type {ButtonAttrs} from "../../gui/base/ButtonN"
+import {ButtonType} from "../../gui/base/ButtonN"
+import {findAndRemove, remove} from "../../api/common/utils/ArrayUtils"
+import {showProgressDialog} from "../../gui/ProgressDialog"
+import type {Group} from "../../api/entities/sys/Group"
+import {GroupTypeRef} from "../../api/entities/sys/Group"
+import type {ShareCapabilityEnum} from "../../api/common/TutanotaConstants"
+import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants"
+import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "../CalendarUtils"
+import {worker} from "../../api/main/WorkerClient"
+import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import type {SentGroupInvitation} from "../../api/entities/sys/SentGroupInvitation"
+import {SentGroupInvitationTypeRef} from "../../api/entities/sys/SentGroupInvitation"
+import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {logins} from "../../api/main/LoginController"
+import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
+import type {EntityEventsListener} from "../../api/main/EventController"
+import {isUpdateForTypeRef} from "../../api/main/EventController"
+import {locator} from "../../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {MailAddress} from "../api/entities/tutanota/MailAddress"
-import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
+import {TextFieldN} from "../../gui/base/TextFieldN"
+import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
+import type {Contact} from "../../api/entities/tutanota/Contact"
+import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
+import type {RecipientInfo} from "../../api/common/RecipientInfo"
+import {getElementId, isSameId} from "../../api/common/utils/EntityUtils"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
@@ -313,7 +313,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 }
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
-	return import("../misc/SubscriptionDialogs")
+	return import("../../misc/SubscriptionDialogs")
 		.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(false))
 		.then(ok => {
 			if (ok) {
@@ -338,7 +338,7 @@ function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Re
 						return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
 						             .then(confirmed => {
 							             if (confirmed) {
-								             import("../subscription/BuyDialog")
+								             import("../../subscription/BuyDialog")
 									             .then((BuyDialog) => BuyDialog.showSharingBuyDialog(true))
 							             }
 						             }).return([])

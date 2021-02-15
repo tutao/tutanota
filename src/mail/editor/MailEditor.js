@@ -50,7 +50,6 @@ import {downcast, noOp} from "../../api/common/utils/Utils"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils";
 import {client} from "../../misc/ClientDetector"
-import {getTimeZone} from "../../calendar/CalendarUtils"
 import {appendEmailSignature} from "../signature/Signature"
 
 export type MailEditorAttrs = {
@@ -575,12 +574,14 @@ export function newMailEditorFromTemplate(
 }
 
 
-export function getSupportMailSignature(): string {
-	return LINE_BREAK + LINE_BREAK + "--"
-		+ `<br>Client: ${client.getIdentifier()}`
-		+ `<br>Tutanota version: ${env.versionNumber}`
-		+ `<br>Time zone: ${getTimeZone()}`
-		+ `<br>User agent:<br> ${navigator.userAgent}`
+export function getSupportMailSignature(): Promise<string> {
+	return import("../../calendar/CalendarUtils").then(({getTimeZone}) => {
+		return LINE_BREAK + LINE_BREAK + "--"
+			+ `<br>Client: ${client.getIdentifier()}`
+			+ `<br>Tutanota version: ${env.versionNumber}`
+			+ `<br>Time zone: ${getTimeZone()}`
+			+ `<br>User agent:<br> ${navigator.userAgent}`
+	})
 }
 
 /**
@@ -596,8 +597,10 @@ export function writeSupportMail(subject: string = "", mailboxDetails?: MailboxD
 			const recipients = {
 				to: [{name: null, address: "premium@tutao.de"}]
 			}
-			newMailEditorFromTemplate(mailbox, recipients, subject, getSupportMailSignature())
-				.then(dialog => dialog.show())
+			return getSupportMailSignature().then((signature) => {
+				return newMailEditorFromTemplate(mailbox, recipients, subject, signature)
+					.then(dialog => dialog.show())
+			})
 		})
 
 	} else {

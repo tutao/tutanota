@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {nativeApp} from '../native/common/NativeWrapper.js'
 import {Request} from "../api/common/WorkerProtocol.js"
 import {showProgressDialog} from "../gui/ProgressDialog.js"
 import {noOp} from "../api/common/utils/Utils"
@@ -12,7 +11,6 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {fileApp} from "../native/common/FileApp"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -20,6 +18,7 @@ import {Dialog} from "../gui/base/Dialog"
 import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 import type {MailExportMode} from "../mail/export/Exporter"
+import type {NativeWrapper} from "../native/common/NativeWrapper"
 
 assertMainOrNode()
 
@@ -39,8 +38,10 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_updateAvailable: Stream<boolean>;
 	_mailExportMode: Stream<MailExportMode>
 	_isPathDialogOpen: boolean;
+	_nativeApp: Promise<NativeWrapper>
 
 	constructor() {
+		this._nativeApp = import("../native/common/NativeWrapper").then((module) => module.nativeApp)
 		this._isDefaultMailtoHandler = stream(false)
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
@@ -99,14 +100,11 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._runOnStartup,
 			selectionChangedHandler: v => { // this may take a while
-				showProgressDialog("pleaseWait_msg",
-					nativeApp.invokeNative(new Request(v
-						? 'enableAutoLaunch'
-						: 'disableAutoLaunch', [])),
-				).then(() => {
-					this._runOnStartup(v)
-					m.redraw()
-				})
+				showProgressDialog("pleaseWait_msg", this._toggeAutoLaunchInNative(v))
+					.then(() => {
+						this._runOnStartup(v)
+						m.redraw()
+					})
 			}
 		}
 
@@ -199,40 +197,51 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
+	_toggeAutoLaunchInNative(enable: boolean): Promise<*> {
+		return import("../native/common/NativeWrapper").then(({nativeApp}) => {
+			return nativeApp.invokeNative(new Request(enable ? 'enableAutoLaunch' : 'disableAutoLaunch', []))
+		})
+	}
+
 	_updateDefaultMailtoHandler(shouldBeDefaultMailtoHandler: boolean): Promise<void> {
-		if (shouldBeDefaultMailtoHandler) {
-			return nativeApp.invokeNative(new Request('registerMailto', []))
-		} else {
-			return nativeApp.invokeNative(new Request('unregisterMailto', []))
-		}
+		return this._nativeApp.then((nativeApp) => {
+			if (shouldBeDefaultMailtoHandler) {
+				return nativeApp.invokeNative(new Request('registerMailto', []))
+			} else {
+				return nativeApp.invokeNative(new Request('unregisterMailto', []))
+			}
+		})
 	}
 
 	_updateDesktopIntegration(shouldIntegrate: boolean): Promise<void> {
-		if (shouldIntegrate) {
-			return nativeApp.invokeNative(new Request('integrateDesktop', []))
-		} else {
-			return nativeApp.invokeNative(new Request('unIntegrateDesktop', []))
-		}
+		return this._nativeApp.then((nativeApp) => {
+			if (shouldIntegrate) {
+				return nativeApp.invokeNative(new Request('integrateDesktop', []))
+			} else {
+				return nativeApp.invokeNative(new Request('unIntegrateDesktop', []))
+			}
+		})
 	}
 
 	_requestDesktopConfig() {
 		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
-		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
-		         .then(desktopConfig => {
-			         this._isDefaultMailtoHandler(desktopConfig.isMailtoHandler)
-			         this._defaultDownloadPath(desktopConfig.defaultDownloadPath
-				         ? desktopConfig.defaultDownloadPath
-				         : lang.get('alwaysAsk_action')
-			         )
-			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
-			         this._runOnStartup(desktopConfig.runOnStartup)
-			         this._isIntegrated(desktopConfig.isIntegrated)
-			         this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
-			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
-			         this._updateAvailable(!!desktopConfig.updateInfo)
-			         this._mailExportMode(desktopConfig.mailExportMode)
-			         m.redraw()
-		         })
+		this._nativeApp
+		    .then((nativeApp) => nativeApp.invokeNative(new Request('sendDesktopConfig', [])))
+		    .then(desktopConfig => {
+			    this._isDefaultMailtoHandler(desktopConfig.isMailtoHandler)
+			    this._defaultDownloadPath(desktopConfig.defaultDownloadPath
+				    ? desktopConfig.defaultDownloadPath
+				    : lang.get('alwaysAsk_action')
+			    )
+			    this._runAsTrayApp(desktopConfig.runAsTrayApp)
+			    this._runOnStartup(desktopConfig.runOnStartup)
+			    this._isIntegrated(desktopConfig.isIntegrated)
+			    this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
+			    this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
+			    this._updateAvailable(!!desktopConfig.updateInfo)
+			    this._mailExportMode(desktopConfig.mailExportMode)
+			    m.redraw()
+		    })
 	}
 
 	updateConfigBoolean(setting: string, value: boolean): void {
@@ -240,31 +249,36 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	updateConfig<T>(setting: string, value: T): void {
-		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
-		         .then(config => {
-			         config[setting] = value
-			         return nativeApp.invokeNative(new Request('updateDesktopConfig', [config]))
-		         }).then(() => m.redraw())
+		this._nativeApp.then((nativeApp) => {
+			return nativeApp
+				.invokeNative(new Request('sendDesktopConfig', []))
+				.then(config => {
+					config[setting] = value
+					return nativeApp.invokeNative(new Request('updateDesktopConfig', [config]))
+				})
+				.then(() => m.redraw())
+		})
 	}
 
-	setDefaultDownloadPath(v: $Values<typeof DownloadLocationStrategy>) {
+	setDefaultDownloadPath(v: $Values<typeof DownloadLocationStrategy>): Promise<void> {
 		this._isPathDialogOpen = true
-		Promise.join(
-			nativeApp.invokeNative(new Request('sendDesktopConfig', [])),
-			v === DownloadLocationStrategy.ALWAYS_ASK
-				? Promise.resolve([null])
-				: fileApp.openFolderChooser(),
-			(config, newPaths) => {
+
+		return Promise
+			.all([
+				this._nativeApp.then((nativeApp) => nativeApp.invokeNative(new Request('sendDesktopConfig', []))),
+				v === DownloadLocationStrategy.ALWAYS_ASK
+					? Promise.resolve([null])
+					: import("../native/common/FileApp").then(({fileApp}) => fileApp.openFolderChooser())
+			])
+			.then(([config, newPaths]) => {
 				config.defaultDownloadPath = newPaths[0]
-				this._defaultDownloadPath(newPaths[0]
-					? newPaths[0]
-					: lang.get('alwaysAsk_action'))
-				return config
-			}).then(config => nativeApp.invokeNative(new Request('updateDesktopConfig', [config])))
-		       .then(() => {
-			       this._isPathDialogOpen = false
-			       m.redraw()
-		       })
+				this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get('alwaysAsk_action'))
+				return this._nativeApp.then((nativeApp) => nativeApp.invokeNative(new Request('updateDesktopConfig', [config])))
+			})
+			.then(() => {
+				this._isPathDialogOpen = false
+				m.redraw()
+			})
 	}
 
 	onAppUpdateAvailable(): void {

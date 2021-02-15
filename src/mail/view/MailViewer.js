@@ -112,7 +112,6 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {locator} from "../../api/main/MainLocator"
 import {makeMailBundle} from "../export/Bundler"
 import {exportMailsInZip} from "../export/Exporter"
@@ -625,11 +624,10 @@ export class MailViewer {
 						moreButtons.push({
 							label: "export_action",
 							click: () => {
-								const downloadPromise =
-									makeMailBundle(this.mail, locator.entityClient, worker, htmlSanitizer)
-										.then(bundle => exportMailsInZip([bundle]))
+								const downloadPromise = import("../../misc/HtmlSanitizer")
+									.then(({htmlSanitizer}) => makeMailBundle(this.mail, locator.entityClient, worker, htmlSanitizer))
+									.then(bundle => exportMailsInZip([bundle]))
 								showProgressDialog("pleaseWait_msg", downloadPromise)
-
 							},
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
