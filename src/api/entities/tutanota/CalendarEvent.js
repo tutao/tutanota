@@ -1,11 +1,10 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventAttendee} from "./CalendarEventAttendee"
 import type {EncryptedMailAddress} from "./EncryptedMailAddress"
 import type {CalendarRepeatRule} from "./CalendarRepeatRule"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
 export const _TypeModel: TypeModel = {

@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GroupSettingsTypeRef: TypeRef<GroupSettings> = new TypeRef("tutanota", "GroupSettings")

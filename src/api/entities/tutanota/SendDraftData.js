@@ -1,11 +1,10 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {AttachmentKeyData} from "./AttachmentKeyData"
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
 import type {SecureExternalRecipientKeyData} from "./SecureExternalRecipientKeyData"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 export const _TypeModel: TypeModel = {

@@ -1,10 +1,9 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {File} from "./File"
 import type {NotificationMailTemplate} from "./NotificationMailTemplate"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", "CustomerProperties")
 export const _TypeModel: TypeModel = {

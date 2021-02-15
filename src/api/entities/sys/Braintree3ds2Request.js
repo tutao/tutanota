@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const Braintree3ds2RequestTypeRef: TypeRef<Braintree3ds2Request> = new TypeRef("sys", "Braintree3ds2Request")

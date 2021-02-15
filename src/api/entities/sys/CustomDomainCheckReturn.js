@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DnsRecord} from "./DnsRecord"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const CustomDomainCheckReturnTypeRef: TypeRef<CustomDomainCheckReturn> = new TypeRef("sys", "CustomDomainCheckReturn")
 export const _TypeModel: TypeModel = {

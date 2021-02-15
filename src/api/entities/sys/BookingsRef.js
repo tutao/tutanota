@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", "BookingsRef")

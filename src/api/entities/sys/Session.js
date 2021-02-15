@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {Challenge} from "./Challenge"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const SessionTypeRef: TypeRef<Session> = new TypeRef("sys", "Session")
 export const _TypeModel: TypeModel = {

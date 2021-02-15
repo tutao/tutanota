@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/utils/EntityUtils"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarGroupData} from "./CalendarGroupData"
-import {TypeRef} from "../../common/utils/TypeRef";
 
 export const CalendarPostDataTypeRef: TypeRef<CalendarPostData> = new TypeRef("tutanota", "CalendarPostData")
 export const _TypeModel: TypeModel = {
