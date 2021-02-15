@@ -149,6 +149,9 @@ function appUpdateDownloaded(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
+/**
+ * this is only used in the admin client to sync the DB view with the inbox
+ */
 function openCustomer(msg: Request): Promise<void> {
 	const mailAddress = msg.args[0]
 	if (typeof mailAddress === 'string' && tutao.m.route.get().startsWith("/customer")) {
@@ -159,6 +162,10 @@ function openCustomer(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
+/**
+ * this updates the link-reveal on hover when the main thread detects that
+ * the hovered url changed
+ */
 function updateTargetUrl(msg: Request) : Promise<void> {
 	const url = msg.args[0]
 	let linkToolTip = document.getElementById("link-tt")

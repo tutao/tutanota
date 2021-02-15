@@ -125,19 +125,6 @@ export class SearchInPageOverlay {
 		m.redraw()
 	}
 
-	/*
-	* we're catching enter key events on the main thread while the search overlay is open to enable
-	* next-result-via-enter behaviour.
-	*
-	* since losing focus on the overlay via issuing a search request seems to be indistinguishable
-	* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
-	* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
-	*/
-	handleMouseUp(e: Event) {
-		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
-		nativeApp.invokeNative(new Request('setSearchOverlayState', [false, true]))
-	}
-
 	_getComponent(): VirtualElement {
 		let caseButtonAttrs = {
 			label: "matchCase_alt",
@@ -178,8 +165,8 @@ export class SearchInPageOverlay {
 			view: (vnode: Object) => {
 				return m(".flex.flex-space-between",
 					{
-						oncreate: () => window.addEventListener('mouseup', this.handleMouseUp),
-						onremove: () => window.removeEventListener('mouseup', this.handleMouseUp)
+						oncreate: () => window.addEventListener('mouseup', handleMouseUp),
+						onremove: () => window.removeEventListener('mouseup', handleMouseUp)
 					},
 					[
 						m(".flex-start.center-vertically",
@@ -210,6 +197,20 @@ export class SearchInPageOverlay {
 
 		}
 	}
+}
+
+
+/*
+* we're catching enter key events on the main thread while the search overlay is open to enable
+* next-result-via-enter behaviour.
+*
+* since losing focus on the overlay via issuing a search request seems to be indistinguishable
+* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
+* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
+*/
+function handleMouseUp(e: Event) {
+	if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
+	nativeApp.invokeNative(new Request('setSearchOverlayState', [false, true]))
 }
 
 export const searchInPageOverlay: SearchInPageOverlay = new SearchInPageOverlay()

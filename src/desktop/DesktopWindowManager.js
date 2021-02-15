@@ -114,6 +114,12 @@ export class WindowManager {
 			: null
 	}
 
+	/**
+	 * this relies on BrowserWindow.id === BrowserWindow.webContents.id,
+	 * which is not guaranteed anywhere but also seems to be true
+	 * @param ev
+	 * @returns {?ApplicationWindow|null}
+	 */
 	getEventSender(ev: WebContentsEvent) : ?ApplicationWindow {
 		if(ev.sender.id == null) return null
 		return this.get(ev.sender.id)
