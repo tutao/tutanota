@@ -1,7 +1,9 @@
 //@flow
 
 import o from "ospec"
-import {mapInCallContext, PromisableWrapper as PromiseableWrapper} from "../../../src/api/common/utils/PromiseUtils"
+import {mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseMap} from "../../../src/api/common/utils/PromiseUtils"
+import {defer} from "../../../src/api/common/utils/Utils"
+import {assertThrows} from "../TestUtils"
 
 
 o.spec("PromiseUtils", function () {
@@ -76,4 +78,49 @@ o.spec("PromiseUtils", function () {
 		})
 	})
 
+	o.spec("promiseMap", function () {
+		o("empty", async function () {
+			o(await promiseMap([], (n) => n + 1)).deepEquals([])
+		})
+
+		o("non-empty", async function () {
+			o(await promiseMap([1, 2, 3], (n) => n + 1)).deepEquals([2, 3, 4])
+		})
+
+		o("async in order", async function () {
+			const defer1 = defer()
+			const defer2 = defer()
+			const mapper = o.spy((n) => n.promise)
+			const resultPromise = promiseMap([defer1, defer2], mapper)
+
+			await Promise.resolve()
+			o(mapper.callCount).equals(1)
+			defer1.resolve(1)
+			await Promise.resolve()
+			o(mapper.callCount).equals(2)
+			defer2.resolve(2)
+			await Promise.resolve()
+			o(await resultPromise).deepEquals([1, 2])
+		})
+
+		o("stops on rejection", async function () {
+			const defer1 = defer()
+			const defer2 = defer()
+			const mapper = o.spy((n) => n.promise)
+			const resultPromise = promiseMap([defer1, defer2], mapper)
+			await Promise.resolve()
+			o(mapper.callCount).equals(1)
+			defer1.reject(new Error("test"))
+			await assertThrows(() => resultPromise)
+			o(mapper.callCount).equals(1)
+		})
+
+		o("stops on exception", async function () {
+			const mapper = o.spy(() => {
+				throw new Error("test")
+			})
+			await assertThrows(() => promiseMap([1, 2], mapper))
+			o(mapper.callCount).equals(1)
+		})
+	})
 })

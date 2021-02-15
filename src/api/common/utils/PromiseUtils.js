@@ -1,5 +1,7 @@
 //@flow
 
+import {downcast} from "./Utils"
+
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
 
 /**
@@ -77,4 +79,23 @@ export function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => {
 		setTimeout(resolve, ms)
 	})
+}
+
+export function promiseMap<T, R>(iterable: Iterable<T>, mapper: (T) => $Promisable<R>): Promise<Array<R>> {
+	const iterator: Iterator<T> = downcast(iterable)[Symbol.iterator]()
+	const result = []
+
+	function iterate() {
+		const item = iterator.next()
+		if (item.done === true) {
+			return Promise.resolve()
+		} else {
+			return Promise.resolve(mapper(item.value)).then((newItem) => {
+				result.push(newItem)
+				return iterate()
+			})
+		}
+	}
+
+	return iterate().then(() => result)
 }
