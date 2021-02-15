@@ -1,6 +1,7 @@
 // @flow
 
-import {create, TypeRef} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils"
+import {TypeRef} from "../../common/utils/TypeRef"
 
 import type {BootstrapFeature} from "./BootstrapFeature"
 import type {CertificateInfo} from "./CertificateInfo"
