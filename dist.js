@@ -24,10 +24,8 @@ import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
-import {buildDesktop} from "./buildSrc/DesktopBuilder.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import visualizer from "rollup-plugin-visualizer"
-import flow from "flow-bin"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -89,7 +87,13 @@ doBuild().catch(e => {
 
 async function doBuild() {
 	try {
+		const flow = await import("flow-bin")
 		spawn(flow, {stdio: "inherit"})
+	} catch (e) {
+		console.warn("Flow executable was not found, it is either F-Droid build or you need to run npm ci")
+	}
+	try {
+
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		await buildWebapp(version)
 		await buildDesktopClient(version)
@@ -324,6 +328,7 @@ System.import("./worker.js")`)
 
 async function buildDesktopClient(version) {
 	if (options.desktop) {
+		const {buildDesktop} = await import("./buildSrc/DesktopBuilder.js")
 		const desktopBaseOpts = {
 			dirname: __dirname,
 			version,
