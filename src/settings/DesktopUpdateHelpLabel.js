@@ -4,7 +4,6 @@ import m from "mithril"
 import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {nativeApp} from '../native/common/NativeWrapper.js'
 import {Request} from "../api/common/WorkerProtocol.js"
 
 export type UpdateHelpLabelAttrs = {
@@ -19,24 +18,26 @@ export class DesktopUpdateHelpLabel {
 		if (this._waiting || this._error) return null
 
 		const onclick = () => {
-			if (updateAvailable()) {
-				// install now (restarts the app)
-				nativeApp.invokeNative(new Request('manualUpdate', []))
-			} else if (!this._waiting) {
-				// no update available & not currently waiting for check result -> check for update again
-				this._waiting = true
-				Promise.join(
-					nativeApp.invokeNative(new Request('manualUpdate', [])),
-					// make sure there's at least some delay
-					// instant response tends to make users nervous
-					Promise.resolve().delay(500),
-					hasUpdate => {
-						this._waiting = false
-						updateAvailable(hasUpdate)
-						m.redraw()
-					}
-				).catch(() => this._error = true)
-			}
+			return import("../native/common/NativeWrapper.js").then(({nativeApp}) => {
+				if (updateAvailable()) {
+					// install now (restarts the app)
+					nativeApp.invokeNative(new Request('manualUpdate', []))
+				} else if (!this._waiting) {
+					// no update available & not currently waiting for check result -> check for update again
+					this._waiting = true
+					Promise.join(
+						nativeApp.invokeNative(new Request('manualUpdate', [])),
+						// make sure there's at least some delay
+						// instant response tends to make users nervous
+						Promise.resolve().delay(500),
+						hasUpdate => {
+							this._waiting = false
+							updateAvailable(hasUpdate)
+							m.redraw()
+						}
+					).catch(() => this._error = true)
+				}
+			})
 		}
 
 		return m("span.text-break.pr-s", m('button.underline', {

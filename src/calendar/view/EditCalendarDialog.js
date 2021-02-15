@@ -1,11 +1,11 @@
 //@flow
 
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog} from "../../gui/base/Dialog"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import {lang} from "../misc/LanguageViewModel"
-import type {TranslationKeyType} from "../misc/TranslationKey"
+import {TextFieldN} from "../../gui/base/TextFieldN"
+import {lang} from "../../misc/LanguageViewModel"
+import type {TranslationKeyType} from "../../misc/TranslationKey"
 
 type CalendarProperties = {name: string, color: string}
 

@@ -1,4 +1,5 @@
 // @flow
+// @bundleInto:boot
 
 export type ApplicationPaths = {[path: string]: RouteResolverMatch}
 

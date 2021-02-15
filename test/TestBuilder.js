@@ -22,9 +22,6 @@ export async function build(options, log) {
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(".."),
-			// graph({
-			// 	output: "graph.dot", prune: true, exclude: "translations|entities",
-			// }),
 		],
 	})
 	return [

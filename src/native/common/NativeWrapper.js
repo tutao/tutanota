@@ -13,7 +13,7 @@ import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../api/common/utils
  * In case this is executed from a worker scope, the invocations are passed to the
  * main thread (as native functions bound to a webview are only available from that scope).
  */
-class NativeWrapper {
+export class NativeWrapper {
 
 	_initialized: DeferredObject<void> = defer();
 	_appUpdateListener: () => void;

@@ -26,6 +26,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import visualizer from "rollup-plugin-visualizer"
+import {bundleDepCheckPlugin} from "./buildSrc/RollupConfig.js"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -209,6 +210,7 @@ async function buildWebapp(version) {
 			MINIFY && terser(),
 			analyzer(),
 			visualizer({filename: "build/stats.html", gzipSize: true}),
+			bundleDepCheckPlugin()
 		],
 	})
 	console.log("bundling timings: ")
