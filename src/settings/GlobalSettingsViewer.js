@@ -48,7 +48,7 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 

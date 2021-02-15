@@ -13,7 +13,7 @@ import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
-import {showBusinessFeatureRequiredDialog} from "../../subscription/SubscriptionDialogUtils"
+import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 

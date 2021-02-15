@@ -1,16 +1,19 @@
-//@flow
+// @flow
+import type {LoginController} from "../api/main/LoginController";
+import {logins} from "../api/main/LoginController"
+import {load} from "../api/main/Entity"
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {neverNull} from "../api/common/utils/Utils"
+import {Dialog} from "../gui/base/Dialog"
+import type {TranslationKey} from "./LanguageViewModel";
+import {lang} from "./LanguageViewModel"
+import {isIOSApp} from "../api/common/Env"
 
 /**
- * Wrappers for commonly used dialogs which we don't want to import() every time. This is in the main bundle and we should not import
- * subscription stuff here.
+ * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
+ * @param isInPremiumIncluded Whether the feature is included in the premium membership or not.
  */
-import type {LoginController} from "../api/main/LoginController";
-import type {TranslationKey} from "./LanguageViewModel";
-import {lang} from "./LanguageViewModel";
-import {Dialog} from "../gui/base/Dialog";
-import {isIOSApp} from "../api/common/Env";
-
-export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
+export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean): void {
 	Promise.all([
 		import("../subscription/UpgradeSubscriptionWizard"), import("../subscription/PriceUtils")
 	]).then(([wizard, priceUtils]) => {
@@ -30,6 +33,35 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 
 }
 
+export function createNotAvailableForFreeClickHandler(includedInPremium: boolean,
+                                                      click: clickHandler,
+                                                      available: () => boolean): clickHandler {
+	return (e, dom) => {
+		if (!available()) {
+			showNotAvailableForFreeDialog(includedInPremium)
+		} else {
+			click(e, dom)
+		}
+	}
+}
+
+/**
+ * Returns whether premium is active and shows one of the showNotAvailableForFreeDialog or subscription cancelled dialogs if needed.
+ */
+export function checkPremiumSubscription(included: boolean): Promise<boolean> {
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(included)
+		return Promise.resolve(false)
+	}
+	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+		if (customer.canceledPremiumAccount) {
+			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
+		} else {
+			return Promise.resolve(true)
+		}
+	})
+}
+
 export function showMoreStorageNeededOrderDialog(loginController: LoginController,
                                                  messageIdOrMessageFunction: TranslationKey | lazy<string>
 ): Promise<void> {
@@ -44,4 +76,33 @@ export function showMoreStorageNeededOrderDialog(loginController: LoginControlle
 			}
 		}
 	})
+}
+
+/**
+ * @returns true if the business feature has been ordered
+ */
+export function showBusinessFeatureRequiredDialog(reason: TranslationKey | lazy<string>): Promise<boolean> {
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(false)
+		return Promise.resolve(false)
+	} else {
+		if (logins.getUserController().isGlobalAdmin()) {
+			return Dialog.confirm(() => lang.getMaybeLazy(reason) + " " + lang.get("ordertItNow_msg"))
+			             .then(confirmed => {
+				             if (confirmed) {
+					             return import("../subscription/BuyDialog").then((BuyDialog) => {
+						             return BuyDialog.showBusinessBuyDialog(true).then(failed => {
+							             return !failed
+						             })
+					             })
+				             } else {
+					             return false
+				             }
+			             })
+
+		} else {
+			return Dialog.error(() => lang.getMaybeLazy(reason) + " " + lang.get("contactAdmin_msg"))
+			             .then(() => false)
+		}
+	}
 }

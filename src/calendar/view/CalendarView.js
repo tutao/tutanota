@@ -86,7 +86,7 @@ import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
 import {createCalendarEventViewModel} from "../CalendarEventViewModel"
-import {premiumSubscriptionActive, showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -468,8 +468,8 @@ export class CalendarView implements CurrentView {
 		if (logins.getUserController().getCalendarMemberships().length === 0) {
 			this._showCreateCalendarDialog()
 		} else {
-			import("../../subscription/PriceUtils")
-				.then((utils) => utils.checkPremiumSubscription(true))
+			import("../../misc/SubscriptionDialogs")
+				.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(true))
 				.then(ok => {
 					if (ok) {
 						this._showCreateCalendarDialog()

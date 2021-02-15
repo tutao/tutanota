@@ -269,14 +269,6 @@ export function isBusinessFeatureActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
 }
 
-/**
- * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
- * for non admin users because they are not allowed to access the bookings.
- */
-export function isUsingBusinessFeatureAllowed(customer: Customer): boolean {
-	return !!customer.customizations.find(feature => feature.feature === FeatureType.BusinessFeatureEnabled)
-}
-
 export function getIncludedAliases(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
 }

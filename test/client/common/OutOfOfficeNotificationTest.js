@@ -3,7 +3,7 @@ import o from "ospec"
 import {createOutOfOfficeNotification} from "../../../src/api/entities/tutanota/OutOfOfficeNotification"
 import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
-import {formatActivateState, isNotificationCurrentlyActive} from "../../../src/settings/OutOfOfficeNotificationUtils"
+import {formatActivateState, isNotificationCurrentlyActive} from "../../../src/api/main/OutOfOfficeNotificationUtils"
 import {getDayShifted, getStartOfDay, getStartOfNextDay} from "../../../src/api/common/utils/DateUtils"
 
 o.spec("OutOfOfficeNotificationTest", function () {

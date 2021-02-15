@@ -37,11 +37,10 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
-import {formatPrice} from "../subscription/PriceUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
-import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../settings/OutOfOfficeNotificationUtils"
-import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionDialogUtils";
+import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
+import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs";
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 
 assertMainOrNode()

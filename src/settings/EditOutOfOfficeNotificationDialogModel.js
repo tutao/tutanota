@@ -4,15 +4,15 @@ import {createOutOfOfficeNotification} from "../api/entities/tutanota/OutOfOffic
 import stream from "mithril/stream/stream.js"
 import {getDayShifted, getStartOfDay, getStartOfNextDay} from "../api/common/utils/DateUtils";
 import {OutOfOfficeNotificationMessageType} from "../api/common/TutanotaConstants";
-import {appendEmailSignature} from "../mail/MailUtils";
-import {UserError} from "../api/common/error/UserError";
 import type {OutOfOfficeNotificationMessage} from "../api/entities/tutanota/OutOfOfficeNotificationMessage";
 import {createOutOfOfficeNotificationMessage} from "../api/entities/tutanota/OutOfOfficeNotificationMessage";
 import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError";
-import {BusinessFeatureRequiredError} from "../api/common/error/BusinessFeatureRequiredError";
+import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError";
 import type {EntityClient} from "../api/common/EntityClient"
 import type {LanguageViewModel} from "../misc/LanguageViewModel"
 import type {IUserController} from "../api/main/UserController"
+import {appendEmailSignature} from "../mail/signature/Signature"
+import {UserError} from "../api/main/UserError"
 
 export const RecipientMessageType = Object.freeze({
 	EXTERNAL_TO_EVERYONE: 0,

@@ -64,7 +64,7 @@ import {ActionBar} from "../../gui/base/ActionBar"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils";
+import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 

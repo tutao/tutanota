@@ -5,6 +5,7 @@ import {
 	AccountType,
 	CalendarAttendeeStatus,
 	EndType,
+	FeatureType,
 	getAttendeeStatus,
 	RepeatPeriod,
 	ShareCapability,
@@ -57,10 +58,10 @@ import {UserError} from "../api/main/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
-import {isUsingBusinessFeatureAllowed} from "../subscription/SubscriptionUtils"
 import {EntityClient} from "../api/common/EntityClient"
-import {BusinessFeatureRequiredError} from "../api/common/error/BusinessFeatureRequiredError"
+import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../misc/Formatter"
+import type {Customer} from "../api/entities/sys/Customer"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -1024,4 +1025,13 @@ export function createCalendarEventViewModel(date: Date, calendars: Map<Id, Cale
 			resolveRecipientsLazily,
 		)
 	})
+}
+
+
+/**
+ * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
+ * for non admin users because they are not allowed to access the bookings.
+ */
+function isUsingBusinessFeatureAllowed(customer: Customer): boolean {
+	return !!customer.customizations.find(feature => feature.feature === FeatureType.BusinessFeatureEnabled)
 }

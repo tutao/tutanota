@@ -12,7 +12,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -50,7 +50,6 @@ export class EventBanner implements MComponent<Attrs> {
 					label: "viewEvent_action",
 					type: ButtonType.Secondary,
 					click: () => import("../../calendar/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
-					},
 				})),
 			],
 		)

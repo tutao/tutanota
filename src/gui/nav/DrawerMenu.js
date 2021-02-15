@@ -15,8 +15,6 @@ import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {attachDropdown} from "../base/DropdownN"
 import {noOp} from "../../api/common/utils/Utils"
 import {keyManager} from "../../misc/KeyManager"
-import {showPurchaseGiftCardDialog} from "../../subscription/giftcards/PurchaseGiftCardDialog"
-import {isNewMailActionAvailable} from "../../mail/MailGuiUtils";
 
 type Attrs = void
 

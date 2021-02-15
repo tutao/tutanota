@@ -67,7 +67,7 @@ import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
 import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
-import {createNotAvailableForFreeClickHandler, showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {createNotAvailableForFreeClickHandler, showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 

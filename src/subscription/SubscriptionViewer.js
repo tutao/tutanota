@@ -65,7 +65,7 @@ import {locator} from "../api/main/MainLocator"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "./BuyDialog"
-import {createNotAvailableForFreeClickHandler} from "./SubscriptionDialogUtils"
+import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import {SettingsExpander} from "../settings/SettingsExpander"
 import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -203,8 +203,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(
 				false,
-				() => import("../subscription/SubscriptionUtils")
-					.then((utils) => utils.showSharingBuyDialog(true)),
+				() => showSharingBuyDialog(true),
 				isPremiumPredicate
 			),
 			icon: () => Icons.Edit,
@@ -213,8 +212,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(
 				false,
-				() => import("../subscription/SubscriptionUtils")
-					.then((utils) => utils.showSharingBuyDialog(false)),
+				() => showSharingBuyDialog(false),
 				isPremiumPredicate
 			),
 			icon: () => Icons.Cancel,

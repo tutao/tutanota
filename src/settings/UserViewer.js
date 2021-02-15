@@ -46,7 +46,7 @@ import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()

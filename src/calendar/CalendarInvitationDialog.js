@@ -14,7 +14,6 @@ import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
-import {checkPremiumSubscription} from "../subscription/SubscriptionDialogUtils"
 import {isSameId} from "../api/common/utils/EntityUtils"
 
 
@@ -68,8 +67,8 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 					label: "acceptInvitation_action",
 					type: ButtonType.Login,
 					click: () => {
-						import("../subscription/PriceUtils")
-							.then(utils => utils.checkPremiumSubscription(false))
+						import("../misc/SubscriptionDialogs")
+							.then(SubscriptionDialogUtils => SubscriptionDialogUtils.checkPremiumSubscription(false))
 							.then(ok => {
 								if (ok) {
 									acceptInvite(invitation).then(() => {

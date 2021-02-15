@@ -1290,7 +1290,5 @@ export type TranslationKeyType = "about_label"
 	| "outOfOfficeRecipientsInternalExternalHelp_label"
 	| "outOfOfficeRecipientsInternalOnlyHelp_label"
 // TODO check unused keys
-// TODO delete:
-// upgradePro_msg
-// upgradeTeams_msg
-// outOfOfficeRecipientsHelp_label
+// TODO missing from other commit
+	| "creditCardVerificationLimitReached_msg"

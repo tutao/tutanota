@@ -28,7 +28,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 

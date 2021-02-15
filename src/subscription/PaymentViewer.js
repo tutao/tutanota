@@ -46,7 +46,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {locator} from "../api/main/MainLocator"
 import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {createNotAvailableForFreeClickHandler} from "./SubscriptionDialogUtils"
+import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 

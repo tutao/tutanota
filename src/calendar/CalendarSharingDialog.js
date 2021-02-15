@@ -40,8 +40,6 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {showSharingBuyDialog} from "../subscription/BuyDialog"
-import {checkPremiumSubscription} from "../subscription/SubscriptionDialogUtils"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 
 type CalendarSharingDialogAttrs = {
@@ -315,8 +313,8 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 }
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
-	return import("../subscription/PriceUtils")
-		.then((utils) => utils.checkPremiumSubscription(false))
+	return import("../misc/SubscriptionDialogs")
+		.then((SubscriptionDialogUtils) => SubscriptionDialogUtils.checkPremiumSubscription(false))
 		.then(ok => {
 			if (ok) {
 				return showProgressDialog("calendarInvitationProgress_msg",
@@ -340,8 +338,8 @@ function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Re
 						return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
 						             .then(confirmed => {
 							             if (confirmed) {
-								             import("../subscription/SubscriptionUtils")
-									             .then((utils) => utils.showSharingBuyDialog(true))
+								             import("../subscription/BuyDialog")
+									             .then((BuyDialog) => BuyDialog.showSharingBuyDialog(true))
 							             }
 						             }).return([])
 					} else {

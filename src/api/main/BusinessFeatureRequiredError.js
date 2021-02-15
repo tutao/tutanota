@@ -1,8 +1,8 @@
 //@flow
-import {TutanotaError} from "./TutanotaError"
-import type {TranslationKeyType} from "../../../misc/TranslationKey"
-import {assertMainOrNode} from "../../Env"
-import {lang} from "../../../misc/LanguageViewModel"
+import {TutanotaError} from "../common/error/TutanotaError"
+import type {TranslationKeyType} from "../../misc/TranslationKey"
+import {lang} from "../../misc/LanguageViewModel"
+import {assertMainOrNode} from "../common/Env"
 
 assertMainOrNode()
 

@@ -56,7 +56,7 @@ import {createCustomerInfo} from "../../../src/api/entities/sys/CustomerInfo"
 import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
 import {createFeature} from "../../../src/api/entities/sys/Feature"
-import {BusinessFeatureRequiredError} from "../../../src/api/common/error/BusinessFeatureRequiredError"
+import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
