@@ -281,6 +281,7 @@ export default {
 		"creditCardPendingVerification_msg": "Die Prüfung deiner Kreditkarte wurde bisher nicht abgeschlossen. Bitte versuche eine erneute Prüfung zu einem späteren Zeitpunkt, wenn dieses Problem weiterhin besteht.",
 		"creditCardVerificationNeededPopup_msg": "Deine Kreditkarte wird nun von deiner Bank geprüft. Dazu wird ein neues Fenster geöffnet.",
 		"creditCardVerification_msg": "Deine Kreditkarte wird nun geprüft...",
+		"creditCardVerificationLimitReached_msg": "Du hast das Limit an Verifikationen für Kreditkarten erreicht. Versuche es in ein paar Stunden erneut und kontaktiere Deine Bank falls die Verifikation weiterhin fehlschlägt.",
 		"creditUsageOptions_msg": "Guthaben kann genutzt werden, um verschiedene Pakete zu bestellen (unter 'Einstellungen' ⇨ 'Abonnement'). Das Guthaben kann auch aufbewahrt werden, um es bei der nächsten Verlängerung des Abonnement für die Zahlung zu nutzen. Guthaben aus eingelösten Gutscheinen verfällt nicht.",
 		"credit_label": "Gutschrift",
 		"currentBalance_label": "Aktueller Kontostand",

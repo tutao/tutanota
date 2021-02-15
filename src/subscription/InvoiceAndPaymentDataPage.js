@@ -209,6 +209,9 @@ export function updatePaymentData(paymentInterval: number, invoiceData: InvoiceD
 				             } else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
 					             Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
+				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_VERIFICATION_LIMIT_REACHED) {
+					             Dialog.error(() => lang.get("creditCardVerificationLimitReached_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else {
 					             Dialog.error(() => lang.get("otherPaymentProviderError_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))

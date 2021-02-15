@@ -277,6 +277,7 @@ export default {
 		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your card at a later time if this problem persists.",
 		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
 		"creditCardVerification_msg": "Your credit card will be verified now...",
+		"creditCardVerificationLimitReached_msg": "You have reached the credit card verification limit. Please try again in a few hours and make sure that the entered data is valid. Please contact your bank if further verifications fail.",
 		"creditUsageOptions_msg": "Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
 		"credit_label": "Credit",
 		"currentBalance_label": "Current Account Balance",
