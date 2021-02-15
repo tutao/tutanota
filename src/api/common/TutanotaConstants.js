@@ -369,7 +369,8 @@ export const PaymentDataResultType = Object.freeze({
 	OTHER_PAYMENT_ACCOUNT_REJECTED: "7",
 	COULD_NOT_VERIFY_VATID: "8",
 	CREDIT_CARD_DATE_INVALID: "9",
-	CREDIT_CARD_NUMBER_INVALID: "10"
+	CREDIT_CARD_NUMBER_INVALID: "10",
+	CREDIT_CARD_VERIFICATION_LIMIT_REACHED: "11"
 })
 
 export const ContactComparisonResult = Object.freeze({
