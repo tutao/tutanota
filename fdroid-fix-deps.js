@@ -1,7 +1,8 @@
 // Script which removes dependencies with binaries which raise F-Droid alarms.
 
-const fs = require('fs')
-const packageJson = require('./package.json')
+import fs from "fs"
+
+const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 
 ;[
 	'electron',
