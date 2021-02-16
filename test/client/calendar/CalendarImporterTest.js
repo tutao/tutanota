@@ -382,6 +382,52 @@ o.spec("CalendarImporterTest", function () {
 				})
 		})
 
+		o("with attendee without PARTSTAT", function () {
+			// Outlook 16 does this
+			// RFC says NEEDS-ACTION is default
+			// https://tools.ietf.org/html/rfc5545#section-3.2.12
+			const parsedEvent = parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:test@tutanota.com`,
+				"SEQUENCE:0",
+				"SUMMARY:s",
+				"ORGANIZER:MAILTO:organizer@tutanota.com",
+				"ATTENDEE:mailto:test@example.com",
+				"END:VEVENT",
+				"END:VCALENDAR"
+			].join("\r\n"), zone)
+			o(parsedEvent).deepEquals(
+				{
+					method: "PUBLISH",
+					contents: [
+						{
+							event: createCalendarEvent({
+								summary: "s",
+								startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								uid: "test@tutanota.com",
+								organizer: createEncryptedMailAddress({name: "", address: "organizer@tutanota.com"}),
+								attendees: [
+									createCalendarEventAttendee({
+										address: createEncryptedMailAddress({name: "", address: "test@example.com",}),
+										status: CalendarAttendeeStatus.NEEDS_ACTION,
+									})
+								]
+							}),
+							alarms: []
+						},
+					]
+				})
+		})
+
 		o("all-day event", function () {
 			o(parseCalendarStringData([
 					"BEGIN:VCALENDAR",

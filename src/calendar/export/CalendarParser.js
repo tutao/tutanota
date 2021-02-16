@@ -461,9 +461,18 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		eventObj.properties.forEach((property) => {
 			if (property.name === "ATTENDEE") {
 				const attendeeAddress = parseMailtoValue(property.value)
-				if (!attendeeAddress) return
-				const status = parstatToCalendarAttendeeStatus[property.params["PARTSTAT"]]
-				if (!status) return
+				if (!attendeeAddress) {
+					console.log("attendee has no address, ignoring")
+					return
+				}
+				const partStatString = property.params["PARTSTAT"]
+				const status = partStatString
+					? parstatToCalendarAttendeeStatus[partStatString]
+					: CalendarAttendeeStatus.NEEDS_ACTION
+				if (!status) {
+					console.log(`attendee has invalid partsat: ${partStatString}, ignoring`)
+					return
+				}
 
 				attendees.push(createCalendarEventAttendee({
 					address: createEncryptedMailAddress({
@@ -487,7 +496,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		}
 		try {
 			event.uid = getPropStringValue(eventObj, "UID")
-		} catch(e) {
+		} catch (e) {
 			if (e instanceof ParserError) {
 				// Also parse event and create new UID if none is set
 				event.uid = `import-${Date.now()}-${index}@tutanota.com`
@@ -672,7 +681,7 @@ const durationParser = mapParser(combineParsers(
 ), ([sign, p, durationValue]) => {
 	const positive = sign !== "-"
 	let day, timeDuration, week, hour, minute
-	if(durationValue) {
+	if (durationValue) {
 		switch (durationValue.type) {
 			case "date":
 				day = durationValue.day
