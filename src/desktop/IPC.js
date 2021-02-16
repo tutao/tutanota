@@ -80,11 +80,10 @@ export class IPC {
 		this._initialized = []
 		this._queue = {}
 		this._err = errorHandler
-		this._electron.ipcMain.handle('message', (ev: WebContentsEvent, msg: string) => {
+		this._electron.ipcMain.handle('to-main', (ev: WebContentsEvent, request: any) => {
 			const senderWindow = this._wm.getEventSender(ev)
 			if(!senderWindow) return // no one is listening anymore
 			const windowId = senderWindow.id
-			const request = JSON.parse(msg)
 			if (request.type === "response") {
 				this._queue[request.id](null, request.value);
 			} else if (request.type === "requestError") {

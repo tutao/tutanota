@@ -15,7 +15,6 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
 import {pathToFileURL} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -211,7 +210,7 @@ export class ApplicationWindow {
 				        .then(() => log.debug("...redirected"))
 			    }
 		    })
-		    .on('zoom-changed', (ev : WebContentsEvent, direction: "in" | "out") => {
+		    .on('zoom-changed', (ev: WebContentsEvent, direction: "in" | "out") => {
 			    const wc = ev.sender
 			    let newFactor = ((wc.getZoomFactor() * 100) + (direction === "out" ? -10 : 10)) / 100
 			    if (newFactor > 3) {
@@ -277,20 +276,17 @@ export class ApplicationWindow {
 		wc.on('context-menu', (e, params) => handler(params))
 	}
 
-	async sendMessageToWebContents(args: any) : Promise<void> {
+	async sendMessageToWebContents(msg: any): Promise<void> {
 		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			log.warn(`BrowserWindow unavailable, not sending message:\n${args}`)
+			log.warn(`BrowserWindow unavailable, not sending message:\n${msg}`)
 			return
 		}
 		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			log.warn(`WebContents unavailable, not sending message:\n${args}`)
+			log.warn(`WebContents unavailable, not sending message:\n${msg}`)
 			return
 		}
 		// need to wait for the nativeApp to register itself
-		return this._ipc.initialized(this.id).then(() => {
-			const messageContents = uint8ArrayToBase64(stringToUtf8Uint8Array(JSON.stringify(args)))
-			this._browserWindow.webContents.executeJavaScript("tutao.nativeApp.handleMessageFromNative('" + messageContents + "')")
-		})
+		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send('to-renderer', msg))
 	}
 
 	setUserInfo(info: ?UserInfo) {
