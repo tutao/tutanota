@@ -144,8 +144,8 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 					customerProperties.notificationMailTemplates.push(template)
 				}
 
-				template.subject = htmlSanitizer.sanitize(subject(), false).text
-				template.body = htmlSanitizer.sanitize(editor.getValue(), false).text
+				template.subject = htmlSanitizer.sanitize(subject(), {blockExternalContent: false}).text
+				template.body = htmlSanitizer.sanitize(editor.getValue(), {blockExternalContent: false}).text
 				template.language = selectedLanguageStream()
 
 				return update(customerProperties)

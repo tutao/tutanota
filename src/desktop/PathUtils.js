@@ -3,6 +3,12 @@ import path from "path"
 import url from "url"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {neverNull} from "../api/common/utils/Utils"
+import {promises as fs} from "fs"
+
+/**
+ * Can be used when you want to ensure only valid file extensions are being provided. feel free to add some
+ */
+export type ValidExtension = "msg"
 
 /**
  * @param pathToConvert absolute Path to a file
@@ -89,5 +95,16 @@ export function looksExecutable(file: string): boolean {
 	}
 
 	return false
+}
+
+/**
+ * Determine if a file exists with a given path and it is a regular file
+ * @param filePath
+ * @returns Promise<boolean>
+ */
+export async function fileExists(filePath: string): Promise<boolean> {
+	return fs.stat(filePath)
+	         .then(stats => stats.isFile())
+	         .catch(() => false)
 }
 

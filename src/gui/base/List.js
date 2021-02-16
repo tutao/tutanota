@@ -193,8 +193,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								[
 									this._virtualList.map(virtualRow => {
 										return m("li.list-row.pl.pr-l"
-											// Doesn't make sense to drag in mobile layout, can be useful on big tablets like iPad Pro though
-											+ (styles.isDesktopLayout() && this._config.elementsDraggable ? '[draggable="true"]' : ""), {
+											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 												tabindex: TabIndex.Default,
 												oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 												style: {
@@ -202,7 +201,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 													paddingTop: px(15),
 													paddingBottom: px(15),
 												},
-												ondragstart: (event) => this._dragstart(event, virtualRow)
+												ondragstart: (event) => {
+													if (this._config.dragStart) {
+														this._config.dragStart(event, virtualRow, this._selectedEntities)
+													}
+												}
 											}, virtualRow.render()
 										)
 									}),
@@ -334,11 +337,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			}
 		})
 		applySafeAreaInsetMarginLR(domElement)
-	}
-
-	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
-		// unfortunately, IE only allowes "text" and "url"
-		neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
 	}
 
 	getEntity(id: Id): ?T {

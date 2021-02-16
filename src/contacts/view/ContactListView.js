@@ -61,7 +61,7 @@ export class ContactListView {
 				swipeRight: listElement => Promise.resolve(false),
 				enabled: false
 			},
-			elementsDraggable: true,
+			elementsDraggable: false,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noContacts_msg")
 		})

@@ -374,3 +374,16 @@ export function decodeBase64(charset: string, input: string): string {
 export function stringToBase64(str: string): string {
 	return uint8ArrayToBase64(stringToUtf8Uint8Array(str))
 }
+
+// We can't import EntityUtils here, otherwise we should say GENERATED_MAX_ID.length or something like it
+const base64extEncodedIdLength = 12
+
+export function isValidGeneratedId(id: Id | IdTuple): boolean {
+
+	const test = id => id.length === base64extEncodedIdLength && Array.from(id).every(char => base64extAlphabet.includes(char))
+
+	return typeof id === "string"
+		? test(id)
+		: id.every(test)
+}
+

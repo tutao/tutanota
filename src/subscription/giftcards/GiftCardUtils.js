@@ -230,7 +230,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 			background: theme.content_accent,
 			color: theme.content_bg
 		})
-		qrCode = htmlSanitizer.sanitize(qrcodeGenerator.svg({container: null}), false).text
+		qrCode = htmlSanitizer.sanitize(qrcodeGenerator.svg({container: null}), {blockExternalContent: false}).text
 	}
 
 	const formattedPrice = formatPrice(price, true)

@@ -118,9 +118,9 @@ class ContactFormView {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
 
-					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, false).text
-					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, false).text
-					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, false).text
+					this._headerHtml = htmlSanitizer.sanitize(language.headerHtml, {blockExternalContent: false}).text
+					this._footerHtml = htmlSanitizer.sanitize(language.footerHtml, {blockExternalContent: false}).text
+					this._helpHtml = htmlSanitizer.sanitize(language.helpHtml, {blockExternalContent: false}).text
 
 					this._loading = false
 					m.redraw()

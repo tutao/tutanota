@@ -101,7 +101,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		const model = a.model
 
 		this.editor = new Editor(200, (html, isPaste) => {
-			const sanitized = htmlSanitizer.sanitizeFragment(html, !isPaste && a.doBlockExternalContent())
+			const sanitized = htmlSanitizer.sanitizeFragment(html, {blockExternalContent: !isPaste && a.doBlockExternalContent()})
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.html
 		})

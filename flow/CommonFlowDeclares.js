@@ -76,9 +76,8 @@ type ListConfig<T, R: VirtualRow<T>> = {
 	 * @param ev dragstart event
 	 * @param vR: the row the event was started on
 	 * @param selectedElements the currently selected elements
-	 * @return true if the event was fully handled, false if the list should execute default behaviour
 	 */
-	dragStart?: (ev: DragEvent, vR: VirtualRow<T>, selectedElements: Array<T>) => boolean;
+	dragStart?: (ev: DragEvent, vR: VirtualRow<T>, selectedElements: $ReadOnlyArray<T>) => void;
 
 	createVirtualRow(): R;
 

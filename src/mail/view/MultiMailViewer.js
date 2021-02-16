@@ -17,10 +17,8 @@ import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {locator} from "../../api/main/MainLocator"
 import type {PosRect} from "../../gui/base/Dropdown"
-import {bundleMail, bundleMails, exportMails, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {bundleMails, exportMails, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
-import {showProgressDialog} from "../../gui/ProgressDialog"
-import {canDoDragAndDropExport} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -83,14 +81,6 @@ export class MultiMailViewer {
 				click: () => this._mailView.mailList.list.selectNone(),
 				icon: () => Icons.Cancel,
 				isVisible: () => prependCancel
-			},
-			{
-				label: "dragAndDropExport_action",
-				click: () => showProgressDialog("pleaseWait_msg",
-					Promise.mapSeries(selectedEntities(), bundleMail))
-					.then((bundles) => import("../../native/common/FileApp").then(({fileApp}) => fileApp.mailBundleExport(bundles))),
-				icon: () => Icons.Open,
-				isVisible: canDoDragAndDropExport
 			},
 			attachDropdown({
 				label: "move_action",

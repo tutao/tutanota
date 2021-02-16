@@ -32,8 +32,8 @@ export async function build(options, log) {
 			bundle,
 			async generate() {
 				await Promise.all([
-					createUnitTestHtml(false, "api", localEnv),
-					createUnitTestHtml(false, "client", localEnv)
+					createUnitTestHtml(false, "api", localEnv, log),
+					createUnitTestHtml(false, "client", localEnv, log)
 				])
 
 				const start = Date.now()
@@ -107,10 +107,13 @@ function envPlugin(env) {
 	}
 }
 
-async function createUnitTestHtml(watch, project, localEnv) {
-	let imports = [{src: `test-${project}.js`, type: "module"}]
+async function createUnitTestHtml(watch, project, localEnv, log) {
+	const imports = [{src: `test-${project}.js`, type: "module"}]
+
 
 	const template = `import('./bootstrapTests-${project}.js')`
+	const targetFile = `../build/test/test-${project}.html`
+	log(`Generating browser tests for ${project} at "${targetFile}"`)
 	await _writeFile(`../build/test/test-${project}.js`, [
 		`window.whitelabelCustomizations = null`,
 		`window.env = ${JSON.stringify(localEnv, null, 2)}`,
@@ -118,7 +121,7 @@ async function createUnitTestHtml(watch, project, localEnv) {
 	].join("\n") + "\n" + template)
 
 	const html = await renderHtml(imports, localEnv)
-	await _writeFile(`../build/test/test-${project}.html`, html)
+	await _writeFile(targetFile, html)
 }
 
 function _writeFile(targetFile, content) {

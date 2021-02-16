@@ -33,7 +33,7 @@ assertMainOrNode()
 
 // TODO write testcases
 
-type SomeEntity = Element | ListElement
+export type SomeEntity = Element | ListElement
 
 /** @deprecated use EntityClient implementation instead */
 export function setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {

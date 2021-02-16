@@ -7,6 +7,7 @@ import {getMailBodyText} from "../../api/common/utils/Utils";
 import {FileTypeRef} from "../../api/entities/tutanota/File";
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders";
 import {MailState} from "../../api/common/TutanotaConstants";
+import {getLetId} from "../../api/common/utils/EntityUtils"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
@@ -15,6 +16,7 @@ import {MailState} from "../../api/common/TutanotaConstants";
  */
 export type MailBundleRecipient = {address: string, name?: string}
 export type MailBundle = {
+	mailId: IdTuple,
 	subject: string,
 	body: string,
 	sender: MailBundleRecipient,
@@ -40,28 +42,38 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 	const bodyTextPromise = entityClient.load(MailBodyTypeRef, mail.body)
 	                                    .then(getMailBodyText)
 	                                    .then(body => import("../../misc/HtmlSanitizer")
-		                                    .then(({htmlSanitizer}) => htmlSanitizer.sanitize(body, false).text))
+		                                    .then(({htmlSanitizer}) => htmlSanitizer.sanitize(body, {
+			                                    blockExternalContent: false,
+			                                    allowRelativeLinks: false,
+			                                    usePlaceholderForInlineImages: false
+		                                    }).text))
 
-	const attachmentsPromise = Promise.mapSeries(mail.attachments,
-		fileId => entityClient.load(FileTypeRef, fileId).then(worker.downloadFileContent.bind(worker)))
+	const attachmentsPromise = Promise.all(
+		mail.attachments.map(fileId => entityClient.load(FileTypeRef, fileId)
+		                                           .then(worker.downloadFileContent.bind(worker))))
+
 	const headersPromise = mail.headers
 		? entityClient.load(MailHeadersTypeRef, mail.headers)
 		: Promise.resolve(null)
+
 	const recipientMapper = addr => ({address: addr.address, name: addr.name})
 	return Promise.all([bodyTextPromise, attachmentsPromise, headersPromise])
-	              .spread((bodyText, attachments, headers) => ({
-		              subject: mail.subject,
-		              body: bodyText,
-		              sender: recipientMapper(mail.sender),
-		              to: mail.toRecipients.map(recipientMapper),
-		              cc: mail.ccRecipients.map(recipientMapper),
-		              bcc: mail.bccRecipients.map(recipientMapper),
-		              replyTo: mail.replyTos.map(recipientMapper),
-		              isDraft: mail.state !== MailState.DRAFT,
-		              isRead: !mail.unread,
-		              sentOn: mail.sentDate.getTime(),
-		              receivedOn: mail.receivedDate.getTime(),
-		              headers: headers && headers.headers,
-		              attachments: attachments
-	              }))
+	              .then(([bodyText, attachments, headers]) => {
+		              return {
+			              mailId: getLetId(mail),
+			              subject: mail.subject,
+			              body: bodyText,
+			              sender: recipientMapper(mail.sender),
+			              to: mail.toRecipients.map(recipientMapper),
+			              cc: mail.ccRecipients.map(recipientMapper),
+			              bcc: mail.bccRecipients.map(recipientMapper),
+			              replyTo: mail.replyTos.map(recipientMapper),
+			              isDraft: mail.state === MailState.DRAFT,
+			              isRead: !mail.unread,
+			              sentOn: mail.sentDate.getTime(),
+			              receivedOn: mail.receivedDate.getTime(),
+			              headers: headers && headers.headers,
+			              attachments: attachments
+		              }
+	              })
 }

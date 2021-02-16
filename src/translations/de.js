@@ -1301,6 +1301,8 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"unsuccessfulDrop_msg": "Das Drag & Drop war nicht erfolgreich, weil die Daten noch nicht heruntergeladen worden sind. Bitte versuche es erneut, wenn der Fortschrittsbalken vollständig ist.",
+		"dragAndDrop_action": "E-Mails per Drag & Drop ins Dateisystem oder in andere Anwendungen ziehen"
 	}
 }

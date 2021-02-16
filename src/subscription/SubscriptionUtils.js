@@ -410,7 +410,7 @@ export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 						label: () => "EN/DE",
 						click: () => {
 							visibleLang = visibleLang === "de" ? "en" : "de"
-							sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+							sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], {blockExternalContent: false}).text
 							m.redraw()
 						},
 						type: ButtonType.Secondary
@@ -419,7 +419,7 @@ export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 				right: [{label: 'ok_action', click: () => dialog.close(), type: ButtonType.Primary}]
 			}
 
-			sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+			sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], {blockExternalContent: false}).text
 			dialog = Dialog.largeDialog(headerBarAttrs, {
 				view: () => m(".text-break", m.trust(sanitizedTerms))
 			}).show()

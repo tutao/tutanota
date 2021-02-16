@@ -36,7 +36,7 @@ export class CalendarEventPopup implements ModalComponent {
 
 		if (calendarEvent.description) {
 			import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-				this._sanitizedDescription = htmlSanitizer.sanitize(calendarEvent.description, true).text
+				this._sanitizedDescription = htmlSanitizer.sanitize(calendarEvent.description, {blockExternalContent: true}).text
 				m.redraw()
 			})
 		}

@@ -10,6 +10,7 @@ import {
 // $FlowIgnore[untyped-import]
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import {TypeRef} from "./TypeRef"
+import type {SomeEntity} from "../../main/Entity"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -91,6 +92,10 @@ export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple): boolean {
 	} else {
 		return (id1: any) === (id2: any)
 	}
+}
+
+export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
+	return isSameId(entity1._id, entity2._id)
 }
 
 export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean {

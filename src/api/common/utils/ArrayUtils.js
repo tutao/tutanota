@@ -1,6 +1,6 @@
 //@flow
 //@bundleInto:common-min
-import {identity, neverNull} from "./Utils"
+import {downcast, identity, neverNull} from "./Utils"
 import {getFromMap} from "./MapUtils"
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
@@ -109,6 +109,15 @@ export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>)
 		}
 	})
 	return resultList
+}
+
+// TODO get rid of these downcasts
+export function mapAndFilterNullAsync<T, R>(array: Array<T>, mapper: mapper<T, $Promisable<?R>>): Promise<R[]> {
+	return Promise.all(array.map(mapper)).then(downcast(filterNull))
+}
+
+export function filterNull<T>(array: Array<?T>): Array<T> {
+	return downcast(array.filter(item => item != null))
 }
 
 /**

@@ -597,16 +597,6 @@ export class MailViewer {
 			icon: () => Icons.Trash,
 			colors,
 		}))
-		if (canDoDragAndDropExport()) {
-			actions.push(m(ButtonN, {
-				label: "dragAndDropExport_action",
-				click: () => {
-					showProgressDialog("pleaseWait_msg", bundleMail(mail))
-						.then(bundle => import("../../native/common/FileApp").then(({fileApp}) => fileApp.mailBundleExport([bundle])))
-				},
-				icon: () => Icons.Open,
-			}))
-		}
 		if (mail.state !== MailState.DRAFT) {
 			actions.push(m(ButtonN, {
 				label: "more_label",
@@ -805,7 +795,10 @@ export class MailViewer {
 							if (confirmed) {
 								Promise.all([import("../../misc/Urlifier"), import("../../misc/HtmlSanitizer")])
 								       .then(([{urlify}, {htmlSanitizer}]) => {
-									       this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false, isTutanotaTeamMail(mail)).html))
+									       this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), {
+										       blockExternalContent: false,
+										       allowRelativeLinks: isTutanotaTeamMail(mail)
+									       }).html))
 									       this._contentBlocked = false
 									       this._domBodyDeferred = defer()
 									       this._replaceInlineImages()
@@ -845,7 +838,7 @@ export class MailViewer {
 		return this._entityClient.load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
 			return Promise.all([import("../../misc/HtmlSanitizer"), import("../../misc/Urlifier")]).then(([{htmlSanitizer}, {urlify}]) => {
-				let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true, isTutanotaTeamMail(mail))
+				let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), {allowRelativeLinks: isTutanotaTeamMail(mail)})
 				this._checkMailForPhishing(mail, sanitizeResult.links)
 
 				/**
@@ -1560,9 +1553,4 @@ export class MailViewer {
 		}
 		this._lastBodyTouchEndTime = now
 	}
-}
-
-export function canDoDragAndDropExport(): boolean {
-	return isDesktop() && (logins.getUserController().user.accountType === AccountType.STARTER
-		|| logins.isEnabled(FeatureType.ExternalEmailProvider))
 }

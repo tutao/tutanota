@@ -1,5 +1,5 @@
 // @flow
-import type {WebContentsEvent} from "electron"
+import type {NativeImage, WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {defer, objToError} from '../api/common/utils/Utils.js'
@@ -21,6 +21,11 @@ import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
+import {getExportDirectoryPath, mailIdToFileName, makeMsgFile, msgFileExists, writeFile, writeFiles} from "./DesktopFileExport"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import {fileExists} from "./PathUtils"
+import {mapAndFilterNullAsync} from "../api/common/utils/ArrayUtils"
+import path from "path"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -41,7 +46,8 @@ export class IPC {
 	_electron: $Exports<"electron">;
 	_desktopUtils: DesktopUtils;
 	_err: DesktopErrorHandler;
-	_integrator: DesktopIntegrator ;
+	_integrator: DesktopIntegrator;
+	_dragIcon: NativeImage
 
 	constructor(
 		conf: DesktopConfig,
@@ -82,7 +88,7 @@ export class IPC {
 		this._err = errorHandler
 		this._electron.ipcMain.handle('to-main', (ev: WebContentsEvent, request: any) => {
 			const senderWindow = this._wm.getEventSender(ev)
-			if(!senderWindow) return // no one is listening anymore
+			if (!senderWindow) return // no one is listening anymore
 			const windowId = senderWindow.id
 			if (request.type === "response") {
 				this._queue[request.id](null, request.value);
@@ -111,10 +117,11 @@ export class IPC {
 				    })
 			}
 		})
+		this._dragIcon = this._electron.nativeImage.createFromDataURL("data:image/png;base64,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")
 	}
 
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
-
+		const TMP_DIR = this._electron.app.getPath("temp")
 		switch (method) {
 			case 'init':
 				this._initialized[windowId].resolve()
@@ -253,13 +260,33 @@ export class IPC {
 				return !!this._updater
 					? Promise.resolve(this._updater.updateInfo)
 					: Promise.resolve(null)
-			case 'mailBundleExport': {
-				const files = await Promise.all(args[0].map(async (bundle) => await this._desktopUtils.makeMsgFile(bundle)))
-				const dir = await this._desktopUtils.writeFilesToTmp(files)
-				// TODO: Are we able to select the files as well?
-				// it's possible to do so with shell.showFileInFolder but that only works for one file
-				this._electron.shell.openPath(dir)
-				return
+			case 'saveBundleAsMsg': {
+				const bundle = args[0]
+				return getExportDirectoryPath(TMP_DIR)
+					.then(dir => makeMsgFile(bundle)
+						.then(file => writeFile(dir, file)))
+			}
+			case 'queryAvailableMsgs': {
+				const mails: Array<Mail> = args[0]
+				// return all mails that havent already been exported
+				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, TMP_DIR)
+					.then(exists => exists ? null : mail))
+			}
+			case 'dragExportedMails': {
+				const ids: Array<IdTuple> = args[0]
+				const getExportPath = id => getExportDirectoryPath(TMP_DIR).then(p => path.join(p, mailIdToFileName(id, "msg")))
+				return Promise.all(ids.map(getExportPath))
+				              .then(files => files.filter(fileExists))
+				              .then(files => {
+					              this._wm.get(windowId)?._browserWindow.webContents.startDrag({
+						              files,
+						              icon: this._dragIcon
+					              })
+				              })
+			}
+			case 'focusApplicationWindow': {
+				this._wm.get(windowId)?.browserWindow.focus()
+				return Promise.resolve()
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))

@@ -1297,6 +1297,8 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"unsuccessfulDrop_msg": "The drag & drop was unsuccessful because the data had not finished downloading. You may try again once the progress bar is finished.",
+		"dragAndDrop_action": "Drag selected mails to the file system or other applications."
 	}
 }

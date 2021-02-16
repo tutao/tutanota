@@ -110,12 +110,17 @@ o.spec("IPC tests", function () {
 			},
 			app: {
 				quit: () => {},
+				getPath: () => ""
+
 			},
 			dialog: {
 				showOpenDialog: (e, opts) => Promise.resolve({filePaths: ["a", "list", "of", "paths"]})
 			},
 			shell: {
 				openItem: file => file === "/file/to/open"
+			},
+			nativeImage: {
+				createFromDataURL: () => {}
 			}
 		}
 
@@ -180,7 +185,7 @@ o.spec("IPC tests", function () {
 		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock, cryptoMock, dlMock, autoUpdaterMock, electronMock, desktopUtilsMock, errMock, desktopIntegratorMock)
 		o(electronMock.ipcMain.on.callCount).equals(0)
 		ipc.addWindow(WINDOW_ID)
-		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID),{
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 			type: "init",
 			id: "id",
 			value: []
@@ -297,7 +302,7 @@ o.spec("IPC tests", function () {
 			o(windowMock.setSearchOverlayState.args[0]).equals(true)
 			o(windowMock.setSearchOverlayState.args[1]).equals(false)
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID),{
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "stopFindInPage",
 				id: "id4",
 				args: []
@@ -324,7 +329,7 @@ o.spec("IPC tests", function () {
 			value: []
 		})
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID](de,{
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, {
 			type: "findInPage",
 			id: "id2",
 			args: ["hello"]
@@ -353,7 +358,7 @@ o.spec("IPC tests", function () {
 
 		ipc.addWindow(WINDOW_ID)
 		const de = dummyEvent(WINDOW_ID)
-		electronMock.ipcMain.callbacks[CALLBACK_ID](de,{
+		electronMock.ipcMain.callbacks[CALLBACK_ID](de, {
 			type: "init",
 			id: "id",
 			value: []
@@ -543,7 +548,7 @@ o.spec("IPC tests", function () {
 	o("enableAutoLaunch & disableAutoLaunch", function (done) {
 		const {electronMock, desktopIntegratorMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID),{
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 			type: "enableAutoLaunch",
 			id: "id2",
 			args: []
@@ -662,7 +667,7 @@ o.spec("IPC tests", function () {
 	o("initPushNotifications", function (done) {
 		const {electronMock} = setUpWithWindowAndInit()
 
-		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID),{
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 			type: "initPushNotifications",
 			id: "id2",
 			args: []
@@ -774,7 +779,7 @@ o.spec("IPC tests", function () {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
 			o(windowMock.sendMessageToWebContents.args).deepEquals([{id: 'id2', type: 'response', value: undefined}])
 
-			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID),{
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "download",
 				id: "id3",
 				args: ["url://file/to/download", "invalid", {one: "somevalue", two: "anothervalue"}]
@@ -786,7 +791,8 @@ o.spec("IPC tests", function () {
 			o(dlMock.downloadNative.args).deepEquals(['url://file/to/download', 'invalid', {one: 'somevalue', two: 'anothervalue'}])
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 
-			o(windowMock.sendMessageToWebContents.args).deepEquals([{
+			o(windowMock.sendMessageToWebContents.args).deepEquals([
+				{
 					id: 'id3',
 					type: 'requestError',
 					error: emptyError()

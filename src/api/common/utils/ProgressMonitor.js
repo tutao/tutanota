@@ -1,5 +1,8 @@
 //@flow
 
+import type {ProgressTracker} from "../../main/ProgressTracker"
+import {assertNotNull} from "./Utils"
+
 export type ProgressMonitorId = number
 export type ProgressListener = (percentageCompleted: number) => mixed
 
@@ -101,3 +104,10 @@ export class AggregateProgressMonitor {
 	}
 }
 
+
+export function makeTrackedProgressMonitor(tracker: ProgressTracker, totalWork: number): IProgressMonitor {
+	if (totalWork < 1) return new NoopProgressMonitor()
+
+	const handle = tracker.registerMonitor(totalWork)
+	return assertNotNull(tracker.getMonitor(handle))
+}

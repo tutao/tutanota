@@ -6,24 +6,35 @@ import {downcast} from "../api/common/utils/Utils"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = 'data:image/svg+xml;utf8,'
+	+ ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
 const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
 
-type SanitizeConfig = {allowRelativeLinks?: boolean} & SanitizeConfigBase
+type SanitizeConfigExtra = {
+	blockExternalContent: boolean,
+	allowRelativeLinks: boolean,
+	usePlaceholderForInlineImages: boolean
+}
+const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
+	blockExternalContent: true,
+	allowRelativeLinks: false,
+	usePlaceholderForInlineImages: true
+}
+
+type SanitizeConfig = SanitizeConfigExtra & SanitizeConfigBase
 
 type SanitizedHTML = {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>}
 
+
 class HtmlSanitizer {
 
-	_blockExternalContent: boolean
 	_externalContent: string[]
 	_inlineImageCids: Array<string>
 	_links: Array<string>
 	purifier: IDOMPurify
 
 	constructor() {
-		this._blockExternalContent = false
 		if (DOMPurify.isSupported) {
 			this.purifier = DOMPurify
 		} else {
@@ -46,7 +57,7 @@ class HtmlSanitizer {
 					}
 				}
 
-				this._replaceAttributes(currentNode)
+				this._replaceAttributes(currentNode, config)
 				this._processLink(currentNode, config)
 
 				return currentNode;
@@ -57,25 +68,32 @@ class HtmlSanitizer {
 	/**
 	 * Sanitizes the given html.
 	 * @param  html The html content to sanitize.
-	 * @param  blockExternalContent True if external content should be blocked
+	 * @param _config
 	 */
-	sanitize(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false): SanitizeResult {
-		const config = this._prepareSanitize(html, blockExternalContent, allowRelativeLinks)
+	sanitize(html: string, _config?: $Shape<SanitizeConfigExtra>): SanitizeResult {
+		const config = this._prepareSanitize(html, _config || {})
 
 		let cleanHtml = this.purifier.sanitize(html, config)
-		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids, links: this._links}
+		return {
+			text: cleanHtml,
+			externalContent: this._externalContent,
+			inlineImageCids: this._inlineImageCids,
+			links: this._links
+		}
 	}
 
 	/**
 	 * Sanitizes given HTML. Returns DocumentFragment instead of string.
 	 * @param html {string} HTML to sanitize
-	 * @param blockExternalContent
+	 * @param _config
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
-	sanitizeFragment(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false
-	): SanitizedHTML {
+	sanitizeFragment(html: string, _config?: $Shape<SanitizeConfigExtra>): SanitizedHTML {
+
+		const base = this._prepareSanitize(html, _config || {})
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {RETURN_DOM_FRAGMENT: true})
+			Object.assign({}, base, {RETURN_DOM_FRAGMENT: true})
+
 		return {
 			html: this.purifier.sanitize(html, config),
 			externalContent: this._externalContent,
@@ -84,27 +102,29 @@ class HtmlSanitizer {
 		}
 	}
 
-	_prepareSanitize(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean): SanitizeConfig {
+	_prepareSanitize(html: string, _config: $Shape<SanitizeConfigExtra>): SanitizeConfig {
 		// must be set for use in dompurify hook
-		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
 		this._inlineImageCids = []
 		this._links = []
 
-		return {
+		const configBase: SanitizeConfigBase = {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 			ADD_URI_SAFE_ATTR: ['poster'], // poster for video element.
-			FORBID_TAGS: ['style'], // prevent loading of external fonts
-			allowRelativeLinks,
+			FORBID_TAGS: ['style'], // prevent loading of external fonts,
 		}
+
+		const configExtra = Object.assign({}, DEFAULT_CONFIG_EXTRA, _config)
+
+		return Object.assign({}, configBase, configExtra)
 	}
 
-	_replaceAttributes(htmlNode: HTMLElement) {
+	_replaceAttributes(htmlNode: HTMLElement, config: SanitizeConfig) {
 		if (htmlNode.attributes) {
-			this._replaceAttributeValue(htmlNode);
+			this._replaceAttributeValue(htmlNode, config);
 		}
 		if (htmlNode.style) {
-			if (this._blockExternalContent) {
+			if (config.blockExternalContent) {
 				if (htmlNode.style.backgroundImage) {
 					//console.log(htmlNode.style.backgroundImage)
 					this._replaceStyleImage(htmlNode, "backgroundImage", false)
@@ -132,23 +152,23 @@ class HtmlSanitizer {
 	}
 
 
-	_replaceAttributeValue(htmlNode: HTMLElement) {
+	_replaceAttributeValue(htmlNode: HTMLElement, config: SanitizeConfig) {
 		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
-				if (attribute.value.startsWith("cid:")) {
+				if (config.usePlaceholderForInlineImages && attribute.value.startsWith("cid:")) {
 					// replace embedded image with local image until the embedded image is loaded and ready to be shown.
 					const cid = attribute.value.substring(4)
 					this._inlineImageCids.push(cid)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.setAttribute("cid", cid)
 					htmlNode.classList.add("tutanota-placeholder")
-				} else if (this._blockExternalContent && attribute.name === "srcset") {
+				} else if (config.blockExternalContent && attribute.name === "srcset") {
 					this._externalContent.push(attribute.value)
 					htmlNode.removeAttribute("srcset")
 					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
 					htmlNode.style.maxWidth = "100px"
-				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
+				} else if (config.blockExternalContent && !attribute.value.startsWith("data:") && !attribute.value.startsWith("cid:")) {
 					this._externalContent.push(attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)

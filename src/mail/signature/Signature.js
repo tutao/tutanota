@@ -12,7 +12,7 @@ assertMainOrNode()
 export function getDefaultSignature(): string {
 	// add one line break to the default signature to add one empty line between signature and body
 	return LINE_BREAK
-		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": lang.getInfoLink("homePage_link")}), true).text
+		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": lang.getInfoLink("homePage_link")})).text
 }
 
 export function getEmailSignature(tutanotaProperties: TutanotaProperties): string {

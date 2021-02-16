@@ -37,7 +37,7 @@ export class HtmlEditor {
 
 	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false},
 	            injections?: () => Children) {
-		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
+		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
 		this._disabled = false
@@ -176,7 +176,7 @@ export class HtmlEditor {
 			}
 		} else {
 			if (this._domTextArea) {
-				return htmlSanitizer.sanitize(this._domTextArea.value, false).text
+				return htmlSanitizer.sanitize(this._domTextArea.value, {blockExternalContent: false}).text
 			} else {
 				return this._value()
 			}

@@ -35,6 +35,7 @@ import {theme} from "../../gui/theme"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import {
+	canDoDragAndDropExport,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -373,6 +374,12 @@ export class MailView implements CurrentView {
 				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action"
 			},
+			{
+				key: Keys.ALT,
+				exec: () => false,
+				enabled: canDoDragAndDropExport,
+				help: "dragAndDrop_action"
+			}
 		]
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors

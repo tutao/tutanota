@@ -190,7 +190,7 @@ export class EditSecondFactorsForm {
 				this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
 					if (!isApp()) {
 						let qrcodeGenerator = new QRCode({height: 150, width: 150, content: optAuthUrl})
-						totpQRCodeSvg = htmlSanitizer.sanitize(qrcodeGenerator.svg(), false).text
+						totpQRCodeSvg = htmlSanitizer.sanitize(qrcodeGenerator.svg(), {blockExternalContent: false}).text
 					}
 					authUrl = optAuthUrl
 				})
