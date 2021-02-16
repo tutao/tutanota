@@ -22,26 +22,31 @@ class NativeWrapper {
 	_nativeQueue: ?Queue;
 
 	init() {
-		if (isMainOrNode() && (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin)) {
-			window.tutao.nativeApp = this // the native part must be able to invoke this.invokeNative without invoking System.import
-
-			const queue = this._nativeQueue = new Queue(({
-				postMessage: function (msg: Request) {
-					// window.nativeApp gets set on the native side, e.g. via
-					// addJavascriptInterface in Native.java for android
-					// or in preload.js for desktop
-					window.nativeApp.invoke(JSON.stringify(msg))
-				}
-			}: any))
-			import("../main/NativeWrapperCommands").then(({appCommands, desktopCommands}) => {
-				queue.setCommands(env.mode === Mode.App ? appCommands : desktopCommands)
-				return this.invokeNative(new Request("init", []))
-				           .then(platformId => {
-					           env.platformId = platformId
-					           this._initialized.resolve()
-				           })
-			})
+		if (!isMainOrNode()) return
+		let postMessage;
+		if (env.mode === Mode.App) {
+			// the native part must be able to invoke this.handleMessageFromNative without invoking System.import
+			window.tutao.nativeApp = this
+			// window.nativeApp gets injected via addJavascriptInterface in Native.java
+			postMessage = (msg: Request) => window.nativeApp.invoke(JSON.stringify(msg))
+		} else if (env.mode === Mode.Desktop || env.mode === Mode.Admin) {
+			// window.nativeApp is injected by the preload script in desktop mode
+			// electron can handle message passing without jsonification
+			window.nativeApp.attach(args => this.handleMessageObjectFromNative(args))
+			postMessage = (msg: Request) => window.nativeApp.invoke(msg)
+		} else {
+			return
 		}
+
+		const queue = this._nativeQueue = new Queue(({postMessage}: any))
+		import("../main/NativeWrapperCommands").then(({appCommands, desktopCommands}) => {
+			queue.setCommands(env.mode === Mode.App ? appCommands : desktopCommands)
+			return this.invokeNative(new Request("init", []))
+			           .then(platformId => {
+				           env.platformId = platformId
+				           this._initialized.resolve()
+			           })
+		})
 	}
 
 	/**
@@ -75,6 +80,10 @@ class NativeWrapper {
 	handleMessageFromNative(msg64: string) {
 		const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))
 		neverNull(this._nativeQueue)._handleMessage(JSON.parse(msg))
+	}
+
+	handleMessageObjectFromNative(obj: any) {
+		neverNull(this._nativeQueue)._handleMessage(obj)
 	}
 
 	setWorkerQueue(queue: Queue) {

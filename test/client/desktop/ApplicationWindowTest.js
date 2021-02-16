@@ -96,12 +96,7 @@ o.spec("ApplicationWindow Test", function () {
 							isDestroyed: () => {
 								return this.webContents.destroyed
 							},
-							send: (msg, val) => {
-								throw new Error('used send with invalid message')
-							},
-							executeJavaScript: function() {
-
-							},
+							send: (msg, val) => {},
 							on: (ev: string, cb: () => void) => {
 								this.webContents.callbacks[ev] = cb
 								return this.webContents
@@ -601,32 +596,32 @@ o.spec("ApplicationWindow Test", function () {
 		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(1)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(1)
-		o(bwInstance.webContents.executeJavaScript.callCount).equals(1)
+		o(bwInstance.webContents.send.callCount).equals(1)
 
 		args = undefined
 		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(2)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(2)
-		o(bwInstance.webContents.executeJavaScript.callCount).equals(2)
+		o(bwInstance.webContents.send.callCount).equals(2)
 
 		args = []
 		await w.sendMessageToWebContents(args)
 		o(bwInstance.isDestroyed.callCount).equals(3)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(3)
-		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
+		o(bwInstance.webContents.send.callCount).equals(3)
 
 		let args2 = "hello"
 		bwInstance.webContents.destroyed = true
 		await w.sendMessageToWebContents(args2)
 		o(bwInstance.isDestroyed.callCount).equals(4)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
+		o(bwInstance.webContents.send.callCount).equals(3)
 
 		bwInstance.destroyed = true
 		await w.sendMessageToWebContents(args2)
 		o(bwInstance.isDestroyed.callCount).equals(5)
 		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.executeJavaScript.callCount).equals(3)
+		o(bwInstance.webContents.send.callCount).equals(3)
 	})
 
 	o("context-menu is passed to handler", function () {
