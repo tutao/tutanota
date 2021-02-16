@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
-import {TextField} from "../gui/base/TextField"
+import {TextField, Type} from "../gui/base/TextField"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -58,6 +58,7 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 									let buy = _isBuy(price, featureType)
 									let orderField = new TextField("bookingOrder_label")
 										.setValue(_getBookingText(price, featureType, count, freeAmount))
+										.setType(Type.Area)
 										.setDisabled()
 									let buyField = (buy) ? new TextField("subscription_label",
 										() => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price))
@@ -171,10 +172,13 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			if (count > 0) {
 				let additionalFeatures = []
 				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Whitelabel) > 0) {
-					additionalFeatures.push(lang.get("whitelabel_label"))
+					additionalFeatures.push(lang.get("whitelabelFeature_label"))
 				}
 				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing) > 0) {
-					additionalFeatures.push(lang.get("sharing_label"))
+					additionalFeatures.push(lang.get("sharingFeature_label"))
+				}
+				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Business) > 0) {
+					additionalFeatures.push(lang.get("businessFeature_label"))
 				}
 				if (additionalFeatures.length > 0) {
 					return count + " " + lang.get("bookingItemUsersIncluding_label") + " " + additionalFeatures.join(", ")

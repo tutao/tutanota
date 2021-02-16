@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2021-01-13T10:24:50Z",
+	"updated_at": "2021-02-15T13:33:38Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -590,7 +590,6 @@ export default {
 		"unsubscribe_action": "Atsisakyti",
 		"unsupportedBrowser_msg": "Apgailestaujame, bet, deja, jūsų naršyklė nepalaikoma. Naudokite vienos iš sekančių naršyklių naujausią versiją:",
 		"upgradePremium_label": "PREMIUM",
-		"upgradePro_msg": "Jūsų abonementas bus atnaujintas iki Pro.",
 		"upgradeReminderCancel_action": "Vėliau",
 		"url_label": "URL",
 		"userEmailSignature_label": "Jūsų parašas laiške",

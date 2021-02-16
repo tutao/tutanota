@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-02-16T11:17:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -839,7 +839,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "Добавить пользователя ({1})",
 		"pricing.comparisonContactFormPro_msg": "Контактные формы ({price})",
 		"pricing.comparisonDomainFree_msg": "Только домены Tutanota",
-		"pricing.comparisonDomainPremium_msg": "Пользовательские домены",
 		"pricing.comparisonInboxRulesPremium_msg": "Правила для Входящих",
 		"pricing.comparisonLoginPro_msg": "Логин пользовательского домена",
 		"pricing.comparisonMultipleCalendars_msg": "Множественные календари",
@@ -1148,11 +1147,9 @@ export default {
 		"upgradeNeeded_msg": "Извините, в настоящее время Вы не можете отправлять или получать письма (кроме связи со службой продаж Tutanota по адресу sales@tutao.de), потому что сначала Вам нужно завершить процесс оформления платной подписки.",
 		"upgradePremium_label": "Премиум",
 		"upgradeProNoReduction_msg": "Ранее заказанные пакеты хранилища или псевдонимы не будут уменьшены.",
-		"upgradePro_msg": "Ваша подписка будет обновлена до Pro",
 		"upgradeReminderCancel_action": "Позже",
 		"upgradeReminderTitle_msg": "Обновить до Premium!",
 		"upgradeSystemWebView_msg": "Нет доступа к серверу. Или Вы вне сети или оказались в ошибочном состоянии старой версии Android System WebView. Пожалуйста обновите Android System WebView до новейшей версии:",
-		"upgradeTeams_msg": "Ваша учётная запись будет обновлена до командной.",
 		"upgrade_action": "Обновить",
 		"urlPath_label": "Путь",
 		"url_label": "URL",

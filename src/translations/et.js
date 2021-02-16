@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-02-15T16:10:46Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -549,7 +549,6 @@ export default {
 		"pricing.businessUse_label": "Äriklient",
 		"pricing.comparisonAddUser_msg": "Lisa kasutaja ({1})",
 		"pricing.comparisonDomainFree_msg": "Ainult Tutanota domeenid",
-		"pricing.comparisonDomainPremium_msg": "Kohandatud domeenid",
 		"pricing.comparisonInboxRulesPremium_msg": "Postkasti reeglid",
 		"pricing.comparisonLoginPro_msg": "Kohandatud domeeniga sisselogimine",
 		"pricing.comparisonSearchFree_msg": "Piiratud otsing",
@@ -734,7 +733,6 @@ export default {
 		"updateAdminshipLocalAdminGroupError_msg": "Kohaliku administraatorgrupi administraatoreid ei saa muuta.",
 		"update_action": "Uuenda",
 		"upgradePremium_label": "Premium",
-		"upgradePro_msg": "Teie tellimus uuendatakse Pro tasemele.",
 		"upgradeReminderCancel_action": "Hiljem",
 		"upgradeReminderTitle_msg": "Täienda Premiumile!",
 		"upgrade_action": "Uuenda",

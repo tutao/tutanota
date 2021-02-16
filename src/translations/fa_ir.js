@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-02-16T11:17:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -771,7 +771,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "افزودن کاربر {1}",
 		"pricing.comparisonContactFormPro_msg": "فرم تماس{price}",
 		"pricing.comparisonDomainFree_msg": "فقط دامنهٔ توتانوتا",
-		"pricing.comparisonDomainPremium_msg": "دامنه‌های سفارشی",
 		"pricing.comparisonInboxRulesPremium_msg": "قواعد صندوق‌ورودی",
 		"pricing.comparisonLoginPro_msg": "ورود از طریق دامنهٔ سفارشی",
 		"pricing.comparisonMultipleCalendars_msg": "تقویم چندکاره",
@@ -1049,7 +1048,6 @@ export default {
 		"upgradeConfirm_msg": "سفارش خود را تأیید کنید.",
 		"upgradePremium_label": "ممتاز",
 		"upgradeProNoReduction_msg": "فضای سفارش داده شده قبلی یا پکیج های اسمی کاهش نخواهند یافت.",
-		"upgradePro_msg": "اشتراک شما به اشتراک حرفه ای Pro ارتقا داده  می‌شود.",
 		"upgradeReminderCancel_action": "بعداً",
 		"upgradeReminderTitle_msg": "به اشتراک ممتازارتقا دهید!",
 		"upgradeSystemWebView_msg": "اتصال با سرور ممکن نشد، اتصال شما با اینترنت قطع گردیده و یا خطایی در نسخه قدیمی Android System WebView رخ داده است ، لطفاAndroid System WebView را آپدیت نمایید.",

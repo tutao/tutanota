@@ -151,7 +151,7 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 		const sharingFeature = [lang.get("pricing.comparisonSharingCalendar_msg")]
 		const businessFeatures = [
 			lang.get("pricing.comparisonOutOfOffice_msg"),
-			lang.get("pricing.comparisonCalendarInvites_msg")
+			lang.get("pricing.comparisonEventInvites_msg")
 		]
 		const whitelabelFeatures = [
 			lang.get("pricing.comparisonLoginPro_msg"),

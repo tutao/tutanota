@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-02-03T21:19:58Z",
+	"updated_at": "2021-02-16T10:55:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -810,10 +810,8 @@ export default {
 		"pricing.basePriceIncludesTaxes_msg": "Alapár. Az adót tartalmazza.",
 		"pricing.businessUse_label": "Vállalati",
 		"pricing.comparisonAddUser_msg": "Felhasznál hozzáadása ({1})",
-		"pricing.comparisonCalendarInvites_msg": "Naptár meghívottak",
 		"pricing.comparisonContactFormPro_msg": "Kapcsolatfelvételi űrlapok ({price})",
 		"pricing.comparisonDomainFree_msg": "Csak Tutanota domain-ek",
-		"pricing.comparisonDomainPremium_msg": "Egyedi domain-ek",
 		"pricing.comparisonInboxRulesPremium_msg": "Levelezési szabály",
 		"pricing.comparisonLoginPro_msg": "Egyedi domain-bejelentkezés",
 		"pricing.comparisonMultipleCalendars_msg": "Több naptár",
@@ -1111,7 +1109,6 @@ export default {
 		"upgradeConfirm_msg": "Erősítse meg megrendelését!",
 		"upgradePremium_label": "Prémium",
 		"upgradeProNoReduction_msg": "Előzőekben megrendelt nagyobb tárhely vagy alias csomagok nem lesznek csökkentve.",
-		"upgradePro_msg": "Az előfizetés Pro-ra frissül.",
 		"upgradeReminderCancel_action": "Később",
 		"upgradeReminderTitle_msg": "Váltson Prémiumra!",
 		"upgradeSystemWebView_msg": "Nem sikerült elérni a szervert. Ön vagy offline tartózkodik vagy az Android System Webview hibájába ütközött. Kérjük frissítse az Android System Webview-t a legfrissebb verzióra:",

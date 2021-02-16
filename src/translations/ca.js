@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-02-16T11:17:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -823,7 +823,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "Afegir usuari ({1})",
 		"pricing.comparisonContactFormPro_msg": "Formularis de contacte ({price})",
 		"pricing.comparisonDomainFree_msg": "Només dominis Tutanota",
-		"pricing.comparisonDomainPremium_msg": "Dominis personalitzats",
 		"pricing.comparisonInboxRulesPremium_msg": "Regles de la safata",
 		"pricing.comparisonLoginPro_msg": "Inici de sessió personalitzat",
 		"pricing.comparisonMultipleCalendars_msg": "Diversos calendaris",
@@ -1130,11 +1129,9 @@ export default {
 		"upgradeNeeded_msg": "Ho sentim, actualment no teniu permís per enviar o rebre correus electrònics (excepte al suport de vendes Tutanota a sales@tutao.de), ja que primer heu d'acabar d'ordenar una subscripció de pagament.",
 		"upgradePremium_label": "Prèmium",
 		"upgradeProNoReduction_msg": "No es reduiran els paquets d'emmagatzematge mès grans o àlies sol·licitats amb anterioritat ",
-		"upgradePro_msg": "La teva subscripció s'actualitzarà a Pro",
 		"upgradeReminderCancel_action": "Més tard",
 		"upgradeReminderTitle_msg": "Actualitzeu-vos a Premium!",
 		"upgradeSystemWebView_msg": "No s'ha pogut connectar amb el servidor. O esteu fora de línia o hi ha a un error en una versió anterior del sistema Android WebView. Si us plau, actualitzeu el sistema Android WebView a la versió més recent:",
-		"upgradeTeams_msg": "La vostra subscripció passarà a Equips.",
 		"upgrade_action": "Subscriure",
 		"urlPath_label": "Camí",
 		"url_label": "URL",

@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-02-15T16:10:45Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -641,7 +641,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "增添用戶 {1} 名",
 		"pricing.comparisonContactFormPro_msg": "聯絡欄 {price} 元",
 		"pricing.comparisonDomainFree_msg": "僅限 Tutanota 網域",
-		"pricing.comparisonDomainPremium_msg": "自訂網域",
 		"pricing.comparisonInboxRulesPremium_msg": "收件匣規則",
 		"pricing.comparisonLoginPro_msg": "客製化登入網域",
 		"pricing.comparisonSearchFree_msg": "搜尋功能受限",
@@ -876,7 +875,6 @@ export default {
 		"upgradeConfirm_msg": "請確認您的訂購！",
 		"upgradePremium_label": "進階版",
 		"upgradeProNoReduction_msg": "先前購買的加大儲存或別名方案包數量不會減少。",
-		"upgradePro_msg": "您的訂閱方案將被升級至專業版。",
 		"upgradeReminderCancel_action": "稍後再說",
 		"upgradeReminderTitle_msg": "升級至進階版帳戶！",
 		"upgradeSystemWebView_msg": "無法連接至伺服器。有可能您正處於離線狀態或運行舊版 Android 系統的 WebView。請升級 Android 系統的 WebView 至最新版本：",

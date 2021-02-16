@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2021-01-28T11:12:45Z",
+	"updated_at": "2021-02-16T10:35:18Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",
@@ -610,7 +610,6 @@ export default {
 		"pricing.basePriceExcludesTaxes_msg": "Bāzes cena. Neiskaitot nodokļus.",
 		"pricing.basePriceIncludesTaxes_msg": "Pamata cena. Ieskaitot nodokļus.",
 		"pricing.businessUse_label": "Uzņēmējdarbībai",
-		"pricing.comparisonCalendarInvites_msg": "Kalendāra uzaicinājumi",
 		"pricing.comparisonMultipleCalendars_msg": "Vairāki kalendāri",
 		"pricing.comparisonOneCalendar_msg": "Viens kalendārs",
 		"pricing.comparisonSearchFree_msg": "Ierobežota meklēšana",
@@ -809,7 +808,6 @@ export default {
 		"update_action": "Atjaunot",
 		"upgradePremium_label": "Premium",
 		"upgradeProNoReduction_msg": "Iepriekš pasūtīts glabātuves palielinājums vai segvārdu pakotne netiks samazinātas.",
-		"upgradePro_msg": "Jūsu abonements tiks uzlabots uz Pro.",
 		"upgradeReminderCancel_action": "Vēlāk",
 		"upgradeReminderTitle_msg": "Jaunināt uz Premium!",
 		"upgrade_action": "Uzlabot",

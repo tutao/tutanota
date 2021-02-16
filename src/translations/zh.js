@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-01-29T17:08:52Z",
+	"updated_at": "2021-02-16T10:55:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -775,7 +775,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "支付{1}，以添加用户",
 		"pricing.comparisonContactFormPro_msg": "联系人表{price}",
 		"pricing.comparisonDomainFree_msg": "仅限 Tutanota 域名",
-		"pricing.comparisonDomainPremium_msg": "自定义域名",
 		"pricing.comparisonInboxRulesPremium_msg": "收件箱规则",
 		"pricing.comparisonLoginPro_msg": "自定义域名登录",
 		"pricing.comparisonMultipleCalendars_msg": "多个日历",
@@ -1066,11 +1065,9 @@ export default {
 		"upgradeConfirm_msg": "确认您的订单！",
 		"upgradePremium_label": "付费版",
 		"upgradeProNoReduction_msg": "之前订购的储存空间或者别名包不会减少。",
-		"upgradePro_msg": "您的订购将会使此软件升级至专业版本。",
 		"upgradeReminderCancel_action": "稍后",
 		"upgradeReminderTitle_msg": "升级到付费版！",
 		"upgradeSystemWebView_msg": "无法连接服务器，可能您已离线或者是安卓系统网络组件（WebView）陈旧而运行错误，请将组件更新至最新版本：",
-		"upgradeTeams_msg": "您的订阅将升级为团队版。",
 		"upgrade_action": "升级",
 		"urlPath_label": "路径",
 		"url_label": "链接",

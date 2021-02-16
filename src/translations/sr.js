@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2021-01-27T09:28:02Z",
+	"updated_at": "2021-02-16T10:55:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -737,7 +737,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "Додај корисника {1}",
 		"pricing.comparisonContactFormPro_msg": "Контакт форма {price}",
 		"pricing.comparisonDomainFree_msg": "Само Tutanota домене",
-		"pricing.comparisonDomainPremium_msg": "Прилагођене домене",
 		"pricing.comparisonInboxRulesPremium_msg": "Правила за примљене",
 		"pricing.comparisonLoginPro_msg": "Пријава прилагођене домене",
 		"pricing.comparisonMultipleCalendars_msg": "Више календара",
@@ -1003,7 +1002,6 @@ export default {
 		"upgradeConfirm_msg": "Потврдите вашу наруџбу!",
 		"upgradePremium_label": "Premium",
 		"upgradeProNoReduction_msg": "Претходно наручено веће складиште за податке или пакети алијаса се неће укинути.",
-		"upgradePro_msg": "Ваша претплата ће бити надограђена на  Pro.",
 		"upgradeReminderCancel_action": "Касније",
 		"upgradeReminderTitle_msg": "Надоградите на Preminum!",
 		"upgrade_action": "Надоградња",

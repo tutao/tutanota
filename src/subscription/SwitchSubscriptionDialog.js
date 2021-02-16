@@ -194,12 +194,11 @@ function getUpOrDowngradeMessage(targetSubscription: SubscriptionTypeEnum,
 		}
 	} else {
 		const planDisplayName = getDisplayNameOfSubscriptionType(targetSubscription)
+		msg = lang.get("upgradePlan_msg", {"{plan}": planDisplayName})
 		if (targetSubscription === SubscriptionType.PremiumBusiness
 			|| targetSubscription === SubscriptionType.TeamsBusiness
 			|| targetSubscription === SubscriptionType.Pro) {
-			msg = lang.get("upgradeBusiness_msg", {"{plan}": planDisplayName})
-		} else {
-			msg = lang.get("upgradePlan_msg", {"{plan}": planDisplayName})
+			msg += " " + lang.get("businessIncluded_msg")
 		}
 		if (isDowngradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedAliases)
 			|| isDowngradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedStorage)) {

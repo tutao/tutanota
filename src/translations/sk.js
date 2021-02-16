@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-01-27T09:28:03Z",
+	"updated_at": "2021-02-16T11:17:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -782,7 +782,6 @@ export default {
 		"pricing.comparisonAddUser_msg": "Pridať používateľa ({1})",
 		"pricing.comparisonContactFormPro_msg": "Kontaktné formuláre ({price})",
 		"pricing.comparisonDomainFree_msg": "Len domény Tutanota",
-		"pricing.comparisonDomainPremium_msg": "Vlastné domény",
 		"pricing.comparisonInboxRulesPremium_msg": "Pravidlá pre doručenú poštu",
 		"pricing.comparisonLoginPro_msg": "Prihlásenie na vlastnej doméne",
 		"pricing.comparisonMultipleCalendars_msg": "Viaceré kalendáre",
@@ -1078,11 +1077,9 @@ export default {
 		"upgradeNeeded_msg": "Ľutujeme, momentálne nemáš povolenie odosielať alebo prijímať e-maily (netýka sa podpory predaja Tutanota na adrese sales@tutao.de), pretože najskôr musíš dokončiť objednávku plateného predplatného.",
 		"upgradePremium_label": "Premium",
 		"upgradeProNoReduction_msg": "Prv objednané balíky s väčším úložiskom alebo aliasmi nebudú redukované.",
-		"upgradePro_msg": "Tvoje predplatné sa upgraduje na verziu Pro.",
 		"upgradeReminderCancel_action": "Neskôr",
 		"upgradeReminderTitle_msg": "Upgraduj na Premium!",
 		"upgradeSystemWebView_msg": "Nepodarilo sa spojiť so serverom. Buď si offline alebo sa vyskytla chyba v staršej verzii Android System WebView. Prosím, aktualizuj Android System WebView na najnovšiu verziu:",
-		"upgradeTeams_msg": "Tvoje predplatné sa upgraduje na Tímy.",
 		"upgrade_action": "Upgradovať",
 		"urlPath_label": "Cesta",
 		"url_label": "URL",

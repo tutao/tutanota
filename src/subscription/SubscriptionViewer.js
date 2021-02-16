@@ -188,19 +188,19 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		}
 		const enableWhiteLabelActionAttrs = {
-			label: "whitelabelDomain_label",
+			label: "activate_action",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => showWhitelabelBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
 		}
 		const disableWhiteLabelActionAttrs = {
-			label: "whitelabelDomain_label",
+			label: "deactivate_action",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => showWhitelabelBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
 		}
 		const enableSharingActionAttrs = {
-			label: "sharingFeature_label",
+			label: "activate_action",
 			click: createNotAvailableForFreeClickHandler(
 				false,
 				() => showSharingBuyDialog(true),
@@ -209,7 +209,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			icon: () => Icons.Edit,
 		}
 		const disableSharingActionAttrs = {
-			label: "sharingFeature_label",
+			label: "deactivate_action",
 			click: createNotAvailableForFreeClickHandler(
 				false,
 				() => showSharingBuyDialog(false),
@@ -218,13 +218,13 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			icon: () => Icons.Cancel,
 		}
 		const enableBusinessActionAttrs = {
-			label: "businessFeature_label",
+			label: "activate_action",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => showBusinessBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
 		}
 		const disableBusinessActionAttrs = {
-			label: "businessFeature_label",
+			label: "deactivate_action",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => showBusinessBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
@@ -360,7 +360,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					injectionsRight: () => [m(ButtonN, addGroupsActionAttrs), m(ButtonN, editGroupsActionAttrs)],
 				}),
 				m(TextFieldN, {
-					label: "whitelabel_label",
+					label: "whitelabelFeature_label",
 					value: this._whitelabelFieldValue,
 					disabled: true,
 					injectionsRight: () => (getCurrentCount(BookingItemFeatureType.Whitelabel, this._lastBooking) === 0)
