@@ -128,7 +128,8 @@ export function handleUncaughtError(e: Error) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")
 		} else {
-			Dialog.error("insufficientStorageUser_msg")
+			const errorMessage = () => lang.get("insufficientStorageUser_msg") + " " + lang.get("contactAdmin_msg")
+			Dialog.error(errorMessage)
 		}
 	} else if (e instanceof ServiceUnavailableError) {
 		if (!serviceUnavailableDialogActive) {

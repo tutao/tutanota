@@ -343,7 +343,8 @@ function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Re
 							             }
 						             }).return([])
 					} else {
-						return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
+						const errorMessage = () => lang.get("sharingFeatureNotOrderedUser_msg") + " " + lang.get("contactAdmin_msg")
+						return Dialog.error(errorMessage).return([])
 					}
 				}).catch(RecipientsNotFoundError, e => {
 					let invalidRecipients = e.message

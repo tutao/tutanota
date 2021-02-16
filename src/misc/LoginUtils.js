@@ -52,7 +52,8 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 					return true
 				}
 			} else {
-				return Dialog.error("invoiceNotPaidUser_msg").return(false)
+				const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
+				return Dialog.error(errorMessage).return(false)
 			}
 		} else if (status === "4") {
 			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
