@@ -199,7 +199,7 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 
 	const lines = []
 	if (organizer) {
-		const namePart = organizer.name ? `;CN=${organizer.name}` : ""
+		const namePart = organizer.name ? `;CN="${organizer.name}"` : ""
 		lines.push(`ORGANIZER${namePart};EMAIL=${organizer.address}:mailto:${organizer.address}`)
 	}
 	const attendeesProperties = attendees.map(({address, status}) => {
