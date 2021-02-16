@@ -321,13 +321,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						disabled: true,
 					})
 					: null,
-				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
-				m(TextFieldN, {
-					label: "bookingItemUsers_label",
-					value: this._usersFieldValue,
-					disabled: true,
-					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
-				}),
 				m(SettingsExpander,
 					{
 						title: "giftCards_label",
