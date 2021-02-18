@@ -28,6 +28,7 @@ o.spec("OutOfOfficeNotificationTest", function () {
 	})
 
 	o("Active state formatting", function () {
+		lang._setLanguageTag("en")
 		let notification = createOutOfOfficeNotification({enabled: true, startDate: null, endDate: null})
 		o(formatActivateState(notification)).equals("Activated")
 		notification = createOutOfOfficeNotification({enabled: true, startDate: new Date(2020, 11, 15), endDate: null})

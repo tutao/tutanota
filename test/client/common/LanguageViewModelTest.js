@@ -14,8 +14,10 @@ o.spec("LanguageViewModelTests", function () {
 	o("getAvailableLanguage", function () {
 		[
 			["en", "en"],
-			["zh_hant", "zh"],
-			["zh_HK", "zh_tw"],
+			["zh_CN", "zh"],
+			["zh_Hant", "zh_hant"],
+			["zh_HK", "zh_hant"],
+			["zh_TW", "zh_hant"],
 			["uk_ua", "uk"],
 			["de", "de"],
 			["a", "en"],
@@ -30,8 +32,8 @@ o.spec("LanguageViewModelTests", function () {
 	o("_getSubstitutedLanguageCode", function () {
 		[
 			["en", "en"],
-			["zh_hant", "zh"],
-			["zh_HK", "zh_tw"],
+			["zh_hant", "zh_hant"],
+			["zh_HK", "zh_hant"],
 			["uk_ua", "uk"],
 			["de", "de"],
 			["a", null],

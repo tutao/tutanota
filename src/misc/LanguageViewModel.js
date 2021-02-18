@@ -456,8 +456,8 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 	let language = languages.find(l => l.code === code && (restrictions == null
 		|| restrictions.indexOf(l.code) !== -1))
 	if (language == null) {
-		if (code === 'zh_hk') {
-			language = languages.find(l => l.code === 'zh_tw')
+		if (code === 'zh_hk' || code === 'zh_tw') {
+			language = languages.find(l => l.code === 'zh_hant')
 		} else {
 			let basePart = getBasePart(code)
 			language = languages
