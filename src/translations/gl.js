@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-02-16T11:17:20Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -552,7 +552,6 @@ export default {
 		"installNow_action": "Instalar agora.",
 		"insufficientBalanceError_msg": "Non se completou a transación porque non hai fondos suficientes na conta. Por favor, proporciona outro método de pagamento.",
 		"insufficientStorageAdmin_msg": "Excedeu o límite de almacenamento. Non pode enviar nin recibir correos. Por favor, libere espazo eleminando contido da caixa de correo ou mellore a un paquete de maior almacenamento.",
-		"insufficientStorageUser_msg": "Excedeches o teu límite de almacenamento. Non podes recibir nin enviar correos. Por favor contacta coa administración.",
 		"insufficientStorageWarning_msg": "A súa caixa de correo case alcanzou o límite de almacenamento. Por favor, libere algún espazo eliminando contido da súa caixa de correo ou actualice a un paquete de maior capacidade de almacenamento.",
 		"interval_title": "Intervalo",
 		"invalidBirthday_msg": "Aniversario non válido. Por favor, actualice o valor no campo de aniversario.",
@@ -587,7 +586,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Hai unha nova factura con número {1} dispoñible. Podes descargala en {2}. O total será automáticamente descontado.",
 		"invoiceMailBodyOnAccount_msg": "tes dispoñible unha nova factura con número {1}. Podes descargala en {2}. O pagamento realizarase 7 días despois da data da factura.",
 		"invoiceMailSubject_msg": "Nova factura de Tutanota",
-		"invoiceNotPaidUser_msg": "Lamentámolo, actualmente non podes enviar emails. Contacta coa administración.",
 		"invoiceNotPaid_msg": "Desculpa,  non podes enviar emails porque ao menos unha das túas facturas non está pagada. Por favor, actualiza os datos de pagamento en 'Axustes' ⇨ 'Datos de pagamento' e realiza o pagamento das facturas.",
 		"invoicePayConfirm_msg": "Agora descontaremos o total de esta factura:",
 		"invoicePaymentMethodInfo_msg": "Por favor escolla un método de pagamento. Engadiranse máis opcións no futuro.",
@@ -1085,7 +1083,6 @@ export default {
 		"sharingBooking_label": "Compartición para {1} usuarios",
 		"sharingDeletionWarning_msg": "Todas as comparticións de todas as usuarias borraranse automáticamente ao desactivar a compartición.",
 		"sharingFeatureNotOrderedAdmin_msg": "Para compartir un calendario tes que solicitar a característica de compartición.  Queres solicitalo agora?",
-		"sharingFeatureNotOrderedUser_msg": "Para compartir un calendario tes que solicitar a característica de compartición. Por favor, contacta coa administración.",
 		"sharingFeature_label": "Compartindo",
 		"sharing_label": "Compartindo",
 		"showAddress_alt": "Mostra este enderezo en Openstreetmap",

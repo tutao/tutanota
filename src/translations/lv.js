@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2021-02-16T10:35:18Z",
+	"updated_at": "2021-02-16T14:16:31Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",
@@ -380,7 +380,6 @@ export default {
 		"indexedMails_label": "Indeksēti e-pasti: {count}",
 		"insufficientBalanceError_msg": "Nevarējām pabeigt maksājumus dēļ nepietiekamas konta bilances. Lūdzu norādiet citu apmaksas veidu.",
 		"insufficientStorageAdmin_msg": "Jūsu krātuves apmērs ir pārsniegts. Jūs nevarat saņemt vai nosūtīt jaunas vēstules. Lūdzu, atbrīvojiet krātuvi, dzēšot jūsu pasta kastītes saturu vai uzlabojiet jūsu abonementu uz lielākas krātuves pakotni. ",
-		"insufficientStorageUser_msg": "Jūsu glabātuves apmērs ir pārsniegts. Turpmāk jūs nevarēsiet saņemt vai nosūtīt vēstules. Lūdzu, kontaktēties ar jūsu administratoru. ",
 		"insufficientStorageWarning_msg": "Jūsu pasta kastītes glabātuves apmērs tuvojas beigām. Lūdzu, atbrīvojiet atmiņu dzēšot pastkastes saturu vai pasūtiet papildus glabātuves pakotni.",
 		"invalidDateFormat_msg": "Nederīgs formāts. Derīgs: {1}. Gads nav obligāts.",
 		"invalidInputFormat_msg": "Nepareizs formāts.",
@@ -400,7 +399,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Jums ir pieejams jauns rēķins nr. {1}. Jūs varat lejuplādēt to 'Uzstādījumi -> 'Maksājumi'. Kopējais maksājuma apmērs tiks aprēķināts automātiski.",
 		"invoiceMailBodyOnAccount_msg": "Jums ir pienācis rēķins ar nr. {1}. Jūs varat to lejupielādēt ejot uz 'Settings' -> 'Payment'. Rēķina apmaksas datums ir 7 dienas no rēķina izrakstīšanas dienas.",
 		"invoiceMailSubject_msg": "Jauns Tutanota rēķins",
-		"invoiceNotPaidUser_msg": "Atvainojiet, jums šobrīd nav iespējams sūtīt vēstules. Lūdzu, sazināties ar administratoru.",
 		"invoiceNotPaid_msg": "Atvainojiet, jums šobrīd nav iespējams nosūtīt vēstules, jo vismaz viens no jūsu rēķiniem nav apmaksāts. Lūdzu, pārbaudiet savus maksājuma datus {1} sadaļā 'Uzstādījumi' -> 'Maksājuma dati', pēc tam veiciet rēķina apmaksu sadaļā 'Uzstādījumi'->'Rēķini'. ",
 		"invoicePayConfirm_msg": "Mēs tagad noņemsim sekojošo summu:",
 		"invoicePaymentMethodInfo_msg": "Lūdzu, izvēlieties maksājuma veidu. Papildu iespējas tiks pievienotas nākotnē.",

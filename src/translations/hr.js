@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -551,7 +551,6 @@ export default {
 		"installNow_action": "Instaliraj sada.",
 		"insufficientBalanceError_msg": "Nije moguće izvršiti transakciju zbog nedovoljnog stanja na računu. Navedite drugi način plaćanja.",
 		"insufficientStorageAdmin_msg": "Ograničenje pohrane je premašeno . Više ne možete primati ili slati poruke e-pošte. Oslobodite nešto memorije brisanjem sadržaja poštanskog sandučića ili nadogradite ga na veći paket za pohranu.",
-		"insufficientStorageUser_msg": "Ograničenje pohrane je premašeno. Više ne možete primati ili slati poruke e-pošte. Obratite se administratoru.",
 		"insufficientStorageWarning_msg": "Vaš mailbox je skoro pun. Molimo vas oslobodite memoriju brisanjem sadržaja Vašeg mailboxa ili unaprijedite na veću memoriju.",
 		"interval_title": "Interval",
 		"invalidBirthday_msg": "Nevažeći rođendan. Ažurirajte vrijednost polja rođendana.",
@@ -586,7 +585,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Dostupna vam je nova faktura s brojem {1}. Možete ju preuzeti na {2}. Ukupni iznos teretit će se automatski.",
 		"invoiceMailBodyOnAccount_msg": "postoji nova dostavnica sa brojem {1} koja je dostupna za Vas. Možete je skinuti za {2}. Rok za uplatu je 7 dana nakon datuma dostavnice.",
 		"invoiceMailSubject_msg": "Novi račun za Tutanotu",
-		"invoiceNotPaidUser_msg": "Ispričavamo se, trenutno vam nije dozvoljeno slati emailove. Molimo kontaktirajte vašeg administratora.",
 		"invoiceNotPaid_msg": "Nažalost, trenutno Vam nije dopušteno slati e-poštu jer barem jedna od Vaših faktura nije plaćena. Ažurirajte podatke o plaćanju u \"Postavkama\" ⇨ \"Podaci o plaćanju\" i tamo pokrenite plaćanje.",
 		"invoicePayConfirm_msg": "Sada ćemo teretiti sljedeći iznos:",
 		"invoicePaymentMethodInfo_msg": "Odaberite način plaćanja. Više opcija će biti dostupno uskoro.",
@@ -1083,7 +1081,6 @@ export default {
 		"sharingBooking_label": "Značajka dijeljenja za {1} korisnika",
 		"sharingDeletionWarning_msg": "Sva dijeljenja svih korisnika automatski će se izbrisati kad onemogućite značajku dijeljenja.",
 		"sharingFeatureNotOrderedAdmin_msg": "Za dijeljenje kalendara morate naručiti značajku dijeljenja. Želite li je sada naručiti?",
-		"sharingFeatureNotOrderedUser_msg": "Za dijeljenje kalendara morate naručiti značajku dijeljenja. Molimo kontaktirajte svog administratora.",
 		"sharingFeature_label": "Dijeljenje",
 		"sharing_label": "Dijeljenje",
 		"showAddress_alt": "Prikaži ovu adresu u OpenStreetMap",

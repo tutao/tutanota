@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-16T14:16:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -534,7 +534,6 @@ export default {
 		"installNow_action": "Şimdi yükle.",
 		"insufficientBalanceError_msg": "Yetersiz hesap bakiyesi nedeniyle işlem tamamlanamadı. Lütfen başka bir ödeme yöntemi belirleyin\n\n",
 		"insufficientStorageAdmin_msg": "Depolama alanınızın limiti aşıldı. Artık eposta alıp yollayamazsınız. Lütfen posta kutunuzdaki içeriği silerek ya da daha geniş bir depolama paketine yükseltme yaparak hafızada yer açınız.",
-		"insufficientStorageUser_msg": "Depolama alan limitiniz aşıldı. Artık eposta alıp gönderemeyeceksiniz. Lütfen yöneticinizle iletişime geçin.",
 		"insufficientStorageWarning_msg": "Posta kutunuz neredeyse depolama sınırına ulaştı. Lütfen posta kutunuzdaki içeriği silerek biraz kapasite kazanın ya da daha büyük bir depolama paketine geçin.",
 		"interval_title": "Aralık",
 		"invalidBirthday_msg": "Geçersiz doğum günü. Lütfen doğumgünü alanına güncel bir değer girin.",
@@ -568,7 +567,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "{1} numaralı yeni bir faturanız var.  Bunu {2} altından indirebilirsiniz. Genel toplam otomatik olarak tahsil edilecektir.",
 		"invoiceMailBodyOnAccount_msg": "{1} numaralı yeni bir fatura bulunmaktadır. 'Ayarlar'->'Faturalar' bölümünde {2} kısmından indirebilirsiniz. Ödeme süresi fatura tarihinden itibaren 7 gündür.",
 		"invoiceMailSubject_msg": "Tutanota için yeni fatura",
-		"invoiceNotPaidUser_msg": "Üzgünüz, şu anda eposta göndermenize izin verilmiyor. Lütfen yöneticiniz ile irtibata geçin.",
 		"invoiceNotPaid_msg": "Üzgünüz, şu anda eposta göndermenize izin verilmiyor çünkü en az bir ödenmemiş faturanız bulunmakta. Lütfen ödeme bilgilerinizi 'Ayarlar' -> 'Ödeme bilgisi' sayfasından güncelleyin ve ödemeyi yapmayı deneyin.",
 		"invoicePayConfirm_msg": "Şimdi bu tutarı tahsil edeceğiz:",
 		"invoicePaymentMethodInfo_msg": "Lütfen bir ödeme şekli seçin. Gelecekte daha çok seçenek eklenecektir.",
@@ -1048,7 +1046,6 @@ export default {
 		"sharingBooking_label": "Özellik {1} kullanıcıyla paylaşılıyor",
 		"sharingDeletionWarning_msg": "Paylaşma özelliğini kapatırsanız bütün kullanıcıların bütün paylaşımları kendiliğinden silinecektir.",
 		"sharingFeatureNotOrderedAdmin_msg": "Bir takvimi paylaşmak için paylaşım özelliğini satın almalısınız. Şimdi satın almak ister misiniz?",
-		"sharingFeatureNotOrderedUser_msg": "Bir takvimi paylaşmak için paylaşım özelliğini sipariş etmeniz gerekiyor. Lütfen yöneticinizle irtibata geçiniz.",
 		"sharingFeature_label": "Paylaşma",
 		"sharing_label": "Paylaş",
 		"showAddress_alt": "Bu adresi Openstreetmap'te göster",

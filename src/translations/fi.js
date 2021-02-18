@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -546,7 +546,6 @@ export default {
 		"installNow_action": "Asenna nyt.",
 		"insufficientBalanceError_msg": "Maksua ei voitu suorittaa, koska tilillä ei ole tarpeeksi varoja. Määritä toinen maksutapa.",
 		"insufficientStorageAdmin_msg": "Postilaatikkosi on täynnä. Et voi enää vastaanottaa tai lähettää sähköposteja. Vapauta tilaa poistamalla tarpeettomia viestejä tai päivitä tilisi suurempaan.",
-		"insufficientStorageUser_msg": "Tallennustilan enimmäismäärä on ylitetty. Et voi enää vastaanottaa tai lähettää sähköposteja. Ota yhteyttä järjestelmänvalvojaan.",
 		"insufficientStorageWarning_msg": "Postilaatikkosi on lähes täynnä. Vapauta tilaa poistamalla tarpeettomia viestejä tai päivitä tilisi suurempaan.",
 		"interval_title": "Väli",
 		"invalidBirthday_msg": "Virheellinen syntymäpäivä. Päivitä syntymäpäiväkentän arvo.",
@@ -581,7 +580,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Sinulle on uusi lasku numerolla {1}. Voit tallentaa sen kohdasta {2}. Loppusumma veloitetaan automaattisesti.",
 		"invoiceMailBodyOnAccount_msg": "Sinulle on uusi lasku, numero {1}. Voit ladata sen kohdasta {2}. Maksuaika on 7 päivää laskun päiväyksestä.",
 		"invoiceMailSubject_msg": "Uusi lasku",
-		"invoiceNotPaidUser_msg": "Et voi lähettää viestejä. Ota yhteys ylläpitäjään.",
 		"invoiceNotPaid_msg": "Et voi lähettää viestejä, koska ainakin yksi lasku on maksamatta. Päivitä maksutietosi kohdasta 'Asetukset' ⇨ 'Maksutiedot' ja aseta lasku sitten maksettavaksi.",
 		"invoicePayConfirm_msg": "Veloitamme nyt seuraavan summan:",
 		"invoicePaymentMethodInfo_msg": "Valitse maksutapa. Muita vaihtoehtoja lisätään tulevaisuudessa.",
@@ -1078,7 +1076,6 @@ export default {
 		"sharingBooking_label": "Jaetaan ominaisuus {1} käyttäjälle",
 		"sharingDeletionWarning_msg": "Kaikkien käyttäjien jaot poistetaan, jos otat jakotoiminnon pois käytöstä.",
 		"sharingFeatureNotOrderedAdmin_msg": "Jakaaksesi kalenterin sinun tulee tilata jako-ominaisuus. Haluatko tilata sen nyt?",
-		"sharingFeatureNotOrderedUser_msg": "Jakaaksesi kalenterin sinun tulee tilata jako-ominaisuus. Ota yhteyttä ylläpitäjääsi.",
 		"sharingFeature_label": "Jakaminen",
 		"sharing_label": "Jakaminen",
 		"showAddress_alt": "Näytä tämä osoite OpenStreetMap-kartalla",

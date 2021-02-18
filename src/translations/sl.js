@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -539,7 +539,6 @@ export default {
 		"insertImage_action": "Vstavi sliko",
 		"installNow_action": "Namesti zdaj.",
 		"insufficientStorageAdmin_msg": "Omejitev shrambe je bila presežena. Ne morete več prejemati ali pošiljati sporočil. Prosimo, da izbrišete vsebino nabiralnika ali nadgradite na večji paket za shranjevanje.",
-		"insufficientStorageUser_msg": "Omejitev shrambe je bila presežena. Ne morete več prejemati ali pošiljati sporočil. Obrnite se na skrbnika.",
 		"insufficientStorageWarning_msg": "Vaš nabiralnik je skoraj dosegel omejitev shrambe. Prosimo, da izbrišete vsebino nabiralnika ali nadgradite na večji paket za shranjevanje.",
 		"interval_title": "Interval",
 		"invalidBirthday_msg": "Neveljaven datum rojstva. Prosimo, posodobite vrednost polje datuma rojstva.",
@@ -573,7 +572,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Skupna vsota bo samodejno bremenjena.",
 		"invoiceMailBodyOnAccount_msg": "prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Rok plačila je 7 dni po datumu na računu.",
 		"invoiceMailSubject_msg": "Nov račun za Tutanota",
-		"invoiceNotPaidUser_msg": "Trenutno nimate dovoljenja za pošiljanje pošte. Prosimo, kontaktirajte skrbnika.",
 		"invoiceNotPaid_msg": "Žal vam trenutno ni dovoljeno pošiljati sporočil, ker vsaj eden od računov ni plačan. Prosimo, posodobite podatke o plačilu v \"Nastavitve\"-> \"Podatki o plačilu\" in nato sprožite plačilo.",
 		"invoicePayConfirm_msg": "Bremenili bomo sledeči znesek:",
 		"invoicePaymentMethodInfo_msg": "Prosimo, izberite plačilno sredstvo. Več možnosti bo dodanih v prihodnje.",
@@ -1061,7 +1059,6 @@ export default {
 		"sharingBooking_label": "Skupna raba funkcije za št. uporabnikov: {1}",
 		"sharingDeletionWarning_msg": "Vse delitve vseh uporabnikov bodo samodejno izbrisane, ko onemogočite funkcijo skupne rabe.",
 		"sharingFeatureNotOrderedAdmin_msg": "Če želite deliti koledar, morate naročiti funkcijo skupne rabe. Bi jo rad naročil zdaj?",
-		"sharingFeatureNotOrderedUser_msg": "Če želite deliti koledar, morate naročiti funkcijo skupne rabe. Obrnite se na skrbnika.",
 		"sharingFeature_label": "Skupna raba",
 		"sharing_label": "Deljenje",
 		"showAddress_alt": "Pokaži ta naslov v Openstreetmap zemljevidih",

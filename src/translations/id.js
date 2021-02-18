@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
@@ -513,7 +513,6 @@ export default {
 		"insideOutside_label": "Di dalam / di luar",
 		"installNow_action": "Install sekarang",
 		"insufficientStorageAdmin_msg": "Batas penyimpanan Anda telah terlewati. Anda tidak lagi dapat menerima atau mengirim surel. Mohon bebaskan sebagian memori dengan menghapus isi dari kotak surel Anda atau tingkatkan paket ke penyimpanan yang lebih besar.",
-		"insufficientStorageUser_msg": "Batas penyimpanan akun Anda sudah melewati batas. Anda tidak bisa lagi menerima atau mengirim surel. Silakan hubungi administrator Anda.",
 		"insufficientStorageWarning_msg": "Kotak surel Anda hampir mencapai batas penyimpanan. Mohon bebaskan sebagian memori dengan menghapus konten kotak surel Anda atau meningkatkan akun ke paket penyimpanan yang lebih besar.",
 		"interval_title": "Jarak waktu",
 		"invalidBirthday_msg": "Ulang tahun tidak valid. Mohon perbarui nilai pada field ulang tahun.",
@@ -546,7 +545,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Ada tagihan baru dengan nomor {1} tersedia untuk Anda. Anda bisa mengunduhnya di {2}.  Total biaya akan secara otomatis didebit.",
 		"invoiceMailBodyOnAccount_msg": "Terdapat tagihan baru dengan nomor {1} untuk Anda. Anda dapat mengunduhnya di {2}. Jatuh tempo pembayaran adalah 7 hari setelah tanggal tagihan.",
 		"invoiceMailSubject_msg": "Tagihan baru untuk Tutanota",
-		"invoiceNotPaidUser_msg": "Maaf, saat ini Anda tidak diizinkan mengirimkan surel. Silakan hubungi administrator Anda.",
 		"invoiceNotPaid_msg": "Maaf, Anda saat ini tidak dapat mengirim email karena setidaknya salah satu dari tagihan Anda belum dibayar. Mohon perbarui data pembayaran Anda di 'Pengaturan' ⇨ 'Data Pembayaran' dan tindak lanjuti pembayaran setelahnya.",
 		"invoicePayConfirm_msg": "Kami sekarang akan mendebitkan biaya dengan jumlah berikut:",
 		"invoicePaymentMethodInfo_msg": "Mohon pilih metode pembayaran. Opsi lain akan ditambahkan kedepannya.",
@@ -1020,7 +1018,6 @@ export default {
 		"sharingBooking_label": "Berbagi fitur untuk {1} pengguna",
 		"sharingDeletionWarning_msg": "Semua yang telah dibagikan untuk semua pengguna akan secara automatis terhapus jika anda menonaktifkan fitur berbagi.",
 		"sharingFeatureNotOrderedAdmin_msg": "Untuk dapat membagikan kalender Anda harus memesan fitur berbagi. Apakah Anda ingin memesannya sekarang?",
-		"sharingFeatureNotOrderedUser_msg": "Untuk membagikan kalender Anda harus memesan fitur berbagi tersebut. Mohon hubungi administrator Anda.",
 		"sharingFeature_label": "Berbagi",
 		"sharing_label": "Berbagi",
 		"showAddress_alt": "Tampilkan alamat ini di Openstreetmap",

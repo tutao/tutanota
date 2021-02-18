@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2021-02-16T11:17:18Z",
+	"updated_at": "2021-02-16T14:16:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -514,7 +514,6 @@ export default {
 		"insertImage_action": "Insérer une image",
 		"installNow_action": "Installez maintenant.",
 		"insufficientStorageAdmin_msg": "Vous avez atteint la limite de stockage de votre boîte mail.\nVous ne pouvez plus envoyer ni recevoir d'emails.\nVeuillez libérer de la place dans votre boîte mail, ou effectuez une mise à niveau de votre compte pour avoir un stockage disponible plus important.",
-		"insufficientStorageUser_msg": "Vous avez atteint la limite de stockage de votre boîte mail.\nVous ne pouvez plus envoyer ni recevoir d'emails.\nMerci de contacter votre administrateur.",
 		"insufficientStorageWarning_msg": "Vous avez bientôt atteint la limite de stockage de votre boîte mail.\nVeuillez libérer de la place dans votre boîte mail, ou effectuez une mise à niveau de votre compte pour avoir un stockage disponible plus important.",
 		"interval_title": "Intervalle",
 		"invalidBirthday_msg": "Anniversaire invalide. Veuillez mettre à jour le champ anniversaire.",
@@ -546,7 +545,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Votre nouvelle facture ayant pour numéro {1} est disponible. Vous pouvez la télécharger ici {2}. La somme sera débitée automatiquement.",
 		"invoiceMailBodyOnAccount_msg": "Une nouvelle facture ayant pour numéro {1} est disponible. Vous pouvez la télécharger ici {2}. Le paiement est dû 7 jours après la date de facturation.",
 		"invoiceMailSubject_msg": "Nouvelle facture pour Tutanota",
-		"invoiceNotPaidUser_msg": "Désolé, vous n'êtes pas autorisé à envoyer des emails actuellement. Veuillez contacter votre administrateur.",
 		"invoiceNotPaid_msg": "Désolés, vous n'êtes actuellement pas autorisé·e à envoyer des e-mails car au moins une de vos factures n'est pas payée. Veuillez mettre à jour vos données de paiement dans \"Paramètres\" -> \"Données de paiement\", puis déclenchez-y le paiement ensuite.",
 		"invoicePayConfirm_msg": "Nous allons débiter le montant suivant :",
 		"invoicePaymentMethodInfo_msg": "Veuillez choisir un moyen de paiement. De nouvelles options seront ajoutées prochainement.",
@@ -1011,7 +1009,6 @@ export default {
 		"sharingBooking_label": "Fonction de partage pour {1} utilisateur(s)",
 		"sharingDeletionWarning_msg": "Tous les partages de tous les utilisateurs seront automatiquement supprimés quand vous désactiverez la fonctionnalité de partage.",
 		"sharingFeatureNotOrderedAdmin_msg": "Pour partager un calendrier, vous devez commander la fonctionnalité de partage. Voulez-vous la commander maintenant ?",
-		"sharingFeatureNotOrderedUser_msg": "Pour partager un calendrier, vous devez demander la fonction de partage. Merci de contacter votre administrateur.",
 		"sharingFeature_label": "Partage",
 		"sharing_label": "Partage",
 		"showAddress_alt": "Visualiser cette adresse sur Openstreetmap",

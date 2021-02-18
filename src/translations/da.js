@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -542,7 +542,6 @@ export default {
 		"installNow_action": "Installer nu.",
 		"insufficientBalanceError_msg": "Kunne ikke gennemføre transaktionen på grund af for lav saldo på kontoen. Angiv venligst en anden betalingsmetode.",
 		"insufficientStorageAdmin_msg": "Din grænse for gratis plads er overskredet. Du kan ikke længere modtage eller afsende mails. Frigør venligst noget plads ved at slette noget af indholdet i din mailkonto eller opgrader til en større pakke.",
-		"insufficientStorageUser_msg": "Din lagerplads er overskredet. Du kan ikke længere modtage eller sende e-mails. Kontakt venligst din administrator.",
 		"insufficientStorageWarning_msg": "Din mailkonto har næsten nået pladsgrænsen. Frigiv venligst noget plads ved at slette indhold i din mailkonto, eller opgrader til en større pakke.",
 		"interval_title": "Interval",
 		"invalidBirthday_msg": "Ugyldig fødselsdag. Opdater venligst værdien af fødselsfeltet.",
@@ -576,7 +575,6 @@ export default {
 		"invoiceData_msg": "Regninger",
 		"invoiceMailBodyOnAccount_msg": "Der er en ny faktura med nummeret {1} til rådighed for dig. Du kan downloade den i {2}. Betalingen sker 7 dage efter fakturadato.",
 		"invoiceMailSubject_msg": "Ny faktura fra Tutanota",
-		"invoiceNotPaidUser_msg": "Beklager, du har i øjeblikket ikke lov til at sende e-mails. Kontakt venligst din administrator.",
 		"invoiceNotPaid_msg": "Beklager, du har i øjeblikket ikke tilladelse til at sende e-mails, fordi mindst en af dine fakturaer ikke er betalt. Opdater dine betalingsdata ved at gå til 'Indstillinger' -> 'Betalingsdata' og aktivér betalingen herfra.",
 		"invoicePayConfirm_msg": "Vi debiterer nu følgende beløb:",
 		"invoicePaymentMethodInfo_msg": "Vælg venligst en betalingsmetode. Der vil blive tilføjet flere valgmuligheder i fremtiden. ",
@@ -1063,7 +1061,6 @@ export default {
 		"sharingBooking_label": "Delingsfunktioner for {1} brugere",
 		"sharingDeletionWarning_msg": "Alle delinger fra alle brugere bliver automatisk slettet når du slår delingsindstillingen fra.",
 		"sharingFeatureNotOrderedAdmin_msg": "For at dele en kalender, skal du bestille delingsfunktionen. Vil du bestille den nu?",
-		"sharingFeatureNotOrderedUser_msg": "For kunne dele denne kalender skal du bestille \"dele\" egenskaben. Kontakt venligst din administrator.",
 		"sharingFeature_label": "Deling",
 		"sharing_label": "Deling",
 		"showAddress_alt": "Vis denne adresse i Openstreetmap",

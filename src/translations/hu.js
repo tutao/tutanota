@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-02-16T10:55:33Z",
+	"updated_at": "2021-02-17T08:50:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -495,7 +495,6 @@ export default {
 		"insertImage_action": "Kép beillesztése",
 		"installNow_action": "Telepítés most.",
 		"insufficientStorageAdmin_msg": "Elérte a tárhelykorlátot. Nem küldhet vagy fogadhat leveleket. Kérjük szabadítson fel némi tárhelyet üzenetek törlésével vagy a levélfiók nagyobb tárhelyre történő bővítésével.",
-		"insufficientStorageUser_msg": "Elérte a kapacitáskorlátot. Nem küldhet vagy fogadhat leveleket. Kérjük vegye fel a kapcsolatot a rendszergazdával.",
 		"insufficientStorageWarning_msg": "A levélfiók majdnem elérte a tárhelykorlátot. Kérjük szabadítson fel némi tárhelyet üzenetek törlésével vagy a levélfiók nagyobb tárhelyre történő bővítésével.",
 		"interval_title": "Időkorlát",
 		"invalidBirthday_msg": "Érvénytelen születésnap. Kérjük frissítse a születésnap értékét.",
@@ -525,7 +524,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Új számla érkezett {1} számmal. Letölthető a {2} menüpontban. Az összeg automatikusan terhelésre kerül.",
 		"invoiceMailBodyOnAccount_msg": "új számla érkezett, {1} elérhető a 'Beállítások' -> 'Számlázás' menüpontban.  A számla kiegyenlítése a rajta szereplő dátumtól számított 7 napon belül esedékes.",
 		"invoiceMailSubject_msg": "Új Tutanota-számla",
-		"invoiceNotPaidUser_msg": "Sajnáljuk, de jelenleg az e-mail-küldés nem engedélyezett. Kérjük egyeztessen a rendszergazdával.",
 		"invoiceNotPaid_msg": "Sajnáljuk, de jelenleg nem engedélyezett a levélküldés, mert legalább egy számla nincs kiegyenlítve. Kérjük frissítse fizetése adatait a \"Beállítások\" -> \"Fizetési adatok\" menüpontban, majd onnan indítsa el a megbízást.",
 		"invoicePayConfirm_msg": "A számlát megterheljük a következő összeggel:",
 		"invoicePaymentMethodInfo_msg": "Válasszon egy fizetési módot. A jövőben további lehetőségek kerülnek hozzáadásra.",
