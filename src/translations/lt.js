@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2021-02-15T13:33:38Z",
+	"updated_at": "2021-02-16T14:16:31Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -266,7 +266,6 @@ export default {
 		"inboxRuleToRecipientEquals_action": "Gavėjui",
 		"inboxRuleValue_label": "Vertė",
 		"insufficientStorageAdmin_msg": "Jūs viršijote talpos limitą. Jūs daugiau negalite gauti ar siųsti laiškų. Prašome atlaisvinti atmintį ištrinant jūsų pašto dėžutės elementus arba įsigyti didesnės talpos paketą.",
-		"insufficientStorageUser_msg": "Jūs viršijote talpos limitą. Jūs daugiau negalite gauti ar siųsti laiškų. Prašome susisiekti su jūsų administratoriumi.",
 		"insufficientStorageWarning_msg": "Jūsų pašo dėžutė beveik pasiekė talpos limitą. Prašome atlaisvinti atminti trinant jūsų pašto dėžutės elementus arba įsigyjant didesnės talpos paketą.",
 		"invalidBirthday_msg": "Neteisinga gimimo dienos data. Prašome pakeisti vertes gimimo dienos laukelyje.",
 		"invalidCnameRecord_msg": "CNAME įrašas šiam domenui yra nustatytas neteisingai.",
@@ -287,7 +286,6 @@ export default {
 		"invoiceData_msg": "Sąskaitos data",
 		"invoiceMailBodyAutomatic_msg": "jums yra  išrašyta nauja sąskaita numeriu {1}. Ją galite atsisiųsti {2}. Visa suma bus automatiškai nuskaityta.",
 		"invoiceMailSubject_msg": "Nauja sąskaita iš Tutanota",
-		"invoiceNotPaidUser_msg": "Atsiprašome, šiuo metu jūs negalite siųsti el.laiškų. Prašome susisiekti su administratoriumi.",
 		"invoicePaymentMethodInfo_msg": "Prašome pasirinkti mokėjimo būdą. Daugiau būdų bus pridėta ateityje.",
 		"invoicePay_action": "Mokėti",
 		"invoiceVatIdNo_label": "PVM mokėtojo kodas",

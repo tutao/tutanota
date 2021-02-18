@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2021-02-16T11:17:18Z",
+	"updated_at": "2021-02-16T14:16:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -532,7 +532,6 @@ export default {
 		"insertImage_action": "Inserir imagem",
 		"installNow_action": "Instalar agora.",
 		"insufficientStorageAdmin_msg": "Excedeu o limite de armazenamento. Já não pode receber ou enviar mensagens. Por favor liberte algum espaço apagando o conteúdo da sua caixa de correio ou atualize para um pacote com maior capacidade.",
-		"insufficientStorageUser_msg": "Excedeu o limite de armazenamento. Já não pode receber ou enviar mensagens. Por favor contacte o seu administrador.",
 		"insufficientStorageWarning_msg": "A sua caixa de correio está quase a atingir o limite de armazenamento. Por favor liberte algum espaço apagando o conteúdo da sua caixa de correio ou atualize para um pacote com maior capacidade.",
 		"interval_title": "Intervalo",
 		"invalidBirthday_msg": "Data de nascimento inválida. Por favor atualize o campo da data de nascimento.",
@@ -565,7 +564,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Encontra-se disponível uma nova fatura com o número {1}. Pode descarregá-la em {2}. O valor total será debitado automaticamente. ",
 		"invoiceMailBodyOnAccount_msg": "encontra-se disponível uma nova fatura com o número {1}. Pode descarregá-la em {2} em 'Definições' -> 'Faturação'. O pagamento é devido nos 7 dias seguintes à data da fatura.",
 		"invoiceMailSubject_msg": "Nova fatura para Tutanota",
-		"invoiceNotPaidUser_msg": "Desculpe, de momento não lhe é permitido enviar mensagens. Por favor, contacte o seu administrador.",
 		"invoiceNotPaid_msg": "Lamentamos, mas de momento não lhe é permitido enviar mensagens porque pelo menos uma das suas faturas não se encontra paga. Por favor atualize os seus dados de pagamento em {1} em 'Definições' -> 'Dados de pagamento' e em seguida pague as faturas em 'Definições'->'Faturação'.",
 		"invoicePayConfirm_msg": "Iremos debitar o seguinte montante:",
 		"invoicePaymentMethodInfo_msg": "Por favor, escolha outro método de pagamento. Futuramente serão adicionadas mais opções.",
@@ -1048,7 +1046,6 @@ export default {
 		"sharingBooking_label": "Partilhar recurso com {1} utilizadores",
 		"sharingDeletionWarning_msg": "Todas as partilhas de todos os utilizadores serão automaticamente apagadas quando desabilitar a função de partilha.",
 		"sharingFeatureNotOrderedAdmin_msg": "Para partilhar um calendário, deverá encomendar o serviço de partilha. Gostaria de encomendar agora?",
-		"sharingFeatureNotOrderedUser_msg": "Par partilhar um calendário tem de ordenar as funcionalidades de partilha. Por favor contacte o seu administrador. ",
 		"sharingFeature_label": "Partilha",
 		"sharing_label": "Partilha",
 		"showAddress_alt": "Mostrar este endereço no Openstreetmap.",

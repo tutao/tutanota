@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2021-02-16T10:55:33Z",
+	"updated_at": "2021-02-16T14:16:31Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -445,7 +445,6 @@ export default {
 		"indexedMails_label": "Индексиране поруке поште: {count}",
 		"indexing_error": "Индексирање је прекинуто због грешке",
 		"insertImage_action": "Убаци слику",
-		"insufficientStorageUser_msg": "Ваш простор за складиштење је препун. Више не можете примати и слати пошту. Молимо вас контактирајте вашег администратора.",
 		"interval_title": "Интервал",
 		"invalidBirthday_msg": "Неважећи датум. Ажурирај вредност поља рођендана.",
 		"invalidCnameRecord_msg": "CNAME запис за ову домену није исправно постављен.",
@@ -472,7 +471,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Нов рачун са бројем {1} је доступан за вас. Можете га преузети са {2} . Укупан износ ће аутоматски бити задужен.",
 		"invoiceMailBodyOnAccount_msg": "постоји нов рачун са бројем {1} доступан за вас. Можете преузети у {2}.  Рок за плаћање је 7 дана након истека датума на рачуну.",
 		"invoiceMailSubject_msg": "Нов рачун за Tutanotu",
-		"invoiceNotPaidUser_msg": "Извињавамо се, тренутно вам није дозвољено да шаљете пошту. Молим контактирајте вашег администратора.",
 		"invoicePayConfirm_msg": "Сада ћемо наплатити следећи износ:",
 		"invoicePaymentMethodInfo_msg": "Изаберите начин плаћања. Више опција ће бити ускоро доступно.",
 		"invoicePay_action": "Плаћање",

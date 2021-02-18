@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-17T08:50:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -543,7 +543,6 @@ export default {
 		"installNow_action": "Zainstaluj teraz.",
 		"insufficientBalanceError_msg": "Nie można zakończyć transakcji z powodu niewystarczających środków na koncie. Podaj inną metodę płatności. ",
 		"insufficientStorageAdmin_msg": "Twój limit miejsca został przekroczony. Nie możesz już wysyłać ani odbierać poczty. Zwolnij trochę pamięci kasując jakąś zawartość ze skrzynki lub ulepsz konto do większej pojemności.",
-		"insufficientStorageUser_msg": "Pojemność Twojej skrzynki została przekroczona. Nie możesz już otrzymywać i wysyłać wiadomości. Prosimy o kontakt z administratorem.",
 		"insufficientStorageWarning_msg": "Twoja skrzynka pocztowa prawie osiągnęła maksymalny limit. Prosimy uzyskać trochę wolnej przestrzeni poprzez usunięcie zawartości lub ulepszenie do większej ilości miejsca. ",
 		"interval_title": "Interwał",
 		"invalidBirthday_msg": "Nieprawidłowa data urodzin. Proszę zaktualizować wartość w polu urodzin.",
@@ -578,7 +577,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Dostępna jest nowa faktura o numerze {1}. Możesz ją pobrać stąd: {2}. Łączna kwota zostanie pobrana z karty automatycznie.",
 		"invoiceMailBodyOnAccount_msg": "dostępna jest nowa faktura o numerze {1}. Możesz ją pobrać w {2}. Termin płatności to 7 dni od daty wystawienia.",
 		"invoiceMailSubject_msg": "Nowa faktura za Tutanota",
-		"invoiceNotPaidUser_msg": "Przepraszamy, nie możesz aktualnie wysyłać wiadomości. Prosimy o kontakt z administratorem.",
 		"invoiceNotPaid_msg": "Przepraszamy, nie możesz aktualnie wysyłać wiadomości, ponieważ co najmniej jedna z Twoich faktur nie została opłacona. Prosimy o zaktualizowanie danych płatności w 'Ustawienia' -> 'Dane płatności' oraz następnie o zapłacenie faktur.",
 		"invoicePayConfirm_msg": "Teraz obciążymy kwotę za tę fakturę:",
 		"invoicePaymentMethodInfo_msg": "Proszę wybrać metodę płatności. Więcej opcji będzie dodane w przyszłości.",
@@ -1069,7 +1067,6 @@ export default {
 		"sharingBooking_label": "Usługa współdzielenia {1} użytkowników",
 		"sharingDeletionWarning_msg": "Wszystkie współdzielenia wszystkich użytkowników zostaną automatycznie usunięte jeśli zablokujesz usługę współdzielenia.",
 		"sharingFeatureNotOrderedAdmin_msg": "Aby współdzielić kalendarz musisz zamówić usługę współdzielenia. Chcesz to zamówić teraz?",
-		"sharingFeatureNotOrderedUser_msg": "Jeśli chcesz współdzielić kalendarz musisz zamówić opcję współdzielenia. Skontaktuj się proszę ze swoim administratorem.",
 		"sharingFeature_label": "Udostępnianie",
 		"sharing_label": "Współdzielenie",
 		"showAddress_alt": "Pokaż ten adres w Openstreetmaps",

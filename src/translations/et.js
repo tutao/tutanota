@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2021-02-15T16:10:46Z",
+	"updated_at": "2021-02-16T14:16:31Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -327,7 +327,6 @@ export default {
 		"indexDeleted_msg": "Pidime otsinguindeksi lähtestama, et seda kiiremaks ja töökindlamaks muuta. Otsinguindeks luuakse uuesti teie järgmisel otsingul.",
 		"indexedMails_label": "Indekseeritud kirju: {count}",
 		"indexing_error": "Indekseerimine katkestati vea tõttu",
-		"insufficientStorageUser_msg": "Teie salvestusruum on otsa saanud. Te ei saa rohkem e-kirju saata ega vastu võtta. Palun kontakteeruge oma administraatoriga.",
 		"interval_title": "Intervall",
 		"invalidInputFormat_msg": "Vigane vorming.",
 		"invalidInterval_msg": "Sobimatu intervall",
@@ -345,7 +344,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "uus arve numbriga {1} on Teie jaoks saadaval. Võite selle alla laadida {2}. Lõplik summa debiteeritakse automaatselt.",
 		"invoiceMailBodyOnAccount_msg": "uus arve numbriga {1} on Teie jaoks saadaval. Võite selle alla laadida {2}. Maksetähtaeg on 7 päeva peale arve kuupäeva.",
 		"invoiceMailSubject_msg": "Uus arve Tutanota jaoks",
-		"invoiceNotPaidUser_msg": "Vabandust, Teil puudub hetkel luba e-kirju saata. Palun kontakteeruge oma administraatoriga.",
 		"invoicePaymentMethodInfo_msg": "Palun valige maksemeetod. Rohkem võimalusi lisatakse tulevikus.",
 		"invoicePay_action": "Maksa",
 		"invoiceSettingDescription_msg": "Loetle kõik olemasolevad arved koos maksestaatusega.",

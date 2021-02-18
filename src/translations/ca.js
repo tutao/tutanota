@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2021-02-16T11:17:19Z",
+	"updated_at": "2021-02-16T14:16:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -506,7 +506,6 @@ export default {
 		"insertImage_action": "Inseriu imatge",
 		"installNow_action": "Instal·lar-ho ara.",
 		"insufficientStorageAdmin_msg": "S'ha superat el límit d'emmagatzematge. Ja no es pot rebre o enviar correus electrònics. Si us plau, allibereu una mica de memòria esborrant contingut de la seva bústia o actualitzeu a un paquet més gran d'emmagatzematge.",
-		"insufficientStorageUser_msg": "S'ha superat el límit d'emmagatzematge. Ja no es pot rebre o enviar correus electrònics. Si us plau, poseu-vos en contacte amb l'administrador.",
 		"insufficientStorageWarning_msg": "La seva bústia gairebé ha arribat al límit d'emmagatzematge. Si us plau, allibereu una mica de memòria esborrant contingut de la seva bústia o actualitzant a un paquet més gran d'emmagatzematge.",
 		"interval_title": "Interval",
 		"invalidBirthday_msg": "Aniversari no vàlid. Si us plau, actualitza el valor del camp d'aniversari.",
@@ -537,7 +536,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "Teniu una nova factura amb el número {1} disponible.  La podeu descarregar en {2}. El valor total es restarà automàticament.",
 		"invoiceMailBodyOnAccount_msg": "hi ha una nova factura amb el número {1} disponible. Pot descarregar-la a {2} . El pagament s'ha d'efectuar fins 7 dies després de la data de facturació.",
 		"invoiceMailSubject_msg": "Nova factura per a Tutanota",
-		"invoiceNotPaidUser_msg": "Malauradament, actualment vostè no pot enviar missatges de correu electrònic. Si us plau, poseu-vos en contacte amb l'administrador.",
 		"invoiceNotPaid_msg": "Malauradament,  actualment no podeu enviar missatges de correu electrònic, perquè almenys una de les factures no està pagada. Si us plau, actualitzeu les dades de pagament a 'Configuració' -> 'Dades de pagament' i després pagueu les factures a partir d'aquí.",
 		"invoicePayConfirm_msg": "Es carregarà el següent import:",
 		"invoicePaymentMethodInfo_msg": "Seleccioneu un mètode de pagament. En el futur s'afegiran més opcions.",
@@ -1001,7 +999,6 @@ export default {
 		"sharingBooking_label": "Funció compartir per a {1} usuaris",
 		"sharingDeletionWarning_msg": "Tot el compartit de tots els usuaris s'eliminaran automàticament quan desactiveu la funció de compartir.",
 		"sharingFeatureNotOrderedAdmin_msg": "Per compartir un calendari, heu d'ordenar la funció de compartició. Vols demanar-la ara?",
-		"sharingFeatureNotOrderedUser_msg": "Per compartir un calendari, heu d'ordenar la funció de compartició. Contacteu amb l'administrador.",
 		"sharingFeature_label": "Compartir",
 		"sharing_label": "Compartir",
 		"showAddress_alt": "Mostra aquesta adreça a Openstreetmap",

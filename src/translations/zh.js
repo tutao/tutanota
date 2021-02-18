@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-02-16T10:55:32Z",
+	"updated_at": "2021-02-16T14:16:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -467,7 +467,6 @@ export default {
 		"indexing_error": "由于错误，索引已中止",
 		"insertImage_action": "插入图像",
 		"insufficientStorageAdmin_msg": "您的存储已达上限，无法收发邮件，请删除一些东西来释放邮箱空间或升级更大的存储包。",
-		"insufficientStorageUser_msg": "您的存储已达上限，无法收发邮件，请联系管理员。",
 		"insufficientStorageWarning_msg": "您的存储即将到达上限，请删除一些东西来释放邮箱空间或升级更大的存储包。",
 		"interval_title": "间隔",
 		"invalidBirthday_msg": "生日无效，请更新生日区域内容。",
@@ -497,7 +496,6 @@ export default {
 		"invoiceMailBodyAutomatic_msg": "您有一份编号 {1} 的新账单，可以在 {2} 下载。累计总额将自动扣除。",
 		"invoiceMailBodyOnAccount_msg": "您有一张编号为{1}的新发票在“设置”->“发票”里的{2}中，发票开具日起7天内支付有效。\n\n注意：我们的银行账户已变更！",
 		"invoiceMailSubject_msg": "Tutanota新发票",
-		"invoiceNotPaidUser_msg": "抱歉，您当前无法发送邮件，请联系管理员。",
 		"invoiceNotPaid_msg": "很抱歉，因您当前有未支付的发票，故暂不能发送邮件。谨请您在“设置”->“支付数据”的{1}中更新支付细节，并在“设置”->“发票”里完成支付。",
 		"invoicePayConfirm_msg": "现在，我们将扣除以下金额：",
 		"invoicePaymentMethodInfo_msg": "请选择支付手段。未来会加入更多途径。",
@@ -940,7 +938,6 @@ export default {
 		"sharingBooking_label": "{1}个用户的共享功能",
 		"sharingDeletionWarning_msg": "禁用共享功能时，将自动删除所有用户的所有共享。",
 		"sharingFeatureNotOrderedAdmin_msg": "要共享日历，您必须订购共享功能。您现在要订购吗？",
-		"sharingFeatureNotOrderedUser_msg": "要共享日历，您必须订购共享功能。请与您的管理员联系。",
 		"sharingFeature_label": "共享",
 		"sharing_label": "分享",
 		"showAddress_alt": "在OpenStreetMap地图中显示该地址",
