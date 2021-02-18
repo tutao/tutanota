@@ -50,7 +50,7 @@
 		"chokidar": "3.3.1",
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
-		"electron": "11.1.0",
+		"electron": "11.3.0",
 		"electron-builder": "22.9.1",
 		"electron-notarize": "1.0.0",
 		"electron-packager": "15.1.0",
