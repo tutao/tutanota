@@ -62,7 +62,7 @@ export function formatBirthdayWithMonthName(birthday: Birthday): string {
 /**
  * Returns the birthday of the contact as formatted string using default date formatter including date, month and year.
  * If birthday contains no year only month and day will be included.
- * If there is no birthday an empty string returns.
+ * If there is no birthday or an invalid birthday format an empty string returns.
  */
 export function formatBirthdayOfContact(contact: Contact): string {
 	if (contact.birthdayIso) {
@@ -70,10 +70,8 @@ export function formatBirthdayOfContact(contact: Contact): string {
 		try {
 			return formatBirthdayNumeric(isoDateToBirthday(isoDate))
 		} catch (e) {
-			console.log("error while formating contact birthday", e)
-			return ""
+			// cant format, cant do anything
 		}
-	} else {
-		return ""
 	}
+	return ""
 }
