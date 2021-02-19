@@ -3,9 +3,6 @@ import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {Button} from "../../gui/base/Button"
 import {ContactEditor} from "../ContactEditor"
-import {
-	formatBirthdayWithMonthName
-} from "../model/ContactUtils"
 import {TextField, Type} from "../../gui/base/TextField"
 import {erase} from "../../api/main/Entity"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -15,17 +12,16 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {ContactSocialType, getContactSocialType, Keys} from "../../api/common/TutanotaConstants"
-import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import type {ContactSocialId} from "../../api/entities/tutanota/ContactSocialId"
 import {locator} from "../../api/main/MainLocator"
 import {newMailEditorFromTemplate} from "../../mail/editor/MailEditor"
-import {neverNull} from "../../api/common/utils/Utils"
 import {logins} from "../../api/main/LoginController"
 import {NBSP} from "../../api/common/utils/StringUtils"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils";
 import {appendEmailSignature} from "../../mail/signature/Signature";
+import {formatBirthdayOfContact} from "../model/ContactUtils"
 
 assertMainOrNode()
 
@@ -52,6 +48,7 @@ export class ContactViewer {
 	socials: TextField[];
 	oncreate: Function;
 	onremove: Function;
+	formattedBirthday: ?string;
 
 	constructor(contact: Contact) {
 		this.contact = contact
@@ -114,6 +111,7 @@ export class ContactViewer {
 			return showURL
 		})
 
+		this.formattedBirthday = this._hasBirthday() ? formatBirthdayOfContact(this.contact) : null
 
 		this.view = () => {
 			return [
@@ -129,7 +127,7 @@ export class ContactViewer {
 									insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
-										this._hasBirthday() ? m("span.birthday", this._formatBirthday()) : null
+										this.formattedBirthday ? m("span.birthday", this.formattedBirthday) : null
 									], () => m("span", " | ")),
 									NBSP // alignment in case nothing is present here
 								])
@@ -256,13 +254,6 @@ export class ContactViewer {
 		new ContactEditor(this.contact).show()
 	}
 
-	_formatBirthday(): string {
-		if (this._hasBirthday()) {
-			return formatBirthdayWithMonthName(isoDateToBirthday(neverNull(this.contact.birthdayIso)))
-		} else {
-			return ""
-		}
-	}
 
 	_hasBirthday(): boolean {
 		return (!!this.contact.birthdayIso)

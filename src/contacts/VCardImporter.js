@@ -9,8 +9,9 @@ import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNum
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {assertMainOrNode} from "../api/common/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
+import {birthdayToIsoDate, isoDateToBirthday, isValidBirthday} from "../api/common/utils/BirthdayUtils"
 import {decodeBase64, decodeQuotedPrintable} from "../api/common/utils/Encoding"
+import {ParsingError} from "../api/common/error/ParsingError"
 
 assertMainOrNode()
 
@@ -156,7 +157,16 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
 						bDayDetails.year = null
 					}
-					contact.birthdayIso = bDayDetails ? birthdayToIsoDate(bDayDetails) : null
+
+					try {
+						contact.birthdayIso = bDayDetails && isValidBirthday(bDayDetails) ? birthdayToIsoDate(bDayDetails) : null
+					} catch (e) {
+						if (e instanceof ParsingError) {
+							console.log("failed to parse birthday", e)
+						} else {
+							throw e
+						}
+					}
 					break
 				case "ORG":
 					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))

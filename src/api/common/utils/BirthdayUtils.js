@@ -1,9 +1,9 @@
 // @flow
 
-import {createBirthday} from "../../entities/tutanota/Birthday"
-import {ParsingError} from "../error/ParsingError"
-import {formatSortableDate} from "./DateUtils"
 import type {Birthday} from "../../entities/tutanota/Birthday"
+import {createBirthday} from "../../entities/tutanota/Birthday"
+import {formatSortableDate} from "./DateUtils"
+import {ParsingError} from "../error/ParsingError"
 
 /**
  * Converts the birthday object to iso Date format (yyyy-mm-dd) or iso Date without year (--mm-dd)
@@ -45,7 +45,7 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 }
 
 
-function isValidBirthday(birthday: Birthday): boolean {
+export function isValidBirthday(birthday: Birthday): boolean {
 	const day = Number(birthday.day)
 	const month = Number(birthday.month)
 	const year = birthday.year ? Number(birthday.year) : null
@@ -53,7 +53,6 @@ function isValidBirthday(birthday: Birthday): boolean {
 		&& (month > 0 && month < 13)
 		&& (year === null || (year > 0 && year < 10000))
 }
-
 
 /**
  * returns new birthday format from old birthday format
