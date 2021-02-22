@@ -8,9 +8,23 @@ import "core-js/es6/set.js"
 import "core-js/modules/es7.object.values"
 import "core-js/modules/es7.object.entries"
 
-// is used by helpers/update-libs.js to generate lib/polyfill.js
+import "systemjs"
+import BluebirdPromise from "bluebird"
 
-const noOp = () => {}
+const global = (typeof window !== "undefined")
+	? window
+	: (typeof global !== "undefined")
+		? global
+		: self
+
+// bluebird does not replace globals inside IIFE becaues it's UMD
+global.Promise = BluebirdPromise
+Promise.config({
+	longStackTraces: false,
+	warnings: false
+})
+
+const noOp = function () {}
 
 if (typeof performance === 'undefined') {
 	self.performance = {
