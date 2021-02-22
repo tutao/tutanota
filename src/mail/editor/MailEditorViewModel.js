@@ -75,10 +75,8 @@ export function createPasswordField(model: SendMailModel, recipient: RecipientIn
 	}
 }
 
-export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>, mentionedInlineImages: Array<string>): Array<ButtonAttrs> {
+export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<ButtonAttrs> {
 	return model.getAttachments()
-		// Only show file buttons which do not correspond to inline images in HTML
-		        .filter((item) => mentionedInlineImages.includes(item.cid) === false)
 		        .map(file => {
 			        const lazyButtonAttrs = [
 				        {
