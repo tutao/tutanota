@@ -82,8 +82,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			if (outOfOfficeNotification.startDate) {
 				this.timeRangeEnabled(true)
 				this.startDate(outOfOfficeNotification.startDate)
-
-				// end dates are stored as the beginning of the following date. We substract one day to show the correct date to the user.
+				// end dates are stored as the beginning of the following date. We subtract one day to show the correct date to the user.
 				const shiftedEndDate = outOfOfficeNotification.endDate ? getDayShifted(outOfOfficeNotification.endDate, -1) : null
 				this.endDate(shiftedEndDate)
 			}
