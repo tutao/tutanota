@@ -6,6 +6,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {locator} from "./MainLocator"
 import {MailboxGroupRootTypeRef} from "../entities/tutanota/MailboxGroupRoot"
 import {logins} from "./LoginController"
+import {getDayShifted} from "../common/utils/DateUtils"
 
 /**
  * Returns true if notifications are currently sent.
@@ -31,7 +32,9 @@ export function formatActivateState(notification: ?OutOfOfficeNotification): str
 		if (notification.startDate) {
 			timeRange += " (" + formatDate(notification.startDate)
 			if (notification.endDate) {
-				timeRange += " - " + formatDate(notification.endDate)
+				// end dates are stored as the beginning of the following date. We subtract one day to show the correct date to the user.
+				const shiftedEndDate = getDayShifted(notification.endDate, -1)
+				timeRange += " - " + formatDate(shiftedEndDate)
 			}
 			timeRange += ")"
 		}
@@ -54,6 +57,10 @@ export function getDefaultNotificationLabel(organizationMessageEnabled: boolean)
 	}
 }
 
+/**
+ * Loads the out of office notification from the server and shifts the end date (from the first second of the following day to the first second of the last day)
+ * which is needed to display the correct end date.
+ */
 export function loadOutOfOfficeNotification(): Promise<?OutOfOfficeNotification> {
 	const mailMembership = logins.getUserController().getUserMailGroupMembership()
 	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {

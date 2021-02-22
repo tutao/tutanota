@@ -33,8 +33,8 @@ o.spec("OutOfOfficeNotificationTest", function () {
 		o(formatActivateState(notification)).equals("Activated")
 		notification = createOutOfOfficeNotification({enabled: true, startDate: new Date(2020, 11, 15), endDate: null})
 		o(formatActivateState(notification)).equals("Activated (12/15/2020)")
-		notification = createOutOfOfficeNotification({enabled: true, startDate: new Date(2020, 11, 15), endDate: new Date(2021, 0, 10)})
-		o(formatActivateState(notification)).equals("Activated (12/15/2020 - 1/10/2021)")
+		notification = createOutOfOfficeNotification({enabled: true, startDate: new Date(2020, 11, 15), endDate: new Date(2021, 0, 9)})
+		o(formatActivateState(notification)).equals("Activated (12/15/2020 - 1/8/2021)") // end date should be shifted
 		notification = createOutOfOfficeNotification({enabled: false, startDate: new Date(2020, 11, 15), endDate: new Date(2021, 0, 10)})
 		o(formatActivateState(notification)).equals("Deactivated")
 	});
