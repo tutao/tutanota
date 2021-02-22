@@ -276,7 +276,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			dropdownWidth: 250,
 		}
 
-		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements, this.mentionedInlineImages)
+		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements)
 
 		const lazyPasswordFieldAttrs =
 			() => model.allRecipients()
