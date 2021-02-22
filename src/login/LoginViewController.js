@@ -275,7 +275,9 @@ export class LoginViewController implements ILoginViewController {
 				})
 			})
 			.then(() => {
-				return this._remindActiveOutOfOfficeNotification()
+				if (!isAdminClient()) {
+					return this._remindActiveOutOfOfficeNotification()
+				}
 			})
 	}
 

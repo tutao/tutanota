@@ -1563,5 +1563,6 @@ export class MailViewer {
 }
 
 export function canDoDragAndDropExport(): boolean {
-	return isDesktop() && logins.getUserController().user.accountType === AccountType.STARTER
+	return isDesktop() && (logins.getUserController().user.accountType === AccountType.STARTER
+		|| logins.isEnabled(FeatureType.ExternalEmailProvider))
 }
