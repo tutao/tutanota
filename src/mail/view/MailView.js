@@ -513,16 +513,16 @@ export class MailView implements CurrentView {
 	 *
 	 * @param args Object containing the optional parts of the url which are listId and mailId for the mail view.
 	 */
-	updateUrl(args: Object) {
-		if (m.route.get().indexOf("/mailto") === 0) {
-			if (location.hash.length > 5) {
-				let url = location.hash.substring(5)
-				let decodedUrl = decodeURIComponent(url)
+	updateUrl(args: Object, requestedPath: string) {
+		if (requestedPath.startsWith("/mailto")) {
+			const query = m.parseQueryString(location.hash.substring(1)) // eat the leading hash
+			if (query.url) {
+				const decodedUrl = decodeURIComponent(query.url)
 				Promise.all([locator.mailModel.getUserMailboxDetails(), import("../editor/MailEditor")])
 				       .then(([mailboxDetails, {newMailtoUrlMailEditor}]) => {
 					       newMailtoUrlMailEditor(decodedUrl, false, mailboxDetails).then(editor => editor.show())
-					       history.pushState("", document.title, window.location.pathname) // remove # from url
 				       })
+				return
 			}
 		} else if (args.action === 'supportMail' && logins.isGlobalAdminUserLoggedIn()) {
 			import("../editor/MailEditor").then(({writeSupportMail}) => writeSupportMail())
