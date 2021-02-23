@@ -58,7 +58,7 @@ async function prepareAssets(watch, stage, host, version) {
 	} else if (stage === 'prod') {
 		restUrl = 'https://mail.tutanota.com'
 	} else if (stage === 'local') {
-		restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+		restUrl = "http://" + os.hostname() + ":9000"
 	} else { // host
 		restUrl = host
 	}
