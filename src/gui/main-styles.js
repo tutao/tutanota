@@ -30,7 +30,7 @@ const boxShadow = `0 2px 12px rgba(0, 0, 0, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)
 
 styles.registerStyle('main', () => {
 	return {
-		"#link-tt": isDesktop() ? {
+		"#link-tt": isDesktop() || isAdminClient() ? {
 			"pointer-events": "none",
 			"font-size": px(size.font_size_small),
 			"padding-left": px(size.hpad_small),
@@ -49,7 +49,7 @@ styles.registerStyle('main', () => {
 			"font-family": "monospace"
 		} : {},
 
-		"#link-tt.reveal": isDesktop() ? {
+		"#link-tt.reveal": isDesktop() || isAdminClient() ? {
 			"opacity": 1,
 			"transition": "opacity .1s linear",
 			"z-index": 100,
