@@ -127,7 +127,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
 				"allowToChangeInstallationDirectory": true,
-				"include": path.join("..", "..", "buildSrc", "fix-old-uuid.nsh")
+				"include": path.join("..", "..", "buildSrc", "windows-installer.nsh")
 			},
 			"mac": {
 				"hardenedRuntime": true,
