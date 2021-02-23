@@ -87,7 +87,7 @@ doBuild().catch(e => {
 
 async function doBuild() {
 	try {
-		const flow = await import("flow-bin")
+		const flow = (await import("flow-bin")).default
 		spawn(flow, {stdio: "inherit"})
 	} catch (e) {
 		console.warn("Flow executable was not found, it is either F-Droid build or you need to run npm ci")
