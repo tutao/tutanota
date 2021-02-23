@@ -372,7 +372,6 @@ async function buildDesktopClient(version) {
 				: "https://mail.tutanota.com/desktop",
 			nameSuffix: "",
 			notarize: !options.customDesktopRelease,
-
 			outDir: options.outDir,
 			unpacked: options.unpacked
 		}

@@ -138,15 +138,22 @@ export class ApplicationWindow {
 			webPreferences: {
 				nodeIntegration: false,
 				nodeIntegrationInWorker: false,
-				// TODO: not a real os sandbox yet.
-				// https://github.com/electron-userland/electron-builder/issues/2562
-				// https://electronjs.org/docs/api/sandbox-option
+				nodeIntegrationInSubFrames: false,
 				sandbox: true,
 				contextIsolation: true,
 				webSecurity: true,
 				enableRemoteModule: false,
+				allowRunningInsecureContent: false,
 				preload: preloadPath,
-				spellcheck: false
+				spellcheck: false,
+				webgl: false,
+				plugins: false,
+				experimentalFeatures: false,
+				webviewTag: false,
+				disableDialogs: true,
+				navigateOnDragDrop: false,
+				autoplayPolicy: "user-gesture-required",
+				enableWebSQL: false,
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
@@ -212,6 +219,11 @@ export class ApplicationWindow {
 				        .then(() => log.debug("...redirected"))
 			    }
 		    })
+		    .on('remote-require', e => e.preventDefault())
+		    .on('remote-get-global', e => e.preventDefault())
+		    .on('remote-get-builtin', e => e.preventDefault())
+		    .on('remote-get-current-web-contents', e => e.preventDefault())
+		    .on('remote-get-current-window', e => e.preventDefault())
 		    .on('zoom-changed', (ev: WebContentsEvent, direction: "in" | "out") => {
 			    const wc = ev.sender
 			    let newFactor = ((wc.getZoomFactor() * 100) + (direction === "out" ? -10 : 10)) / 100

@@ -62,9 +62,9 @@ function signer(args) {
 	})
 
 	return Promise.fromCallback(cb => {
-		child.on('close', (e) => {
-			if (e !== 0) {
-				cb(e)
+		child.on('close', (exitCode) => {
+			if (exitCode !== 0) {
+				cb(exitCode)
 			} else {
 				fs.removeSync(unsignedFileName)
 				cb(null, args.path)

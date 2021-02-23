@@ -49,7 +49,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			"iconName": "logo-solo-red.png",
 			"fileManagerTimeout": 30000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
-			"checkUpdateSignature": sign || !!process.env.JENKINS,
+			"checkUpdateSignature": sign,
 			"appUserModelId": appId,
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
@@ -88,7 +88,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 					"role": "Editor"
 				}
 			],
-			"forceCodeSigning": sign || !!process.env.JENKINS,
+			"forceCodeSigning": sign,
 			"publish": updateUrl
 				? {
 					"provider": "generic",
@@ -127,10 +127,12 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
 				"allowToChangeInstallationDirectory": true,
-				"include": path.join("..", "..", "buildSrc", "windows-installer.nsh")
+				"include": path.join("..", "..", "buildSrc", "windows-installer.nsh"),
+				"warningsAsErrors": true
 			},
 			"mac": {
 				"hardenedRuntime": true,
+				"type": "distribution",
 				"gatekeeperAssess": false,
 				"entitlements": "buildSrc/mac-entitlements.plist",
 				"entitlementsInherit": "buildSrc/mac-entitlements.plist",
