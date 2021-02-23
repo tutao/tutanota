@@ -36,7 +36,7 @@ export function preludeEnvPlugin(env) {
 	return {
 		name: "prelude-env",
 		banner() {
-			return `globalThis.env = ${JSON.stringify(env, null, 2)}`
+			return `globalThis.env = ${JSON.stringify(env, null, 2)};`
 		}
 	}
 }
