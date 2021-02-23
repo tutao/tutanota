@@ -72,6 +72,10 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 		}
 	}
 
+	const cancelAction = () => {
+		locator.eventController.removeEntityListener(entityEventListener)
+	}
+
 	const dialog = Dialog.showActionDialog({
 		title: headingId ? lang.get(headingId) : lang.get("invoiceData_msg"),
 		child: {
@@ -83,6 +87,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 			])
 		},
 		okAction: confirmAction,
+		cancelAction: cancelAction,
 		allowCancel: true,
 		okActionTextId: "save_action"
 	})

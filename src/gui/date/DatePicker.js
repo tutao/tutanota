@@ -46,7 +46,8 @@ export class DatePicker implements Component {
 
 	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
 		this.date = dateStream ? dateStream : stream(null)
-		this._dateString = stream(dateStream && dateStream() ? this.date() && formatDate(neverNull(this.date())) || "" : "")
+		const initDate = this.date()
+		this._dateString = stream(initDate ? formatDate(initDate) : "")
 		this._startOfTheWeekOffset = startOfTheWeekOffset
 		this._showingDropdown = false
 		this._disabled = disabled
