@@ -6,10 +6,13 @@ import {execSync} from 'child_process'
 import {last} from '../api/common/utils/ArrayUtils'
 import {neverNull} from "../api/common/utils/Utils"
 import {Logger, replaceNativeLogger} from "../api/common/Logger"
-import {log} from "./DesktopLog";
+import {log, rebindDesktopLog} from "./DesktopLog";
 
 const logger = new Logger()
 replaceNativeLogger(global, logger, true)
+// we need to bind to a new logger
+rebindDesktopLog()
+
 process.on('exit', () => {
 	const logDir = path.join(app.getPath('userData'), 'logs')
 	const logFilePath = path.join(logDir, "tutanota_desktop.log")

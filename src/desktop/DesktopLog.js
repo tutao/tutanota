@@ -10,8 +10,16 @@ export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "u
 		warn: noOp,
 		error: noOp,
 	}
-	: {
+	: makeLog()
+
+export function rebindDesktopLog() {
+	Object.assign(log, makeLog())
+}
+
+function makeLog() {
+	return {
 		debug: console.log.bind(console),
 		warn: console.warn.bind(console),
 		error: console.error.bind(console)
 	}
+}
