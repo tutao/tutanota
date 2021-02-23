@@ -52,7 +52,7 @@ export async function buildDesktop({
 		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
 		notarize,
 		unpacked,
-		sign: nameSuffix !== '-snapshot' && updateUrl !== "",
+		sign: (nameSuffix !== '-snapshot' && updateUrl !== "") || !!process.env.JENKINS,
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
@@ -74,7 +74,7 @@ export async function buildDesktop({
 		win: targets.win,
 		mac: targets.mac,
 		linux: targets.linux,
-		p: 'always',
+		publish: 'always',
 		project: distDir
 	})
 	console.log("Move output to ", outDir)
@@ -82,7 +82,7 @@ export async function buildDesktop({
 	await Promise.all(
 		fs.readdirSync(path.join(distDir, '/installers'))
 			// TODO: find out why it was needed. Check if unpacked is done correctly.
-			// .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
+          .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
           .map(file => fs.promises.rename(
 	          path.join(distDir, '/installers/', file),
 	          path.join(outDir, file)
@@ -112,6 +112,7 @@ async function rollupDesktop(dirname, outDir, version) {
 
 	const mainBundle = await rollup({
 		input: path.join(dirname, "src/desktop/DesktopMain.js"),
+		preserveEntrySignatures: false,
 		plugins: [
 			babelPreset(),
 			resolveLibs(),
@@ -124,21 +125,7 @@ async function rollupDesktop(dirname, outDir, version) {
 		]
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
-
-	const preloadBundle = await rollup({
-		input: path.join(dirname, "src/desktop/preload.js"),
-		plugins: [
-			babelPreset(),
-			{
-				name: "dynamicRequire",
-				banner() {
-					// see preload.js for explanation
-					return "const dynamicRequire = require"
-				},
-			}
-		],
-	})
-	await preloadBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
+	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload.js"), path.join(outDir, "preload.js"))
 }
 
 function resolveKeytarPlugin() {
