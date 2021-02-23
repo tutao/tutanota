@@ -5,7 +5,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
-* A version of Node.js LTS 10.x is installed
+* A version of Node.js LTS 14.x is installed
 
 #### Build steps:
 
