@@ -8,8 +8,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function (event) {
             let params = parseQueryString(location.hash.substring(1))
-            let msgBox = document.getElementById("t-messagebox")
-            msgBox.innerHTML = decodeURIComponent(`<p>${params.message}</p>`)
+            document.getElementById("message").textContent = decodeURIComponent(`${params.message}`)
 
             confirm3ds2(decodeURIComponent(params.clientToken), decodeURIComponent(params.nonce), decodeURIComponent(params.bin), decodeURIComponent(params.price), decodeURIComponent(params.clientType))
         });
@@ -43,14 +42,16 @@
                     }) // body data type must match "Content-Type" header
                 }).then(response => {
                     // console.log(">>>", response)
-                    document.getElementById("t-messagebox").innerHTML = "<p>Your payment details were successfully linked to your Tutanota account!</p><p>You may close this tab and return to the app.</p>"
+                    document.getElementById("message").textContent = "Your payment details were successfully linked to your Tutanota account!"
+                    document.getElementById("message2").textContent = "You may close this tab and return to the app."
                     // ClientType.App
                     if (clientType === "2") window.location.href = "tutanota://app";
                     else window.close();
                 })
             }).catch(e => {
                 // console.log("error", e)
-                document.getElementById("t-messagebox").innerHTML = "<p>Sorry, the verification of your payment details was unsuccessful.</p><p>You may return to the app to see what went wrong.</p>"
+                document.getElementById("message").textContent = "Sorry, the verification of your payment details was unsuccessful."
+                document.getElementById("message2").textContent = "You may return to the app to see what went wrong."
                 // ClientType.App
                 if (clientType === "2") window.location.href = "tutanota://app";
                 else window.close();
@@ -1757,19 +1758,15 @@
     <meta name="application-name" content="Tutanota">
     <link rel="apple-touch-icon" sizes="152x152" href="images/logo-favicon-152.png">
     <link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
-    <style>
-        #t-messagebox {
-            font-size: 20px;
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
-        }
-    </style>
 </head>
 <body>
 <div style="text-align: center; padding: 60px">
     <div style="display: inline-block; padding: 20px 30px; background: #ffffff; border-radius: 5px; filter: drop-shadow(10px 10px 10px #00000088)">
         <noscript>This site requires javascript to be enabled. Please activate it in the settings of your browser.
         </noscript>
-        <div id="t-messagebox">
+        <div style="font-size: 20px; font-family: -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;">
+            <p id="message"></p>
+            <p id="message2"></p>
         </div>
     </div>
     <div style="padding-top: 50px">
