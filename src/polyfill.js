@@ -11,14 +11,14 @@ import "core-js/modules/es7.object.entries"
 import "systemjs"
 import BluebirdPromise from "bluebird"
 
-const global = (typeof window !== "undefined")
+const globalContext = (typeof window !== "undefined")
 	? window
 	: (typeof global !== "undefined")
 		? global
 		: self
 
 // bluebird does not replace globals inside IIFE becaues it's UMD
-global.Promise = BluebirdPromise
+globalContext.Promise = BluebirdPromise
 Promise.config({
 	longStackTraces: false,
 	warnings: false
