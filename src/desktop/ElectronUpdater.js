@@ -131,9 +131,11 @@ export class ElectronUpdater {
 			if (this._updateInfo) {
 				ev.preventDefault()
 				this._updateInfo = null
-				// TODO: this may restart the app after install
-				// TODO: which may be annoying if quit not via notification or 'install now'
-				this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(false, false))
+				// first argument: isSilent Boolean - windows-only Runs the installer in silent mode. Defaults to false.
+				// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
+				//  Ignored if isSilent is set to false.
+				// https://www.electron.build/auto-update#appupdater-eventemitter
+				this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(true, false))
 			}
 		})
 	}
@@ -287,11 +289,6 @@ export class ElectronUpdater {
 		    .catch((e: Error) => this._logger.error("Notification failed,", e.message))
 	}
 
-	/**
-	 * TODO: this is the only place that should call quitAndInstall
-	 * TODO: to prevent the app from restarting immediately when the user
-	 * TODO: closed it not via the notification or the 'install now' button
-	 */
 	installUpdate() {
 		log.debug("installing")
 		//the window manager enables force-quit on the app-quit event,
@@ -299,7 +296,11 @@ export class ElectronUpdater {
 		// so we enable force-quit manually with a custom event
 		this._app.emit('enable-force-quit')
 		this._updateInfo = null
-		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(false, true))
+		// first argument: isSilent Boolean - windows-only Runs the installer in silent mode. Defaults to false.
+		// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
+		//  Ignored if isSilent is set to false.
+		// https://www.electron.build/auto-update#appupdater-eventemitter
+		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(true, true))
 	}
 
 	_notifyUpdateError() {
