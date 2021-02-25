@@ -139,7 +139,7 @@ export class ServiceWorker {
 				if (response) {
 					return response
 				} else {
-					return fetch(request).then((networkResponse) => {
+					return fetch(request, {redirect: "error"}).then((networkResponse) => {
 						return cache.put(request, networkResponse.clone())
 						            .then(() => networkResponse)
 					})

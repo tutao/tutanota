@@ -142,8 +142,12 @@ let initialized = import("./translations/en").then((en) => lang.init(en.default)
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
 		const language = {code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)}
-		Promise.all([lang.setLanguage(language), import("./native/main/SystemApp")])
-		       .then(([_, {changeSystemLanguage}]) => changeSystemLanguage(language))
+		lang.setLanguage(language).catch((e) => {
+			console.error("Failed to fetch translation: " + userLanguage.code, e)
+		})
+		if (isApp() || isDesktop()) {
+			import("./native/main/SystemApp").then(({changeSystemLanguage}) => changeSystemLanguage(language))
+		}
 	}
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
