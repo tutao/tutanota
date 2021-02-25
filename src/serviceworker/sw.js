@@ -1,5 +1,33 @@
 //@flow
 
+// straight from the flowlib/bom.js, flow just didn't pick it up for some reason
+declare class Request {
+	constructor(input: RequestInfo, init?: RequestOptions): void;
+	clone(): Request;
+
+	url: string;
+
+	cache: CacheType;
+	credentials: CredentialsType;
+	headers: Headers;
+	integrity: string;
+	method: string;
+	mode: ModeType;
+	redirect: RedirectType;
+	referrer: string;
+	referrerPolicy: ReferrerPolicyType;
+	+signal: AbortSignal;
+
+	// Body methods and attributes
+	bodyUsed: boolean;
+
+	arrayBuffer(): Promise<ArrayBuffer>;
+	blob(): Promise<Blob>;
+	formData(): Promise<FormData>;
+	json(): Promise<any>;
+	text(): Promise<string>;
+}
+
 // set by the build script
 import {getPathBases} from "../ApplicationPaths"
 
@@ -62,6 +90,8 @@ export class ServiceWorker {
 		const urlWithoutParams = urlWithoutQuery(evt.request.url)
 		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
 			evt.respondWith(this._fromCache(urlWithoutParams))
+		} else if (/translation-.+-.+\.js/.test(urlWithoutParams)) {
+			evt.respondWith(this.fromCacheOrFetchAndCache(evt.request))
 		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
 			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
 		}
@@ -101,6 +131,21 @@ export class ServiceWorker {
 			           console.log("error while deleting old caches", e)
 			           throw e
 		           })
+	}
+
+	fromCacheOrFetchAndCache(request: Request): Promise<Response> {
+		return this._caches.open(this._cacheName).then((cache) => {
+			return cache.match(request.url).then((response) => {
+				if (response) {
+					return response
+				} else {
+					return fetch(request).then((networkResponse) => {
+						return cache.put(request, networkResponse.clone())
+						            .then(() => networkResponse)
+					})
+				}
+			})
+		})
 	}
 
 	_fromCache(requestUrl: string): Promise<Response> {
