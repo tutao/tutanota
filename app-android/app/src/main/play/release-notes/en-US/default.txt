@@ -1,3 +1,4 @@
-* Reduce number of server request by introducing leader client
-* Improve setting the organizer of calendar event
-* Various Bugfixes
+- Business feature
+- Out of office notification
+- Add Korean and Hebrew translations
+- Fix support for older devices
