@@ -191,16 +191,11 @@ async function buildAndStartDesktop(log, version) {
 	 * without anything breaking is not worth it for the 3 lines of code it contains,
 	 * so it's just written in normal commonJS and copied over to be executed directly
 	 */
-	const preloadBundleWrapper = {
-		bundle: [],
-		async generate() {
-			log("copying preload script")
-			await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
-		}
-	}
+	log("copying preload script")
+	await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
 
 	log("Bundled desktop client")
-	return [nodeBundleWrapper, preloadBundleWrapper]
+	return [nodeBundleWrapper]
 }
 
 export function nativeDepWorkaroundPlugin() {
