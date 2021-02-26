@@ -1,7 +1,6 @@
 //@flow
 import {client} from "./misc/ClientDetector"
 import m from "mithril"
-// $FlowIgnore[untyped-import]
 import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
