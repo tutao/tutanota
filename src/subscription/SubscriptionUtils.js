@@ -20,7 +20,6 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
-
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
 	paymentInterval: Stream<number>
@@ -344,7 +343,8 @@ const BookingFailureReason = Object.freeze({
 	TOO_MUCH_STORAGE_USED: "bookingservice.too_much_storage_used",
 	SHARED_GROUP_ACTIVE: "bookingservice.shared_group_active",
 	WHITELABEL_DOMAIN_ACTIVE: "bookingservice.whitelabel_domain_active",
-	BALANCE_INSUFFICIENT: "balance.insufficient"
+	BALANCE_INSUFFICIENT: "balance.insufficient",
+	HAS_TEMPLATE_GROUP: "bookingservice.has_template_group",
 })
 export type BookingFailureReasonEnum = $Values<typeof BookingFailureReason>
 
@@ -361,11 +361,19 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
 		.return(false)
 		.catch(PreconditionFailedError, error => {
-			console.log(error)
-			return Dialog.error(error.data === "balance.insufficient"
-				? "insufficientBalanceError_msg"
-				: getBookingItemErrorMsg(featureType)).return(true)
-			// TODO handle failure reasons
+			// error handling for cancelling a feature.
+			switch (error.data) {
+				case BookingFailureReason.BALANCE_INSUFFICIENT:
+					return Dialog.error("insufficientBalanceError_msg").return(true)
+				case BookingFailureReason.TOO_MANY_DOMAINS:
+					return Dialog.error("tooManyCustomDomains_msg").return(true)
+				case BookingFailureReason.BUSINESS_USE:
+					return Dialog.error("featureRequiredForBusinessUse_msg").return(true)
+				case BookingFailureReason.HAS_TEMPLATE_GROUP:
+					return Dialog.error("deleteTemplateGroups_msg").return(true)
+				default:
+					return Dialog.error(getBookingItemErrorMsg(featureType)).return(true)
+			}
 		})
 }
 

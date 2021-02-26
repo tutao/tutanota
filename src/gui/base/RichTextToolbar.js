@@ -18,6 +18,7 @@ export type Options = {
 	imageButtonClickHandler?: ?((ev: Event, editor: Editor) => mixed),
 	alignmentEnabled?: boolean,
 	fontSizeEnabled?: boolean,
+	customButtonAttrs?: Array<ButtonAttrs>
 }
 
 export class RichTextToolbar {
@@ -166,6 +167,9 @@ export class RichTextToolbar {
 		}))
 
 		const allButtonAttrs: Array<ButtonAttrs> = styleToggleAttrs
+		if (options.customButtonAttrs) {
+			allButtonAttrs.push(...options.customButtonAttrs)
+		}
 		if (options.alignmentEnabled == null || options.alignmentEnabled) {
 			allButtonAttrs.push(alignDropdownAttrs)
 		}

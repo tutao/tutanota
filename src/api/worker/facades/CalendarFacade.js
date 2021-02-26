@@ -21,7 +21,6 @@ import type {RepeatRule} from "../../entities/sys/RepeatRule"
 import {createRepeatRule} from "../../entities/sys/RepeatRule"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import {createCalendarPostData} from "../../entities/tutanota/CalendarPostData"
 import {UserManagementFacade} from "./UserManagementFacade"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {Group} from "../../entities/sys/Group"
@@ -34,7 +33,6 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
-import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
 import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
 import {hash} from "../crypto/Sha256"
@@ -43,6 +41,9 @@ import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRul
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
 import {Request} from "../../common/WorkerProtocol"
+import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
+import {GroupManagementFacade} from "./GroupManagementFacade"
+import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
 
 assertWorkerOrNode()
 
@@ -54,13 +55,13 @@ function hashUid(uid: string): Uint8Array {
 export class CalendarFacade {
 
 	_loginFacade: LoginFacade;
-	_userManagementFacade: UserManagementFacade;
+	_groupManagementFacade: GroupManagementFacade;
 	_entityRestCache: EntityRestCache
 	_entity: EntityClient
 
-	constructor(loginFacade: LoginFacade, userManagementFacade: UserManagementFacade, entityRestCache: EntityRestCache) {
+	constructor(loginFacade: LoginFacade, groupManagementFacade: GroupManagementFacade, entityRestCache: EntityRestCache) {
 		this._loginFacade = loginFacade
-		this._userManagementFacade = userManagementFacade
+		this._groupManagementFacade = groupManagementFacade
 		this._entityRestCache = entityRestCache
 		this._entity = new EntityClient(entityRestCache)
 	}
@@ -190,29 +191,24 @@ export class CalendarFacade {
 
 
 	addCalendar(name: string): Promise<{user: User, group: Group}> {
-		return this._entity.load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
-			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
-			let adminGroupKey = null
-			if (this._loginFacade.getAllGroupIds().indexOf(adminGroupId) !== -1) { // getGroupKey throws an if user is not member of that group - so check first
-				adminGroupKey = this._loginFacade.getGroupKey(adminGroupId)
-			}
-			const customerGroupKey = this._loginFacade.getGroupKey(this._loginFacade.getGroupId(GroupType.Customer))
-			const userGroupKey = this._loginFacade.getUserGroupKey()
-			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey, name)
-			const postData = Object.assign(createCalendarPostData(), {calendarData})
-			return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CalendarPostReturnTypeRef)
-				.then((returnData) => this._entity.load(GroupTypeRef, returnData.group))
-				.then((group) => {
-					// remove the user from the cache before loading it again to make sure we get the latest version.
-					// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-					this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
-					return this._entity.load(UserTypeRef, neverNull(userGroup.user))
-					           .then(user => {
-						           this._loginFacade._user = user
-						           return {user, group}
+		return this._groupManagementFacade.generateUserAreaGroupData(name)
+		           .then(groupData => {
+				           const postData = createUserAreaGroupPostData({groupData})
+				           return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CreateGroupPostReturnTypeRef)
+					           .then((returnData) => this._entity.load(GroupTypeRef, returnData.group))
+					           .then((group) => {
+						           // remove the user from the cache before loading it again to make sure we get the latest version.
+						           // otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
+						           const userId = this._loginFacade.getLoggedInUser()._id
+						           this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, userId)
+						           return this._entity.load(UserTypeRef, userId)
+						                      .then(user => {
+							                      this._loginFacade._user = user
+							                      return {user, group}
+						                      })
 					           })
-				})
-		})
+			           }
+		           )
 	}
 
 	deleteCalendar(groupRootId: Id): Promise<void> {

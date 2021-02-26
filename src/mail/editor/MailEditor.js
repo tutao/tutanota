@@ -13,10 +13,11 @@ import {conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK, par
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
+import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
+import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
 import {fileController} from "../../file/FileController"
@@ -46,27 +47,39 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {downcast, noOp} from "../../api/common/utils/Utils"
+import {downcast, isCustomizationEnabledForCustomer, noOp} from "../../api/common/utils/Utils"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils";
 import {client} from "../../misc/ClientDetector"
 import {appendEmailSignature} from "../signature/Signature"
+import {showTemplatePopupInEditor} from "../../templates/view/TemplatePopup"
+import {registerTemplateShortcutListener} from "../../templates/view/TemplateShortcutListener"
+import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
+import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} from "../../knowledgebase/view/KnowledgeBaseDialog"
+import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
+import {styles} from "../../gui/styles"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
 	body: Stream<string>,
 	doBlockExternalContent: Stream<boolean>,
 	doShowToolbar: Stream<boolean>,
-	onload?: Function,
+	onload?: (editor: Editor) => void,
 	onclose?: Function,
 	areDetailsExpanded: Stream<boolean>,
 	selectedNotificationLanguage: Stream<string>,
 	inlineImages?: Promise<InlineImages>,
-	_focusEditorOnLoad: () => void,
-	_onSend: () => void
+	dialog: lazy<Dialog>,
+	templateModel: ?TemplatePopupModel,
+	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<?ButtonAttrs>,
 }
 
-export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>): MailEditorAttrs {
+export function createMailEditorAttrs(model: SendMailModel,
+                                      doBlockExternalContent: boolean,
+                                      doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>,
+                                      dialog: lazy<Dialog>,
+                                      templateModel: ?TemplatePopupModel,
+                                      createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<?ButtonAttrs>): MailEditorAttrs {
 	return {
 		model,
 		body: stream(""),
@@ -75,8 +88,9 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		areDetailsExpanded: stream(false),
 		selectedNotificationLanguage: stream(""),
 		inlineImages: inlineImages,
-		_focusEditorOnLoad: () => {},
-		_onSend: () => {}
+		dialog,
+		templateModel,
+		createKnowledgeBaseButtonAttrs: createKnowledgeBaseButtonAttrs
 	}
 }
 
@@ -88,7 +102,8 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 	objectUrls: Array<string>
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
-
+	templateModel: ?TemplatePopupModel
+	openKnowledgeBaseButtonAttrs: ?ButtonAttrs
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 
@@ -99,20 +114,18 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		const a: MailEditorAttrs = vnode.attrs
 		const model = a.model
 
+		this.templateModel = a.templateModel
 		this.editor = new Editor(200, (html, isPaste) => {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {blockExternalContent: !isPaste && a.doBlockExternalContent()})
 			this.mentionedInlineImages = sanitized.inlineImageCids
 			return sanitized.html
 		})
 
-		a._focusEditorOnLoad = () => { this.editor.initialized.promise.then(() => this.editor.focus()) }
-
 		const onEditorChanged = () => {
 			cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())
 			model.setMailChanged(true)
 			m.redraw()
 		}
-
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
@@ -125,6 +138,13 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 
 			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
 			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
+
+			if (a.templateModel) {
+				a.templateModel.init().then(templateModel => {
+					// add this event listener to handle quick selection of templates inside the editor
+					registerTemplateShortcutListener(this.editor, templateModel)
+				})
+			}
 		})
 
 		const insertImageHandler = isApp()
@@ -138,7 +158,21 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 					})
 					m.redraw()
 				})
-		this.toolbar = new RichTextToolbar(this.editor, {imageButtonClickHandler: insertImageHandler})
+
+		const templateButtonAttrs: ButtonAttrs = {
+			label: "emptyString_msg",
+			title: "openTemplatePopup_msg",
+			click: () => {
+				this.openTemplates()
+			},
+			type: ButtonType.Toggle,
+			icon: () => Icons.ListAlt,
+		}
+
+		this.toolbar = new RichTextToolbar(this.editor, {
+			imageButtonClickHandler: insertImageHandler,
+			customButtonAttrs: [templateButtonAttrs]
+		})
 
 		this.recipientFields = {
 			to: new MailEditorRecipientField(model, "to", locator.contactModel),
@@ -194,8 +228,8 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			if (didChange) m.redraw()
 		})
 
-		// To get the behaviour that remainining text in a text field creates an error
-		a._onSend = () => {
+		// Leftover text in recipient field is an error
+		model.setOnBeforeSendFunction(() => {
 			let invalidText = ""
 			for (const field in this.recipientFields) {
 				this.recipientFields[field].component.createBubbles()
@@ -206,12 +240,35 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			if (invalidText !== "") {
 				throw new UserError(() => lang.get("invalidRecipients_msg") + "\n" + invalidText)
 			}
+		})
+
+		const dialog = a.dialog()
+		if (model.getConversationType() === ConversationType.REPLY || model.toRecipients().length) {
+			dialog.setFocusOnLoadFunction(() => { this.editor.initialized.promise.then(() => this.editor.focus()) })
 		}
+
+		const shortcuts = [
+			{key: Keys.SPACE, ctrl: true, exec: () => this.openTemplates(), help: "openTemplatePopup_msg"},
+			// these are handled by squire
+			{key: Keys.B, ctrl: true, exec: noOp, help: "formatTextBold_msg"},
+			{key: Keys.I, ctrl: true, exec: noOp, help: "formatTextItalic_msg"},
+			{key: Keys.U, ctrl: true, exec: noOp, help: "formatTextUnderline_msg"}
+		]
+
+		shortcuts.forEach(dialog.addShortcut.bind(dialog))
+
+		this.editor.initialized.promise.then(() => {
+			a.createKnowledgeBaseButtonAttrs(this.editor)
+			 .then(attrs => {
+				 this.openKnowledgeBaseButtonAttrs = attrs
+				 m.redraw()
+			 })
+		})
 	}
 
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
-		const model = a.model
+		const {model} = a
 
 		a.body = () => this.editor.getHTML()
 
@@ -242,6 +299,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			})
 			: null
 
+
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
@@ -250,7 +308,11 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			injectionsRight: () => {
 				return showConfidentialButton
 					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
-					: [m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+					: [
+						this.openKnowledgeBaseButtonAttrs ? m(ButtonN, this.openKnowledgeBaseButtonAttrs) : null,
+						m(ButtonN, attachFilesButtonAttrs),
+						toolbarButton()
+					]
 			}
 
 		}
@@ -304,6 +366,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			onremove: vnode => {
 				model.dispose()
 				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
+				if (this.templateModel) this.templateModel.dispose()
 			},
 			onclick: (e) => {
 				if (e.target === this.editor.getDOM()) {
@@ -369,6 +432,14 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			m(".pb")
 		])
 	}
+
+	openTemplates() {
+		if (this.templateModel) {
+			this.templateModel.init().then(templateModel => {
+				showTemplatePopupInEditor(templateModel, this.editor, null, this.editor.getSelectedText())
+			})
+		}
+	}
 }
 
 
@@ -385,7 +456,6 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	let mailEditorAttrs: MailEditorAttrs
 	let domCloseButton: HTMLElement
 
-
 	const save = () => {
 		return model.saveDraft(true, MailMethod.NONE, showProgressDialog)
 		            .catch(UserError, err => Dialog.error(() => err.message))
@@ -394,7 +464,6 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	}
 	const send = () => {
 		try {
-			mailEditorAttrs._onSend()
 			model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
@@ -454,54 +523,52 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		}
 	}
 
-	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages);
 
-	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs)
-	               .addShortcut({
-		               key: Keys.ESC,
-		               exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) },
-		               help: "close_alt"
-	               })
-	               .addShortcut({
-		               key: Keys.B,
-		               ctrl: true,
-		               exec: () => {
-			               // is done by squire
-		               },
-		               help: "formatTextBold_msg"
-	               })
-	               .addShortcut({
-		               key: Keys.I,
-		               ctrl: true,
-		               exec: () => {
-			               // is done by squire
-		               },
-		               help: "formatTextItalic_msg"
-	               })
-	               .addShortcut({
-		               key: Keys.U,
-		               ctrl: true,
-		               exec: () => {
-			               // is done by squire
-		               },
-		               help: "formatTextUnderline_msg"
-	               })
-	               .addShortcut({
-		               key: Keys.S,
-		               ctrl: true,
-		               exec: () => { save() },
-		               help: "save_action"
-	               })
-	               .addShortcut({
-		               key: Keys.S,
-		               ctrl: true,
-		               shift: true,
-		               exec: send,
-		               help: "send_action"
-	               }).setCloseHandler(() => closeButtonAttrs.click(newMouseEvent(), domCloseButton))
+	const templatePopupModel = logins.isInternalUserLoggedIn()
+		? new TemplatePopupModel(locator.eventController, logins, locator.entityClient)
+		: null
 
-	if (model.getConversationType() === ConversationType.REPLY || model.toRecipients().length) {
-		dialog.setFocusOnLoadFunction(() => mailEditorAttrs._focusEditorOnLoad())
+
+	const createKnowledgebaseButtonAttrs = (editor: Editor) => {
+		return logins.getUserController().loadCustomer().then(customer => {
+			// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
+			if (styles.isDesktopLayout()
+				&& templatePopupModel
+				&& logins.getUserController().getTemplateMemberships().length > 0
+				&& isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
+				return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
+					.init()
+					.then(knowledgebaseModel => {
+						const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
+						const knowledgebaseButtonAttrs = createOpenKnowledgeBaseButtonAttrs(knowledgebaseInjection, () => editor.getValue())
+						dialog.setInjectionRight(knowledgebaseInjection)
+						return knowledgebaseButtonAttrs
+					})
+			} else {
+				return null
+			}
+		})
+	}
+
+	mailEditorAttrs = createMailEditorAttrs(model,
+		blockExternalContent,
+		model.toRecipients().length !== 0,
+		inlineImages,
+		() => dialog,
+		templatePopupModel,
+		createKnowledgebaseButtonAttrs
+	)
+
+	const shortcuts = [
+		{key: Keys.ESC, exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) }, help: "close_alt"},
+		{key: Keys.S, ctrl: true, exec: () => { save() }, help: "save_action"},
+		{key: Keys.S, ctrl: true, shift: true, exec: send, help: "send_action"},
+	]
+
+	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs,)
+	dialog.setCloseHandler(() => closeButtonAttrs.click(newMouseEvent(), domCloseButton))
+	for (let shortcut of shortcuts) {
+		dialog.addShortcut(shortcut)
 	}
 
 	return dialog

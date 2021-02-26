@@ -107,3 +107,7 @@ Reference: https://github.com/Stuk/jszip/blob/master/LICENSE.markdown
 quoted-printable - https://github.com/mathiasbynens/quoted-printable
 License: MIT
 Reference: https://github.com/mathiasbynens/quoted-printable/blob/master/LICENSE-MIT.txt
+
+language icon - MGalloway (WMF) via Wikimedia Commons - https://upload.wikimedia.org/wikipedia/commons/4/43/OOjs_UI_icon_language-ltr.svg
+License: CC BY-SA 3.0
+Reference: https://creativecommons.org/licenses/by-sa/3.0>,

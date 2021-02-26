@@ -3,11 +3,11 @@
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
-import type {CalendarGroupData} from "./CalendarGroupData"
+import type {UserAreaGroupData} from "./UserAreaGroupData"
 
-export const CalendarPostDataTypeRef: TypeRef<CalendarPostData> = new TypeRef("tutanota", "CalendarPostData")
+export const UserAreaGroupPostDataTypeRef: TypeRef<UserAreaGroupPostData> = new TypeRef("tutanota", "UserAreaGroupPostData")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarPostData",
+	"name": "UserAreaGroupPostData",
 	"since": 33,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 964,
@@ -24,26 +24,26 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"calendarData": {
+		"groupData": {
 			"id": 966,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "CalendarGroupData"
+			"refType": "UserAreaGroupData"
 		}
 	},
 	"app": "tutanota",
 	"version": "45"
 }
 
-export function createCalendarPostData(values?: $Shape<$Exact<CalendarPostData>>): CalendarPostData {
-	return Object.assign(create(_TypeModel, CalendarPostDataTypeRef), values)
+export function createUserAreaGroupPostData(values?: $Shape<$Exact<UserAreaGroupPostData>>): UserAreaGroupPostData {
+	return Object.assign(create(_TypeModel, UserAreaGroupPostDataTypeRef), values)
 }
 
-export type CalendarPostData = {
-	_type: TypeRef<CalendarPostData>;
+export type UserAreaGroupPostData = {
+	_type: TypeRef<UserAreaGroupPostData>;
 
 	_format: NumberString;
 
-	calendarData: CalendarGroupData;
+	groupData: UserAreaGroupData;
 }

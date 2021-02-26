@@ -54,7 +54,7 @@ import {fileController} from "../../file/FileController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
 import {attachDropdown, DropdownN} from "../../gui/base/DropdownN"
-import {MailFolderView} from "./MailFolderView"
+import {MailFolderRow} from "./MailFolderRow"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
@@ -67,17 +67,18 @@ import {FolderExpander} from "../../gui/base/FolderExpander"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
 import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
+import {listSelectionKeyboardShortcuts} from "../../gui/base/List"
+import {SidebarSection} from "../../gui/SidebarSection"
 
 assertMainOrNode()
 
 type MailFolderRowData = {id: Id, button: NavButtonAttrs, folder: MailFolder}
 
-type MailboxExpander = {
+type MailboxSection = {
 	label: lazy<string>,
-	expanded: Stream<boolean>,
 	systemFolderButtons: MailFolderRowData[],
 	customFolderButtons: MailFolderRowData[],
-	folderAddButton: Button
+	folderAddButton: ButtonAttrs
 }
 
 
@@ -92,7 +93,7 @@ export class MailView implements CurrentView {
 	mailViewer: ?MailViewer;
 	oncreate: Function;
 	onremove: Function;
-	_mailboxExpanders: Map<Id, MailboxExpander>; // mailGroupId -> expander
+	_mailboxSections: Map<Id, MailboxSection>; // mailGroupId -> section
 	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
 	_actionBarButtons: lazy<ButtonAttrs[]>;
@@ -101,7 +102,7 @@ export class MailView implements CurrentView {
 
 	constructor() {
 		this.mailViewer = null
-		this._mailboxExpanders = new Map()
+		this._mailboxSections = new Map()
 		this._folderToUrl = {}
 		this._throttledRouteSet = throttleRoute()
 		this.folderColumn = new ViewColumn({
@@ -112,15 +113,14 @@ export class MailView implements CurrentView {
 						click: () => this._showNewMailDialog().catch(PermissionError, noOp),
 					}
 					: null,
-				content: Array.from(this._mailboxExpanders.entries())
-				              .map(([mailGroupId, expander]) => {
-						              return m(FolderExpander, {
-							              label: expander.label,
-							              expanded: expander.expanded,
-						              }, this.createMailboxExpanderChildren(mailGroupId,
-							              expander.systemFolderButtons,
-							              expander.customFolderButtons,
-							              expander.folderAddButton))
+				content: Array.from(this._mailboxSections.entries())
+				              .map(([mailGroupId, mailboxSection]) => {
+						              return m(SidebarSection, {
+							              name: mailboxSection.label
+						              }, this.createMailboxFolderItems(mailGroupId,
+							              mailboxSection.systemFolderButtons,
+							              mailboxSection.customFolderButtons,
+							              mailboxSection.folderAddButton))
 					              }
 				              ),
 				ariaLabel: "folderTitle_label"
@@ -243,50 +243,7 @@ export class MailView implements CurrentView {
 				},
 				help: "scrollToBottom_action"
 			},
-			{
-				key: Keys.UP,
-				exec: () => this.mailList.list.selectPrevious(false),
-				help: "selectPrevious_action"
-			},
-			{
-				key: Keys.K,
-				exec: () => this.mailList.list.selectPrevious(false),
-				help: "selectPrevious_action"
-			},
-			{
-				key: Keys.UP,
-				shift: true,
-				exec: () => this.mailList.list.selectPrevious(true),
-				help: "addPrevious_action"
-			},
-			{
-				key: Keys.K,
-				shift: true,
-				exec: () => this.mailList.list.selectPrevious(true),
-				help: "addPrevious_action"
-			},
-			{
-				key: Keys.DOWN,
-				exec: () => this.mailList.list.selectNext(false),
-				help: "selectNext_action"
-			},
-			{
-				key: Keys.J,
-				exec: () => this.mailList.list.selectNext(false),
-				help: "selectNext_action"
-			},
-			{
-				key: Keys.DOWN,
-				shift: true,
-				exec: () => this.mailList.list.selectNext(true),
-				help: "addNext_action"
-			},
-			{
-				key: Keys.J,
-				shift: true,
-				exec: () => this.mailList.list.selectNext(true),
-				help: "addNext_action"
-			},
+		].concat(listSelectionKeyboardShortcuts(() => this.mailList.list)).concat([
 			{
 				key: Keys.N,
 				exec: () => (this._showNewMailDialog().catch(PermissionError, noOp): any),
@@ -380,22 +337,22 @@ export class MailView implements CurrentView {
 				enabled: canDoDragAndDropExport,
 				help: "dragAndDrop_action"
 			}
-		]
+		])
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
 		locator.mailModel.mailboxDetails.map(mailboxDetails => {
 			for (let newMailboxDetail of mailboxDetails) {
-				const expander = this._mailboxExpanders.get(newMailboxDetail.mailGroup._id)
-				if (expander) {
-					expander.customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
+				const section = this._mailboxSections.get(newMailboxDetail.mailGroup._id)
+				if (section) {
+					section.customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
 				} else {
-					this._mailboxExpanders.set(newMailboxDetail.mailGroup._id, this.createMailboxExpander(newMailboxDetail))
+					this._mailboxSections.set(newMailboxDetail.mailGroup._id, this.createMailboxSection(newMailboxDetail))
 				}
 			}
 
-			for (let mailGroupId of this._mailboxExpanders.keys()) {
+			for (let mailGroupId of this._mailboxSections.keys()) {
 				if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id === mailGroupId) == null) {
-					this._mailboxExpanders.delete(mailGroupId)
+					this._mailboxSections.delete(mailGroupId)
 				}
 			}
 
@@ -465,11 +422,10 @@ export class MailView implements CurrentView {
 		           })
 	}
 
-	createMailboxExpander(mailboxDetail: MailboxDetail): MailboxExpander {
+	createMailboxSection(mailboxDetail: MailboxDetail): MailboxSection {
 		const mailGroupId = mailboxDetail.mailGroup._id
 		return {
 			details: mailboxDetail,
-			expanded: stream(true),
 			label: () => getMailboxName(logins, mailboxDetail),
 			systemFolderButtons: this.createFolderButtons(getSortedSystemFolders(mailboxDetail.folders)),
 			customFolderButtons: this.createFolderButtons(getSortedCustomFolders(mailboxDetail.folders)),
@@ -478,41 +434,39 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	createMailboxExpanderChildren(mailGroupId: Id,
-	                              systemFolderButtons: MailFolderRowData[],
-	                              customFolderButtons: MailFolderRowData[],
-	                              folderAddButton: Button): Children {
+	createMailboxFolderItems(mailGroupId: Id,
+	                         systemFolderButtons: MailFolderRowData[],
+	                         customFolderButtons: MailFolderRowData[],
+	                         folderAddButton: ButtonAttrs): Children {
 		const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
-		return m(".folders",
-			systemFolderButtons.map(({id, button}) => {
-				const count = groupCounters[id]
-				return m(MailFolderView, {
-					count: count,
-					button,
-					rightButton: null,
-					key: id,
+		return systemFolderButtons.map(({id, button}) => {
+			const count = groupCounters[id]
+			return m(MailFolderRow, {
+				count: count,
+				button,
+				rightButton: null,
+				key: id,
+			})
+		}).concat(logins.isInternalUserLoggedIn()
+			? m(SidebarSection, {
+					name: "yourFolders_action",
+					buttonAttrs: folderAddButton,
+					key: "yourFolders" // we need to set a key because folder rows also have a key.
+				},
+				customFolderButtons.map(({id, button, folder}) => {
+					const count = groupCounters[id]
+					return m(MailFolderRow, {
+						count,
+						button,
+						rightButton: isNavButtonSelected(button)
+							? this.createFolderMoreButton(mailGroupId, folder)
+							: null,
+						key: id
+					})
 				})
-			}).concat(logins.isInternalUserLoggedIn()
-				? [
-					m(".folder-row.flex-space-between.plr-l", {key: "yourFolders"}, [
-						m("small.b.align-self-center.ml-negative-xs",
-							{style: {color: theme.navigation_button}},
-							lang.get("yourFolders_action").toLocaleUpperCase()),
-						m(folderAddButton)
-					])
-				]
-				: []
-			).concat(customFolderButtons.map(({id, button, folder}) => {
-				const count = groupCounters[id]
-				return m(MailFolderView, {
-					count,
-					button,
-					rightButton: isNavButtonSelected(button)
-						? this.createFolderMoreButton(mailGroupId, folder)
-						: null,
-					key: id
-				})
-			})))
+			)
+			: []
+		)
 	}
 
 	/**
@@ -578,7 +532,7 @@ export class MailView implements CurrentView {
 
 
 	isInitialized(): boolean {
-		return this._mailboxExpanders.size > 0 && this.selectedFolder != null
+		return this._mailboxSections.size > 0 && this.selectedFolder != null
 	}
 
 	_setUrl(url: string) {
@@ -641,17 +595,22 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	createFolderAddButton(mailGroupId: Id): Button {
-		return new Button('add_action', () => {
-			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
-				(name) => this._checkFolderName(name, mailGroupId))
-			             .then((name) =>
-				             locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
-				                    .then((mailboxDetails) =>
-					                    worker.createMailFolder(name,
-						                    getInboxFolder(mailboxDetails.folders)._id,
-						                    mailGroupId)))
-		}, () => Icons.Add).setColors(ButtonColors.Nav)
+	createFolderAddButton(mailGroupId: Id): ButtonAttrs {
+		return {
+			label: 'add_action',
+			click: () => {
+				return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
+					(name) => this._checkFolderName(name, mailGroupId))
+				             .then((name) =>
+					             locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+					                    .then((mailboxDetails) =>
+						                    worker.createMailFolder(name,
+							                    getInboxFolder(mailboxDetails.folders)._id,
+							                    mailGroupId)))
+			},
+			icon: () => Icons.Add,
+			colors: ButtonColors.Nav
+		}
 	}
 
 	createFolderMoreButton(mailGroupId: Id, folder: MailFolder): ButtonAttrs {

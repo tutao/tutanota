@@ -4,9 +4,9 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 
-export const CalendarPostReturnTypeRef: TypeRef<CalendarPostReturn> = new TypeRef("tutanota", "CalendarPostReturn")
+export const CreateGroupPostReturnTypeRef: TypeRef<CreateGroupPostReturn> = new TypeRef("tutanota", "CreateGroupPostReturn")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarPostReturn",
+	"name": "CreateGroupPostReturn",
 	"since": 34,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 985,
@@ -35,12 +35,12 @@ export const _TypeModel: TypeModel = {
 	"version": "45"
 }
 
-export function createCalendarPostReturn(values?: $Shape<$Exact<CalendarPostReturn>>): CalendarPostReturn {
-	return Object.assign(create(_TypeModel, CalendarPostReturnTypeRef), values)
+export function createCreateGroupPostReturn(values?: $Shape<$Exact<CreateGroupPostReturn>>): CreateGroupPostReturn {
+	return Object.assign(create(_TypeModel, CreateGroupPostReturnTypeRef), values)
 }
 
-export type CalendarPostReturn = {
-	_type: TypeRef<CalendarPostReturn>;
+export type CreateGroupPostReturn = {
+	_type: TypeRef<CreateGroupPostReturn>;
 	_errors: Object;
 
 	_format: NumberString;

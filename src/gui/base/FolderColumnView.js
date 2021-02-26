@@ -12,7 +12,7 @@ import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 assertMainOrNode()
 
 export type Attrs = {
-	/** Button to be displayed on top of the  */
+	/** Button to be displayed on top of the column*/
 	button: ?{label: TranslationKey, click: clickHandler},
 	content: Children,
 	ariaLabel: TranslationKey | lazy<string>

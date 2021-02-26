@@ -29,6 +29,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 
 assertMainOrNode()
 
@@ -43,6 +44,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	_adminUserGroupInfoIds: Id[];
 	onremove: Function;
 
+
 	constructor(settingsView: SettingsView) {
 		this._adminUserGroupInfoIds = []
 		this._settingsView = settingsView
@@ -50,6 +52,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return customer.userGroups
 			})
+
 		})
 
 		this.list = new List({
@@ -105,16 +108,15 @@ export class UserListView implements UpdatableSettingsViewer {
 
 		this.view = (): Children => {
 			return !logins.isEnabled(FeatureType.WhitelabelChild)
-				? m(".flex.flex-column.fill-absolute", [
-					m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
-						m(".mr-negative-s.align-self-end", m(ButtonN, {
+				? m(ListColumnWrapper, {
+						headerContent: m(".mr-negative-s.align-self-end", m(ButtonN, {
 							label: "addUsers_action",
 							type: ButtonType.Primary,
 							click: () => this.addButtonClicked()
 						}))
-					),
-					m(".rel.flex-grow", m(this.list))
-				])
+					},
+					m(this.list)
+				)
 				: null
 		}
 

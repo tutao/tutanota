@@ -4,9 +4,9 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 
-export const CalendarGroupDataTypeRef: TypeRef<CalendarGroupData> = new TypeRef("tutanota", "CalendarGroupData")
+export const UserAreaGroupDataTypeRef: TypeRef<UserAreaGroupData> = new TypeRef("tutanota", "UserAreaGroupData")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarGroupData",
+	"name": "UserAreaGroupData",
 	"since": 33,
 	"type": "AGGREGATED_TYPE",
 	"id": 956,
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"calendarEncCalendarGroupRootSessionKey": {
+		"groupEncGroupRootSessionKey": {
 			"id": 958,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -42,7 +42,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"ownerEncGroupInfoSessionKey": {
+		"customerEncGroupInfoSessionKey": {
 			"id": 960,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -70,18 +70,18 @@ export const _TypeModel: TypeModel = {
 	"version": "45"
 }
 
-export function createCalendarGroupData(values?: $Shape<$Exact<CalendarGroupData>>): CalendarGroupData {
-	return Object.assign(create(_TypeModel, CalendarGroupDataTypeRef), values)
+export function createUserAreaGroupData(values?: $Shape<$Exact<UserAreaGroupData>>): UserAreaGroupData {
+	return Object.assign(create(_TypeModel, UserAreaGroupDataTypeRef), values)
 }
 
-export type CalendarGroupData = {
-	_type: TypeRef<CalendarGroupData>;
+export type UserAreaGroupData = {
+	_type: TypeRef<UserAreaGroupData>;
 
 	_id: Id;
 	adminEncGroupKey: ?Uint8Array;
-	calendarEncCalendarGroupRootSessionKey: Uint8Array;
+	groupEncGroupRootSessionKey: Uint8Array;
 	groupInfoEncName: Uint8Array;
-	ownerEncGroupInfoSessionKey: Uint8Array;
+	customerEncGroupInfoSessionKey: Uint8Array;
 	userEncGroupKey: Uint8Array;
 
 	adminGroup: ?Id;

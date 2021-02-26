@@ -84,7 +84,7 @@ export class CalendarEventPopup implements ModalComponent {
 					style: {
 						width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)), // minus margin, need to apply it now to not overflow later
 						opacity: "0", // see hack description below
-						margin: "1px" // because calendar event bubbles have 1px border, we want to align
+					margin: "1px" // because calendar event bubbles have 1px border, we want to align
 					},
 					oncreate: ({dom}) => {
 						// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred

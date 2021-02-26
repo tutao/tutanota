@@ -79,9 +79,9 @@ export function showSupportDialog() {
 						// we can trust the faq entry here because it is sanitized in update-translations.js from the website project
 						// trust is required because the search results are marked with <mark> tag and the faq entries contain html elements.
 						m(".b", m.trust(value.title)),
-						m(".flex-start.ml-negative-bubble.flex-wrap", value.tags.split(",")
-						                                                   .filter((tag => tag !== ""))
-						                                                   .map(tag => m(".bubbleTag.plr-button", m.trust(tag.trim())))),
+						m(".flex-start.flex-wrap", value.tags.split(",")
+						                                .filter((tag => tag !== ""))
+						                                .map(tag => m(".keyword-bubble.plr-button", m.trust(tag.trim())))),
 						m(".list-header.pb", m.trust(value.text))
 					])
 				})),

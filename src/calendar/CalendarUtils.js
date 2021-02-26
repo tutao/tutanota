@@ -6,7 +6,6 @@ import type {
 	EndTypeEnum,
 	EventTextTimeOptionEnum,
 	RepeatPeriodEnum,
-	ShareCapabilityEnum,
 	WeekStartEnum
 } from "../api/common/TutanotaConstants"
 import {
@@ -16,9 +15,7 @@ import {
 	EndType,
 	EventTextTimeOption,
 	getWeekStart,
-	GroupType,
 	RepeatPeriod,
-	ShareCapability,
 	WeekStart
 } from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -33,11 +30,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {logins} from "../api/main/LoginController"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import type {User} from "../api/entities/sys/User"
-import type {Group} from "../api/entities/sys/Group"
-import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {isColorLight} from "../gui/base/Color"
 import type {CalendarInfo} from "./view/CalendarView"
 import {isSameId} from "../api/common/utils/EntityUtils";
@@ -250,12 +243,6 @@ export function getDiffInDays(a: Date, b: Date): number {
 	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
 }
 
-export function getCalendarName(groupInfo: GroupInfo, allowGroupNameOverride: boolean): string {
-	const {userSettingsGroupRoot} = logins.getUserController()
-	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
-	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || lang.get("privateCalendar_label")
-}
-
 export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {
 	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
 }
@@ -332,39 +319,6 @@ export function isLongEvent(event: CalendarEvent, zone: string): boolean {
 export function assignEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
 	const listId = event.repeatRule || isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
-}
-
-
-export function hasCapabilityOnGroup(user: User, group: Group, requiredCapability: ShareCapabilityEnum): boolean {
-	if (group.type !== GroupType.Calendar) {
-		return false
-	}
-
-	if (isSharedGroupOwner(group, user._id)) {
-		return true;
-	}
-	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
-	if (membership) {
-		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
-	}
-	return false
-}
-
-export function isSharedGroupOwner(sharedGroup: Group, userId: Id): boolean {
-	return !!(sharedGroup.user && isSameId(sharedGroup.user, userId))
-}
-
-export function getCapabilityText(capability: ?ShareCapabilityEnum): string {
-	switch (capability) {
-		case ShareCapability.Invite:
-			return lang.get("calendarShareCapabilityInvite_label")
-		case ShareCapability.Write:
-			return lang.get("calendarShareCapabilityWrite_label")
-		case ShareCapability.Read:
-			return lang.get("calendarShareCapabilityRead_label")
-		default:
-			return lang.get("comboBoxSelectionNone_msg")
-	}
 }
 
 export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean {

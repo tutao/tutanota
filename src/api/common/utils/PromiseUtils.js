@@ -81,23 +81,25 @@ export function delay(ms: number): Promise<void> {
 	})
 }
 
-export function promiseMap<T, R>(iterable: Iterable<T>, mapper: (T) => $Promisable<R>): Promise<Array<R>> {
-	const iterator: Iterator<T> = downcast(iterable)[Symbol.iterator]()
-	const result = []
+export function promiseMap<T, R>(_iterable: $Promisable<Iterable<T>>, mapper: (T) => $Promisable<R>): Promise<Array<R>> {
+	return Promise.resolve(_iterable).then(iterable => {
+		const iterator: Iterator<T> = downcast(iterable)[Symbol.iterator]()
+		const result = []
 
-	function iterate() {
-		const item = iterator.next()
-		if (item.done === true) {
-			return Promise.resolve()
-		} else {
-			return Promise.resolve(mapper(item.value)).then((newItem) => {
-				result.push(newItem)
-				return iterate()
-			})
+		function iterate() {
+			const item = iterator.next()
+			if (item.done === true) {
+				return Promise.resolve()
+			} else {
+				return Promise.resolve(mapper(item.value)).then((newItem) => {
+					result.push(newItem)
+					return iterate()
+				})
+			}
 		}
-	}
 
-	return iterate().then(() => result)
+		return iterate().then(() => result)
+	})
 }
 
 /**

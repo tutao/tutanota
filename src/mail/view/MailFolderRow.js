@@ -7,12 +7,12 @@ import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {animations, opacity} from "../../gui/animation/Animations"
 
-export type Attrs = {count: number, button: NavButtonAttrs, rightButton: ?ButtonAttrs}
+export type MailFolderRowAttrs = {count: number, button: NavButtonAttrs, rightButton: ?ButtonAttrs}
 
-export class MailFolderView implements MComponent<Attrs> {
+export class MailFolderRow implements MComponent<MailFolderRowAttrs> {
 	_hovered: boolean = false;
 
-	view(vnode: Vnode<Attrs>): ?Children {
+	view(vnode: Vnode<MailFolderRowAttrs>): ?Children {
 		const {count, button, rightButton} = vnode.attrs
 
 		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [

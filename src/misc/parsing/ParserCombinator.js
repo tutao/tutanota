@@ -1,6 +1,6 @@
 //@flow
-import {downcast} from "../api/common/utils/Utils"
-import {TutanotaError} from "../api/common/error/TutanotaError"
+import {downcast} from "../../api/common/utils/Utils"
+import {TutanotaError} from "../../api/common/error/TutanotaError"
 
 export type Parser<T> = (StringIterator) => T
 
@@ -34,8 +34,24 @@ export function makeCharacterParser(character: string): Parser<string> {
 	}
 }
 
-function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<T>> {
+export function makeNotCharacterParser(character: string): Parser<string> {
 	return (iterator: StringIterator) => {
+		let value = iterator.peek()
+		if (value !== character) {
+			iterator.next()
+			return value
+		}
+		const sliceStart = Math.max(iterator.position - 10, 0)
+		const sliceEnd = Math.min(iterator.position + 10, iterator.iteratee.length - 1)
+		throw new ParserError(`expected character ${character} got ${value} near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
+	}
+}
+
+
+export function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<T>> {
+
+	return (iterator: StringIterator) => {
+
 		const result = []
 		try {
 			let parseResult = anotherParser(iterator)
@@ -50,10 +66,12 @@ function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<T>> {
 }
 
 export function mapParser<T, R>(parser: Parser<T>, mapper: (T) => R): Parser<R> {
-	return (iterator: StringIterator) => mapper(parser(iterator))
+	return (iterator: StringIterator) => {
+		return mapper(parser(iterator))
+	}
 }
 
-function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
+export function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
 	return mapParser(makeZeroOrMoreParser(parser), (value: Array<T>) => {
 		if (value.length === 0) {
 			throw new ParserError("Expected at least one value, got none")
@@ -103,14 +121,29 @@ export function makeEitherParser<A, B>(parserA: Parser<A>, parserB: Parser<B>): 
 	}
 }
 
-function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
+export function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
 	return (iterator: StringIterator) => {
 		const value = iterator.peek()
 		if (allowed.includes(value)) {
 			iterator.next()
 			return value
 		}
-		throw new ParserError(`Expected one of ${String(allowed)}, got ${value}`)
+		throw new ParserError(`Expected one of ${allowed.map(c => `"${c}"`).join(", ")}, but got "${value}\n${context(iterator, iterator.position, 10)}"`)
+	}
+}
+
+
+export function makeNotOneOfCharactersParser(notAllowed: Array<string>): Parser<string> {
+	return (iterator: StringIterator) => {
+		const value = iterator.peek()
+		if (typeof value !== "string") {
+			throw new ParserError("unexpected end of input")
+		}
+		if (!notAllowed.includes(value)) {
+			iterator.next()
+			return value
+		}
+		throw new ParserError(`Expected none of ${notAllowed.map(c => `"${c}"`).join(", ")}, but got "${value}"\n${context(iterator, iterator.position, 10)}`)
 	}
 }
 
@@ -127,13 +160,23 @@ export class StringIterator {
 		this.iteratee = iteratee
 	}
 
-	next(): {value: ?string, done: boolean} {
+	next(): IteratorResult<string, void> {
 		const value = this.iteratee[++this.position]
-		const done = this.position >= this.iteratee.length
-		return {value, done}
+		const done: boolean = this.position >= this.iteratee.length
+		return done
+			? {done: true}
+			: {done: false, value}
 	}
 
 	peek(): string {
 		return this.iteratee[this.position + 1]
 	}
+}
+
+function context(iterator: StringIterator, contextCentre: number, contextRadius: number = 10): string {
+	const sliceStart = Math.max(contextCentre - contextRadius, 0)
+	const sliceEnd = Math.min(contextCentre + contextRadius, iterator.iteratee.length - 1)
+	const sliceLength = sliceEnd - sliceStart
+	const actualPosition = contextCentre - (2 * contextRadius - sliceLength)
+	return iterator.iteratee.slice(sliceStart, sliceEnd)
 }

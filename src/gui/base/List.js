@@ -6,7 +6,7 @@ import {client} from "../../misc/ClientDetector"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
-import {debounceStart, neverNull} from "../../api/common/utils/Utils"
+import {debounceStart, mapLazily, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
@@ -19,9 +19,11 @@ import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
-import {isKeyPressed} from "../../misc/KeyManager"
+import {isKeyPressed, keyManager} from "../../misc/KeyManager"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
 import type {ListElement} from "../../api/common/utils/EntityUtils"
+import type {Shortcut} from "../../misc/KeyManager"
+import type {MaybeLazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -146,8 +148,12 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 		reset()
 
-		this.onremove = reset
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(listSelectionKeyboardShortcuts(this))
+			reset()
+		}
 		this.oncreate = () => {
+			keyManager.registerShortcuts(listSelectionKeyboardShortcuts(this))
 			windowFacade.addResizeListener(updateWidth)
 		}
 
@@ -1156,5 +1162,54 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		}
 		return Promise.resolve()
 	}
+}
+
+export function listSelectionKeyboardShortcuts<T: VirtualElement, R: VirtualRow<T>>(list: MaybeLazy<List<T, R>>): Array<Shortcut> {
+	return [
+		{
+			key: Keys.UP,
+			exec: mapLazily(list, list => list.selectPrevious(false)),
+			help: "selectPrevious_action"
+		},
+		{
+			key: Keys.K,
+			exec: mapLazily(list, list => list.selectPrevious(false)),
+			help: "selectPrevious_action"
+		},
+		{
+			key: Keys.UP,
+			shift: true,
+			exec: mapLazily(list, list => list.selectPrevious(true)),
+			help: "addPrevious_action"
+		},
+		{
+			key: Keys.K,
+			shift: true,
+			exec: mapLazily(list, list => list.selectPrevious(true)),
+			help: "addPrevious_action"
+		},
+		{
+			key: Keys.DOWN,
+			exec: mapLazily(list, list => list.selectNext(false)),
+			help: "selectNext_action"
+		},
+		{
+			key: Keys.J,
+			exec: mapLazily(list, list => list.selectNext(false)),
+			help: "selectNext_action"
+		},
+		{
+			key: Keys.DOWN,
+			shift: true,
+			exec: mapLazily(list, list => list.selectNext(true)),
+			help: "addNext_action"
+		},
+		{
+			key: Keys.J,
+			shift: true,
+			exec: mapLazily(list, list => list.selectNext(true)),
+			help: "addNext_action"
+		},
+	]
 }
 

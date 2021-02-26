@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {worker} from "../../api/main/WorkerClient"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull} from "../../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {Dialog} from "../../gui/base/Dialog"
 import {getLanguage, lang} from "../../misc/LanguageViewModel"
@@ -114,7 +114,7 @@ class ContactFormView {
 			this._loading = true
 			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {
 				this._contactForm = contactForm
-				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => l.code))).finally(() => {
+				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
 					document.title = language.pageTitle
 

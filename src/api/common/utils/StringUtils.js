@@ -83,3 +83,13 @@ export function splitAt(str: string, index: number): [string, string] {
 export function toLowerCase(str: string): string {
 	return str.toLowerCase()
 }
+
+/**
+ * Wrapper around String.prototype.localeCompare, for passing to Array.prototype.sort
+ * @param a
+ * @param b
+ * @returns {number}
+ */
+export function localeCompare(a: string, b: string): number {
+	return a.localeCompare(b)
+}

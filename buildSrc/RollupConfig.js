@@ -26,21 +26,24 @@ export const allowedImports = {
 	"main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	"urlifier": ["polyfill-helpers", "common-min", "common", "boot"],
 	"sanitizer": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
-	"date": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	"date": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer"],
+	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing"],
 	"search": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "contacts", "date"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
 	"contacts": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "mail-editor"],
-	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date"],
+	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "sharing"],
 	"login": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main",],
 	"worker": ["polyfill-helpers", "common-min", "common", "native-common", "native-worker"],
 	"settings": [
 		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "contacts", "sanitizer", "mail-editor", "mail-view", "date",
-		"login"
+		"login", "sharing"
 	],
 	"ui-extra": [
 		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "contacts", "sanitizer", "login", "mail-editor"
+	],
+	"sharing": [
+		"polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"
 	],
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
@@ -100,7 +103,9 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	} else if (moduleId.includes("src/mail/editor") ||
 		moduleId.includes("squire") ||
 		moduleId.includes("src/gui/editor") ||
-		moduleId.includes("src/mail/signature")
+		moduleId.includes("src/mail/signature") ||
+		moduleId.includes("src/templates") ||
+		moduleId.includes("src/knowledgebase")
 	) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"
@@ -142,10 +147,14 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "common"
 	} else if (moduleId.includes("rollupPluginBabelHelpers") || moduleId.includes("commonjsHelpers")) {
 		return "polyfill-helpers"
-	} else if (moduleId.includes("src/settings") || moduleId.includes("src/subscription") || moduleId.includes("libs/qrcode")) {
+	} else if (moduleId.includes("src/settings") ||
+		moduleId.includes("src/subscription") ||
+		moduleId.includes("libs/qrcode")) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
+	} else if (moduleId.includes("src/sharing")) {
+		return "sharing"
 	} else if (moduleId.includes("src/api/worker")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (moduleId.includes("libs/jszip")) {

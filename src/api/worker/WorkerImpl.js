@@ -347,7 +347,11 @@ export class WorkerImpl {
 
 			redeemGiftCard: (message: Request) => {
 				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
-			}
+			},
+
+			createTemplateGroup: (message: Request) => {
+				return locator.groupManagement.createTemplateGroup.apply(locator.groupManagement, message.args)
+			},
 		})
 
 		// only register oncaught error handler if we are in the *real* worker scope

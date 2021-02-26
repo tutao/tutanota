@@ -19,7 +19,7 @@ export type EntityUpdateData = {
 	operation: OperationTypeEnum
 }
 
-export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<void>;
+export type EntityEventsListener = (updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<*>;
 
 export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 

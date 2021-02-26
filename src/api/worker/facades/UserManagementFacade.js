@@ -26,10 +26,8 @@ import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
 import {generateRsaKey} from "../crypto/Rsa"
-import {createCalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
 import type {User} from "../../entities/sys/User"
 import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
-import type {CalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
 import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 
@@ -248,27 +246,7 @@ export class UserManagementFacade {
 		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
 	}
-
-	/**
-	 *
-	 * @param adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
-	 * @param adminGroupKey Is not set when generating calendar as normal user
-	 */
-	generateCalendarGroupData(adminGroup: ?Id, adminGroupKey: ?Aes128Key, customerGroupKey: Aes128Key, userGroupKey: Aes128Key,
-	                          name: ?string): CalendarGroupData {
-		let calendarGroupRootSessionKey = aes128RandomKey()
-		let calendarGroupInfoSessionKey = aes128RandomKey()
-		let calendarGroupKey = aes128RandomKey()
-
-		const calendarData = createCalendarGroupData()
-		calendarData.calendarEncCalendarGroupRootSessionKey = encryptKey(calendarGroupKey, calendarGroupRootSessionKey)
-		calendarData.ownerEncGroupInfoSessionKey = encryptKey(customerGroupKey, calendarGroupInfoSessionKey)
-		calendarData.userEncGroupKey = encryptKey(userGroupKey, calendarGroupKey)
-		calendarData.groupInfoEncName = name && encryptString(calendarGroupInfoSessionKey, name) || new Uint8Array([])
-		calendarData.adminEncGroupKey = adminGroupKey ? encryptKey(adminGroupKey, calendarGroupKey) : null
-		calendarData.adminGroup = adminGroup
-		return calendarData
-	}
+	
 
 	generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): ContactFormUserData {
 		let salt = generateRandomSalt()

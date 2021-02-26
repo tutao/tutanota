@@ -19,7 +19,7 @@ export function numberRange(min: number, max: number): Array<number> {
 }
 
 /**
- * Compares two arrays for equality.
+ * Compares two arrays for equality based on ===.
  * @param {Array} a1 The first array.
  * @param {Array} a2 The second array.
  * @return {boolean} True if the arrays are equal, false otherwise.
@@ -30,6 +30,25 @@ export function arrayEquals<T, A: Uint8Array | Array<T>>(a1: A, a2: A): boolean 
 	if (a1.length === a2.length) {
 		for (let i = 0; i < a1.length; i++) {
 			if (a1[i] !== a2[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Compares two arrays for equality based on a predicate
+ * @param a1
+ * @param a2
+ * @param predicate
+ * @returns {boolean}
+ */
+export function arrayEqualsWithPredicate<T>(a1: $ReadOnlyArray<T>, a2: $ReadOnlyArray<T>, predicate: (T, T) => boolean): boolean {
+	if (a1.length === a2.length) {
+		for (let i = 0; i < a1.length; i++) {
+			if (!predicate(a1[i], a2[i])) {
 				return false;
 			}
 		}
@@ -116,7 +135,7 @@ export function mapAndFilterNullAsync<T, R>(array: Array<T>, mapper: mapper<T, $
 	return Promise.all(array.map(mapper)).then(downcast(filterNull))
 }
 
-export function filterNull<T>(array: Array<?T>): Array<T> {
+export function filterNull<T>(array: $ReadOnlyArray<?T>): Array<T> {
 	return downcast(array.filter(item => item != null))
 }
 
@@ -207,7 +226,7 @@ export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Arra
 	return chunks
 }
 
-export function flat<T>(arrays: Array<Array<T>>): Array<T> {
+export function flat<T>(arrays: $ReadOnlyArray<$ReadOnlyArray<T>>): Array<T> {
 	return arrays.reduce((acc, val) => {
 		acc.push(...val)
 		return acc
@@ -298,4 +317,34 @@ export function binarySearch<T>(ar: Array<T>, el: T, compare_fn: (T, T) => numbe
 
 export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 	return new Set(...iterables.map(iterable => Array.from(iterable)))
+}
+
+/**
+ * return a new array containing every item from array1 that isn't in array2
+ * @param array1
+ * @param array2
+ * @param compare: compare items in the array for equality
+ * @returns {Array<$NonMaybeType<T>>|Array<T>}
+ */
+export function difference<T>(array1: $ReadOnlyArray<T>, array2: $ReadOnlyArray<T>, compare: (T, T) => boolean): Array<T> {
+	return array1.filter(element1 => !array2.some(element2 => compare(element1, element2)))
+}
+
+/**
+ * Splits an array into two based on a predicate, where elements that match the predicate go into the left side
+ * @param array
+ * @param predicate
+ */
+export function partition<T>(array: Array<T>, predicate: T => boolean): [Array<T>, Array<T>] {
+	const left = []
+	const right = []
+	for (let item of array) {
+		if (predicate(item)) {
+			left.push(item)
+		} else {
+			right.push(item)
+		}
+	}
+
+	return [left, right]
 }

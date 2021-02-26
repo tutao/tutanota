@@ -19,7 +19,15 @@ import {logins} from "../../api/main/LoginController"
 import {_loadReverseRangeBetween, HttpMethod} from "../../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {defaultCalendarColor, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
+import {
+	defaultCalendarColor,
+	GroupType,
+	Keys,
+	OperationType,
+	reverse,
+	ShareCapability,
+	TimeFormat
+} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "../CalendarUtils"
@@ -28,15 +36,12 @@ import {
 	addDaysForLongEvent,
 	addDaysForRecurringEvent,
 	DEFAULT_HOUR_OF_DAY,
-	getCalendarName,
-	getCapabilityText,
 	getEventStart,
 	getMonth,
 	getNextHalfHour,
 	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeZone,
-	hasCapabilityOnGroup,
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
 } from "../CalendarUtils"
@@ -67,7 +72,6 @@ import {styles} from "../../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {Dialog} from "../../gui/base/Dialog"
 import {isApp} from "../../api/common/Env"
-import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
 import {ReceivedGroupInvitationTypeRef} from "../../api/entities/sys/ReceivedGroupInvitation"
 import type {Group} from "../../api/entities/sys/Group"
@@ -75,8 +79,6 @@ import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettin
 import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import {getDisplayText} from "../../mail/model/MailUtils"
 import {UserGroupRootTypeRef} from "../../api/entities/sys/UserGroupRoot"
-import {showInvitationDialog} from "./CalendarInvitationDialog"
-import {loadGroupMembers} from "./CalendarSharingUtils"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {deviceConfig} from "../../misc/DeviceConfig"
@@ -87,6 +89,19 @@ import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtil
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
 import {createCalendarEventViewModel} from "../CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
+import {showGroupInvitationDialog} from "../../sharing/view/ReceivedGroupInvitationDialog"
+import {
+	getSharedGroupName,
+	getCapabilityText,
+	hasCapabilityOnGroup,
+	loadGroupMembers,
+	loadReceivedGroupInvitations
+} from "../../sharing/GroupUtils"
+import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
+import {moreButton} from "../../gui/base/GuiUtils"
+import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolderRow"
+import {SidebarSection} from "../../gui/SidebarSection"
+import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 
 
@@ -128,7 +143,7 @@ export class CalendarView implements CurrentView {
 	_currentViewType: CalendarViewTypeEnum
 	_hiddenCalendars: Set<Id>
 
-	_calendarInvitations: Array<ReceivedGroupInvitation>
+	_calendarInvitations: ReceivedGroupInvitationsModel
 
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	+_htmlSanitizer: Promise<HtmlSanitizer>
@@ -144,6 +159,9 @@ export class CalendarView implements CurrentView {
 		this.selectedDate = stream(getStartOfDay(new Date()))
 		this._htmlSanitizer = import("../../misc/HtmlSanitizer").then(m => m.htmlSanitizer)
 
+		this._calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, locator.eventController, locator.entityClient, logins)
+		this._calendarInvitations.init()
+
 		this.sidebarColumn = new ViewColumn({
 				view: () => m(FolderColumnView, {
 					button: styles.isUsingBottomNavigation()
@@ -153,16 +171,33 @@ export class CalendarView implements CurrentView {
 							click: () => this._newEvent(),
 						},
 					content: [
-						this._renderCalendarViewButtons(),
-						this._renderSidebarSection("yourCalendars_label", {
-							label: "addCalendar_action",
-							colors: ButtonColors.Nav,
-							click: () => this._onPressedAddCalendar(),
-							icon: () => Icons.Add
+						m(SidebarSection, {
+							name: "view_label",
+							buttonAttrs: (this._currentViewType !== CalendarViewType.AGENDA)
+								? {
+									label: "today_label",
+									click: () => {
+										this._setUrl(m.route.param("view"), new Date())
+									},
+									colors: ButtonColors.Nav,
+									type: ButtonType.Primary,
+								}
+								: null
+						}, this._renderCalendarViewButtons()),
+						m(SidebarSection, {
+							name: "yourCalendars_label",
+							buttonAttrs: {
+								label: "addCalendar_action",
+								colors: ButtonColors.Nav,
+								click: () => this._onPressedAddCalendar(),
+								icon: () => Icons.Add
+							}
 						}, this._renderCalendars(false)),
-						this._renderSidebarSection("otherCalendars_label", null, this._renderCalendars(true)),
-						this._calendarInvitations.length > 0
-							? this._renderSidebarSection("calendarInvitations_label", null, this._renderCalendarInvitations())
+						m(SidebarSection, {name: "otherCalendars_label"}, this._renderCalendars(true)),
+						this._calendarInvitations.invitations().length > 0
+							? m(SidebarSection, {
+								name: "calendarInvitations_label"
+							}, this._calendarInvitations.invitations().map((invitation) => m(GroupInvitationFolderRow, {invitation})))
 							: null,
 					],
 					ariaLabel: "calendar_label"
@@ -274,9 +309,6 @@ export class CalendarView implements CurrentView {
 		let progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
 		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).tap(m.redraw)
 
-		this._calendarInvitations = []
-		this._updateCalendarInvitations()
-
 		this.selectedDate.map((d) => {
 			const previousMonthDate = new Date(d)
 			previousMonthDate.setMonth(d.getMonth() - 1)
@@ -297,15 +329,30 @@ export class CalendarView implements CurrentView {
 			    })
 		})
 
-		this._setupShortcuts();
+		const shortcuts = this._setupShortcuts();
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
 			return this.entityEventReceived(updates, eventOwnerGroupId)
 		})
+
+		const streamListeners = []
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			streamListeners.push(this._calendarInvitations.invitations.map(invitations => {
+				console.log("update invitations: redraw calendar view")
+				m.redraw()
+			}))
+		}
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			for (let listener of streamListeners) {
+				listener.end(true)
+			}
+		}
 	}
 
-	_setupShortcuts() {
-		let shortcuts: Shortcut[] = [
+	_setupShortcuts(): Shortcut[] {
+		return [
 			{
 				key: Keys.ONE,
 				exec: () => this._setUrl(CalendarViewType.WEEK, this.selectedDate()),
@@ -344,10 +391,8 @@ export class CalendarView implements CurrentView {
 				help: "newEvent_action"
 			}
 		]
-
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
+
 
 	_viewPeriod(next: boolean) {
 		switch (this._currentViewType) {
@@ -380,51 +425,25 @@ export class CalendarView implements CurrentView {
 		}
 	}
 
-	_renderSidebarSection(label: TranslationKey, button: ?ButtonAttrs, content: Children): Children {
-		return m(".folders", {style: {color: theme.navigation_button}}, [
-			m(".folder-row.flex-space-between.button-height.plr-l", [
-				m("small.b.align-self-center.ml-negative-xs",
-					lang.get(label).toLocaleUpperCase()),
-				button ? m(ButtonN, button) : null
-			]),
-			content
-		])
-	}
-
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues = [
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
-		return m(".folders.pt-s", [
-			m(".folder-row.flex-space-between.button-height.plr-l", [
-				m("small.b.align-self-center.ml-negative-xs",
-					{style: {color: theme.navigation_button}},
-					lang.get("view_label").toLocaleUpperCase()),
-				(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
-					label: "today_label",
-					click: () => {
-						this._setUrl(m.route.param("view"), new Date())
-					},
-					colors: ButtonColors.Nav,
-					type: ButtonType.Primary,
-				}) : null
-			]),
-			m(".folder-row.plr-l", calendarViewValues.map(viewType => {
-				return m(NavButtonN, {
-					label: () => viewType.name,
-					icon: () => viewType.icon,
-					href: m.route.get(),
-					isSelectedPrefix: viewType.href,
-					colors: ButtonColors.Nav,
-					// Close side menu
-					click: () => {
-						this._setUrl(viewType.value, this.selectedDate())
-						this.viewSlider.focus(this.contentColumn)
-					}
-				})
-			})),
-		])
+		return calendarViewValues.map(viewType => m(".folder-row.plr-l",
+			m(NavButtonN, {
+				label: () => viewType.name,
+				icon: () => viewType.icon,
+				href: m.route.get(),
+				isSelectedPrefix: viewType.href,
+				colors: ButtonColors.Nav,
+				// Close side menu
+				click: () => {
+					this._setUrl(viewType.value, this.selectedDate())
+					this.viewSlider.focus(this.contentColumn)
+				}
+			})
+		))
 	}
 
 	headerRightView(): Children {
@@ -438,19 +457,6 @@ export class CalendarView implements CurrentView {
 			colors: ButtonColors.Header
 		})
 	}
-
-	_updateCalendarInvitations(): Promise<void> {
-		return load(UserGroupRootTypeRef, logins.getUserController().userGroupInfo.group).then(userGroupRoot => {
-			return loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations).then(calendarInvitations => {
-				this._calendarInvitations = calendarInvitations
-				m.redraw()
-			})
-		}).catch(NotFoundError, (e) => {
-			// user doesn't have UserGroupRoot, only created when receiving calendar invitations, so this is empty.
-			this._calendarInvitations = []
-		})
-	}
-
 
 	handleBackButton(): boolean {
 		const route = m.route.get()
@@ -499,32 +505,6 @@ export class CalendarView implements CurrentView {
 		}, "save_action")
 	}
 
-	_renderCalendarInvitations(): Children {
-		return this._calendarInvitations
-		           .map((invitation) => [
-				           m(".folder-row.flex-start.plr-l", [
-					           m(".flex-v-center.flex-grow.button-height", {
-						           style: {
-							           // It's kinda hard to tell this element to not eat up all the row and truncate text instead because it
-							           // is vertical flex. With this it will stop at 80% of what it could be and that's enough for the button.
-							           "max-width": `calc(100% - ${size.button_height}px)`
-						           }
-					           }, [
-						           m(".b.text-ellipsis", {title: getCapabilityText(downcast(invitation.capability))}, invitation.sharedGroupName),
-						           m(".small.text-ellipsis", {title: invitation.inviterMailAddress},
-							           (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
-					           ]),
-					           m(ButtonN, {
-						           label: "show_action",
-						           click: () => showInvitationDialog(invitation),
-						           icon: () => Icons.Eye
-					           })
-				           ])
-			           ]
-		           )
-	}
-
-
 	_renderCalendars(shared: boolean): Children {
 		return this._calendarInfos.isFulfilled() ?
 			Array.from(this._calendarInfos.value().values())
@@ -555,7 +535,7 @@ export class CalendarView implements CurrentView {
 									     "cursor": "pointer",
 								     }
 							     }),
-							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(calendarInfo.groupInfo, shared))
+							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getSharedGroupName(calendarInfo.groupInfo, shared))
 						     ]),
 						     this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared)
 					     ])
@@ -570,11 +550,7 @@ export class CalendarView implements CurrentView {
 
 	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
 		const {group, groupInfo, groupRoot} = calendarInfo
-		return m(ButtonN, attachDropdown({
-				label: "more_label",
-				colors: ButtonColors.Nav, click: noOp,
-				icon: () => Icons.More
-			}, () => [
+		return m(ButtonN, moreButton(() => [
 				{
 					label: "edit_action",
 					icon: () => Icons.Edit,
@@ -588,7 +564,7 @@ export class CalendarView implements CurrentView {
 						if (logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog(false)
 						} else {
-							showCalendarSharingDialog(groupInfo, sharedCalendar)
+							showGroupSharingDialog(groupInfo, sharedCalendar)
 						}
 					},
 					type: ButtonType.Dropdown,
@@ -599,7 +575,8 @@ export class CalendarView implements CurrentView {
 						label: "import_action",
 						icon: () => Icons.Import,
 						click: () => showCalendarImportDialog(groupRoot),
-						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Write),
+						isVisible: () => group.type === GroupType.Calendar
+							&& hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Write),
 						type: ButtonType.Dropdown,
 					},
 				isApp()
@@ -610,9 +587,10 @@ export class CalendarView implements CurrentView {
 						click: () => {
 							const alarmInfoList = logins.getUserController().user.alarmInfoList
 							alarmInfoList
-							&& exportCalendar(getCalendarName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
+							&& exportCalendar(getSharedGroupName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
 						},
-						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
+						isVisible: () => group.type === GroupType.Calendar
+							&& hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
 						type: ButtonType.Dropdown,
 					},
 				{
@@ -627,8 +605,8 @@ export class CalendarView implements CurrentView {
 	}
 
 	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
-		const calendarName = getCalendarName(calendarInfo.groupInfo, false)
-		loadGroupMembers(calendarInfo.group).then(members => {
+		const calendarName = getSharedGroupName(calendarInfo.groupInfo, false)
+		loadGroupMembers(calendarInfo.group, locator.entityClient).then(members => {
 			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter(member => member.info.mailAddress !== ownerMail)
 			Dialog.confirm(() => (otherMembers.length > 0
@@ -649,7 +627,7 @@ export class CalendarView implements CurrentView {
 
 	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, shared: boolean) {
 		showEditCalendarDialog({
-			name: getCalendarName(groupInfo, shared),
+			name: getSharedGroupName(groupInfo, shared),
 			color: colorValue.substring(1),
 
 		}, "edit_action", shared, (dialog, properties) => {
@@ -917,21 +895,6 @@ export class CalendarView implements CurrentView {
 							}
 						})
 					}
-				} else if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
-					if (update.operation === OperationType.CREATE) {
-						return load(ReceivedGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(invitation => {
-							this._calendarInvitations.push(invitation)
-							m.redraw()
-						})
-					} else if (update.operation === OperationType.DELETE) {
-						const found = findAndRemove(this._calendarInvitations, (invitation) => {
-							return isSameId(invitation._id, [update.instanceListId, update.instanceId])
-						})
-						if (found) {
-							m.redraw()
-						}
-					}
-
 				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 					this._calendarInfos.then(calendarInfos => {
 						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.

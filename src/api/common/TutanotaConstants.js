@@ -46,10 +46,15 @@ export const GroupType = Object.freeze({
 	Contact: "6",
 	File: "7",
 	LocalAdmin: "8",
-	Calendar: "9"
+	Calendar: "9",
+	Template: "10"
 })
 export type GroupTypeEnum = $Values<typeof GroupType>;
 export const getMembershipGroupType = (membership: GroupMembership): GroupTypeEnum => downcast(membership.groupType)
+
+export function groupTypeToString(groupType: GroupTypeEnum): string {
+	return reverse(GroupType)[groupType]
+}
 
 export const PermissionType = Object.freeze({
 	Public: "0",
@@ -252,7 +257,7 @@ export const SpamRuleFieldType = Object.freeze({
 })
 export type SpamRuleFieldTypeEnum = $Values<typeof SpamRuleFieldType>;
 
-export function getSparmRuleField(spamRule: EmailSenderListElement): SpamRuleFieldTypeEnum {
+export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFieldTypeEnum {
 	return downcast(spamRule.field)
 }
 
@@ -361,6 +366,7 @@ export const FeatureType = Object.freeze({
 	ExternalEmailProvider: "10",
 	BusinessFeatureEnabled: "11",
 	PremiumLegacy: "12",
+	KnowledgeBase: "13"
 })
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const ValueToFeatureType: {} = reverse(FeatureType)

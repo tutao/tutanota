@@ -4,6 +4,7 @@ import {Request} from "../../api/common/WorkerProtocol"
 import {uriToFileRef} from "../common/FileApp"
 import {isDesktop} from "../../api/common/Env"
 import type {DesktopConfigEncKeyEnum, DesktopConfigKeyEnum} from "../../desktop/config/ConfigKeys"
+import type {LanguageCode} from "../../misc/LanguageViewModel"
 
 /**
  * Open the link
@@ -26,7 +27,7 @@ export function changeColorTheme(theme: string): Promise<void> {
 	return nativeApp.invokeNative(new Request('changeTheme', [theme]))
 }
 
-export function changeSystemLanguage(language: {code: string, languageTag: string}): Promise<void> {
+export function changeSystemLanguage(language: {code: LanguageCode, languageTag: string}): Promise<void> {
 	return isDesktop()
 		? nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('changeLanguage', [language])))
 		: Promise.resolve()

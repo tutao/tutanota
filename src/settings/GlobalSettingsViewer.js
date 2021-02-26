@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadRange, update} from "../api/main/Entity"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
-import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
+import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
@@ -217,7 +217,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				return {
 					cells: () => [
 						{
-							main: fieldToName[getSparmRuleField(rule)],
+							main: fieldToName[getSpamRuleField(rule)],
 							info: [rule.value],
 						},
 						{

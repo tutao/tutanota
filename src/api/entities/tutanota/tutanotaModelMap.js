@@ -94,12 +94,12 @@ const map: {[string]: () => mixed} = {
     CalendarRepeatRule: () => import('./CalendarRepeatRule'),
     CalendarEvent: () => import('./CalendarEvent'),
     CalendarGroupRoot: () => import('./CalendarGroupRoot'),
-    CalendarGroupData: () => import('./CalendarGroupData'),
-    CalendarPostData: () => import('./CalendarPostData'),
+    UserAreaGroupData: () => import('./UserAreaGroupData'),
+    UserAreaGroupPostData: () => import('./UserAreaGroupPostData'),
     GroupSettings: () => import('./GroupSettings'),
     UserSettingsGroupRoot: () => import('./UserSettingsGroupRoot'),
     CalendarDeleteData: () => import('./CalendarDeleteData'),
-    CalendarPostReturn: () => import('./CalendarPostReturn'),
+    CreateGroupPostReturn: () => import('./CreateGroupPostReturn'),
     SharedGroupData: () => import('./SharedGroupData'),
     GroupInvitationPostData: () => import('./GroupInvitationPostData'),
     GroupInvitationPostReturn: () => import('./GroupInvitationPostReturn'),
@@ -116,6 +116,12 @@ const map: {[string]: () => mixed} = {
     EntropyData: () => import('./EntropyData'),
     OutOfOfficeNotificationMessage: () => import('./OutOfOfficeNotificationMessage'),
     OutOfOfficeNotification: () => import('./OutOfOfficeNotification'),
-    OutOfOfficeNotificationRecipientList: () => import('./OutOfOfficeNotificationRecipientList')
+    OutOfOfficeNotificationRecipientList: () => import('./OutOfOfficeNotificationRecipientList'),
+    EmailTemplateContent: () => import('./EmailTemplateContent'),
+    EmailTemplate: () => import('./EmailTemplate'),
+    KnowledgeBaseEntryKeyword: () => import('./KnowledgeBaseEntryKeyword'),
+    KnowledgeBaseEntry: () => import('./KnowledgeBaseEntry'),
+    TemplateGroupRoot: () => import('./TemplateGroupRoot'),
+    UserAreaGroupDeleteData: () => import('./UserAreaGroupDeleteData')
 }
 export default map
