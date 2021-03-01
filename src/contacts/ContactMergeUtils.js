@@ -205,7 +205,8 @@ export function _comparePhoneNumbers(contact1PhoneNumbers: ContactPhoneNumber[],
  */
 export function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
 	let filteredNumbers2 = phoneNumbers2.filter(ma2 => {
-		return !phoneNumbers1.find(ma1 => ma1.number === ma2.number)
+		const isIncludedInPhoneNumbers1 = phoneNumbers1.find(ma1 => ma1.number.replace(/\s/g, "") === ma2.number.replace(/\s/g, ""))
+		return !isIncludedInPhoneNumbers1
 	})
 	return phoneNumbers1.concat(filteredNumbers2)
 }
