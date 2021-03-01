@@ -5,6 +5,7 @@ import {log} from "../../DesktopLog"
  */
 import * as migration0000 from "./migration-0000"
 import * as migration0001 from "./migration-0001"
+import * as migration0002 from "./migration-0002"
 import type {Config, ConfigMigration} from "../ConfigCommon"
 
 export type MigrationKind = "migrateClient" | "migrateAdmin"
@@ -27,6 +28,8 @@ export default function applyMigrations(migrationFunction: MigrationKind, oldCon
 		case 0:
 			applyMigration(migration0001[migrationFunction], oldConfig)
 		case 1:
+			applyMigration(migration0002[migrationFunction], oldConfig)
+		case 2:
 			log.debug("config up to date")
 			/* add new migrations as needed */
 			break;

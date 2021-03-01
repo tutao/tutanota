@@ -5,19 +5,13 @@ import {LockedError, PreconditionFailedError} from "../../api/common/error/RestE
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolder} from "../../api/entities/tutanota/MailFolder"
 import {locator} from "../../api/main/MainLocator";
-import {sortableTimestamp} from "../../api/common/utils/DateUtils"
-import {fileController} from "../../file/FileController"
 import {getArchiveFolder, getFolderIcon, getInboxFolder} from "../model/MailUtils"
 import type {AllIconsEnum} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
-import {worker} from "../../api/main/WorkerClient"
-import {mailToEmlFile} from "../export/Exporter"
 import type {InlineImages} from "./MailViewer";
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File";
 import {isApp, isDesktop} from "../../api/common/Env";
 import {downcast} from "../../api/common/utils/Utils"
-import type {MailBundle} from "../export/Bundler"
-import {makeMailBundle} from "../export/Bundler"
 
 export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
@@ -79,21 +73,6 @@ export function moveMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, tar
 	                })
 }
 
-
-/**
- * export a set of mails into a zip file and offer to download
- * @param entityClient
- * @param worker
- * @param mails array of mails to export
- * @returns {Promise<void>} resolved after the fileController
- * was instructed to open the new zip File containing the mail eml
- */
-export function exportMails(mails: Array<MailBundle>): Promise<void> {
-	const zipName = `${sortableTimestamp()}-mail-export.zip`
-	return fileController.zipDataFiles(mails.map(mailToEmlFile), zipName)
-	                     .then(zip => fileController.open(zip))
-}
-
 export function archiveMails(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
@@ -121,27 +100,6 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 	} else {
 		return Icons.Folder
 	}
-}
-
-/**
- * Uses the global entityClient and worker to bundle a mail
- * (the worker and entityClient can't be imported from mailUtils, and it's nice to keep them as parameters in makeMailBundle anyway, for testing)
- * Convenience function, should maybe be removed?
- * @param mail
- * @returns {Promise<MailBundle>}
- */
-export function bundleMail(mail: Mail): Promise<MailBundle> {
-	return makeMailBundle(mail, locator.entityClient, worker)
-}
-
-/**
- * Uses the global entityClient and worker to bundle some mails
- * Also convenience function that should also maybe be removed
- * @param mails
- * @returns {Promise<MailBundle[]>}
- */
-export function bundleMails(mails: Array<Mail>): Promise<Array<MailBundle>> {
-	return Promise.mapSeries(mails, bundleMail)
 }
 
 export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,

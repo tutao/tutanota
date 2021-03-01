@@ -19,6 +19,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
 import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
+import type {MailExportMode} from "../mail/export/Exporter"
 
 assertMainOrNode()
 
@@ -36,6 +37,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_isAutoUpdateEnabled: Stream<?boolean>;
 	_showAutoUpdateOption: boolean;
 	_updateAvailable: Stream<boolean>;
+	_mailExportMode: Stream<MailExportMode>
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -46,6 +48,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isAutoUpdateEnabled = stream(false)
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
+		this._mailExportMode = stream("msg")
 		this._requestDesktopConfig()
 	}
 
@@ -84,7 +87,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._runAsTrayApp,
 			selectionChangedHandler: v => {
 				this._runAsTrayApp(v)
-				this.setBooleanSetting('runAsTrayApp', v)
+				this.updateConfigBoolean('runAsTrayApp', v)
 			}
 		}
 
@@ -124,6 +127,21 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
+		const setMailExportModeAttrs: DropDownSelectorAttrs<MailExportMode> = {
+			label: "mailExportMode_label",
+			helpLabel: () => lang.get("mailExportModeHelp_msg"),
+			items: [
+				{name: "EML", value: "eml"},
+				{name: "Outlook", value: "msg"}
+			],
+			selectedValue: this._mailExportMode,
+			selectionChangedHandler: v => {
+				this._mailExportMode(v)
+				this.updateConfig("mailExportMode", v)
+			}
+		}
+
+
 		const updateHelpLabelAttrs: UpdateHelpLabelAttrs = {
 			updateAvailable: this._updateAvailable
 		}
@@ -138,7 +156,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._isAutoUpdateEnabled,
 			selectionChangedHandler: v => {
 				this._isAutoUpdateEnabled(v)
-				this.setBooleanSetting('enableAutoUpdate', v)
+				this.updateConfigBoolean('enableAutoUpdate', v)
 			}
 		}
 
@@ -174,6 +192,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
+				m(DropDownSelectorN, setMailExportModeAttrs),
 				env.platformId === 'linux' ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
 				this._showAutoUpdateOption ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
 			])
@@ -211,11 +230,16 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
 			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
 			         this._updateAvailable(!!desktopConfig.updateInfo)
+			         this._mailExportMode(desktopConfig.mailExportMode)
 			         m.redraw()
 		         })
 	}
 
-	setBooleanSetting(setting: string, value: boolean): void {
+	updateConfigBoolean(setting: string, value: boolean): void {
+		return this.updateConfig(setting, value)
+	}
+
+	updateConfig<T>(setting: string, value: T): void {
 		nativeApp.invokeNative(new Request('sendDesktopConfig', []))
 		         .then(config => {
 			         config[setting] = value
