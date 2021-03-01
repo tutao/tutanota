@@ -106,35 +106,73 @@ export class SwitchSubscriptionDialogModel {
 	}
 
 	_loadUpgradeDowngradePrices(): Promise<UpgradeDowngradePrices> {
-		return Promise.join(
-			this._worker.getPrice(BookingItemFeatureType.Users, 1, false),
-			this._worker.getPrice(BookingItemFeatureType.Alias, 20, false),
-			this._worker.getPrice(BookingItemFeatureType.Alias, 0, false),
-			this._worker.getPrice(BookingItemFeatureType.Storage, 10, false),
-			this._worker.getPrice(BookingItemFeatureType.Storage, 0, false),
-			this._worker.getPrice(BookingItemFeatureType.Sharing, 1, false),
-			this._worker.getPrice(BookingItemFeatureType.Sharing, 0, false),
-			this._worker.getPrice(BookingItemFeatureType.Business, 1, false),
-			this._worker.getPrice(BookingItemFeatureType.Business, 0, false),
-			this._worker.getPrice(BookingItemFeatureType.Whitelabel, 1, false),
-			this._worker.getPrice(BookingItemFeatureType.Whitelabel, 0, false),
-			this._worker.getPrice(BookingItemFeatureType.ContactForm, 1, false),
-			(addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
-				return {
-					addUserPrice: addUserPrice,
-					upgrade20AliasesPrice: upgrade20AliasesPrice,
-					downgrade5AliasesPrice: downgrade5AliasesPrice,
-					upgrade10GbStoragePrice: upgrade10GbStoragePrice,
-					downgrade1GbStoragePrice: downgrade1GbStoragePrice,
-					upgradeSharingPrice: upgradeSharingPrice,
-					downgradeSharingPrice: downgradeSharingPrice,
-					upgradeBusinessPrice: upgradeBusinessPrice,
-					downgradeBusinessPrice: downgradeBusinessPrice,
-					upgradeWhitelabelPrice: upgradeWhitelabelPrice,
-					downgradeWhitelabelPrice: downgradeWhitelabelPrice,
-					contactFormPrice: contactFormPrice,
-				}
-			})
+		const getPriceFeatureList = [ // the order is important!
+			{
+				type: BookingItemFeatureType.Users,
+				count: 1
+			},
+			{
+				type: BookingItemFeatureType.Alias,
+				count: 20
+			},
+			{
+				type: BookingItemFeatureType.Alias,
+				count: 0
+			},
+			{
+				type: BookingItemFeatureType.Storage,
+				count: 10
+			},
+			{
+				type: BookingItemFeatureType.Storage,
+				count: 0
+			},
+			{
+				type: BookingItemFeatureType.Sharing,
+				count: 1
+			},
+			{
+				type: BookingItemFeatureType.Sharing,
+				count: 0
+			},
+			{
+				type: BookingItemFeatureType.Business,
+				count: 1
+			},
+			{
+				type: BookingItemFeatureType.Business,
+				count: 0
+			},
+			{
+				type: BookingItemFeatureType.Whitelabel,
+				count: 1
+			},
+			{
+				type: BookingItemFeatureType.Whitelabel,
+				count: 0
+			},
+			{
+				type: BookingItemFeatureType.ContactForm,
+				count: 1
+			},
+		]
+		return Promise.mapSeries(getPriceFeatureList, getPriceFeature => this._worker.getPrice(getPriceFeature.type, getPriceFeature.count, false))
+		              .then(([addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice]) => {
+			              return {
+				              addUserPrice: addUserPrice,
+				              upgrade20AliasesPrice: upgrade20AliasesPrice,
+				              downgrade5AliasesPrice: downgrade5AliasesPrice,
+				              upgrade10GbStoragePrice: upgrade10GbStoragePrice,
+				              downgrade1GbStoragePrice: downgrade1GbStoragePrice,
+				              upgradeSharingPrice: upgradeSharingPrice,
+				              downgradeSharingPrice: downgradeSharingPrice,
+				              upgradeBusinessPrice: upgradeBusinessPrice,
+				              downgradeBusinessPrice: downgradeBusinessPrice,
+				              upgradeWhitelabelPrice: upgradeWhitelabelPrice,
+				              downgradeWhitelabelPrice: downgradeWhitelabelPrice,
+				              contactFormPrice: contactFormPrice,
+			              }
+		              })
 	}
 
 	loadSwitchSubscriptionPrices(): Promise<SubscriptionPlanPrices> {
