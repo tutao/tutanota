@@ -16,7 +16,7 @@ export type TextFieldAttrs = {
 	type?: TextFieldTypeEnum,
 	helpLabel?: ?lazy<Children>,
 	alignRight?: boolean,
-	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles and out of office notification
+	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField (-> uses old TextField) to display bubbles and out of office notification
 	injectionsRight?: lazy<Children>,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
 	onfocus?: (dom: HTMLElement, input: HTMLInputElement) => mixed,
@@ -58,7 +58,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 
 	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
-		const labelBase = !this.active && a.value() === "" && !a.disabled && !this._didAutofill
+		const labelBase = !this.active && a.value() === "" && !a.disabled && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
