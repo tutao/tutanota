@@ -71,389 +71,389 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		import("../../gui/editor/HtmlEditor"),
 		createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)
 	]).then(([{HtmlEditor}, viewModel]) => {
-	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
-	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-	startDatePicker.setDate(viewModel.startDate)
-	endDatePicker.setDate(viewModel.endDate)
-	startDatePicker.date.map((date) => {
-		viewModel.onStartDateSelected(date)
-		if (endDatePicker.date() !== viewModel.endDate) {
-			endDatePicker.setDate(viewModel.endDate)
-		}
-	})
-
-	endDatePicker.date.map((date) => {
-		viewModel.onEndDateSelected(date)
-	})
-
-	const repeatValues = createRepeatValues()
-	const intervalValues = createIntevalValues()
-	const endTypeValues = createEndTypeValues()
-	const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg")
-	repeatEndDatePicker.date.map((date) => viewModel.onRepeatEndDateSelected(date))
-	let finished = false
-
-
-	const endOccurrencesStream = memoized(stream)
-
-	function renderEndValue(): Children {
-		if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
-			return null
-		} else if (viewModel.repeat.endType === EndType.Count) {
-			return m(DropDownSelectorN, {
-				label: "emptyString_msg",
-				items: intervalValues,
-				selectedValue: endOccurrencesStream(viewModel.repeat.endValue),
-				selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
-				icon: BootIcons.Expand,
-			})
-		} else if (viewModel.repeat.endType === EndType.UntilDate) {
-			repeatEndDatePicker.setDate(new Date(viewModel.repeat.endValue))
-			return m(repeatEndDatePicker)
-		} else {
-			return null
-		}
-	}
-
-	const editorOptions = {enabled: false, alignmentEnabled: false, fontSizeEnabled: false}
-	const descriptionEditor = new HtmlEditor("description_label", editorOptions, () => m(ButtonN, {
-			label: "emptyString_msg",
-			title: 'showRichTextToolbar_action',
-			icon: () => Icons.FontSize,
-			click: () => editorOptions.enabled = !editorOptions.enabled,
-			isSelected: () => editorOptions.enabled,
-			noBubble: true,
-			type: ButtonType.Toggle,
-			colors: ButtonColors.Elevated,
-		})
-	)
-		.setMinHeight(400)
-		.showBorders()
-		.setEnabled(!viewModel.isReadOnlyEvent())
-		// We only set it once, we don't viewModel on every change, that would be slow
-		.setValue(viewModel.note)
-
-	const okAction = () => {
-		if (finished) {
-			return
-		}
-		const description = descriptionEditor.getValue()
-		if (description === "<div><br></div>") {
-			viewModel.changeDescription("")
-		} else {
-			viewModel.changeDescription(description)
-		}
-
-		function askForUpdates() {
-			return new Promise((resolve) => {
-				let alertDialog: Dialog
-				const cancelButton = {
-					label: "cancel_action",
-					click: () => {
-						resolve("cancel")
-						alertDialog.close()
-					},
-					type: ButtonType.Secondary
-				}
-				const noButton = {
-					label: "no_label",
-					click: () => {
-						resolve("no")
-						alertDialog.close()
-					},
-					type: ButtonType.Secondary
-				}
-				const yesButton = {
-					label: "yes_label",
-					click: () => {
-						resolve("yes")
-						alertDialog.close()
-					},
-					type: ButtonType.Primary,
-				}
-
-				const onclose = (positive) => positive
-					? resolve("yes")
-					: resolve("cancel")
-				alertDialog = Dialog.confirmMultiple("sendUpdates_msg", [cancelButton, noButton, yesButton], onclose)
-			})
-		}
-
-		function showProgress(p: Promise<mixed>) {
-			// We get all errors in main promise, we don't need to handle them here
-			return showProgressDialog("pleaseWait_msg", p).catch(noOp)
-		}
-
-		Promise.resolve().then(() => {
-			return viewModel
-				.saveAndSend({
-					askForUpdates,
-					showProgress,
-					askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-				})
-				.then((shouldClose) => shouldClose && finish())
-				.catch(UserError, (e) => Dialog.error(() => e.message))
-				.catch(BusinessFeatureRequiredError, (e) => {
-					showBusinessFeatureRequiredDialog(() => e.message)
-						.then(businessFeatureOrdered => viewModel.hasBusinessFeature(businessFeatureOrdered)) //entity event updates are too slow to call updateBusinessFeature()
-				})
-		})
-	}
-
-	const attendeesField = makeBubbleTextField(viewModel, locator.contactModel)
-
-	const attendeesExpanded = stream(viewModel.attendees().length > 0)
-
-	const renderInvitationField = (): Children => viewModel.canModifyGuests()
-		? m(attendeesField)
-		: null
-
-	function renderAttendees() {
-		const ownAttendee = viewModel.findOwnAttendee()
-		const guests = viewModel.attendees().slice()
-
-		if (ownAttendee) {
-			const indexOfOwn = guests.indexOf(ownAttendee)
-			guests.splice(indexOfOwn, 1)
-			guests.unshift(ownAttendee)
-		}
-		const externalGuests = viewModel.shouldShowPasswordFields()
-			? guests.filter((a) => a.type === RecipientInfoType.EXTERNAL)
-			        .map((guest) => {
-				        return m(TextFieldN, {
-					        value: stream(viewModel.getGuestPassword(guest)),
-					        type: TextFieldType.ExternalPassword,
-					        label: () => lang.get("passwordFor_label", {"{1}": guest.address.address}),
-					        helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
-					        key: guest.address.address,
-					        oninput: (newValue) => viewModel.updatePassword(guest, newValue)
-				        })
-			        })
-			: []
-		return m("", [guests.map((guest, index) => renderGuest(guest, index, viewModel, ownAttendee)), externalGuests])
-	}
-
-	const renderDateTimePickers = () => renderTwoColumnsIfFits(
-		[
-			m(".flex-grow", m(startDatePicker)),
-			!viewModel.allDay()
-				? m(".ml-s.time-field", m(TimePicker, {
-					value: viewModel.startTime,
-					onselected: (time) => viewModel.onStartTimeSelected(time),
-					amPmFormat: viewModel.amPmFormat,
-					disabled: viewModel.isReadOnlyEvent()
-				}))
-				: null
-		],
-		[
-			m(".flex-grow", m(endDatePicker)),
-			!viewModel.allDay()
-				? m(".ml-s.time-field", m(TimePicker, {
-					value: viewModel.endTime,
-					onselected: (time) => viewModel.onEndTimeSelected(time),
-					amPmFormat: viewModel.amPmFormat,
-					disabled: viewModel.isReadOnlyEvent()
-				}))
-				: null
-		]
-	)
-
-	const renderLocationField = () => m(TextFieldN, {
-		label: "location_label",
-		value: viewModel.location,
-		disabled: viewModel.isReadOnlyEvent(),
-		injectionsRight: () => {
-			let address = encodeURIComponent(viewModel.location())
-			if (address === "") {
-				return null;
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
+		const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
+		const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
+		startDatePicker.setDate(viewModel.startDate)
+		endDatePicker.setDate(viewModel.endDate)
+		startDatePicker.date.map((date) => {
+			viewModel.onStartDateSelected(date)
+			if (endDatePicker.date() !== viewModel.endDate) {
+				endDatePicker.setDate(viewModel.endDate)
 			}
-			return m(ButtonN, {
-				label: 'showAddress_alt',
-				icon: () => Icons.Pin,
-				click: () => {
-					window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
-				}
+		})
+
+		endDatePicker.date.map((date) => {
+			viewModel.onEndDateSelected(date)
+		})
+
+		const repeatValues = createRepeatValues()
+		const intervalValues = createIntevalValues()
+		const endTypeValues = createEndTypeValues()
+		const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg")
+		repeatEndDatePicker.date.map((date) => viewModel.onRepeatEndDateSelected(date))
+		let finished = false
+
+
+		const endOccurrencesStream = memoized(stream)
+
+		function renderEndValue(): Children {
+			if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
+				return null
+			} else if (viewModel.repeat.endType === EndType.Count) {
+				return m(DropDownSelectorN, {
+					label: "emptyString_msg",
+					items: intervalValues,
+					selectedValue: endOccurrencesStream(viewModel.repeat.endValue),
+					selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
+					icon: BootIcons.Expand,
+				})
+			} else if (viewModel.repeat.endType === EndType.UntilDate) {
+				repeatEndDatePicker.setDate(new Date(viewModel.repeat.endValue))
+				return m(repeatEndDatePicker)
+			} else {
+				return null
+			}
+		}
+
+		const editorOptions = {enabled: false, alignmentEnabled: false, fontSizeEnabled: false}
+		const descriptionEditor = new HtmlEditor("description_label", editorOptions, () => m(ButtonN, {
+				label: "emptyString_msg",
+				title: 'showRichTextToolbar_action',
+				icon: () => Icons.FontSize,
+				click: () => editorOptions.enabled = !editorOptions.enabled,
+				isSelected: () => editorOptions.enabled,
+				noBubble: true,
+				type: ButtonType.Toggle,
+				colors: ButtonColors.Elevated,
+			})
+		)
+			.setMinHeight(400)
+			.showBorders()
+			.setEnabled(!viewModel.isReadOnlyEvent())
+			// We only set it once, we don't viewModel on every change, that would be slow
+			.setValue(viewModel.note)
+
+		const okAction = () => {
+			if (finished) {
+				return
+			}
+			const description = descriptionEditor.getValue()
+			if (description === "<div><br></div>") {
+				viewModel.changeDescription("")
+			} else {
+				viewModel.changeDescription(description)
+			}
+
+			function askForUpdates() {
+				return new Promise((resolve) => {
+					let alertDialog: Dialog
+					const cancelButton = {
+						label: "cancel_action",
+						click: () => {
+							resolve("cancel")
+							alertDialog.close()
+						},
+						type: ButtonType.Secondary
+					}
+					const noButton = {
+						label: "no_label",
+						click: () => {
+							resolve("no")
+							alertDialog.close()
+						},
+						type: ButtonType.Secondary
+					}
+					const yesButton = {
+						label: "yes_label",
+						click: () => {
+							resolve("yes")
+							alertDialog.close()
+						},
+						type: ButtonType.Primary,
+					}
+
+					const onclose = (positive) => positive
+						? resolve("yes")
+						: resolve("cancel")
+					alertDialog = Dialog.confirmMultiple("sendUpdates_msg", [cancelButton, noButton, yesButton], onclose)
+				})
+			}
+
+			function showProgress(p: Promise<mixed>) {
+				// We get all errors in main promise, we don't need to handle them here
+				return showProgressDialog("pleaseWait_msg", p).catch(noOp)
+			}
+
+			Promise.resolve().then(() => {
+				return viewModel
+					.saveAndSend({
+						askForUpdates,
+						showProgress,
+						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+					})
+					.then((shouldClose) => shouldClose && finish())
+					.catch(UserError, (e) => Dialog.error(() => e.message))
+					.catch(BusinessFeatureRequiredError, (e) => {
+						showBusinessFeatureRequiredDialog(() => e.message)
+							.then(businessFeatureOrdered => viewModel.hasBusinessFeature(businessFeatureOrdered)) //entity event updates are too slow to call updateBusinessFeature()
+					})
 			})
 		}
-	})
 
-	function renderCalendarPicker() {
-		const availableCalendars = viewModel.getAvailableCalendars()
-		return m(".flex-half.pr-s", (availableCalendars.length)
-			? m(DropDownSelectorN, ({
-				label: "calendar_label",
-				items: availableCalendars.map((calendarInfo) => {
-					return {name: getCalendarName(calendarInfo.groupInfo, calendarInfo.shared), value: calendarInfo}
-				}),
-				selectedValue: viewModel.selectedCalendar,
-				icon: BootIcons.Expand,
-				disabled: viewModel.isReadOnlyEvent()
-			}: DropDownSelectorAttrs<CalendarInfo>))
+		const attendeesField = makeBubbleTextField(viewModel, locator.contactModel)
+
+		const attendeesExpanded = stream(viewModel.attendees().length > 0)
+
+		const renderInvitationField = (): Children => viewModel.canModifyGuests()
+			? m(attendeesField)
 			: null
+
+		function renderAttendees() {
+			const ownAttendee = viewModel.findOwnAttendee()
+			const guests = viewModel.attendees().slice()
+
+			if (ownAttendee) {
+				const indexOfOwn = guests.indexOf(ownAttendee)
+				guests.splice(indexOfOwn, 1)
+				guests.unshift(ownAttendee)
+			}
+			const externalGuests = viewModel.shouldShowPasswordFields()
+				? guests.filter((a) => a.type === RecipientInfoType.EXTERNAL)
+				        .map((guest) => {
+					        return m(TextFieldN, {
+						        value: stream(viewModel.getGuestPassword(guest)),
+						        type: TextFieldType.ExternalPassword,
+						        label: () => lang.get("passwordFor_label", {"{1}": guest.address.address}),
+						        helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
+						        key: guest.address.address,
+						        oninput: (newValue) => viewModel.updatePassword(guest, newValue)
+					        })
+				        })
+				: []
+			return m("", [guests.map((guest, index) => renderGuest(guest, index, viewModel, ownAttendee)), externalGuests])
+		}
+
+		const renderDateTimePickers = () => renderTwoColumnsIfFits(
+			[
+				m(".flex-grow", m(startDatePicker)),
+				!viewModel.allDay()
+					? m(".ml-s.time-field", m(TimePicker, {
+						value: viewModel.startTime,
+						onselected: (time) => viewModel.onStartTimeSelected(time),
+						amPmFormat: viewModel.amPmFormat,
+						disabled: viewModel.isReadOnlyEvent()
+					}))
+					: null
+			],
+			[
+				m(".flex-grow", m(endDatePicker)),
+				!viewModel.allDay()
+					? m(".ml-s.time-field", m(TimePicker, {
+						value: viewModel.endTime,
+						onselected: (time) => viewModel.onEndTimeSelected(time),
+						amPmFormat: viewModel.amPmFormat,
+						disabled: viewModel.isReadOnlyEvent()
+					}))
+					: null
+			]
 		)
-	}
 
-	// Avoid creating stream on each render. Will create new stream if the value is changed.
-	// We could just change the value of the stream on each render but ultimately we should avoid
-	// passing streams into components.
-	const repeatFrequencyStream = memoized(stream)
-	const repeatIntervalStream = memoized(stream)
-	const endTypeStream = memoized(stream)
-
-	function renderRepeatPeriod() {
-		return m(DropDownSelectorN, {
-			label: "calendarRepeating_label",
-			items: repeatValues,
-			selectedValue: repeatFrequencyStream(viewModel.repeat && viewModel.repeat.frequency || null),
-			selectionChangedHandler: (period) => viewModel.onRepeatPeriodSelected(period),
-			icon: BootIcons.Expand,
+		const renderLocationField = () => m(TextFieldN, {
+			label: "location_label",
+			value: viewModel.location,
 			disabled: viewModel.isReadOnlyEvent(),
+			injectionsRight: () => {
+				let address = encodeURIComponent(viewModel.location())
+				if (address === "") {
+					return null;
+				}
+				return m(ButtonN, {
+					label: 'showAddress_alt',
+					icon: () => Icons.Pin,
+					click: () => {
+						window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
+					}
+				})
+			}
 		})
-	}
 
-	function renderRepeatInterval() {
-		return m(DropDownSelectorN, {
-			label: "interval_title",
-			items: intervalValues,
-			selectedValue: repeatIntervalStream(viewModel.repeat && viewModel.repeat.interval || 1),
-			selectionChangedHandler: (period) => viewModel.onRepeatIntervalChanged(period),
-			icon: BootIcons.Expand,
-			disabled: viewModel.isReadOnlyEvent()
-		})
-	}
+		function renderCalendarPicker() {
+			const availableCalendars = viewModel.getAvailableCalendars()
+			return m(".flex-half.pr-s", (availableCalendars.length)
+				? m(DropDownSelectorN, ({
+					label: "calendar_label",
+					items: availableCalendars.map((calendarInfo) => {
+						return {name: getCalendarName(calendarInfo.groupInfo, calendarInfo.shared), value: calendarInfo}
+					}),
+					selectedValue: viewModel.selectedCalendar,
+					icon: BootIcons.Expand,
+					disabled: viewModel.isReadOnlyEvent()
+				}: DropDownSelectorAttrs<CalendarInfo>))
+				: null
+			)
+		}
 
-	function renderEndType(repeat) {
-		return m(DropDownSelectorN, {
-				label: () => lang.get("calendarRepeatStopCondition_label"),
-				items: endTypeValues,
-				selectedValue: endTypeStream(repeat.endType),
-				selectionChangedHandler: (period) => viewModel.onRepeatEndTypeChanged(period),
+		// Avoid creating stream on each render. Will create new stream if the value is changed.
+		// We could just change the value of the stream on each render but ultimately we should avoid
+		// passing streams into components.
+		const repeatFrequencyStream = memoized(stream)
+		const repeatIntervalStream = memoized(stream)
+		const endTypeStream = memoized(stream)
+
+		function renderRepeatPeriod() {
+			return m(DropDownSelectorN, {
+				label: "calendarRepeating_label",
+				items: repeatValues,
+				selectedValue: repeatFrequencyStream(viewModel.repeat && viewModel.repeat.frequency || null),
+				selectionChangedHandler: (period) => viewModel.onRepeatPeriodSelected(period),
 				icon: BootIcons.Expand,
 				disabled: viewModel.isReadOnlyEvent(),
-			}
+			})
+		}
+
+		function renderRepeatInterval() {
+			return m(DropDownSelectorN, {
+				label: "interval_title",
+				items: intervalValues,
+				selectedValue: repeatIntervalStream(viewModel.repeat && viewModel.repeat.interval || 1),
+				selectionChangedHandler: (period) => viewModel.onRepeatIntervalChanged(period),
+				icon: BootIcons.Expand,
+				disabled: viewModel.isReadOnlyEvent()
+			})
+		}
+
+		function renderEndType(repeat) {
+			return m(DropDownSelectorN, {
+					label: () => lang.get("calendarRepeatStopCondition_label"),
+					items: endTypeValues,
+					selectedValue: endTypeStream(repeat.endType),
+					selectionChangedHandler: (period) => viewModel.onRepeatEndTypeChanged(period),
+					icon: BootIcons.Expand,
+					disabled: viewModel.isReadOnlyEvent(),
+				}
+			)
+		}
+
+		const renderRepeatRulePicker = () => renderTwoColumnsIfFits([
+				// Repeat type == Frequency: Never, daily, annually etc
+				m(".flex-grow.pr-s", renderRepeatPeriod()),
+				// Repeat interval: every day, every second day etc
+				m(".flex-grow.pl-s"
+					+ (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval()),
+			],
+			viewModel.repeat
+				? [
+					m(".flex-grow.pr-s", renderEndType(viewModel.repeat)),
+					m(".flex-grow.pl-s", renderEndValue()),
+				]
+				: null
 		)
-	}
 
-	const renderRepeatRulePicker = () => renderTwoColumnsIfFits([
-			// Repeat type == Frequency: Never, daily, annually etc
-			m(".flex-grow.pr-s", renderRepeatPeriod()),
-			// Repeat interval: every day, every second day etc
-			m(".flex-grow.pl-s"
-				+ (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval()),
-		],
-		viewModel.repeat
-			? [
-				m(".flex-grow.pr-s", renderEndType(viewModel.repeat)),
-				m(".flex-grow.pl-s", renderEndValue()),
-			]
-			: null
-	)
+		function renderChangesMessage() {
+			return viewModel.isInvite()
+				? m(".mt.mb-s", lang.get("eventCopy_msg"))
+				: null
+		}
 
-	function renderChangesMessage() {
-		return viewModel.isInvite()
-			? m(".mt.mb-s", lang.get("eventCopy_msg"))
-			: null
-	}
+		viewModel.sendingOutUpdate.map(m.redraw)
 
-	viewModel.sendingOutUpdate.map(m.redraw)
+		function renderDialogContent() {
 
-	function renderDialogContent() {
-
-		return m(".calendar-edit-container.pb", [
-				renderHeading(),
-				renderChangesMessage(),
-				m(".mb", m(ExpanderPanelN, {
-						expanded: attendeesExpanded,
-					},
-					[
-						m(".flex-grow", renderInvitationField()),
-						m(".flex-grow", renderAttendees())
-					],
-				)),
-				renderDateTimePickers(),
-				m(".flex.items-center.mt-s", [
-					m(CheckboxN, {
-						checked: viewModel.allDay,
-						disabled: viewModel.isReadOnlyEvent(),
-						label: () => lang.get("allDay_label")
-					}),
-					m(".flex-grow"),
-				]),
-				renderRepeatRulePicker(),
-				m(".flex", [
-					renderCalendarPicker(),
-					viewModel.canModifyAlarms()
-						? m(".flex.col.flex-half.pl-s",
+			return m(".calendar-edit-container.pb", [
+					renderHeading(),
+					renderChangesMessage(),
+					m(".mb", m(ExpanderPanelN, {
+							expanded: attendeesExpanded,
+						},
 						[
-							viewModel.alarms.map((a) => m(DropDownSelectorN, {
-								label: "reminderBeforeEvent_label",
-								items: alarmIntervalItems,
-								selectedValue: stream(downcast(a.trigger)),
-								icon: BootIcons.Expand,
-								selectionChangedHandler: (value) => viewModel.changeAlarm(a.alarmIdentifier, value),
-								key: a.alarmIdentifier
-							})),
-							m(DropDownSelectorN, {
-								label: "reminderBeforeEvent_label",
-								items: alarmIntervalItems,
-								selectedValue: stream(null),
-								icon: BootIcons.Expand,
-								selectionChangedHandler: (value) => value && viewModel.addAlarm(value)
-							})
-						])
-						: m(".flex.flex-half.pl-s"),
-				]),
-				renderLocationField(),
-				m(descriptionEditor),
-			]
-		)
-	}
+							m(".flex-grow", renderInvitationField()),
+							m(".flex-grow", renderAttendees())
+						],
+					)),
+					renderDateTimePickers(),
+					m(".flex.items-center.mt-s", [
+						m(CheckboxN, {
+							checked: viewModel.allDay,
+							disabled: viewModel.isReadOnlyEvent(),
+							label: () => lang.get("allDay_label")
+						}),
+						m(".flex-grow"),
+					]),
+					renderRepeatRulePicker(),
+					m(".flex", [
+						renderCalendarPicker(),
+						viewModel.canModifyAlarms()
+							? m(".flex.col.flex-half.pl-s",
+							[
+								viewModel.alarms.map((a) => m(DropDownSelectorN, {
+									label: "reminderBeforeEvent_label",
+									items: alarmIntervalItems,
+									selectedValue: stream(downcast(a.trigger)),
+									icon: BootIcons.Expand,
+									selectionChangedHandler: (value) => viewModel.changeAlarm(a.alarmIdentifier, value),
+									key: a.alarmIdentifier
+								})),
+								m(DropDownSelectorN, {
+									label: "reminderBeforeEvent_label",
+									items: alarmIntervalItems,
+									selectedValue: stream(null),
+									icon: BootIcons.Expand,
+									selectionChangedHandler: (value) => value && viewModel.addAlarm(value)
+								})
+							])
+							: m(".flex.flex-half.pl-s"),
+					]),
+					renderLocationField(),
+					m(descriptionEditor),
+				]
+			)
+		}
 
-	function finish() {
-		finished = true
-		viewModel.dispose()
-		dialog.close()
-	}
+		function finish() {
+			finished = true
+			viewModel.dispose()
+			dialog.close()
+		}
 
-	function renderHeading() {
-		return m(TextFieldN, {
-			label: "title_placeholder",
-			value: viewModel.summary,
-			disabled: viewModel.isReadOnlyEvent(),
-			class: "big-input pt flex-grow",
-			injectionsRight: () => m(".mr-s", m(ExpanderButtonN, {
-				label: "guests_label",
-				expanded: attendeesExpanded,
-				style: {paddingTop: 0},
-			}))
+		function renderHeading() {
+			return m(TextFieldN, {
+				label: "title_placeholder",
+				value: viewModel.summary,
+				disabled: viewModel.isReadOnlyEvent(),
+				class: "big-input pt flex-grow",
+				injectionsRight: () => m(".mr-s", m(ExpanderButtonN, {
+					label: "guests_label",
+					expanded: attendeesExpanded,
+					style: {paddingTop: 0},
+				}))
+			})
+		}
+
+		viewModel.attendees.map(m.redraw)
+
+		const dialog = Dialog.largeDialog(
+			{
+				left: [{label: "cancel_action", click: finish, type: ButtonType.Secondary}],
+				right: [{label: "save_action", click: () => okAction(), type: ButtonType.Primary}],
+				middle: () => lang.get("createEvent_label"),
+			},
+			{view: () => m(".calendar-edit-container.pb", renderDialogContent())}
+		).addShortcut({
+			key: Keys.ESC,
+			exec: finish,
+			help: "close_alt"
+		}).addShortcut({
+			key: Keys.S,
+			ctrl: true,
+			exec: () => okAction(),
+			help: "save_action"
 		})
-	}
-
-	viewModel.attendees.map(m.redraw)
-
-	const dialog = Dialog.largeDialog(
-		{
-			left: [{label: "cancel_action", click: finish, type: ButtonType.Secondary}],
-			right: [{label: "save_action", click: () => okAction(), type: ButtonType.Primary}],
-			middle: () => lang.get("createEvent_label"),
-		},
-		{view: () => m(".calendar-edit-container.pb", renderDialogContent())}
-	).addShortcut({
-		key: Keys.ESC,
-		exec: finish,
-		help: "close_alt"
-	}).addShortcut({
-		key: Keys.S,
-		ctrl: true,
-		exec: () => okAction(),
-		help: "save_action"
-	})
-	if (client.isMobileDevice()) {
-		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
-		dialog.setFocusOnLoadFunction(noOp)
-	}
-	dialog.show()
+		if (client.isMobileDevice()) {
+			// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
+			dialog.setFocusOnLoadFunction(noOp)
+		}
+		dialog.show()
 	})
 }
 

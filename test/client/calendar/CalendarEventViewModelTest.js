@@ -1643,7 +1643,7 @@ o.spec("CalendarEventViewModel", function () {
 		o("not available for premium users without business subscription", async function () {
 			const userController = makeUserController([], AccountType.PREMIUM, "", false)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			await viewModel.updateBusinessFeature()
+			await viewModel.updateCustomerFeatures()
 			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(true)
 		})
@@ -1651,7 +1651,7 @@ o.spec("CalendarEventViewModel", function () {
 		o("available for premium users with business subscription", async function () {
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			await viewModel.updateBusinessFeature()
+			await viewModel.updateCustomerFeatures()
 			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
