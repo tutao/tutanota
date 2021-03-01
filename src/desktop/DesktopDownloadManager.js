@@ -12,6 +12,9 @@ import {log} from "./DesktopLog";
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DownloadItem} from "electron"
+import {promises as fs} from "fs"
+import type {App} from "electron"
+
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
@@ -34,10 +37,10 @@ export class DesktopDownloadManager {
 		session.removeAllListeners('will-download').on('will-download', (ev, item) => this._handleDownloadItem(item))
 	}
 
-	downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
-		return new Promise((resolve, reject) => {
-			this._fs.mkdirSync(this._electron.app.getPath('temp') + '/tuta/', {recursive: true})
-			const encryptedFileUri = path.join(this._electron.app.getPath('temp'), '/tuta/', fileName)
+	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
+		return new Promise(async (resolve, reject) => {
+			const downloadDirectory = await getTutanotaTempDirectory(this._electron.app, "download")
+			const encryptedFileUri = path.join(downloadDirectory, fileName)
 			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
 			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {
@@ -174,4 +177,26 @@ function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: st
 			+ '\n'
 			+ message
 	})
+}
+
+/**
+ * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
+ * @returns {Promise<string>}
+ * @param app
+ * @param subdirs
+ */
+export async function getTutanotaTempDirectory(app: App, ...subdirs: string[]): Promise<string> {
+	const dirPath = getTutanotaTempPath(app, ...subdirs)
+	await fs.mkdir(dirPath, {recursive: true})
+	return dirPath
+}
+
+/**
+ * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
+ * @param app
+ * @param subdirs
+ * @returns {string}
+ */
+export function getTutanotaTempPath(app: App, ...subdirs: string[]): string {
+	return path.join(app.getPath("temp"), 'tutanota', ...subdirs)
 }

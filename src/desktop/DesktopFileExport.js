@@ -8,16 +8,18 @@ import type {MailBundle} from "../mail/export/Bundler"
 import {Attachment, Email, MessageEditorFormat} from "oxmsg"
 import {ParsingError} from "../api/common/error/ParsingError"
 import {isValidGeneratedId} from "../api/common/utils/Encoding"
+import {getTutanotaTempDirectory} from "./DesktopDownloadManager"
+import type {App} from "electron"
+
+const EXPORT_DIR = "export"
 
 /**
  * Get the directory path into which temporary exports should be exported
- * @param tempDir: path to the tempdir, we have to inject this because we can't import app from electron in this file
  * @returns {Promise<string>}
+ * @param app: electron app for getting temp dir path
  */
-export async function getExportDirectoryPath(tempDir: string): Promise<string> {
-	const dirPath = path.join(tempDir, 'tutanota', 'msg_export')
-	await fs.mkdir(dirPath, {recursive: true})
-	return dirPath
+export async function getExportDirectoryPath(app: App): Promise<string> {
+	return getTutanotaTempDirectory(app, EXPORT_DIR)
 }
 
 /**
@@ -74,8 +76,8 @@ export async function makeMsgFile(bundle: MailBundle): Promise<{name: string, co
 }
 
 
-export async function msgFileExists(id: IdTuple, tempDir: string): Promise<boolean> {
-	const exportDir = await getExportDirectoryPath(tempDir)
+export async function msgFileExists(id: IdTuple, app: App): Promise<boolean> {
+	const exportDir = await getTutanotaTempDirectory(app, EXPORT_DIR)
 
 	// successful call to stat means the file exists. it should be valid because the only reason it's there is because we made it
 	return await fileExists(path.join(exportDir, mailIdToFileName(id, "msg")))
