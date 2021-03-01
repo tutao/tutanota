@@ -138,6 +138,7 @@ export class CalendarEventViewModel {
 	+sendingOutUpdate: Stream<boolean>
 	_processing: boolean;
 	hasBusinessFeature: Stream<boolean>
+	hasPremiumLegacy: Stream<boolean>
 
 	constructor(
 		userController: IUserController,
@@ -167,6 +168,7 @@ export class CalendarEventViewModel {
 		this.sendingOutUpdate = stream(false)
 		this._processing = false
 		this.hasBusinessFeature = stream(false)
+		this.hasPremiumLegacy = stream(false)
 
 		const existingOrganizer = existingEvent && existingEvent.organizer
 		this.organizer = existingOrganizer
@@ -206,7 +208,7 @@ export class CalendarEventViewModel {
 			this.startDate = getStartOfDayWithZone(date, this._zone)
 			this.endDate = getStartOfDayWithZone(date, this._zone)
 		}
-		this.updateBusinessFeature()
+		this.updateCustomerFeatures()
 	}
 
 	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {
@@ -315,10 +317,11 @@ export class CalendarEventViewModel {
 		return stream(newStatuses)
 	}
 
-	updateBusinessFeature(): Promise<void> {
+	updateCustomerFeatures(): Promise<void> {
 		return this._userController.loadCustomer()
 		           .then(customer => {
 			           this.hasBusinessFeature(isUsingBusinessFeatureAllowed(customer))
+			           this.hasPremiumLegacy(isUsingPremiumLegacyFeaturesAllowed(customer))
 		           }).return()
 	}
 
@@ -565,7 +568,7 @@ export class CalendarEventViewModel {
 		if (this._userController.user.accountType === AccountType.EXTERNAL) {
 			return false
 		}
-		return !this.hasBusinessFeature()
+		return !this.hasBusinessFeature() && !this.hasPremiumLegacy()
 	}
 
 	removeAttendee(guest: Guest) {
@@ -1034,4 +1037,12 @@ export function createCalendarEventViewModel(date: Date, calendars: Map<Id, Cale
  */
 function isUsingBusinessFeatureAllowed(customer: Customer): boolean {
 	return !!customer.customizations.find(feature => feature.feature === FeatureType.BusinessFeatureEnabled)
+}
+
+/**
+ * Return true if the customer has a premium legacy subscription that allows using parts of the business feature
+ * (adding multiple custom domains and sending calendar invites).
+ */
+function isUsingPremiumLegacyFeaturesAllowed(customer: Customer): boolean {
+	return !!customer.customizations.find(feature => feature.feature === FeatureType.PremiumLegacy)
 }
