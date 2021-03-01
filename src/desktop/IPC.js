@@ -121,7 +121,6 @@ export class IPC {
 	}
 
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
-		const TMP_DIR = this._electron.app.getPath("temp")
 		switch (method) {
 			case 'init':
 				this._initialized[windowId].resolve()
@@ -262,27 +261,28 @@ export class IPC {
 					: Promise.resolve(null)
 			case 'saveBundleAsMsg': {
 				const bundle = args[0]
-				return getExportDirectoryPath(TMP_DIR)
-					.then(dir => makeMsgFile(bundle)
-						.then(file => writeFile(dir, file)))
+				const file = await makeMsgFile(bundle)
+				const exportDir = await getExportDirectoryPath(this._electron.app)
+				return writeFile(exportDir, file)
 			}
 			case 'queryAvailableMsgs': {
 				const mails: Array<Mail> = args[0]
 				// return all mails that havent already been exported
-				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, TMP_DIR)
+				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, this._electron.app)
 					.then(exists => exists ? null : mail))
 			}
 			case 'dragExportedMails': {
 				const ids: Array<IdTuple> = args[0]
-				const getExportPath = id => getExportDirectoryPath(TMP_DIR).then(p => path.join(p, mailIdToFileName(id, "msg")))
-				return Promise.all(ids.map(getExportPath))
-				              .then(files => files.filter(fileExists))
-				              .then(files => {
-					              this._wm.get(windowId)?._browserWindow.webContents.startDrag({
-						              files,
-						              icon: this._dragIcon
-					              })
-				              })
+				const getExportPath = async id => path.join(await getExportDirectoryPath(this._electron.app), mailIdToFileName(id, "msg"))
+				const files = await Promise.all(ids.map(getExportPath))
+				                           .then(files => files.filter(fileExists))
+
+				this._wm.get(windowId)?._browserWindow.webContents.startDrag({
+					files,
+					icon: this._dragIcon
+				})
+
+				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {
 				this._wm.get(windowId)?.browserWindow.focus()
