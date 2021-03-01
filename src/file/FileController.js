@@ -272,7 +272,4 @@ export class FileController {
 	}
 }
 
-
-export type MailExportMode = "msg" | "eml"
-
 export const fileController: FileController = new FileController()

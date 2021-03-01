@@ -1299,6 +1299,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"unsuccessfulDrop_msg": "The drag & drop was unsuccessful because the data had not finished downloading. You may try again once the progress bar is finished.",
-		"dragAndDrop_action": "Drag selected mails to the file system or other applications."
+		"dragAndDrop_action": "Drag selected mails to the file system or other applications.",
+		"mailExportMode_label": "File export format",
+		"mailExportModeHelp_msg": "File format to use when exporting or drag & dropping"
 	}
 }

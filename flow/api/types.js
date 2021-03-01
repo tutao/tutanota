@@ -198,7 +198,6 @@ type NativeRequestType = 'init'
 	| 'getDeviceLog' // for mobile apps
 	| 'getLog' // for desktop
 	| 'sendGroupInvitation'
-	| 'calendarInvitationProgress_msg'
 	| 'shareGroup'
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
@@ -207,10 +206,10 @@ type NativeRequestType = 'init'
 	| 'changeLanguage'
 	| 'isUpdateAvailable' // check if update is ready to install
 	| 'manualUpdate' // progress update process (check, dl, install)
-	| 'queryAvailableMsgs'
-	| 'dragExportedMails'
-	| 'saveBundleAsMsg'
+	| 'startNativeDrag'
+	| 'mailToMsg'
 	| 'focusApplicationWindow'
+	| 'saveToExportDir'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

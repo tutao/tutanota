@@ -3,7 +3,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail";
 import type {EntityClient} from "../../api/common/EntityClient";
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody";
-import {getMailBodyText} from "../../api/common/utils/Utils";
+import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils";
 import {FileTypeRef} from "../../api/entities/tutanota/File";
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders";
 import {MailState} from "../../api/common/TutanotaConstants";
@@ -72,7 +72,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 			              isRead: !mail.unread,
 			              sentOn: mail.sentDate.getTime(),
 			              receivedOn: mail.receivedDate.getTime(),
-			              headers: headers && headers.headers,
+			              headers: headers && getMailHeaders(headers),
 			              attachments: attachments
 		              }
 	              })

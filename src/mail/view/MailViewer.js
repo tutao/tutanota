@@ -14,7 +14,6 @@ import type {MailBody} from "../../api/entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody"
 import type {CalendarMethodEnum, InboxRuleTypeEnum, MailReportTypeEnum} from "../../api/common/TutanotaConstants"
 import {
-	AccountType,
 	ConversationType,
 	FeatureType,
 	InboxRuleType,
@@ -78,7 +77,7 @@ import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
-import {mailToEmlFile} from "../export/Exporter"
+import {generateMailFile, getMailExportMode} from "../export/Exporter"
 import {client} from "../../misc/ClientDetector"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
@@ -109,11 +108,12 @@ import type {ResponseMailParameters} from "../editor/SendMailModel"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {EntityClient} from "../../api/common/EntityClient"
-import {bundleMail, moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
+import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
+import {makeMailBundle} from "../export/Bundler"
 
 assertMainOrNode()
 
@@ -622,7 +622,13 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => this._exportMail(),
+							click: () => {
+								Promise.all([
+									getMailExportMode(),
+									makeMailBundle(this.mail, this._entityClient, worker)
+								]).then(([mode, bundle]) => generateMailFile(bundle, mode))
+								       .then(file => fileController.open(file))
+							},
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -726,12 +732,6 @@ export class MailViewer {
 			]),
 			okAction: null,
 		})
-	}
-
-	_exportMail() {
-		const exportPromise = bundleMail(this.mail).then(mailToEmlFile)
-		showProgressDialog("pleaseWait_msg", exportPromise)
-			.then(file => fileController.open(file))
 	}
 
 	_markAsNotPhishing(): Promise<void> {

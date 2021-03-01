@@ -21,12 +21,8 @@ import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
-import {getExportDirectoryPath, makeMsgFile, msgFileExists, writeFile} from "./DesktopFileExport"
-import type {Mail} from "../api/entities/tutanota/Mail"
+import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExport"
 import {fileExists} from "./PathUtils"
-import {mapAndFilterNullAsync} from "../api/common/utils/ArrayUtils"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
-import path from "path"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -260,28 +256,21 @@ export class IPC {
 				return !!this._updater
 					? Promise.resolve(this._updater.updateInfo)
 					: Promise.resolve(null)
-			case 'saveBundleAsMsg': {
+			case 'mailToMsg': {
 				const bundle = args[0]
-				const file = await makeMsgFile(bundle)
-				const exportDir = await getExportDirectoryPath(this._dl)
+				return makeMsgFile(bundle)
+			}
+			case 'saveToExportDir': {
+				const file: DataFile = args[0]
+				const exportDir = await getExportDirectoryPath(this._electron.app)
 				return writeFile(exportDir, file)
 			}
-			case 'queryAvailableMsgs': {
-				const mails: Array<Mail> = args[0]
-				// return all mails that havent already been exported
-				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail, this._dl)
-					.then(exists => exists ? null : mail))
-			}
-			case 'dragExportedMails': {
-				const files: Array<string> =
-					await promiseMap(args[0].filter(fileExists),
-						async name => path.join(await getExportDirectoryPath(this._dl), name))
+			case 'startNativeDrag': {
+				const files = args[0].filter(fileExists)
 				const window = this._wm.get(windowId)
-				window && window._browserWindow.webContents.startDrag({
-					files,
+				window && window._browserWindow.webContents.startDrag({					files,
 					icon: this._dragIcon
 				})
-
 				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {

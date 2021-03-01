@@ -26,33 +26,37 @@ import {assertNotNull, debounce, neverNull} from "../../api/common/utils/Utils"
 import {worker} from "../../api/main/WorkerClient"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
-import {bundleMail, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {MailRow} from "./MailRow"
 import {fileApp} from "../../native/common/FileApp"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {nativeApp} from "../../native/common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
-import {generateExportFileName} from "../export/Exporter"
+import type {IProgressMonitor} from "../../api/common/utils/ProgressMonitor"
+import {generateMailFile, getMailExportMode} from "../export/Exporter"
+import {makeMailBundle} from "../export/Bundler"
 
 assertMainOrNode()
 
 const className = "mail-list"
-
 
 export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
 
-	// Mails that are currently being downloaded for export
-	// We don't currently actually care about the contents of the promise, we only want to wait on them
-	mailsBeingBundled: Map<string, Promise<*>>
+	// Mails that are currently being or have already been downloaded/bundled/saved
+	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
+	// TODO this currently grows bigger and bigger amd bigger if the user goes on an exporting spree. maybe we should deal with this, or maybe this never becomes an issue?
+	// TODO this will go out of sync with the filesystem if something happens to the temporary directory during the session after some previous drag and drop.
+	//   Do we need to do something about this or do we consider this to be user error?
+	exportedMails: Map<string, Promise<string>>
 
 	constructor(mailListId: Id, mailView: MailView) {
 
 		this.listId = mailListId
 		this.mailView = mailView
-		this.mailsBeingBundled = new Map();
+		this.exportedMails = new Map()
 
 		this.list = new List({
 			rowHeight: size.list_row_height,
@@ -108,6 +112,7 @@ export class MailListView implements Component {
 
 					// if the mail being dragged is not included in the mails that are selected, then we only drag
 					// the mail that is currently being dragged, to match the behaviour of regular in-app dragging and dropping
+					// which seemingly behaves how it does just by default
 					const draggedMails = !!selected.find(mail => haveSameId(mail, mailUnderCursor))
 						? selected.slice()
 						: [mailUnderCursor]
@@ -118,25 +123,23 @@ export class MailListView implements Component {
 						document.addEventListener("mouseup", resolve, {once: true})
 					})
 
-					fileApp.queryAvailableMsg(draggedMails)
-					       .then(notDownloadedMails => {
-						       const downloadPromise = this._downloadAndBundleMails(notDownloadedMails)
+					const progressMonitor =
+						makeTrackedProgressMonitor(locator.progressTracker, 2 * draggedMails.length + 1)
+					progressMonitor.workDone(1)
 
-						       // if we need to download any mails, first we check if any have been started downloading already (by a previous incomplete drag operation)
-						       // if there are we take those, otherwise we start downloading
+					const filePathsPromise = Promise.all(draggedMails.map(mail => this._downloadAndBundleMail(mail, progressMonitor)))
 
-						       // If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
-						       // otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
-						       Promise.race([downloadPromise.then(() => true), mouseupPromise.then(() => false)])
-						              .then(didComplete => {
-							              if (didComplete) {
-								              fileApp.dragExportedMails(draggedMails.map(mail => generateExportFileName(mail.subject, mail.sentDate, "msg")))
-							              } else {
-								              nativeApp.invokeNative(new Request("focusApplicationWindow", []))
-								                       .then(() => Dialog.error("unsuccessfulDrop_msg"))
-							              }
-							              neverNull(document.body).style.cursor = "default"
-						              })
+					// If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
+					// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
+					Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
+					       .then(([didComplete, filePaths]) => {
+						       if (didComplete) {
+							       fileApp.startNativeDrag(filePaths)
+						       } else {
+							       nativeApp.invokeNative(new Request("focusApplicationWindow", []))
+							                .then(() => Dialog.error("unsuccessfulDrop_msg"))
+						       }
+						       neverNull(document.body).style.cursor = "default"
 					       })
 				} else if (styles.isDesktopLayout()) {
 					// Doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
@@ -148,37 +151,31 @@ export class MailListView implements Component {
 		})
 	}
 
-	_downloadAndBundleMails(notDownloadedMails: Array<Mail>): Promise<*> {
-		if (notDownloadedMails.length === 0) {
-			return Promise.resolve()
-		}
+	_downloadAndBundleMail(mail: Mail, progressMonitor: IProgressMonitor): Promise<string> {
 
-		const progressMonitor =
-			makeTrackedProgressMonitor(locator.progressTracker, 2 * notDownloadedMails.length + 1)
+		return getMailExportMode().then(exportMode => {
 
-		// Show that something is happening at first, in the case of very large attachments
-		progressMonitor.workDone(1)
-		return Promise.all(notDownloadedMails.map(mail => {
-			// If a mail was started downloading in the last drag, and we try to drag it again while it's not yet finished,
-			// then we should grab the promise that has already been created for it, otherwise make a new one
-			const id = mail._id.join()
-			if (this.mailsBeingBundled.has(id)) {
+			const key = `${getLetId(mail).join("")}${exportMode}`
+
+			// If the mail has already begun or finished downloading, then we just return it's promise
+			// Otherwise we begin the process and return that promise
+			if (this.exportedMails.has(key)) {
 				progressMonitor.workDone(2)
-				return neverNull(this.mailsBeingBundled.get(id))
+				return neverNull(this.exportedMails.get(key))
 			} else {
-				const bundlePromise = bundleMail(mail)
+				const exportPromise = makeMailBundle(mail, locator.entityClient, worker)
 					.then(bundle => {
 						progressMonitor.workDone(1)
-						return fileApp.saveBundleAsMsg(bundle)
+						return generateMailFile(bundle, exportMode)
 					})
-					.then(() => {
+					.then(file => {
 						progressMonitor.workDone(1)
-						this.mailsBeingBundled.delete(id)
+						return fileApp.saveToExportDir(file)
 					})
-				this.mailsBeingBundled.set(id, bundlePromise)
-				return bundlePromise
+				this.exportedMails.set(key, exportPromise)
+				return exportPromise
 			}
-		}))
+		})
 
 	}
 
