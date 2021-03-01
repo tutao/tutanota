@@ -192,6 +192,7 @@ async function buildAndStartDesktop(log, version) {
 	 * so it's just written in normal commonJS and copied over to be executed directly
 	 */
 	log("copying preload script")
+	await fs.mkdir("build/desktop", {recursive: true})
 	await fs.copyFile("src/desktop/preload.js", "build/desktop/preload.js")
 
 	log("Bundled desktop client")
