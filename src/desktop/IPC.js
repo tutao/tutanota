@@ -262,7 +262,7 @@ export class IPC {
 			}
 			case 'saveToExportDir': {
 				const file: DataFile = args[0]
-				const exportDir = await getExportDirectoryPath(this._electron.app)
+				const exportDir = await getExportDirectoryPath(this._dl)
 				return writeFile(exportDir, file)
 			}
 			case 'startNativeDrag': {
