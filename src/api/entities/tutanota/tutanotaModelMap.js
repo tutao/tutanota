@@ -107,7 +107,7 @@ const map: {[string]: () => mixed} = {
     GroupInvitationDeleteData: () => import('./GroupInvitationDeleteData'),
     PhishingMarker: () => import('./PhishingMarker'),
     PhishingMarkerWebsocketData: () => import('./PhishingMarkerWebsocketData'),
-    ReportPhishingPostData: () => import('./ReportPhishingPostData'),
+    ReportMailPostData: () => import('./ReportMailPostData'),
     CalendarEventAttendee: () => import('./CalendarEventAttendee'),
     CalendarEventUidIndex: () => import('./CalendarEventUidIndex'),
     CalendarEventIndexRef: () => import('./CalendarEventIndexRef'),

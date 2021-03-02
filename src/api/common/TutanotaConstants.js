@@ -682,6 +682,7 @@ export const MailReportType = Object.freeze({
 	PHISHING: "0",
 	SPAM: "1",
 })
+export type MailReportTypeEnum = $Values<typeof MailReportType>
 
 export const DnsRecordValidation = Object.freeze({
 	OK: "✓",
@@ -690,7 +691,6 @@ export const DnsRecordValidation = Object.freeze({
 export type DnsRecordValidationTypeEnum = $Values<typeof DnsRecordValidation>;
 
 
-export type MailReportTypeEnum = $Values<typeof MailReportType>
 export const CalendarAttendeeStatus = Object.freeze({
 	/** invite is not sent yet */
 	ADDED: "0",
