@@ -208,7 +208,8 @@ let initialized = import("./translations/en").then((en) => lang.init(en.default)
 			.then(module => new module.CalendarView()), true)
 	})
 
-	m.route.prefix = neverNull(state.prefix)
+	// see https://github.com/MithrilJS/mithril.js/issues/2659
+	m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
 	styles.init()
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
