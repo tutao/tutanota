@@ -176,11 +176,16 @@ export class ApplicationWindow {
 		    .on('blur', ev => this._localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-		    .on('new-window', (e, url) => {
+		    .on('new-window', (e, newWindowUrl) => {
+			    e.preventDefault()
+			    // this also works for raw file paths without protocol
+			    if(url.parse(newWindowUrl).protocol === 'file:') {
+			    	log.warn('prevented file url from being opened by shell')
+			    	return
+			    }
 			    // we never open any new windows directly from the renderer
 			    // except for links in mails etc. so open them in the browser
-			    this._electron.shell.openExternal(url)
-			    e.preventDefault()
+			    this._electron.shell.openExternal(newWindowUrl)
 		    })
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
