@@ -30,7 +30,7 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import type {Braintree3ds2Request} from "../api/entities/sys/Braintree3ds2Request"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
-import {getWebRoot} from "../api/common/Env"
+import {getPaymentWebRoot} from "../api/common/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 
 /**
@@ -288,7 +288,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.error("creditCardVerificationNeededPopup_msg")
 		      .then(() => {
-			      window.open(`${getWebRoot()}/braintree.html#${params}`)
+			      window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
 			      progressDialog.show()
 		      })
 
