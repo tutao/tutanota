@@ -114,6 +114,7 @@ import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/Entit
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {makeMailBundle} from "../export/Bundler"
+import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -625,7 +626,7 @@ export class MailViewer {
 							click: () => {
 								Promise.all([
 									getMailExportMode(),
-									makeMailBundle(this.mail, this._entityClient, worker)
+									makeMailBundle(this.mail, this._entityClient, worker, htmlSanitizer)
 								]).then(([mode, bundle]) => generateMailFile(bundle, mode))
 								       .then(file => fileController.open(file))
 							},

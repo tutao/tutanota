@@ -8,6 +8,7 @@ import {FileTypeRef} from "../../api/entities/tutanota/File";
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders";
 import {MailState} from "../../api/common/TutanotaConstants";
 import {getLetId} from "../../api/common/utils/EntityUtils"
+import {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
@@ -37,16 +38,18 @@ export type MailBundle = {
  * @param mail
  * @param entityClient
  * @param worker
+ * @param sanitizer
  */
-export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: WorkerClient): Promise<MailBundle> {
+export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: WorkerClient, sanitizer: HtmlSanitizer): Promise<MailBundle> {
 	const bodyTextPromise = entityClient.load(MailBodyTypeRef, mail.body)
 	                                    .then(getMailBodyText)
-	                                    .then(body => import("../../misc/HtmlSanitizer")
-		                                    .then(({htmlSanitizer}) => htmlSanitizer.sanitize(body, {
+	                                    .then(body =>
+		                                    sanitizer.sanitize(body, {
 			                                    blockExternalContent: false,
 			                                    allowRelativeLinks: false,
 			                                    usePlaceholderForInlineImages: false
-		                                    }).text))
+		                                    }).text
+	                                    )
 
 	const attachmentsPromise = Promise.all(
 		mail.attachments.map(fileId => entityClient.load(FileTypeRef, fileId)
