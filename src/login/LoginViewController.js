@@ -14,7 +14,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
-import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/common/Env"
+import {assertMainOrNode, isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull, noOp} from "../api/common/utils/Utils"
@@ -250,10 +250,12 @@ export class LoginViewController implements ILoginViewController {
 				}
 			})
 			.then(() => logins.loginComplete()).then(() => {
-			// don't wait for it, just invoke
-			import("../native/common/FileApp")
-				.then(({fileApp}) => fileApp.clearFileData())
-				.catch((e) => console.log("Failed to clean file data", e))
+				if (isApp() || isDesktop()) {
+					// don't wait for it, just invoke
+					import("../native/common/FileApp")
+						.then(({fileApp}) => fileApp.clearFileData())
+						.catch((e) => console.log("Failed to clean file data", e))
+				}
 		})
 			.then(() => {
 				if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
