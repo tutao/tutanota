@@ -18,7 +18,7 @@ import {lang} from "../misc/LanguageViewModel"
 import en from "../translations/en"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {DesktopDownloadManager, getTutanotaTempPath} from "./DesktopDownloadManager"
+import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
 import {log} from "./DesktopLog";
 import {UpdaterWrapperImpl} from "./UpdaterWrapper"
@@ -31,7 +31,6 @@ import net from "net"
 import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
-import {downcast} from "../api/common/utils/Utils"
 
 mp()
 
@@ -86,10 +85,10 @@ if (process.argv.indexOf("-r") !== -1) {
 	startupInstance()
 }
 
-async function startupInstance() {
+function startupInstance() {
 	// Delete the temp directory on startup, because we may not always be able to do it on shutdown
 	// we want to await cause the next call will create it again
-	deleteTempDir()
+	dl.deleteTutanotaTempDirectory()
 
 	DesktopUtils.makeSingleInstance().then(willStay => {
 		if (!willStay) return
@@ -115,8 +114,8 @@ async function startupInstance() {
 			} else {
 				DesktopUtils.callWhenReady(() => handleMailto(url))
 			}
-		}).on('will-quit', async (e) => {
-			deleteTempDir()
+		}).on('will-quit', (e) => {
+			dl.deleteTutanotaTempDirectory()
 		})
 		// it takes a short while to get here,
 		// the event may already have fired
@@ -175,9 +174,3 @@ function handleMailto(mailtoArg?: string) {
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }
-
-function deleteTempDir() {
-	// TODO Flow doesn't know about the options param, we should update it and then remove this downcast
-	downcast(fs.rmdirSync)(getTutanotaTempPath(app), {recursive: true})
-}
-

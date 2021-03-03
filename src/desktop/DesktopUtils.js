@@ -12,7 +12,6 @@ import {cryptoFns} from "./CryptoFns"
 
 
 import {delay} from "../api/common/utils/PromiseUtils"
-import {getTutanotaTempDirectory} from "./DesktopDownloadManager"
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -81,8 +80,8 @@ export class DesktopUtils {
 	 * reads the lockfile and then writes the own version into the lockfile
 	 * @returns {Promise<boolean>} whether the lock was overridden by another version
 	 */
-	async singleInstanceLockOverridden(): Promise<boolean> {
-		const lockfilePath = await getLockFilePath()
+	singleInstanceLockOverridden(): Promise<boolean> {
+		const lockfilePath = getLockFilePath()
 		return fs.readFile(lockfilePath, 'utf8')
 		         .then(version => {
 			         return fs.writeFile(lockfilePath, app.getVersion(), 'utf8')
@@ -102,8 +101,8 @@ export class DesktopUtils {
 	 *
 	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
 	 */
-	async makeSingleInstance(): Promise<boolean> {
-		const lockfilePath = await getLockFilePath()
+	makeSingleInstance(): Promise<boolean> {
+		const lockfilePath = getLockFilePath()
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
 		// errors are ignored and we fall back to a version agnostic single instance lock.
@@ -161,8 +160,10 @@ function checkForAdminStatus(): Promise<boolean> {
 	}
 }
 
-async function getLockFilePath(): Promise<string> {
-	return path.join(await getTutanotaTempDirectory(app), 'desktop_lockfile')
+function getLockFilePath() {
+	// don't get temp dir path from DesktopDownloadManager because we want the lockfile to persist while the app is open,
+	// and the tutanota temp dir may be deleted
+	return path.join(app.getPath('temp'), 'tutanota_desktop_lockfile')
 }
 
 /**

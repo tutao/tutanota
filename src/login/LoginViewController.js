@@ -251,11 +251,9 @@ export class LoginViewController implements ILoginViewController {
 			})
 			.then(() => logins.loginComplete()).then(() => {
 			// don't wait for it, just invoke
-			if (isApp()) {
-				import("../native/common/FileApp")
-					.then(({fileApp}) => fileApp.clearFileData())
-					.catch((e) => console.log("Failed to clean file data", e))
-			}
+			import("../native/common/FileApp")
+				.then(({fileApp}) => fileApp.clearFileData())
+				.catch((e) => console.log("Failed to clean file data", e))
 		})
 			.then(() => {
 				if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
