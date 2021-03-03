@@ -2,7 +2,7 @@
 import type {ElectronSession} from 'electron'
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
-import {assertNotNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -23,6 +23,7 @@ export class DesktopDownloadManager {
 	_desktopUtils: DesktopUtils;
 	_fs: $Exports<"fs">;
 	_electron: $Exports<"electron">
+	_topLevelDownloadDir: string
 
 	constructor(conf: DesktopConfig, net: DesktopNetworkClient, desktopUtils: DesktopUtils, fs: $Exports<"fs">, electron: $Exports<"electron">) {
 		this._conf = conf
@@ -31,6 +32,7 @@ export class DesktopDownloadManager {
 		this._desktopUtils = desktopUtils
 		this._fs = fs
 		this._electron = electron
+		this._topLevelDownloadDir = "tutanota"
 	}
 
 	manageDownloadsForSession(session: ElectronSession) {
@@ -39,7 +41,7 @@ export class DesktopDownloadManager {
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise(async (resolve, reject) => {
-			const downloadDirectory = await getTutanotaTempDirectory(this._electron.app, "download")
+			const downloadDirectory = await this.getTutanotaTempDirectory("download")
 			const encryptedFileUri = path.join(downloadDirectory, fileName)
 			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
 			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
@@ -150,6 +152,7 @@ export class DesktopDownloadManager {
 			}
 		}
 
+
 		item.on('done', (event, state) => {
 			if (state === 'completed') {
 				fileManagerLock()
@@ -162,6 +165,34 @@ export class DesktopDownloadManager {
 				log.debug("download cancelled", item.getFilename())
 			}
 		})
+	}
+
+	/**
+	 * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
+	 * @returns {Promise<string>}
+	 * @param app
+	 * @param subdirs
+	 */
+	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
+		const dirPath = this.getTutanotaTempPath(...subdirs)
+		await fs.mkdir(dirPath, {recursive: true})
+		return dirPath
+	}
+
+	/**
+	 * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
+	 * @param app
+	 * @param subdirs
+	 * @returns {string}
+	 */
+	getTutanotaTempPath(...subdirs: string[]): string {
+		return path.join(this._electron.app.getPath("temp"), this._topLevelDownloadDir, ...subdirs)
+	}
+
+	deleteTutanotaTempDirectory() {
+		// TODO Flow doesn't know about the options param, we should update it and then remove this downcast
+		// Using sync version because this could get called on app shutdown and it may not complete if async
+		downcast(this._fs.rmdirSync)(this.getTutanotaTempPath(), {recursive: true})
 	}
 }
 
@@ -179,24 +210,3 @@ function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: st
 	})
 }
 
-/**
- * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
- * @returns {Promise<string>}
- * @param app
- * @param subdirs
- */
-export async function getTutanotaTempDirectory(app: App, ...subdirs: string[]): Promise<string> {
-	const dirPath = getTutanotaTempPath(app, ...subdirs)
-	await fs.mkdir(dirPath, {recursive: true})
-	return dirPath
-}
-
-/**
- * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
- * @param app
- * @param subdirs
- * @returns {string}
- */
-export function getTutanotaTempPath(app: App, ...subdirs: string[]): string {
-	return path.join(app.getPath("temp"), 'tutanota', ...subdirs)
-}

@@ -21,7 +21,7 @@ import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
-import {getExportDirectoryPath, mailIdToFileName, makeMsgFile, msgFileExists, writeFile, writeFiles} from "./DesktopFileExport"
+import {getExportDirectoryPath, mailIdToFileName, makeMsgFile, msgFileExists, writeFile} from "./DesktopFileExport"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {fileExists} from "./PathUtils"
 import {mapAndFilterNullAsync} from "../api/common/utils/ArrayUtils"
@@ -262,18 +262,18 @@ export class IPC {
 			case 'saveBundleAsMsg': {
 				const bundle = args[0]
 				const file = await makeMsgFile(bundle)
-				const exportDir = await getExportDirectoryPath(this._electron.app)
+				const exportDir = await getExportDirectoryPath(this._dl)
 				return writeFile(exportDir, file)
 			}
 			case 'queryAvailableMsgs': {
 				const mails: Array<Mail> = args[0]
 				// return all mails that havent already been exported
-				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, this._electron.app)
+				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, this._dl)
 					.then(exists => exists ? null : mail))
 			}
 			case 'dragExportedMails': {
 				const ids: Array<IdTuple> = args[0]
-				const getExportPath = async id => path.join(await getExportDirectoryPath(this._electron.app), mailIdToFileName(id, "msg"))
+				const getExportPath = async id => path.join(await getExportDirectoryPath(this._dl), mailIdToFileName(id, "msg"))
 				const files = await Promise.all(ids.map(getExportPath))
 				                           .then(files => files.filter(fileExists))
 				const window = this._wm.get(windowId)
@@ -287,6 +287,10 @@ export class IPC {
 			case 'focusApplicationWindow': {
 				const window = this._wm.get(windowId)
 				window && window.browserWindow.focus()
+				return Promise.resolve()
+			}
+			case 'clearFileData': {
+				this._dl.deleteTutanotaTempDirectory()
 				return Promise.resolve()
 			}
 			default:
