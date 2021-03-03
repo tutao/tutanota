@@ -13,7 +13,6 @@ import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DownloadItem} from "electron"
 import {promises as fs} from "fs"
-import type {App} from "electron"
 
 
 export class DesktopDownloadManager {
@@ -152,7 +151,6 @@ export class DesktopDownloadManager {
 			}
 		}
 
-
 		item.on('done', (event, state) => {
 			if (state === 'completed') {
 				fileManagerLock()
@@ -170,18 +168,16 @@ export class DesktopDownloadManager {
 	/**
 	 * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
 	 * @returns {Promise<string>}
-	 * @param app
 	 * @param subdirs
 	 */
 	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
 		const dirPath = this.getTutanotaTempPath(...subdirs)
-		await fs.mkdir(dirPath, {recursive: true})
+		await this._fs.mkdir(dirPath, {recursive: true})
 		return dirPath
 	}
 
 	/**
 	 * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
-	 * @param app
 	 * @param subdirs
 	 * @returns {string}
 	 */
@@ -194,6 +190,7 @@ export class DesktopDownloadManager {
 		// Using sync version because this could get called on app shutdown and it may not complete if async
 		downcast(this._fs.rmdirSync)(this.getTutanotaTempPath(), {recursive: true})
 	}
+
 }
 
 function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: string, filename: string) {
@@ -209,4 +206,3 @@ function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: st
 			+ message
 	})
 }
-

@@ -2,8 +2,12 @@
 import o from "ospec"
 import n from "../nodemocker"
 import {DesktopDownloadManager} from "../../../src/desktop/DesktopDownloadManager"
+import {lang} from "../../../src/misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
+import en from "../../../src/translations/en"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
+lang.init({en})
 
 o.spec("DesktopDownloadManagerTest", function () {
 	let conf
@@ -134,7 +138,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			},
 			openSync: () => {
 			},
-			mkdirp: () => Promise.resolve(),
+			mkdir: () => Promise.resolve(),
 			writeFile: () => Promise.resolve(),
 			createWriteStream: () => new WriteStream(),
 			existsSync: (path) => path === DEFAULT_DOWNLOAD_PATH,
@@ -145,9 +149,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}
 
 		const lang = {
-			lang: {
-				get: (key) => key
-			}
+			get: (key) => key
 		}
 		const desktopUtils = {
 			touch: (path) => {},
@@ -163,9 +165,13 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}
 	}
 
+	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, langMock}) {
+		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+	}
+
 	o("no default download path => don't assign save path", async function () {
-		const {electronMock, netMock, fsMock, desktopUtilsMock} = standardMocks()
-		const confMock = n.mock("__conf", conf).with({
+		const mocks = standardMocks()
+		mocks.confMock = n.mock("__conf", conf).with({
 			getVar: (key) => {
 				switch (key) {
 					case "defaultDownloadPath":
@@ -176,7 +182,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			}
 		}).set()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		dl.manageDownloadsForSession(sessionMock)
 		o(sessionMock.removeAllListeners.callCount).equals(1)
@@ -186,13 +192,13 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const itemMock = n.spyify({on: () => {}})
 		sessionMock.callbacks["will-download"](undefined, itemMock)
 		o(itemMock.on.callCount).equals(1)
-		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
 	o("with default download path", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const mocks = standardMocks()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
@@ -200,20 +206,20 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'completed')
-		o(electronMock.shell.openPath.callCount).equals(1)
-		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
-		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
 	o("with default download path but it doesn't exist", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock} = standardMocks()
-		const fsMock = n.mock("fs-extra", fs).with({
+		const mocks = standardMocks()
+		mocks.fsMock = n.mock("fs-extra", fs).with({
 			existsSync: () => false,
 		}).set()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		dl.manageDownloadsForSession(sessionMock)
 		o(sessionMock.removeAllListeners.callCount).equals(1)
@@ -222,13 +228,13 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o(sessionMock.on.args[0]).equals("will-download")
 		const itemMock = n.spyify({on: () => {}})
 		sessionMock.callbacks["will-download"](undefined, itemMock)
-		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
 	o("two downloads, open two filemanagers", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const mocks = standardMocks()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
@@ -237,24 +243,24 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'completed')
-		o(electronMock.shell.openPath.callCount).equals(1)
-		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		await Promise.delay(60)
 		sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'completed')
-		o(electronMock.shell.openPath.callCount).equals(2)
-		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
+		o(mocks.electronMock.shell.openPath.callCount).equals(2)
+		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
-		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
 	o("only open one file manager for successive downloads", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const mocks = standardMocks()
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		const itemMock2 = n.mock("__item", item).set()
@@ -264,17 +270,16 @@ o.spec("DesktopDownloadManagerTest", function () {
 		itemMock.callbacks["done"]({}, 'completed')
 		itemMock2.callbacks["done"]({}, 'completed')
 
-		o(electronMock.shell.openPath.callCount).equals(1)
-		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
-		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
 	o("download interrupted shows error box", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
-
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const mocks = standardMocks()
+		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
@@ -283,88 +288,88 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		itemMock.callbacks["done"]({}, 'interrupted')
 
-		o(electronMock.shell.openPath.callCount).equals(0)
-		o(electronMock.dialog.showMessageBox.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(1)
 	})
 
 	o("downloadNative, no error", async function () {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
-
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
-		const res = new netMock.Response(200)
+		const mocks = standardMocks()
+		const dl = makeMockedDownloadManager(mocks)
+		const res = new mocks.netMock.Response(200)
 		const dlPromise = dl.downloadNative("some://url/file", "nativelyDownloadedFile", {v: "foo", accessToken: "bar"})
+		// delay so that dl can set up it's callbacks on netMock before we try to access them
 		await Promise.delay(5)
-		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		mocks.netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		const ws = WriteStream.mockedInstances[0]
 		ws.callbacks['finish']()
 		await dlPromise
-		o(netMock.request.callCount).equals(1)
-		o(netMock.request.args.length).equals(2)
-		o(netMock.request.args[0]).equals("some://url/file")
-		o(netMock.request.args[1]).deepEquals({
+		o(mocks.netMock.request.callCount).equals(1)
+		o(mocks.netMock.request.args.length).equals(2)
+		o(mocks.netMock.request.args[0]).equals("some://url/file")
+		o(mocks.netMock.request.args[1]).deepEquals({
 			method: 'GET',
 			headers: {v: "foo", accessToken: "bar"},
 			timeout: 20000
 		})
-		o(netMock.ClientRequest.mockedInstances.length).equals(1)
-		o(fsMock.createWriteStream.callCount).equals(1)
-		o(fsMock.createWriteStream.args.length).equals(2)
-		o(fsMock.createWriteStream.args[0]).equals('/some/path/tuta/nativelyDownloadedFile')
-		o(fsMock.createWriteStream.args[1]).deepEquals({emitClose: true})
+		o(mocks.netMock.ClientRequest.mockedInstances.length).equals(1)
+		o(mocks.fsMock.createWriteStream.callCount).equals(1)
+		o(mocks.fsMock.createWriteStream.args.length).equals(2)
+		o(mocks.fsMock.createWriteStream.args[0]).equals('/some/path/tutanota/download/nativelyDownloadedFile')
+		o(mocks.fsMock.createWriteStream.args[1]).deepEquals({emitClose: true})
 
 		o(res.pipe.callCount).equals(1)
 		o(res.pipe.args[0]).deepEquals(ws)
 	})
 
 	o("downloadNative, error gets cleaned up", async function () {
-		const {confMock, netMock, fsMock, desktopUtilsMock, electronMock} = standardMocks()
+		const mocks = standardMocks()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
-		const res = new netMock.Response(404)
+		const dl = makeMockedDownloadManager(mocks)
+		const res = new mocks.netMock.Response(404)
 		const dlPromise = dl.downloadNative("some://url/file", "nativelyDownloadedFile", {v: "foo", accessToken: "bar"})
-		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		await Promise.delay(5)
+		mocks.netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		const ws = WriteStream.mockedInstances[0]
 		ws.callbacks['finish']()
 		return dlPromise
 			.then(() => o("").equals(3))
 			.catch(e => {
 				o(e).equals(404)
-				o(fsMock.createWriteStream.callCount).equals(1)
+				o(mocks.fsMock.createWriteStream.callCount).equals(1)
 				o(ws.on.callCount).equals(2)
 				o(ws.removeAllListeners.callCount).equals(2)
 				o(ws.removeAllListeners.args[0]).equals('close')
-				o(fsMock.promises.unlink.callCount).equals(1)
+				o(mocks.fsMock.promises.unlink.callCount).equals(1)
 			})
 	})
 
 	o("open", async function () {
-		const {electronMock, confMock, netMock, desktopUtilsMock, fsMock} = standardMocks()
+		const mocks = standardMocks()
 
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+		const dl = makeMockedDownloadManager(mocks)
 
 		return dl.open("/some/folder/file").then(() => {
 
-			o(electronMock.shell.openPath.callCount).equals(1)
-			o(electronMock.shell.openPath.args.length).equals(1)
-			o(electronMock.shell.openPath.args[0]).equals("/some/folder/file")
+			o(mocks.electronMock.shell.openPath.callCount).equals(1)
+			o(mocks.electronMock.shell.openPath.args.length).equals(1)
+			o(mocks.electronMock.shell.openPath.args[0]).equals("/some/folder/file")
 		})
 		         .then(() => dl.open("invalid"))
 		         .then(() => o(false).equals(true))
 		         .catch(() => {
-			         o(electronMock.shell.openPath.callCount).equals(2)
-			         o(electronMock.shell.openPath.args.length).equals(1)
-			         o(electronMock.shell.openPath.args[0]).equals("invalid")
+			         o(mocks.electronMock.shell.openPath.callCount).equals(2)
+			         o(mocks.electronMock.shell.openPath.args.length).equals(1)
+			         o(mocks.electronMock.shell.openPath.args[0]).equals("invalid")
 		         })
 	})
 
 	o("open on windows", async function () {
 		n.setPlatform("win32")
-		const {electronMock, confMock, netMock, desktopUtilsMock, fsMock} = standardMocks()
-
-		const dl = new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
-
+		const mocks = standardMocks()
+		const dl = makeMockedDownloadManager(mocks)
 		await dl.open("exec.exe")
-		o(electronMock.dialog.showMessageBox.callCount).equals(1)
-		o(electronMock.shell.openPath.callCount).equals(0)
+		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.callCount).equals(0)
 	})
 })
+
