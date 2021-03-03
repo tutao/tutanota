@@ -99,7 +99,6 @@ export class UserListView implements UpdatableSettingsViewer {
 				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false
 			},
-			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
 		})

@@ -175,7 +175,6 @@ export class SearchListView {
 				swipeRight: () => Promise.resolve(false),
 				enabled: false,
 			},
-			elementsDraggable: false,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController()
 			                                                              .isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))

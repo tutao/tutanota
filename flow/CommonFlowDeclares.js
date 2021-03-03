@@ -87,7 +87,6 @@ type ListConfig<T, R: VirtualRow<T>> = {
 	className: string;
 	swipe: SwipeConfiguration<T>;
 
-	elementsDraggable: boolean;
 	/**
 	 * True if the user may select multiple or 0 elements.
 	 * Keep in mind that even if multiSelectionAllowed == false, elementSelected() will be called with multiSelectOperation = true if an element is deleted and removed from the selection.

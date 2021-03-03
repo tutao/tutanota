@@ -193,7 +193,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								[
 									this._virtualList.map(virtualRow => {
 										return m("li.list-row.pl.pr-l"
-											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
+											+ (this._config.dragStart ? '[draggable="true"]' : ""), {
 												tabindex: TabIndex.Default,
 												oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 												style: {
