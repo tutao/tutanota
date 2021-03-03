@@ -40,8 +40,8 @@ export class DesktopDownloadManager {
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise(async (resolve, reject) => {
-			const downloadDirectory = await this.getTutanotaTempDirectory("download")
-			const encryptedFileUri = path.join(downloadDirectory, fileName)
+		const downloadDirectory = await this.getTutanotaTempDirectory("download")
+		const encryptedFileUri = path.join(downloadDirectory, fileName)
 			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
 			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {
@@ -172,7 +172,7 @@ export class DesktopDownloadManager {
 	 */
 	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
 		const dirPath = this.getTutanotaTempPath(...subdirs)
-		await this._fs.mkdir(dirPath, {recursive: true})
+		await this._fs.promises.mkdir(dirPath, {recursive: true})
 		return dirPath
 	}
 
