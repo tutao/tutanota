@@ -8,6 +8,7 @@ import {Attachment, Email, MessageEditorFormat} from "oxmsg"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {createDataFile} from "../api/common/DataFile"
 import {generateExportFileName} from "../mail/export/Exporter"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 const EXPORT_DIR = "export"
 
@@ -33,10 +34,10 @@ export async function writeFiles(dirPath: string, files: Array<DataFile>): Promi
 		name: legalNames[f.name].shift()
 	}))
 
-	return Promise.all(legalFiles.map(async file => {
+	return promiseMap(legalFiles, async file => {
 		await fs.writeFile(path.join(dirPath, file.name), file.data)
 		return file.name
-	}))
+	})
 }
 
 export async function writeFile(dirPath: string, file: DataFile): Promise<string> {
