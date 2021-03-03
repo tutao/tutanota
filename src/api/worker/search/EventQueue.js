@@ -212,6 +212,9 @@ export class EventQueue {
 			findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
 			return batchInThePast.events.length === 0
 		}, startIndex)
+
+		// // We removed empty batches from the list but the one in the map will still stay.
+		this._lastOperationForEntity.set(elementId, this._eventQueue[startIndex])
 	}
 
 	start() {

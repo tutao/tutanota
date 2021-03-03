@@ -377,6 +377,31 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
+		o.only("delete + create + delete + create == delete + create", async function () {
+			// This tests that create still works a
+			const deleteEvent1 = createUpdate(OperationType.DELETE, "list", "1", "u1")
+			const createEvent1 = createUpdate(OperationType.CREATE, "list", "1", "u2")
+
+			const deleteEvent2 = createUpdate(OperationType.DELETE, "list", "1", "u3")
+			const createEvent2 = createUpdate(OperationType.CREATE, "list", "1", "u4")
+
+
+			queue.add("batch-id-1", "group-id", [deleteEvent1])
+			queue.add("batch-id-2", "group-id", [createEvent1])
+			queue.add("batch-id-3", "group-id", [deleteEvent2])
+			queue.add("batch-id-4", "group-id", [createEvent2])
+			queue.resume()
+			await lastProcess.promise
+
+			const expectedDelete = createUpdate(OperationType.DELETE, createEvent1.instanceListId, createEvent1.instanceId, "u1")
+			const expectedCreate = createUpdate(OperationType.CREATE, createEvent1.instanceListId, createEvent1.instanceId, "u4")
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [expectedDelete], batchId: "batch-id-1", groupId: "group-id"}],
+				[{events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id"}],
+			])
+		})
+
 		o("same batch in two different groups", async function () {
 			const createEvent1 = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
 			const createEvent2 = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
