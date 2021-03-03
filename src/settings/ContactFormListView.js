@@ -94,7 +94,6 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					return Promise.resolve()
 				},
 			}: any),
-			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
 		})
