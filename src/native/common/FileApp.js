@@ -17,7 +17,8 @@ export const fileApp = {
 	saveBlob,
 	mailToMsg,
 	saveToExportDir,
-	startNativeDrag
+	startNativeDrag,
+	checkFileExists
 }
 
 
@@ -152,4 +153,8 @@ function startNativeDrag(files: Array<string>): Promise<void> {
 
 function saveToExportDir(file: DataFile): Promise<string> {
 	return nativeApp.invokeNative(new Request("saveToExportDir", [file]))
+}
+
+function checkFileExists(path: string): Promise<boolean> {
+	return nativeApp.invokeNative(new Request("checkFileExists", [path]))
 }

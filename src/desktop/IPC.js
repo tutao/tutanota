@@ -268,15 +268,20 @@ export class IPC {
 			case 'startNativeDrag': {
 				const files = args[0].filter(fileExists)
 				const window = this._wm.get(windowId)
-				window && window._browserWindow.webContents.startDrag({					files,
-					icon: this._dragIcon
-				})
+				window && window._browserWindow.webContents.startDrag(
+					{
+						files,
+						icon: this._dragIcon
+					})
 				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {
 				const window = this._wm.get(windowId)
 				window && window.browserWindow.focus()
 				return Promise.resolve()
+			}
+			case 'checkFileExists': {
+				return fileExists(args[0])
 			}
 			case 'clearFileData': {
 				this._dl.deleteTutanotaTempDirectory()
