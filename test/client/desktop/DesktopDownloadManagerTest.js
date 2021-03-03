@@ -2,12 +2,8 @@
 import o from "ospec"
 import n from "../nodemocker"
 import {DesktopDownloadManager} from "../../../src/desktop/DesktopDownloadManager"
-import {lang} from "../../../src/misc/LanguageViewModel"
-// $FlowIgnore[untyped-import]
-import en from "../../../src/translations/en"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
-lang.init({en})
 
 o.spec("DesktopDownloadManagerTest", function () {
 	let conf
@@ -138,13 +134,13 @@ o.spec("DesktopDownloadManagerTest", function () {
 			},
 			openSync: () => {
 			},
-			mkdir: () => Promise.resolve(),
 			writeFile: () => Promise.resolve(),
 			createWriteStream: () => new WriteStream(),
 			existsSync: (path) => path === DEFAULT_DOWNLOAD_PATH,
 			mkdirSync: () => {},
 			promises: {
-				unlink: () => Promise.resolve()
+				unlink: () => Promise.resolve(),
+				mkdir: () => Promise.resolve(),
 			}
 		}
 
@@ -165,7 +161,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}
 	}
 
-	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, langMock}) {
+	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock}) {
 		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
 	}
 
