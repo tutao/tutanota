@@ -161,8 +161,8 @@ function checkForAdminStatus(): Promise<boolean> {
 }
 
 function getLockFilePath() {
-	// don't get temp dir path from DesktopDownloadManager because we want the lockfile to persist while the app is open,
-	// and the tutanota temp dir may be deleted
+	// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
+	// we want to put the lockfile in root tmp so it persists
 	return path.join(app.getPath('temp'), 'tutanota_desktop_lockfile')
 }
 

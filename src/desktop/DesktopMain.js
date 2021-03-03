@@ -87,7 +87,6 @@ if (process.argv.indexOf("-r") !== -1) {
 
 function startupInstance() {
 	// Delete the temp directory on startup, because we may not always be able to do it on shutdown
-	// we want to await cause the next call will create it again
 	dl.deleteTutanotaTempDirectory()
 
 	DesktopUtils.makeSingleInstance().then(willStay => {
