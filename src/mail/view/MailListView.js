@@ -35,6 +35,7 @@ import {Request} from "../../api/common/WorkerProtocol"
 import type {IProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {generateMailFile, getMailExportMode} from "../export/Exporter"
 import {makeMailBundle} from "../export/Bundler"
+import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -163,7 +164,7 @@ export class MailListView implements Component {
 				progressMonitor.workDone(2)
 				return neverNull(this.exportedMails.get(key))
 			} else {
-				const exportPromise = makeMailBundle(mail, locator.entityClient, worker)
+				const exportPromise = makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)
 					.then(bundle => {
 						progressMonitor.workDone(1)
 						return generateMailFile(bundle, exportMode)

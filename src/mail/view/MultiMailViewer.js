@@ -22,6 +22,7 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMailsInZip} from "../export/Exporter"
 import {makeMailBundle} from "../export/Bundler"
 import {worker} from "../../api/main/WorkerClient"
+import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -117,7 +118,7 @@ export class MultiMailViewer {
 				{
 					label: "export_action",
 					click: this._actionBarAction((mails) => {
-						return Promise.all(mails.map(mail => makeMailBundle(mail, locator.entityClient, worker)))
+						return Promise.all(mails.map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
 						              .then(bundles => exportMailsInZip(bundles))
 					}),
 					icon: () => Icons.Export,

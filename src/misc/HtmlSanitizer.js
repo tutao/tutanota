@@ -27,7 +27,7 @@ type SanitizeConfig = SanitizeConfigExtra & SanitizeConfigBase
 type SanitizedHTML = {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>}
 
 
-class HtmlSanitizer {
+export class HtmlSanitizer {
 
 	_externalContent: string[]
 	_inlineImageCids: Array<string>
