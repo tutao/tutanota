@@ -276,8 +276,8 @@ export class IPC {
 				const getExportPath = async id => path.join(await getExportDirectoryPath(this._electron.app), mailIdToFileName(id, "msg"))
 				const files = await Promise.all(ids.map(getExportPath))
 				                           .then(files => files.filter(fileExists))
-
-				this._wm.get(windowId)?._browserWindow.webContents.startDrag({
+				const window = this._wm.get(windowId)
+				window && window._browserWindow.webContents.startDrag({
 					files,
 					icon: this._dragIcon
 				})
@@ -285,7 +285,8 @@ export class IPC {
 				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {
-				this._wm.get(windowId)?.browserWindow.focus()
+				const window = this._wm.get(windowId)
+				window && window.browserWindow.focus()
 				return Promise.resolve()
 			}
 			default:
