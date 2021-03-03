@@ -7,7 +7,7 @@
  * </ul>
  */
 import {isWorker} from "./Env"
-import {objToError} from "./utils/Utils"
+import {downcast, objToError} from "./utils/Utils"
 
 //assertMainOrNode()
 
@@ -83,7 +83,7 @@ export class Queue {
 			this._queue[message.id](null, message.value)
 			delete this._queue[message.id]
 		} else if (message.type === 'requestError') {
-			this._queue[message.id](objToError((message: any).error), null)
+			this._queue[message.id](objToError(downcast(message).error), null)
 			delete this._queue[message.id]
 		} else {
 			let command = this._commands[message.type]

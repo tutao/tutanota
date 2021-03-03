@@ -83,7 +83,6 @@ globalThis.isBrowser = typeof window !== "undefined"
 
 		globalThis.XMLHttpRequest = (await import("xhr2")).default
 		globalThis.express = (await import("express")).default
-		globalThis.enableDestroy = (await import("server-destroy")).default
 		globalThis.bodyParser = (await import("body-parser")).default
 	}
 

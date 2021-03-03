@@ -87,7 +87,7 @@ export class WorkerClient implements EntityRestInterface {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
 			error: (message: Message) => {
-				handleUncaughtError(objToError((message: any).args[0]))
+				handleUncaughtError(objToError((message).args[0]))
 				return Promise.resolve()
 			},
 			progress: (message: Message) => {
@@ -465,7 +465,7 @@ export class WorkerClient implements EntityRestInterface {
 
 	_postRequest(msg: Request): Promise<any> {
 		if (!this.initialized.isFulfilled()) {
-			throw new Error("worker has not been initialized, request: " + JSON.stringify(msg))
+			throw new Error("worker has not been initialized, request: " + msg.type)
 		}
 		return this._queue.postMessage(msg)
 	}

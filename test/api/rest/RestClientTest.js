@@ -20,12 +20,11 @@ o.spec("rest client", function () {
 
 		o.before(function (done) {
 			server = app.listen(3000, done)
-			global.enableDestroy(server)
 		})
 
 		o.after(function (done) {
 			if (server) {
-				server.destroy(function (err) {
+				server.close(function (err) {
 					if (err) console.log(err)
 					env.staticUrl = null
 					done()
