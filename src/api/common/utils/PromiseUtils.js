@@ -99,3 +99,14 @@ export function promiseMap<T, R>(iterable: Iterable<T>, mapper: (T) => $Promisab
 
 	return iterate().then(() => result)
 }
+
+/**
+ * Pass to Promise.then to perform an action while forwarding on the result
+ * @param action
+ */
+export function tap<T>(action: T => mixed): T => T {
+	return function (value) {
+		action(value)
+		return value
+	}
+}

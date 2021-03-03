@@ -210,6 +210,7 @@ type NativeRequestType = 'init'
 	| 'mailToMsg'
 	| 'focusApplicationWindow'
 	| 'saveToExportDir'
+	| 'checkFileExists'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
