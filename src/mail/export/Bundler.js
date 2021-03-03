@@ -9,6 +9,7 @@ import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders";
 import {MailState} from "../../api/common/TutanotaConstants";
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import {HtmlSanitizer} from "../../misc/HtmlSanitizer"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
@@ -51,9 +52,9 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 		                                    }).text
 	                                    )
 
-	const attachmentsPromise = Promise.all(
-		mail.attachments.map(fileId => entityClient.load(FileTypeRef, fileId)
-		                                           .then(worker.downloadFileContent.bind(worker))))
+	const attachmentsPromise = promiseMap(mail.attachments,
+		fileId => entityClient.load(FileTypeRef, fileId)
+		                      .then(worker.downloadFileContent.bind(worker)))
 
 	const headersPromise = mail.headers
 		? entityClient.load(MailHeadersTypeRef, mail.headers)
