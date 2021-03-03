@@ -31,6 +31,16 @@ export function getWebRoot(): string {
 	return origin + ((origin.includes("localhost") || origin.includes("local.tutanota.com")) ? "/client/build" : "")
 }
 
+export function getPaymentWebRoot(): string {
+	if (env.staticUrl === "mail.tutanota.com") {
+		return "https://pay.tutanota.com"
+	} else if (env.staticUrl === "test.tutanota.com") {
+		return "https://pay.test.tutanota.com"
+	} else {
+		return getWebRoot()
+	}
+}
+
 export function isTutanotaDomain(): boolean {
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
 	return location.hostname.endsWith("tutanota.com") || location.hostname.indexOf(".") === -1
