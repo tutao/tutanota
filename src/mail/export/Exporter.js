@@ -9,6 +9,7 @@ import {isDesktop} from "../../api/common/Env"
 import {nativeApp} from "../../native/common/NativeWrapper"
 import {fileApp} from "../../native/common/FileApp"
 import {Request} from "../../api/common/WorkerProtocol"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
@@ -51,9 +52,9 @@ export function exportMailsInZip(bundles: Array<MailBundle>): Promise<void> {
 	]).then(([mode, fileControllerModule]) => {
 		const fileController = fileControllerModule.fileController
 		const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
-		Promise.all(bundles.map(bundle => generateMailFile(bundle, mode)))
-		       .then(files => fileController.zipDataFiles(files, zipName)
-		                                    .then(zip => fileController.open(zip)))
+		promiseMap(bundles, bundle => generateMailFile(bundle, mode))
+			.then(files => fileController.zipDataFiles(files, zipName)
+			                             .then(zip => fileController.open(zip)))
 	})
 }
 
@@ -111,10 +112,12 @@ export function mailToEml(mail: MailBundle): string {
 		"--------------79Bu5A16qPEYcVIZL@tutanota",
 		"Content-Type: text/html; charset=UTF-8",
 		"Content-transfer-encoding: base64",
-		"",
-		...breakIntoLines(stringToBase64(mail.body)),
 		""
 	)
+	for (let bodyLine of breakIntoLines(stringToBase64(mail.body))) {
+		lines.push(bodyLine)
+	}
+	lines.push("")
 	for (let attachment of mail.attachments) {
 		const base64Filename = `=?UTF-8?B?${uint8ArrayToBase64(stringToUtf8Uint8Array(attachment.name))}?=`
 		const fileContentLines = breakIntoLines(uint8ArrayToBase64(attachment.data))
@@ -130,7 +133,10 @@ export function mailToEml(mail: MailBundle): string {
 			lines.push("Content-Id: <" + attachment.cid + ">")
 		}
 		lines.push("")
-		lines.push(...fileContentLines)
+		// don't use destructuring, big files can hit callstack limit
+		for (let fileLine of fileContentLines) {
+			lines.push(fileLine)
+		}
 		lines.push("")
 	}
 	lines.push("--------------79Bu5A16qPEYcVIZL@tutanota--")
