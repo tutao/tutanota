@@ -377,7 +377,7 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
-		o.only("delete + create + delete + create == delete + create", async function () {
+		o("delete + create + delete + create == delete + create", async function () {
 			// This tests that create still works a
 			const deleteEvent1 = createUpdate(OperationType.DELETE, "list", "1", "u1")
 			const createEvent1 = createUpdate(OperationType.CREATE, "list", "1", "u2")

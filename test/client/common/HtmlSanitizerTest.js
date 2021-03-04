@@ -286,7 +286,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 			.equals(`<div style="color: red;"></div>`)
 	})
 
-	o.only("use image loading placeholder", function () {
+	o("use image loading placeholder", function () {
 		const r1 = htmlSanitizer.sanitize(`<img src="cid:123456">`, {usePlaceholderForInlineImages: true}).text
 		o(r1).equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="123456" class="tutanota-placeholder">`)
 
@@ -295,7 +295,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 
 	})
 
-	o.only("don't use image loading placeholder", function () {
+	o("don't use image loading placeholder", function () {
 
 		const result = htmlSanitizer.sanitize(`<img src="cid:123456">`, {usePlaceholderForInlineImages: false}).text
 		o(result).equals(`<img src="cid:123456">`)
