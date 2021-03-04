@@ -624,11 +624,13 @@ export class MailViewer {
 						moreButtons.push({
 							label: "export_action",
 							click: () => {
-								Promise.all([
+								const downloadPromise = Promise.all([
 									getMailExportMode(),
 									makeMailBundle(this.mail, this._entityClient, worker, htmlSanitizer)
-								]).then(([mode, bundle]) => generateMailFile(bundle, mode))
-								       .then(file => fileController.open(file))
+								]).then(([mode, bundle]) => generateMailFile(bundle, mode)).then(file => fileController.open(file))
+
+								showProgressDialog("pleaseWait_msg", downloadPromise)
+
 							},
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
