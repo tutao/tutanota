@@ -23,6 +23,7 @@ import {exportMailsInZip} from "../export/Exporter"
 import {makeMailBundle} from "../export/Bundler"
 import {worker} from "../../api/main/WorkerClient"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import {showProgressDialog} from "../../gui/ProgressDialog"
 
 assertMainOrNode()
 
@@ -118,8 +119,9 @@ export class MultiMailViewer {
 				{
 					label: "export_action",
 					click: this._actionBarAction((mails) => {
-						return Promise.all(mails.map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
-						              .then(bundles => exportMailsInZip(bundles))
+						const downloadPromise = Promise.all(mails.map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
+						                               .then(bundles => exportMailsInZip(bundles))
+						showProgressDialog("pleaseWait_msg", downloadPromise)
 					}),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
