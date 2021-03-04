@@ -375,7 +375,7 @@ export class MailView implements CurrentView {
 				help: "switchSpam_action"
 			},
 			{
-				key: Keys.ALT,
+				key: Keys.CTRL,
 				exec: () => false,
 				enabled: canDoDragAndDropExport,
 				help: "dragAndDrop_action"
