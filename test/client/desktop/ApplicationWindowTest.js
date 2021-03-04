@@ -787,7 +787,7 @@ o.spec("ApplicationWindow Test", function () {
 		wcMock.getURL = () => "desktophtml"
 		o(w.getPath()).equals('')
 		wcMock.getURL = () => "desktophtml/meh/more"
-		downcast(w)._startFile = ''
+		downcast(w)._startFileURLString = ''
 		o(w.getPath()).equals("desktophtml/meh/more")
 	})
 

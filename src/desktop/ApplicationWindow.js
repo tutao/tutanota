@@ -15,10 +15,10 @@ import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
 import path from "path"
-import {noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
-import {parseUrlOrNull, pathToFileURL, urlIsPrefix} from "./PathUtils"
+import {parseUrlOrNull, urlIsPrefix} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -43,7 +43,7 @@ type LocalShortcut = {
 
 export class ApplicationWindow {
 	+_ipc: IPC;
-	+_startFile: string;
+	+_startFileURLString: string;
 	+_startFileURL: URL
 	_browserWindow: BrowserWindow;
 
@@ -64,8 +64,10 @@ export class ApplicationWindow {
 		this._ipc = wm.ipc
 		this._electron = electron
 		this._localShortcut = localShortcutManager
-		this._startFile = pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml),)
-		this._startFileURL = new URL(this._startFile)
+		// Flow has outdated definition for pathToFileURL, it returns WHATWG URL now
+		// see https://nodejs.org/docs/latest-v12.x/api/url.html#url_url_pathtofileurl_path
+		this._startFileURL = downcast<URL>(url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml)))
+		this._startFileURLString = this._startFileURL.toString()
 		this._lastSearchPromiseReject = noOp
 
 		const isMac = process.platform === 'darwin';
@@ -73,7 +75,7 @@ export class ApplicationWindow {
 			{key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
 			{key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
 			{key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
-			{key: Keys.F5, exec: () => {this._browserWindow.loadURL(this._startFile)}, help: "reloadPage_action"},
+			{key: Keys.F5, exec: () => {this._browserWindow.loadURL(this._startFileURLString)}, help: "reloadPage_action"},
 			{key: Keys["0"], meta: isMac, ctrl: !isMac, exec: () => {this.setZoomFactor(1)}, help: "resetZoomFactor_action"}
 		].concat(isMac
 			? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]
@@ -85,13 +87,13 @@ export class ApplicationWindow {
 				{key: Keys.N, ctrl: true, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
 			])
 
-		log.debug("startFile: ", this._startFile)
+		log.debug("startFile: ", this._startFileURLString)
 		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
 		this._createBrowserWindow(wm, preloadPath, icon)
 		this._browserWindow.loadURL(
 			noAutoLogin
-				? this._startFile + "?noAutoLogin=true"
-				: this._startFile
+				? this._startFileURLString + "?noAutoLogin=true"
+				: this._startFileURLString
 		)
 		this._electron.Menu.setApplicationMenu(null)
 	}
@@ -172,7 +174,6 @@ export class ApplicationWindow {
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
 
-		const appFileUrl = pathToFileURL(this._electron.app.getAppPath())
 
 		this._browserWindow
 		    .on('closed', () => {
@@ -217,7 +218,7 @@ export class ApplicationWindow {
 			    log.debug("failed to load resource: ", errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
 				    log.debug("redirecting to start page...")
-				    this._browserWindow.loadURL(this._startFile + "?noAutoLogin=true")
+				    this._browserWindow.loadURL(this._startFileURLString + "?noAutoLogin=true")
 				        .then(() => log.debug("...redirected"))
 			    }
 		    })
@@ -237,7 +238,7 @@ export class ApplicationWindow {
 			    wc.setZoomFactor(newFactor)
 		    })
 		    .on('update-target-url', (ev, url) => {
-			    this._ipc.sendRequest(this.id, 'updateTargetUrl', [url, appFileUrl])
+			    this._ipc.sendRequest(this.id, 'updateTargetUrl', [url, this._startFileURLString])
 		    })
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
@@ -333,18 +334,18 @@ export class ApplicationWindow {
 	}
 
 	getPath(): string {
-		return this._browserWindow.webContents.getURL().substring(this._startFile.length)
+		return this._browserWindow.webContents.getURL().substring(this._startFileURLString.length)
 	}
 
 	// filesystem paths work differently than URLs
 	_rewriteURL(url: string, isInPlace: boolean): string {
 		const parsedUrl = parseUrlOrNull(url)
 		if (parsedUrl == null) {
-			return this._startFile
+			return this._startFileURLString
 		}
 
 		if (!urlIsPrefix(this._startFileURL, parsedUrl)) {
-			return this._startFile
+			return this._startFileURLString
 		}
 
 		if (parsedUrl.pathname === this._startFileURL.pathname &&
@@ -353,7 +354,7 @@ export class ApplicationWindow {
 		) {
 			// after logout, don't try to login automatically.
 			// this fails if ?noAutoLogin=true is set directly from the web app for some reason
-			return this._startFile + '?noAutoLogin=true'
+			return this._startFileURLString + '?noAutoLogin=true'
 		}
 		return url
 	}

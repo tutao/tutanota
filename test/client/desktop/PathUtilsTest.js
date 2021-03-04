@@ -1,35 +1,7 @@
 //@flow
 import o from "ospec"
-import path from 'path'
 import n from "../nodemocker"
-import {nonClobberingFilename, pathToFileURL} from "../../../src/desktop/PathUtils"
-
-function setEnv(platform: string) {
-	let sep = ''
-	switch (platform) {
-		case 'win32':
-			sep = '\\'
-			break
-		case 'darwin':
-		case 'linux':
-			sep = '/'
-			break
-		default:
-			throw new Error('invalid platform')
-	}
-
-	Object.defineProperty(process, 'platform', {
-		value: platform,
-		writable: false,
-		enumerable: true
-	})
-
-	Object.defineProperty((path: any), 'sep', {
-		value: sep,
-		writable: false,
-		enumerable: true
-	})
-}
+import {nonClobberingFilename} from "../../../src/desktop/PathUtils"
 
 o.spec("PathUtils", function () {
 	o.spec("nonClobberingFileName Test", function () {
@@ -229,46 +201,6 @@ o.spec("PathUtils", function () {
 
 			o(nonClobberingFilename([], ".."))
 				.equals(".._")
-		})
-	})
-
-	o.spec("pathToFileURL Test", function () {
-		let oldPlatform = process.platform
-
-		o.before(function () {
-			setEnv(oldPlatform)
-		})
-
-		o.after(function () {
-			setEnv(oldPlatform)
-		})
-
-		o("emptyPath", function () {
-			setEnv('linux')
-			o(pathToFileURL(''))
-				.equals('file://')
-
-			setEnv('darwin')
-			o(pathToFileURL(''))
-				.equals('file://')
-
-			setEnv('win32')
-			o(pathToFileURL(''))
-				.equals('file://')
-		})
-
-		o("normalPath", function () {
-			setEnv('win32')
-			o(pathToFileURL('C:\\home\\nig\\index.html'))
-				.equals('file:///C%3A/home/nig/index.html')
-
-			setEnv('darwin')
-			o(pathToFileURL('/Users/nig/Library/Application Support/index.html'))
-				.equals('file:///Users/nig/Library/Application%20Support/index.html')
-
-			setEnv('linux')
-			o(pathToFileURL('home/nig/index.html'))
-				.equals('file://home/nig/index.html')
 		})
 	})
 })
