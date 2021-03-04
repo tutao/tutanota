@@ -211,6 +211,7 @@ type NativeRequestType = 'init'
 	| 'focusApplicationWindow'
 	| 'saveToExportDir'
 	| 'checkFileExistsInExportDirectory'
+	| 'scheduleAlarms'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

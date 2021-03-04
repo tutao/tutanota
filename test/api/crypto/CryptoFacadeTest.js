@@ -489,7 +489,7 @@ o.spec("crypto facade", function () {
 		})
 	})
 
-	o("encrypt instance", function (done) {
+	o("encrypt instance", async function () {
 		let sk = aes128RandomKey()
 
 		let address = createContactAddress()
@@ -507,25 +507,23 @@ o.spec("crypto facade", function () {
 		contact.company = "WIW"
 		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
+		const result: any = await encryptAndMapToLiteral(Contact._TypeModel, contact, sk)
 
-		encryptAndMapToLiteral(Contact._TypeModel, contact, sk).then(result => {
-			o(result._format).equals("0")
-			o(result._ownerGroup).equals(null)
-			o(result._ownerEncSessionKey).equals(null)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address))))
-				.equals(contact.addresses[0].address)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName))))
-				.equals(contact.addresses[0].customTypeName)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword))))
-				.equals(contact.autoTransmitPassword)
-			done()
-		})
+		o(result._format).equals("0")
+		o(result._ownerGroup).equals(null)
+		o(result._ownerEncSessionKey).equals(null)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address))))
+			.equals(contact.addresses[0].address)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName))))
+			.equals(contact.addresses[0].customTypeName)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword))))
+			.equals(contact.autoTransmitPassword)
 	})
 
 	o("map unencrypted to instance", function (done) {

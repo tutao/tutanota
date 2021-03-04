@@ -24,6 +24,7 @@ import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExport"
 import {fileExists} from "./PathUtils"
 import path from "path"
+import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -35,6 +36,7 @@ export class IPC {
 	_notifier: DesktopNotifier;
 	_sock: Socketeer;
 	_alarmStorage: DesktopAlarmStorage;
+	_alarmScheduler: DesktopAlarmScheduler
 	_crypto: DesktopCryptoFacade;
 	_dl: DesktopDownloadManager;
 	_initialized: Array<DeferredObject<void>>;
@@ -61,6 +63,7 @@ export class IPC {
 		desktopUtils: DesktopUtils,
 		errorHandler: DesktopErrorHandler,
 		integrator: DesktopIntegrator,
+		alarmScheduler: DesktopAlarmScheduler
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -75,6 +78,8 @@ export class IPC {
 		this._desktopUtils = desktopUtils
 		this._err = errorHandler
 		this._integrator = integrator
+		this._alarmScheduler = alarmScheduler
+
 		if (!!this._updater) {
 			this._updater.setUpdateDownloadedListener(() => {
 				this._wm.getAll().forEach(w => this.sendRequest(w.id, 'appUpdateDownloaded', []))
@@ -290,6 +295,13 @@ export class IPC {
 			case 'clearFileData': {
 				this._dl.deleteTutanotaTempDirectory()
 				return Promise.resolve()
+			}
+			case 'scheduleAlarms': {
+				const alarms = args[0]
+				for (const alarm of alarms) {
+					await this._alarmScheduler.handleAlarmNotification(alarm)
+				}
+				return
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))

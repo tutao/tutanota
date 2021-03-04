@@ -84,7 +84,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 	})
 }
 
-export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Aes128Key): Object {
+export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Aes128Key): Promise<{[string]: mixed}> {
 	let encrypted = {}
 	let i = (instance: any)
 
