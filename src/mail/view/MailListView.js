@@ -32,6 +32,7 @@ import {fileApp} from "../../native/common/FileApp"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {nativeApp} from "../../native/common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
+import {generateExportFileName} from "../export/Exporter"
 
 assertMainOrNode()
 
@@ -129,7 +130,7 @@ export class MailListView implements Component {
 						       Promise.race([downloadPromise.then(() => true), mouseupPromise.then(() => false)])
 						              .then(didComplete => {
 							              if (didComplete) {
-								              fileApp.dragExportedMails(draggedMails.map(getLetId))
+								              fileApp.dragExportedMails(draggedMails.map(mail => generateExportFileName(mail.subject, mail.sentDate, "msg")))
 							              } else {
 								              nativeApp.invokeNative(new Request("focusApplicationWindow", []))
 								                       .then(() => Dialog.error("unsuccessfulDrop_msg"))

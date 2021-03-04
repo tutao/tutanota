@@ -4,16 +4,11 @@ import {pad} from "../../api/common/utils/StringUtils"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile, getCleanedMimeType} from "../../api/common/DataFile"
 import {neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/common/Env"
 import {formatSortableDateTime} from "../../api/common/utils/DateUtils"
 import type {MailBundle} from "./Bundler"
 
-assertMainOrNode()
-
-export function mailToEmlFile(mail: MailBundle): DataFile {
-	let data = stringToUtf8Uint8Array(mailToEml(mail))
-	let tmpFile = createFile()
-	let filename = [...formatSortableDateTime(new Date(mail.sentOn)).split(' '), mail.subject].join('-')
+export function generateExportFileName(subject: string, dateSent: Date, extension: string): string {
+	let filename = [...formatSortableDateTime(dateSent).split(' '), subject].join('-')
 	filename = filename.trim()
 	if (filename.length === 0) {
 		filename = "unnamed"
@@ -21,7 +16,14 @@ export function mailToEmlFile(mail: MailBundle): DataFile {
 		// windows MAX_PATH is 260, this should be fairly safe.
 		filename = filename.substring(0, 95) + '_'
 	}
-	tmpFile.name = filename + ".eml"
+	return `${filename}.${extension}`
+}
+
+
+export function mailToEmlFile(mail: MailBundle): DataFile {
+	let data = stringToUtf8Uint8Array(mailToEml(mail))
+	let tmpFile = createFile()
+	tmpFile.name = generateExportFileName(mail.subject, new Date(mail.sentOn), "eml")
 	tmpFile.mimeType = "message/rfc822"
 	tmpFile.size = String(data.byteLength)
 	return convertToDataFile(tmpFile, data)

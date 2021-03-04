@@ -21,10 +21,11 @@ import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
-import {getExportDirectoryPath, mailIdToFileName, makeMsgFile, msgFileExists, writeFile} from "./DesktopFileExport"
+import {getExportDirectoryPath, makeMsgFile, msgFileExists, writeFile} from "./DesktopFileExport"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {fileExists} from "./PathUtils"
 import {mapAndFilterNullAsync} from "../api/common/utils/ArrayUtils"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 import path from "path"
 
 /**
@@ -268,14 +269,13 @@ export class IPC {
 			case 'queryAvailableMsgs': {
 				const mails: Array<Mail> = args[0]
 				// return all mails that havent already been exported
-				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail._id, this._dl)
+				return mapAndFilterNullAsync(mails, mail => msgFileExists(mail, this._dl)
 					.then(exists => exists ? null : mail))
 			}
 			case 'dragExportedMails': {
-				const ids: Array<IdTuple> = args[0]
-				const getExportPath = async id => path.join(await getExportDirectoryPath(this._dl), mailIdToFileName(id, "msg"))
-				const files = await Promise.all(ids.map(getExportPath))
-				                           .then(files => files.filter(fileExists))
+				const files: Array<string> =
+					await promiseMap(args[0].filter(fileExists),
+						async name => path.join(await getExportDirectoryPath(this._dl), name))
 				const window = this._wm.get(windowId)
 				window && window._browserWindow.webContents.startDrag({
 					files,

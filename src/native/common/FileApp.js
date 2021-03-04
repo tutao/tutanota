@@ -144,18 +144,18 @@ function saveBundleAsMsg(bundle: MailBundle): Promise<void> {
 
 /**
  * Drags mails from the temp export directory as .MSG files, only if they have already been exported
- * @param bundles
  * @returns {Promise<*>}
+ * @param paths
  */
-function dragExportedMails(ids: IdTuple[]): Promise<void> {
-	return nativeApp.invokeNative(new Request("dragExportedMails", [ids]))
+function dragExportedMails(paths: Array<string>): Promise<void> {
+	return nativeApp.invokeNative(new Request("dragExportedMails", [paths]))
 }
 
 /**
  * Query if mails have already been downloaded
  *
- * @param mailIds
  * @returns list of mailIds that haven't been downloaded
+ * @param mails
  */
 function queryAvailableMsg(mails: Array<Mail>): Promise<Array<Mail>> {
 	return nativeApp.invokeNative(new Request("queryAvailableMsgs", [mails]))

@@ -19,6 +19,7 @@ import {locator} from "../../api/main/MainLocator"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {bundleMails, exportMails, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
+import {showProgressDialog} from "../../gui/ProgressDialog"
 
 assertMainOrNode()
 
@@ -113,7 +114,7 @@ export class MultiMailViewer {
 				},
 				{
 					label: "export_action",
-					click: this._actionBarAction((mails) => bundleMails(mails).then(exportMails)),
+					click: this._actionBarAction((mails) => showProgressDialog("pleaseWait_msg", bundleMails(mails).then(exportMails))),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)

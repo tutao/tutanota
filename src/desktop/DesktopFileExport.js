@@ -1,14 +1,13 @@
 // @flow
 import path from "path"
 import {legalizeFilenames} from "../api/common/utils/FileUtils"
-import type {ValidExtension} from "./PathUtils"
 import {fileExists, isReservedFilename} from "./PathUtils"
 import {promises as fs} from "fs"
 import type {MailBundle} from "../mail/export/Bundler"
 import {Attachment, Email, MessageEditorFormat} from "oxmsg"
-import {ParsingError} from "../api/common/error/ParsingError"
-import {isValidGeneratedId} from "../api/common/utils/Encoding"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
+import {generateExportFileName} from "../mail/export/Exporter"
+import type {Mail} from "../api/entities/tutanota/Mail"
 
 const EXPORT_DIR = "export"
 
@@ -16,10 +15,10 @@ const EXPORT_DIR = "export"
  * Get the directory path into which temporary exports should be exported
  * @returns {Promise<string>}
  * @param dl
- * @param app: electron app for getting temp dir path
+ * @param subdirs
  */
-export async function getExportDirectoryPath(dl: DesktopDownloadManager): Promise<string> {
-	return dl.getTutanotaTempDirectory(EXPORT_DIR)
+export async function getExportDirectoryPath(dl: DesktopDownloadManager, ...subdirs: string[]): Promise<string> {
+	return dl.getTutanotaTempDirectory(EXPORT_DIR, ...subdirs)
 }
 
 /**
@@ -72,26 +71,13 @@ export async function makeMsgFile(bundle: MailBundle): Promise<{name: string, co
 		email.attach(new Attachment(new Uint8Array(attachment.data), attachment.name, attachment.cid || ""))
 	}
 
-	return {name: mailIdToFileName(bundle.mailId, "msg"), content: email.msg()}
+	return {name: generateExportFileName(bundle.subject, new Date(bundle.sentOn), "msg"), content: email.msg()}
 }
 
 
-export async function msgFileExists(id: IdTuple, dl: DesktopDownloadManager): Promise<boolean> {
+export async function msgFileExists(mail: Mail, dl: DesktopDownloadManager): Promise<boolean> {
 	const exportDir = await dl.getTutanotaTempDirectory(EXPORT_DIR)
 
 	// successful call to stat means the file exists. it should be valid because the only reason it's there is because we made it
-	return await fileExists(path.join(exportDir, mailIdToFileName(id, "msg")))
-}
-
-/**
- * Get a suitable filename from a mail id
- * @param id
- * @param extension: file extension without the leading dot
- * @returns {string}
- */
-export function mailIdToFileName(id: IdTuple, extension: ValidExtension): string {
-	if (!isValidGeneratedId(id)) throw new ParsingError(`"${id.toString()}" is not a valid mail ID`)
-
-	// prepend a '$' to any capital letter, so that the output filename will not collide with similar but lowercase filenames
-	return id.join("").replace(/([A-Z])/g, "$$$1") + (extension && `.${extension}`)
+	return await fileExists(path.join(exportDir, generateExportFileName(mail.subject, mail.sentDate, "msg")))
 }
