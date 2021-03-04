@@ -83,30 +83,30 @@ pipeline {
                 	}
                 }
 
-                stage('desktop-mac') {
-                	environment {
-                		PATH="${env.NODE_MAC_PATH}:${env.PATH}"
-                	}
-                    agent {
-                        label 'mac'
-                    }
-                    steps {
-						sh 'npm ci'
-						sh 'rm -rf ./build/*'
-						unstash 'web_base'
-					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]) {
-							sh '''
-								export JENKINS=TRUE;
-								export APPLEID=${APPLEIDVAR};
-								export APPLEIDPASS=${APPLEIDPASSVAR};
-								node dist -em '''
-						}
-						dir('build') {
-							stash includes: 'desktop-test/*', name:'mac_installer_test'
-                            stash includes: 'desktop/*', name:'mac_installer'
-						}
-                    }
-                }
+//                 stage('desktop-mac') {
+//                 	environment {
+//                 		PATH="${env.NODE_MAC_PATH}:${env.PATH}"
+//                 	}
+//                     agent {
+//                         label 'mac'
+//                     }
+//                     steps {
+// 						sh 'npm ci'
+// 						sh 'rm -rf ./build/*'
+// 						unstash 'web_base'
+// 					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]) {
+// 							sh '''
+// 								export JENKINS=TRUE;
+// 								export APPLEID=${APPLEIDVAR};
+// 								export APPLEIDPASS=${APPLEIDPASSVAR};
+// 								node dist -em '''
+// 						}
+// 						dir('build') {
+// 							stash includes: 'desktop-test/*', name:'mac_installer_test'
+//                             stash includes: 'desktop/*', name:'mac_installer'
+// 						}
+//                     }
+//                 }
 
 
                 stage('desktop-linux') {
@@ -147,10 +147,10 @@ pipeline {
 				unstash 'web_add'
 				dir('build') {
 					unstash 'linux_installer'
-					unstash 'mac_installer'
+// 					unstash 'mac_installer'
 					unstash 'win_installer'
 					unstash 'linux_installer_test'
-                    unstash 'mac_installer_test'
+//                     unstash 'mac_installer_test'
                     unstash 'win_installer_test'
 				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
