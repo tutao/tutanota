@@ -16,7 +16,7 @@ export class Request {
 	id: string;
 	args: any[];
 
-	constructor(type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType, args: any[]) {
+	constructor(type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType, args: Array<mixed>) {
 		this.type = type
 		this.id = _createRequestId()
 		this.args = Array.from(args)

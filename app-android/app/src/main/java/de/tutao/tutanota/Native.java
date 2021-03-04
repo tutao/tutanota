@@ -28,10 +28,14 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import de.tutao.tutanota.alarms.AlarmNotification;
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -43,20 +47,22 @@ public final class Native {
 	private final static String TAG = "Native";
 
 	private static int requestId = 0;
-	private Crypto crypto;
-	private FileUtil files;
-	private Contact contact;
-	private SseStorage sseStorage;
-	private Map<String, DeferredObject<Object, Exception, Void>> queue = new HashMap<>();
+	private final Crypto crypto;
+	private final FileUtil files;
+	private final Contact contact;
+	private final SseStorage sseStorage;
+	private final Map<String, DeferredObject<Object, Exception, Void>> queue = new HashMap<>();
 	private final MainActivity activity;
+	private final AlarmNotificationsManager alarmNotificationsManager;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
 
 
-	Native(MainActivity activity, SseStorage sseStorage) {
+	Native(MainActivity activity, SseStorage sseStorage, AlarmNotificationsManager alarmNotificationsManager) {
 		this.activity = activity;
 		crypto = new Crypto(activity);
 		contact = new Contact(activity);
 		files = new FileUtil(activity, new LocalNotificationsFacade(activity));
+		this.alarmNotificationsManager = alarmNotificationsManager;
 		this.sseStorage = sseStorage;
 	}
 
@@ -279,6 +285,9 @@ public final class Native {
 				case "changeLanguage":
 					promise.resolve(null);
 					break;
+				case "scheduleAlarms":
+					scheduleAlarms(args);
+					break;
 				default:
 					throw new Exception("unsupported method: " + method);
 			}
@@ -288,7 +297,6 @@ public final class Native {
 		}
 		return promise.promise();
 	}
-
 
 	private void cancelNotifications(JSONArray addressesArray) throws JSONException {
 		NotificationManager notificationManager =
@@ -349,7 +357,7 @@ public final class Native {
 			);
 			sendIntent.setClipData(thumbnail);
 		} catch (IOException e) {
-			Log.e(TAG, "Error attaching thumbnail to share intent:\n" + e.getMessage() );
+			Log.e(TAG, "Error attaching thumbnail to share intent:\n" + e.getMessage());
 		}
 		sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -367,6 +375,17 @@ public final class Native {
 			activity.setupPushNotifications();
 		});
 		return Utils.resolvedDeferred(null);
+	}
+
+	private void scheduleAlarms(JSONArray args) throws JSONException {
+		List<AlarmNotification> alarms = new ArrayList<>();
+		JSONArray jsonArray = args.getJSONArray(0);
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject json = jsonArray.getJSONObject(i);
+			AlarmNotification alarmNotification = AlarmNotification.fromJson(json, Collections.emptyList());
+			alarms.add(alarmNotification);
+		}
+		this.alarmNotificationsManager.scheduleNewAlarms(alarms);
 	}
 
 	private static JSONObject errorToObject(Exception e) throws JSONException {

@@ -56,6 +56,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+import de.tutao.tutanota.alarms.SystemAlarmFacade;
 import de.tutao.tutanota.data.AppDatabase;
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
@@ -87,8 +89,12 @@ public class MainActivity extends ComponentActivity {
 		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
 				.getString(THEME_PREF, "light"));
 
-		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false), new AndroidKeyStoreFacade(this));
-		nativeImpl = new Native(this, sseStorage);
+		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
+		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false),
+				keyStoreFacade);
+		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage,
+				new Crypto(this), new SystemAlarmFacade(this), new LocalNotificationsFacade(this));
+		nativeImpl = new Native(this, sseStorage, alarmNotificationsManager);
 
 		super.onCreate(savedInstanceState);
 

@@ -1,7 +1,7 @@
 # Notifications
 
 Notifications handling differs slightly between Desktop/Android and iOS, mostly in the
-trigger part: Dekstop/Android use SSE connection and when they receive "notification" event, they fetch 
+trigger part: Desktop/Android use SSE connection and when they receive "notification" event, they fetch 
 MissedNotification (described below). iOS is triggered by APNS messages (background or foreground). New email 
 notifications are fully controlled by the server for iOS, for SSE clients we get email notification in 
 MissedNotification.

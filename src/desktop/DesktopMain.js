@@ -59,7 +59,7 @@ alarmScheduler.rescheduleAll()
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 const integrator = new DesktopIntegrator(electron, fs, child_process, () => import("winreg"))
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, alarmScheduler)
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))

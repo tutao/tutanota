@@ -14,6 +14,7 @@ import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {getElementId} from "../../api/common/utils/EntityUtils";
+import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
