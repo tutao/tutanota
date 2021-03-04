@@ -21,8 +21,8 @@ o.spec("FormatterTest", function () {
 		languages.concat([{code: 'en_gb', textId: ''}]).forEach(l => {
 			lang._setLanguageTag(languageCodeToTag(l.code))
 			let formattedDate = formatDate(referenceDate)
-			// exception case for lang code fa_ir because parse date can't handle persian numerals
-			if (l.code.startsWith("fa")) {
+			// exception case for lang code farsi and arabic because parse date can't handle persian or hindi numerals
+			if (l.code.startsWith("fa") || l.code.startsWith("ar")) {
 				o(() => parseDate(formattedDate)).throws(Error)
 			} else {
 				let parsed = parseDate(formattedDate)
