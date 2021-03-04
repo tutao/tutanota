@@ -291,7 +291,7 @@ export class MailListView implements Component {
 }
 
 export function isExportDragEvent(event: DragEvent): boolean {
-	return canDoDragAndDropExport() && event.altKey
+	return canDoDragAndDropExport() && (event.ctrlKey || event.altKey)
 }
 
 
