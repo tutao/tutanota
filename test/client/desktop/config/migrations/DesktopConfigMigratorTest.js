@@ -1,6 +1,5 @@
 // @flow
 import o from "ospec"
-import n from "../../../nodemocker"
 
 o.spec('desktop config migrator test', function () {
 	let migrator
@@ -22,8 +21,9 @@ o.spec('desktop config migrator test', function () {
 			"defaultDownloadPath": null,
 			"enableAutoUpdate": true,
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 1,
+			"desktopConfigVersion": 2,
 			"showAutoUpdateOption": true,
+			"mailExportMode": "eml"
 		}
 
 		o(migrator("migrateClient", oldConfig, oldConfig)).deepEquals(requiredResult)
@@ -35,8 +35,9 @@ o.spec('desktop config migrator test', function () {
 		}
 		const requiredResult = {
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 1,
+			"desktopConfigVersion": 2,
 			"showAutoUpdateOption": true,
+			"mailExportMode": "eml"
 		}
 
 		o(migrator("migrateAdmin", oldConfig, oldConfig)).deepEquals(requiredResult)

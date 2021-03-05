@@ -84,9 +84,9 @@ Content-transfer-encoding: base64
 			const expected =
 				`From: lorem@ipsum.net
 MIME-Version: 1.0
-To: <guy1> guy1@guys.net,<guy2> guy2@guys.net,guy2.5@guys.net
-CC: guy3@guys.net,<Dennis Dennisman> guy4@guys.net
-BCC: guy5@guys.net,<Sixth guy> guy6@guys.net
+To: guy1 <guy1@guys.net>,guy2 <guy2@guys.net>,<guy2.5@guys.net>
+CC: <guy3@guys.net>,Dennis Dennisman <guy4@guys.net>
+BCC: <guy5@guys.net>,Sixth guy <guy6@guys.net>
 Subject: =?UTF-8?B?SGV5LCBJIGtub3cgdGhhdCBndXksIGhl4oCZcyBhIG5paGlsaXN0Lg==?=
 Date: ${_formatSmtpDateTime(new Date(now))}
 Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"

@@ -48,7 +48,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isAutoUpdateEnabled = stream(false)
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
-		this._mailExportMode = stream("msg")
+		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
 		this._requestDesktopConfig()
 	}
 
@@ -132,7 +132,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () => lang.get("mailExportModeHelp_msg"),
 			items: [
 				{name: "EML", value: "eml"},
-				{name: "Outlook", value: "msg"}
+				{name: "MSG (Outlook)", value: "msg"}
 			],
 			selectedValue: this._mailExportMode,
 			selectionChangedHandler: v => {
