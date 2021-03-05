@@ -24,6 +24,7 @@ import {makeMailBundle} from "../export/Bundler"
 import {worker} from "../../api/main/WorkerClient"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {showProgressDialog} from "../../gui/ProgressDialog"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -119,8 +120,9 @@ export class MultiMailViewer {
 				{
 					label: "export_action",
 					click: this._actionBarAction((mails) => {
-						const downloadPromise = Promise.all(mails.map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
-						                               .then(bundles => exportMailsInZip(bundles))
+						const downloadPromise =
+							promiseMap(mails, mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
+								.then(exportMailsInZip)
 						showProgressDialog("pleaseWait_msg", downloadPromise)
 					}),
 					icon: () => Icons.Export,

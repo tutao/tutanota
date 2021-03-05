@@ -1,5 +1,6 @@
 // @flow
 import path from "path"
+import {isReservedFilename, legalizeFilenames} from "../api/common/utils/FileUtils"
 import {legalizeFilenames} from "../api/common/utils/FileUtils"
 import {fileExists, isReservedFilename} from "./PathUtils"
 import {promises as fs} from "fs"
@@ -16,10 +17,10 @@ const EXPORT_DIR = "export"
  * Get the directory path into which temporary exports should be exported
  * @returns {Promise<string>}
  * @param dl
- * @param subdirs
+ * @param app: electron app for getting temp dir path
  */
-export async function getExportDirectoryPath(dl: DesktopDownloadManager, ...subdirs: string[]): Promise<string> {
-	return dl.getTutanotaTempDirectory(EXPORT_DIR, ...subdirs)
+export async function getExportDirectoryPath(dl: DesktopDownloadManager): Promise<string> {
+	return dl.getTutanotaTempDirectory(EXPORT_DIR)
 }
 
 /**
@@ -40,14 +41,13 @@ export async function writeFiles(dirPath: string, files: Array<DataFile>): Promi
 	})
 }
 
-export async function writeFile(dirPath: string, file: DataFile): Promise<string> {
+export async function writeFile(dirPath: string, file: DataFile): Promise<void> {
 	const legalName = legalizeFilenames([file.name], isReservedFilename)[file.name][0]
 	const fullPath = path.join(dirPath, legalName)
-	await fs.writeFile(fullPath, file.data)
-	return fullPath
+	return fs.writeFile(fullPath, file.data)
 }
 
-export async function makeMsgFile(bundle: MailBundle): Promise<DataFile> {
+export async function makeMsgFile(bundle: MailBundle, fileName: string): Promise<DataFile> {
 	const subject = `[Tutanota] ${bundle.subject}`
 	const email = new Email(bundle.isDraft, bundle.isRead)
 		.subject(subject)
@@ -69,5 +69,5 @@ export async function makeMsgFile(bundle: MailBundle): Promise<DataFile> {
 		email.attach(new Attachment(new Uint8Array(attachment.data), attachment.name, attachment.cid || ""))
 	}
 
-	return createDataFile(generateExportFileName(bundle, "msg"), "application/vnd.ms-outlook", email.msg())
+	return createDataFile(fileName, "application/vnd.ms-outlook", email.msg())
 }

@@ -10,25 +10,30 @@ import {nativeApp} from "../../native/common/NativeWrapper"
 import {fileApp} from "../../native/common/FileApp"
 import {Request} from "../../api/common/WorkerProtocol"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {isReservedFilename, sanitizeFilename} from "../../api/common/utils/FileUtils"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
-export function generateMailFile(bundle: MailBundle, mode: MailExportMode): Promise<DataFile> {
+export function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml"
-		? Promise.resolve(mailToEmlFile(bundle))
-		: Promise.resolve(fileApp.mailToMsg(bundle))
+		? Promise.resolve(mailToEmlFile(bundle, fileName))
+		: fileApp.mailToMsg(bundle, fileName)
 }
 
 export function getMailExportMode(): Promise<MailExportMode> {
 	return isDesktop()
 		? nativeApp.invokeNative(new Request("sendDesktopConfig", []))
 		           .then(config => config.mailExportMode)
+		           .catch(e => {
+			           console.log("error getting export mode:", e)
+			           return "eml"
+		           })
 		: Promise.resolve("eml")
 }
 
-export function generateExportFileName(mail: MailBundle, mode: MailExportMode): string {
-	let filename = [...formatSortableDateTime(new Date(mail.sentOn)).split(' '), mail.subject].join('-')
+export function generateExportFileName(subject: string, sentOn: Date, mode: MailExportMode): string {
+	let filename = [...formatSortableDateTime(sentOn).split(' '), subject].join('-')
 	filename = filename.trim()
 	if (filename.length === 0) {
 		filename = "unnamed"
@@ -36,7 +41,7 @@ export function generateExportFileName(mail: MailBundle, mode: MailExportMode): 
 		// windows MAX_PATH is 260, this should be fairly safe.
 		filename = filename.substring(0, 95) + '_'
 	}
-	return `${filename}.${mode}`
+	return sanitizeFilename(`${filename}.${mode}`, isReservedFilename)
 }
 
 /**
@@ -46,29 +51,26 @@ export function generateExportFileName(mail: MailBundle, mode: MailExportMode): 
  * @param bundles
  */
 export function exportMailsInZip(bundles: Array<MailBundle>): Promise<void> {
-
 	return Promise.all([
 		getMailExportMode(), import("../../file/FileController")
 	]).then(([mode, fileControllerModule]) => {
 		const fileController = fileControllerModule.fileController
 		const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
-		promiseMap(bundles, bundle => generateMailFile(bundle, mode))
+		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode))
 			.then(files => fileController.zipDataFiles(files, zipName)
 			                             .then(zip => fileController.open(zip)))
 	})
 }
 
-export function mailToEmlFile(mail: MailBundle): DataFile {
+export function mailToEmlFile(mail: MailBundle, fileName: string): DataFile {
 	const data = stringToUtf8Uint8Array(mailToEml(mail))
-	const filename = generateExportFileName(mail, "eml")
-	return createDataFile(filename, "message/rfc822", data)
+	return createDataFile(fileName, "message/rfc822", data)
 }
 
 /**
  * Converts a mail into the plain text EML format.
  */
 export function mailToEml(mail: MailBundle): string {
-
 
 	const lines = []
 

@@ -32,13 +32,12 @@ import {fileApp} from "../../native/common/FileApp"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {nativeApp} from "../../native/common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
-import type {IProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {generateMailFile, getMailExportMode} from "../export/Exporter"
-import {makeMailBundle} from "../export/Bundler"
+import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap, tap} from "../../api/common/utils/PromiseUtils"
-import type {MailExportMode} from "../export/Exporter"
 import {AsyncResult} from "../../api/common/utils/AsyncResult"
+import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
+import {makeMailBundle} from "../export/Bundler"
 
 assertMainOrNode()
 
@@ -53,7 +52,7 @@ export class MailListView implements Component {
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
 	// TODO this currently grows bigger and bigger amd bigger if the user goes on an exporting spree.
 	//  maybe we should deal with this, or maybe this never becomes an issue?
-	exportedMails: Map<string, AsyncResult<string>>
+	exportedMails: Map<string, {fileName: string, result: AsyncResult<*>}>
 
 	constructor(mailListId: Id, mailView: MailView) {
 
@@ -143,18 +142,16 @@ export class MailListView implements Component {
 			document.addEventListener("mouseup", resolve, {once: true})
 		})
 
-		const progressMonitor =
-			makeTrackedProgressMonitor(locator.progressTracker, 3 * draggedMails.length + 1)
-		progressMonitor.workDone(1)
-
-		const filePathsPromise = promiseMap(draggedMails, mail => this._prepareMailForDrag(mail, progressMonitor))
+		const filePathsPromise = this._prepareMailsForDrag(draggedMails)
 
 		// If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
 		// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
 		Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
-		       .then(([didComplete, filePaths]) => {
+		       .then(([didComplete, fileNames]) => {
+			       console.log("!!", didComplete, fileNames)
 			       if (didComplete) {
-				       fileApp.startNativeDrag(filePaths)
+				       console.log(fileNames)
+				       fileApp.startNativeDrag(fileNames)
 			       } else {
 				       nativeApp.invokeNative(new Request("focusApplicationWindow", []))
 				                .then(() => Dialog.error("unsuccessfulDrop_msg"))
@@ -165,58 +162,90 @@ export class MailListView implements Component {
 
 	/**
 	 * Given a mail, will prepare it by downloading, bundling, saving, then returns the filepath of the saved file.
-	 * @param mail
-	 * @param progressMonitor
 	 * @returns {Promise<R>|Promise<string>}
 	 * @private
+	 * @param mails
 	 */
-	_prepareMailForDrag(mail: Mail, progressMonitor: IProgressMonitor): Promise<string> {
-
+	_prepareMailsForDrag(mails: Array<Mail>): Promise<Array<string>> {
 		return getMailExportMode().then(exportMode => {
-			const key = `${getLetId(mail).join("")}${exportMode}`
+			// 3 actions per mail + 1 to indicate that something is happening (if the downloads take a while)
+			const progressMonitor = makeTrackedProgressMonitor(locator.progressTracker, 3 * mails.length + 1)
+			progressMonitor.workDone(1)
 
-			const existing = this.exportedMails.get(key)
-			if (!existing) {
-				return this._downloadThenBundleThenSaveMail(mail, key, exportMode, progressMonitor)
+			const mapKey = mail => `${getLetId(mail).join("")}${exportMode}`
+			const notDownloaded = []
+			const downloaded = []
+
+			const handleNotDownloaded = mail => {
+				notDownloaded.push({
+					mail,
+					fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode)
+				})
 			}
 
-			const state = existing.state()
-			switch (state.status) {
-				case "pending": {
-					progressMonitor.workDone(3)
-					return state.promise
-				}
-				case "complete": {
-					// The file may have been deleted even though it's still referenced in our map
-					const path = state.result
-					return fileApp.checkFileExists(path).then(exists => {
-						if (exists) {
-							progressMonitor.workDone(3)
-							return path
-						} else {
-							return this._downloadThenBundleThenSaveMail(mail, key, exportMode, progressMonitor)
+			const handleDownloaded = (fileName, promise) => {
+				// we don't have to do anything else with the downloaded ones
+				// so finish this chunk of work
+				progressMonitor.workDone(3)
+				downloaded.push({
+					fileName,
+					promise: promise
+				})
+			}
+
+			// Gather up files that have been downloaded
+			// and all files that need to be downloaded, or were already downloaded but have disappeared
+			return promiseMap(mails, mail => {
+
+				const key = mapKey(mail)
+				const existing = this.exportedMails.get(key)
+				if (!existing || existing.result.state().status === "failure") {
+					// Something went wrong last time we tried to drag this file,
+					// so try again (not confident that it will work this time, though)
+					handleNotDownloaded(mail)
+				} else {
+					const state = existing.result.state()
+					switch (state.status) {
+						// Mail is still being prepared, already has a file path assigned to it
+						case "pending": {
+							return handleDownloaded(existing.fileName, state.promise)
 						}
-					})
+						case "complete": {
+							// We have downloaded it, but we need to check if it still exists
+							return fileApp.checkFileExistsInExportDirectory(existing.fileName)
+							              .then(exists => exists
+								              ? handleDownloaded(existing.fileName, Promise.resolve())
+								              : handleNotDownloaded(mail))
+						}
+					}
 				}
-				case "failure": {
-					return Promise.reject(state.error)
-				}
-			}
+
+			}).then(() => {
+				const deduplicatedNames = deduplicateFilenames(notDownloaded.map(f => f.fileName), new Set(downloaded.map(f => f.fileName)))
+				console.log(notDownloaded, deduplicatedNames, downloaded.map(f => f.fileName))
+
+				return Promise.all(
+					[
+						// Download all the files that need downloading, wait for them, and then return the filename
+						promiseMap(notDownloaded, ({mail, fileName}) => {
+							const name = deduplicatedNames[fileName].shift()
+							const key = mapKey(mail)
+							const downloadPromise = makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)
+								.then(tap(() => progressMonitor.workDone(1)))
+								.then(bundle => generateMailFile(bundle, name, exportMode))
+								.then(tap(() => progressMonitor.workDone(1)))
+								.then(file => fileApp.saveToExportDir(file))
+								.then(tap(() => progressMonitor.workDone(1)))
+							this.exportedMails.set(key, {fileName: name, result: new AsyncResult(downloadPromise)})
+							return downloadPromise.then(() => name)
+						}),
+						// Wait for ones that already were downloading or have finished, and  then return their filenames too
+						promiseMap(downloaded, result => result.promise.then(() => result.fileName))
+					]
+				).then(([left, right]) => left.concat(right)) // combine the list of newly downloaded and previously downloaded files
+			})
 		})
 	}
-
-	_downloadThenBundleThenSaveMail(mail: Mail, key: string, exportMode: MailExportMode, progressMonitor: IProgressMonitor): Promise<string> {
-		const exportPromise = makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)
-			.then(tap(() => progressMonitor.workDone(1)))
-			.then(bundle => generateMailFile(bundle, exportMode))
-			.then(tap(() => progressMonitor.workDone(1)))
-			.then(fileApp.saveToExportDir)
-			.then(tap(() => progressMonitor.workDone(1)))
-
-		this.exportedMails.set(key, new AsyncResult(exportPromise))
-		return exportPromise
-	}
-
 
 	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
 	_fixCounterIfNeeded: ((listId: Id, listLength: number) => void) = debounce(2000, (listId: Id, listLength: number) => {

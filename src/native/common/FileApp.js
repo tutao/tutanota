@@ -18,7 +18,7 @@ export const fileApp = {
 	mailToMsg,
 	saveToExportDir,
 	startNativeDrag,
-	checkFileExists
+	checkFileExistsInExportDirectory
 }
 
 
@@ -136,25 +136,26 @@ export function uriToFileRef(uri: string): Promise<FileReference> {
 /**
  * Generate an MSG file from the mail bundle and save it in the temp export directory
  * @param bundle
+ * @param fileName
  * @returns {Promise<*>}
  */
-function mailToMsg(bundle: MailBundle): Promise<DataFile> {
-	return nativeApp.invokeNative(new Request("mailToMsg", [bundle]))
+function mailToMsg(bundle: MailBundle, fileName: string): Promise<DataFile> {
+	return nativeApp.invokeNative(new Request("mailToMsg", [bundle, fileName]))
 }
 
 /**
- * Drags mails from the temp export directory as .MSG files, only if they have already been exported
+ * drag given file names from the temp directory
  * @returns {Promise<*>}
- * @param files
+ * @param fileNames: relative paths to files from the export directory
  */
-function startNativeDrag(files: Array<string>): Promise<void> {
-	return nativeApp.invokeNative(new Request("startNativeDrag", [files]))
+function startNativeDrag(fileNames: Array<string>): Promise<void> {
+	return nativeApp.invokeNative(new Request("startNativeDrag", [fileNames]))
 }
 
-function saveToExportDir(file: DataFile): Promise<string> {
+function saveToExportDir(file: DataFile): Promise<void> {
 	return nativeApp.invokeNative(new Request("saveToExportDir", [file]))
 }
 
-function checkFileExists(path: string): Promise<boolean> {
-	return nativeApp.invokeNative(new Request("checkFileExists", [path]))
+function checkFileExistsInExportDirectory(path: string): Promise<boolean> {
+	return nativeApp.invokeNative(new Request("checkFileExistsInExportDirectory", [path]))
 }
