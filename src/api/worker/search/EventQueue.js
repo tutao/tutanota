@@ -181,9 +181,14 @@ export class EventQueue {
 						const firstMoveBatch = this._eventQueue[firstMoveIndex]
 						const createEvent = getEventOfType(firstMoveBatch.events, OperationType.CREATE, elementId)
 						createEvent && remove(firstMoveBatch.events, createEvent)
+
+						// We removed empty batches from the list but the one in the map will still stay
+						// so we need to manually clean it up.
+						this._lastOperationForEntity.set(elementId, this._eventQueue[firstMoveIndex])
 					} else {
 						// add delete event
 						newBatch.events.push(newEvent)
+						// _lastOperationForEntity will be set after the batch is prepared as it's non-empty
 					}
 					// delete all other events
 					this.removeEventsForInstance(elementId, firstMoveIndex + 1)
@@ -212,9 +217,6 @@ export class EventQueue {
 			findAllAndRemove(batchInThePast.events, (event) => isSameId(event.instanceId, elementId))
 			return batchInThePast.events.length === 0
 		}, startIndex)
-
-		// // We removed empty batches from the list but the one in the map will still stay.
-		this._lastOperationForEntity.set(elementId, this._eventQueue[startIndex])
 	}
 
 	start() {
