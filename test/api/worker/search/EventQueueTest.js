@@ -380,6 +380,7 @@ o.spec("EventQueueTest", function () {
 		o("delete + create + delete + create == delete + create", async function () {
 			// This tests that create still works a
 			const deleteEvent1 = createUpdate(OperationType.DELETE, "list", "1", "u1")
+			const nonEmptyEventInBetween = createUpdate(OperationType.CREATE, "list2", "2", "u1.1")
 			const createEvent1 = createUpdate(OperationType.CREATE, "list", "1", "u2")
 
 			const deleteEvent2 = createUpdate(OperationType.DELETE, "list", "1", "u3")
@@ -387,6 +388,7 @@ o.spec("EventQueueTest", function () {
 
 
 			queue.add("batch-id-1", "group-id", [deleteEvent1])
+			queue.add("batch-id-1.1", "group-id", [nonEmptyEventInBetween])
 			queue.add("batch-id-2", "group-id", [createEvent1])
 			queue.add("batch-id-3", "group-id", [deleteEvent2])
 			queue.add("batch-id-4", "group-id", [createEvent2])
@@ -398,6 +400,7 @@ o.spec("EventQueueTest", function () {
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
 				[{events: [expectedDelete], batchId: "batch-id-1", groupId: "group-id"}],
+				[{events: [nonEmptyEventInBetween], batchId: "batch-id-1.1", groupId: "group-id"}],
 				[{events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id"}],
 			])
 		})
