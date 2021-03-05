@@ -7,10 +7,47 @@ type StringPredicate = string => boolean
 const _false: StringPredicate = () => false
 
 /**
+ * Get the file extension of a filename
+ * so
+ *  file.txt -> .txt
+ *  archive.tar.gz -> .tar.gz
+ * @param fileName
+ */
+export function getFileExtension(fileName: string): string {
+	return (fileName.match(/\..+$/) || [""])[0]
+}
+
+/**
+ * The inverse of getTrailingFileExtension
+ * @param fileName
+ */
+export function getFileBaseName(fileName: string): string {
+	const extension = getFileExtension(fileName)
+	return fileName.substr(0, extension ? fileName.lastIndexOf(extension) : fileName.length)
+}
+
+export function unreserveFileName(fileName: string): string {
+
+	if (fileName === "." || fileName === "..") {
+		return `${fileName}_`
+	}
+
+	// CON, CON.txt, COM0 etc. (windows device files)
+	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
+
+	const extension = getFileExtension(fileName)
+	const baseName = getFileBaseName(fileName)
+	return env.platformId === "win32" && winReservedRe.test(baseName)
+		? `${baseName}_${extension}`
+		: fileName
+}
+
+/**
  * removes invalid characters from the given filename
  * by replacing them with underscores (non-platform-specific)
  */
-export function sanitizeFilename(filename: string, isReservedFileName: StringPredicate = _false): string {
+export function sanitizeFilename(filename: string): string {
+
 	// / ? < > \ : * | "
 	const illegalRe = /[\/\?<>\\:\*\|"]/g
 	// unicode control codes
@@ -19,11 +56,8 @@ export function sanitizeFilename(filename: string, isReservedFileName: StringPre
 	// this is valid in linux but can't be checked from the browser
 	const windowsTrailingRe = /[\. ]+$/
 
-	const unreserveFilename = name => isReservedFileName(name)
-		? `_${name}`
-		: name
 
-	return unreserveFilename(filename)
+	return unreserveFileName(filename)
 		.replace(illegalRe, "_")
 		.replace(controlRe, "_")
 		.replace(windowsTrailingRe, "_")

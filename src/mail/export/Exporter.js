@@ -41,7 +41,7 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
 		// windows MAX_PATH is 260, this should be fairly safe.
 		filename = filename.substring(0, 95) + '_'
 	}
-	return sanitizeFilename(`${filename}.${mode}`, isReservedFilename)
+	return sanitizeFilename(`${filename}.${mode}`)
 }
 
 /**
@@ -86,7 +86,7 @@ export function mailToEml(mail: MailBundle): string {
 			"MIME-Version: 1.0"
 		)
 		const formatRecipients = (key, recipients) =>
-			`${key}: ${recipients.map(recipient => (recipient.name ? `<${recipient.name}> ` : "") + recipient.address).join(",")}`
+			`${key}: ${recipients.map(recipient => (recipient.name ? `${recipient.name} ` : "") + `<${recipient.address}>`).join(",")}`
 		if (mail.to.length > 0) {
 			lines.push(formatRecipients("To", mail.to))
 		}

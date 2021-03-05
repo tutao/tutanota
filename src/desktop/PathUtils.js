@@ -39,9 +39,9 @@ export function pathToFileURL(pathToConvert: string): string {
 export function nonClobberingFilename(files: Array<string>, filename: string): string {
 	filename = sanitizeFilename(filename)
 	const clashingFile = files.find(f => f === filename)
-	if (typeof clashingFile !== "string" && !isReservedFilename(filename)) { // all is well
+	if (typeof clashingFile !== "string") { // all is well
 		return filename
-	} else { // there are clashing file names or the file name is reserved
+	} else { // there are clashing file names
 		const ext = path.extname(filename)
 		const basename = path.basename(filename, ext)
 		const clashNumbers: Array<number> = files

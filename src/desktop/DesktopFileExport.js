@@ -1,13 +1,11 @@
 // @flow
 import path from "path"
-import {isReservedFilename, sanitizeFilename} from "../api/common/utils/FileUtils"
-import {legalizeFilenames} from "../api/common/utils/FileUtils"
-import {fileExists, isReservedFilename} from "./PathUtils"
 import {promises as fs} from "fs"
 import type {MailBundle} from "../mail/export/Bundler"
 import {Attachment, Email, MessageEditorFormat} from "oxmsg"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {createDataFile} from "../api/common/DataFile"
+import {sanitizeFilename} from "../api/common/utils/FileUtils"
 
 const EXPORT_DIR = "export"
 
@@ -22,7 +20,7 @@ export async function getExportDirectoryPath(dl: DesktopDownloadManager): Promis
 }
 
 export async function writeFile(dirPath: string, file: DataFile): Promise<void> {
-	const fullPath = path.join(dirPath, sanitizeFilename(file.name, isReservedFilename))
+	const fullPath = path.join(dirPath, sanitizeFilename(file.name))
 	return fs.writeFile(fullPath, file.data)
 }
 

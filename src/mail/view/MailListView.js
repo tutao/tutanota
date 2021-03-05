@@ -148,9 +148,7 @@ export class MailListView implements Component {
 		// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
 		Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
 		       .then(([didComplete, fileNames]) => {
-			       console.log("!!", didComplete, fileNames)
 			       if (didComplete) {
-				       console.log(fileNames)
 				       fileApp.startNativeDrag(fileNames)
 			       } else {
 				       nativeApp.invokeNative(new Request("focusApplicationWindow", []))
@@ -222,7 +220,6 @@ export class MailListView implements Component {
 
 			}).then(() => {
 				const deduplicatedNames = deduplicateFilenames(notDownloaded.map(f => f.fileName), new Set(downloaded.map(f => f.fileName)))
-				console.log(notDownloaded, deduplicatedNames, downloaded.map(f => f.fileName))
 
 				return Promise.all(
 					[

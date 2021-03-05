@@ -161,19 +161,33 @@ o.spec("PathUtils", function () {
 			], '')).equals('')
 		})
 
+		// These would rather be in sanitize file name tests
 		o('invalid/reserved filenames', function () {
 			o(nonClobberingFilename([], "\x00-\x1f\x80-\x9f.exe"))
 				.equals('_-__-_.exe')
 
-			n.setPlatform("win32")
+			// n.setPlatform("win32")
+			env.platformId = "win32"
 			o(nonClobberingFilename(["CON-1.exe"], "CON.exe"))
-				.equals('CON-2.exe')
+				.equals('CON_.exe')
 
 			o(nonClobberingFilename([], "."))
-				.equals("_")
+				.equals("._")
 
-			o(nonClobberingFilename(["_"], ".."))
-				.equals("_-1")
+			o(nonClobberingFilename(["._"], "."))
+				.equals("._-1")
+
+			o(nonClobberingFilename([], ".."))
+				.equals(".._")
+
+			// sanitizeFilename converts .. to .._
+			// and then nonClobbering filename thinks ._ is the extension so if you have two files named .. then this is what you get
+			// this isn't pretty, but lucky for us I also don't think it's possible to have a file named .. on windows or linux or mac, so it should
+			// not even be an issue when dealing with attachments, unless we somehow cause this in code.
+			// i'd rather not special case the code for something that may not even be a case
+			// tl;dr this assertion could probably be removed altogether
+			o(nonClobberingFilename([".._"], ".."))
+				.equals(".-1._")
 
 			o(nonClobberingFilename([], "<>|?/\\.mp3"))
 				.equals("______.mp3")
@@ -182,22 +196,22 @@ o.spec("PathUtils", function () {
 				.equals("CON______CON.mp3")
 
 			o(nonClobberingFilename([], "PRN.<p2."))
-				.equals("PRN-1._p2_")
+				.equals("PRN_._p2_")
 
 			o(nonClobberingFilename([], "LPT0"))
-				.equals("LPT0-1")
+				.equals("LPT0_")
 
 			o(nonClobberingFilename([], "COM9"))
-				.equals("COM9-1")
+				.equals("COM9_")
 
 			o(nonClobberingFilename([], "AUX.AUX"))
-				.equals("AUX-1.AUX")
+				.equals("AUX_.AUX")
 
 			o(nonClobberingFilename([], "NUL"))
-				.equals("NUL-1")
+				.equals("NUL_")
 
 			o(nonClobberingFilename([], "nul"))
-				.equals("nul-1")
+				.equals("nul_")
 
 			o(nonClobberingFilename([], "NULNUL"))
 				.equals("NULNUL")
@@ -208,12 +222,13 @@ o.spec("PathUtils", function () {
 			o(nonClobberingFilename([], "<>|?/\\CON."))
 				.equals("______CON_")
 
-			n.setPlatform("linux")
+			// n.setPlatform("linux")
+			env.platformId = "linux"
 			o(nonClobberingFilename([], "nul"))
 				.equals("nul")
 
 			o(nonClobberingFilename([], ".."))
-				.equals("_")
+				.equals(".._")
 		})
 	})
 
