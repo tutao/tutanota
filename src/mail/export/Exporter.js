@@ -86,7 +86,8 @@ export function mailToEml(mail: MailBundle): string {
 			"MIME-Version: 1.0"
 		)
 		const formatRecipients = (key, recipients) =>
-			`${key}: ${recipients.map(recipient => (recipient.name ? `${recipient.name} ` : "") + `<${recipient.address}>`).join(",")}`
+			`${key}: ${recipients.map(recipient => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "")
+				+ `<${recipient.address}>`).join(",")}`
 		if (mail.to.length > 0) {
 			lines.push(formatRecipients("To", mail.to))
 		}
@@ -145,6 +146,10 @@ export function mailToEml(mail: MailBundle): string {
 	return lines.join("\r\n")
 }
 
+function escapeSpecialCharacters(name: string): string {
+	// There may be other special characters that need escaping
+	return name.replace(/[,<>]/ig, "\\$&")
+}
 
 export function _formatSmtpDateTime(date: Date): string {
 	const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
