@@ -127,7 +127,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
                 TUTLog(@"Successfully processed missed notifications");
             }
         }];
-        [self.appDelegate.alarmManager rescheduleEvents];
+        [self.appDelegate.alarmManager rescheduleAlarms];
     }
     
     [self loadMainPageWithParams:nil];
@@ -273,6 +273,15 @@ alarmManager:(TUTAlarmManager *)alarmManager
             return;
         }
         [self sendResponseWithId:requestId value:filePath];
+  } else if ([@"scheduleAlarms" isEqualToString:type]) {
+    NSArray<NSDictionary *> *alarmsJSON = arguments[0];
+    NSMutableArray<TUTAlarmNotification *> *alarms = [NSMutableArray new];
+    foreach(json, alarmsJSON) {
+      let alarm = [TUTAlarmNotification fromJSON:json];
+      [alarms addObject:alarm];
+    }
+    NSError *error;
+    [self.alarmManager processNewAlarms:alarms error:&error];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		TUTLog(@"%@", message);
