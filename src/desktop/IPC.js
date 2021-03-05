@@ -23,6 +23,7 @@ import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExport"
 import {fileExists} from "./PathUtils"
+import path from "path"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -258,7 +259,8 @@ export class IPC {
 					: Promise.resolve(null)
 			case 'mailToMsg': {
 				const bundle = args[0]
-				return makeMsgFile(bundle)
+				const fileName = args[1]
+				return makeMsgFile(bundle, fileName)
 			}
 			case 'saveToExportDir': {
 				const file: DataFile = args[0]
@@ -266,7 +268,8 @@ export class IPC {
 				return writeFile(exportDir, file)
 			}
 			case 'startNativeDrag': {
-				const files = args[0].filter(fileExists)
+				const exportDir = await getExportDirectoryPath(this._dl)
+				const files = args[0].map(fileName => path.join(exportDir, fileName)).filter(fileExists)
 				const window = this._wm.get(windowId)
 				window && window._browserWindow.webContents.startDrag(
 					{
@@ -280,8 +283,9 @@ export class IPC {
 				window && window.browserWindow.focus()
 				return Promise.resolve()
 			}
-			case 'checkFileExists': {
-				return fileExists(args[0])
+			case 'checkFileExistsInExportDirectory': {
+				const fileName = args[0]
+				return fileExists(path.join(await getExportDirectoryPath(this._dl), fileName))
 			}
 			case 'clearFileData': {
 				this._dl.deleteTutanotaTempDirectory()

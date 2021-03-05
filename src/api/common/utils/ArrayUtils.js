@@ -295,3 +295,7 @@ export function binarySearch<T>(ar: Array<T>, el: T, compare_fn: (T, T) => numbe
 	}
 	return -m - 1;
 }
+
+export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
+	return new Set(...iterables.map(iterable => Array.from(iterable)))
+}

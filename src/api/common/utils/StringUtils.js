@@ -75,3 +75,11 @@ export const NBSP = "\u00A0";
 export function splitAt(str: string, index: number): [string, string] {
 	return [str.substring(0, index), str.substring(index)]
 }
+
+/**
+ * Wrapper around String.prototype.toLowerCase, nice for calls to Array.prototype.map
+ * @param str
+ */
+export function toLowerCase(str: string): string {
+	return str.toLowerCase()
+}

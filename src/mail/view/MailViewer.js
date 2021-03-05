@@ -77,7 +77,6 @@ import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
-import {generateMailFile, getMailExportMode} from "../export/Exporter"
 import {client} from "../../misc/ClientDetector"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
@@ -113,8 +112,10 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
-import {makeMailBundle} from "../export/Bundler"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import {locator} from "../../api/main/MainLocator"
+import {makeMailBundle} from "../export/Bundler"
+import {exportMailsInZip} from "../export/Exporter"
 
 assertMainOrNode()
 
@@ -624,11 +625,9 @@ export class MailViewer {
 						moreButtons.push({
 							label: "export_action",
 							click: () => {
-								const downloadPromise = Promise.all([
-									getMailExportMode(),
-									makeMailBundle(this.mail, this._entityClient, worker, htmlSanitizer)
-								]).then(([mode, bundle]) => generateMailFile(bundle, mode)).then(file => fileController.open(file))
-
+								const downloadPromise =
+									makeMailBundle(this.mail, locator.entityClient, worker, htmlSanitizer)
+										.then(bundle => exportMailsInZip([bundle]))
 								showProgressDialog("pleaseWait_msg", downloadPromise)
 
 							},

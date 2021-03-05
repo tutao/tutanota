@@ -1,7 +1,7 @@
 // @flow
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {convertToDataFile} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/ProgressDialog"
@@ -12,7 +12,7 @@ import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {legalizeFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
+import {deduplicateFilenames, legalizeFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 
 assertMainOrNode()
 
@@ -259,16 +259,16 @@ export class FileController {
 	 * @param name the name of the new zip file
 	 */
 	zipDataFiles(dataFiles: Array<DataFile>, name: string): Promise<DataFile> {
-		const file = new File([], name, {type: "application/zip"})
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		return import("jszip").then(jsZip => {
 			const zip = jsZip.default()
-			let legalFilenameMap = legalizeFilenames(dataFiles.map(df => df.name))
-			dataFiles.forEach(df => {
-				zip.file(sanitizeFilename(legalFilenameMap[df.name].shift()), df.data, {binary: true})
-			})
+			// fileName should already be sanitized anyway
+			const deduplicatedMap = deduplicateFilenames(dataFiles.map(df => sanitizeFilename(df.name)))
+			for (let file of dataFiles) {
+				zip.file(sanitizeFilename(deduplicatedMap[file.name].shift()), file.data, {binary: true})
+			}
 			return zip.generateAsync({type: 'uint8array'})
-		}).then(zf => convertToDataFile(file, zf))
+		}).then((zipData: Uint8Array) => createDataFile(name, "application/zip", zipData))
 	}
 }
 

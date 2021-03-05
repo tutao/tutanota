@@ -1,7 +1,7 @@
 //@flow
 import path from "path"
 import url from "url"
-import {sanitizeFilename} from "../api/common/utils/FileUtils"
+import {isReservedFilename, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {promises as fs} from "fs"
 
@@ -63,21 +63,6 @@ export function nonClobberingFilename(files: Array<string>, filename: string): s
 			? `${basename}-${neverNull(firstGapMinusOne) + 1}${ext}`
 			: `${basename}-${clashNumbersSet.size}${ext}`
 	}
-}
-
-/**
- * checks if the given filename is a reserved filename on the current platform
- * @param filename
- * @returns {boolean}
- * @private
- */
-export function isReservedFilename(filename: string): boolean {
-	// CON, CON.txt, COM0 etc. (windows device files)
-	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
-	// .. and .
-	const reservedRe = /^\.{1,2}$/
-
-	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
 
 export function looksExecutable(file: string): boolean {

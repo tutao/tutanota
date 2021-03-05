@@ -10,9 +10,12 @@ import {MailState} from "../../api/common/TutanotaConstants";
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {MailExportMode} from "./Exporter"
+import {generateExportFileName} from "./Exporter"
+import {isReservedFilename, legalizeFilenames} from "../../api/common/utils/FileUtils"
 
 /**
- * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
+ * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
  * Ideally this would just be {Mail, MailHeaders, MailBody, FileReference[]}
  * but we can't send Dates over to the native side so we may as well just extract everything here
  */
@@ -31,8 +34,9 @@ export type MailBundle = {
 	sentOn: number, // UNIX timestamp
 	receivedOn: number, // UNIX timestamp,
 	headers: ?string,
-	attachments: DataFile[]
+	attachments: DataFile[],
 }
+
 
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting
@@ -77,7 +81,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 			              sentOn: mail.sentDate.getTime(),
 			              receivedOn: mail.receivedDate.getTime(),
 			              headers: headers && getMailHeaders(headers),
-			              attachments: attachments
+			              attachments: attachments,
 		              }
 	              })
 }
