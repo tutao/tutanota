@@ -10,9 +10,6 @@ import {MailState} from "../../api/common/TutanotaConstants";
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
-import type {MailExportMode} from "./Exporter"
-import {generateExportFileName} from "./Exporter"
-import {isReservedFilename, legalizeFilenames} from "../../api/common/utils/FileUtils"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file

@@ -1,6 +1,6 @@
 // @flow
 import path from "path"
-import {isReservedFilename, legalizeFilenames} from "../api/common/utils/FileUtils"
+import {isReservedFilename, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {legalizeFilenames} from "../api/common/utils/FileUtils"
 import {fileExists, isReservedFilename} from "./PathUtils"
 import {promises as fs} from "fs"
@@ -8,8 +8,6 @@ import type {MailBundle} from "../mail/export/Bundler"
 import {Attachment, Email, MessageEditorFormat} from "oxmsg"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {createDataFile} from "../api/common/DataFile"
-import {generateExportFileName} from "../mail/export/Exporter"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 const EXPORT_DIR = "export"
 
@@ -23,27 +21,8 @@ export async function getExportDirectoryPath(dl: DesktopDownloadManager): Promis
 	return dl.getTutanotaTempDirectory(EXPORT_DIR)
 }
 
-/**
- * @param dirPath
- * @param files Array of named content to write to tmp
- * @returns {string} a list of the full paths of the files that were written
- * */
-export async function writeFiles(dirPath: string, files: Array<DataFile>): Promise<Array<string>> {
-	const legalNames = legalizeFilenames(files.map(f => f.name), isReservedFilename)
-	const legalFiles = files.map(f => ({
-		data: f.data,
-		name: legalNames[f.name].shift()
-	}))
-
-	return promiseMap(legalFiles, async file => {
-		await fs.writeFile(path.join(dirPath, file.name), file.data)
-		return file.name
-	})
-}
-
 export async function writeFile(dirPath: string, file: DataFile): Promise<void> {
-	const legalName = legalizeFilenames([file.name], isReservedFilename)[file.name][0]
-	const fullPath = path.join(dirPath, legalName)
+	const fullPath = path.join(dirPath, sanitizeFilename(file.name, isReservedFilename))
 	return fs.writeFile(fullPath, file.data)
 }
 

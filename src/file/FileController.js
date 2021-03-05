@@ -12,7 +12,7 @@ import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {deduplicateFilenames, legalizeFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
+import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 
 assertMainOrNode()
 

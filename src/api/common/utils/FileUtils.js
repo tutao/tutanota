@@ -29,55 +29,6 @@ export function sanitizeFilename(filename: string, isReservedFileName: StringPre
 		.replace(windowsTrailingRe, "_")
 }
 
-/**
- * take array of file names and add numbered suffixes to the basename of
- * duplicates. Use to make a legal set of names for files written to disk
- * at the same time.
- *
- * treats file names that already have numbered suffixes as non-numbered.
- * assumes the file system is case insensitive (a.txt would overwrite A.TXT)
- *
- * @param files file names.
- * @param isReserved (optional) function returning true for filenames that are reserved and will be suffixed.
- * @returns map from old names to array of new names. use map[oldname].shift() to replace oldname with newname.
- */
-export function legalizeFilenames(files: Array<string>, isReserved: StringPredicate = _false): {[string]: Array<string>} {
-	const suffix = (name, suf) => {
-		const basename = name.substring(0, name.indexOf('.')) || name
-		const ext = name.substring(name.indexOf('.'))
-		return `${basename}-${suf}${ext}`
-	}
-
-	const sanitizedNames = files.map(name => sanitizeFilename(name, isReserved))
-	const deduplicatedNames = new Set(sanitizedNames.map(s => s.toLowerCase()))
-	const oldNewPairs = sanitizedNames.map((name, idx) => [files[idx], name]) // pairs [oldname, newname]
-
-	// if there are no duplicates then we can just return the sanitized names
-	if (deduplicatedNames.size === sanitizedNames.length) {
-		return oldNewPairs.reduce((map, [oldName, newName]) => ({...map, [oldName]: [newName]}), {}) // convert into map oldname -> [newname]
-	}
-
-	// do the deduplication
-	const out = {}
-	const duplicatesCount = {}
-	for (let [oldName, cleanName] of oldNewPairs) {
-		const lower = cleanName.toLowerCase()
-		let newName
-		if (duplicatesCount[lower] === undefined) {
-			duplicatesCount[lower] = 0
-			newName = cleanName
-		} else {
-			duplicatesCount[lower] = duplicatesCount[lower] + 1
-			newName = suffix(cleanName, duplicatesCount[lower])
-		}
-		if (!out[oldName]) {
-			out[oldName] = []
-		}
-		out[oldName].push(newName)
-	}
-
-	return out
-}
 
 /**
  * Uniqueify all the names in fileNames, case-insensitively
