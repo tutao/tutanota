@@ -135,7 +135,8 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
                 strongSelf.userPreference.lastProcessedNotificationId =
                 missedNotification.lastProcessedNotificationId;
                 
-                [strongSelf handleAlarmNotifications:missedNotification];
+                [strongSelf processNewAlarms:missedNotification.alarmNotifications error:&error];
+                // ignore the error here
                 complete(nil);
             }
         }] resume];
@@ -192,14 +193,13 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     return [NSString stringWithFormat:@"%@/rest/sys/missednotification/%@", origin, base64urlId];
 }
 
-- (void)handleAlarmNotifications:(TUTMissedNotification*) notification {
-    foreach(alarmNotification, notification.alarmNotifications) {
-        NSError *error;
-        [self handleAlarmNotification:alarmNotification error:&error];
-        if (error) {
-            TUTLog(@"schedule error %@", error);
-        }
+- (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications error:(NSError **)error {
+  foreach(alarmNotification, notifications) {
+    [self handleAlarmNotification:alarmNotification error:error];
+    if (*error) {
+      TUTLog(@"schedule error %@", *error);
     }
+  }
 }
 
 - (void) handleAlarmNotification:(TUTAlarmNotification*)alarmNotification error:(NSError **)error {
@@ -431,7 +431,7 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     return [NSString stringWithFormat:@"%@#%d", alarmIdentifier, occurrence];
 }
 
--(void)rescheduleEvents {
+-(void)rescheduleAlarms {
     TUTLog(@"Re-scheduling alarms");
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         let savedNotifications = [self->_userPreference alarms];
