@@ -1304,7 +1304,7 @@ export default {
 		"you_label": "Du",
 		"unsuccessfulDrop_msg": "Das Drag & Drop war nicht erfolgreich, weil die Daten noch nicht heruntergeladen worden sind. Bitte versuche es erneut, wenn der Fortschrittsbalken vollständig ist.",
 		"dragAndDrop_action": "E-Mails per Drag & Drop ins Dateisystem oder in andere Anwendungen ziehen",
-		"mailExportMode_label": "Datei-Exportieren-Format",
-		"mailExportModeHelp_msg": "Dateiformat beim Exportieren oder bei Drag & Drop"
+		"mailExportMode_label": "Dateiformat für E-Mail-Export",
+		"mailExportModeHelp_msg": "Dateiformat beim Exportieren und bei Drag & Drop"
 	}
 }
