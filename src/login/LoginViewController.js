@@ -35,7 +35,7 @@ import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfo
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {locator} from "../api/main/MainLocator"
-import {checkApprovalStatus} from "../misc/LoginUtils"
+import {checkApprovalStatus, getLoginErrorMessage} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -154,56 +154,19 @@ export class LoginViewController implements ILoginViewController {
 			            this.view.helpText = lang.get('emptyString_msg')
 			            m.redraw()
 		            })
-		            .catch(AccessBlockedError, e => {
-			            this.view.helpText = lang.get('loginFailedOften_msg')
+		            .catch(e => {
+			            this.view.helpText = lang.get(getLoginErrorMessage(e))
 			            m.redraw()
-			            return errorAction()
+			            throw e
 		            })
-		            .catch(BadRequestError, e => {
-			            this.view.helpText = lang.get('loginFailed_msg')
+		            .catch(BadRequestError, NotAuthenticatedError, e => {
 			            this.view.invalidCredentials = true
-			            m.redraw()
-			            return errorAction()
-		            })
-		            .catch(NotAuthenticatedError, e => {
-			            this.view.helpText = lang.get('loginFailed_msg')
-			            this.view.invalidCredentials = true
-			            m.redraw()
-			            return errorAction()
-		            })
-		            .catch(AccessDeactivatedError, e => {
-			            this.view.helpText = lang.get('loginFailed_msg')
-			            m.redraw()
-			            return errorAction()
 		            })
 		            .catch(AccessExpiredError, e => {
-			            this.view.helpText = lang.get('inactiveAccount_msg')
 			            this.view.accessExpired = true
-			            m.redraw()
-			            return errorAction()
 		            })
-		            .catch(TooManyRequestsError, e => {
-			            this.view.helpText = lang.get('tooManyAttempts_msg')
-			            m.redraw()
-			            return errorAction()
-		            })
-		            .catch(CancelledError, () => {
-			            this.view.helpText = lang.get('emptyString_msg')
-			            m.redraw()
-			            return errorAction()
-		            })
-		            .catch(ConnectionError, e => {
-			            if (client.isIE()) {
-				            // IE says it's error code 0 fore some reason
-				            this.view.helpText = lang.get('loginFailed_msg')
-				            m.redraw()
-				            return errorAction()
-			            } else {
-				            this.view.helpText = lang.get('emptyString_msg')
-				            m.redraw()
-				            throw e;
-			            }
-		            })
+		            .catch(AccessBlockedError, AccessDeactivatedError, TooManyRequestsError, noOp)
+		            .then(errorAction)
 	}
 
 	_enforcePasswordChange(): void {
@@ -250,12 +213,12 @@ export class LoginViewController implements ILoginViewController {
 				}
 			})
 			.then(() => logins.loginComplete()).then(() => {
-				if (isApp() || isDesktop()) {
-					// don't wait for it, just invoke
-					import("../native/common/FileApp")
-						.then(({fileApp}) => fileApp.clearFileData())
-						.catch((e) => console.log("Failed to clean file data", e))
-				}
+			if (isApp() || isDesktop()) {
+				// don't wait for it, just invoke
+				import("../native/common/FileApp")
+					.then(({fileApp}) => fileApp.clearFileData())
+					.catch((e) => console.log("Failed to clean file data", e))
+			}
 		})
 			.then(() => {
 				if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {

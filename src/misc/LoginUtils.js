@@ -81,10 +81,8 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 	})
 }
 
-// TODO Use in LoginViewController.handleSession
 export function getLoginErrorMessage(error: TutanotaError): TranslationKey {
 
-	console.log(error.constructor)
 	switch (error.constructor) {
 		case BadRequestError:
 		case NotAuthenticatedError:
@@ -99,7 +97,6 @@ export function getLoginErrorMessage(error: TutanotaError): TranslationKey {
 		case CancelledError:
 			return "emptyString_msg"
 		case ConnectionError:
-			return client.isIE() ? "loginFailed_msg" : "emptyString_msg"
 		default:
 			return "emptyString_msg"
 	}
