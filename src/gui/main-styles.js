@@ -349,6 +349,20 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
 		},
+		'.scroll-webkit-scrollbar': {
+			'overflow-y': client.overflowAuto,
+			'-webkit-overflow-scrolling': 'touch',
+			'-ms-overflow-style': '-ms-autohiding-scrollbar',
+
+		},
+		'.scroll-webkit-scrollbar::-webkit-scrollbar': {
+			background: "transparent",
+			width: "8px"
+		},
+		'.scroll-webkit-scrollbar::-webkit-scrollbar-thumb': {
+			background: theme.content_button,
+			"border-radius": "4px",
+		},
 		'.scroll-no-overlay': {
 			'overflow-y': 'auto',
 			'-webkit-overflow-scrolling': 'touch',
