@@ -117,7 +117,7 @@ export class PaymentMethodInput {
 				return "creditCardNumberInvalid_msg"
 			} else if (cc.cardHolderName === "") {
 				return "creditCardCardHolderName_msg"
-			} else if (cc.cvv === "") {
+			} else if (cc.cvv === "" || cc.cvv.length < 3 || cc.cvv.length > 4) { // CVV2 is 3- or 4-digit
 				return "creditCardCVVFormat_label"
 			} else if (cc.expirationMonth.length !== 2
 				|| (cc.expirationYear.length !== 4 && cc.expirationYear.length !== 2)
