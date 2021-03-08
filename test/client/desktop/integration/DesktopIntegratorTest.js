@@ -5,11 +5,15 @@ import {DesktopIntegrator} from "../../../../src/desktop/integration/DesktopInte
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager"
 import {lang} from "../../../../src/misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
+import en from "../../../../src/translations/en"
 
 const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.'
 	+ '\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application'
 	+ '\nIcon=appName.png\nStartupWMClass=appName\nMimeType=x-scheme-handler/mailto;'
 	+ '\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage'
+
+lang.init(en)
 
 o.spec("DesktopIntegrator Test", () => {
 	const cp = {

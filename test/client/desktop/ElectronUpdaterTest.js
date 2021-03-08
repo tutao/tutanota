@@ -9,10 +9,15 @@ import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper";
 import n from "../nodemocker"
 import type {DesktopConfig} from "../../../src/desktop/config/DesktopConfig";
 import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier";
+import {lang} from "../../../src/misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
+import en from "../../../src/translations/en"
+
+lang.init(en)
 
 o.spec("ElectronUpdater Test", function () {
 
-	let electron: { app: App }
+	let electron: {app: App}
 	let rightKey
 	let wrongKey
 	let crypto
@@ -27,7 +32,7 @@ o.spec("ElectronUpdater Test", function () {
 	let updaterImpl: UpdaterWrapper
 	o.beforeEach(function () {
 		notifier = downcast({
-			showOneShot: o.spy((prop: { title: string, body: string, icon: any }) => Promise.resolve('click'))
+			showOneShot: o.spy((prop: {title: string, body: string, icon: any}) => Promise.resolve('click'))
 		})
 		conf = downcast({
 				removeListener: o.spy((key: string, cb: ()=>void) => conf),
@@ -188,29 +193,29 @@ o.spec("ElectronUpdater Test", function () {
 		let enabled = false
 		const oldConf = conf
 		conf = n.mock('__conf', oldConf)
-				.with({
-					removeListener: () => conf,
-					on: (key: string, cb: any) => {
-						if (!enabled) {
-							setTimeout(() => {
-								enabled = true
-								cb()
-							}, 25)
-						}
-						return conf
-					},
-					getVar: (key: string) => {
-						switch (key) {
-							case 'enableAutoUpdate':
-								return enabled
-							case 'showAutoUpdateOption':
-								return true
-							default:
-								throw new Error(`unexpected getVar key ${key}`)
-						}
-					}
-				})
-				.set()
+		        .with({
+			        removeListener: () => conf,
+			        on: (key: string, cb: any) => {
+				        if (!enabled) {
+					        setTimeout(() => {
+						        enabled = true
+						        cb()
+					        }, 25)
+				        }
+				        return conf
+			        },
+			        getVar: (key: string) => {
+				        switch (key) {
+					        case 'enableAutoUpdate':
+						        return enabled
+					        case 'showAutoUpdateOption':
+						        return true
+					        default:
+						        throw new Error(`unexpected getVar key ${key}`)
+				        }
+			        }
+		        })
+		        .set()
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 
 		upd.start()
