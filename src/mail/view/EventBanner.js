@@ -83,22 +83,18 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 }
 
 function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatusEnum, previousMail: Mail) {
-	if (logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(true)
-	} else {
-		import("../../calendar/CalendarInvites")
-			.then(({getLatestEvent, replyToEventInvitation}) => {
-				return getLatestEvent(event).then(latestEvent => {
-					const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
-					if (ownAttendee == null) {
-						Dialog.error("attendeeNotFound_msg")
-						return
-					}
-					replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
-						.then(() => ownAttendee.status = status)
-						.then(m.redraw)
-				})
+	import("../../calendar/CalendarInvites")
+		.then(({getLatestEvent, replyToEventInvitation}) => {
+			return getLatestEvent(event).then(latestEvent => {
+				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
+				if (ownAttendee == null) {
+					Dialog.error("attendeeNotFound_msg")
+					return
+				}
+				replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
+					.then(() => ownAttendee.status = status)
+					.then(m.redraw)
 			})
+		})
 
-	}
 }
