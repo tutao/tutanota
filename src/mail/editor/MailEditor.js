@@ -516,14 +516,13 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
  * @throws PermissionError
  */
 export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
-	return checkApprovalStatus(false).then(sendAllowed => {
-		if (sendAllowed) {
-			return import("../signature/Signature")
-				.then(({appendEmailSignature}) => appendEmailSignature("", logins.getUserController().props))
-				.then((signature) => newMailEditorFromTemplate(mailboxDetails, {}, "", signature))
-		} else {
-			return Promise.reject(new PermissionError("not allowed to send mail"))
-		}
+	// We check approval status so as to get a dialog informing the user that they cannot send mails
+	// but we still want to open the mail editor because they should still be able to contact sales@tutao.de
+	return checkApprovalStatus(false).then(_ => {
+		return import("../signature/Signature")
+			.then(({appendEmailSignature}) => appendEmailSignature("", logins.getUserController().props))
+			.then((signature) => newMailEditorFromTemplate(mailboxDetails, {}, "", signature))
+
 	})
 }
 

@@ -1,6 +1,13 @@
 // @flow
 import type {ConversationTypeEnum, MailMethodEnum} from "../../api/common/TutanotaConstants"
-import {ConversationType, MailFolderType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../../api/common/TutanotaConstants"
+import {
+	ApprovalStatus,
+	ConversationType,
+	MailFolderType,
+	MAX_ATTACHMENT_SIZE,
+	OperationType,
+	ReplyType
+} from "../../api/common/TutanotaConstants"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {isExternal} from "../../api/common/RecipientInfo"
 import {
@@ -744,7 +751,7 @@ export class SendMailModel {
 			.catch(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)})
 			.catch(AccessBlockedError, e => {
 				// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
-				return checkApprovalStatus(true, "4")
+				return checkApprovalStatus(true, ApprovalStatus.SPAM_SENDER)
 					.then(() => {
 						console.log("could not send mail (blocked access)", e)
 					})

@@ -17,6 +17,9 @@ import {
 import {CancelledError} from "../api/common/error/CancelledError"
 import {client} from "./ClientDetector"
 import {TutanotaError} from "../api/common/error/TutanotaError"
+import {ApprovalStatus} from "../api/common/TutanotaConstants"
+import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import type {ApprovalStatusEnum} from "../api/common/TutanotaConstants"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -24,21 +27,26 @@ import {TutanotaError} from "../api/common/error/TutanotaError"
  * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
  */
-export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defaultStatus: ?string): Promise<boolean> {
+export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defaultStatus: ?ApprovalStatusEnum): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) { // external users are not authorized to load the customer
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		let status = (customer.approvalStatus === "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
-		if (["1", "5", "7"].indexOf(status) !== -1) {
+		let status = (customer.approvalStatus === ApprovalStatus.REGISTRATION_APPROVED
+			&& defaultStatus) ? defaultStatus : customer.approvalStatus
+		if ([
+			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED,
+			ApprovalStatus.DELAYED,
+			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
+		].indexOf(status) !== -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (status === "6") {
+		} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
 				return Dialog.error("requestApproval_msg").return(true)
 			} else {
 				return Dialog.error("waitingForApproval_msg").return(false)
 			}
-		} else if (status === "3") {
+		} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
@@ -55,9 +63,18 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 				const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
 				return Dialog.error(errorMessage).return(false)
 			}
-		} else if (status === "4") {
+		} else if (status === ApprovalStatus.SPAM_SENDER) {
 			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
 			return false
+		} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
+			let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
+			return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
+			             .then(confirmed => {
+				             if (confirmed) {
+					             showUpgradeWizard()
+				             }
+				             return false
+			             })
 		} else {
 			return true
 		}
