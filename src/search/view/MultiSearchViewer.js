@@ -33,6 +33,8 @@ import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMailsInZip} from "../../mail/export/Exporter"
 import {worker} from "../../api/main/WorkerClient"
 import {makeMailBundle} from "../../mail/export/Bundler"
+import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -202,11 +204,9 @@ export class MultiSearchViewer {
 					label: "export_action",
 					click: () => {
 						import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-							return Promise
-								.all(this.getSelectedMails().map(mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
+							return promiseMap(this.getSelectedMails(), mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
 								.then(bundles => exportMailsInZip(bundles))
 						})
-
 					},
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
