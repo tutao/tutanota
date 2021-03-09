@@ -276,17 +276,11 @@ public final class Native {
 					return files.putToDownloadFolder(path);
 				case "getDeviceLog":
 					return Utils.resolvedDeferred(LogReader.getLogFile(activity).toString());
-//				case "unscheduleAlarms":
-//					Log.d(TAG, "unschedule alarms");
-				// TODO: sse alarm storage may not work because SharedPreferences are not synced between processes
-//					new AlarmNotificationsManager(new AndroidKeyStoreFacade(activity), sseStorage, new Crypto(activity), new SystemAlarmFacade(activity))
-//							.unscheduleAlarms(args.getString(0));
-//					return Utils.resolvedDeferred(null);
 				case "changeLanguage":
 					promise.resolve(null);
 					break;
 				case "scheduleAlarms":
-					scheduleAlarms(args);
+					scheduleAlarms(args.getJSONArray(0));
 					break;
 				default:
 					throw new Exception("unsupported method: " + method);
@@ -377,11 +371,10 @@ public final class Native {
 		return Utils.resolvedDeferred(null);
 	}
 
-	private void scheduleAlarms(JSONArray args) throws JSONException {
+	private void scheduleAlarms(JSONArray jsonAlarmsArray) throws JSONException {
 		List<AlarmNotification> alarms = new ArrayList<>();
-		JSONArray jsonArray = args.getJSONArray(0);
-		for (int i = 0; i < jsonArray.length(); i++) {
-			JSONObject json = jsonArray.getJSONObject(i);
+		for (int i = 0; i < jsonAlarmsArray.length(); i++) {
+			JSONObject json = jsonAlarmsArray.getJSONObject(i);
 			AlarmNotification alarmNotification = AlarmNotification.fromJson(json, Collections.emptyList());
 			alarms.add(alarmNotification);
 		}

@@ -6,13 +6,11 @@ import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {downcast, neverNull, noOp} from "../../common/utils/Utils"
-import {
-	HttpMethod
-} from "../../common/EntityFunctions"
+import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptAndMapToLiteral, encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
-import {AlarmServicePostTypeRef, createAlarmServicePost, _TypeModel as AlarmServicePostTypeModel} from "../../entities/sys/AlarmServicePost"
+import {_TypeModel as AlarmServicePostTypeModel, createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
 import {aes128RandomKey} from "../crypto/Aes"
 import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
@@ -44,7 +42,6 @@ import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
-import {nativeApp} from "../../../native/common/NativeWrapper"
 import {Request} from "../../common/WorkerProtocol"
 
 assertWorkerOrNode()
@@ -222,19 +219,26 @@ export class CalendarFacade {
 		return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {groupRootId}))
 	}
 
-	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
+	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
-		const eventsWithAlarmInfo = await this.loadAlarmEvents()
-		const alarmNotifications = eventsWithAlarmInfo.map(({event, userAlarmInfo}) =>
-			createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))
-		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
-		// to store alarms securely.
-		const notificationKey = aes128RandomKey()
-		await this._encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
-		const requestEntity = createAlarmServicePost({alarmNotifications})
-		const encEntity: {[string]: mixed} = await encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
-
-		await nativeApp.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
+		return this.loadAlarmEvents().then((eventsWithAlarmInfo) => {
+			const alarmNotifications = eventsWithAlarmInfo.map(({event, userAlarmInfo}) =>
+				createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))
+			// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
+			// to store alarms securely.
+			const notificationKey = aes128RandomKey()
+			return this._encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier]).then(() => {
+				const requestEntity = createAlarmServicePost({alarmNotifications})
+				return Promise
+					.all([
+						encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey),
+						import("../../../native/common/NativeWrapper")
+					])
+					.then(([encEntity, {nativeApp}]) => {
+						return nativeApp.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
+					})
+			})
+		})
 	}
 
 	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
