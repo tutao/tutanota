@@ -349,20 +349,6 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
 		},
-		'.scroll-webkit-scrollbar': {
-			'overflow-y': client.overflowAuto,
-			'-webkit-overflow-scrolling': 'touch',
-			'-ms-overflow-style': '-ms-autohiding-scrollbar',
-
-		},
-		'.scroll-webkit-scrollbar::-webkit-scrollbar': {
-			background: "transparent",
-			width: "8px"
-		},
-		'.scroll-webkit-scrollbar::-webkit-scrollbar-thumb': {
-			background: theme.content_button,
-			"border-radius": "4px",
-		},
 		'.scroll-no-overlay': {
 			'overflow-y': 'auto',
 			'-webkit-overflow-scrolling': 'touch',
@@ -388,6 +374,16 @@ styles.registerStyle('main', () => {
 				"border-radius": "4px",
 			}
 			: {},
+		// scrollbar will be disabled for mobile devices, even with .scroll applied,
+		// apply this class if you need it to show
+		'.visible-scrollbar::-webkit-scrollbar': {
+			background: "transparent",
+			width: "8px"
+		},
+		'.visible-scrollbar::-webkit-scrollbar-thumb': {
+			background: theme.content_button,
+			"border-radius": "4px",
+		},
 		'.center': {'text-align': 'center'}, //TODO: migrate to .text-center
 		'.text-center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
