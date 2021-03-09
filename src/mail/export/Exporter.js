@@ -78,8 +78,7 @@ export function mailToEml(mail: MailBundle): string {
 		const filteredHeaders = mail.headers
 		                            .split("\n")
 		                            .filter(line => !line.match(/^\s*(Content-Type:|boundary=)/))
-		                            .filter(line => line !== "")
-		lines.push(...filteredHeaders)
+		lines.push(filteredHeaders.join("\n"))
 	} else {
 		lines.push(
 			"From: " + mail.sender.address,

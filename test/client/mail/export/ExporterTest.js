@@ -29,21 +29,21 @@ o.spec("Exporter", function () {
 
 			const actual = mailToEml(mostMinimalBundle)
 			const expected =
-				`From: complaints@johnbotr.is
-MIME-Version: 1.0
-Subject: 
-Date: ${_formatSmtpDateTime(new Date(now))}
-Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"
-
---------------79Bu5A16qPEYcVIZL@tutanota
-Content-Type: text/html; charset=UTF-8
-Content-transfer-encoding: base64
-
-
+				`From: complaints@johnbotr.is\r\n\
+MIME-Version: 1.0\r\n\
+Subject: \r\n\
+Date: ${_formatSmtpDateTime(new Date(now))}\r\n\
+Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: text/html; charset=UTF-8\r\n\
+Content-transfer-encoding: base64\r\n\
+\r\n\
+\r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota--`
 
 			const actualLines = actual.split("\r\n")
-			const expectedLines = expected.split("\n")
+			const expectedLines = expected.split("\r\n")
 			o(actualLines.length).equals(expectedLines.length)
 			for (let i = 0; i < Math.min(expectedLines.length, actualLines.length); ++i) {
 				o(actualLines[i]).equals(expectedLines[i])(`Line: ${i}`)
@@ -82,55 +82,55 @@ Content-transfer-encoding: base64
 
 			const actual = mailToEml(bundle)
 			const expected =
-				`From: lorem@ipsum.net
-MIME-Version: 1.0
-To: guy1 <guy1@guys.net>,guy2 <guy2@guys.net>,<guy2.5@guys.net>
-CC: <guy3@guys.net>,Dennis Dennisman <guy4@guys.net>
-BCC: <guy5@guys.net>,Sixth guy <guy6@guys.net>
-Subject: =?UTF-8?B?SGV5LCBJIGtub3cgdGhhdCBndXksIGhl4oCZcyBhIG5paGlsaXN0Lg==?=
-Date: ${_formatSmtpDateTime(new Date(now))}
-Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"
-
---------------79Bu5A16qPEYcVIZL@tutanota
-Content-Type: text/html; charset=UTF-8
-Content-transfer-encoding: base64
-
-SeKAmW0gdGhlIER1ZGUsIHNvIHRoYXTigJlzIHdoYXQgeW91IGNhbGwgbWUuIFRoYXQgb3IsIHVoLC
-BIaXMgRHVkZW5lc3MsIG9yIHVoLCBEdWRlciwgb3IgRWwgRHVkZXJpbm8sIGlmIHlvdeKAmXJlIG5v
-dCBpbnRvIHRoZSB3aG9sZSBicmV2aXR5IHRoaW5nLiA8aW1nIHNyYz0iY2lkOmNpZDEyMyIgLz4=
-
---------------79Bu5A16qPEYcVIZL@tutanota
-Content-Type: text/plain;
- name==?UTF-8?B?ZmlsZTEudHh0?=
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename==?UTF-8?B?ZmlsZTEudHh0?=
-
-dGhpcyBpcyBhIHRleHQgZmlsZQ==
-
---------------79Bu5A16qPEYcVIZL@tutanota
-Content-Type: image/png;
- name==?UTF-8?B?aWNvbjEweDEwLnBuZw==?=
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename==?UTF-8?B?aWNvbjEweDEwLnBuZw==?=
-Content-Id: <123cid>
-
-iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAA
-B6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAgVBMVEWgHiCgHh+gHiEAAACfHyGg
-HiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHi
-CgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiD////HdIxa
-AAAAKXRSTlMAAAAAAImrqvvx5OX+oGaj1/r1w1MjV7P5lwEPjO+dIRb83pU8BnMqAyX2q3sAAAABYk
-tHRCpTvtSeAAAACXBIWXMAAAcDAAAHAwGHNB/CAAAAB3RJTUUH5AkBDTcdD3SpngAAAE5JREFUCNc9
-ykUSgDAABMGFCIHg7q7//yCVhGJOfRgw7ug4g3i+BJ4/RdeT0jcMwihODNMsL8qqNm/TousVh3GChR
-nLuu0HbEIpzusG0b05dgnLISKbuAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMC0wOS0wMVQxMTo1NToy
-OSswMjowMNbkv24AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjAtMDktMDFUMTE6NTU6MjkrMDI6MDCnuQ
-fSAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==
-
+				`From: lorem@ipsum.net\r\n\
+MIME-Version: 1.0\r\n\
+To: guy1 <guy1@guys.net>,guy2 <guy2@guys.net>,<guy2.5@guys.net>\r\n\
+CC: <guy3@guys.net>,Dennis Dennisman <guy4@guys.net>\r\n\
+BCC: <guy5@guys.net>,Sixth guy <guy6@guys.net>\r\n\
+Subject: =?UTF-8?B?SGV5LCBJIGtub3cgdGhhdCBndXksIGhl4oCZcyBhIG5paGlsaXN0Lg==?=\r\n\
+Date: ${_formatSmtpDateTime(new Date(now))}\r\n\
+Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: text/html; charset=UTF-8\r\n\
+Content-transfer-encoding: base64\r\n\
+\r\n\
+SeKAmW0gdGhlIER1ZGUsIHNvIHRoYXTigJlzIHdoYXQgeW91IGNhbGwgbWUuIFRoYXQgb3IsIHVoLC\r\n\
+BIaXMgRHVkZW5lc3MsIG9yIHVoLCBEdWRlciwgb3IgRWwgRHVkZXJpbm8sIGlmIHlvdeKAmXJlIG5v\r\n\
+dCBpbnRvIHRoZSB3aG9sZSBicmV2aXR5IHRoaW5nLiA8aW1nIHNyYz0iY2lkOmNpZDEyMyIgLz4=\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: text/plain;\r\n\
+ name==?UTF-8?B?ZmlsZTEudHh0?=\r\n\
+Content-Transfer-Encoding: base64\r\n\
+Content-Disposition: attachment;\r\n\
+ filename==?UTF-8?B?ZmlsZTEudHh0?=\r\n\
+\r\n\
+dGhpcyBpcyBhIHRleHQgZmlsZQ==\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: image/png;\r\n\
+ name==?UTF-8?B?aWNvbjEweDEwLnBuZw==?=\r\n\
+Content-Transfer-Encoding: base64\r\n\
+Content-Disposition: attachment;\r\n\
+ filename==?UTF-8?B?aWNvbjEweDEwLnBuZw==?=\r\n\
+Content-Id: <123cid>\r\n\
+\r\n\
+iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAA\r\n\
+B6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAgVBMVEWgHiCgHh+gHiEAAACfHyGg\r\n\
+HiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHi\r\n\
+CgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiCgHiD////HdIxa\r\n\
+AAAAKXRSTlMAAAAAAImrqvvx5OX+oGaj1/r1w1MjV7P5lwEPjO+dIRb83pU8BnMqAyX2q3sAAAABYk\r\n\
+tHRCpTvtSeAAAACXBIWXMAAAcDAAAHAwGHNB/CAAAAB3RJTUUH5AkBDTcdD3SpngAAAE5JREFUCNc9\r\n\
+ykUSgDAABMGFCIHg7q7//yCVhGJOfRgw7ug4g3i+BJ4/RdeT0jcMwihODNMsL8qqNm/TousVh3GChR\r\n\
+nLuu0HbEIpzusG0b05dgnLISKbuAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMC0wOS0wMVQxMTo1NToy\r\n\
+OSswMjowMNbkv24AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjAtMDktMDFUMTE6NTU6MjkrMDI6MDCnuQ\r\n\
+fSAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==\r\n\
+\r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota--`
 
 			const actualLines = actual.split("\r\n")
-			const expectedLines = expected.split("\n")
+			const expectedLines = expected.split("\r\n")
 			o(actualLines.length).equals(expectedLines.length)("check length")
 			for (let i = 0; i < Math.min(expectedLines.length, actualLines.length); ++i) {
 				o(actualLines[i]).equals(expectedLines[i])(`Line: ${i}`)
@@ -139,8 +139,7 @@ fSAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==
 
 		o("email with headers", function () {
 
-			const headers = `
-Received: from x.y.test
+			const headers = `Received: from x.y.test
    by example.net
    via TCP
    with ESMTP
@@ -184,24 +183,22 @@ From: John Doe <jdoe@node.example>
 To: Mary Smith <mary@example.net>
 Subject: Saying Hello
 Date: Fri, 21 Nov 1997 09:55:06 -0600
-Message-ID: <1234@local.node.example>
-Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"
-
---------------79Bu5A16qPEYcVIZL@tutanota
-Content-Type: text/html; charset=UTF-8
-Content-transfer-encoding: base64
-
-
+Message-ID: <1234@local.node.example>\r\n\
+Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: text/html; charset=UTF-8\r\n\
+Content-transfer-encoding: base64\r\n\
+\r\n\
+\r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota--`
 
 			const actualLines = actual.split("\r\n")
-			const expectedLines = expected.split("\n")
+			const expectedLines = expected.split("\r\n")
 			o(actualLines.length).equals(expectedLines.length)
 			for (let i = 0; i < Math.min(expectedLines.length, actualLines.length); ++i) {
 				o(actualLines[i]).equals(expectedLines[i])(`Line: ${i}`)
 			}
-
-
 		})
 	})
 })
