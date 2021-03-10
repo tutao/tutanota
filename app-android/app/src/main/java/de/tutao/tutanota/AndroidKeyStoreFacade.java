@@ -63,14 +63,7 @@ public class AndroidKeyStoreFacade {
 			keyStore.load(null);
 
 			if (!keyStore.containsAlias(SYMMETRIC_KEY_ALIAS) && !keyStore.containsAlias(ASYMMETRIC_KEY_ALIAS)) {
-				// We try to use symmetric encryption if possible because it's much more efficient.
-				// Creating secure RSA keys (like 4096) might take up to a minute (!) and render the whole
-				// device unresponsive for that time.
-				if (supportsSymmetricEncryption()) {
-					generateSymmetricKey();
-				} else {
-					generateAsymmetricKeyPair();
-				}
+				generateSymmetricKey();
 			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | IOException | CertificateException e) {
 			Log.w(TAG, "Keystore could not be initialized", e);
@@ -147,10 +140,6 @@ public class AndroidKeyStoreFacade {
 				.setRandomizedEncryptionRequired(false)
 				.build());
 		keyGenerator.generateKey();
-	}
-
-	private boolean supportsSymmetricEncryption() {
-		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
 	}
 
 	private Key getSymmetricKey() throws KeyStoreException {

@@ -5,7 +5,7 @@ android {
 	buildToolsVersion '29.0.2'
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
-		minSdkVersion 21
+		minSdkVersion 23
 		targetSdkVersion 29
 		versionCode 383020
 		versionName "3.83.2"
