@@ -76,40 +76,40 @@ export function createPasswordField(model: SendMailModel, recipient: RecipientIn
 
 export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<ButtonAttrs> {
 	return model.getAttachments()
-		        .map(file => {
-			        const lazyButtonAttrs = [
-				        {
-					        label: "download_action",
-					        type: ButtonType.Secondary,
-					        click: () => _downloadAttachment(file),
-				        },
-				        {
-					        label: "remove_action",
-					        type: ButtonType.Secondary,
-					        click: () => {
-						        model.removeAttachment(file)
-						        // If an attachment has a cid it means it could be in the editor's inline images too
-						        if (file.cid) {
-							        const imageElement = inlineImageElements
-								        .find((e) => e.getAttribute("cid") === file.cid)
-							        if (imageElement) {
-								        imageElement.remove()
-								        remove(inlineImageElements, imageElement)
-							        }
-						        }
-						        m.redraw()
-					        }
-				        }
-			        ]
+	            .map(file => {
+		            const lazyButtonAttrs = [
+			            {
+				            label: "download_action",
+				            type: ButtonType.Secondary,
+				            click: () => _downloadAttachment(file),
+			            },
+			            {
+				            label: "remove_action",
+				            type: ButtonType.Secondary,
+				            click: () => {
+					            model.removeAttachment(file)
+					            // If an attachment has a cid it means it could be in the editor's inline images too
+					            if (file.cid) {
+						            const imageElement = inlineImageElements
+							            .find((e) => e.getAttribute("cid") === file.cid)
+						            if (imageElement) {
+							            imageElement.remove()
+							            remove(inlineImageElements, imageElement)
+						            }
+					            }
+					            m.redraw()
+				            }
+			            }
+		            ]
 
-			        return attachDropdown({
-				        label: () => file.name,
-				        icon: () => Icons.Attachment,
-				        type: ButtonType.Bubble,
-				        staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-				        colors: ButtonColors.Elevated,
-			        }, () => lazyButtonAttrs)
-		        })
+		            return attachDropdown({
+			            label: () => file.name,
+			            icon: () => Icons.Attachment,
+			            type: ButtonType.Bubble,
+			            staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+			            colors: ButtonColors.Elevated,
+		            }, () => lazyButtonAttrs)
+	            })
 }
 
 
@@ -206,6 +206,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		})
 
 		this.bubbleDeleted = this.onBubbleDeleted
+		this._contactModel = contactModel
 	}
 
 	createBubble(name: ?string, address: string, contact: ?Contact): Bubble<RecipientInfo> {
