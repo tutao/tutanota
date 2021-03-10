@@ -290,18 +290,12 @@ public class MainActivity extends ComponentActivity {
 		// should be white. So we cannot use white status bar color.
 		// So for Android M and above we alternate between white and dark status bar colors and
 		// we change lightStatusBar flag accordingly.
-		// For versions below M we alternate between red and black status bar colors. Green doesn't
-		// work well and it's not good for the dark theme anyway.
 		int statusBarColorInt;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			int uiFlags = isDark
-					? decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-					: decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-			decorView.setSystemUiVisibility(uiFlags);
-			statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.white, null);
-		} else {
-			statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.red);
-		}
+		int uiFlags = isDark
+				? decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+				: decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+		decorView.setSystemUiVisibility(uiFlags);
+		statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.white, null);
 		getWindow().setStatusBarColor(statusBarColorInt);
 		PreferenceManager.getDefaultSharedPreferences(this)
 				.edit()
@@ -312,8 +306,7 @@ public class MainActivity extends ComponentActivity {
 	public void askBatteryOptinmizationsIfNeeded() {
 		PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-				&& !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+		if (!preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
 				&& !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
 			nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
 				saveAskedBatteryOptimizations(preferences);
