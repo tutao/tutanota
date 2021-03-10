@@ -7,11 +7,14 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
 import {remove} from "../../api/common/utils/ArrayUtils"
+import {insideRect} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
+type ModalComponentWrapper = {key: number, component: ModalComponent, needsBg: boolean}
+
 class Modal {
-	components: {key: number, component: ModalComponent, needsBg: boolean}[];
+	components: Array<ModalComponentWrapper>;
 	_uniqueComponent: ?ModalComponent;
 	_domModal: HTMLElement;
 	view: Function;
@@ -31,56 +34,60 @@ class Modal {
 
 		this.view = (): VirtualElement => {
 			return m("#modal.fill-absolute", {
-				oncreate: (vnode) => this._domModal = vnode.dom,
-				onclick: (e: MouseEvent) => this.components.forEach(c => c.component.backgroundClick(e)),
+				oncreate: (vnode) => {
+					this._domModal = vnode.dom
+
+				},
 				style: {
 					'z-index': 99,
 					display: this.visible ? "" : 'none' // display: null not working for IE11
 				}
-			}, [
-				this.components.map((wrapper, i, array) => {
-					return m(".layer.fill-absolute", {
-							key: wrapper.key,
-							oncreate: vnode => {
-								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
-								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
-								// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
-								this.visible = true
-								m.redraw()
-								if (wrapper.needsBg) this.addAnimation(vnode.dom, true)
-							},
-							style: {
-								zIndex: 100 + i,
-							},
-							onbeforeremove: vnode => {
-								if (wrapper.needsBg) {
-									this._closingComponents.push(wrapper.component)
-									return Promise.all([
-										this.addAnimation(vnode.dom, false).then(() => {
-											remove(this._closingComponents, wrapper.component)
-											if (this.components.length === 0 && this._closingComponents.length === 0) {
-												this.visible = false
-											}
-										}),
-										wrapper.component.hideAnimation()
-									]).then(() => {
-										m.redraw()
-									})
-								} else {
-									if (this.components.length === 0 && this._closingComponents.length === 0) {
-										this.visible = false
-									}
-									return wrapper.component.hideAnimation()
-									              .then(() => m.redraw())
+			}, this.components.map((wrapper, i, array) => {
+				return m(".layer.fill-absolute", {
+						key: wrapper.key,
+						oncreate: vnode => {
+							// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
+							// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
+							// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
+							this.visible = true
+							m.redraw()
+							if (wrapper.needsBg) this.addAnimation(vnode.dom, true)
+							vnode.dom.onclick = e => {
+								const childRect = vnode.children[0].dom.getBoundingClientRect()
+								if (!insideRect(e, childRect)) {
+									wrapper.component.backgroundClick(e)
 								}
 							}
 						},
-						[
-							m(wrapper.component)
-						]
-					)
-				})
-			])
+						style: {
+							zIndex: 100 + i,
+						},
+						onbeforeremove: vnode => {
+							if (wrapper.needsBg) {
+								this._closingComponents.push(wrapper.component)
+								return Promise.all([
+									this.addAnimation(vnode.dom, false).then(() => {
+										remove(this._closingComponents, wrapper.component)
+										if (this.components.length === 0 && this._closingComponents.length === 0) {
+											this.visible = false
+										}
+									}),
+									wrapper.component.hideAnimation()
+								]).then(() => {
+									m.redraw()
+								})
+							} else {
+								if (this.components.length === 0 && this._closingComponents.length === 0) {
+									this.visible = false
+								}
+								return wrapper.component.hideAnimation()
+								              .then(() => m.redraw())
+							}
+						}
+					},
+					m(wrapper.component)
+				)
+			}))
 		}
 	}
 

@@ -407,6 +407,11 @@ export function filterInt(value: string): number {
 	}
 }
 
+export function insideRect(point: {x: number, y: number}, rect: {x: number, y: number, width: number, height: number}): boolean {
+	return point.x >= rect.x && point.x < rect.x + rect.width
+		&& point.y >= rect.y && point.y < rect.y + rect.height
+}
+
 export function objToError(o: Object): Error {
 	let errorType = ErrorNameToType[o.name]
 	let e = (errorType != null ? new errorType(o.message) : new Error(o.message): any)
