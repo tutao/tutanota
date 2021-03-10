@@ -18,6 +18,10 @@ export type Attrs = {
 export class EventPreviewView implements MComponent<Attrs> {
 
 	view({attrs: {event, limitDescriptionHeight, sanitizedDescription}}: Vnode<Attrs>): Children {
+		const locationHref = event.location.startsWith("http://") || event.location.startsWith("https://")
+			? event.location
+			: `https://www.openstreetmap.org/search?query=${encodeURIComponent(event.location)}`
+
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
 				m(".flex.pb-s.items-center", [renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable", event.summary)]),
@@ -28,7 +32,8 @@ export class EventPreviewView implements MComponent<Attrs> {
 				),
 				event.location
 					? m(".flex.pb-s.items-center", [
-						renderSectionIndicator(Icons.Pin), m(".text-ellipsis.selectable", event.location)
+						renderSectionIndicator(Icons.Pin),
+						m("a", {href: locationHref}, m(".text-ellipsis.selectable.underline.click", event.location))
 					])
 					: null,
 				event.attendees.length
