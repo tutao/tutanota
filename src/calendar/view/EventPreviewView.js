@@ -20,13 +20,17 @@ export class EventPreviewView implements MComponent<Attrs> {
 	view({attrs: {event, limitDescriptionHeight, sanitizedDescription}}: Vnode<Attrs>): Children {
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
-				m(".flex.pb-s.items-center", [renderSectionIndicator(BootIcons.Calendar), m(".h3", event.summary)]),
+				m(".flex.pb-s.items-center", [renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable", event.summary)]),
 				m(".flex.pb-s.items-center", [
 						renderSectionIndicator(Icons.Time),
-						m(".align-self-center", formatEventDuration(event, getTimeZone(), false))
+						m(".align-self-center.selectable", formatEventDuration(event, getTimeZone(), false))
 					]
 				),
-				event.location ? m(".flex.pb-s.items-center", [renderSectionIndicator(Icons.Pin), m(".text-ellipsis", event.location)]) : null,
+				event.location
+					? m(".flex.pb-s.items-center", [
+						renderSectionIndicator(Icons.Pin), m(".text-ellipsis.selectable", event.location)
+					])
+					: null,
 				event.attendees.length
 					? m(".flex.pb-s", [
 						renderSectionIndicator(BootIcons.Contacts),
@@ -36,7 +40,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 								style: {fill: theme.content_fg},
 								class: "mr-s"
 							}),
-							m(".span.line-break-anywhere", a.address.address),
+							m(".span.line-break-anywhere.selectable", a.address.address),
 						]))),
 					])
 					: null,
@@ -44,8 +48,8 @@ export class EventPreviewView implements MComponent<Attrs> {
 					? m(".flex.pb-s.items-start", [
 						renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
 						limitDescriptionHeight
-							? m(".scroll.full-width", {style: {maxHeight: "100px"}}, m.trust(sanitizedDescription))
-							: m("", m.trust(sanitizedDescription))
+							? m(".scroll.full-width.selectable", {style: {maxHeight: "100px"}}, m.trust(sanitizedDescription))
+							: m(".selectable", m.trust(sanitizedDescription))
 					])
 					: null,
 			]),
