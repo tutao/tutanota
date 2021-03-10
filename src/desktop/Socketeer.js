@@ -51,7 +51,7 @@ export class Socketeer {
 		if (this._server) {
 			return
 		}
-		this._server = this._net.createServer(c => {
+		const server = this._server = this._net.createServer(c => {
 			log.debug("got connection")
 			this._connection = c
 			c.on('data', () => {
@@ -60,15 +60,22 @@ export class Socketeer {
 			}).on('end', () => {
 				this._connection = null
 			})
+		}).on("listening", () => {
+			log.debug("Socketeer: server is listening")
 		}).on('error', e => {
-			if (e.code === 'EADDRINUSE' && this._server) {
-				log.debug('Socket in use, retrying...')
+			log.warn("Socketeer: server error", e)
+			if (e.code === 'EADDRINUSE') {
 				this._delayHandler(() => {
-					neverNull(this._server).close()
-					neverNull(this._server).listen(SOCKET_PATH)
+					try {
+						server.close()
+						server.listen(SOCKET_PATH)
+					} catch (e) {
+						log.error("Socketeer: restart error: ", e)
+					}
 				}, 1000)
 			}
 		}).on('close', () => {
+			log.debug("Socketeer: server is closed")
 			this._server = null
 		})
 
@@ -86,25 +93,25 @@ export class Socketeer {
 			return
 		}
 		this._connection = this._net
-			.createConnection(SOCKET_PATH)
-			.on('connect', () => {
-				log.debug('socket connected')
-			})
-			.on('close', hadError => {
-				if (hadError) {
-					this._tryReconnect(ondata)
-				}
-			})
-			.on('end', () => {
-				log.debug("socket disconnected")
-				this._tryReconnect(ondata)
-			})
-			.on('error', e => {
-				if (e.code !== 'ENOENT') {
-					console.error("Unexpected Socket Error:", e)
-				}
-			})
-			.on('data', ondata)
+		                       .createConnection(SOCKET_PATH)
+		                       .on('connect', () => {
+			                       log.debug('socket connected')
+		                       })
+		                       .on('close', hadError => {
+			                       if (hadError) {
+				                       this._tryReconnect(ondata)
+			                       }
+		                       })
+		                       .on('end', () => {
+			                       log.debug("socket disconnected")
+			                       this._tryReconnect(ondata)
+		                       })
+		                       .on('error', e => {
+			                       if (e.code !== 'ENOENT') {
+				                       console.error("Unexpected Socket Error:", e)
+			                       }
+		                       })
+		                       .on('data', ondata)
 	}
 
 	_tryReconnect(ondata: (string)=>void): void {
