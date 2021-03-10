@@ -5,8 +5,7 @@ import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfig} from "../config/DesktopConfig"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
-import {base64ToUint8Array} from "../../api/common/utils/Encoding"
+import {base64ToKey} from "../../api/worker/crypto/CryptoUtils"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
@@ -38,19 +37,19 @@ export class DesktopAlarmStorage {
 	 * ensures there is a device key in the local secure storage
 	 */
 	init(): Promise<void> {
-		return this._secretStorage.findPassword(SERVICE_NAME)
+		return this._secretStorage.getPassword(SERVICE_NAME, ACCOUNT_NAME)
 		           .then(pw => pw
 			           ? pw
 			           : this._generateAndStoreDeviceKey()
 		           )
-		           .then(pw => this._initialized.resolve(uint8ArrayToBitArray(base64ToUint8Array(pw))))
+		           .then(pw => this._initialized.resolve(base64ToKey(pw)))
 	}
 
 	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
 		// save key entry in keychain
 		return this._secretStorage.setPassword(SERVICE_NAME, ACCOUNT_NAME, this._crypto.generateDeviceKey())
-		           .then(() => this._secretStorage.findPassword(SERVICE_NAME))
+		           .then(() => this._secretStorage.getPassword(SERVICE_NAME, ACCOUNT_NAME))
 		           .then(pw => {
 			           if (!pw) {
 				           throw new CryptoError("alarmstorage key creation failed!")
@@ -66,13 +65,13 @@ export class DesktopAlarmStorage {
 	 * @returns {*}
 	 */
 	storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
-		const keys = this._conf.getVar('pushEncSessionKeys') || {}
+		const keys = this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
 		if (!keys[pushIdentifierId]) {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
 			return this._initialized.promise
 			           .then(pw => {
 				           keys[pushIdentifierId] = this._crypto.aes256EncryptKeyToB64(pw, pushIdentifierSessionKeyB64)
-				           return this._conf.setVar('pushEncSessionKeys', keys)
+				           return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, keys)
 			           })
 		}
 		return Promise.resolve()
@@ -88,7 +87,7 @@ export class DesktopAlarmStorage {
 	 */
 	resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
 		return this._initialized.promise.then(pw => {
-			const keys = this._conf.getVar('pushEncSessionKeys') || {}
+			const keys = this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
 			let ret = null
 			// find a working sessionkey and delete all the others
 			for (let i = sessionKeys.length - 1; i >= 0; i--) {
@@ -127,10 +126,10 @@ export class DesktopAlarmStorage {
 	}
 
 	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}): Promise<void> {
-		return this._conf.setVar('scheduledAlarms', Object.values(scheduledNotifications).map(val => downcast(val).an))
+		return this._conf.setVar(DesktopConfigKey.scheduledAlarms, Object.values(scheduledNotifications).map(val => downcast(val).an))
 	}
 
 	getScheduledAlarms(): Array<AlarmNotification> {
-		return this._conf.getVar('scheduledAlarms') || []
+		return this._conf.getVar(DesktopConfigKey.scheduledAlarms) || []
 	}
 }

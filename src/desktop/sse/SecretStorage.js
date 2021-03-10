@@ -1,16 +1,16 @@
 //@flow
 
-import {findPassword, setPassword} from "keytar"
+import {getPassword, setPassword} from "keytar"
 
 export interface SecretStorage {
-	findPassword(service: string): Promise<?string>;
+	getPassword(service: string, account: string): Promise<?string>;
 
 	setPassword(service: string, account: string, password: string): Promise<void>;
 }
 
 export class KeytarSecretStorage implements SecretStorage {
-	findPassword(service: string): Promise<?string> {
-		return findPassword(service)
+	getPassword(service: string, account: string): Promise<?string> {
+		return getPassword(service, account)
 	}
 
 	setPassword(service: string, account: string, password: string): Promise<void> {

@@ -1,5 +1,5 @@
 // @flow
-import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
+import {base64ToKey, bitArrayToUint8Array} from "../api/worker/crypto/CryptoUtils"
 import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {CryptoFunctions} from "./CryptoFns"
 
@@ -67,6 +67,6 @@ export class DesktopCryptoFacade {
 	}
 
 	generateDeviceKey(): string {
-		return uint8ArrayToBase64(this.cryptoFns.randomBytes(32))
+		return uint8ArrayToBase64(bitArrayToUint8Array(this.cryptoFns.aes256RandomKey()))
 	}
 }

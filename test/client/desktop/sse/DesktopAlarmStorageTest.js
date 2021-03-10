@@ -59,8 +59,8 @@ o.spec("DesktopAlarmStorageTest", () => {
 		const confMock: DesktopConfig = downcast(n.mock("__conf", conf).set())
 
 		const secretStorageMock = {
-			findPassword: () => Promise.resolve("password"),
-			setPassword: () => o.spy(Promise.resolve())
+			getPassword: o.spy(() => Promise.resolve("password")),
+			setPassword: o.spy(() => Promise.resolve())
 		}
 
 		return {
@@ -96,9 +96,9 @@ o.spec("DesktopAlarmStorageTest", () => {
 	o("resolvePushIdentifierSessionKey with cached sessionKey", async function () {
 		const {cryptoMock, secretStorageMock} = standardMocks()
 		const confMock = downcast<DesktopConfig>(n.mock("__conf", conf).with({
-			getVar: key => {}
-		}).set()
-)
+				getVar: key => {}
+			}).set()
+		)
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, secretStorageMock)
 		await desktopStorage.init()
 		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
