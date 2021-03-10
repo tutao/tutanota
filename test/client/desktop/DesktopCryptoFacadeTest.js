@@ -19,9 +19,6 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const aes256EncryptedKeyb64 = uint8ArrayToBase64(aes256EncryptedKey)
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
 
-	const sessionKey = [1, 2, 3]
-	const encSessionKey = [3, 2, 1]
-
 	const cryptoFns: CryptoFunctions = {
 		aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 			if (key === aes128Key) {
@@ -72,6 +69,9 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		},
 		decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
 			return Promise.resolve(instance)
+		},
+		aes256RandomKey() {
+			return uint8ArrayToBitArray(Buffer.alloc(32, 1));
 		}
 	}
 	const fs = {

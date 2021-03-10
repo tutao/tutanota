@@ -3,7 +3,7 @@
 /**
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
-import {aes128Decrypt, aes256Decrypt, aes256Encrypt} from "../api/worker/crypto/Aes"
+import {aes128Decrypt, aes256Decrypt, aes256Encrypt, aes256RandomKey} from "../api/worker/crypto/Aes"
 import {decrypt256Key} from "../api/worker/crypto/KeyCryptoUtils"
 import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
 import forge from "node-forge"
@@ -24,6 +24,8 @@ export interface CryptoFunctions {
 	publicKeyFromPem(pem: string): {verify: (string, string) => boolean};
 
 	randomBytes(bytes: number): Uint8Array;
+
+	aes256RandomKey(): Aes256Key;
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T>;
 }
@@ -55,6 +57,10 @@ export const cryptoFns: CryptoFunctions = {
 
 	randomBytes(bytes: number): Uint8Array {
 		return crypto.randomBytes(bytes)
+	},
+
+	aes256RandomKey(): Aes256Key {
+		return aes256RandomKey()
 	},
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
