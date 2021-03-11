@@ -465,6 +465,5 @@ export function getExistingRuleForType(props: TutanotaProperties, cleanValue: st
 }
 
 export function canDoDragAndDropExport(): boolean {
-	return isDesktop() && (globalLogins.getUserController().user.accountType === AccountType.STARTER
-		|| globalLogins.isEnabled(FeatureType.ExternalEmailProvider))
+	return isDesktop()
 }
