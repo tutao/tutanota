@@ -95,6 +95,7 @@ export function mailToEml(mail: MailBundle): string {
 		const filteredHeaders = mail.headers
 		                            .split("\n")
 		                            .filter(line => !line.match(/^\s*(Content-Type:|boundary=)/))
+		// We join the headers back together with \n, but the eml itself has \r\n line endings, so the headers are essentially one "line" of the eml
 		lines.push(filteredHeaders.join("\n"))
 	} else {
 		lines.push(

@@ -8,6 +8,28 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {formatEventDuration, getTimeZone} from "../CalendarUtils"
 import {attendeeStatusByCode} from "../../api/common/TutanotaConstants"
+import {memoized} from "../../api/common/utils/Utils"
+
+/**
+ * if text is a valid absoule url, then returns a URL with text as the href
+ * otherwise passes text as the search parameter for open street map
+ * @param text
+ * @returns {*}
+ */
+function getUrl(text: string): URL {
+	const osmHref = `https://www.openstreetmap.org/search?query=${text}`
+	let url
+	try {
+		// if not a valid _absolute_ url then we get an exception
+		url = new URL(text)
+	} catch {
+		url = new URL(osmHref)
+	}
+	return url
+}
+
+// so we don't parse the URL on every single view call
+const getUrlMemoized = memoized(getUrl)
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -19,15 +41,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 	view({attrs: {event, limitDescriptionHeight, sanitizedDescription}}: Vnode<Attrs>): Children {
 
-		const location = event.location.trim()
-		const osmHref = `https://www.openstreetmap.org/search?query=${location}`
-		let url
-		try {
-			// if not a valid _absolute_ url then we get an exception
-			url = new URL(location)
-		} catch {
-			url = new URL(osmHref)
-		}
+		const url = getUrlMemoized(event.location.trim())
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
