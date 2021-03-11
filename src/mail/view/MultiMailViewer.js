@@ -19,7 +19,7 @@ import {locator} from "../../api/main/MainLocator"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
-import {exportMailsInZip} from "../export/Exporter"
+import {exportMails} from "../export/Exporter"
 import {makeMailBundle} from "../export/Bundler"
 import {worker} from "../../api/main/WorkerClient"
 import {showProgressDialog} from "../../gui/ProgressDialog"
@@ -122,7 +122,7 @@ export class MultiMailViewer {
 						const downloadPromise =
 							promiseMap(mails, mail => import("../../misc/HtmlSanitizer")
 								.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
-								.then(exportMailsInZip)
+								.then(exportMails)
 						showProgressDialog("pleaseWait_msg", downloadPromise)
 					}),
 					icon: () => Icons.Export,

@@ -44,20 +44,26 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
 }
 
 /**
- * export a set of mails into a zip file and offer to download
+ * export mails. a single one will be exported as is, multiple will be put into a zip file
+ * a save dialog will then be shown
  * @returns {Promise<void>} resolved after the fileController
  * was instructed to open the new zip File containing the mail eml
  * @param bundles
  */
-export function exportMailsInZip(bundles: Array<MailBundle>): Promise<void> {
+export function exportMails(bundles: Array<MailBundle>): Promise<void> {
 	return Promise.all([
 		getMailExportMode(), import("../../file/FileController")
 	]).then(([mode, fileControllerModule]) => {
 		const fileController = fileControllerModule.fileController
-		const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode))
-			.then(files => fileController.zipDataFiles(files, zipName)
-			                             .then(zip => fileController.open(zip)))
+			.then(files => {
+				const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
+				const maybeZipPromise = files.length === 1
+					? Promise.resolve(files[0])
+					: fileController.zipDataFiles(files, zipName)
+
+				maybeZipPromise.then(outputFile => fileController.open(outputFile))
+			})
 	})
 }
 

@@ -30,7 +30,7 @@ import {NBSP} from "../../api/common/utils/StringUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {moveMails} from "../../mail/view/MailGuiUtils"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
-import {exportMailsInZip} from "../../mail/export/Exporter"
+import {exportMails} from "../../mail/export/Exporter"
 import {worker} from "../../api/main/WorkerClient"
 import {makeMailBundle} from "../../mail/export/Bundler"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
@@ -205,7 +205,7 @@ export class MultiSearchViewer {
 					click: () => {
 						import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
 							return promiseMap(this.getSelectedMails(), mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
-								.then(bundles => exportMailsInZip(bundles))
+								.then(bundles => exportMails(bundles))
 						})
 					},
 					icon: () => Icons.Export,
