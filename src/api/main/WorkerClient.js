@@ -556,8 +556,8 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("loadAlarmEvents", []))
 	}
 
-	getDomainValidationRecord(): Promise<string> {
-		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
+	getDomainValidationRecord(domainName: string): Promise<string> {
+		return this._queue.postMessage(new Request("getDomainValidationRecord", [domainName]))
 	}
 
 	notifyVisiblityChange(visible: boolean): Promise<void> {
