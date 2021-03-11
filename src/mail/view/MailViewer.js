@@ -114,7 +114,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {locator} from "../../api/main/MainLocator"
 import {makeMailBundle} from "../export/Bundler"
-import {exportMailsInZip} from "../export/Exporter"
+import {exportMails} from "../export/Exporter"
 
 assertMainOrNode()
 
@@ -626,7 +626,7 @@ export class MailViewer {
 							click: () => {
 								const downloadPromise = import("../../misc/HtmlSanitizer")
 									.then(({htmlSanitizer}) => makeMailBundle(this.mail, locator.entityClient, worker, htmlSanitizer))
-									.then(bundle => exportMailsInZip([bundle]))
+									.then(bundle => exportMails([bundle]))
 								showProgressDialog("pleaseWait_msg", downloadPromise)
 							},
 							icon: () => Icons.Export,
