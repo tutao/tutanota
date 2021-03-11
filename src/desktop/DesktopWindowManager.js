@@ -1,7 +1,7 @@
 // @flow
 
 import type {NativeImage, Rectangle, WebContentsEvent} from "electron"
-import {app, screen} from "electron"
+import {app, BrowserWindow, screen} from "electron"
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfig} from "./config/DesktopConfig"
@@ -115,14 +115,13 @@ export class WindowManager {
 	}
 
 	/**
-	 * this relies on BrowserWindow.id === BrowserWindow.webContents.id,
-	 * which is not guaranteed anywhere but also seems to be true
-	 * @param ev
+	 * https://www.electronjs.org/docs/api/browser-window#browserwindowfromwebcontentswebcontents
 	 * @returns {?ApplicationWindow|null}
 	 */
-	getEventSender(ev: WebContentsEvent) : ?ApplicationWindow {
-		if(ev.sender.id == null) return null
-		return this.get(ev.sender.id)
+	getEventSender(ev: WebContentsEvent): ?ApplicationWindow {
+		const browserWindow = BrowserWindow.fromWebContents(ev.sender)
+		if (browserWindow == null) return null
+		return this.get(browserWindow.id)
 	}
 
 	getAll(): ApplicationWindow[] {
