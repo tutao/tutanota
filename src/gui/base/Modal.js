@@ -7,7 +7,7 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
 import {remove} from "../../api/common/utils/ArrayUtils"
-import {insideRect} from "../../api/common/utils/Utils"
+import {downcast, insideRect} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -52,10 +52,17 @@ class Modal {
 							this.visible = true
 							m.redraw()
 							if (wrapper.needsBg) this.addAnimation(vnode.dom, true)
-							vnode.dom.onclick = e => {
-								const childRect = vnode.children[0].dom.getBoundingClientRect()
-								if (!insideRect(e, childRect)) {
-									wrapper.component.backgroundClick(e)
+						},
+						onclick: (event: MouseEvent) => {
+							// flow only recognizes currentTarget as an EventTarget, but we know here that it's an HTMLElement
+							const element: HTMLElement = downcast(event.currentTarget)
+							// This layer div has a single child, the modal component
+							const child = element.firstElementChild
+							// child shouldn't be null but maybe the user click fast idk
+							if (child) {
+								const childRect = child.getBoundingClientRect()
+								if (!insideRect(event, childRect)) {
+									wrapper.component.backgroundClick(event)
 								}
 							}
 						},

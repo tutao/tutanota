@@ -407,9 +407,9 @@ export function filterInt(value: string): number {
 	}
 }
 
-export function insideRect(point: {x: number, y: number}, rect: {x: number, y: number, width: number, height: number}): boolean {
-	return point.x >= rect.x && point.x < rect.x + rect.width
-		&& point.y >= rect.y && point.y < rect.y + rect.height
+export function insideRect(point: {x: number, y: number}, rect: {top: number, left: number, bottom: number, right: number}): boolean {
+	return point.x >= rect.left && point.x < rect.right
+		&& point.y >= rect.top && point.y < rect.bottom
 }
 
 export function objToError(o: Object): Error {
