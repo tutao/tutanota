@@ -94,6 +94,7 @@ export class HtmlEditor {
 						: (".editor-border" + (this._modeSwitcher ? ".editor-no-top-border" : ""))
 				)
 				: ""
+			const renderedInjections = injections && injections() || null
 
 			return m(".html-editor" + (this._mode() === Mode.WYSIWYG ? ".text-break" : ""), [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
@@ -102,38 +103,43 @@ export class HtmlEditor {
 					: null,
 				m(borderClasses, [
 					getPlaceholder(),
-					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						m(".flex-end.mr-negative-s.sticky.pb-2", [
-							(this._editor.isEnabled() && this._richToolbarOptions.enabled) ? m(toolbar) : null,
-							this._editor.isEnabled() && injections ? injections() : null,
-						]),
-						this._editor.isEnabled() ? m("hr.hr.mb-s") : null,
-						m(this._editor,
-							{
-								oncreate: vnode => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
-								onremove: vnode => this._value(this.getValue())
-							}
-						)
-					]) : null,
-					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {
-						oncreate: vnode => {
-							this._domTextArea = vnode.dom
-							if (!this.isEmpty()) {
-								this._domTextArea.value = this._value()
-							}
-						},
-						onfocus: e => focus(),
-						onblur: e => blur(),
-						oninput: e => {
-							this._domTextArea.style.height = '0px';
-							this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
-						},
-						style: {
-							'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
-							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
-						},
-						disabled: !this._editor._enabled
-					})) : null
+					this._mode() === Mode.WYSIWYG
+						? m(".wysiwyg.rel.overflow-hidden.selectable", [
+							(this._editor.isEnabled() && (this._richToolbarOptions.enabled || renderedInjections))
+								? [
+									m(".flex-end.mr-negative-s.sticky.pb-2", [
+										(this._richToolbarOptions.enabled) ? m(toolbar) : null,
+										renderedInjections,
+									]),
+									m("hr.hr.mb-s")
+								]
+								: null,
+							m(this._editor,
+								{
+									oncreate: () => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
+									onremove: () => this._value(this.getValue())
+								}
+							)
+						])
+						: m(".html", m("textarea.input-area.selectable", {
+							oncreate: vnode => {
+								this._domTextArea = vnode.dom
+								if (!this.isEmpty()) {
+									this._domTextArea.value = this._value()
+								}
+							},
+							onfocus: e => focus(),
+							onblur: e => blur(),
+							oninput: e => {
+								this._domTextArea.style.height = '0px';
+								this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
+							},
+							style: {
+								'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
+								"min-height": this._minHeight ? px(this._minHeight) : 'initial'
+							},
+							disabled: !this._editor._enabled
+						})),
 				])
 			])
 		}
