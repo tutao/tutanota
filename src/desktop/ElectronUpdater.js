@@ -131,11 +131,20 @@ export class ElectronUpdater {
 			if (this._updateInfo) {
 				ev.preventDefault()
 				this._updateInfo = null
-				// first argument: isSilent Boolean - windows-only Runs the installer in silent mode. Defaults to false.
-				// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
-				//  Ignored if isSilent is set to false.
-				// https://www.electron.build/auto-update#appupdater-eventemitter
-				this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(true, false))
+				if (process.platform !== "win32") {
+					// We don't do auto-update on close on Windows because it launches the installer which is pretty annoying.
+					// We have to start the installer wizard (first argument to install being "false") because without it update for
+					// system-wide installation does not work.
+					// see https://github.com/tutao/tutanota/issues/1413#issuecomment-796737959
+					// see c4b12e9
+					this._updater.electronUpdater.then((autoUpdater) => {
+						// This is a "protected" function which we use to avoid force restart.
+						const installed = autoUpdater.install(false, false)
+						log.debug("Update installed: ", installed)
+						setImmediate(() => this._app.quit())
+					})
+				}
+
 			}
 		})
 	}
@@ -290,7 +299,7 @@ export class ElectronUpdater {
 	}
 
 	installUpdate() {
-		log.debug("installing")
+		log.debug("installing update")
 		//the window manager enables force-quit on the app-quit event,
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event
@@ -300,7 +309,8 @@ export class ElectronUpdater {
 		// second argument: isForceRunAfter Boolean - Run the app after finish even on silent install. Not applicable for macOS.
 		//  Ignored if isSilent is set to false.
 		// https://www.electron.build/auto-update#appupdater-eventemitter
-		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(true, true))
+		// As this is triggered by user we want to restart afterwards and don't mind showing the wizard either.
+		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(false, true))
 	}
 
 	_notifyUpdateError() {

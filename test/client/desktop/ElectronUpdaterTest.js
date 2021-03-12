@@ -164,7 +164,7 @@ o.spec("ElectronUpdater Test", function () {
 		o(electron.app.emit.callCount).equals(1)
 		o(electron.app.emit.args[0]).equals('enable-force-quit')
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(true)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
 
@@ -243,7 +243,7 @@ o.spec("ElectronUpdater Test", function () {
 		o(electron.app.emit.callCount).equals(1)
 		o(electron.app.emit.args[0]).equals('enable-force-quit')
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(true)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
 
@@ -325,7 +325,7 @@ o.spec("ElectronUpdater Test", function () {
 		o(electron.app.emit.callCount).equals(1)
 		o(electron.app.emit.args[0]).equals('enable-force-quit')
 		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(true)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 		upd._stopPolling()
 	})
