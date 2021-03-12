@@ -74,8 +74,7 @@ export class SearchFacade {
 	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
-	       maxResults: ?number): Promise<SearchResult> {
+	search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults: ?number): Promise<SearchResult> {
 		return this._db.initialized.then(() => {
 			let searchTokens = tokenize(query)
 
@@ -279,16 +278,14 @@ export class SearchFacade {
 				const suggestionResult: SearchResult = {
 					query: suggestion,
 					restriction: searchResult.restriction,
-					results: [],
+					results: searchResult.results,
 					currentIndexTimestamp: searchResult.currentIndexTimestamp,
 					moreResultsEntries: [],
 					lastReadSearchIndexRow: [[suggestion, null]],
 					matchWordOrder: false,
 					moreResults: []
 				}
-				return this._startOrContinueSearch(suggestionResult).then(() => {
-					searchResult.results.push(...suggestionResult.results)
-				})
+				return this._startOrContinueSearch(suggestionResult)
 			}
 		}, {concurrency: 1})
 	}
