@@ -520,8 +520,8 @@ export class MailView implements CurrentView {
 	 *
 	 * @param args Object containing the optional parts of the url which are listId and mailId for the mail view.
 	 */
-	updateUrl(args: Object) {
-		if (m.route.get().indexOf("/mailto") === 0) {
+	updateUrl(args: Object, requestedPath: String) {
+		if (requestedPath.startsWith("/mailto")) {
 			if (location.hash.length > 5) {
 				let url = location.hash.substring(5)
 				let decodedUrl = decodeURIComponent(url)
