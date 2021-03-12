@@ -22,10 +22,11 @@
 		"keytar": "7.2.0",
 		"luxon": "^1.22.0",
 		"mithril": "2.0.4",
+		"node-abi": "^2.21.0",
+		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
-		"systemjs": "6.8.3",
-		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22"
+		"systemjs": "6.8.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.10.5",
@@ -50,11 +51,11 @@
 		"chokidar": "3.3.1",
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
-		"electron": "11.3.0",
-		"electron-builder": "22.9.1",
+		"electron": "12.0.1",
+		"electron-builder": "22.10.5",
 		"electron-notarize": "1.0.0",
 		"electron-packager": "15.1.0",
-		"electron-rebuild": "2.0.3",
+		"electron-rebuild": "2.3.5",
 		"electron-updater": "4.3.5",
 		"express": "4.17.1",
 		"express-ws": "^4.0.0",
