@@ -14,6 +14,9 @@ export const dependencyMap = {
 	"oxmsg": "./node_modules/oxmsg/dist/oxmsg.js"
 }
 
+/**
+ * These are the definitions of chunks with static dependencies. Key is the chunk and values are dependencies to other chunks
+ */
 export const allowedImports = {
 	"polyfill-helpers": [],
 	"common-min": ["polyfill-helpers"],
@@ -55,97 +58,103 @@ export function resolveLibs(baseDir = ".") {
 	}
 }
 
-export function manualChunks(id, {getModuleInfo}) {
+/**
+ * Returns the chunk name for the given moduleId which is usually the file path.
+ * @param moduleId Rollup moduleId usually the file path.
+ * @param getModuleInfo Helper function to get information about the ES module.
+ * @returns {string} Chunk name
+ */
+export function getChunkName(moduleId, {getModuleInfo}) {
 	// See HACKING.md for rules
-	const code = getModuleInfo(id).code
-	if (code.includes("@bundleInto:common-min") || id.includes("libs/stream")) {
+	const code = getModuleInfo(moduleId).code
+	if (code.includes("@bundleInto:common-min") || moduleId.includes("libs/stream")) {
 		return "common-min"
 	} else if (code.includes("assertMainOrNodeBoot") ||
-		id.includes("libs/mithril") ||
-		id.includes("src/app.js") ||
+		moduleId.includes("libs/mithril") ||
+		moduleId.includes("src/app.js") ||
 		code.includes("@bundleInto:boot")
 	) {
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (id.includes("src/gui/date") ||
-		id.includes("src/misc/DateParser") ||
-		id.includes("luxon") ||
-		id.includes("src/calendar/CalendarUtils") ||
-		id.includes("src/calendar/CalendarInvites") ||
-		id.includes("src/calendar/CalendarUpdateDistributor") ||
-		id.includes("src/calendar/export") ||
-		id.includes("src/calendar/CalendarEventViewModel")
+	} else if (moduleId.includes("src/gui/date") ||
+		moduleId.includes("src/misc/DateParser") ||
+		moduleId.includes("luxon") ||
+		moduleId.includes("src/calendar/CalendarUtils") ||
+		moduleId.includes("src/calendar/CalendarInvites") ||
+		moduleId.includes("src/calendar/CalendarUpdateDistributor") ||
+		moduleId.includes("src/calendar/export") ||
+		moduleId.includes("src/calendar/CalendarEventViewModel")
 	) {
 		// luxon and everything that depends on it goes into date bundle
 		return "date"
-	} else if (id.includes("src/misc/HtmlSanitizer") || id.includes("libs/purify")) {
+	} else if (moduleId.includes("src/misc/HtmlSanitizer") || moduleId.includes("libs/purify")) {
 		return "sanitizer"
-	} else if (id.includes("src/misc/Urlifier") || id.includes("libs/Autolinker")) {
+	} else if (moduleId.includes("src/misc/Urlifier") || moduleId.includes("libs/Autolinker")) {
 		return "urlifier"
-	} else if (id.includes("src/gui/base") || id.includes("src/gui/nav")) {
+	} else if (moduleId.includes("src/gui/base") || moduleId.includes("src/gui/nav")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
-	} else if (id.includes("src/native/main") || id.includes("SearchInPageOverlay")) {
+	} else if (moduleId.includes("src/native/main") || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
-	} else if (id.includes("src/mail/editor") ||
-		id.includes("squire") ||
-		id.includes("src/gui/editor") ||
-		id.includes("src/mail/signature")
+	} else if (moduleId.includes("src/mail/editor") ||
+		moduleId.includes("squire") ||
+		moduleId.includes("src/gui/editor") ||
+		moduleId.includes("src/mail/signature")
 	) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"
 	} else if (
-		id.includes("src/api/main") ||
-		id.includes("src/mail/model") ||
-		id.includes("src/contacts/model") ||
-		id.includes("src/calendar/model") ||
-		id.includes("src/search/model") ||
-		id.includes("src/misc/ErrorHandlerImpl") ||
-		id.includes("src/misc") ||
-		id.includes("src/file") ||
-		id.includes("src/gui")
+		moduleId.includes("src/api/main") ||
+		moduleId.includes("src/mail/model") ||
+		moduleId.includes("src/contacts/model") ||
+		moduleId.includes("src/calendar/model") ||
+		moduleId.includes("src/search/model") ||
+		moduleId.includes("src/misc/ErrorHandlerImpl") ||
+		moduleId.includes("src/misc") ||
+		moduleId.includes("src/file") ||
+		moduleId.includes("src/gui")
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"
-	} else if (id.includes("src/mail/view") || id.includes("src/mail/export")) {
+	} else if (moduleId.includes("src/mail/view") || moduleId.includes("src/mail/export")) {
 		return "mail-view"
-	} else if (id.includes("src/native/worker")) {
+	} else if (moduleId.includes("src/native/worker")) {
 		return "worker"
-	} else if (id.includes("src/native/common")) {
+	} else if (moduleId.includes("src/native/common")) {
 		return "native-common"
-	} else if (id.includes("src/search")) {
+	} else if (moduleId.includes("src/search")) {
 		return "search"
-	} else if (id.includes("src/calendar/view")) {
+	} else if (moduleId.includes("src/calendar/view")) {
 		return "calendar-view"
-	} else if (id.includes("src/contacts")) {
+	} else if (moduleId.includes("src/contacts")) {
 		return "contacts"
-	} else if (id.includes("src/login/recover") || id.includes("src/support") || id.includes("src/login/contactform")) {
+	} else if (moduleId.includes("src/login/recover") || moduleId.includes("src/support") || moduleId.includes("src/login/contactform")) {
 		// Collection of small UI components which are used not too often
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
-	} else if (id.includes("src/login")) {
+	} else if (moduleId.includes("src/login")) {
 		return "login"
-	} else if (id.includes("src/api/common") || id.includes("src/api/entities")) {
+	} else if (moduleId.includes("src/api/common") || moduleId.includes("src/api/entities")) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
 		return "common"
-	} else if (id.includes("rollupPluginBabelHelpers") || id.includes("commonjsHelpers")) {
+	} else if (moduleId.includes("rollupPluginBabelHelpers") || moduleId.includes("commonjsHelpers")) {
 		return "polyfill-helpers"
-	} else if (id.includes("src/settings") || id.includes("src/subscription") || id.includes("libs/qrcode")) {
+	} else if (moduleId.includes("src/settings") || moduleId.includes("src/subscription") || moduleId.includes("libs/qrcode")) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
-	} else if (id.includes("src/api/worker")) {
+	} else if (moduleId.includes("src/api/worker")) {
 		return "worker" // avoid that crypto stuff is only put into native
-	} else if (id.includes("libs/jszip")) {
+	} else if (moduleId.includes("libs/jszip")) {
 		return "jszip"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
 		// This groups chunks but does not rename them for some reason so we do chunkFileNames below
-		const match = /.*\/translations\/(\w+)+\.js/.exec(id)
+		const match = /.*\/translations\/(\w+)+\.js/.exec(moduleId)
 		if (match) {
 			const language = match[1]
 			return "translation-" + language
@@ -153,32 +162,38 @@ export function manualChunks(id, {getModuleInfo}) {
 	}
 }
 
-export function bundleDepCheckPlugin() {
+/**
+ * Creates a plugin which checks that all imports satisfy the rules that are defined in {@link allowedImports}.
+ */
+export function bundleDependencyCheckPlugin() {
 	return {
-		name: "bundle-dep-check",
+		name: "bundle-dependency-check",
 		generateBundle(outOpts, bundle) {
+			// retrieves getModule function from plugin context.
 			const getModuleInfo = this.getModuleInfo.bind(this)
 
-			for (const [key, value] of Object.entries(bundle)) {
-				for (const module of Object.keys(value.modules)) {
-					if (module.includes("src/translations")) {
+			for (const chunk of Object.values(bundle)) {
+				for (const moduleId of Object.keys(chunk.modules)) {
+					// Its a translation file and they are in their own chunks. We can skip further checks.
+					if (moduleId.includes("src/translations")) {
 						continue
 					}
-					const ownChunk = manualChunks(module, {getModuleInfo})
+					const ownChunk = getChunkName(moduleId, {getModuleInfo})
 					if (!allowedImports[ownChunk]) {
-						throw new Error(`Unknown chunk: ${ownChunk} of ${module}`)
+						throw new Error(`Unknown chunk: ${ownChunk} of ${moduleId}`)
 					}
 
-					for (const imported of getModuleInfo(module).importedIds) {
-						if (imported.includes("src/translations")) {
-							continue
+					for (const importedId of getModuleInfo(moduleId).importedIds) {
+						// static dependencies on translation files are not allowed
+						if (importedId.includes("src/translations")) {
+							throw new Error(`Static dependency of ${importedId} is not allowed from ${moduleId}`)
 						}
-						const importedChunk = manualChunks(imported, {getModuleInfo})
+						const importedChunk = getChunkName(importedId, {getModuleInfo})
 						if (!allowedImports[importedChunk]) {
-							throw new Error(`Unknown chunk: ${importedChunk} of ${imported}`)
+							throw new Error(`Unknown chunk: ${importedChunk} of ${importedId}`)
 						}
 						if (ownChunk !== importedChunk && !allowedImports[ownChunk].includes(importedChunk)) {
-							throw new Error(`${module} (from ${ownChunk}) imports ${imported} (from ${importedChunk}) which is not allowed`)
+							throw new Error(`${moduleId} (from ${ownChunk}) imports ${importedId} (from ${importedChunk}) which is not allowed`)
 						}
 					}
 				}
