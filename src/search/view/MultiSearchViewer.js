@@ -33,7 +33,6 @@ import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMails} from "../../mail/export/Exporter"
 import {worker} from "../../api/main/WorkerClient"
 import {makeMailBundle} from "../../mail/export/Bundler"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
