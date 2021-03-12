@@ -15,31 +15,29 @@ import type {MailboxDetail} from "../../mail/model/MailModel"
 import {UserError} from "../../api/main/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
 import {Keys} from "../../api/common/TutanotaConstants"
+import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent;
-	_rect: ClientRect;
+	_eventBubbleRect: ClientRect;
 	_viewModel: CalendarEventViewModel;
 	_onEditEvent: () => mixed;
 	_shortcuts: Shortcut[]
 	_sanitizedDescription: string;
 
+
 	constructor(viewModel: CalendarEventViewModel, calendarEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>,
-	            mailboxDetail: MailboxDetail, rect: ClientRect,
-	            onEditEvent: () => mixed
+	            mailboxDetail: MailboxDetail, eventBubbleRect: ClientRect,
+	            onEditEvent: () => mixed, htmlSanitizer: HtmlSanitizer
 	) {
 		this._calendarEvent = calendarEvent
-		this._rect = rect
+		this._eventBubbleRect = eventBubbleRect
 		this._onEditEvent = onEditEvent
 		this._viewModel = viewModel
-		this._sanitizedDescription = ""
-
-		if (calendarEvent.description) {
-			import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-				this._sanitizedDescription = htmlSanitizer.sanitize(calendarEvent.description, {blockExternalContent: true}).text
-				m.redraw()
-			})
-		}
+		// We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
+		this._sanitizedDescription = calendarEvent.description
+			? htmlSanitizer.sanitize(calendarEvent.description, {blockExternalContent: true}).text
+			: ""
 
 		if (calendarEvent._ownerGroup == null) {
 			throw new Error("Tried to open popup with non-persistent calendar event")
@@ -92,7 +90,7 @@ export class CalendarEventPopup implements ModalComponent {
 				oncreate: ({dom}) => {
 					// This is a hack to get "natural" view size but render it without apacity first and then show dropdown with inferred
 					// size.
-					setTimeout(() => showDropdown(this._rect, dom, dom.offsetHeight, 400), 24)
+					setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)
 				},
 			},
 			[
