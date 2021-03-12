@@ -15,11 +15,9 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {client} from "./ClientDetector"
 import {TutanotaError} from "../api/common/error/TutanotaError"
-import {ApprovalStatus} from "../api/common/TutanotaConstants"
-import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import type {ApprovalStatusEnum} from "../api/common/TutanotaConstants"
+import {ApprovalStatus} from "../api/common/TutanotaConstants"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -71,7 +69,8 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
 			             .then(confirmed => {
 				             if (confirmed) {
-					             showUpgradeWizard()
+					             import("../subscription/UpgradeSubscriptionWizard")
+						             .then(m => m.showUpgradeWizard())
 				             }
 				             return false
 			             })

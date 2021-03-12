@@ -157,16 +157,27 @@ export class LoginViewController implements ILoginViewController {
 		            .catch(e => {
 			            this.view.helpText = lang.get(getLoginErrorMessage(e))
 			            m.redraw()
-			            throw e
+
+			            this.view.invalidCredentials =
+				            this.view.invalidCredentials || e instanceof BadRequestError || e instanceof NotAuthenticatedError
+
+			            this.view.accessExpired =
+				            this.view.accessExpired || e instanceof AccessExpiredError
+
+			            // any other kind of error we forward on to the global error handler
+			            if (e instanceof BadRequestError
+				            || e instanceof NotAuthenticatedError
+				            || e instanceof AccessExpiredError
+				            || e instanceof AccessBlockedError
+				            || e instanceof AccessDeactivatedError
+				            || e instanceof TooManyRequestsError
+				            || e instanceof CancelledError) {
+				            return errorAction()
+			            } else {
+				            throw e
+			            }
 		            })
-		            .catch(BadRequestError, NotAuthenticatedError, e => {
-			            this.view.invalidCredentials = true
-		            })
-		            .catch(AccessExpiredError, e => {
-			            this.view.accessExpired = true
-		            })
-		            .catch(AccessBlockedError, AccessDeactivatedError, TooManyRequestsError, noOp)
-		            .then(errorAction)
+
 	}
 
 	_enforcePasswordChange(): void {
