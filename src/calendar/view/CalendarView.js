@@ -87,6 +87,8 @@ import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtil
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
 import {createCalendarEventViewModel} from "../CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
+import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
+
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -128,6 +130,8 @@ export class CalendarView implements CurrentView {
 
 	_calendarInvitations: Array<ReceivedGroupInvitation>
 
+	// For sanitizing even descriptions, which get rendered as html in the CalendarEventPopup
+	_htmlSanitizer: Promise<HtmlSanitizer>
 	oncreate: Function;
 	onremove: Function;
 
@@ -138,6 +142,7 @@ export class CalendarView implements CurrentView {
 		this._eventsForDays = freezeMap(new Map())
 		this._hiddenCalendars = new Set(deviceConfig.getHiddenCalendars(userId))
 		this.selectedDate = stream(getStartOfDay(new Date()))
+		this._htmlSanitizer = import("../../misc/HtmlSanitizer").then(m => m.htmlSanitizer)
 
 		this.sidebarColumn = new ViewColumn({
 				view: () => m(FolderColumnView, {
@@ -677,7 +682,8 @@ export class CalendarView implements CurrentView {
 		Promise.all([
 			locator.mailModel.getUserMailboxDetails(),
 			this._calendarInfos,
-		]).then(([mailboxDetails, calendarInfos]) => {
+			this._htmlSanitizer
+		]).then(([mailboxDetails, calendarInfos, htmlSanitizer]) => {
 				return createCalendarEventViewModel(getEventStart(calendarEvent, getTimeZone()), calendarInfos, mailboxDetails,
 					calendarEvent, null, true
 				).then((viewModel) => {
@@ -687,7 +693,8 @@ export class CalendarView implements CurrentView {
 						calendarInfos,
 						mailboxDetails,
 						domTarget.getBoundingClientRect(),
-						() => this._editEvent(calendarEvent)
+						() => this._editEvent(calendarEvent),
+						htmlSanitizer,
 					).show()
 				})
 			}
