@@ -120,7 +120,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 	}
 
 	_renderColumns(attrs: Attrs, columns: Array<Array<CalendarEvent>>): ChildArray {
-		const columnWidth = neverNull(this._dayDom).scrollWidth / columns.length
+		const columnWidth = neverNull(this._dayDom).clientWidth / columns.length
 		return columns.map((column, index) => {
 			return column.map(event => {
 				return this._renderEvent(attrs, event, index, columns, Math.floor(columnWidth))
