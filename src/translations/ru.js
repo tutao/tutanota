@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2021-02-17T08:50:29Z",
+	"updated_at": "2021-03-15T16:39:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -884,7 +884,7 @@ export default {
 		"recipients_label": "Получатели",
 		"recommendedDmarcRecord_msg": "Мы рекомендуем внести следующую TXT запись для DMARC, но вы можете создать и свою собственную конфигурацию:",
 		"recommendedDNSValue_label": "Рекомендованное значение",
-		"recoverAccountAccess_action": "Востановить доступ",
+		"recoverAccountAccess_action": "Воcстановить доступ",
 		"recoverResetFactors_action": "Сбросить двухфакторную аутентификацию",
 		"recoverSetNewPassword_action": "Задать новый пароль",
 		"recoveryCodeEmpty_msg": "Пожалуйста введите код восстановления.",

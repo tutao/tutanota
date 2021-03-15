@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2021-02-17T16:37:58Z",
+	"updated_at": "2021-03-15T16:39:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -121,7 +121,7 @@ export default {
 		"breakLink_action": "Rimuovi collegamento",
 		"businessBooking_label": "Funzionalità business per {1} utenti",
 		"businessChangeInfo_msg": "Per favore verifica i tuoi dati di fatturazione per cambiare il tuo account per utilizzo aziendale.",
-		"businessCustomerAutoBusinessFeature_msg": "Tieni presente che la funzionalità business verrà prenotata automaticamente con tutti i piani di abbonamento per i clienti business.",
+		"businessCustomerAutoBusinessFeature_msg": "Tieni presente che la funzione business verrà prenotata automaticamente con tutti gli abbonamenti per i clienti business.",
 		"businessCustomerNeedsBusinessFeaturePlan_msg": "Il tuo attuale piano di abbonamento è {plan} ({price}) senza la funzione business",
 		"businessDeletionWarning_msg": "La funzionalità business verrà disattivata per tutti gli utenti ora. Le notifiche fuori-sede e gli inviti di calendario saranno disabilitati. È consentito un solo dominio email personalizzato.",
 		"businessFeatureRequiredGeneral_msg": "Per utilizzare questa funzione devi ordinare la funzione business.",
@@ -384,6 +384,7 @@ export default {
 		"download_action": "Scarica",
 		"draft_action": "Bozze",
 		"dragAndDropExport_action": "Esportazione tramite drag & drop",
+		"dragAndDrop_action": "Trascina le mail selezionate nel file system o in altre applicazioni.",
 		"duplicatedMailAddressInUserList_msg": "L'indirizzo email è incluso più di una volta nei tuoi dati inseriti.",
 		"duplicatesNotification_msg": "{1} contatti duplicati sono stati trovati e verranno eliminati.",
 		"editContactForm_label": "Modifica modulo di contatto",
@@ -1227,6 +1228,7 @@ export default {
 		"unsubscribeFailed_msg": "Non è possibile eliminare la newsletter o la mailing list.",
 		"unsubscribeSuccessful_msg": "L'iscrizione alla newsletter o mailing list è stata annullata con successo!",
 		"unsubscribe_action": "Annulla iscrizione",
+		"unsuccessfulDrop_msg": "Il drag & drop non è riuscito perché il download dei dati non è stato completato. Puoi riprovare una volta terminata la barra di avanzamento.",
 		"unsupportedBrowserOverlay_msg": "Stai usando un browser non supportato. Alcune funzionalità potrebbero essere limitate.",
 		"unsupportedBrowser_msg": "Ops... ci dispiace. Purtroppo il tuo browser non è supportato o non aggiornato. Per favore utilizzare l'ultima versione di uno dei seguenti browser:",
 		"updateAdminshipGlobalAdmin_msg": "Non è possibile modificare l'amministrazione di un amministratore globale.",

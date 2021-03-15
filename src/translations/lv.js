@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2021-02-16T14:16:31Z",
+	"updated_at": "2021-02-26T13:13:49Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",

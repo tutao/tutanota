@@ -3,4 +3,5 @@
     <string name="pushNewMail_msg">Új levél érkezett.</string>
     <string name="notificationSync_msg">Szinkronizációs értesítések</string>
     <string name="wantToSendReport_msg">Váratlan hiba történt. Szeretne hibajelentést küldeni? Üzenetet írhat nekünk, amely segítségével orvosolni tudjuk a hibát.</string>
+    <string name="downloadCompleted_msg">A letöltés befejeződött.</string>
 </resources>
