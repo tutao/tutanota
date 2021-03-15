@@ -80,7 +80,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 	})
 }
 
-export function getLoginErrorMessage(error: TutanotaError): TranslationKey {
+export function getLoginErrorMessage(error: TutanotaError, isExternalLogin: boolean): TranslationKey {
 
 	switch (error.constructor) {
 		case BadRequestError:
@@ -90,7 +90,7 @@ export function getLoginErrorMessage(error: TutanotaError): TranslationKey {
 		case AccessBlockedError:
 			return "loginFailedOften_msg"
 		case AccessExpiredError:
-			return "inactiveAccount_msg"
+			return isExternalLogin ? "expiredLink_msg" : "inactiveAccount_msg"
 		case TooManyRequestsError:
 			return "tooManyAttempts_msg"
 		case CancelledError:

@@ -134,7 +134,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 						logins.logout(false)
 						      .then(() => logins.createSession(mailAddress, password, client.getIdentifier(), false, false))
 						      .then(credentials => this._postLogin(data, credentials))
-						      .catch(e => { this._loginFormHelpText = lang.get(getLoginErrorMessage(e))})
+						      .catch(e => { this._loginFormHelpText = lang.get(getLoginErrorMessage(e, false))})
 					// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
 					showProgressDialog("pleaseWait_msg", loginPromise)
 				}
