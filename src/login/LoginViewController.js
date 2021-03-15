@@ -77,6 +77,8 @@ export class LoginViewController implements ILoginViewController {
 
 	autologin(credentials: Credentials): void {
 		if (this._loginPromise.isPending()) return
+		this.view.invalidCredentials = false
+		this.view.accessExpired = false
 		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(logins.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
@@ -155,14 +157,11 @@ export class LoginViewController implements ILoginViewController {
 			            m.redraw()
 		            })
 		            .catch(e => {
-			            this.view.helpText = lang.get(getLoginErrorMessage(e))
+			            this.view.helpText = lang.get(getLoginErrorMessage(e, false))
+			            this.view.invalidCredentials = e instanceof BadRequestError || e instanceof NotAuthenticatedError
+			            this.view.accessExpired = e instanceof AccessExpiredError
+
 			            m.redraw()
-
-			            this.view.invalidCredentials =
-				            this.view.invalidCredentials || e instanceof BadRequestError || e instanceof NotAuthenticatedError
-
-			            this.view.accessExpired =
-				            this.view.accessExpired || e instanceof AccessExpiredError
 
 			            // any other kind of error we forward on to the global error handler
 			            if (e instanceof BadRequestError

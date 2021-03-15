@@ -36,6 +36,7 @@ import {header} from "../gui/base/Header"
 import type {PasswordChannelPhoneNumber} from "../api/entities/tutanota/PasswordChannelPhoneNumber"
 import type {PhoneNumber} from "../api/entities/sys/PhoneNumber"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
+import {getLoginErrorMessage} from "../misc/LoginUtils"
 
 assertMainOrNode()
 
@@ -146,7 +147,7 @@ export class ExternalLoginView {
 			})
 		} catch (e) {
 			this._errorMessageId = "invalidLink_msg"
-			this._loading = Promise.reject()
+			this._loading = Promise.reject(e)
 			m.redraw()
 		}
 	}
@@ -156,6 +157,7 @@ export class ExternalLoginView {
 		showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(logins.resumeSession(credentials, this._salt), () => {
 				this._autologinInProgress = false
+				m.redraw()
 			})
 		}))
 	}
@@ -191,47 +193,33 @@ export class ExternalLoginView {
 		}
 	}
 
-	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
+	_handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
 		return login.then(() => this._postLoginActions())
 		            .then(() => {
 			            m.route.set(`/mail${location.hash}`)
 			            this._helpText = 'emptyString_msg'
 		            })
-		            .catch(AccessExpiredError, e => {
-			            this._errorMessageId = 'expiredLink_msg'
-			            return errorAction()
-		            })
-		            .catch(AccessBlockedError, e => {
-			            this._helpText = 'loginFailedOften_msg'
-			            return errorAction()
-		            })
-		            .catch(NotAuthenticatedError, e => {
-			            this._helpText = 'invalidPassword_msg'
-			            return errorAction()
-		            })
-		            .catch(AccessDeactivatedError, e => {
-			            this._helpText = 'loginFailed_msg'
-			            return errorAction()
-		            })
-		            .catch(TooManyRequestsError, e => {
-			            this._helpText = 'tooManyAttempts_msg'
-			            return errorAction()
-		            })
-		            .catch(CancelledError, () => {
-			            this._helpText = 'emptyString_msg'
-			            return errorAction()
-		            })
-		            .catch(ConnectionError, e => {
-			            if (client.isIE()) {
-				            // IE says it's error code 0 fore some reason
-				            this._helpText = 'loginFailed_msg'
-				            m.redraw()
+		            .catch(e => {
+			            const messageId = getLoginErrorMessage(e, true)
+			            if (e instanceof AccessExpiredError) {
+				            this._errorMessageId = messageId
+			            } else {
+				            this._helpText = messageId
+			            }
+			            m.redraw()
+			            // any other kind of error we forward on to the global error handler
+			            if (e instanceof BadRequestError
+				            || e instanceof NotAuthenticatedError
+				            || e instanceof AccessExpiredError
+				            || e instanceof AccessBlockedError
+				            || e instanceof AccessDeactivatedError
+				            || e instanceof TooManyRequestsError
+				            || e instanceof CancelledError) {
 				            return errorAction()
 			            } else {
-				            this._helpText = 'emptyString_msg'
-				            throw e;
+				            throw e
 			            }
-		            }).finally(() => m.redraw())
+		            })
 	}
 
 	_postLoginActions() {
