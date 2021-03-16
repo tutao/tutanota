@@ -23,7 +23,7 @@ export const Type = Object.freeze({
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
 
-const inputMarginTop = size.font_size_small + size.hpad_small + 3
+export const inputMarginTop: number = size.font_size_small + size.hpad_small + 3
 
 /**
  * A text input field.

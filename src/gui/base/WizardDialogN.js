@@ -13,7 +13,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
-export interface WizardPageAttrs<T> {
+export interface WizardPageAttrs<+T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/
 	headerTitle(): string,
 
@@ -106,17 +106,17 @@ class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
 
 
 type WizardPageWrapper<T> = {
-	attrs: WizardPageAttrs<T>,
-	componentClass: Class<MComponent<WizardPageAttrs<T>>>
+	+attrs: WizardPageAttrs<T>,
+	+componentClass: Class<MComponent<WizardPageAttrs<T>>>
 }
 
 class WizardDialogAttrs<T> {
 	data: T
-	pages: Array<WizardPageWrapper<T>>
+	pages: $ReadOnlyArray<WizardPageWrapper<T>>
 	currentPage: ?WizardPageWrapper<T>
 	closeAction: () => Promise<void>
 
-	constructor(data: T, pages: Array<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
+	constructor(data: T, pages: $ReadOnlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
 		this.data = data
 		this.pages = pages
 		this.currentPage = pages.find(p => p.attrs.isEnabled())
@@ -228,7 +228,7 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(data: T, pages: Array<WizardPageWrapper<T>>, closeAction?: () => Promise<void>): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>(data: T, pages: $ReadOnlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>): WizardDialogAttrsBuilder<T> {
 
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs = {}

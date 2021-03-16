@@ -37,7 +37,8 @@ import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
-import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
+import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -171,11 +172,18 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 		const preparedContent = prepareFeedbackContent(e, loggedIn)
 		const detailsExpanded = stream(false)
 
-		let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
-		textField.type = Type.Area
+		let userMessage = ""
+		const userMessageTextFieldAttrs = {
+			label: "yourMessage_label",
+			helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
+			value: stream(userMessage),
+			type: Type.Area,
+			oninput: (value) => userMessage = value,
+		}
+
 		let errorOkAction = (dialog) => {
 			unknownErrorDialogActive = false
-			preparedContent.message = textField.value() + "\n" + preparedContent.message
+			preparedContent.message = userMessage + "\n" + preparedContent.message
 			resolve(preparedContent)
 			dialog.close()
 		}
@@ -222,7 +230,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 				child: {
 					view: () => {
 						return [
-							m(textField),
+							m(TextFieldN, userMessageTextFieldAttrs),
 							m(".flex-end",
 								m(".right",
 									m(ExpanderButtonN, {

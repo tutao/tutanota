@@ -20,54 +20,53 @@ export class AboutDialog implements MComponent<void> {
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(theme.logo)),
 			m(".flex.justify-center.mt-l.flex-wrap", [
-				aboutLink(lang.getInfoLink("homePage_link"), "Website"),
-				aboutLink('https://github.com/tutao/tutanota/releases', 'Releases'),
+				this._aboutLink(lang.getInfoLink("homePage_link"), "Website"),
+				this._aboutLink('https://github.com/tutao/tutanota/releases', 'Releases'),
 			]),
 			m(".flex.justify-center.flex-wrap", [
 				m("p.center.mt.mlr", `v${env.versionNumber}`),
 				m("p.text-center.mlr", "GPL-v3"),
 				m("p", "© 2021 Tutao GmbH")
 			]),
-			sendLogsLink(),
+			this._sendLogsLink(),
 		])
 	}
-}
 
-function sendLogsLink(): Children {
-	return m(".mt.right", m(ButtonN, {
-			label: () => 'Send Logs',
-			click: () => sendDeviceLogs(),
-			type: ButtonType.Primary
-		})
-	)
-}
-
-function aboutLink(href, text): Children {
-	return m("a.no-text-decoration.mlr.mt", {
-			href: href,
-			target: '_blank'
-		}, [
-			m(".underline", text)
-		]
-	)
-}
-
-function sendDeviceLogs() {
-
-	const attachments = []
-
-	const timestamp = new Date()
-
-	const global = downcast(window)
-	let p = Promise.resolve()
-	if (global.logger) {
-		const mainEntries = global.logger.getEntries()
-		p = createLogFile(timestamp.getTime(), mainEntries, "main")
-			.then((mainLogFile) => attachments.push(mainLogFile))
-			.then(() => worker.getLog())
-			.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
-			.then((workerLogFile) => attachments.push(workerLogFile))
+	_sendLogsLink(): Children {
+		return m(".mt.right", m(ButtonN, {
+				label: () => 'Send Logs',
+				click: () => this._sendDeviceLogs(),
+				type: ButtonType.Primary
+			})
+		)
 	}
+
+	_aboutLink(href: string, text: string): Children {
+		return m("a.no-text-decoration.mlr.mt", {
+				href: href,
+				target: '_blank'
+			}, [
+				m(".underline", text)
+			]
+		)
+	}
+
+	_sendDeviceLogs(): void {
+
+		const attachments = []
+
+		const timestamp = new Date()
+
+		const global = downcast(window)
+		let p = Promise.resolve()
+		if (global.logger) {
+			const mainEntries = global.logger.getEntries()
+			p = createLogFile(timestamp.getTime(), mainEntries, "main")
+				.then((mainLogFile) => attachments.push(mainLogFile))
+				.then(() => worker.getLog())
+				.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
+				.then((workerLogFile) => attachments.push(workerLogFile))
+		}
 
 	p = p.then(() => import("../misc/IndexerDebugLogger"))
 	     .then(({getSearchIndexDeletedLogs}) => {
@@ -77,30 +76,32 @@ function sendDeviceLogs() {
 		     }
 	     })
 
-	if (isDesktop()) {
-		p = p
-			.then(() => import("../native/main/SystemApp"))
-			.then(({getDesktopLogs}) => getDesktopLogs())
-			.then((desktopEntries) => createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
-			.then((desktopLogFile) => attachments.push(desktopLogFile))
-	}
+		if (isDesktop()) {
+			p = p
+				.then(() => import("../native/main/SystemApp"))
+				.then(({getDesktopLogs}) => getDesktopLogs())
+				.then((desktopEntries) => createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
+				.then((desktopLogFile) => attachments.push(desktopLogFile))
+		}
 
-	if (isApp()) {
-		p = p
-			.then(() => import("../native/main/SystemApp"))
-			.then(({getDeviceLogs}) => getDeviceLogs())
-			.then(fileReference => {
-				fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-				attachments.push(fileReference)
-			})
-	}
+		if (isApp()) {
+			p = p
+				.then(() => import("../native/main/SystemApp"))
+				.then(({getDeviceLogs}) => getDeviceLogs())
+				.then(fileReference => {
+					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
+					attachments.push(fileReference)
+				})
+		}
 
-	p.then(_ => locator.mailModel.getUserMailboxDetails())
-	 .then((mailboxDetails) => {
-		 let {message, type, client} = clientInfoString(timestamp, true)
-		 message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
-		 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
-	 })
-	 .then(editor => editor.show())
-	 .catch(UserError, showUserError)
+		p.then(_ => locator.mailModel.getUserMailboxDetails())
+		 .then((mailboxDetails) => {
+			 let {message, type, client} = clientInfoString(timestamp, true)
+			 message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
+			 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
+		 })
+		 .then(editor => editor.show())
+		 .catch(UserError, showUserError)
+	}
 }
+

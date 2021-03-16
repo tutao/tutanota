@@ -8,10 +8,8 @@ import {createDnsRecord} from "../../api/entities/sys/DnsRecord"
 import {DnsRecordType, DnsRecordTypeToName} from "../../api/common/TutanotaConstants"
 import m from "mithril"
 import {ColumnWidth, TableN} from "../../gui/base/TableN"
-import {createWizardDialog} from "../../gui/base/WizardDialogN"
 import type {EditAliasesFormAttrs} from "../EditAliasesFormN"
 import {createEditAliasFormAttrs} from "../EditAliasesFormN"
-import {SelectMailAddressForm} from "../SelectMailAddressForm"
 import {AddEmailAddressesPage, AddEmailAddressesPageAttrs} from "./AddEmailAddressesPage"
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
@@ -19,6 +17,7 @@ import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecord
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
+import {createWizardDialog} from "../../gui/base/WizardDialogN"
 
 assertMainOrNode()
 
@@ -27,7 +26,6 @@ export type AddDomainData = {
 	customerInfo: CustomerInfo,
 	expectedVerificationRecord: DnsRecord,
 	editAliasFormAttrs: EditAliasesFormAttrs,
-	emailAliasInput: SelectMailAddressForm,
 	domainStatus: DomainDnsStatus
 }
 
@@ -38,7 +36,6 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo):
 		customerInfo: customerInfo,
 		expectedVerificationRecord: createDnsRecord(),
 		editAliasFormAttrs: createEditAliasFormAttrs(logins.getUserController().userGroupInfo),
-		emailAliasInput: new SelectMailAddressForm([domain]),
 		domainStatus: new DomainDnsStatus(domain)
 	}
 	domainData.expectedVerificationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here

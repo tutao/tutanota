@@ -291,7 +291,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 					type: ButtonType.Secondary,
 					click: () => {
 						import("../../contacts/ContactEditor")
-							.then(({ContactEditor}) => new ContactEditor(recipient.contact).show())
+							.then(({ContactEditor}) => new ContactEditor(this.model.entity(), recipient.contact).show())
 					}
 				}
 				: {
@@ -303,7 +303,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 						    .then(contactListId => {
 							    const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
 							    import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-								    new ContactEditor(newContact, contactListId, createdContactReceiver).show()
+								    new ContactEditor(this.model.entity(), newContact, contactListId, createdContactReceiver).show()
 							    })
 						    })
 					}

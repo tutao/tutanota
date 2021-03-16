@@ -60,6 +60,11 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 	}
 }
 
+/**
+ * Panel which shows or hides content depending on the attrs.expanded and animates transitions.
+ *
+ * Note: currently it expects the same stream every time.
+ */
 export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 	childDiv: HTMLElement
 

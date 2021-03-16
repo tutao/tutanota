@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
-import {TextField, Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextField"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -23,6 +23,8 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/ProgressDialog"
+import {TextFieldN} from "../gui/base/TextFieldN"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNode()
 
@@ -56,17 +58,27 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 									})
 								} else {
 									let buy = _isBuy(price, featureType)
-									let orderField = new TextField("bookingOrder_label")
-										.setValue(_getBookingText(price, featureType, count, freeAmount))
-										.setType(Type.Area)
-										.setDisabled()
-									let buyField = (buy) ? new TextField("subscription_label",
-										() => _getSubscriptionInfoText(price)).setValue(_getSubscriptionText(price))
-									                                          .setDisabled() : null
-									let priceField = new TextField("price_label",
-										() => _getPriceInfoText(price, featureType))
-										.setValue(_getPriceText(price, featureType))
-										.setDisabled()
+
+									const orderFieldAttrs = {
+										label: "bookingOrder_label",
+										value: stream(_getBookingText(price, featureType, count, freeAmount)),
+										type: Type.Area,
+										disabled: true
+									}
+
+									const buyFieldAttrs = {
+										label: "subscription_label",
+										helpLabel: () => _getSubscriptionInfoText(price),
+										value: stream(_getSubscriptionText(price)),
+										disabled: true
+									}
+
+									const priceFieldAttrs = {
+										label: "price_label",
+										helpLabel: () => _getPriceInfoText(price, featureType),
+										value: stream(_getPriceText(price, featureType)),
+										disabled: true
+									}
 
 									return new Promise(resolve => {
 										let dialog: Dialog
@@ -97,9 +109,9 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 											view: (): Children => [
 												m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 												m(".plr-l.pb", m("", [
-													m(orderField),
-													buyField ? m(buyField) : null,
-													m(priceField),
+													m(TextFieldN, orderFieldAttrs),
+													buy ? m(TextFieldN, buyFieldAttrs) : null,
+													m(TextFieldN, priceFieldAttrs),
 												]))
 											]
 										}).setCloseHandler(() => doAction(false)).show()

@@ -315,3 +315,7 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	}
 	return {hours, minutes}
 }
+
+export function formatMailAddressFromParts(name: string, domain: string): string {
+	return `${name}@${domain}`.trim().toLowerCase()
+}

@@ -2,7 +2,6 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {TextField} from "../gui/base/TextField"
 import {ColumnWidth} from "../gui/base/TableN"
 import {Table} from "../gui/base/Table"
 import {erase, load, loadAll} from "../api/main/Entity"
@@ -10,6 +9,7 @@ import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaCons
 import {ActionBar} from "../gui/base/ActionBar"
 import {Button} from "../gui/base/Button"
 import * as ContactFormEditor from "./ContactFormEditor"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {createContactForm} from "../api/entities/tutanota/ContactForm"
 import {loadGroupInfos} from "./LoadingUtils"
 import {Icons} from "../gui/base/icons/Icons"
@@ -27,10 +27,11 @@ import {convertToDataFile} from "../api/common/DataFile"
 import {fileController} from "../file/FileController"
 import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
-import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {showBuyDialog} from "../subscription/BuyDialog"
+import stream from "mithril/stream/stream.js"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -61,27 +62,46 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 			}
 		]
 
-		let urlField = new TextField("url_label").setValue(getContactFormUrl(brandingDomain, contactForm.path))
-		                                         .setDisabled()
-		let mailGroupField = new TextField("receivingMailbox_label").setValue(lang.get("loading_msg")).setDisabled()
+		const urlFieldAttrs = {
+			label: "url_label",
+			value: stream(getContactFormUrl(brandingDomain, contactForm.path)),
+			disabled: true
+		}
+
+		let mailGroupFieldAttrs = {
+			label: "receivingMailbox_label",
+			value: stream(lang.get("loading_msg")),
+			disabled: true
+		}
 		load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
-			mailGroupField.setValue(getGroupInfoDisplayName(groupInfo))
+			mailGroupFieldAttrs = {
+				label: "receivingMailbox_label",
+				value: stream(getGroupInfoDisplayName(groupInfo)),
+				disabled: true
+			}
 			m.redraw()
 		})
-		let participantMailGroupsField = null
+
+		let participantMailGroupsFieldAttrs = null
 		loadGroupInfos(contactForm.participantGroupInfos)
 			.map(groupInfo => getGroupInfoDisplayName(groupInfo))
 			.then(mailGroupNames => {
 				if (mailGroupNames.length > 0) {
-					participantMailGroupsField = new TextField("responsiblePersons_label")
-						.setValue(mailGroupNames.join("; "))
-						.setDisabled()
+					participantMailGroupsFieldAttrs = {
+						label: "responsiblePersons_label",
+						value: stream(mailGroupNames.join("; ")),
+						disabled: true
+					}
 					m.redraw()
 				}
 			})
 
-		let language = getDefaultContactFormLanguage(this.contactForm.languages)
-		let pageTitleField = new TextField("pageTitle_label").setValue(language.pageTitle).setDisabled()
+		const language = getDefaultContactFormLanguage(this.contactForm.languages)
+		const pageTitleFieldAttrs = {
+			label: "pageTitle_label",
+			value: stream(language.pageTitle),
+			disables: true
+		}
 
 		let statisticsFieldsTable = null
 		if (language.statisticsFields.length > 0) {
@@ -106,13 +126,13 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 						m(".h4", lang.get("emailProcessing_label")),
 						m(ActionBar, {buttons: actionBarButtons}),
 					]),
-					m(mailGroupField),
-					participantMailGroupsField ? m(".mt-l", [
-						m(participantMailGroupsField),
+					m(TextFieldN, mailGroupFieldAttrs),
+					participantMailGroupsFieldAttrs ? m(".mt-l", [
+						m(TextFieldN, participantMailGroupsFieldAttrs),
 					]) : null,
 					m(".h4.mt-l", lang.get("display_action")),
-					m(urlField),
-					m(pageTitleField),
+					m(TextFieldN, urlFieldAttrs),
+					m(TextFieldN, pageTitleFieldAttrs),
 					(statisticsFieldsTable) ? m(".h4.mt-l", lang.get("statisticsFields_label")) : null,
 					(statisticsFieldsTable) ? m(statisticsFieldsTable) : null,
 					(statisticsFieldsTable) ? m(".small", lang.get("statisticsFieldsInfo_msg")) : null,
