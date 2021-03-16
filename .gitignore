@@ -2,6 +2,7 @@ build
 node_modules
 .idea
 .gradle
+test-ca
 **/.DS_STORE
 **/*.xcbkptlist
 **/*.xcuserstate

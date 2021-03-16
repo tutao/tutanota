@@ -14,6 +14,10 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 	const pj = JSON.parse(readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"))
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
+	if(process.env.JENKINS && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
+	const debugkey = process.env.DEBUG_SIGN
+		? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), {encoding: 'utf8'})
+		: undefined
 	return {
 		"name": appName,
 		"main": "./desktop/DesktopMain.js",
@@ -42,7 +46,8 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				+ "IXmzihQyc8Q0VmAfCqEwUtx6RY6BGkqKiDoMh4Qs5ZwFxhoSfgrJiwBmv0HcX1yv\n"
 				+ "QGNSdxrpLuMA/afCPdf49x3iwy+p+paXHKirgM5z6rnikk10Lko7dNXV0735PsZd\n"
 				+ "dQIDAQAB\n"
-				+ "-----END PUBLIC KEY-----"
+				+ "-----END PUBLIC KEY-----",
+				debugkey
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"desktophtml": "./index-desktop.html",
