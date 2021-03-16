@@ -51,12 +51,17 @@ export class MailListView implements Component {
 	//  maybe we should deal with this, or maybe this never becomes an issue?
 	exportedMails: Map<string, {fileName: string, result: AsyncResult<*>}>
 
+	// Used for modifying the cursor during drag and drop
+	listDom: ?HTMLElement
+
+	view: Vnode<void> => Children
+
 	constructor(mailListId: Id, mailView: MailView) {
 
 		this.listId = mailListId
 		this.mailView = mailView
 		this.exportedMails = new Map()
-
+		this.listDom = null
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (start, count) => {
@@ -99,6 +104,9 @@ export class MailListView implements Component {
 			listLoadedCompletly: () => this._fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length),
 			dragStart: (event, row, selected) => this._dragStart(event, row, selected)
 		})
+
+		// "this" is incorrectly bound if we don't do it this way
+		this.view = vnode => this._view(vnode)
 	}
 
 	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
@@ -110,6 +118,10 @@ export class MailListView implements Component {
 		const mailUnderCursor = row.entity
 
 		if (isExportDragEvent(event)) {
+			// We have to remove the drag mod key class here because once the dragstart has begun
+			// we won't receive the keyup event that would normally remove it
+			this.listDom && this.listDom.classList.remove("drag-mod-key")
+
 			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
 			event.preventDefault()
 
@@ -279,7 +291,7 @@ export class MailListView implements Component {
 		})
 	})
 
-	view(vnode: Vnode<void>): Children {
+	_view(vnode: Vnode<void>): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
 		const folder = this.mailView.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {
@@ -303,21 +315,17 @@ export class MailListView implements Component {
 		// listeners to indicate the when mod key is held, dragging will do something
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (isDragAndDropModifierHeld(event)) {
-				// first child give us a ChildNode but in the case we know that it's an Element
-				const listDom: HTMLElement = downcast(vnode.dom.firstChild)
-				listDom.classList.add("drag-mod-key")
+				this.listDom && this.listDom.classList.add("drag-mod-key")
 			}
 		}
 		const onKeyUp = (event: KeyboardEvent) => {
-			if (isDragAndDropModifierHeld(event)) {
-				// first child give us a ChildNode but in the case we know that it's an Element
-				const listDom: HTMLElement = downcast(vnode.dom.firstChild)
-				listDom.classList.remove("drag-mod-key")
-			}
+			// The event doesn't have a
+			this.listDom && this.listDom.classList.remove("drag-mod-key")
 		}
 
 		return m(".mail-list-wrapper", {
 			oncreate: vnode => {
+				this.listDom = downcast(vnode.dom.firstChild)
 				if (canDoDragAndDropExport()) {
 					assertNotNull(document.body).addEventListener("keydown", onKeyDown)
 					assertNotNull(document.body).addEventListener("keyup", onKeyUp)
@@ -389,7 +397,10 @@ export function isExportDragEvent(event: DragEvent): boolean {
 }
 
 function isDragAndDropModifierHeld(event: DragEvent | KeyboardEvent): boolean {
-	return (event.ctrlKey || event.altKey)
+	return event.ctrlKey
+		|| event.altKey
+		// downcast because flow can't figure out what type event.key is for some reason
+		|| (!!event.key && ["alt", "ctrl"].includes(downcast(event.key).toLowerCase()))
 }
 
 
