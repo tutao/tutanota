@@ -623,12 +623,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => {
-								const downloadPromise = import("../../misc/HtmlSanitizer")
-									.then(({htmlSanitizer}) => makeMailBundle(this.mail, locator.entityClient, worker, htmlSanitizer))
-									.then(bundle => exportMails([bundle]))
-								showProgressDialog("pleaseWait_msg", downloadPromise)
-							},
+							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, worker)),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})

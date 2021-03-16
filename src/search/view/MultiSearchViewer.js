@@ -201,12 +201,7 @@ export class MultiSearchViewer {
 				},
 				{
 					label: "export_action",
-					click: () => {
-						import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-							return promiseMap(this.getSelectedMails(), mail => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
-								.then(bundles => exportMails(bundles))
-						})
-					},
+					click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, worker)),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)

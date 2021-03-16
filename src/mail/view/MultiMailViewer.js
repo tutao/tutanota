@@ -20,10 +20,8 @@ import type {PosRect} from "../../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
-import {makeMailBundle} from "../export/Bundler"
-import {worker} from "../../api/main/WorkerClient"
 import {showProgressDialog} from "../../gui/ProgressDialog"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {worker} from "../../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -118,13 +116,9 @@ export class MultiMailViewer {
 				},
 				{
 					label: "export_action",
-					click: this._actionBarAction((mails) => {
-						const downloadPromise =
-							promiseMap(mails, mail => import("../../misc/HtmlSanitizer")
-								.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer)))
-								.then(exportMails)
-						showProgressDialog("pleaseWait_msg", downloadPromise)
-					}),
+					click: this._actionBarAction(
+						(mails) => showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, worker))
+					),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)
