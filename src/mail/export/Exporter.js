@@ -9,6 +9,10 @@ import {isDesktop} from "../../api/common/Env"
 import {Request} from "../../api/common/WorkerProtocol"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {sanitizeFilename} from "../../api/common/utils/FileUtils"
+import type {Mail} from "../../api/entities/tutanota/Mail"
+import {makeMailBundle} from "./Bundler"
+import type {EntityClient} from "../../api/common/EntityClient"
+import type {WorkerClient} from "../../api/main/WorkerClient"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
@@ -23,7 +27,7 @@ export function getMailExportMode(): Promise<MailExportMode> {
 	return isDesktop()
 		? import("../../native/common/NativeWrapper")
 			.then(({nativeApp}) => nativeApp.invokeNative(new Request("sendDesktopConfig", [])))
-			.then(config => config.mailExportMode)
+			.then(config => config.mailExportMode || "eml")
 			.catch(e => {
 				console.log("error getting export mode:", e)
 				return "eml"
@@ -47,14 +51,22 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
  * export mails. a single one will be exported as is, multiple will be put into a zip file
  * a save dialog will then be shown
  * @returns {Promise<void>} resolved after the fileController
- * was instructed to open the new zip File containing the mail eml
- * @param bundles
+ * was instructed to open the new zip File containing the exported files
+ * @param mails
+ * @param entityClient
+ * @param worker
  */
-export function exportMails(bundles: Array<MailBundle>): Promise<void> {
+export function exportMails(mails: Array<Mail>, entityClient: EntityClient, worker: WorkerClient): Promise<void> {
+
+	const downloadPromise =
+		promiseMap(mails, mail => import("../../misc/HtmlSanitizer")
+			.then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, worker, htmlSanitizer)))
+
 	return Promise.all([
-		getMailExportMode(), import("../../file/FileController")
-	]).then(([mode, fileControllerModule]) => {
-		const fileController = fileControllerModule.fileController
+		getMailExportMode(),
+		import("../../file/FileController"),
+		downloadPromise
+	]).then(([mode, {fileController}, bundles]) => {
 		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode))
 			.then(files => {
 				const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
