@@ -25,6 +25,8 @@ import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExpor
 import {fileExists} from "./PathUtils"
 import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import type {MailExportMode} from "../mail/export/Exporter"
+import {EML_DRAG_ICON_B64, MSG_DRAG_ICON_B64} from "./DesktopUtils"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -47,7 +49,7 @@ export class IPC {
 	_desktopUtils: DesktopUtils;
 	_err: DesktopErrorHandler;
 	_integrator: DesktopIntegrator;
-	_dragIcon: NativeImage
+	_dragIcons: {[MailExportMode]: NativeImage}
 
 	constructor(
 		conf: DesktopConfig,
@@ -120,7 +122,10 @@ export class IPC {
 				    })
 			}
 		})
-		this._dragIcon = this._electron.nativeImage.createFromDataURL("data:image/png;base64,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")
+		this._dragIcons = {
+			"eml": this._electron.nativeImage.createFromDataURL(`data:image/png;base64,${EML_DRAG_ICON_B64}`),
+			"msg": this._electron.nativeImage.createFromDataURL(`data:image/png;base64,${MSG_DRAG_ICON_B64}`),
+		}
 	}
 
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
@@ -277,10 +282,7 @@ export class IPC {
 				const files = args[0].map(fileName => path.join(exportDir, fileName)).filter(fileExists)
 				const window = this._wm.get(windowId)
 				window && window._browserWindow.webContents.startDrag(
-					{
-						files,
-						icon: this._dragIcon
-					})
+					{files, icon: this._dragIcons[this._conf.getVar("mailExportMode")]})
 				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {
