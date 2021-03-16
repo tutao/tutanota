@@ -1351,7 +1351,9 @@ styles.registerStyle('main', () => {
 				left: "3px",
 			},
 		},
-
+		'.drag-mod-key *': {
+			cursor: "copy !important"
+		},
 		//We us this class to hide contents that should just be visible for printing
 		".noscreen": {
 			"display": "none",

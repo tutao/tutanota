@@ -22,7 +22,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import {MonitorService} from "../../api/entities/monitor/Services"
 import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
-import {assertNotNull, debounce, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, debounce, downcast, neverNull} from "../../api/common/utils/Utils"
 import {worker} from "../../api/main/WorkerClient"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
@@ -279,7 +279,7 @@ export class MailListView implements Component {
 		})
 	})
 
-	view(): Children {
+	view(vnode: Vnode<void>): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
 		const folder = this.mailView.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {
@@ -300,7 +300,36 @@ export class MailListView implements Component {
 			}
 		}
 
-		return this.showingTrashOrSpamFolder()
+		// listeners to indicate the when mod key is held, dragging will do something
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (isDragAndDropModifierHeld(event)) {
+				// first child give us a ChildNode but in the case we know that it's an Element
+				const listDom: HTMLElement = downcast(vnode.dom.firstChild)
+				listDom.classList.add("drag-mod-key")
+			}
+		}
+		const onKeyUp = (event: KeyboardEvent) => {
+			if (isDragAndDropModifierHeld(event)) {
+				// first child give us a ChildNode but in the case we know that it's an Element
+				const listDom: HTMLElement = downcast(vnode.dom.firstChild)
+				listDom.classList.remove("drag-mod-key")
+			}
+		}
+
+		return m(".mail-list-wrapper", {
+			oncreate: vnode => {
+				if (canDoDragAndDropExport()) {
+					assertNotNull(document.body).addEventListener("keydown", onKeyDown)
+					assertNotNull(document.body).addEventListener("keyup", onKeyUp)
+				}
+			},
+			onbeforeremove: vnode => {
+				if (canDoDragAndDropExport()) {
+					assertNotNull(document.body).removeEventListener("keydown", onKeyDown)
+					assertNotNull(document.body).removeEventListener("keyup", onKeyUp)
+				}
+			}
+		}, this.showingTrashOrSpamFolder()
 			? m(".flex.flex-column.fill-absolute", [
 				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header", [
 					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
@@ -308,7 +337,7 @@ export class MailListView implements Component {
 				]),
 				m(".rel.flex-grow", m(this.list))
 			])
-			: m(this.list)
+			: m(this.list))
 	}
 
 	targetInbox(): boolean {
@@ -356,7 +385,11 @@ export class MailListView implements Component {
 }
 
 export function isExportDragEvent(event: DragEvent): boolean {
-	return canDoDragAndDropExport() && (event.ctrlKey || event.altKey)
+	return canDoDragAndDropExport() && isDragAndDropModifierHeld(event)
+}
+
+function isDragAndDropModifierHeld(event: DragEvent | KeyboardEvent): boolean {
+	return (event.ctrlKey || event.altKey)
 }
 
 
