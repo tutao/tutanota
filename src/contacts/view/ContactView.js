@@ -131,7 +131,7 @@ export class ContactView implements CurrentView {
 	createNewContact(): void {
 		const contactList = this._contactList
 		if (contactList) {
-			new ContactEditor(null, contactList.listId, contactId => contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
+			new ContactEditor(locator.entityClient, null, contactList.listId, contactId => contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 		}
 	}
 

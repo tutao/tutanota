@@ -399,6 +399,13 @@ export function typedKeys<K: string, V>(obj: {[K]: V}): Array<K> {
 /**
  * Ignores the fact that Object.keys returns also not owned properties.
  */
+export function typedEntries<K: string, V>(obj: {[K]: V}): Array<[K, V]> {
+	return downcast(Object.entries(obj))
+}
+
+/**
+ * Ignores the fact that Object.keys returns also not owned properties.
+ */
 export function typedValues<K: string, V>(obj: {[K]: V}): Array<V> {
 	return downcast(Object.values(obj))
 }

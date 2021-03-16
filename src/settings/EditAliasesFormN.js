@@ -24,6 +24,7 @@ import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {firstThrow} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -85,26 +86,51 @@ export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
 			}
 		} else {
 			getAvailableDomains().then(domains => {
-				const form = new SelectMailAddressForm(domains)
+				let isVerificationBusy = false
+				let mailAddress
+				let formErrorId = null
+				let formDomain = stream(firstThrow(domains))
+
+				const mailAddressFormAttrs = {
+					availableDomains: domains,
+					onEmailChanged: (email, validationResult) => {
+						if (validationResult.isValid) {
+							mailAddress = email
+							formErrorId = null
+						} else {
+							formErrorId = validationResult.errorId
+						}
+					},
+					onBusyStateChanged: (isBusy) => isVerificationBusy = isBusy,
+					onDomainChanged: (domain) => formDomain(domain),
+				}
 				const addEmailAliasOkAction = (dialog) => {
-					const alias = form.cleanMailAddress()
-					addAlias(aliasFormAttrs, alias)
+					if (isVerificationBusy) return
+					if (formErrorId) {
+						Dialog.error(formErrorId)
+						return
+					}
+
+					addAlias(aliasFormAttrs, mailAddress)
 					// close the add alias dialog immediately
 					dialog.close()
 				}
 
+				const isTutanotaDomain = formDomain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
+
 				Dialog.showActionDialog({
 					title: lang.get("addEmailAlias_label"),
 					child: {
-						view: () => [
-							m(form),
-							m(ExpanderPanelN,
-								{expanded: form.domain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))},
-								m(".pt-m", lang.get("permanentAliasWarning_msg"))
-							)
-						]
+						view: () => {
+							return [
+								m(SelectMailAddressForm, mailAddressFormAttrs),
+								m(ExpanderPanelN,
+									{expanded: isTutanotaDomain},
+									m(".pt-m", lang.get("permanentAliasWarning_msg"))
+								)
+							]
+						}
 					},
-					validator: () => form.getErrorMessageId(),
 					allowOkWithReturn: true,
 					okAction: addEmailAliasOkAction
 				})

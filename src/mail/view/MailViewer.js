@@ -1118,7 +1118,7 @@ export class MailViewer {
 								this._contactModel.contactListId().then(contactListId => {
 									import("../../contacts/ContactEditor").then(({ContactEditor}) => {
 										const contact = createNewContact(logins.getUserController().user, address.address, address.name)
-										new ContactEditor(contact, contactListId).show()
+										new ContactEditor(this._entityClient, contact, contactListId).show()
 									})
 								})
 							},

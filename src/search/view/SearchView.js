@@ -40,8 +40,6 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
 import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../../misc/Formatter"
-import {TextField} from "../../gui/base/TextField"
-import {Button} from "../../gui/base/Button"
 import {showDatePickerDialog} from "../../gui/date/DatePickerDialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../../api/common/utils/DateUtils"
@@ -64,6 +62,7 @@ import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
+import {TextFieldN} from "../../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -78,9 +77,9 @@ export class SearchView implements CurrentView {
 	oncreate: Function;
 	onremove: Function;
 
+	_timeDisplayValue: string
 	_mailFolder: NavButtonAttrs;
 	_contactFolder: NavButtonAttrs;
-	_time: TextField;
 	_endDate: ?Date; // null = today
 	_startDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
 	_mailFolderSelection: ?DropDownSelector<?string>;
@@ -105,30 +104,8 @@ export class SearchView implements CurrentView {
 
 		this._endDate = null
 		this._startDate = null
-		this._time = new TextField("periodOfTime_label").setValue().setDisabled()
-		let changeTimeButton = new Button("selectPeriodOfTime_label", () => {
-			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog(true)
-			} else {
-				showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
-					(this._endDate) ? this._endDate : new Date())
-					.then(dates => {
-						if (dates.end && isToday(dates.end)) {
-							this._endDate = null
-						} else {
-							this._endDate = dates.end
-						}
-						let current = this._getCurrentMailIndexDate()
-						if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
-							this._startDate = null
-						} else {
-							this._startDate = dates.start
-						}
-						this._searchAgain()
-					})
-			}
-		}, () => Icons.Edit)
-		this._time._injectionsRight = () => [m(changeTimeButton)]
+
+		this._timeDisplayValue = ""
 
 		let mailAttributes = SEARCH_MAIL_FIELDS.map(f => {
 			return {name: lang.get(f.textId), value: f.field}
@@ -203,7 +180,7 @@ export class SearchView implements CurrentView {
 										lang.get("filter_label").toLocaleUpperCase())
 								]),
 								m(".plr-l.mt-negative-s", [
-									m(this._getUpdatedTimeField()),
+									this._getUpdatedTimeField(),
 									this._mailFieldSelection ? m(this._mailFieldSelection) : null,
 									this._mailFolderSelection ? m(this._mailFolderSelection) : null,
 								])
@@ -264,7 +241,7 @@ export class SearchView implements CurrentView {
 				? m(ButtonN, {
 					click: () => {
 						locator.contactModel.contactListId().then(contactListId => {
-							new ContactEditor(null, contactListId, null).show()
+							new ContactEditor(locator.entityClient, null, contactListId, null).show()
 						})
 					},
 					label: "newContact_action",
@@ -291,9 +268,10 @@ export class SearchView implements CurrentView {
 		}
 	}
 
-	_getUpdatedTimeField(): TextField {
+	_getUpdatedTimeField(): Children {
 		let end: string
 		let start: string
+
 		if (logins.getUserController().isFreeAccount()) {
 			end = lang.get("today_label")
 			start = formatDateWithMonth(getFreeSearchStartDate())
@@ -318,11 +296,44 @@ export class SearchView implements CurrentView {
 				}
 			}
 		}
-		let text = start + " - " + end
-		if (this._time.value() !== text) {
-			this._time.setValue(text)
+
+		this._timeDisplayValue = start + " - " + end
+
+		const changeTimeButtonAttrs = {
+			label: "selectPeriodOfTime_label",
+			click: () => {
+				if (logins.getUserController().isFreeAccount()) {
+					showNotAvailableForFreeDialog(true)
+				} else {
+					showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+						(this._endDate) ? this._endDate : new Date())
+						.then(dates => {
+							if (dates.end && isToday(dates.end)) {
+								this._endDate = null
+							} else {
+								this._endDate = dates.end
+							}
+							let current = this._getCurrentMailIndexDate()
+							if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
+								this._startDate = null
+							} else {
+								this._startDate = dates.start
+							}
+							this._searchAgain()
+						})
+				}
+			},
+			icon: () => Icons.Edit,
 		}
-		return this._time
+
+		const timeDisplayAttrs = {
+			label: "periodOfTime_label",
+			value: stream(this._timeDisplayValue),
+			disabled: true,
+			injectionsRight: () => [m(ButtonN, changeTimeButtonAttrs)]
+		}
+
+		return m(TextFieldN, timeDisplayAttrs)
 	}
 
 	_searchAgain(): void {
@@ -408,7 +419,7 @@ export class SearchView implements CurrentView {
 						newMailEditor().then(editor => editor.show()).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
 						locator.contactModel.contactListId().then(contactListId => {
-							new ContactEditor(null, contactListId, null).show()
+							new ContactEditor(locator.entityClient, null, contactListId, null).show()
 						})
 					}
 				},
@@ -560,7 +571,7 @@ export class SearchView implements CurrentView {
 			return {
 				click: () => {
 					locator.contactModel.contactListId().then(contactListId => {
-						new ContactEditor(null, contactListId, null).show()
+						new ContactEditor(locator.entityClient, null, contactListId, null).show()
 					})
 				},
 				label: "newContact_action",

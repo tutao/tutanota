@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity"
@@ -20,7 +19,6 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
-import {MailboxServerPropertiesTypeRef} from "../api/entities/tutanota/MailboxServerProperties"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {Table} from "../gui/base/Table"
 import {ColumnWidth} from "../gui/base/TableN"
@@ -48,6 +46,8 @@ import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/Gr
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
+import {ButtonN} from "../gui/base/ButtonN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -57,20 +57,23 @@ export class UserViewer {
 	_user: LazyLoaded<User>;
 	_customer: LazyLoaded<Customer>;
 	_teamGroupInfos: LazyLoaded<GroupInfo[]>;
-	_senderName: TextField;
+	_senderName: string
 	_groupsTable: ?Table;
 	_contactFormsTable: ?Table;
-	_usedStorage: TextField;
 	_admin: DropDownSelector<boolean>;
 	_administratedBy: DropDownSelector<?Id>;
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
 	_editAliasFormAttrs: EditAliasesFormAttrs;
+	_usedStorage: number | null
 
 
 	constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
+		// used storage is unknown initially
+		this._usedStorage = null
 		this.userGroupInfo = userGroupInfo
+		this._senderName = this.userGroupInfo.name || ""
 		this._user = new LazyLoaded(() => {
 			return load(GroupTypeRef, this.userGroupInfo.group).then(userGroup => {
 				return load(UserTypeRef, neverNull(userGroup.user))
@@ -79,20 +82,6 @@ export class UserViewer {
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
 		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
-		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
-		let editSenderNameButton = new Button("edit_action", () => {
-			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
-			      .then(newName => {
-				      this.userGroupInfo.name = newName
-				      update(this.userGroupInfo)
-			      })
-		}, () => Icons.Edit)
-		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
-
-		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
-		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created))
-		                                            .setDisabled()
-		this._usedStorage = new TextField("storageCapacityUsed_label").setValue(lang.get("loading_msg")).setDisabled()
 
 		this._admin = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
@@ -110,7 +99,6 @@ export class UserViewer {
 			}
 		})
 
-
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
@@ -121,10 +109,6 @@ export class UserViewer {
 				this._deleteUser(!deactivate)
 			}
 		})
-
-		let password = new TextField("password_label").setValue("***").setDisabled()
-		let changePasswordButton = new Button("changePassword_label", () => this._changePassword(), () => Icons.Edit)
-		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
 
@@ -191,73 +175,89 @@ export class UserViewer {
 			updateNbrOfAliases(this._editAliasFormAttrs)
 		}
 
-
-		this.view = () => {
-			const whitelistProtection = this._whitelistProtection
-
-			return [
-				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
-					m(".h4.mt-l", lang.get('userSettings_label')),
-					m("", [
-						m(mailAddress),
-						m(created),
-						m(this._usedStorage),
-					]),
-					m("", [
-						m(this._senderName),
-						m(password),
-						!logins.getUserController().isGlobalAdmin() ? null : [
-							m(this._admin),
-							this._administratedBy ? m(this._administratedBy) : null,
-						],
-						m(this._deactivated)
-					]),
-					(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
-					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
-					(this._groupsTable) ? m(this._groupsTable) : null,
-					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
-					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
-					m(EditAliasesFormN, this._editAliasFormAttrs),
-					logins.getUserController().isPremiumAccount() && whitelistProtection
-						? [
-							m(".h4.mt-l", lang.get('mailSettings_label')),
-							m(whitelistProtection)
-						]
-						: null
-				]),
-			]
-		}
-
-		this._createOrUpdateWhitelistProtectionField()
 		this._updateUsedStorageAndAdminFlag()
 	}
 
-	_createOrUpdateWhitelistProtectionField() {
-		// currently not available
-		// if (!logins.getUserController().isGlobalAdmin()) {
-		// 	return
-		// }
-		// this._user.getAsync().then(user => {
-		// 	let userMailGroupId = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail)).group
-		// 	return load(MailboxGroupRootTypeRef, userMailGroupId).then(mailboxGroupRoot => {
-		// 		return load(MailboxServerPropertiesTypeRef, mailboxGroupRoot.serverProperties).then(props => {
-		// 			if (!this._whitelistProtection) {
-		// 				this._whitelistProtection = new DropDownSelector("whitelistProtection_label", () => lang.get("whitelistProtectionInfo_label"), [
-		// 					{name: lang.get("activated_label"), value: true},
-		// 					{name: lang.get("deactivated_label"), value: false}
-		// 				], props.whitelistProtectionEnabled).setSelectionChangedHandler(v => {
-		// 					props.whitelistProtectionEnabled = v
-		// 					update(props)
-		// 				})
-		// 				m.redraw()
-		// 			} else {
-		// 				this._whitelistProtection.selectedValue(props.whitelistProtectionEnabled)
-		// 			}
-		// 		})
-		// 	}).catch(NotFoundError, e => {
-		// 		// not migrated yet
-		// 	})
-		// })
+	view(vnode: Vnode<any>): Children {
+		const editSenderNameButtonAttrs = {
+			label: "edit_action",
+			click: () => {
+				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName)
+				      .then(newName => {
+					      this.userGroupInfo.name = newName
+					      update(this.userGroupInfo)
+				      })
+			},
+			icon: Icons.Edit,
+		}
+		const senderNameFieldAttrs = {
+			label: "mailName_label",
+			value: stream(this._senderName),
+			disabled: true,
+			injectionsRight: () => [m(ButtonN, editSenderNameButtonAttrs)]
+		}
+
+		const mailAddressFieldAttrs = {
+			label: "mailAddress_label",
+			value: stream(this.userGroupInfo.mailAddress),
+			disabled: true,
+		}
+
+		const createdFieldAttrs = {
+			label: "created_label",
+			value: stream(formatDateWithMonth(this.userGroupInfo.created)),
+			disabled: true
+		}
+
+		const usedStorageFieldAttrs = {
+			label: "storageCapacityUsed_label",
+			value: this._usedStorage ? stream(formatStorageSize(this._usedStorage)) : stream(lang.get("loading_msg")),
+			disabled: true,
+		}
+
+		const changePasswordButtonAttrs = {
+			label: "changePassword_label",
+			click: () => this._changePassword(),
+			icon: Icons.Edit,
+
+		}
+		const passwordFieldAttrs = {
+			label: "password_label",
+			value: stream("***"),
+			injectionsRight: () => [m(ButtonN, changePasswordButtonAttrs)],
+			disabled: true
+		}
+
+		const whitelistProtection = this._whitelistProtection
+		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
+			m(".h4.mt-l", lang.get('userSettings_label')),
+			m("", [
+				m(TextFieldN, mailAddressFieldAttrs),
+				m(TextFieldN, createdFieldAttrs),
+				m(TextFieldN, usedStorageFieldAttrs),
+			]),
+			m("", [
+				m(TextFieldN, senderNameFieldAttrs),
+				m(TextFieldN, passwordFieldAttrs),
+				!logins.getUserController().isGlobalAdmin() ? null : [
+					m(this._admin),
+					this._administratedBy ? m(this._administratedBy) : null,
+				],
+				m(this._deactivated)
+			]),
+			(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
+			(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
+			(this._groupsTable) ? m(this._groupsTable) : null,
+			(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
+			(this._contactFormsTable) ? m(this._contactFormsTable) : null,
+			m(EditAliasesFormN, this._editAliasFormAttrs),
+					logins.getUserController().isPremiumAccount() && whitelistProtection
+				? [
+					m(".h4.mt-l", lang.get('mailSettings_label')),
+							m(whitelistProtection)
+				]
+				: null
+		])
 	}
 
 	_isItMe(): boolean {
@@ -412,7 +412,7 @@ export class UserViewer {
 			this._admin.selectedValue(isAdmin)
 
 			return worker.readUsedUserStorage(user).then(usedStorage => {
-				this._usedStorage.setValue(formatStorageSize(usedStorage))
+				this._usedStorage = usedStorage
 				m.redraw()
 			}).catch(BadRequestError, e => {
 				// may happen if the user gets the admin flag removed
@@ -454,7 +454,7 @@ export class UserViewer {
 				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
 				promise = load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 					this.userGroupInfo = updatedUserGroupInfo
-					this._senderName.setValue(updatedUserGroupInfo.name)
+					this._senderName = updatedUserGroupInfo.name
 					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
 					return this._updateUsedStorageAndAdminFlag().then(() => {
 						if (this._administratedBy) {
@@ -470,8 +470,6 @@ export class UserViewer {
 				promise = this._updateUsedStorageAndAdminFlag().then(() => {
 					return this._updateGroups()
 				})
-			} else if (isUpdateForTypeRef(MailboxServerPropertiesTypeRef, update)) {
-				this._createOrUpdateWhitelistProtectionField()
 			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
 				promise = this._updateContactForms()
 			}

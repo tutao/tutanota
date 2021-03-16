@@ -13,12 +13,13 @@ import {neverNull} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {TableAttrs} from "../../gui/base/TableN"
 import {ColumnWidth, TableN} from "../../gui/base/TableN"
 import {theme} from "../../gui/theme"
-import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
+import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -29,11 +30,11 @@ import {isSameId} from "../../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
-export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
+export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAttrs> {
 
 	_entityEventListener: ?EntityEventsListener
 
-	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	oncreate(vnode: Vnode<AddEmailAddressesPageAttrs>) {
 		const wizardAttrs = vnode.attrs
 		this._entityEventListener = (updates) => {
 			return Promise.each(updates, update => {
@@ -49,12 +50,6 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 		}
 		locator.eventController.addEntityListener(this._entityEventListener)
 
-		const addAliasButtonAttrs = {
-			label: "addEmailAlias_label",
-			icon: () => Icons.Checkmark,
-			click: () => addAliasFromInput(wizardAttrs.data),
-		}
-		wizardAttrs.data.emailAliasInput = new SelectMailAddressForm([wizardAttrs.data.domain()], addAliasButtonAttrs)
 		updateNbrOfAliases(wizardAttrs.data.editAliasFormAttrs)
 
 	}
@@ -65,7 +60,7 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 		}
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
+	view(vnode: Vnode<AddEmailAddressesPageAttrs>): Children {
 		const a = vnode.attrs
 		const aliasesTableAttrs: TableAttrs = {
 			columnWidths: [ColumnWidth.Largest],
@@ -95,12 +90,31 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 			}
 		}
 
+		const mailFormAttrs = {
+			availableDomains: [a.data.domain()],
+			onEmailChanged: (email, validationResult) => {
+				if (validationResult.isValid) {
+					a.mailAddress = email
+					a.errorMessageId = null
+				} else {
+					a.errorMessageId = validationResult.errorId
+				}
+			},
+			onBusyStateChanged: (isBusy) => a.isMailVerificationBusy = isBusy,
+			injectionsRightButtonAttrs: {
+				label: "addEmailAlias_label",
+				icon: () => Icons.Checkmark,
+				click: () => vnode.attrs.addAliasFromInput().then(() => {
+					m.redraw()
+				}),
+			}
+		}
 		return m("", [
 			m("h4.mt-l.text-center", lang.get("addCustomDomainAddresses_title")),
 			m(".mt.mb", lang.get("addCustomDomainAdresses_msg")),
 			m(".h4.mt", lang.get("emailAlias_label")),
 			m(".mt", lang.get("addCustomDomainAliases_msg")),
-			m(a.data.emailAliasInput),
+			m(SelectMailAddressForm, mailFormAttrs),
 			m(".small.left", (a.data.editAliasFormAttrs.aliasCount.availableToCreate === 0) ?
 				lang.get("adminMaxNbrOfAliasesReached_msg")
 				: lang.get('mailAddressAliasesMaxNbr_label', {'{1}': a.data.editAliasFormAttrs.aliasCount.availableToCreate})),
@@ -128,29 +142,17 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 	}
 }
 
-//Try to add an alias from input field and return true if it succeeded
-function addAliasFromInput(data: AddDomainData): Promise<boolean> {
-	const error = data.emailAliasInput.getErrorMessageId()
-	if (error) {
-		return Dialog.error(error).then(() => false)
-	} else {
-		return showProgressDialog("pleaseWait_msg", worker.addMailAlias(data.editAliasFormAttrs.userGroupInfo.group, data.emailAliasInput.getCleanMailAddress()))
-			.then(() => {
-				data.emailAliasInput._username("")
-				return true
-			})
-			.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
-			.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false))
-			.finally((result) => updateNbrOfAliases(data.editAliasFormAttrs).then(() => result))
-	}
-}
-
 export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData> {
-
 	data: AddDomainData
+	mailAddress: string
+	errorMessageId: ?TranslationKey
+	isMailVerificationBusy: boolean
 
 	constructor(domainData: AddDomainData) {
 		this.data = domainData
+		this.mailAddress = ""
+		this.errorMessageId = null
+		this.isMailVerificationBusy = false
 	}
 
 	headerTitle(): string {
@@ -158,12 +160,14 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		if (this.isMailVerificationBusy) return Promise.resolve(false)
+
 		//We try to add an alias from the input field, if it is not empty and error dialogs are allowed
-		if (showErrorDialog && this.data.emailAliasInput.getErrorMessageId() !== "mailAddressNeutral_msg") {
+		if (showErrorDialog && this.errorMessageId) {
 			//We already showed one error dialog if failing to add an alias from the input field.
 			//The user has to clean the input field up before proceeding to the next page (even if there is already an alias)
 			//We are done if we succeeded to add the alias
-			return addAliasFromInput(this.data)
+			return this.addAliasFromInput()
 		}
 		//Otherwise we check that there is either an alias or a user (or an alias for some other user) defined for the custom domain regardless of activation status
 		const checkMailAddresses = Promise.resolve().then(() => {
@@ -189,5 +193,27 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	isSkipAvailable(): boolean {return true}
 
 	isEnabled(): boolean {return true}
+
+	/**
+	 * Try to add an alias from input field and return true if it succeeded
+	 */
+	addAliasFromInput(): Promise<boolean> {
+		const error = this.errorMessageId
+		if (error) {
+			return Dialog.error(error).then(() => false)
+		} else {
+			return showProgressDialog("pleaseWait_msg", worker
+				.addMailAlias(this.data.editAliasFormAttrs.userGroupInfo.group, this.mailAddress))
+				.then(() => {
+					// FIXME: email must be reset after adding it to the list of emails, dewit
+					// this.data.emailAliasInput._username("")
+					return true
+				})
+				.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
+				.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false))
+				.finally((result) => updateNbrOfAliases(this.data.editAliasFormAttrs).then(() => result))
+		}
+	}
+
 }
 

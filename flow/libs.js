@@ -256,9 +256,9 @@ interface Attributes {
 	[key: string]: any;
 }
 
-type $Attrs<T> = $ReadOnly<$Exact<T>>
+type $Attrs<+T> = $ReadOnly<T>
 
-interface MComponent<Attrs> extends Lifecycle<Attrs> {
+interface MComponent<+Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */
 	view(vnode: Vnode<Attrs>): ?Children;
 }
