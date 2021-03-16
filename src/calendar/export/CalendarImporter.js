@@ -13,11 +13,12 @@ import {assertNotNull, downcast, neverNull} from "../../api/common/utils/Utils"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {ParserError} from "../../misc/parsing"
 import {incrementDate} from "../../api/common/utils/DateUtils"
-import {flat} from "../../api/common/utils/ArrayUtils"
+import {flat, mapAndFilterNull} from "../../api/common/utils/ArrayUtils"
 import {DateTime} from "luxon"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import {CALENDAR_MIME_TYPE} from "../../file/FileController"
+import {getLetId} from "../../api/common/utils/EntityUtils"
 
 export type ParsedCalendarData = {method: string, contents: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>}
 
@@ -186,7 +187,14 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
 		.concat(serializeRepeatRule(repeatRule, isAllDay, timeZone))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
-		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
+		.concat(...mapAndFilterNull(alarms, (alarm) => {
+			try {
+				return serializeAlarm(event, alarm)
+			} catch (e) {
+				console.log(`error serializing alarm ${getLetId(alarm).toString()} for event ${getLetId(event).toString()}:`, e)
+				return null
+			}
+		}))
 		.concat(serializeParticipants(event))
 		.concat("END:VEVENT")
 }
