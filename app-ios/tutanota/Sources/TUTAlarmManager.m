@@ -114,6 +114,23 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
                 [strongSelf.userPreference removeUser:userId];
                 queueCompletionHandler();
                 [strongSelf fetchMissedNotifications:completionHandler];
+            } else if (httpResponse.statusCode == 503) {
+              NSString *_Nullable retryAfterHeader = httpResponse.allHeaderFields[@"Retry-After"];
+              if (retryAfterHeader == nil) {
+                retryAfterHeader = httpResponse.allHeaderFields[@"Suspension-Time"];
+              }
+              int suspensionTime;
+              if (retryAfterHeader != nil) {
+                suspensionTime = retryAfterHeader.intValue;
+              } else {
+                suspensionTime = 0;
+              }
+              TUTLog(@"ServiceUnavailible when downloading missed notifications, waiting for %d s", suspensionTime);
+              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, suspensionTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                TUTLog(@"Timer fired");
+                [weakSelf fetchMissedNotifications:completionHandler];
+              });
+              queueCompletionHandler();
             } else if (httpResponse.statusCode == 404) {
                 complete(nil);
             } else if (httpResponse.statusCode != 200) {
