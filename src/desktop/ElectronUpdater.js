@@ -138,10 +138,10 @@ export class ElectronUpdater {
 					// see https://github.com/tutao/tutanota/issues/1413#issuecomment-796737959
 					// see c4b12e9
 					this._updater.electronUpdater.then((autoUpdater) => {
-						// This is a "protected" function which we use to avoid force restart.
-						const installed = autoUpdater.install(false, false)
-						log.debug("Update installed: ", installed)
-						setImmediate(() => this._app.quit())
+						// quitAndInstall takes two arguments which are only used for windows and linux updater.
+						// isSilent and isForceRunAfter. If the first one is set to false then the second one is set to true implicitly.
+						// we want a silent install on quit anyway (as we disabled update on quit for windows) and no restart of the application.
+						autoUpdater.quitAndInstall(true, false)
 					})
 				}
 

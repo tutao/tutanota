@@ -507,8 +507,8 @@ declare module 'electron' {
 		executeJavaScript(code: string): Promise<any>;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
-		setZoomFactor(f: number) : void;
-		getZoomFactor() : number;
+		setZoomFactor(f: number): void;
+		getZoomFactor(): number;
 		copy(): void;
 		cut(): void;
 		paste(): void;
@@ -586,7 +586,6 @@ declare class AutoUpdater {
 	checkForUpdatesAndNotify(): Promise<any>;
 	checkForUpdates(): Promise<UpdateCheckResult>;
 	downloadUpdate(): Promise<Array<String>>; // paths of the dl'd assets
-	install(isSilent?: boolean, isForceRunAfter?: boolean): void;
 	quitAndInstall(isSilent?: boolean, isForceRunAfter?: boolean): void;
 	autoInstallOnAppQuit: boolean;
 	allowDowngrade: boolean;
