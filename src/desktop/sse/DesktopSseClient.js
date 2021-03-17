@@ -2,7 +2,7 @@
 
 import type {App} from "electron"
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
+import {filterInt, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfig} from "../config/DesktopConfig"
@@ -16,10 +16,17 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
-import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
+import {
+	handleRestError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	ServiceUnavailableError,
+	TooManyRequestsError
+} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -298,15 +305,26 @@ export class DesktopSseClient {
 				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			                          }
 		                          })
-		                          .catch(FileNotFoundError, e => log.debug('404:', e))
-		this._handlingPushMessage = this._handlingPushMessage.then(process, (e) => {
-			if (e instanceof NotAuthenticatedError) {
-				throw e
-			} else {
-				log.debug("Error while downloading missed notification", e)
-				return process()
-			}
-		})
+		                          .catch(e => {
+			                          if (e instanceof FileNotFoundError) {
+				                          log.debug('MissedNotification 404:', e)
+			                          } else if (e instanceof ServiceUnavailableError) {
+
+			                          } else {
+				                          throw e
+			                          }
+		                          })
+		this._handlingPushMessage = this._handlingPushMessage
+		                                .then(
+			                                process,
+			                                (e) => {
+				                                if (e instanceof NotAuthenticatedError) {
+					                                throw e
+				                                } else {
+					                                log.debug("Error while downloading missed notification", e)
+					                                return process()
+				                                }
+			                                })
 		return this._handlingPushMessage
 	}
 
@@ -371,7 +389,17 @@ export class DesktopSseClient {
 			                })
 			                .on('response', res => {
 				                log.debug("missed notification response", res.statusCode)
-				                if (res.statusCode !== 200) {
+				                if (res.statusCode === ServiceUnavailableError.CODE &&
+					                (res.headers["retry-after"] || res.headers["suspension-time"])
+				                ) {
+					                // headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
+					                const time = filterInt(res.headers["retry-after"] || res.headers["suspension-time"])
+					                log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
+					                delay(time * 1000)
+						                .then(() => this._downloadMissedNotification(userId))
+						                .then(resolve, reject)
+					                return
+				                } else if (res.statusCode !== 200) {
 					                const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
 					                fail(req, res, tutanotaError)
 					                return
