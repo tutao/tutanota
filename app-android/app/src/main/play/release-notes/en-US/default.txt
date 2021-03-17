@@ -1,4 +1,3 @@
-- Business feature
-- Out of office notification
-- Add Korean and Hebrew translations
-- Fix support for older devices
+- Fix calendar attendees without PARTSTAT
+- Fix duplicated contacts in suggestion dialog
+- Fix initial scheduling of event reminders
