@@ -11,8 +11,7 @@ import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {logins} from "../../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
+import {showProgressDialog} from "../../gui/ProgressDialog"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -83,7 +82,7 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 }
 
 function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatusEnum, previousMail: Mail) {
-	import("../../calendar/CalendarInvites")
+	showProgressDialog("pleaseWait_msg", import("../../calendar/CalendarInvites")
 		.then(({getLatestEvent, replyToEventInvitation}) => {
 			return getLatestEvent(event).then(latestEvent => {
 				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
@@ -96,5 +95,5 @@ function sendResponse(event: CalendarEvent, recipient: string, status: CalendarA
 					.then(m.redraw)
 			})
 		})
-
+	)
 }
