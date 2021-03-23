@@ -223,6 +223,7 @@ export default {
 		"confidentialStatus_msg": "Diese Nachricht wird Ende-zu-Ende verschlüsselt.",
 		"confidential_action": "Vertraulich",
 		"confirmCountry_msg": "Zur Bestimmung der zu berechnenden Mehrwertsteuer benötigen wir die Bestätigung, dass du in diesem Land wohnst: {1}.",
+		"confirmCustomDomainDeletion_msg": "Bist du sicher, dass du die eigene Domain \"{domain}\" entfernen möchtest?",
 		"confirmDeactivateCustomColors_msg": "Möchtest du wirklich deine eigenen Farben deaktivieren?",
 		"confirmDeactivateCustomLogo_msg": "Möchtest du wirklich dein eigenes Logo deaktivieren?",
 		"confirmDeactivateWhitelabelDomain_msg": "Möchtest du wirklich den Tutanota-Login für deine Domain deaktivieren und das SSL-Zertifikat sowie eigenes Logo und eigene Farben löschen?",

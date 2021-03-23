@@ -219,6 +219,7 @@ export default {
 		"confidentialStatus_msg": "This message will be sent end-to-end encrypted.",
 		"confidential_action": "Confidential",
 		"confirmCountry_msg": "To calculate the value added tax we need you to confirm your country: {1}.",
+		"confirmCustomDomainDeletion_msg": "Are you sure you want to remove the custom email domain \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Would you really like to deactivate your custom colors?",
 		"confirmDeactivateCustomLogo_msg": "Would you really like to deactivate your custom logo?",
 		"confirmDeactivateWhitelabelDomain_msg": "Would you really like to deactivate the Tutanota login for your domain and delete the SSL certificate, custom logo and custom colors?",

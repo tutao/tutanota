@@ -49,6 +49,7 @@ import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {formatPrice} from "../subscription/PriceUtils"
 
 assertMainOrNode()
 
@@ -514,18 +515,23 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_deleteCustomDomain(domainInfo: DomainInfo) {
-		worker.removeDomain(domainInfo.domain)
-		      .catch(PreconditionFailedError, e => {
-			      let registrationDomains = this._props() != null ? this._props()
-			                                                            .whitelabelRegistrationDomains
-			                                                            .map(domainWrapper => domainWrapper.value) : []
-			      if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-				      Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
-			      } else {
-				      Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+		Dialog.confirm(() => lang.get("confirmCustomDomainDeletion_msg", {"{domain}": domainInfo.domain}))
+		      .then(confirmed => {
+			      if (confirmed) {
+				      worker.removeDomain(domainInfo.domain)
+				            .catch(PreconditionFailedError, e => {
+					            let registrationDomains = this._props() != null ? this._props()
+					                                                                  .whitelabelRegistrationDomains
+					                                                                  .map(domainWrapper => domainWrapper.value) : []
+					            if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
+						            Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+					            } else {
+						            Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+					            }
+				            })
+				            .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 			      }
 		      })
-		      .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
