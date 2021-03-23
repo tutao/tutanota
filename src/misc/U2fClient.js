@@ -1,7 +1,7 @@
 //@flow
 import {TutanotaError} from "../api/common/error/TutanotaError"
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {assertMainOrNode, getHttpOrigin, isApp} from "../api/common/Env"
+import {assertMainOrNode, getHttpOrigin, isApp, isDesktop} from "../api/common/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
@@ -45,7 +45,7 @@ export class U2fClient {
 	 * Returns true if U2F is supported in this client. Attention: this call may take up to 1 second.
 	 */
 	isSupported(): Promise<boolean> {
-		if (isApp() || client.browser === BrowserType.EDGE) return Promise.resolve(false)
+		if (isDesktop() || isApp() || client.browser === BrowserType.EDGE) return Promise.resolve(false)
 		if (window.u2f && window.u2f.register) return Promise.resolve(true)
 		return this.checkVersionWithTimeout().catch(() => false)
 	}
