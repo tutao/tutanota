@@ -120,7 +120,7 @@ o.spec("IPC tests", function () {
 				openItem: file => file === "/file/to/open"
 			},
 			nativeImage: {
-				createFromDataURL: () => {}
+				createFromPath: () => {}
 			}
 		}
 

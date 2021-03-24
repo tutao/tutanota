@@ -5,7 +5,7 @@ import type {WindowManager} from "../DesktopWindowManager"
 import {lang} from "../../misc/LanguageViewModel"
 import type {PlatformTray} from './DesktopTray'
 import path from "path"
-import {getResourcesPath} from "../DesktopUtils"
+import {getResourcePath} from "../resources"
 
 /*
 * This file provides the functionality used by DesktopTray on windows & linux.
@@ -51,7 +51,7 @@ function setBadge() {}
 function clearBadge() {}
 
 function iconPath(iconName: string): string {
-	return path.join(getResourcesPath(), `icons/${iconName}`)
+	return getResourcePath(`icons/${iconName}`)
 }
 
 export const platformTray: PlatformTray = {

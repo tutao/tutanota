@@ -21,7 +21,6 @@
             }).then(threeDS => {
                 return threeDS.verifyCard({
                     onLookupComplete: function (data, next) {
-                        // console.log("lookup-complete", data)
                         next()
                     },
                     amount: price,
@@ -30,7 +29,6 @@
                     challengeRequested: true,
                 })
             }).then((result) => {
-                console.log("success", result)
                 fetch(`${location.origin}/rest/sys/paymentdataservice`, {
                     method: 'POST',
                     headers: {
@@ -41,7 +39,6 @@
                         braintree3dsResponse: {_id: "lq3tLw", clientToken, nonce: result.nonce}
                     }) // body data type must match "Content-Type" header
                 }).then(response => {
-                    // console.log(">>>", response)
                     document.getElementById("message").textContent = "Your payment details were successfully linked to your Tutanota account!"
                     document.getElementById("message2").textContent = "You may close this tab and return to the app."
                     // ClientType.App
@@ -49,7 +46,6 @@
                     else window.close();
                 })
             }).catch(e => {
-                // console.log("error", e)
                 document.getElementById("message").textContent = "Sorry, the verification of your payment details was unsuccessful."
                 document.getElementById("message2").textContent = "You may return to the app to see what went wrong."
                 // ClientType.App

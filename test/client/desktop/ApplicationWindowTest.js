@@ -118,10 +118,10 @@ o.spec("ApplicationWindow Test", function () {
 							},
 							goForward: function () {
 							},
-							setZoomFactor: function(n: number) {
+							setZoomFactor: function (n: number) {
 								this.zoomFactor = n
 							},
-							getZoomFactor: function() {
+							getZoomFactor: function () {
 								return 1
 							},
 							toggleDevTools: function () {
@@ -248,12 +248,22 @@ o.spec("ApplicationWindow Test", function () {
 			webPreferences: {
 				nodeIntegration: false,
 				nodeIntegrationInWorker: false,
+				nodeIntegrationInSubFrames: false,
 				sandbox: true,
 				contextIsolation: true,
 				webSecurity: true,
 				enableRemoteModule: false,
+				allowRunningInsecureContent: false,
 				preload: '/path/to/app/desktop/preload.js',
-				spellcheck: false
+				spellcheck: false,
+				webgl: false,
+				plugins: false,
+				experimentalFeatures: false,
+				webviewTag: false,
+				disableDialogs: true,
+				navigateOnDragDrop: false,
+				autoplayPolicy: 'user-gesture-required',
+				enableWebSQL: false,
 			}
 		})
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
@@ -274,9 +284,14 @@ o.spec("ApplicationWindow Test", function () {
 			'before-input-event',
 			'did-finish-load',
 			'did-fail-load',
+			'remote-require',
+			'remote-get-global',
+			'remote-get-builtin',
+			'remote-get-current-web-contents',
+			'remote-get-current-window',
 			'zoom-changed',
 			'update-target-url'
-		])
+		])("webContents registered callbacks dont match")
 
 		// noAutoLogin=true
 		const w2 = new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock, true)
@@ -498,39 +513,52 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.setFullScreen.args[0]).equals(true)
 	})
 
-	o("url rewriting", function () {
-		const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
+	o.spec("url rewriting", function () {
+		let bwInstance
+		let e
 
+		o.beforeEach(function () {
+			const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
+			e = {preventDefault: o.spy()}
 
-		const w = new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock)
-		w.on('did-start-navigation', () => {})
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			const w = new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock)
+			w.on('did-start-navigation', () => {})
+			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		})
 
-		const e = {preventDefault: o.spy()}
-		bwInstance.webContents.callbacks['did-start-navigation'](e, "evil.com", true)
-		o(bwInstance.emit.callCount).equals(1)
-		o(bwInstance.emit.args).deepEquals(["did-start-navigation"])
-		o(e.preventDefault.callCount).equals(1)
-		o(bwInstance.loadURL.callCount).equals(2) // initial + navigation
-		o(bwInstance.loadURL.args[0]).equals("file:///path/to/app/desktophtml")
+		o("external url", function () {
+			bwInstance.webContents.callbacks['did-start-navigation'](e, "http://evil.com", true)
+			o(bwInstance.emit.callCount).equals(1)
+			o(bwInstance.emit.args).deepEquals(["did-start-navigation"])
+			o(e.preventDefault.callCount).equals(1)
+			o(bwInstance.loadURL.callCount).equals(2) // initial + navigation
+			o(bwInstance.loadURL.args[0]).equals("file:///path/to/app/desktophtml")
+		})
 
-		bwInstance.webContents.callbacks['did-start-navigation'](e, `chrome-extension://${U2F_EXTENSION_ID}`, true)
-		o(e.preventDefault.callCount).equals(1)
-		o(bwInstance.loadURL.callCount).equals(2) // nothing happened
+		o("u2f", function () {
+			bwInstance.webContents.callbacks['did-start-navigation'](e, `chrome-extension://${U2F_EXTENSION_ID}`, true)
+			o(e.preventDefault.callCount).equals(1)
+			o(bwInstance.loadURL.callCount).equals(2)
+		})
 
-		bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml?r=%2Flogin%3FnoAutoLogin%3Dtrue", true)
-		o(e.preventDefault.callCount).equals(2)
-		o(bwInstance.loadURL.callCount).equals(3)
-		o(bwInstance.loadURL.args[0]).equals("file:///path/to/app/desktophtml?noAutoLogin=true")
+		o("redirect to login with noAutologin", function () {
+			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml?r=%2Flogin%3FnoAutoLogin%3Dtrue", true)
+			o(e.preventDefault.callCount).equals(2)
+			o(bwInstance.loadURL.callCount).equals(3)
+			o(bwInstance.loadURL.args[0]).equals("file:///path/to/app/desktophtml?noAutoLogin=true")
+		})
 
-		bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", true)
-		o(e.preventDefault.callCount).equals(2)
-		o(bwInstance.loadURL.callCount).equals(3)
+		o("login with noAutoLogin, inPlace", function () {
+			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", true)
+			o(e.preventDefault.callCount).equals(2)
+			o(bwInstance.loadURL.callCount).equals(3)
+		})
 
-		bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", false)
-		o(e.preventDefault.callCount).equals(2)
-		o(bwInstance.loadURL.callCount).equals(3) //nothing happened
-
+		o("login with noAutologin, not inPlace", function () {
+			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", false)
+			o(e.preventDefault.callCount).equals(2)
+			o(bwInstance.loadURL.callCount).equals(3) // nothing happened
+		})
 	})
 
 	o("attaching webView is denied", function () {
@@ -552,37 +580,57 @@ o.spec("ApplicationWindow Test", function () {
 		o(threw).equals(true)
 	})
 
-	o("new-window is redirected to openExternal", function () {
-		const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
+	o.spec("new-window is redirected to openExternal", function () {
+		let electronMock
+		let bwInstance
+
+		o.beforeEach(function () {
+			const sm = standardMocks()
+			electronMock = sm.electronMock
+			let {wmMock, confMock, electronLocalshortcutMock} = sm
 
 
-		const w = new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			new ApplicationWindow(wmMock, confMock, electronMock, electronLocalshortcutMock)
+			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		})
 
-		const e = {preventDefault: o.spy()}
-		bwInstance.webContents.callbacks['new-window'](e, 'dies.ist.ne/url')
+		o("not url is not redirected", function () {
+			const url = 'ba/\\.nanas'
+			const e = {preventDefault: o.spy()}
+			bwInstance.webContents.callbacks['new-window'](e, url)
 
-		o(electronMock.shell.openExternal.callCount).equals(1)
-		o(electronMock.shell.openExternal.args[0]).equals('dies.ist.ne/url')
-		o(e.preventDefault.callCount).equals(1)
+			o(electronMock.shell.openExternal.callCount).equals(0)
+			// o(electronMock.shell.openExternal.args[0]).equals(url)
+			o(e.preventDefault.callCount).equals(1)
+		})
 
-		bwInstance.webContents.callbacks['new-window'](e, undefined)
-		o(electronMock.shell.openExternal.callCount).equals(2)
-		o(electronMock.shell.openExternal.args[0]).equals(undefined)
-		o(e.preventDefault.callCount).equals(2)
+		o("url without protocol is not redirected", function () {
+			const url = 'dies.ist.ne/url'
+			const e = {preventDefault: o.spy()}
+			bwInstance.webContents.callbacks['new-window'](e, url)
 
-		let f = () => {
-		}
-		bwInstance.webContents.callbacks['new-window'](e, f)
-		o(electronMock.shell.openExternal.callCount).equals(3)
-		o(electronMock.shell.openExternal.args[0]).equals(f)
-		o(e.preventDefault.callCount).equals(3)
+			o(electronMock.shell.openExternal.callCount).equals(0)
+			o(e.preventDefault.callCount).equals(1)
+		})
 
-		f = []
-		bwInstance.webContents.callbacks['new-window'](e, f)
-		o(electronMock.shell.openExternal.callCount).equals(4)
-		o(electronMock.shell.openExternal.args[0]).equals(f)
-		o(e.preventDefault.callCount).equals(4)
+		o("http url is redirected", function () {
+			const url = "http://example.com"
+			const e = {preventDefault: o.spy()}
+			bwInstance.webContents.callbacks['new-window'](e, url)
+
+			o(electronMock.shell.openExternal.callCount).equals(1)
+			o(electronMock.shell.openExternal.args[0]).equals(url)
+			o(e.preventDefault.callCount).equals(1)
+		})
+
+		o("file url is not opened nor redirected", function () {
+			const url = "file:///etc/shadow"
+			const e = {preventDefault: o.spy()}
+			bwInstance.webContents.callbacks['new-window'](e, url)
+
+			o(electronMock.shell.openExternal.callCount).equals(0)
+			o(e.preventDefault.callCount).equals(1)
+		})
 	})
 
 	o("sendMessageToWebContents checks if webContents is there", async function () {
@@ -751,7 +799,7 @@ o.spec("ApplicationWindow Test", function () {
 		wcMock.getURL = () => "desktophtml"
 		o(w.getPath()).equals('')
 		wcMock.getURL = () => "desktophtml/meh/more"
-		w._startFile = ''
+		downcast(w)._startFile = ''
 		o(w.getPath()).equals("desktophtml/meh/more")
 	})
 

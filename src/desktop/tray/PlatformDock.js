@@ -4,9 +4,8 @@ import type {NativeImage} from "electron"
 import {app, Menu, MenuItem, Tray} from "electron"
 import type {PlatformTray} from "./DesktopTray"
 import type {WindowManager} from "../DesktopWindowManager"
-import path from "path"
 import os from 'os'
-import {getResourcesPath} from "../DesktopUtils"
+import {getResourcePath} from "../resources"
 
 /*
 * This file provides the functionality used by DesktopTray on mac
@@ -14,7 +13,7 @@ import {getResourcesPath} from "../DesktopUtils"
 
 function needsWindowListInMenu() {
 	//MacOs Catalina started showing the window list on its own
-	return Number(os.release().slice(0,2)) < 19
+	return Number(os.release().slice(0, 2)) < 19
 }
 
 function attachMenuToTray(m: Menu, tray: ?Tray): void {
@@ -42,7 +41,7 @@ function clearBadge() {
 }
 
 function iconPath(iconName: string): string {
-	return path.join(getResourcesPath(), `icons/${iconName}.icns`)
+	return getResourcePath(`icons/${iconName}.icns`)
 }
 
 const platformTray: PlatformTray = {

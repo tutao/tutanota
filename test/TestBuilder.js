@@ -12,7 +12,10 @@ const root = path.dirname(__dirname)
 export async function build(options, log) {
 	log("Build")
 
-	const {version} = JSON.parse(await fs.readFile(path.join(root, "./package.json"), "utf8"))
+	const pjPath = path.join(root, "./package.json")
+	await fs.mkdir(path.join(root, "build/test"), {recursive: true})
+	const {version} = JSON.parse(await fs.readFile(pjPath, "utf8"))
+	await fs.copyFile(pjPath, path.join(root, "build/test/package.json"))
 	const localEnv = env.create("http://localhost:9000", version, "Test")
 
 	log("Bundling...")
@@ -52,7 +55,7 @@ export async function build(options, log) {
 function resolveTestLibsPlugin() {
 	return {
 		name: "resolve-test-libs",
-		resolveId(source) {
+		resolveId(source, importer) {
 			switch (source) {
 				case "mithril/test-utils/browserMock":
 					// This one is *not* a module, just a script so we need to rewrite import path.
@@ -79,9 +82,10 @@ function resolveTestLibsPlugin() {
 				case "events":
 				case "fs":
 				case "buffer":
-				case "electron":
 				case "winreg":
 					return false
+				case "electron":
+					throw new Error(`electron is imported by ${importer}, don't do it in tests`)
 			}
 		},
 	}

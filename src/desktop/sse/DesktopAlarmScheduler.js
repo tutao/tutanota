@@ -1,6 +1,6 @@
 // @flow
 import {lang} from "../../misc/LanguageViewModel"
-import type {AlarmIntervalEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, OperationTypeEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
 import {AlarmInterval, AlarmIntervalByCode, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
@@ -39,6 +39,18 @@ const defaultTimeProvider = {
 }
 let {now, setTimeout, clearTimeout} = defaultTimeProvider
 
+type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
+type EncryptedAlarmInfo = {
+	alarmIdentifier: string,
+	...
+}
+type EncryptedAlarmNotification = {
+	operation: OperationTypeEnum,
+	notificationSessionKeys: $ReadOnlyArray<NotificationSessionKey>,
+	alarmInfo: EncryptedAlarmInfo,
+	...
+}
+
 export class DesktopAlarmScheduler {
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
@@ -66,21 +78,21 @@ export class DesktopAlarmScheduler {
 	 * stores, deletes and schedules alarm notifications
 	 * @param an the AlarmNotification to handle
 	 */
-	handleAlarmNotification(an: any): Promise<void> {
+	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void> {
 		if (an.operation === OperationType.CREATE) {
 			log.debug("creating alarm notification!")
 			return this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
-			    .then(({piSk, piSkEncSk}) => this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk))
-			    .then(decAn => {
-				    const identifier = decAn.alarmInfo.alarmIdentifier
-				    if (!this._scheduledNotifications[identifier]) {
-					    this._scheduledNotifications[identifier] = {timeouts: [], an}
-				    }
-				    return decAn
-			    })
-			    .then(decAn => this._scheduleAlarms(decAn))
-			    .then(() => this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications))
-			    .catch(e => console.error("failed to schedule alarm!", e))
+			           .then(({piSk, piSkEncSk}) => this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk))
+			           .then(decAn => {
+				           const identifier = decAn.alarmInfo.alarmIdentifier
+				           if (!this._scheduledNotifications[identifier]) {
+					           this._scheduledNotifications[identifier] = {timeouts: [], an}
+				           }
+				           return decAn
+			           })
+			           .then(decAn => this._scheduleAlarms(decAn))
+			           .then(() => this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications))
+			           .catch(e => console.error("failed to schedule alarm!", e))
 		} else if (an.operation === OperationType.DELETE) {
 			log.debug(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
 			this._cancelAlarms(an)
@@ -93,14 +105,14 @@ export class DesktopAlarmScheduler {
 
 	unscheduleAllAlarms(userId: ?Id = null): Promise<void> {
 		this._alarmStorage.getScheduledAlarms().forEach(alarm => {
-			if (userId == null || alarm.user == userId) {
+			if (userId == null || alarm.user === userId) {
 				this._cancelAlarms(alarm)
 			}
 		})
 		return this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
 	}
 
-	_cancelAlarms(an: AlarmNotification): void {
+	_cancelAlarms(an: AlarmNotification | EncryptedAlarmNotification): void {
 		if (this._scheduledNotifications[an.alarmInfo.alarmIdentifier]) {
 			this._scheduledNotifications[an.alarmInfo.alarmIdentifier].timeouts.forEach(to => {
 				clearTimeout(to.id)

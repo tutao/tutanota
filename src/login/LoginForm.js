@@ -52,6 +52,7 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 	onremove(vnode: Vnode<LoginFormAttrs>) {
 		vnode.attrs.password("")
 		this.autofillUpdateHandler.end(true)
+		this.passwordTextField.domInput.value = ""
 	}
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
