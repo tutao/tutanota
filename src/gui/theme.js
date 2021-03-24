@@ -97,8 +97,8 @@ export function updateCustomTheme(updatedTheme: Object) {
 	customTheme = Object.assign({}, defaultTheme, updatedTheme, {logo: ""})
 	const nonNullTheme = customTheme
 	if (logo) {
-		import("dompurify").then((dompurity) => {
-			nonNullTheme.logo = dompurity.default.sanitize(logo)
+		import("dompurify").then((dompurify) => {
+			nonNullTheme.logo = dompurify.default.sanitize(logo)
 			themeId("custom") // let it copy attributes in .map() listener
 			m.redraw()
 		})
