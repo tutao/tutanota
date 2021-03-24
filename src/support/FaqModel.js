@@ -4,6 +4,8 @@ import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
 import {downcast} from "../api/common/utils/Utils"
 import {search} from "./PlainTextSearch"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {delay, promiseMap} from "../api/common/utils/PromiseUtils"
 
 export type FaqEntry = {
 	id: string,
@@ -54,9 +56,22 @@ export class FaqModel {
 	fetchFAQ(langCode: string): Promise<Translation> {
 		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
 		return fetch(faqPath)
-			.then(translations => {
-				return translations.json()
-			}).catch(error => {
+			.then(translations => translations.json())
+			.then((translation) => {
+				return promiseMap(Object.entries(translation.keys), ([key, unsanitizedText]) => {
+					if (typeof unsanitizedText !== "string") {
+						throw new Error("Translation is not a string: " + String(unsanitizedText))
+					}
+					const sanitized = htmlSanitizer.sanitize(unsanitizedText)
+					// Delay to spread sanitize() calls between event loops. Otherwise we stop main thread for way too long and UI gets
+					// laggy.
+					return delay(1).then(() => [key, sanitized])
+				}).then((entries) => {
+					const translations = Object.fromEntries(entries)
+					return {code: langCode, keys: translations}
+				})
+			})
+			.catch(error => {
 					console.log("Failed to fetch FAQ entries", error)
 					return {keys: {}, code: langCode}
 				}
