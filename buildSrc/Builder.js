@@ -148,13 +148,15 @@ importScripts("./worker.js")
 async function buildAndStartDesktop(log, version) {
 	log("Building desktop client...")
 
+	const desktopIconsPath = path.join(root, "/resources/desktop-icons")
 	const packageJSON = (await import('./electron-package-json-template.js')).default({
 		nameSuffix: "-debug",
 		version,
 		updateUrl: "http://localhost:9000",
-		iconPath: path.join(root, "/resources/desktop-icons/logo-solo-red.png"),
+		iconPath: path.join(desktopIconsPath, "logo-solo-red.png"),
 		sign: false
 	})
+	await fs.copy(desktopIconsPath, "./build/desktop/resources/icons", {overwrite: true})
 	const content = JSON.stringify(packageJSON, null, 2)
 
 	await fs.createFile(path.join(root, "./build/package.json"))

@@ -298,6 +298,9 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
  * @param  {String|Array<String>} accelerator - the shortcut to unregister
  */
 export function unregister(win: BrowserWindow | typeof ANY_WINDOW, accelerator: Accelerator) {
+	if (win instanceof BrowserWindow && win.isDestroyed()) {
+		return
+	}
 	let wc = win instanceof BrowserWindow ? win.webContents : ANY_WINDOW;
 
 	if (Array.isArray(accelerator)) {

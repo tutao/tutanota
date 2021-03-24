@@ -78,6 +78,17 @@ export class PasswordForm {
 					this._oldPasswordField.value("")
 					this._newPasswordField.value("")
 					this._repeatedPasswordField.value("")
+
+					// This is probably redundant but just making sure that the password is not in DOM
+					if (this._oldPasswordField._domInput) {
+						this._oldPasswordField._domInput.value = ""
+					}
+					if (this._newPasswordField._domInput) {
+						this._newPasswordField._domInput.value = ""
+					}
+					if (this._repeatedPasswordField._domInput) {
+						this._repeatedPasswordField._domInput.value = ""
+					}
 				}
 			}, [
 				(validateOldPassword) ? m(this._oldPasswordField) : null,

@@ -72,7 +72,7 @@ export class Queue {
 			try {
 				this._transport.postMessage(msg)
 			} catch (e) {
-				console.log("error payload:", msg)
+				console.log("error payload:", msg.id, msg.type)
 				throw e
 			}
 		})
@@ -95,7 +95,7 @@ export class Queue {
 					this._transport.postMessage(new RequestError(request, e))
 				})
 			} else {
-				let error = new Error("unexpected request: " + JSON.stringify(message))
+				let error = new Error(`unexpected request: ${message.id}, ${message.type}`)
 				if (isWorker()) {
 					this._transport.postMessage(new RequestError(request, error))
 				} else {

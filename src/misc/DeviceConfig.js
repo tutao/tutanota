@@ -33,7 +33,7 @@ class DeviceConfig {
 	_load(): void {
 		this._credentials = []
 		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
-		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
+		let loadedConfig = loadedConfigString != null ? this._parseConfig(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
@@ -51,6 +51,15 @@ class DeviceConfig {
 			crypto.getRandomValues(bytes)
 			this._signupToken = uint8ArrayToBase64(bytes)
 			this._store()
+		}
+	}
+
+	_parseConfig(loadedConfigString: string): ?any {
+		try {
+			return JSON.parse(loadedConfigString)
+		} catch (e) {
+			console.warn("Could not parse device config")
+			return null
 		}
 	}
 

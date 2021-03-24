@@ -17,7 +17,6 @@ import {getExportDirectoryPath} from "./DesktopFileExport"
 import path from "path"
 import {fileExists} from "./PathUtils"
 import type {MailExportMode} from "../mail/export/Exporter"
-import {EML_DRAG_ICON_B64, MSG_DRAG_ICON_B64} from "./DesktopUtils"
 
 export type WindowBounds = {|
 	rect: Rectangle,

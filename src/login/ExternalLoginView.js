@@ -181,6 +181,7 @@ export class ExternalLoginView {
 					                                 return worker.deleteSession(storedCredentials.accessToken)
 					                                              .then(() => {
 						                                              if (!persistentSession) {
+						                                              	// FIXME
 							                                              deviceConfig.delete(this._userId)
 						                                              }
 					                                              })

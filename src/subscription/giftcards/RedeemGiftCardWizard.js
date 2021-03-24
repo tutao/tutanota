@@ -43,7 +43,6 @@ type GetCredentialsMethod = "login" | "signup"
 
 type RedeemGiftCardWizardData = {
 	mailAddress: Stream<string>,
-	password: Stream<string>,
 	giftCardInfo: GiftCardRedeemGetReturn,
 
 	credentialsMethod: GetCredentialsMethod,
@@ -57,9 +56,10 @@ type RedeemGiftCardWizardData = {
 
 type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardWizardData>
 
-// This page gives the user the option to either signup or login to an account with which to redeem their gift card
+/**
+ * This page gives the user the option to either signup or login to an account with which to redeem their gift card.
+ */
 class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
-
 	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
 		const a = vnode.attrs
 
@@ -75,7 +75,12 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 		return [
 			m(".flex-center.full-width.pt-l",
 				m("", {style: {width: "480px"}},
-					m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), neverNull(getByAbbreviation(a.data.giftCardInfo.country)), null, message)),
+					m(".pt-l", renderGiftCardSvg(
+						parseFloat(a.data.giftCardInfo.value),
+						neverNull(getByAbbreviation(a.data.giftCardInfo.country)),
+						/*link=*/null,
+						message
+					)),
 				)
 			),
 			m(".flex-center.full-width.pt-l",
@@ -99,15 +104,19 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 	}
 }
 
-// This page will either show a signup or login form depending on how they choose to select their credentials
-// When they go to the next page the will be logged in
-class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 
+/**
+ * This page will either show a signup or login form depending on how they choose to select their credentials
+ * When they go to the next page the will be logged in.
+ */
+class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 	_domElement: HTMLElement
 	_loginFormHelpText: string
+	+_password: Stream<string>
 
-	oninit() {
+	constructor() {
 		this._loginFormHelpText = lang.get("emptyString_msg")
+		this._password = stream("")
 	}
 
 	oncreate(vnode: Vnode<GiftCardRedeemAttrs>) {
@@ -122,6 +131,10 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			case "signup":
 				return this._renderSignupPage(data)
 		}
+	}
+
+	onremove() {
+		this._password("")
 	}
 
 	_renderLoginPage(data: RedeemGiftCardWizardData): Children {
@@ -140,12 +153,11 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 				}
 			},
 			mailAddress: data.mailAddress,
-			password: data.password,
+			password: this._password,
 			helpText: this._loginFormHelpText
 		}
 
 		const onCredentialsSelected = credentials => {
-
 			// If the user is loggedin already (because they selected credentials and then went back) we dont have to do
 			// anthing, so just move on
 			if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, credentials.userId)) {
@@ -193,7 +205,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 						data.newAccountData(newAccountData)
 					}
 					const {mailAddress, password, recoverCode} = neverNull(newAccountData || existingAccountData)
-					data.password(password)
+					this._password(password)
 					data.mailAddress(mailAddress)
 					logins.createSession(mailAddress, password, client.getIdentifier(), false, false)
 					      .then(credentials => {
@@ -346,7 +358,6 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 		const giftCardRedeemData: RedeemGiftCardWizardData = {
 			newAccountData: stream(null),
 			mailAddress: stream(""),
-			password: stream(""),
 			credentialsMethod: "signup",
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),

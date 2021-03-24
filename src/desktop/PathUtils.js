@@ -1,7 +1,7 @@
 //@flow
 import path from "path"
 import url from "url"
-import {isReservedFilename, sanitizeFilename} from "../api/common/utils/FileUtils"
+import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {promises as fs} from "fs"
 
@@ -93,3 +93,18 @@ export async function fileExists(filePath: string): Promise<boolean> {
 	         .catch(() => false)
 }
 
+export function parseUrlOrNull(urlString: string): ?URL {
+	try {
+		return new URL(urlString)
+	} catch (e) {
+		return null
+	}
+}
+
+export function urlIsPrefix(prefix: URL, url: URL): boolean {
+	return url.protocol === prefix.protocol &&
+		url.hostname === prefix.hostname &&
+		url.port === prefix.port &&
+		url.username === prefix.username &&
+		url.pathname.startsWith(prefix.pathname)
+}

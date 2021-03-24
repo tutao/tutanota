@@ -1,7 +1,6 @@
 // @flow
 import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents, WebContentsEvent} from 'electron'
 // $FlowIgnore[untyped-import]
-import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
@@ -13,7 +12,7 @@ import path from "path"
 import {noOp} from "../api/common/utils/Utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
-import {pathToFileURL} from "./PathUtils"
+import {parseUrlOrNull, pathToFileURL, urlIsPrefix} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -37,8 +36,9 @@ type LocalShortcut = {
 
 
 export class ApplicationWindow {
-	_ipc: IPC;
-	_startFile: string;
+	+_ipc: IPC;
+	+_startFile: string;
+	+_startFileURL: URL
 	_browserWindow: BrowserWindow;
 
 	_userInfo: ?UserInfo;
@@ -59,6 +59,7 @@ export class ApplicationWindow {
 		this._electron = electron
 		this._localShortcut = localShortcutManager
 		this._startFile = pathToFileURL(path.join(this._electron.app.getAppPath(), conf.getConst("desktophtml")),)
+		this._startFileURL = new URL(this._startFile)
 		this._lastSearchPromiseReject = noOp
 
 		const isMac = process.platform === 'darwin';
@@ -176,17 +177,7 @@ export class ApplicationWindow {
 		    .on('blur', ev => this._localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-		    .on('new-window', (e, newWindowUrl) => {
-			    e.preventDefault()
-			    // this also works for raw file paths without protocol
-			    if(url.parse(newWindowUrl).protocol === 'file:') {
-			    	log.warn('prevented file url from being opened by shell')
-			    	return
-			    }
-			    // we never open any new windows directly from the renderer
-			    // except for links in mails etc. so open them in the browser
-			    this._electron.shell.openExternal(newWindowUrl)
-		    })
+		    .on('new-window', (e, newWindowUrl) => this._onNewWindow(e, newWindowUrl))
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
 			    this._browserWindow.emit('did-start-navigation')
@@ -245,6 +236,21 @@ export class ApplicationWindow {
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
 		this._reRegisterShortcuts()
+	}
+
+	_onNewWindow(e: WebContentsEvent, newWindowUrl: string) {
+		e.preventDefault()
+		const parsedUrl = parseUrlOrNull(newWindowUrl)
+		if (parsedUrl == null) {
+			log.warn("Could not parse url for new-window, will not open")
+		} else if (parsedUrl.protocol === 'file:') {
+			// this also works for raw file paths without protocol
+			log.warn('prevented file url from being opened by shell')
+		} else {
+			// we never open any new windows directly from the renderer
+			// except for links in mails etc. so open them in the browser
+			this._electron.shell.openExternal(newWindowUrl)
+		}
 	}
 
 	_reRegisterShortcuts() {
@@ -326,13 +332,19 @@ export class ApplicationWindow {
 
 	// filesystem paths work differently than URLs
 	_rewriteURL(url: string, isInPlace: boolean): string {
-		if (
-			!url.startsWith(this._startFile) &&
-			!url.startsWith(`chrome-extension://${u2f.EXTENSION_ID}`)
-		) {
+		const parsedUrl = parseUrlOrNull(url)
+		if (parsedUrl == null) {
 			return this._startFile
 		}
-		if (url === this._startFile + '?r=%2Flogin%3FnoAutoLogin%3Dtrue' && isInPlace) {
+
+		if (!urlIsPrefix(this._startFileURL, parsedUrl)) {
+			return this._startFile
+		}
+
+		if (parsedUrl.pathname === this._startFileURL.pathname &&
+			parsedUrl.searchParams.get("r") === "/login?noAutoLogin=true" &&
+			isInPlace
+		) {
 			// after logout, don't try to login automatically.
 			// this fails if ?noAutoLogin=true is set directly from the web app for some reason
 			return this._startFile + '?noAutoLogin=true'
