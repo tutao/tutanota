@@ -121,7 +121,7 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "mail-view"
 	} else if (moduleId.includes("src/native/worker")) {
 		return "worker"
-	} else if (moduleId.includes("src/native/common")) {
+	} else if (moduleId.includes("src/native/common") || moduleId.includes("src/desktop/config/ConfigKeys.js")) {
 		return "native-common"
 	} else if (moduleId.includes("src/search")) {
 		return "search"

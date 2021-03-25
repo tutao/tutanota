@@ -397,8 +397,8 @@ declare module 'electron' {
 	declare export class BrowserWindow {
 		// https://github.com/electron/electron/blob/master/docs/api/browser-window.md#new-browserwindowoptions
 		constructor(any): BrowserWindow;
-		on(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
-		once(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
+		on(BrowserWindowEvent, (Event, ...Array<any>) => mixed): BrowserWindow;
+		once(BrowserWindowEvent, (Event, ...Array<any>) => mixed): BrowserWindow;
 		emit(BrowserWindowEvent): void;
 		focus(): void;
 		hide(): void;
@@ -520,7 +520,7 @@ declare module 'electron' {
 
 	declare export type ElectronSession = {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
-		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => void) => void;
+		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => mixed) => void;
 		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;
 	}
 
@@ -547,7 +547,7 @@ declare module 'electron' {
 
 
 declare interface ClientRequest {
-	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage) => void): ClientRequest;
+	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage) => mixed): ClientRequest;
 
 	on('socket', (net$Socket => void)): ClientRequest;
 
@@ -567,8 +567,8 @@ export type NotificationAction = {|
 |}
 
 declare class AutoUpdater {
-	on: (AutoUpdaterEvent, (...Array<any>) => void) => AutoUpdater;
-	once: (AutoUpdaterEvent, (...Array<any>) => void) => AutoUpdater;
+	on: (AutoUpdaterEvent, (...Array<any>) => mixed) => AutoUpdater;
+	once: (AutoUpdaterEvent, (...Array<any>) => mixed) => AutoUpdater;
 	removeListener: (AutoUpdaterEvent, (...Array<any>) => void) => void;
 	removeAllListeners: (AutoUpdaterEvent) => AutoUpdater;
 	logger: ?{

@@ -5,12 +5,11 @@ import {createDataFile, getCleanedMimeType} from "../../api/common/DataFile"
 import {assertNotNull} from "../../api/common/utils/Utils"
 import {formatSortableDateTime, sortableTimestamp} from "../../api/common/utils/DateUtils"
 import type {MailBundle} from "./Bundler"
+import {makeMailBundle} from "./Bundler"
 import {isDesktop} from "../../api/common/Env"
-import {Request} from "../../api/common/WorkerProtocol"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {sanitizeFilename} from "../../api/common/utils/FileUtils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
-import {makeMailBundle} from "./Bundler"
 import type {EntityClient} from "../../api/common/EntityClient"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 
@@ -25,13 +24,13 @@ export function generateMailFile(bundle: MailBundle, fileName: string, mode: Mai
 
 export function getMailExportMode(): Promise<MailExportMode> {
 	return isDesktop()
-		? import("../../native/common/NativeWrapper")
-			.then(({nativeApp}) => nativeApp.invokeNative(new Request("sendDesktopConfig", [])))
-			.then(config => config.mailExportMode || "eml")
-			.catch(e => {
-				console.log("error getting export mode:", e)
-				return "eml"
-			})
+		? Promise.all([import("../../native/main/SystemApp"), import("../../desktop/config/ConfigKeys")])
+		         .then(([systemApp, ConfigKeys]) => systemApp.getConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode))
+		         .then(mailExportMode => mailExportMode || "eml")
+		         .catch(e => {
+			         console.log("error getting export mode:", e)
+			         return "eml"
+		         })
 		: Promise.resolve("eml")
 }
 

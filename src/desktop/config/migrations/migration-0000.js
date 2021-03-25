@@ -1,7 +1,7 @@
 // @flow
 import type {Config} from "../ConfigCommon"
 
-function migrate(oldConfig: Config): void {
+async function migrate(oldConfig: Config): Promise<void> {
 	Object.assign(oldConfig, {"desktopConfigVersion": 0})
 }
 

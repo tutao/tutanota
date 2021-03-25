@@ -1,5 +1,5 @@
 // @flow
-import type {ElectronSession} from 'electron'
+import type {DownloadItem, ElectronSession} from 'electron'
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
@@ -11,8 +11,8 @@ import {EventEmitter} from 'events'
 import {log} from "./DesktopLog";
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
-import type {DownloadItem} from "electron"
 import {promises as fs} from "fs"
+import {delay} from "../api/common/utils/PromiseUtils"
 
 
 export class DesktopDownloadManager {
@@ -40,8 +40,8 @@ export class DesktopDownloadManager {
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise(async (resolve, reject) => {
-		const downloadDirectory = await this.getTutanotaTempDirectory("download")
-		const encryptedFileUri = path.join(downloadDirectory, fileName)
+			const downloadDirectory = await this.getTutanotaTempDirectory("download")
+			const encryptedFileUri = path.join(downloadDirectory, fileName)
 			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
 			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {
@@ -98,7 +98,7 @@ export class DesktopDownloadManager {
 		}
 	}
 
-	saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
+	async saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
 		const write = ({canceled, filePath}): Promise<void> => {
 			if (!canceled) return this._fs.promises.writeFile(assertNotNull(filePath), data)
 			return Promise.reject('canceled')
@@ -107,7 +107,7 @@ export class DesktopDownloadManager {
 		const downloadItem: DownloadItem = new EventEmitter()
 		downloadItem.getFilename = () => filename
 
-		this._handleDownloadItem(downloadItem)
+		await this._handleDownloadItem(downloadItem)
 		const writePromise = downloadItem.savePath
 			? write({canceled: false, filePath: downloadItem.savePath})
 			: this._electron.dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(this._electron.app.getPath('downloads'), filename)})
@@ -117,8 +117,8 @@ export class DesktopDownloadManager {
 	}
 
 
-	_handleDownloadItem(item: DownloadItem): void {
-		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
+	async _handleDownloadItem(item: DownloadItem): Promise<void> {
+		const defaultDownloadPath = await this._conf.getVar('defaultDownloadPath')
 		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
 		if (defaultDownloadPath && this._fs.existsSync(defaultDownloadPath)) {
@@ -137,13 +137,11 @@ export class DesktopDownloadManager {
 
 				if (this._fileManagersOpen === 0) {
 					this._fileManagersOpen = this._fileManagersOpen + 1
-					fileManagerLock = () => this._electron.shell
-					                            .openPath(path.dirname(savePath))
-					                            .then(() => {
-						                            setTimeout(() => this._fileManagersOpen = this._fileManagersOpen
-							                            - 1, this._conf.getConst("fileManagerTimeout"))
-					                            }).catch(noOp)
-
+					fileManagerLock = async () => {
+						await this._electron.shell.openPath(path.dirname(savePath))
+						await delay(await this._conf.getConst("fileManagerTimeout"))
+						this._fileManagersOpen = this._fileManagersOpen - 1
+					}
 				}
 			} catch (e) {
 				console.error("error while downloading", e)

@@ -13,10 +13,8 @@ import type {Socketeer} from "./Socketeer"
 import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
-import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import type {ElectronUpdater} from "./ElectronUpdater"
-import {DesktopConfigKey} from "./config/ConfigKeys";
 import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DesktopErrorHandler} from "./DesktopErrorHandler"
@@ -25,6 +23,7 @@ import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExpor
 import {fileExists} from "./PathUtils"
 import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import type {IntegrationInfo} from "../native/main/SystemApp"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -162,21 +161,17 @@ export class IPC {
 				return this._integrator.integrate()
 			case 'unIntegrateDesktop':
 				return this._integrator.unintegrate()
-			case 'sendDesktopConfig':
-				return Promise.all([
+			case 'getConfigValue':
+				return this._conf.getVar(args[0])
+			case 'getIntegrationInfo':
+				const [isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable] = await Promise.all([
 					this._desktopUtils.checkIsMailtoHandler(),
 					this._integrator.isAutoLaunchEnabled(),
-					this._integrator.isIntegrated()
-				]).then(([isMailtoHandler, autoLaunchEnabled, isIntegrated]) => {
-					const config = this._conf.getVar()
-					config.isMailtoHandler = isMailtoHandler
-					config.runOnStartup = autoLaunchEnabled
-					config.isIntegrated = isIntegrated
-					config.updateInfo = !!this._updater
-						? this._updater.updateInfo
-						: null
-					return config
-				})
+					this._integrator.isIntegrated(),
+					Boolean(this._updater && this._updater.updateInfo),
+				])
+				const result: IntegrationInfo = {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable}
+				return result
 			case 'openFileChooser':
 				if (args[1]) { // open folder dialog
 					return this._electron.dialog.showOpenDialog(null, {properties: ['openDirectory']}).then(({filePaths}) => filePaths)
@@ -198,8 +193,9 @@ export class IPC {
 			case "aesDecryptFile":
 				// key, path
 				return this._crypto.aesDecryptFile(...args.slice(0, 2))
-			case 'updateDesktopConfig':
-				return this._conf.setVar('any', args[0])
+			case 'setConfigValue':
+				const [key, value] = args.slice(0, 2)
+				return this._conf.setVar(key, value)
 			case 'openNewWindow':
 				this._wm.newWindow(true)
 				return Promise.resolve()
@@ -215,14 +211,14 @@ export class IPC {
 				// we know there's a logged in window
 				// first, send error report if there is one
 				return this._err.sendErrorReport(windowId)
-				           .then(() => {
+				           .then(async () => {
 					           const w = this._wm.get(windowId)
 					           if (!w) return
 					           w.setUserInfo(uInfo)
 					           if (!w.isHidden()) {
 						           this._notifier.resolveGroupedNotification(uInfo.userId)
 					           }
-					           const sseInfo = this._sse.getPushIdentifier()
+					           const sseInfo = await this._sse.getSseInfo()
 					           return sseInfo && sseInfo.identifier
 				           })
 			case 'storePushIdentifierLocally':
@@ -335,18 +331,6 @@ export class IPC {
 
 	addWindow(id: number) {
 		this._initialized[id] = defer()
-
-		const sseValueListener = (value: ?SseInfo) => {
-			if (value && value.userIds.length === 0) {
-				log.debug("invalidating alarms for window", id)
-				this.sendRequest(id, "invalidateAlarms", [])
-				    .catch((e) => {
-					    log.debug("Could not invalidate alarms for window ", id, e)
-					    this._conf.removeListener(DesktopConfigKey.pushIdentifier, sseValueListener)
-				    })
-			}
-		}
-		this._conf.on(DesktopConfigKey.pushIdentifier, sseValueListener, true)
 	}
 
 	removeWindow(id: number) {

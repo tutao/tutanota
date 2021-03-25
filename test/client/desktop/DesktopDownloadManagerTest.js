@@ -186,7 +186,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o(sessionMock.on.callCount).equals(1)
 		o(sessionMock.on.args[0]).equals("will-download")
 		const itemMock = n.spyify({on: () => {}})
-		sessionMock.callbacks["will-download"](undefined, itemMock)
+		await sessionMock.callbacks["will-download"](undefined, itemMock)
 		o(itemMock.on.callCount).equals(1)
 		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
@@ -198,7 +198,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
-		sessionMock.callbacks["will-download"]({}, itemMock)
+		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'completed')
@@ -235,7 +235,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
 
-		sessionMock.callbacks["will-download"]({}, itemMock)
+		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'completed')
@@ -261,8 +261,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const itemMock = n.mock("__item", item).set()
 		const itemMock2 = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
-		sessionMock.callbacks["will-download"]({}, itemMock)
-		sessionMock.callbacks["will-download"]({}, itemMock2)
+		await sessionMock.callbacks["will-download"]({}, itemMock)
+		await sessionMock.callbacks["will-download"]({}, itemMock2)
 		itemMock.callbacks["done"]({}, 'completed')
 		itemMock2.callbacks["done"]({}, 'completed')
 
@@ -279,7 +279,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		dl.manageDownloadsForSession(sessionMock)
-		sessionMock.callbacks["will-download"]({}, itemMock)
+		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
 		itemMock.callbacks["done"]({}, 'interrupted')

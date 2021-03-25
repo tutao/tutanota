@@ -132,7 +132,7 @@ export class DesktopUtils {
 	 * registers it as an event listener otherwise
 	 * @param callback listener to call
 	 */
-	callWhenReady(callback: ()=>void): void {
+	callWhenReady(callback: () => mixed): void {
 		if (app.isReady()) {
 			callback()
 		} else {

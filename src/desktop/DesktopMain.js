@@ -31,25 +31,35 @@ import net from "net"
 import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
+import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
+import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
 
 mp()
 
 lang.init(en)
-const conf = new DesktopConfig(app)
-const desktopNet = new DesktopNetworkClient()
+const secretStorage = new KeytarSecretStorage()
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
+const deviceKeyProvider = new DeviceKeyProviderImpl(secretStorage, desktopCrypto)
+const configMigrator = new DesktopConfigMigrator(desktopCrypto, deviceKeyProvider)
+const conf = new DesktopConfig(app, configMigrator, deviceKeyProvider, desktopCrypto)
+// Fire config loading, dont wait for it
+conf.init().catch((e) => {
+	console.error("Could not load config", e)
+	process.exit(1)
+})
+const desktopNet = new DesktopNetworkClient()
 const sock = new Socketeer(net, app)
 const tray = new DesktopTray(conf)
 const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, fs, electron)
-const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, new KeytarSecretStorage())
-alarmStorage.init()
-            .then(() => {
-	            log.debug("alarm storage initialized")
-            })
-            .catch(e => {
-	            console.warn("alarm storage failed to initialize:", e)
-            })
+const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, deviceKeyProvider)
+deviceKeyProvider.getDeviceKey()
+                 .then(() => {
+	                 log.debug("alarm storage initialized")
+                 })
+                 .catch(e => {
+	                 console.warn("alarm storage failed to initialize:", e)
+                 })
 const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 const shortcutManager = new LocalShortcutManager()
 const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
@@ -62,7 +72,8 @@ const integrator = new DesktopIntegrator(electron, fs, child_process, () => impo
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, alarmScheduler)
 wm.setIPC(ipc)
 
-app.setAppUserModelId(conf.getConst("appUserModelId"))
+conf.getConst("appUserModelId")
+    .then((appUserModelId) => {app.setAppUserModelId(appUserModelId)})
 log.debug("version:  ", app.getVersion())
 
 let wasAutolaunched = process.platform !== 'darwin'
@@ -118,12 +129,11 @@ function startupInstance() {
 		})
 		// it takes a short while to get here,
 		// the event may already have fired
-		DesktopUtils.callWhenReady(onAppReady)
+		DesktopUtils.callWhenReady(() => {onAppReady()})
 	})
 }
 
-function onAppReady() {
-
+async function onAppReady() {
 	app.on('window-all-closed', () => {
 		if (!conf.getVar('runAsTrayApp')) {
 			app.quit()
@@ -133,7 +143,7 @@ function onAppReady() {
 	err.init(wm, ipc)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = wm.getLastFocused(!(conf.getVar('runAsTrayApp') && wasAutolaunched))
+	const w = await wm.getLastFocused(!(conf.getVar('runAsTrayApp') && wasAutolaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
 	   .then(main)
@@ -166,10 +176,10 @@ function handleArgv(argv: string[]) {
 	}
 }
 
-function handleMailto(mailtoArg?: string) {
+async function handleMailto(mailtoArg?: string) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
-		const w = wm.getLastFocused(true)
+		const w = await wm.getLastFocused(true)
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }

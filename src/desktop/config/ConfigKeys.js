@@ -1,11 +1,11 @@
 //@flow
-export const DesktopConfigKey = {
-	any: 'any',
+import {typedValues} from "../../api/common/utils/Utils"
+
+export const DesktopConfigKey = Object.freeze({
 	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',
 	defaultDownloadPath: 'defaultDownloadPath',
 	enableAutoUpdate: 'enableAutoUpdate',
 	showAutoUpdateOption: 'showAutoUpdateOption',
-	pushIdentifier: 'pushIdentifier',
 	runAsTrayApp: 'runAsTrayApp',
 	lastBounds: 'lastBounds',
 	pushEncSessionKeys: 'pushEncSessionKeys',
@@ -14,10 +14,17 @@ export const DesktopConfigKey = {
 	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
 	desktopConfigVersion: "desktopConfigVersion",
 	mailExportMode: "mailExportMode"
-}
+})
+export const DesktopConfigKeyValues: $ReadOnlySet<DesktopConfigKeyEnum> = new Set(typedValues(DesktopConfigKey))
 export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
 
-export const BuildConfigKey = {
+export const DesktopConfigEncKey = {
+	sseInfo: "sseInfo",
+}
+export const DesktopConfigEncKeyValues: $ReadOnlySet<DesktopConfigEncKeyEnum> = new Set(typedValues(DesktopConfigEncKey))
+export type DesktopConfigEncKeyEnum = $Values<typeof DesktopConfigEncKey>
+
+export const BuildConfigKey = Object.freeze({
 	pollingInterval: "pollingInterval",
 	checkUpdateSignature: "checkUpdateSignature",
 	appUserModelId: "appUserModelId",
@@ -29,5 +36,5 @@ export const BuildConfigKey = {
 	iconName: "iconName",
 	fileManagerTimeout: "fileManagerTimeout",
 	pubKeys: "pubKeys",
-}
+})
 export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>

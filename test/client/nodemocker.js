@@ -25,6 +25,9 @@ export function spyify<T>(obj: T): T {
 
 			return spy
 		case 'object':
+			if (anyObj instanceof Promise) {
+				return anyObj
+			}
 			if (Array.isArray(anyObj)) {
 				// TODO: use proxy to sync spyified array?
 				return anyObj

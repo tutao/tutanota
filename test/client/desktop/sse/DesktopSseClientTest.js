@@ -3,14 +3,15 @@ import o from "ospec"
 import n from "../../nodemocker"
 import {numberRange} from '../../../../src/api/common/utils/ArrayUtils.js'
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
-import {downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
+import type {DeferredObject} from "../../../../src/api/common/utils/Utils"
+import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import * as url from "url"
 import * as querystring from "querystring"
 import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
 import type {TimeoutMock} from "../../../api/TestUtils"
 import {makeTimeoutMock} from "../../../api/TestUtils"
 import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
-import {DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
+import {DesktopConfigEncKey, DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
 import type {DesktopNotifier} from "../../../../src/desktop/DesktopNotifier"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager"
@@ -30,7 +31,7 @@ o.spec("DesktopSseClient Test", function () {
 	let confMock: DesktopConfig
 	let notifierMock: DesktopNotifier
 	let wmMock: WindowManager
-	let netMock: DesktopNetworkClient
+	let netMock: DesktopNetworkClient & {requestMade: DeferredObject<void>}
 	let alarmSchedulerMock: DesktopAlarmScheduler
 	let cryptoMock: DesktopCryptoFacade
 	let alarmStorageMock: DesktopAlarmStorage
@@ -44,12 +45,6 @@ o.spec("DesktopSseClient Test", function () {
 			on: (key: string) => n.spyify(conf),
 			getVar: (key: string) => {
 				switch (key) {
-					case 'pushIdentifier':
-						return {
-							identifier: identifier,
-							sseOrigin: 'http://here.there',
-							userIds: userIds.slice()
-						}
 					case 'heartbeatTimeoutInSeconds':
 						return 30
 
@@ -58,6 +53,14 @@ o.spec("DesktopSseClient Test", function () {
 
 					case 'lastProcessedNotificationId':
 						return null
+
+					case DesktopConfigEncKey.sseInfo:
+						return {
+							identifier: identifier,
+							sseOrigin: 'http://here.there',
+							userIds: userIds.slice()
+						}
+
 					default:
 						throw new Error(`unexpected getVar key ${key}`)
 				}
@@ -73,7 +76,7 @@ o.spec("DesktopSseClient Test", function () {
 					default:
 						throw new Error(`unexpected getConst key ${key}`)
 				}
-			}
+			},
 		}
 
 		const electron = {
@@ -121,8 +124,11 @@ o.spec("DesktopSseClient Test", function () {
 		}
 
 		net = {
+			requestMade: defer(),
 			request: function (url, params) {
-				return new net.ClientRequest(url, params)
+				const r = new this.ClientRequest(url, params)
+				this.requestMade.resolve()
+				return r
 			},
 			ClientRequest: n.classify({
 				prototype: {
@@ -187,11 +193,17 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 
-		sse.start()
+		await sse.start()
+
+		// start the scheduled connect()
 		timeoutMock.next()
-		await Promise.resolve()
+		// wait until the request is made
+		await netMock.requestMade.promise
+		o(netMock.request.callCount).equals(1)
+
+		netMock.requestMade = defer()
 		timeoutMock.next()
-		await Promise.resolve()
+		await netMock.requestMade.promise
 
 		//wait for first and second connection attempt
 		o(netMock.request.callCount).equals(2) // we timed out once
@@ -235,21 +247,21 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
-		let oldTimeout
-		sse.start()
+		let oldTimeoutId
+		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await netMock.requestMade.promise
 
 		net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:1")
-		oldTimeout = sse._nextReconnect
+		oldTimeoutId = sse._nextReconnect
 
 		// heartbeat times out...
 		timeoutMock.next()
 		await Promise.resolve()
 
 		// should have rescheduled
-		o(sse._nextReconnect).notEquals(oldTimeout)
+		o(sse._nextReconnect).notEquals(oldTimeoutId)
 
 		//done
 		downcast(electronMock.app).callbacks['will-quit']()
@@ -259,12 +271,12 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const res = new net.Response(403)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
-		await Promise.delay(5)
+		await netMock.requestMade.promise
 		net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		await Promise.resolve()
-		o(confMock.setVar.args[0]).equals("pushIdentifier")
+		o(confMock.setVar.args[0]).equals(DesktopConfigEncKey.sseInfo)
 		o(confMock.setVar.args[1]).deepEquals({
 			identifier,
 			sseOrigin: 'http://here.there',
@@ -282,7 +294,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 		net.ClientRequest.mockedInstances[0].callbacks['response'](res)
@@ -304,7 +316,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutSpy)
 		let res = new net.Response(200)
-		sse.start()
+		await sse.start()
 		o(timeoutSpy.callCount).equals(1)
 		timeoutSpy.next()
 		await Promise.resolve()
@@ -323,7 +335,7 @@ o.spec("DesktopSseClient Test", function () {
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
 		let oldTimeout
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 
@@ -344,10 +356,12 @@ o.spec("DesktopSseClient Test", function () {
 		                  .with({
 			                  getVar: (key: string) => {
 				                  switch (key) {
-					                  case 'pushIdentifier':
-						                  return null
 					                  case 'heartbeatTimeoutInSeconds':
 						                  return 30
+					                  case 'lastMissedNotificationCheckTime':
+						                  return 0
+					                  case DesktopConfigEncKey.sseInfo:
+						                  return null
 					                  default:
 						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
@@ -357,7 +371,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutSpy)
-		sse.start()
+		await sse.start()
 		o(timeoutSpy.args[1]).equals(1000)
 		timeoutMock.next()
 		await Promise.resolve()
@@ -370,18 +384,18 @@ o.spec("DesktopSseClient Test", function () {
 		                  .with({
 			                  getVar: (key: string) => {
 				                  switch (key) {
-					                  case 'pushIdentifier':
-						                  return {
-							                  identifier: 'identifier',
-							                  sseOrigin: 'http://here.there',
-							                  userIds: ["id1", "id2"]
-						                  }
 					                  case 'heartbeatTimeoutInSeconds':
 						                  return 30
 					                  case DesktopConfigKey.lastProcessedNotificationId:
 						                  return lastProcessedId
 					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
 						                  return null
+					                  case DesktopConfigEncKey.sseInfo:
+						                  return {
+							                  identifier: 'identifier',
+							                  sseOrigin: 'http://here.there',
+							                  userIds: ["id1", "id2"]
+						                  }
 					                  default:
 						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
@@ -394,7 +408,7 @@ o.spec("DesktopSseClient Test", function () {
 			alarmStorageMock, langMock, timeoutMock)
 		const lastProcessedId = 'ab2c'
 		let sseConnectResponse = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 		const sseConnectRequest = net.ClientRequest.mockedInstances[0]
@@ -442,7 +456,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 
@@ -474,7 +488,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let sseResponse = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 
 		await Promise.resolve()
@@ -567,7 +581,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 
@@ -590,7 +604,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		let res = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.resolve()
 
@@ -606,8 +620,8 @@ o.spec("DesktopSseClient Test", function () {
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		o(confMock.setVar.calls[2].args).deepEquals([
-			'pushIdentifier', {
+		o(confMock.setVar.calls.find(c => c.args[0] === DesktopConfigEncKey.sseInfo).args).deepEquals([
+			DesktopConfigEncKey.sseInfo, {
 				identifier,
 				sseOrigin: 'http://here.there',
 				userIds: ['id2'],
@@ -621,7 +635,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const sseResponse = new net.Response(200)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.delay(8)
 
@@ -647,17 +661,17 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("invalidateAlarms", async function () {
 		const lastNotificationCheckTime = Date.now() - 1000 * 60 * 60 * 24 * 31 // 31 day
-		const sseInfo = {identifier, userIds, origin: 'origin'}
+		const sseInfo = {identifier, userIds, sseOrigin: 'origin'}
 		const confMock = n.mock("__conf", conf)
 		                  .with({
 			                  getVar: (key: string) => {
 				                  switch (key) {
-					                  case 'pushIdentifier':
-						                  return sseInfo
 					                  case 'heartbeatTimeoutInSeconds':
 						                  return 30
 					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
 						                  return String(lastNotificationCheckTime)
+					                  case DesktopConfigEncKey.sseInfo:
+						                  return sseInfo
 					                  default:
 						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
@@ -666,15 +680,14 @@ o.spec("DesktopSseClient Test", function () {
 		const timeoutSpy = o.spy(timeoutMock)
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutSpy)
-		sse.start()
+		await sse.start()
 		timeoutMock.next()
 		await Promise.delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
-		o(confMock.setVar.calls.map(c => c.args)).deepEquals([
-			[DesktopConfigKey.lastMissedNotificationCheckTime, null],
-			[DesktopConfigKey.pushIdentifier, {identifier, userIds: [], origin: sseInfo.origin}]
-		])
+		o(confMock.setVar.calls[0].args).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])
+		o(confMock.setVar.calls[1].args)
+			.deepEquals([DesktopConfigEncKey.sseInfo, {identifier, userIds: [], sseOrigin: sseInfo.sseOrigin}])
 		o(alarmStorageMock.removePushIdentifierKeys.callCount).equals(1)
 		o(timeoutSpy.callCount).equals(1)
 	})
