@@ -757,10 +757,10 @@ o.spec("ApplicationWindow Test", function () {
 		o(wcMock.stopFindInPage.callCount).equals(1)
 		o(wcMock.stopFindInPage.args[0]).equals('keepSelection')
 
-		w.findInPage(['searchTerm', {findNext: false, forward: false, also: "options"}])
+		w.findInPage(['searchTerm', {findNext: false, forward: false, also: "options", matchCase: false}])
 		o(wcMock.findInPage.callCount).equals(1)
 		o(wcMock.findInPage.args[0]).equals('searchTerm')
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: false, also: "options"})
+		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: false, also: "options", matchCase: false})
 		o(wcMock.stopFindInPage.callCount).equals(1)
 		o(wcMock.stopFindInPage.args[0]).equals('keepSelection')
 
@@ -770,7 +770,7 @@ o.spec("ApplicationWindow Test", function () {
 			key: 'Enter',
 		})
 		o(wcMock.findInPage.callCount).equals(2)
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options"})
+		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options", matchCase: false})
 
 		// don't react to key when search overlay is unfocused
 		w.setSearchOverlayState(false, true)
@@ -781,10 +781,10 @@ o.spec("ApplicationWindow Test", function () {
 		o(wcMock.findInPage.callCount).equals(2)
 
 		// empty search term shouldn't be searched
-		w.findInPage(['', {findNext: false, forward: false, also: "options2"}])
+		w.findInPage(['', {findNext: false, forward: false, also: "options2", matchCase: false}])
 		o(wcMock.findInPage.callCount).equals(2)
 		o(wcMock.findInPage.args[0]).equals('searchTerm')
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options"})
+		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options", matchCase: false})
 		o(wcMock.stopFindInPage.callCount).equals(2)
 		o(wcMock.stopFindInPage.args[0]).equals('keepSelection')
 	})

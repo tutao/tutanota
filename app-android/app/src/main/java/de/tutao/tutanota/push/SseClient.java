@@ -71,7 +71,6 @@ public class SseClient {
 	public void restartConnectionIfNeeded(@NonNull SseInfo sseInfo) {
 		SseInfo oldConnectedInfo = this.connectedSseInfo;
 		this.connectedSseInfo = sseInfo;
-		Log.d(TAG, "old sseInfo: " + oldConnectedInfo + " new sseInfo: " + this.connectedSseInfo);
 
 		HttpURLConnection connection = httpsURLConnectionRef.get();
 		if (connection == null) {
@@ -163,7 +162,6 @@ public class SseClient {
 	}
 
 	private void handleLine(String line) {
-		Log.d(TAG, "Event: " + line);
 		failedConnectionAttempts = 0;
 
 		if (!line.startsWith("data: ")) {
