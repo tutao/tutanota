@@ -39,15 +39,16 @@ const defaultTimeProvider = {
 }
 let {now, setTimeout, clearTimeout} = defaultTimeProvider
 
-type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
-type EncryptedAlarmInfo = {
+export type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
+export type EncryptedAlarmInfo = {
 	alarmIdentifier: string,
 	...
 }
-type EncryptedAlarmNotification = {
+export type EncryptedAlarmNotification = {
 	operation: OperationTypeEnum,
-	notificationSessionKeys: $ReadOnlyArray<NotificationSessionKey>,
+	notificationSessionKeys: Array<NotificationSessionKey>,
 	alarmInfo: EncryptedAlarmInfo,
+	user: Id,
 	...
 }
 
@@ -56,7 +57,7 @@ export class DesktopAlarmScheduler {
 	_notifier: DesktopNotifier;
 	_alarmStorage: DesktopAlarmStorage;
 	_crypto: DesktopCryptoFacade;
-	_scheduledNotifications: {[alarmIdentifier: string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}
+	_scheduledNotifications: {[alarmIdentifier: string]: {timeouts: Array<TimeoutData>, an: EncryptedAlarmNotification}}
 
 	constructor(wm: WindowManager,
 	            notifier: DesktopNotifier,

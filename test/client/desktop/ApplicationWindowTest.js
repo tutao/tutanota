@@ -543,21 +543,21 @@ o.spec("ApplicationWindow Test", function () {
 
 		o("redirect to login with noAutologin", function () {
 			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml?r=%2Flogin%3FnoAutoLogin%3Dtrue", true)
-			o(e.preventDefault.callCount).equals(2)
-			o(bwInstance.loadURL.callCount).equals(3)
+			o(e.preventDefault.callCount).equals(1)("Prevent default is called")
+			o(bwInstance.loadURL.callCount).equals(2)("Load URL is called one more time after initial")
 			o(bwInstance.loadURL.args[0]).equals("file:///path/to/app/desktophtml?noAutoLogin=true")
 		})
 
 		o("login with noAutoLogin, inPlace", function () {
 			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", true)
-			o(e.preventDefault.callCount).equals(2)
-			o(bwInstance.loadURL.callCount).equals(3)
+			o(e.preventDefault.callCount).equals(0)
+			o(bwInstance.loadURL.callCount).equals(1)
 		})
 
 		o("login with noAutologin, not inPlace", function () {
 			bwInstance.webContents.callbacks['did-start-navigation'](e, "file:///path/to/app/desktophtml/login?noAutoLogin=true", false)
-			o(e.preventDefault.callCount).equals(2)
-			o(bwInstance.loadURL.callCount).equals(3) // nothing happened
+			o(e.preventDefault.callCount).equals(0)
+			o(bwInstance.loadURL.callCount).equals(1) // nothing happened
 		})
 	})
 

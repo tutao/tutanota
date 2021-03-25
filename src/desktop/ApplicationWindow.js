@@ -1,6 +1,5 @@
 // @flow
 import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents, WebContentsEvent} from 'electron'
-// $FlowIgnore[untyped-import]
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
