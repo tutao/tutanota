@@ -19,6 +19,8 @@ import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 import type {MailExportMode} from "../mail/export/Exporter"
 import type {NativeWrapper} from "../native/common/NativeWrapper"
+import type {DesktopConfigKeyEnum} from "../desktop/config/ConfigKeys"
+import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
 
 assertMainOrNode()
 
@@ -39,6 +41,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_mailExportMode: Stream<MailExportMode>
 	_isPathDialogOpen: boolean;
 	_nativeApp: Promise<NativeWrapper>
+	_configKeys: Promise<DesktopConfigKey>
 
 	constructor() {
 		this._nativeApp = import("../native/common/NativeWrapper").then((module) => module.nativeApp)
@@ -50,6 +53,9 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
 		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
+		this._configKeys = import("../desktop/config/ConfigKeys").then((configKeys) => {
+			return configKeys.DesktopConfigKey
+		})
 		this._requestDesktopConfig()
 	}
 
@@ -225,38 +231,42 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 	_requestDesktopConfig() {
 		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
-		this._nativeApp
-		    .then((nativeApp) => nativeApp.invokeNative(new Request('sendDesktopConfig', [])))
-		    .then(desktopConfig => {
-			    this._isDefaultMailtoHandler(desktopConfig.isMailtoHandler)
-			    this._defaultDownloadPath(desktopConfig.defaultDownloadPath
-				    ? desktopConfig.defaultDownloadPath
-				    : lang.get('alwaysAsk_action')
-			    )
-			    this._runAsTrayApp(desktopConfig.runAsTrayApp)
-			    this._runOnStartup(desktopConfig.runOnStartup)
-			    this._isIntegrated(desktopConfig.isIntegrated)
-			    this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
-			    this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
-			    this._updateAvailable(!!desktopConfig.updateInfo)
-			    this._mailExportMode(desktopConfig.mailExportMode)
-			    m.redraw()
-		    })
+
+		Promise.all([import("../native/main/SystemApp"), this._configKeys])
+		       .then(([systemApp, DesktopConfigKey]) => {
+			       return Promise.all([
+				       systemApp.getIntegrationInfo(),
+				       systemApp.getConfigValue(DesktopConfigKey.defaultDownloadPath),
+				       systemApp.getConfigValue(DesktopConfigKey.runAsTrayApp),
+				       systemApp.getConfigValue(DesktopConfigKey.showAutoUpdateOption),
+				       systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
+				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode)
+			       ]).then((result) => {
+				       const [integrationInfo, defaultDownloadPath, runAsTrayApp, showAutoUpdateOption, enableAutoUpdate, mailExportMode] = result
+				       const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
+
+				       this._isDefaultMailtoHandler(isMailtoHandler)
+				       this._defaultDownloadPath(defaultDownloadPath || lang.get('alwaysAsk_action'))
+				       this._runAsTrayApp(runAsTrayApp)
+				       this._runOnStartup(isAutoLaunchEnabled)
+				       this._isIntegrated(isIntegrated)
+				       this._showAutoUpdateOption = showAutoUpdateOption
+				       this._isAutoUpdateEnabled(enableAutoUpdate)
+				       this._updateAvailable(isUpdateAvailable)
+				       this._mailExportMode(mailExportMode)
+				       m.redraw()
+			       })
+		       })
 	}
 
-	updateConfigBoolean(setting: string, value: boolean): void {
+	updateConfigBoolean(setting: DesktopConfigKeyEnum, value: boolean): void {
 		return this.updateConfig(setting, value)
 	}
 
-	updateConfig<T>(setting: string, value: T): void {
-		this._nativeApp.then((nativeApp) => {
-			return nativeApp
-				.invokeNative(new Request('sendDesktopConfig', []))
-				.then(config => {
-					config[setting] = value
-					return nativeApp.invokeNative(new Request('updateDesktopConfig', [config]))
-				})
-				.then(() => m.redraw())
+	updateConfig<T>(setting: DesktopConfigKeyEnum, value: T): void {
+		import("../native/main/SystemApp").then((systemApp) => {
+			return systemApp.setConfigValue(setting, value)
+			                .then(() => m.redraw())
 		})
 	}
 
@@ -264,16 +274,14 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isPathDialogOpen = true
 
 		return Promise
-			.all([
-				this._nativeApp.then((nativeApp) => nativeApp.invokeNative(new Request('sendDesktopConfig', []))),
+			.resolve(
 				v === DownloadLocationStrategy.ALWAYS_ASK
 					? Promise.resolve([null])
 					: import("../native/common/FileApp").then(({fileApp}) => fileApp.openFolderChooser())
-			])
-			.then(([config, newPaths]) => {
-				config.defaultDownloadPath = newPaths[0]
+			)
+			.then((newPaths) => {
 				this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get('alwaysAsk_action'))
-				return this._nativeApp.then((nativeApp) => nativeApp.invokeNative(new Request('updateDesktopConfig', [config])))
+				return this._configKeys.then((DesktopConfigKey) => this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0]))
 			})
 			.then(() => {
 				this._isPathDialogOpen = false
@@ -285,6 +293,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._updateAvailable(true)
 		m.redraw()
 	}
+
 
 	// this is all local for now
 	entityEventsReceived: (() => Promise<void>) = () => Promise.resolve()

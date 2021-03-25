@@ -1,7 +1,6 @@
 // @flow
 
 import type {App} from 'electron'
-import {neverNull} from "../api/common/utils/Utils"
 import type {WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
@@ -37,10 +36,10 @@ export class Socketeer {
 	}
 
 	attach(wm: WindowManager, ipc: IPC) {
-		this.startClient(msg => {
+		this.startClient(async msg => {
 			const mailAddress = JSON.parse(msg).mailAddress
 			if (typeof mailAddress === 'string' && isMailAddress(mailAddress, false)) {
-				const targetWindowId = wm.getLastFocused(false).id
+				const targetWindowId = (await wm.getLastFocused(false)).id
 				ipc.sendRequest(targetWindowId, 'openCustomer', [mailAddress])
 			}
 		})
@@ -88,7 +87,7 @@ export class Socketeer {
 		}
 	}
 
-	startClient(ondata: (string)=>void) {
+	startClient(ondata: (string)=>mixed) {
 		if (this._connection) {
 			return
 		}
@@ -114,7 +113,7 @@ export class Socketeer {
 		                       .on('data', ondata)
 	}
 
-	_tryReconnect(ondata: (string)=>void): void {
+	_tryReconnect(ondata: (string)=>mixed): void {
 		this._connection = null
 		this._delayHandler(() => {
 			this.startClient(ondata)

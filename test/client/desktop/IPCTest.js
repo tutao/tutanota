@@ -2,7 +2,6 @@
 import n from "../nodemocker"
 import o from "ospec"
 import {defer, noOp} from "../../../src/api/common/utils/Utils"
-import {DesktopConfigKey} from "../../../src/desktop/config/ConfigKeys"
 import {IPC} from "../../../src/desktop/IPC"
 import {assertThrows} from "../../api/TestUtils"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
@@ -14,9 +13,9 @@ o.spec("IPC tests", function () {
 
 	let electron
 	const conf = {
-		getVar: () => {
-			return {
-				dummy: "value"
+		getVar: (key) => {
+			if (key == "dummy") {
+				return "value"
 			}
 		},
 		setVar: () => Promise.resolve(),
@@ -31,7 +30,7 @@ o.spec("IPC tests", function () {
 		}
 	}
 	const sse = {
-		getPushIdentifier: () => ({identifier: "agarbledmess", userIds: ["userId1"]}),
+		getSseInfo: () => ({identifier: "agarbledmess", userIds: ["userId1"]}),
 		storePushIdentifier: () => Promise.resolve(),
 		hasNotificationTTLExpired: () => false,
 		connect: () => null,
@@ -55,7 +54,7 @@ o.spec("IPC tests", function () {
 		unregisterAsMailtoHandler: () => {
 			return Promise.resolve()
 		},
-		checkIsMailtoHandler: () => Promise.resolve("yesItIs")
+		checkIsMailtoHandler: () => Promise.resolve(true)
 	}
 	const crypto = {
 		aesDecryptFile: (key, file) => key === "decryption_key"
@@ -67,7 +66,7 @@ o.spec("IPC tests", function () {
 		open: (file) => file === "/file/to/open" ? Promise.resolve() : Promise.reject("Could not open!")
 	}
 	const desktopIntegrator = {
-		isAutoLaunchEnabled: () => "noDoNot",
+		isAutoLaunchEnabled: () => Promise.resolve(true),
 		enableAutoLaunch: () => Promise.resolve(),
 		disableAutoLaunch: () => Promise.resolve(),
 		isIntegrated: () => Promise.resolve(true),
@@ -425,33 +424,57 @@ o.spec("IPC tests", function () {
 		}, 10)
 	})
 
-	o("sendDesktopConfig", function (done) {
+	o("getConfigValue", function (done) {
 		const {
 			electronMock,
-			desktopUtilsMock,
-			desktopIntegratorMock,
 		} = setUpWithWindowAndInit()
 
 		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
-			type: "sendDesktopConfig",
+			type: "getConfigValue",
+			id: "id2",
+			args: ["dummy"]
+		})
+
+		setTimeout(() => {
+			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(windowMock.sendMessageToWebContents.calls.find(c => c.args[0].id === 'id2').args[0]).deepEquals({
+				id: 'id2',
+				type: 'response',
+				value: "value"
+			})
+			done()
+		}, 10)
+	})
+
+	o("getIntegrationInfo", function (done) {
+		const {
+			electronMock,
+			autoUpdaterMock,
+			desktopUtilsMock,
+			desktopIntegratorMock
+		} = setUpWithWindowAndInit()
+
+		autoUpdaterMock.updateInfo = {}
+
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+			type: "getIntegrationInfo",
 			id: "id2",
 			args: []
 		})
 
-		o(desktopUtilsMock.checkIsMailtoHandler.callCount).equals(1)
-		o(desktopIntegratorMock.isAutoLaunchEnabled.callCount).equals(1)
-
 		setTimeout(() => {
-			o(windowMock.sendMessageToWebContents.callCount).equals(3)
-			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
+			o(desktopUtilsMock.checkIsMailtoHandler.callCount).equals(1)
+			o(desktopIntegratorMock.isAutoLaunchEnabled.callCount).equals(1)
+			o(desktopIntegratorMock.isIntegrated.callCount).equals(1)
+
+			o(windowMock.sendMessageToWebContents.calls.find(c => c.args[0].id === 'id2').args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: {
-					dummy: "value",
-					isMailtoHandler: "yesItIs",
-					runOnStartup: "noDoNot",
+					isMailtoHandler: true,
+					isAutoLaunchEnabled: true,
 					isIntegrated: true,
-					updateInfo: null,
+					isUpdateAvailable: true,
 				}
 			})
 			done()
@@ -498,25 +521,22 @@ o.spec("IPC tests", function () {
 		}, 20)
 	})
 
-	o("updateDesktopConfig", function (done) {
+	o("setConfigValue", function (done) {
 		const {electronMock, confMock} = setUpWithWindowAndInit()
 
 		// open file dialog gets ignored
 		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
-			type: "updateDesktopConfig",
+			type: "setConfigValue",
 			id: "id2",
-			args: [{more: "stuff"}]
+			args: ["more", "stuff"]
 		})
 
 		o(confMock.setVar.callCount).equals(1)
-		o(confMock.setVar.args[0]).equals("any")
-		o(confMock.setVar.args[1]).deepEquals({
-			more: "stuff"
-		})
+		o(confMock.setVar.args[0]).equals("more")
+		o(confMock.setVar.args[1]).deepEquals("stuff")
 
 		setTimeout(() => {
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
+			o(windowMock.sendMessageToWebContents.calls.find(c => c.args[0].id === 'id2').args[0]).deepEquals({
 				id: 'id2',
 				type: 'response',
 				value: undefined
@@ -590,7 +610,7 @@ o.spec("IPC tests", function () {
 		}, 20)
 	})
 
-	o("getPushIdentifier", function (done) {
+	o("getPushIdentifier", async function () {
 		const {
 			electronMock,
 			notifierMock,
@@ -602,34 +622,32 @@ o.spec("IPC tests", function () {
 			id: "id2",
 			args: ["idFromWindow", "mailAddressFromWindow"]
 		})
+		await delay(10)
 
-		setTimeout(() => {
-			o(errMock.sendErrorReport.callCount).equals(1)
-			o(errMock.sendErrorReport.args[0]).equals(WINDOW_ID)
-			o(errMock.sendErrorReport.args.length).equals(1)
+		o(errMock.sendErrorReport.callCount).equals(1)
+		o(errMock.sendErrorReport.args[0]).equals(WINDOW_ID)
+		o(errMock.sendErrorReport.args.length).equals(1)
 
-			o(windowMock.isHidden.callCount).equals(1)
-			o(windowMock.isHidden.args.length).equals(0)
+		o(windowMock.isHidden.callCount).equals(1)
+		o(windowMock.isHidden.args.length).equals(0)
 
-			o(notifierMock.resolveGroupedNotification.callCount).equals(1)
-			o(notifierMock.resolveGroupedNotification.args[0]).equals("idFromWindow")
-			o(notifierMock.resolveGroupedNotification.args.length).equals(1)
+		o(notifierMock.resolveGroupedNotification.callCount).equals(1)
+		o(notifierMock.resolveGroupedNotification.args[0]).equals("idFromWindow")
+		o(notifierMock.resolveGroupedNotification.args.length).equals(1)
 
-			o(windowMock.setUserInfo.callCount).equals(1)
-			o(windowMock.setUserInfo.args[0]).deepEquals({
-				userId: "idFromWindow",
-				mailAddress: "mailAddressFromWindow"
-			})
-			o(windowMock.setUserInfo.args.length).equals(1)
+		o(windowMock.setUserInfo.callCount).equals(1)
+		o(windowMock.setUserInfo.args[0]).deepEquals({
+			userId: "idFromWindow",
+			mailAddress: "mailAddressFromWindow"
+		})
+		o(windowMock.setUserInfo.args.length).equals(1)
 
-			o(windowMock.sendMessageToWebContents.callCount).equals(2)
-			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
-				id: 'id2',
-				type: 'response',
-				value: 'agarbledmess'
-			})
-			done()
-		}, 10)
+		o(windowMock.sendMessageToWebContents.callCount).equals(2)
+		o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
+			id: 'id2',
+			type: 'response',
+			value: 'agarbledmess'
+		})
 	})
 
 	o("storePushIdentifierLocally", function (done) {
@@ -856,20 +874,6 @@ o.spec("IPC tests", function () {
 			o(typeof arg.error).equals("object")
 			done()
 		}, 10)
-	})
-
-	o("invalidate alarms", async function () {
-		const {confMock} = setUpWithWindowAndInit()
-		await Promise.resolve()
-		const sseInfo = {userIds: []}
-		confMock.listeners[DesktopConfigKey.pushIdentifier][0](sseInfo)
-
-		await Promise.resolve()
-		o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
-			id: 'desktop0',
-			type: 'invalidateAlarms',
-			args: []
-		})
 	})
 })
 

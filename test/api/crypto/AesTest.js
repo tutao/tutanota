@@ -22,7 +22,7 @@ o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
 	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
 	o("encryption roundtrip 256 without mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
-	o.only("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), true))
+	o("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), true))
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
 	// 	arrayRoundtrip(done, aes256EncryptFile, aes256DecryptFile, aes256RandomKey(), true)

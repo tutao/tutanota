@@ -19,17 +19,13 @@ import {remove} from "../../api/common/utils/ArrayUtils"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
-import {DesktopConfigKey} from "../config/ConfigKeys"
+import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
 
 export type SseInfo = {|
 	identifier: string,
 	sseOrigin: string,
 	userIds: Array<string>
 |}
-
-// how long should we wait to retry after failing to get a response?
-let INITIAL_CONNECT_TIMEOUT: number
-let MAX_CONNECT_TIMEOUT: number
 
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
@@ -48,10 +44,10 @@ export class DesktopSseClient {
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
 	_readTimeoutInSeconds: number;
-	_connectTimeoutInSeconds: number;
 	_nextReconnect: ?TimeoutID;
 	_tryToReconnect: boolean;
 	_lastProcessedChangeTime: number;
+	_reconnectAttempts: number
 	// We use this promise for queueing processing of notifications. There could be a smarter queue which clears all downloads older than
 	// the response.
 	_handlingPushMessage: Promise<*>;
@@ -70,17 +66,8 @@ export class DesktopSseClient {
 		this._alarmStorage = alarmStorage
 		this._lang = lang
 		this._delayHandler = delayHandler
+		this._reconnectAttempts = 1
 
-
-		INITIAL_CONNECT_TIMEOUT = this._conf.getConst("initialSseConnectTimeoutInSeconds")
-		MAX_CONNECT_TIMEOUT = this._conf.getConst("maxSseConnectTimeoutInSeconds")
-		this._connectedSseInfo = conf.getVar('pushIdentifier')
-		this._readTimeoutInSeconds = conf.getVar('heartbeatTimeoutInSeconds')
-		if (typeof this._readTimeoutInSeconds !== 'number' || Number.isNaN(this._readTimeoutInSeconds)) {
-			this._readTimeoutInSeconds = 30
-			conf.setVar('heartbeatTimeoutInSeconds', 30)
-		}
-		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 		this._tryToReconnect = false
 		this._lastProcessedChangeTime = 0
 		app.on('will-quit', () => {
@@ -91,8 +78,10 @@ export class DesktopSseClient {
 		this._handlingPushMessage = Promise.resolve()
 	}
 
-	start() {
+	async start() {
 		this._tryToReconnect = true
+		this._connectedSseInfo = await this._conf.getVar(DesktopConfigEncKey.sseInfo)
+		this._readTimeoutInSeconds = await this._conf.getVar(DesktopConfigKey.heartbeatTimeoutInSeconds)
 		this._reschedule(1)
 	}
 
@@ -110,32 +99,35 @@ export class DesktopSseClient {
 			}
 		}
 		const sseInfo = {identifier, sseOrigin, userIds}
-		return this._conf.setVar('pushIdentifier', sseInfo)
+		return this._conf.setVar(DesktopConfigEncKey.sseInfo, sseInfo)
 		           .then(() => {
 			           this._connectedSseInfo = sseInfo
 		           })
 	}
 
-	getPushIdentifier(): ?SseInfo {
-		return this._conf.getVar(DesktopConfigKey.pushIdentifier)
+	getSseInfo(): Promise<?SseInfo> {
+		return this._conf.getVar(DesktopConfigEncKey.sseInfo)
 	}
 
-	connect(): Promise<void> {
+	async connect(): Promise<void> {
 		if (!this._connectedSseInfo) {
 			this._reschedule(10)
 			log.debug("sse info not available, skip reconnect")
 			return Promise.resolve()
 		}
 		const sseInfo = this._connectedSseInfo
-		if (this.hasNotificationTTLExpired()) {
+		if (await this.hasNotificationTTLExpired()) {
 			log.debug("invalidating alarms on connect")
 			return this.resetStoredState()
 		}
 
-		// now actually try to connect. cleaning up any old
-		// connection because us getting here means we timed out or had an error
-		this._connectTimeoutInSeconds = Math.min(this._connectTimeoutInSeconds * 2, MAX_CONNECT_TIMEOUT)
-		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
+		const initialConnectTimeoutSeconds = await this._conf.getConst("initialSseConnectTimeoutInSeconds")
+		const maxConnectTimeoutSeconds = await this._conf.getConst("maxSseConnectTimeoutInSeconds")
+		// double the connection timeout with each attempt to connect, capped by maxConnectTimeoutSeconds
+		const connectionTimeoutInSeconds = Math.min(initialConnectTimeoutSeconds
+			* Math.pow(2, this._reconnectAttempts), maxConnectTimeoutSeconds)
+		this._reconnectAttempts++
+		this._reschedule(randomIntFromInterval(1, connectionTimeoutInSeconds))
 		this._disconnect()
 
 		const userId = sseInfo.userIds[0]
@@ -161,14 +153,15 @@ export class DesktopSseClient {
 			// handler is called (and it works more reliably with console.log()).
 			// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
 			s.on('lookup', () => log.debug("lookup sse request"))
-		}).on('response', res => {
+		}).on('response', async res => {
+			this._reconnectAttempts = 1
 			log.debug("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
 				log.debug('sse: got NotAuthenticated, deleting userId')
-				const sseInfo = this._removeUserId(userId)
+				const sseInfo = await this._removeUserId(userId)
 
 				// If we don't remove _connectedSseInfo then timeout loop will restart connection automatiicaly
-				if (sseInfo.userIds.length === 0) {
+				if (sseInfo && sseInfo.userIds.length === 0) {
 					log.debug("No user ids, skipping reconnect")
 					this._connectedSseInfo = null
 					this._disconnect()
@@ -190,8 +183,7 @@ export class DesktopSseClient {
 			}).on('close', () => {
 				log.debug('sse response closed')
 				this._disconnect()
-				this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-				this._reschedule(INITIAL_CONNECT_TIMEOUT)
+				this._reschedule(initialConnectTimeoutSeconds)
 			}).on('error', e => console.error('sse response error:', e))
 		}).on(
 			'information', e => log.debug('sse information')
@@ -202,12 +194,15 @@ export class DesktopSseClient {
 		return Promise.resolve()
 	}
 
-	_removeUserId(userId: string): SseInfo {
+	async _removeUserId(userId: string): Promise<?SseInfo> {
 		this._alarmScheduler.unscheduleAllAlarms(userId)
-		const sseInfo: SseInfo = this._conf.getVar('pushIdentifier')
-		remove(sseInfo.userIds, userId)
-		this._conf.setVar("pushIdentifier", sseInfo)
-		this._connectedSseInfo = sseInfo
+		const sseInfo: ?SseInfo = await this.getSseInfo()
+		if (sseInfo) {
+			remove(sseInfo.userIds, userId)
+			await this._conf.setVar(DesktopConfigEncKey.sseInfo, sseInfo)
+			this._connectedSseInfo = sseInfo
+		}
+
 		return sseInfo
 	}
 
@@ -239,11 +234,11 @@ export class DesktopSseClient {
 		if (data === 'notification') {
 			this._handlePushMessage(userId)
 			    .then(() => this._reschedule())
-			    .catch(e => {
+			    .catch(async e => {
 				    if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
 					    // Reset the queue so that the previous error will not be handled again
+					    await this._removeUserId(userId)
 					    this._handlingPushMessage = Promise.resolve()
-					    this._removeUserId(userId)
 					    this._disconnect()
 				    } else {
 					    log.error("failed to handle push message:", e)
@@ -260,8 +255,8 @@ export class DesktopSseClient {
 	 * expired, we certainly missed some updates.
 	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
 	 */
-	hasNotificationTTLExpired(): boolean {
-		const lastMissedNotificationCheckTime = this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
+	async hasNotificationTTLExpired(): Promise<boolean> {
+		const lastMissedNotificationCheckTime = await this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
 		log.debug("last missed notification check:", {lastMissedNotificationCheckTime})
 		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
 	}
@@ -281,7 +276,7 @@ export class DesktopSseClient {
 				const connectedSseInfo = this._connectedSseInfo
 				if (connectedSseInfo) {
 					connectedSseInfo.userIds = []
-					return this._conf.setVar(DesktopConfigKey.pushIdentifier, connectedSseInfo)
+					return this._conf.setVar(DesktopConfigEncKey.sseInfo, connectedSseInfo)
 				}
 			})
 			.then(() => {
@@ -335,7 +330,7 @@ export class DesktopSseClient {
 
 
 	_downloadMissedNotification(userId: string): Promise<any> {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?TutanotaError) => {
 				if (res) {
 					res.destroy()
@@ -351,8 +346,9 @@ export class DesktopSseClient {
 				v: MissedNotificationTypeModel.version,
 				cv: this._app.getVersion(),
 			}
-			if (this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)) {
-				headers["lastProcessedNotificationId"] = this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)
+			const lastProcessedId = await this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)
+			if (lastProcessedId) {
+				headers["lastProcessedNotificationId"] = lastProcessedId
 			}
 			const req = this._net
 			                .request(url, {
@@ -422,7 +418,8 @@ export class DesktopSseClient {
 		}
 		log.debug('scheduling to check sse in', delaySeconds, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
-		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
+		const timeoutId = this._delayHandler(() => this.connect(), delaySeconds * 1000)
+		this._nextReconnect = timeoutId
 	}
 
 	_requestJson(identifier: string, userId: string): string {

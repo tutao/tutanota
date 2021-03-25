@@ -381,6 +381,13 @@ export function typedKeys<K: string, V>(obj: {[K]: V}): Array<K> {
 	return downcast(Object.keys(obj))
 }
 
+/**
+ * Ignores the fact that Object.keys returns also not owned properties.
+ */
+export function typedValues<K: string, V>(obj: {[K]: V}): Array<V> {
+	return downcast(Object.values(obj))
+}
+
 export type MaybeLazy<T> = T | lazy<T>;
 
 export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {

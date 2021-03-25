@@ -80,7 +80,7 @@ export class DesktopErrorHandler {
 			checkboxLabel: lang.get("restartBefore_action"),
 			checkboxChecked: false,
 			type: 'error'
-		}).then(({response, checkboxChecked}) => {
+		}).then(async ({response, checkboxChecked}) => {
 			if (response === 1) { // clicked yes
 				if (checkboxChecked) {
 					log.debug('writing error log to', this._errorLogPath)
@@ -92,7 +92,8 @@ export class DesktopErrorHandler {
 					if (loggedInWindow) {
 						return this.sendErrorReport(loggedInWindow.id)
 					} else {
-						return this.sendErrorReport(this._wm.getLastFocused(true).id)
+						const lastFocused = await this._wm.getLastFocused(true)
+						return this.sendErrorReport(lastFocused.id)
 					}
 				}
 			}

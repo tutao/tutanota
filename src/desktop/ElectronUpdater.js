@@ -81,10 +81,11 @@ export class ElectronUpdater {
 			autoUpdater.autoInstallOnAppQuit = false
 			autoUpdater.on('checking-for-update', () => {
 				this._logger.info("checking-for-update")
-			}).on('update-available', updateInfo => {
+			}).on('update-available', async updateInfo => {
 				this._logger.info("update-available")
 				this._stopPolling()
-				const verified = this._conf.getConst("pubKeys").some(pk => this._verifySignature(pk, downcast(updateInfo)))
+				const publicKeys = await this._conf.getConst("pubKeys")
+				const verified = publicKeys.some(pk => this._verifySignature(pk, downcast(updateInfo)))
 				if (verified) {
 					this._downloadUpdate()
 					    .then(p => log.debug("dl'd update files: ", p))
@@ -149,9 +150,9 @@ export class ElectronUpdater {
 		})
 	}
 
-	+_enableAutoUpdateListener: (() => void) = () => this.start()
+	+_enableAutoUpdateListener: (() => void) = () => {this.start()}
 
-	start() {
+	async start() {
 		if (!this._updater.updatesEnabledInBuild()) {
 			log.debug("no update info on disk, disabling updater.")
 			this._conf.setVar('showAutoUpdateOption', false)
@@ -175,7 +176,7 @@ export class ElectronUpdater {
 			return
 		}
 
-		this._checkUpdateSignature = this._conf.getConst('checkUpdateSignature')
+		this._checkUpdateSignature = await this._conf.getConst('checkUpdateSignature')
 		this._startPolling()
 		// the first check is immediate, all others are done with a delay
 		// and random exponential backoff
@@ -207,12 +208,12 @@ export class ElectronUpdater {
 		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.on('update-downloaded', listener))
 	}
 
-	_startPolling() {
+	async _startPolling() {
 		if (!this._updatePollInterval) {
 			// sets the poll interval at a random multiple of (base value)
 			// between (base value) and (base value) * 2^(errorCount)
 			const multiplier = Math.floor(Math.random() * Math.pow(2, this._errorCount)) + 1
-			const interval = this._conf.getConst("pollingInterval")
+			const interval = await this._conf.getConst("pollingInterval")
 			this._updatePollInterval = this._setInterval(() => this._checkUpdate(), interval * multiplier)
 		}
 	}
@@ -282,13 +283,13 @@ export class ElectronUpdater {
 		           })
 	}
 
-	_notifyAndInstall(info: UpdateInfo): void {
+	async _notifyAndInstall(info: UpdateInfo): Promise<void> {
 		log.debug("notifying for update")
 		this._notifier
 		    .showOneShot({
 			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
 			    body: lang.get('clickToUpdate_msg'),
-			    icon: this._tray.getIconByName(this._conf.getConst('iconName'))
+			    icon: await this._tray.getIconByName(await this._conf.getConst('iconName'))
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
@@ -313,11 +314,11 @@ export class ElectronUpdater {
 		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.quitAndInstall(false, true))
 	}
 
-	_notifyUpdateError() {
+	async _notifyUpdateError() {
 		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
-			icon: this._tray.getIconByName(this._conf.getConst('iconName'))
+			icon: this._tray.getIconByName(await this._conf.getConst('iconName'))
 		}).catch(e => this._logger.error("Error Notification failed,", e.message))
 	}
 }

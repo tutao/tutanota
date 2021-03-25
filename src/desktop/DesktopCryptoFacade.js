@@ -1,7 +1,14 @@
 // @flow
-import {base64ToKey, bitArrayToUint8Array} from "../api/worker/crypto/CryptoUtils"
-import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
+import {
+	base64ToBase64Url,
+	base64ToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
+} from "../api/common/utils/Encoding"
 import type {CryptoFunctions} from "./CryptoFns"
+import {IV_BYTE_LENGTH} from "../api/worker/crypto/Aes"
 
 
 export class DesktopCryptoFacade {
@@ -11,6 +18,27 @@ export class DesktopCryptoFacade {
 	constructor(fs: $Exports<"fs">, cryptoFns: CryptoFunctions) {
 		this.fs = fs
 		this.cryptoFns = cryptoFns
+	}
+
+	aesEncryptObject(encryptionKey: Aes256Key, object: {}): string {
+		const serializedObject = JSON.stringify(object)
+		const encryptedBytes = this.cryptoFns.aes256Encrypt(
+			encryptionKey,
+			stringToUtf8Uint8Array(serializedObject),
+			this.cryptoFns.randomBytes(IV_BYTE_LENGTH),
+			true,
+			true
+		)
+		// const encryptedBytes = stringToUtf8Uint8Array(serializedObject)
+		return uint8ArrayToBase64(encryptedBytes)
+	}
+
+	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): {} {
+		const encryptedBytes = base64ToUint8Array(serializedObject)
+		const decryptedBytes = this.cryptoFns.aes256Decrypt(encryptionKey, encryptedBytes, true, true)
+		// const decryptedBytes = encryptedBytes
+		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
+		return JSON.parse(stringObject)
 	}
 
 	/**
@@ -66,7 +94,7 @@ export class DesktopCryptoFacade {
 		return this.cryptoFns.decrypt256Key(encryptionKeyArray, keyArray)
 	}
 
-	generateDeviceKey(): string {
-		return uint8ArrayToBase64(bitArrayToUint8Array(this.cryptoFns.aes256RandomKey()))
+	generateDeviceKey(): Aes256Key {
+		return this.cryptoFns.aes256RandomKey()
 	}
 }

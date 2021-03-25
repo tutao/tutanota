@@ -1,12 +1,19 @@
 // @flow
-import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents, WebContentsEvent} from 'electron'
+import type {
+	BrowserWindow,
+	ContextMenuParams,
+	ElectronPermission,
+	FindInPageResult,
+	NativeImage,
+	WebContents,
+	WebContentsEvent
+} from 'electron'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
 import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
-import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {noOp} from "../api/common/utils/Utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -51,13 +58,13 @@ export class ApplicationWindow {
 	_electron: $Exports<"electron">;
 	_localShortcut: LocalShortcutManager;
 
-	constructor(wm: WindowManager, conf: DesktopConfig, electron: $Exports<"electron">, localShortcutManager: LocalShortcutManager,
-	            noAutoLogin?: boolean) {
+	constructor(wm: WindowManager, desktophtml: string, icon: NativeImage, electron: $Exports<"electron">, localShortcutManager: LocalShortcutManager,
+	            noAutoLogin?: ?boolean) {
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._electron = electron
 		this._localShortcut = localShortcutManager
-		this._startFile = pathToFileURL(path.join(this._electron.app.getAppPath(), conf.getConst("desktophtml")),)
+		this._startFile = pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml),)
 		this._startFileURL = new URL(this._startFile)
 		this._lastSearchPromiseReject = noOp
 
@@ -80,7 +87,7 @@ export class ApplicationWindow {
 
 		log.debug("startFile: ", this._startFile)
 		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
-		this._createBrowserWindow(wm, preloadPath)
+		this._createBrowserWindow(wm, preloadPath, icon)
 		this._browserWindow.loadURL(
 			noAutoLogin
 				? this._startFile + "?noAutoLogin=true"
@@ -130,9 +137,9 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(wm: WindowManager, preloadPath: string) {
+	_createBrowserWindow(wm: WindowManager, preloadPath: string, icon: NativeImage) {
 		this._browserWindow = new this._electron.BrowserWindow({
-			icon: wm.getIcon(),
+			icon,
 			show: false,
 			autoHideMenuBar: true,
 			webPreferences: {
@@ -310,7 +317,7 @@ export class ApplicationWindow {
 			return
 		}
 		// need to wait for the nativeApp to register itself
-		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send('to-renderer', msg && msg.type))
+		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send('to-renderer', msg))
 	}
 
 	setUserInfo(info: ?UserInfo) {

@@ -104,8 +104,9 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
-	unscheduleAllAlarms(userId: ?Id = null): Promise<void> {
-		this._alarmStorage.getScheduledAlarms().forEach(alarm => {
+	async unscheduleAllAlarms(userId: ?Id = null): Promise<void> {
+		const alarms = await this._alarmStorage.getScheduledAlarms()
+		alarms.forEach(alarm => {
 			if (userId == null || alarm.user === userId) {
 				this._cancelAlarms(alarm)
 			}
@@ -179,7 +180,7 @@ export class DesktopAlarmScheduler {
 	 * read all stored alarms and reschedule the notifications
 	 */
 	async rescheduleAll(): Promise<void> {
-		const alarms = this._alarmStorage.getScheduledAlarms()
+		const alarms = await this._alarmStorage.getScheduledAlarms()
 		for (const alarm of alarms) {
 			await this.handleAlarmNotification(alarm)
 		}

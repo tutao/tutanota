@@ -3,6 +3,7 @@ import {nativeApp} from "../common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {uriToFileRef} from "../common/FileApp"
 import {isDesktop} from "../../api/common/Env"
+import type {DesktopConfigEncKeyEnum, DesktopConfigKeyEnum} from "../../desktop/config/ConfigKeys"
 
 /**
  * Open the link
@@ -40,4 +41,18 @@ export function getDeviceLogs(): Promise<FileReference> {
 
 export function getDesktopLogs(): Promise<Array<string>> {
 	return nativeApp.invokeNative(new Request("getLog", []))
+}
+
+export function getConfigValue(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum): Promise<any> {
+	return nativeApp.invokeNative(new Request("getConfigValue", [key]))
+}
+
+export type IntegrationInfo = {isMailtoHandler: boolean, isAutoLaunchEnabled: boolean, isIntegrated: boolean, isUpdateAvailable: boolean}
+
+export function getIntegrationInfo(): Promise<IntegrationInfo> {
+	return nativeApp.invokeNative(new Request("getIntegrationInfo", []))
+}
+
+export function setConfigValue(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, value: any): Promise<any> {
+	return nativeApp.invokeNative(new Request("setConfigValue", [key, value]))
 }

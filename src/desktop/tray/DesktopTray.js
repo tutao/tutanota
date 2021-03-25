@@ -78,9 +78,9 @@ export class DesktopTray {
 		platformTray.clearBadge()
 	}
 
-	getIcon(): NativeImage {
+	async getIcon(): Promise<NativeImage> {
 		if (!this._icon) {
-			this._icon = this.getIconByName(this._conf.getConst('iconName'))
+			this._icon = this.getIconByName(await this._conf.getConst('iconName'))
 		}
 		return this._icon
 	}

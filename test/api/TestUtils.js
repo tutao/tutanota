@@ -6,8 +6,9 @@ import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbTransaction} from "../../src/api/worker/search/DbFacade"
-import {fixedIv} from "../../src/api/worker/crypto/CryptoUtils"
-import {assertNotNull, defer, downcast, neverNull} from "../../src/api/common/utils/Utils"
+import {fixedIv, uint8ArrayToKey} from "../../src/api/worker/crypto/CryptoUtils"
+import {assertNotNull, downcast, neverNull} from "../../src/api/common/utils/Utils"
+import type {DeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -114,19 +115,16 @@ export function makeCore(args?: {
 export type TimeoutMock = typeof setTimeout & {next: () => void}
 
 export function makeTimeoutMock(): TimeoutMock {
-	let deferred = defer()
 	let timeoutId = 1
+	let scheduledFn
 	const timeoutMock = function (fn: () => any): TimeoutID {
-		deferred.promise.finally(() => {
-			deferred = defer()
-			fn()
-		})
+		scheduledFn = fn
 		timeoutId++
 		return downcast(timeoutId)
 	}
 
 	timeoutMock.next = function () {
-		return deferred.resolve()
+		scheduledFn && scheduledFn()
 	}
 	return timeoutMock
 }
@@ -166,4 +164,12 @@ export function reportTest(results: mixed, stats: mixed) {
 		p.textContent = errCount === 0 ? "No errors" : `${errCount} error(s) (see console)`
 		p.style.color = errCount === 0 ? "green" : "red"
 	})()
+}
+
+export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DeviceKeyProvider {
+	return {
+		getDeviceKey() {
+			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
+		}
+	}
 }
