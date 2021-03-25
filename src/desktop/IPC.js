@@ -132,8 +132,8 @@ export class IPC {
 					if (w) {
 						// findInPage might reject if requests come too quickly
 						// if it's rejecting for another reason we'll have logs
-						return w.findInPage(args)
-						        .catch(e => log.debug("findInPage reject:", args, e))
+						return w.findInPage(downcast(args))
+						        .catch(e => log.debug("findInPage reject:", e))
 					} else {
 						return {numberOfMatches: 0, currentMatch: 0}
 					}

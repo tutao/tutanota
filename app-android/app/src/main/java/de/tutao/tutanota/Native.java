@@ -96,7 +96,7 @@ public final class Native {
 							.fail(e -> sendErrorResponse(request, e));
 				}
 			} catch (JSONException e) {
-				Log.e("Native", "could not parse msg:" + msg, e);
+				Log.e("Native", "could not parse msg:", e);
 			}
 		}).start();
 	}
@@ -241,7 +241,7 @@ public final class Native {
 					String deviceIdentififer = args.getString(0);
 					String userId = args.getString(1);
 					String sseOrigin = args.getString(2);
-					Log.d(TAG, "storePushIdentifierLocally: " + deviceIdentififer + " " + userId + " " + sseOrigin);
+					Log.d(TAG, "storePushIdentifierLocally");
 					sseStorage.storePushIdentifier(deviceIdentififer, sseOrigin);
 
 					String pushIdentifierId = args.getString(3);

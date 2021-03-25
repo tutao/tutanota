@@ -97,7 +97,7 @@ export class DesktopSseClient {
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
-		log.debug("storing push identifier", identifier.substring(0, 3))
+		log.debug("storing push identifier")
 		let userIds
 		if (!this._connectedSseInfo) {
 			userIds = [userId]
@@ -144,10 +144,7 @@ export class DesktopSseClient {
 			return Promise.resolve()
 		}
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
-		log.debug(
-			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
-			'userIds', userId,
-		)
+		log.debug("starting sse connection")
 		this._connection = this._net.request(url, {
 			headers: {
 				"Content-Type": "application/json",
@@ -197,8 +194,8 @@ export class DesktopSseClient {
 				this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			}).on('error', e => console.error('sse response error:', e))
 		}).on(
-			'information', e => log.debug('sse information:', e.message)
-		).on('connect', e => log.debug('sse connect:', e.message)
+			'information', e => log.debug('sse information')
+		).on('connect', e => log.debug('sse connect:')
 		).on('error', e => console.error('sse error:', e.message)
 		).end()
 
@@ -348,7 +345,7 @@ export class DesktopSseClient {
 			}
 
 			const url = this._makeAlarmNotificationUrl()
-			log.debug("downloading missed notification with user", userId)
+			log.debug("downloading missed notification")
 			const headers: {[string]: string} = {
 				userIds: userId,
 				v: MissedNotificationTypeModel.version,

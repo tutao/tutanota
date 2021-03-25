@@ -302,15 +302,15 @@ export class ApplicationWindow {
 
 	async sendMessageToWebContents(msg: any): Promise<void> {
 		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			log.warn(`BrowserWindow unavailable, not sending message:\n${msg}`)
+			log.warn(`BrowserWindow unavailable, not sending message:\n${msg && msg.type}`)
 			return
 		}
 		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			log.warn(`WebContents unavailable, not sending message:\n${msg}`)
+			log.warn(`WebContents unavailable, not sending message:\n${msg && msg.type}`)
 			return
 		}
 		// need to wait for the nativeApp to register itself
-		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send('to-renderer', msg))
+		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send('to-renderer', msg && msg.type))
 	}
 
 	setUserInfo(info: ?UserInfo) {
@@ -351,9 +351,8 @@ export class ApplicationWindow {
 		return url
 	}
 
-	findInPage(args: Array<any>): Promise<FindInPageResult> {
+	findInPage([searchTerm, options]: [string, {forward: boolean, matchCase: boolean}]): Promise<FindInPageResult> {
 		this._findingInPage = true
-		const [searchTerm, options] = args
 		if (searchTerm !== '') {
 			this._lastSearchRequest = [searchTerm, options]
 			this._browserWindow.webContents.findInPage(searchTerm, options)
