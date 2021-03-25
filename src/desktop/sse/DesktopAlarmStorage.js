@@ -3,10 +3,9 @@ import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfig} from "../config/DesktopConfig"
-import type {TimeoutData} from "./DesktopAlarmScheduler"
+import type {EncryptedAlarmNotification, TimeoutData} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {base64ToKey} from "../../api/worker/crypto/CryptoUtils"
-import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 import type {SecretStorage} from "./SecretStorage"
@@ -125,11 +124,11 @@ export class DesktopAlarmStorage {
 		})
 	}
 
-	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}): Promise<void> {
+	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: EncryptedAlarmNotification}}): Promise<void> {
 		return this._conf.setVar(DesktopConfigKey.scheduledAlarms, Object.values(scheduledNotifications).map(val => downcast(val).an))
 	}
 
-	getScheduledAlarms(): Array<AlarmNotification> {
+	getScheduledAlarms(): Array<EncryptedAlarmNotification> {
 		return this._conf.getVar(DesktopConfigKey.scheduledAlarms) || []
 	}
 }

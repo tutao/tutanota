@@ -362,6 +362,10 @@ o.spec("CalendarEventViewModel", function () {
 				presharedPassword: "123",
 			})
 			const contactModel = makeContactModel([contact])
+
+			const startTime = DateTime.fromISO("2016-05-25T09:08:34.123", {zone: "UTC"}).toJSDate()
+			const endTime = DateTime.fromISO("2016-05-25T09:09:34.123", {zone: "UTC"}).toJSDate()
+
 			const existingEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
 				_ownerGroup: calendarGroupId,
@@ -369,6 +373,9 @@ o.spec("CalendarEventViewModel", function () {
 				attendees: [ownAttendee, attendee],
 				sequence: "1",
 				invitedConfidentially: false,
+				startTime,
+				endTime
+
 			})
 			const newEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
@@ -377,12 +384,14 @@ o.spec("CalendarEventViewModel", function () {
 				attendees: [ownAttendee, attendee],
 				sequence: "2",
 				invitedConfidentially: false,
+				startTime,
+				endTime
+
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel, contactModel})
 
 			await viewModel.deleteEvent()
 
-			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([newEvent])
 			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([attendee.address.address])
