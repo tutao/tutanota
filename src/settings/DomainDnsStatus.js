@@ -30,6 +30,27 @@ export class DomainDnsStatus {
 		return this.status.getLoaded()
 	}
 
+	/**
+	 * Only checks for the required records (MX and spf) to be fine.
+	 * We have this less strict check because one can already use the custom domain (with limitations) even if certain records like dmarc are not yet set properly.
+	 * We want to allow finishing the dialogs succesfully even if just these basic check pass.
+	 * @returns {boolean} true if records are fine.
+	 */
+	areRecordsFine(): boolean {
+		if (!this.status.isLoaded()
+			|| this.status.getLoaded().checkResult !== CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
+			return false
+		}
+		const requiredCorrectTypes = [DnsRecordType.DNS_RECORD_TYPE_MX, DnsRecordType.DNS_RECORD_TYPE_TXT_SPF]
+		const requiredMissingRecords = this.status.getLoaded().missingRecords.filter(r => requiredCorrectTypes.includes(r.type))
+		return !requiredMissingRecords.length
+	}
+
+	/**
+	 * Checks that ALL records are fine. Even the ones that are only recommended.
+	 * We need this check on top of areRecordsFine() because we want to display if some records are not yet set correctly even if the domain can already be used.
+	 * @returns {boolean} true if all records are fine.
+	 */
 	areAllRecordsFine(): boolean {
 		return this.status.isLoaded()
 			&& this.status.getLoaded().checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK

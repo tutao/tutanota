@@ -1,7 +1,6 @@
 //@flow
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import m from "mithril"
-import type {CustomDomainCheckReturn} from "../../api/entities/sys/CustomDomainCheckReturn"
 import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import type {AddDomainData} from "./AddDomainWizard"
@@ -19,7 +18,9 @@ assertMainOrNode()
 export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 
 	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
-		_updateDnsStatus(vnode.attrs.data)
+		const data = vnode.attrs.data
+		data.domainStatus = new DomainDnsStatus(data.domain())
+		_updateDnsStatus(data.domainStatus)
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
@@ -28,7 +29,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 			m("h4.mt-l.text-center", lang.get("verifyDNSRecords_title")),
 			m("p", lang.get("verifyDNSRecords_msg")),
 			a.data.domainStatus.status.isLoaded() ? m("", [
-				_renderCheckResult(a.data, a.data.domainStatus.status.getLoaded()),
+				renderCheckResult(a.data.domainStatus),
 				m(".flex-center.full-width.pt-l.mb-l", m("", {style: {width: "260px"}}, m(ButtonN, {
 					type: ButtonType.Login,
 					label: "finish_action",
@@ -40,7 +41,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 				m(".flex-center.full-width.pt-l.mb-l", m(ButtonN, {
 					type: ButtonType.Secondary,
 					label: "refresh_action",
-					click: () => _updateDnsStatus(a.data)
+					click: () => _updateDnsStatus(a.data.domainStatus)
 				}))
 			])
 		]
@@ -61,8 +62,8 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 				emitWizardEvent(dom, WizardEventType.CLOSEDIALOG)
 			}
 		}
-		return _updateDnsStatus(data).then(() => {
-			if (recordsAreFine(data.domainStatus.status.getLoaded())) {
+		return _updateDnsStatus(data.domainStatus).then(() => {
+			if (data.domainStatus.areRecordsFine()) {
 				emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE) // The wizard will close the dialog as this is the last page
 			} else {
 				Dialog.showActionDialog(leaveUnfinishedDialogAttrs)
@@ -71,37 +72,50 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 	}
 }
 
-function _updateDnsStatus(wizardData: AddDomainData): Promise<void> {
-	wizardData.domainStatus = new DomainDnsStatus(wizardData.domain())
-	return wizardData.domainStatus.loadCurrentStatus().then(() => {
+function _updateDnsStatus(domainStatus: DomainDnsStatus): Promise<void> {
+	return domainStatus.loadCurrentStatus().then(() => {
 		m.redraw()
 	})
 }
 
-function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheckReturn): ChildArray {
+function _getDisplayableRecordValue(record: DnsRecord): string {
+	if (!record.value.endsWith('.')
+		&& (record.type === DnsRecordType.DNS_RECORD_TYPE_MX
+			|| record.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM
+			|| record.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)) {
+		return record.value + '.'
+	}
+	return record.value
+}
+
+export function renderCheckResult(domainStatus: DomainDnsStatus): ChildArray {
+	const result = domainStatus.getLoadedCustomDomainCheckReturn()
 	if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
 		let array = []
 		let validatedRecords = result.requiredRecords.map((record) => {
+			const displayableRecordValue = _getDisplayableRecordValue(record)
 			const helpInfo = []
 			const validatedRecord = {}
 			const missingRecords = findDnsRecordInList(record, result.missingRecords)
 			missingRecords.forEach((missingRecord) => {
 				validatedRecord.record = record
 				if (record.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC) {
-					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("recommendedDNSValue_label")}: ${record.value}`)
+					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("recommendedDNSValue_label")}: ${displayableRecordValue}`)
 				} else {
-					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("addDNSValue_label")}: ${record.value}`)
+					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("addDNSValue_label")}: ${displayableRecordValue}`)
 				}
 			})
 			const invalidRecords = findDnsRecordInList(record, result.invalidRecords)
 			invalidRecords.forEach((invalidRecord) => {
 				validatedRecord.record = record
+				// here we want to display the incorrect value!
 				helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("removeDNSValue_label")}: ${invalidRecord.value}`)
 			})
 			if (!validatedRecord.record) {
 				validatedRecord.record = record
 				helpInfo.push(`${DnsRecordValidation.OK} ${lang.get("correctDNSValue_label")}`)
 			}
+			validatedRecord.record.value = displayableRecordValue
 			validatedRecord.helpInfo = helpInfo
 			return validatedRecord
 		})
@@ -109,7 +123,7 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 		array.push(createDnsRecordTableN(validatedRecords, {
 			label: "refresh_action",
 			icon: () => BootIcons.Progress,
-			click: () => _updateDnsStatus(wizardData)
+			click: () => _updateDnsStatus(domainStatus)
 		}))
 		array.push(m("span.small.mt-m", lang.get("moreInfo_msg") + " "))
 		array.push(m("span.small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))))
@@ -126,13 +140,6 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 
 function findDnsRecordInList(record: DnsRecord, recordList: Array<DnsRecord>): Array<DnsRecord> {
 	return recordList.filter(r => r.type === record.type && r.subdomain === record.subdomain)
-}
-
-function recordsAreFine(result: CustomDomainCheckReturn): boolean {
-	if (result.checkResult !== CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) return false
-	const requiredCorrectTypes = [DnsRecordType.DNS_RECORD_TYPE_MX, DnsRecordType.DNS_RECORD_TYPE_TXT_SPF]
-	const requiredMissingRecords = result.missingRecords.filter(r => requiredCorrectTypes.includes(r.type))
-	return !requiredMissingRecords.length
 }
 
 export class VerifyDnsRecordsPageAttrs implements WizardPageAttrs<AddDomainData> {
