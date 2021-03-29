@@ -102,6 +102,10 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 				validatedRecord.record = record
 				helpInfo.push(`${DnsRecordValidation.OK} ${lang.get("correctDNSValue_label")}`)
 			}
+			if (validatedRecord.record.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM
+				|| validatedRecord.record.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) {
+				validatedRecord.record.value += '.'
+			}
 			validatedRecord.helpInfo = helpInfo
 			return validatedRecord
 		})
