@@ -353,7 +353,7 @@ export default {
 		"deleteContacts_msg": "Are you sure you want to delete the selected contact(s)?",
 		"deleteContact_msg": "Are you sure you want to delete this contact?",
 		"deleteCredentials_action": "Delete credentials",
-		"deleteDnsRecords_msg": "Please delete or fix the following DNS records:",
+		"deleteDnsRecords_msg": "Please delete or fix the following DNS records:", // TODO delete
 		"deleteEmails_action": "Delete the selected emails",
 		"deleteEventConfirmation_msg": "Are you sure you want to delete this event?",
 		"deleteSharedCalendarConfirm_msg": "The calendar \"{calendar}\" is shared with other users.",
@@ -372,7 +372,7 @@ export default {
 		"discardChanges_action": "Discard changes",
 		"display_action": "Display",
 		"dnsRecordHostOrName_label": "Host/Name",
-		"dnsRecordsOk_msg": "All DNS records are fine!",
+		"dnsRecordsOk_msg": "All DNS records are fine!", // TODO remove key from phrase
 		"dnsRecordValueOrPointsTo_label": "Value/Points to",
 		"domainSetup_title": "Custom domain setup",
 		"domain_label": "Domain",
@@ -967,7 +967,7 @@ export default {
 		"receivingMailboxAlreadyUsed_msg": "The selected receiving mailbox is already used for a different contact form.",
 		"receivingMailbox_label": "Receiving mailbox",
 		"recipients_label": "Recipients",
-		"recommendedDmarcRecord_msg": "We recommend to set the following TXT entry for DMARC, but you may also choose your own configuration:",
+		"recommendedDmarcRecord_msg": "We recommend to set the following TXT entry for DMARC, but you may also choose your own configuration:", // TODO remove
 		"recommendedDNSValue_label": "Recommended value",
 		"recoverAccountAccess_action": "Lost account access",
 		"recoverResetFactors_action": "Reset second factor",
@@ -1130,7 +1130,7 @@ export default {
 		"signingNeeded_msg": "Signing needed!",
 		"signupOneFreeAccountConfirm_msg": "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
 		"sign_action": "Sign",
-		"skipDnsRecordsInfo_msg": "Please set the DNS records for your custom email domain. As long as they are not correctly configured you may not be able to send and receive emails. However, you may postpone this step until you have initially setup your email addresses.",
+		"skipDnsRecordsInfo_msg": "Please set the DNS records for your custom email domain. As long as they are not correctly configured you may not be able to send and receive emails. However, you may postpone this step until you have initially setup your email addresses.", //TODO remove
 		"skip_action": "Skip",
 		"smsError_msg": "Could not send text message.",
 		"smsResent_msg": "If no text message has arrived, you can resend it now.",
