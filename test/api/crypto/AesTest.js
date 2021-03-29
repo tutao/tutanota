@@ -1,6 +1,14 @@
 //@flow
 import o from "ospec"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
+import {
+	aes128Decrypt,
+	aes128Encrypt,
+	aes128RandomKey,
+	aes256Decrypt,
+	aes256Encrypt,
+	aes256RandomKey,
+	IV_BYTE_LENGTH
+} from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString} from "../../../src/api/common/utils/Encoding"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
@@ -11,14 +19,15 @@ import {concat} from "../../../src/api/common/utils/ArrayUtils"
 o.spec("aes", function () {
 
 
-	o("encryption roundtrip 128 without mac", (done) => arrayRoundtrip(done, aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
-	o("encryption roundtrip 128 with mac", (done) => arrayRoundtrip(done, aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
-	o("encryption roundtrip 256 without mac", (done) => arrayRoundtrip(done, aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
+	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
+	o("encryption roundtrip 128 with mac", () => arrayRoundtrip(aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
+	o("encryption roundtrip 256 without mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
+	o.only("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aes256Encrypt, aes256Decrypt, aes256RandomKey(), true))
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
 	// 	arrayRoundtrip(done, aes256EncryptFile, aes256DecryptFile, aes256RandomKey(), true)
 	// }))
-	function arrayRoundtrip(done, encrypt, decrypt, key, useMac: boolean) {
+	async function arrayRoundtrip(encrypt, decrypt, key, useMac: boolean) {
 		function runArrayRoundtrip(key: Aes128Key | Aes256Key, plainText) {
 			let encrypted = encrypt(key, plainText, random.generateRandomData(IV_BYTE_LENGTH), true, useMac)
 
@@ -29,14 +38,12 @@ o.spec("aes", function () {
 			})
 		}
 
-		Promise.all([
-			runArrayRoundtrip(key, random.generateRandomData(0)),
-			runArrayRoundtrip(key, random.generateRandomData(1)),
-			runArrayRoundtrip(key, random.generateRandomData(15)),
-			runArrayRoundtrip(key, random.generateRandomData(16)),
-			runArrayRoundtrip(key, random.generateRandomData(17)),
-			runArrayRoundtrip(key, random.generateRandomData(12345))
-		]).then(() => done())
+		await runArrayRoundtrip(key, random.generateRandomData(0))
+		await runArrayRoundtrip(key, random.generateRandomData(1))
+		await runArrayRoundtrip(key, random.generateRandomData(15))
+		await runArrayRoundtrip(key, random.generateRandomData(16))
+		await runArrayRoundtrip(key, random.generateRandomData(17))
+		await runArrayRoundtrip(key, random.generateRandomData(12345))
 	}
 
 	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(aes128RandomKey, 24))
