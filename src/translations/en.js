@@ -1302,6 +1302,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"addAliasUserDisabled_msg": "The email alias could not be added to the user or group because it is currently deactivated."
 	}
 }

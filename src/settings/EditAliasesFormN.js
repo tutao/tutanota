@@ -6,7 +6,7 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
-import {InvalidDataError, LimitReachedError} from "../api/common/error/RestError"
+import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {noOp} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
@@ -26,6 +26,8 @@ import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
+
+const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export type EditAliasesFormAttrs = {|
 	userGroupInfo: GroupInfo,
@@ -181,6 +183,13 @@ export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): P
 	return showProgressDialog("pleaseWait_msg", worker.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
 		.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg"))
 		.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg"))
+		.catch(PreconditionFailedError, e => {
+			let errorMsg = e.toString()
+		if (e.data === FAILURE_USER_DISABLED) {
+			errorMsg = lang.get("addAliasUserDisabled_msg")
+		}
+		return Dialog.error(() => errorMsg)
+	})
 		.finally(() => updateNbrOfAliases(aliasFormAttrs))
 }
 
