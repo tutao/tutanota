@@ -11,6 +11,7 @@ import {theme} from "../../gui/theme"
 import {NBSP} from "../../api/common/utils/StringUtils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ActionBar} from "../../gui/base/ActionBar"
+import {neverNull} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -79,11 +80,16 @@ export class MultiContactViewer {
 				label: "merge_action",
 				click: () => this._contactView.mergeSelected().then(actionCallback),
 				icon: () => Icons.People,
-				isVisible: () => this._contactView._contactList.list.getSelectedEntities().length === 2
+				isVisible: () => !!this._contactView._contactList && this._contactView._contactList.list.getSelectedEntities().length === 2
 			},
 			{
 				label: "exportSelectedAsVCard_action",
-				click: () => exportContacts(this._contactView._contactList.list.getSelectedEntities()),
+				click: () => {
+					return this._contactView._contactList
+						? exportContacts(neverNull(this._contactView._contactList).list.getSelectedEntities())
+						: Promise.resolve()
+				},
+				isVisible: () => !!this._contactView._contactList,
 				icon: () => Icons.Export
 			}
 		]
