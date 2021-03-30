@@ -13,6 +13,11 @@ import type {IPC} from "./IPC"
 import {DesktopContextMenu} from "./DesktopContextMenu"
 import {log} from "./DesktopLog"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
+import {getExportDirectoryPath} from "./DesktopFileExport"
+import path from "path"
+import {fileExists} from "./PathUtils"
+import type {MailExportMode} from "../mail/export/Exporter"
+import {EML_DRAG_ICON_B64, MSG_DRAG_ICON_B64} from "./DesktopUtils"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -23,13 +28,14 @@ export type WindowBounds = {|
 const windows: ApplicationWindow[] = []
 
 export class WindowManager {
-	_conf: DesktopConfig
-	_tray: DesktopTray
-	_notifier: DesktopNotifier
-	_contextMenu: DesktopContextMenu
+	+_conf: DesktopConfig
+	+_tray: DesktopTray
+	+_notifier: DesktopNotifier
+	+_contextMenu: DesktopContextMenu
 	ipc: IPC
-	dl: DesktopDownloadManager
-	_newWindowFactory: (noAutoLogin?: boolean) => ApplicationWindow
+	+dl: DesktopDownloadManager
+	+_newWindowFactory: (noAutoLogin?: boolean) => ApplicationWindow
+	+_dragIcons: {[MailExportMode]: NativeImage}
 
 	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
 	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager) {
@@ -47,8 +53,15 @@ export class WindowManager {
 				noAutoLogin
 			)
 		}
+		this._dragIcons = {
+			"eml": this._tray.getIconByName("eml.png"),
+			"msg": this._tray.getIconByName("msg.png"),
+		}
 	}
 
+	/**
+	 * Late initialization to break the dependency cycle.
+	 */
 	setIPC(ipc: IPC) {
 		this.ipc = ipc
 	}
@@ -174,5 +187,16 @@ export class WindowManager {
 			&& lastBounds.y >= closestRect.y - 10
 			&& lastBounds.width + lastBounds.x <= closestRect.width + 10
 			&& lastBounds.height + lastBounds.y <= closestRect.height + 10
+	}
+
+	async startNativeDrag(filenames: Array<string>, windowId: number) {
+		const exportDir = await getExportDirectoryPath(this.dl)
+		const files = filenames.map(fileName => path.join(exportDir, fileName)).filter(fileExists)
+		const window = this.get(windowId)
+		if (window) {
+			const exportMode = this._conf.getVar("mailExportMode")
+			const icon = this._dragIcons[exportMode]
+			window._browserWindow.webContents.startDrag({files, icon})
+		}
 	}
 }

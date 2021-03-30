@@ -1,5 +1,5 @@
 // @flow
-import type {NativeImage, WebContentsEvent} from "electron"
+import type {WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {defer, objToError} from '../api/common/utils/Utils.js'
@@ -25,8 +25,6 @@ import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExpor
 import {fileExists} from "./PathUtils"
 import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
-import type {MailExportMode} from "../mail/export/Exporter"
-import {EML_DRAG_ICON_B64, MSG_DRAG_ICON_B64} from "./DesktopUtils"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -49,7 +47,6 @@ export class IPC {
 	_desktopUtils: DesktopUtils;
 	_err: DesktopErrorHandler;
 	_integrator: DesktopIntegrator;
-	_dragIcons: {[MailExportMode]: NativeImage}
 
 	constructor(
 		conf: DesktopConfig,
@@ -122,10 +119,6 @@ export class IPC {
 				    })
 			}
 		})
-		this._dragIcons = {
-			"eml": this._electron.nativeImage.createFromDataURL(`data:image/png;base64,${EML_DRAG_ICON_B64}`),
-			"msg": this._electron.nativeImage.createFromDataURL(`data:image/png;base64,${MSG_DRAG_ICON_B64}`),
-		}
 	}
 
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
@@ -278,11 +271,8 @@ export class IPC {
 				return writeFile(exportDir, file)
 			}
 			case 'startNativeDrag': {
-				const exportDir = await getExportDirectoryPath(this._dl)
-				const files = args[0].map(fileName => path.join(exportDir, fileName)).filter(fileExists)
-				const window = this._wm.get(windowId)
-				window && window._browserWindow.webContents.startDrag(
-					{files, icon: this._dragIcons[this._conf.getVar("mailExportMode")]})
+				const filenames = args[0]
+				await this._wm.startNativeDrag(filenames, windowId)
 				return Promise.resolve()
 			}
 			case 'focusApplicationWindow': {

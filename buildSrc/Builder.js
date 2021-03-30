@@ -52,6 +52,7 @@ async function prepareAssets(watch, stage, host, version) {
 		await fs.emptyDir("build/images"),
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
+		fs.copy(path.join(root, '/resources/desktop-icons'), path.join(root, '/build/icons')),
 		fs.copy(path.join(root, '/src/braintree.html'), path.join(root, 'build/braintree.html'))
 	])
 	if (stage === 'test') {
