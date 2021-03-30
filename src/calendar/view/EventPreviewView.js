@@ -16,7 +16,7 @@ import {memoized} from "../../api/common/utils/Utils"
  * @param text
  * @returns {*}
  */
-function getUrl(text: string): URL {
+function getLocationUrl(text: string): URL {
 	const osmHref = `https://www.openstreetmap.org/search?query=${text}`
 	let url
 	try {
@@ -28,9 +28,6 @@ function getUrl(text: string): URL {
 	return url
 }
 
-// so we don't parse the URL on every single view call
-const getUrlMemoized = memoized(getUrl)
-
 export type Attrs = {
 	event: CalendarEvent,
 	limitDescriptionHeight: boolean,
@@ -38,10 +35,16 @@ export type Attrs = {
 }
 
 export class EventPreviewView implements MComponent<Attrs> {
+	// Cache the parsed URL so we don't parse the URL on every single view call
+	+_getLocationUrl: typeof getLocationUrl
+
+	constructor() {
+		this._getLocationUrl = memoized(getLocationUrl)
+	}
 
 	view({attrs: {event, limitDescriptionHeight, sanitizedDescription}}: Vnode<Attrs>): Children {
 
-		const url = getUrlMemoized(event.location.trim())
+		const url = this._getLocationUrl(event.location.trim())
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
@@ -54,7 +57,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 				event.location
 					? m(".flex.pb-s.items-center", [
 						renderSectionIndicator(Icons.Pin),
-						m("a", {href: url.toString()}, m(".text-ellipsis.selectable.underline", event.location))
+						m("a", {href: url.toString(), target: "_blank"}, m(".text-ellipsis.selectable.underline", event.location))
 					])
 					: null,
 				event.attendees.length
