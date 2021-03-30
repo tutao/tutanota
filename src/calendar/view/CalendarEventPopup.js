@@ -88,7 +88,7 @@ export class CalendarEventPopup implements ModalComponent {
 					margin: "1px" // because calendar event bubles have 1px border, we want to align
 				},
 				oncreate: ({dom}) => {
-					// This is a hack to get "natural" view size but render it without apacity first and then show dropdown with inferred
+					// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
 					// size.
 					setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)
 				},
