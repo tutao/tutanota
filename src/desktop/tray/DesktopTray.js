@@ -8,7 +8,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import macTray from "./PlatformDock"
 import nonMacTray from "./PlatformTray"
 
-let icon: NativeImage
 const platformTray: PlatformTray = process.platform === 'darwin'
 	? macTray
 	: nonMacTray
@@ -25,9 +24,10 @@ export type PlatformTray = {
 
 
 export class DesktopTray {
-	_conf: DesktopConfig;
+	+_conf: DesktopConfig;
 	_wm: WindowManager;
 	_tray: ?Tray;
+	_icon: ?NativeImage
 
 	constructor(config: DesktopConfig) {
 		this._conf = config
@@ -79,11 +79,14 @@ export class DesktopTray {
 	}
 
 	getIcon(): NativeImage {
-		return this.getIconByName(this._conf.getConst('iconName'))
+		if (!this._icon) {
+			this._icon = this.getIconByName(this._conf.getConst('iconName'))
+		}
+		return this._icon
 	}
 
 	getIconByName(iconName: string): NativeImage {
-		return icon || (icon = nativeImage.createFromPath(platformTray.iconPath(iconName)))
+		return nativeImage.createFromPath(platformTray.iconPath(iconName))
 	}
 
 	setWindowManager(wm: WindowManager) {

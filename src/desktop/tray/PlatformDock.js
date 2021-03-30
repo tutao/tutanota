@@ -6,6 +6,7 @@ import type {PlatformTray} from "./DesktopTray"
 import type {WindowManager} from "../DesktopWindowManager"
 import path from "path"
 import os from 'os'
+import {getResourcesPath} from "../DesktopUtils"
 
 /*
 * This file provides the functionality used by DesktopTray on mac
@@ -41,7 +42,7 @@ function clearBadge() {
 }
 
 function iconPath(iconName: string): string {
-	return path.join((process: any).resourcesPath, `icons/${iconName}.icns`)
+	return path.join(getResourcesPath(), `icons/${iconName}.icns`)
 }
 
 const platformTray: PlatformTray = {

@@ -52,7 +52,7 @@ export class MailListView implements Component {
 	exportedMails: Map<string, {fileName: string, result: AsyncResult<*>}>
 
 	// Used for modifying the cursor during drag and drop
-	listDom: ?HTMLElement
+	_listDom: ?HTMLElement
 
 	view: Vnode<void> => Children
 
@@ -61,7 +61,7 @@ export class MailListView implements Component {
 		this.listId = mailListId
 		this.mailView = mailView
 		this.exportedMails = new Map()
-		this.listDom = null
+		this._listDom = null
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (start, count) => {
@@ -120,7 +120,7 @@ export class MailListView implements Component {
 		if (isExportDragEvent(event)) {
 			// We have to remove the drag mod key class here because once the dragstart has begun
 			// we won't receive the keyup event that would normally remove it
-			this.listDom && this.listDom.classList.remove("drag-mod-key")
+			this._listDom && this._listDom.classList.remove("drag-mod-key")
 
 			// We have to preventDefault or we get mysterious and inconsistent electron crashes at the call to startDrag in IPC
 			event.preventDefault()
@@ -315,17 +315,17 @@ export class MailListView implements Component {
 		// listeners to indicate the when mod key is held, dragging will do something
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (isDragAndDropModifierHeld(event)) {
-				this.listDom && this.listDom.classList.add("drag-mod-key")
+				this._listDom && this._listDom.classList.add("drag-mod-key")
 			}
 		}
 		const onKeyUp = (event: KeyboardEvent) => {
 			// The event doesn't have a
-			this.listDom && this.listDom.classList.remove("drag-mod-key")
+			this._listDom && this._listDom.classList.remove("drag-mod-key")
 		}
 
 		return m(".mail-list-wrapper", {
 			oncreate: vnode => {
-				this.listDom = downcast(vnode.dom.firstChild)
+				this._listDom = downcast(vnode.dom.firstChild)
 				if (canDoDragAndDropExport()) {
 					assertNotNull(document.body).addEventListener("keydown", onKeyDown)
 					assertNotNull(document.body).addEventListener("keyup", onKeyUp)
