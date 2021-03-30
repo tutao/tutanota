@@ -130,8 +130,8 @@ export class CalendarView implements CurrentView {
 
 	_calendarInvitations: Array<ReceivedGroupInvitation>
 
-	// For sanitizing even descriptions, which get rendered as html in the CalendarEventPopup
-	_htmlSanitizer: Promise<HtmlSanitizer>
+	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
+	+_htmlSanitizer: Promise<HtmlSanitizer>
 	oncreate: Function;
 	onremove: Function;
 
