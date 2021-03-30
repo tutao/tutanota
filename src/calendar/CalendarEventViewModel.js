@@ -672,7 +672,8 @@ export class CalendarEventViewModel {
 
 	_sendCancellation(event: CalendarEvent): Promise<*> {
 		const updatedEvent = clone(event)
-		updatedEvent.sequence = incrementSequence(updatedEvent.sequence)
+		// This is guaranteed to be our own event.
+		updatedEvent.sequence = incrementSequence(updatedEvent.sequence, true)
 		const cancelAddresses = event.attendees
 		                             .filter(a => !this._ownMailAddresses.includes(a.address.address))
 		                             .map(a => a.address)
@@ -942,7 +943,7 @@ export class CalendarEventViewModel {
 		// Using clone feels hacky but otherwise we need to save all attributes of the existing event somewhere and if dialog is
 		// cancelled we also don't want to modify passed event
 		const newEvent = this.existingEvent ? clone(this.existingEvent) : createCalendarEvent()
-		newEvent.sequence = incrementSequence(newEvent.sequence)
+		newEvent.sequence = incrementSequence(newEvent.sequence, this._eventType === EventType.OWN)
 
 		let startDate = new Date(this.startDate)
 		let endDate = new Date(this.endDate)

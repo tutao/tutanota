@@ -736,9 +736,10 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatusEnum)
 	}
 }
 
-export function incrementSequence(sequence: string): string {
+export function incrementSequence(sequence: string, isOwnEvent: boolean): string {
 	const current = filterInt(sequence) || 0
-	return String(current + 1)
+	// Only the organizer should increase sequence numbers
+	return String(isOwnEvent ? current + 1 : current)
 }
 
 export function getNextHalfHour(): Date {
