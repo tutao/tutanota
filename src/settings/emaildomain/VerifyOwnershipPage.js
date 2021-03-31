@@ -27,12 +27,12 @@ export type CustomDomainFailureReasonsEnum = $Values<typeof CustomDomainFailureR
 export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 
 	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
-		let data = vnode.attrs.data
-		data.domain.map(domainName => worker.getDomainValidationRecord(domainName).then(recordValue => {
-				data.expectedVerificationRecord.value = recordValue
-				m.redraw()
-			})
-		)
+		// We expect that the page is created again each time when domain is changed so we only need to load it in oncreate.
+		const {data} = vnode.attrs
+		worker.getDomainValidationRecord(data.domain()).then((recordValue) => {
+			data.expectedVerificationRecord.value = recordValue
+			m.redraw()
+		})
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
