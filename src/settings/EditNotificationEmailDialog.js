@@ -12,7 +12,7 @@ import {showProgressDialog} from "../gui/ProgressDialog"
 import {load, update} from "../api/main/Entity"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {getWhitelabelDomain, memoized, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -96,6 +96,10 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 			senderDomain = "https://" + (whitelabelDomainInfo && whitelabelDomainInfo.domain || "mail.tutanota.com")
 			m.redraw()
 		})
+	// Even though savedHtml is always sanitized changing it might lead to mXSS
+	const sanitizePreview = memoized((html) => {
+		return htmlSanitizer.sanitize(html).text
+	})
 
 	const previewTabContent = () => [
 		m(TextFieldN, {
@@ -104,7 +108,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 			disabled: true
 		}),
 		m(".small.mt.mb", lang.get("mailBody_label")),
-		m.trust(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain))
+		m.trust(sanitizePreview(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain)))
 	]
 
 	Dialog.showActionDialog({
