@@ -58,7 +58,7 @@ export class DesktopConfig {
 			fs.writeFileSync(this._desktopConfigPath, JSON.stringify(defaultConf))
 		}
 
-		const userConf = await readJSON(this._desktopConfigPath)
+		const userConf = await readJSON(this._desktopConfigPath).catch(() => defaultConf)
 		const populatedConfig = Object.assign({}, defaultConf, userConf)
 		const desktopConfig = await this._migrator.applyMigrations(
 			downcast<MigrationKind>(buildConfig["configMigrationFunction"]),

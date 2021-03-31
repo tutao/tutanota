@@ -27,8 +27,12 @@ export function showDeleteAccountDialog() {
 		},
 		okAction: () => {
 			deleteAccount(why.value(), takeover.value(), passwordField.value())
-			cleanupPassword(passwordField)
-			deleteSavedCredentials()
+				.then((isDeleted) => {
+					if (isDeleted) {
+						cleanupPassword(passwordField)
+						deleteSavedCredentials()
+					}
+				})
 		},
 		allowCancel: true,
 		okActionTextId: "delete_action"

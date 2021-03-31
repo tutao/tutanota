@@ -173,6 +173,7 @@ export class ExternalLoginView {
 			let createSessionPromise = logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
 			                                 .then(newCredentials => {
 				                                 this._password("")
+				                                 // For external users userId is used instead of email address
 				                                 let storedCredentials = deviceConfig.get(this._userId)
 				                                 if (persistentSession) {
 					                                 deviceConfig.set(newCredentials)
@@ -181,7 +182,6 @@ export class ExternalLoginView {
 					                                 return worker.deleteSession(storedCredentials.accessToken)
 					                                              .then(() => {
 						                                              if (!persistentSession) {
-						                                              	// FIXME
 							                                              deviceConfig.delete(this._userId)
 						                                              }
 					                                              })
