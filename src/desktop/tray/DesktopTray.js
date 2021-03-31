@@ -43,8 +43,9 @@ export class DesktopTray {
 		})
 	}
 
-	update(notifier: DesktopNotifier): void {
-		if (!this._conf.getVar("runAsTrayApp")) return
+	async update(notifier: DesktopNotifier): Promise<void> {
+		const runAsTrayApp = await this._conf.getVar("runAsTrayApp")
+		if (!runAsTrayApp) return
 		const m = new Menu()
 		m.append(new MenuItem({
 			label: lang.get("openNewWindow_action"), click: () => {

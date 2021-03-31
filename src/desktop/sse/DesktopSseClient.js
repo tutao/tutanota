@@ -166,10 +166,10 @@ export class DesktopSseClient {
 					this._connectedSseInfo = null
 					this._disconnect()
 				}
-			} else if (this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime) == null) {
+			} else if ((await this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)) == null) {
 				// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
 				// MISSED_NOTIFICATION_TTL has passed and notifications has expired.
-				this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
+				await this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			}
 
 			res.setEncoding('utf8')

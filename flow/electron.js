@@ -231,6 +231,7 @@ declare module 'electron' {
 		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
 		isReady(): boolean,
+		whenReady(): Promise<void>,
 		name: string,
 		setPath(name: string, path: string): void;
 		allowRendererProcessReuse: boolean;

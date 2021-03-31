@@ -167,7 +167,7 @@ export class ElectronUpdater {
 		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)
 		    .on('enableAutoUpdate', this._enableAutoUpdateListener)
 
-		if (!this._conf.getVar("enableAutoUpdate")) {
+		if (!(await this._conf.getVar("enableAutoUpdate"))) {
 			this._stopPolling()
 			return
 		}

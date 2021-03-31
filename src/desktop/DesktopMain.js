@@ -134,8 +134,8 @@ function startupInstance() {
 }
 
 async function onAppReady() {
-	app.on('window-all-closed', () => {
-		if (!conf.getVar('runAsTrayApp')) {
+	app.on('window-all-closed', async () => {
+		if (!(await conf.getVar('runAsTrayApp'))) {
 			app.quit()
 		}
 	})
@@ -143,7 +143,7 @@ async function onAppReady() {
 	err.init(wm, ipc)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = await wm.getLastFocused(!(conf.getVar('runAsTrayApp') && wasAutolaunched))
+	const w = await wm.getLastFocused(!(await conf.getVar('runAsTrayApp') && wasAutolaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
 	   .then(main)
