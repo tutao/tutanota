@@ -169,6 +169,12 @@ export function lazyMemoized<T>(source: () => T): () => T {
 	}
 }
 
+/**
+ * Returns a cached version of {@param fn}.
+ * Cached function checks that argument is the same (with ===) and if it is then it returns the cached result.
+ * If the cached argument has changed then {@param fn} will be called with new argument and result will be cached again.
+ * Only remembers the last argument.
+ */
 export function memoized<T, R>(fn: (T) => R): (T) => R {
 	let lastArg: T
 	let lastResult: R
