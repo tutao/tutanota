@@ -9,24 +9,8 @@ import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {formatEventDuration, getTimeZone} from "../CalendarUtils"
 import {attendeeStatusByCode} from "../../api/common/TutanotaConstants"
 import {memoized} from "../../api/common/utils/Utils"
-
-/**
- * if text is a valid absoule url, then returns a URL with text as the href
- * otherwise passes text as the search parameter for open street map
- * @param text
- * @returns {*}
- */
-function getLocationUrl(text: string): URL {
-	const osmHref = `https://www.openstreetmap.org/search?query=${text}`
-	let url
-	try {
-		// if not a valid _absolute_ url then we get an exception
-		url = new URL(text)
-	} catch {
-		url = new URL(osmHref)
-	}
-	return url
-}
+import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
+import type {AllIconsEnum} from "../../gui/base/Icon"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -48,34 +32,27 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
-				m(".flex.pb-s.items-center", [renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable", event.summary)]),
+				m(".flex.pb-s.items-center", [this._renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable", event.summary)]),
 				m(".flex.pb-s.items-center", [
-						renderSectionIndicator(Icons.Time),
+						this._renderSectionIndicator(Icons.Time),
 						m(".align-self-center.selectable", formatEventDuration(event, getTimeZone(), false))
 					]
 				),
 				event.location
 					? m(".flex.pb-s.items-center", [
-						renderSectionIndicator(Icons.Pin),
+						this._renderSectionIndicator(Icons.Pin),
 						m("a", {href: url.toString(), target: "_blank"}, m(".text-ellipsis.selectable.underline", event.location))
 					])
 					: null,
 				event.attendees.length
 					? m(".flex.pb-s", [
-						renderSectionIndicator(BootIcons.Contacts),
-						m(".flex-wrap", event.attendees.map(a => m(".flex.items-center", [
-							m(Icon, {
-								icon: iconForAttendeeStatus[attendeeStatusByCode[a.status]],
-								style: {fill: theme.content_fg},
-								class: "mr-s"
-							}),
-							m(".span.line-break-anywhere.selectable", a.address.address),
-						]))),
+						this._renderSectionIndicator(BootIcons.Contacts),
+						m(".flex-wrap", event.attendees.map(a => this._renderAttendee(a))),
 					])
 					: null,
 				!!event.description
 					? m(".flex.pb-s.items-start", [
-						renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
+						this._renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
 						limitDescriptionHeight
 							? m(".scroll.full-width.selectable", {style: {maxHeight: "100px"}}, m.trust(sanitizedDescription))
 							: m(".selectable", m.trust(sanitizedDescription))
@@ -84,16 +61,44 @@ export class EventPreviewView implements MComponent<Attrs> {
 			]),
 		])
 	}
+
+	_renderAttendee(attendee: CalendarEventAttendee): Children {
+		return m(".flex.items-center", [
+			m(Icon, {
+				icon: iconForAttendeeStatus[attendeeStatusByCode[attendee.status]],
+				style: {fill: theme.content_fg},
+				class: "mr-s"
+			}),
+			m(".span.line-break-anywhere.selectable", attendee.address.address),
+		])
+	}
+
+	_renderSectionIndicator(icon: AllIconsEnum, style: {[string]: any} = {}): Children {
+		return m(".pr", m(Icon, {
+			icon,
+			large: true,
+			style: Object.assign({
+				fill: theme.content_button,
+				display: "block"
+			}, style)
+		}))
+	}
 }
 
-
-function renderSectionIndicator(icon, style: {[string]: any} = {}) {
-	return m(".pr", m(Icon, {
-		icon,
-		large: true,
-		style: Object.assign({
-			fill: theme.content_button,
-			display: "block"
-		}, style)
-	}))
+/**
+ * if text is a valid absoule url, then returns a URL with text as the href
+ * otherwise passes text as the search parameter for open street map
+ * @param text
+ * @returns {*}
+ */
+function getLocationUrl(text: string): URL {
+	const osmHref = `https://www.openstreetmap.org/search?query=${text}`
+	let url
+	try {
+		// if not a valid _absolute_ url then we get an exception
+		url = new URL(text)
+	} catch {
+		url = new URL(osmHref)
+	}
+	return url
 }
