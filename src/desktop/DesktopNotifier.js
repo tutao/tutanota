@@ -43,12 +43,12 @@ export class DesktopNotifier {
 	 * @param props.clickHandler Called when the user clicks the notification
 	 * @param props.closeHandler Called when the notification was closed (by timeout or user action).
 	 */
-	showOneShot(props: {|
+	async showOneShot(props: {|
 		title: string,
 		body?: string,
 		icon?: NativeImage
 	|}): Promise<NotificationResultEnum> {
-		const withIcon = {title: props.title, body: props.body, icon: props.icon || this._tray.getIcon()}
+		const withIcon = {title: props.title, body: props.body, icon: props.icon || await this._tray.getAppIcon()}
 		if (!this.isAvailable()) {
 			return Promise.reject()
 		}
@@ -64,14 +64,14 @@ export class DesktopNotifier {
 			this._notificationCloseFunctions[id]()
 		}
 
-		const showIt = () => {
+		const showIt = async () => {
 			if (!this.isAvailable()) {
 				return
 			}
 			this._notificationCloseFunctions[id] = this._notificationFactory.makeNotification({
 				title: title,
 				body: message,
-				icon: this._tray.getIcon(),
+				icon: await this._tray.getAppIcon(),
 			}, onClick)
 			this._tray.setBadge()
 			this._tray.update(this)
