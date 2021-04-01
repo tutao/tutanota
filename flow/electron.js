@@ -42,7 +42,7 @@ declare module 'electron' {
 		openPath(fullPath: string): Promise<string>;
 	};
 
-	declare export type NativeImage = {};
+	declare export class NativeImage {}
 
 	declare export type Rectangle = {|
 		x: number,
