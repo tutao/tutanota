@@ -7,7 +7,7 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {Icons} from "../../gui/base/icons/Icons"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {formatEventDuration, getTimeZone} from "../CalendarUtils"
-import {attendeeStatusByCode} from "../../api/common/TutanotaConstants"
+import {attendeeStatusByCode, getAttendeeStatus} from "../../api/common/TutanotaConstants"
 import {memoized} from "../../api/common/utils/Utils"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import type {AllIconsEnum} from "../../gui/base/Icon"
@@ -65,7 +65,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 	_renderAttendee(attendee: CalendarEventAttendee): Children {
 		return m(".flex.items-center", [
 			m(Icon, {
-				icon: iconForAttendeeStatus[attendeeStatusByCode[attendee.status]],
+				icon: iconForAttendeeStatus[getAttendeeStatus(attendee)],
 				style: {fill: theme.content_fg},
 				class: "mr-s"
 			}),
