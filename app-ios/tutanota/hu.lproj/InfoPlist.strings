@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "A hozzáféréshez módosítani kell az engedélyeke
 TutaoCancelAction = "Mégse";
 TutaoSettingsAction = "Beállítások";
 TutaoCalendarAlarmTitle = "Emlékeztető";
+TutaoScheduleAlarmError = "Nem lehetett beállítani a riasztást. Frissítse az alkalmazást!";

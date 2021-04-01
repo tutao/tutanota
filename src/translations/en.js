@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-03-15T16:39:31Z",
+	"updated_at": "2021-04-01T08:58:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -35,6 +35,7 @@ export default {
 		"activeSessions_label": "Active sessions",
 		"active_label": "Active",
 		"actor_label": "Actor",
+		"addAliasUserDisabled_msg": "The email alias could not be added to the user or group because it is currently deactivated.",
 		"addCalendar_action": "Add calendar",
 		"addCustomDomainAddresses_title": "Add email addresses for your custom domain",
 		"addCustomDomainAdresses_msg": "The domain was assigned to your account. In order to use your custom domain please add at least one email alias to your current user. Alternatively, you may add new users with a custom domain email address.",
@@ -117,7 +118,7 @@ export default {
 		"breakLink_action": "Remove hyperlink",
 		"businessBooking_label": "Business feature for {1} users",
 		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use.",
-		"businessCustomerAutoBusinessFeature_msg": "Note that the business feature will automatically be booked with all subscriptions for business customers.",
+		"businessCustomerAutoBusinessFeature_msg": "Note that the business feature will be booked automatically with all subscriptions for business customers.",
 		"businessCustomerNeedsBusinessFeaturePlan_msg": "Your current subscription plan is {plan} ({price}) without the business feature.",
 		"businessDeletionWarning_msg": "The business feature  will be deactivated for all users now. Out of office notification and calendar invites will be disabled. Only one custom email domain is allowed.",
 		"businessFeatureRequiredGeneral_msg": "To use this function you have to order the business feature.",
@@ -1031,7 +1032,7 @@ export default {
 		"saveDownloadNotPossibleIos_msg": "This browser does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above.",
 		"saveDraftAndClose_action": "Save draft and close",
 		"saveDraft_action": "Save draft",
-		"saveEncryptedIpAddress_label": "Save encrypted IP address in sessions and audit log",
+		"saveEncryptedIpAddress_label": "Enable saving of IP addresses in sessions and audit log. IP addresses are stored encrypted.",
 		"save_action": "Save",
 		"save_msg": "Saving data ...",
 		"scheduleAlarmError_msg": "Could not set up an alarm. Please update the application.",
@@ -1302,7 +1303,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"addAliasUserDisabled_msg": "The email alias could not be added to the user or group because it is currently deactivated."
+		"you_label": "You"
 	}
 }

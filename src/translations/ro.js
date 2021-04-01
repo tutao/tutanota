@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2021-03-15T16:39:32Z",
+	"updated_at": "2021-03-31T15:19:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -40,6 +40,7 @@ export default {
 		"activeSessions_label": "Sesiuni active",
 		"active_label": "Activ",
 		"actor_label": "Executor",
+		"addAliasUserDisabled_msg": "Acest alias de e-mail nu a putut fi adăugat utilizatorului sau grupului deoarece este dezactivat în prezent.",
 		"addCalendar_action": "Adaugă calendar",
 		"addCustomDomainAddresses_title": "Adăugă adresa de e-mail pentru domeniul tău personalizat",
 		"addCustomDomainAdresses_msg": "Domeniul a fost asociat contului tău. Pentru a putea folosi domeniul personalizat, te rugăm să adaugi cel puțin un alias de e-mail utilizatorului curent. Alternativ, poți adăuga utilizatori noi cu o adresă de e-mail personalizată. ",
@@ -222,6 +223,7 @@ export default {
 		"confidentialStatus_msg": "Acest mesaj este trimis cifrat de la un capăt la celălalt.",
 		"confidential_action": "Confidențial",
 		"confirmCountry_msg": "Pentru a calcula TVA-ul este necesar să confirmați țara de provenienta {1}",
+		"confirmCustomDomainDeletion_msg": "Sigur vrei să elimini domeniul personalizat de e-mail \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Doriți să dezactivați culorile personalizate?",
 		"confirmDeactivateCustomLogo_msg": "Chiar vrei să dezactivezi simbolul personalizat?",
 		"confirmDeactivateWhitelabelDomain_msg": "Vrei să dezactivezi autentificarea Tutanota pentru domeniul tău și să ștergi certificatul SSL, simbolul și culorile personalizate?",
@@ -1295,7 +1297,7 @@ export default {
 		"whitelistProtectionInfo_label": "Această opțiune mută toate e-mailurile primite de la expeditorii externi în dosarul Nedorite. Expeditorii primesc un e-mail de notificare cu o adresă web care le permite să înregistreze domeniul lor pe lista albă. După înregistrare, e-mailurile din domeniul respectiv nu vor mai fi mutate în dosarul Nedorite, ci în dosarul Primite.",
 		"whitelistProtection_label": "Protecția listei albe",
 		"who_label": "Cine",
-		"work_label": "Loc de munca",
+		"work_label": "Serviciu",
 		"wrongUserCsvFormat_msg": "Corectează formatul CSV al datelor tale după cum urmează: \n{format}",
 		"xing_label": "XING",
 		"yesterday_label": "ieri",

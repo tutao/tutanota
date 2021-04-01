@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-03-15T16:39:33Z",
+	"updated_at": "2021-03-24T07:23:53Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -222,6 +222,7 @@ export default {
 		"confidentialStatus_msg": "Esta mensaxe está enviada con cifrado extremo-a-extremo.",
 		"confidential_action": "Confidencial",
 		"confirmCountry_msg": "Para calcular o IVE necesitamos comprobar o seu país: {1}.",
+		"confirmCustomDomainDeletion_msg": "Tes a certeza de querer eliminar o dominio personalizado \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Desexa desactivar a cores personalizadas?",
 		"confirmDeactivateCustomLogo_msg": "Realmente desexa desactivar o seu logotipo personalizado?",
 		"confirmDeactivateWhitelabelDomain_msg": "Realmente desexas desactivar a conexión Tutanota para o teu dominio e eleminar o certificado SSL, logo personalizado e cores personalizadas?",

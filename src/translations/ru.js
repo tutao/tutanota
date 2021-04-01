@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2021-03-15T16:39:32Z",
+	"updated_at": "2021-03-30T18:22:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -938,6 +938,7 @@ export default {
 		"saveAll_action": "Сохранить все",
 		"saveDownloadNotPossibleIe_msg": "Мобильная версия Internet Explorer не поддерживает запись или отображение вложений. Пожалуйста, используйте настольную версию браузера для этих функций.",
 		"saveDownloadNotPossibleIos_msg": "Ваш браузер не поддерживает сохранение вложений на диск. Некоторые типы файлов можно просмотреть в браузере, кликнув по ссылке, приведенной выше.",
+		"saveDraftAndClose_action": "Сохранить черновик и закрыть",
 		"saveDraft_action": "Сохранить черновик",
 		"saveEncryptedIpAddress_label": "Сохранить зашифрованный IP-адрес в сессиях и логах аудита",
 		"save_action": "Сохранить",
