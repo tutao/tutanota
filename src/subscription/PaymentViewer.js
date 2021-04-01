@@ -96,8 +96,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			label: "paymentMethod_label",
 			click: createNotAvailableForFreeClickHandler(true, () => {
 					if (this._accountingInfo) {
-						let lastPosting = neverNull(this._postings[0])
-						let nextPayment = Number(lastPosting.balance) * -1
+						let nextPayment = this._postings.length
+							? Number(this._postings[0].balance) * -1
+							: 0
 						showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
 							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
 						})).then(price => {
