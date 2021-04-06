@@ -29,7 +29,6 @@ export type SubscriptionSelectorAttr = {|
 	actionButtons: SubscriptionActionButtons,
 	boxWidth: number,
 	boxHeight: number,
-	highlightPremium?: boolean,
 	currentSubscriptionType?: ?SubscriptionTypeEnum,
 	currentlySharingOrdered: boolean,
 	currentlyBusinessOrdered: boolean,
@@ -166,6 +165,11 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			.concat(targetSubscriptionConfig.whitelabel || (showAdditionallyBookedFeatures
 				&& selectorAttrs.currentlyWhitelabelOrdered) ? whitelabelFeatures : [])
 
+		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
+		const highlightPremium: boolean = targetSubscription === SubscriptionType.Premium
+			&& !selectorAttrs.options.businessUse()
+			&& (!selectorAttrs.currentSubscriptionType || selectorAttrs.currentSubscriptionType === SubscriptionType.Free)
+
 		return {
 			heading: getDisplayNameOfSubscriptionType(targetSubscription),
 			actionButton: selectorAttrs.currentSubscriptionType === targetSubscription
@@ -178,7 +182,7 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
 			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
-			highlighted: !selectorAttrs.options.businessUse() && selectorAttrs.highlightPremium,
+			highlighted: highlightPremium,
 			showReferenceDiscount: selectorAttrs.isInitialUpgrade
 		}
 	}
