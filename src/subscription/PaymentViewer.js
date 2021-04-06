@@ -116,9 +116,15 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
 			icon: () => Icons.Edit
 		}
+		const paymentMethodHelpLabel = () => {
+			if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
+				return lang.get("paymentProcessingTime_msg")
+			}
+			return ""
+		}
 
 		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMethodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
+		this._paymentMethodField = new TextField("paymentMethod_label", paymentMethodHelpLabel).setValue(lang.get("loading_msg")).setDisabled()
 		this._paymentMethodField._injectionsRight = () => [m(ButtonN, changePaymentDataButtonAttrs)]
 		this._postings = []
 		this._lastBooking = null
