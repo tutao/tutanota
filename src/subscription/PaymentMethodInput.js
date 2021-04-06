@@ -69,8 +69,12 @@ export class PaymentMethodInput {
 	view(): Children {
 		if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
 			return m(".flex-center", m(MessageBoxN, {
-				style: {marginTop: px(16)},
-			}, lang.get(this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg")))
+					style: {marginTop: px(16)},
+				},
+				this.isOnAccountAllowed()
+					? lang.get("paymentMethodOnAccount_msg") + " " + lang.get("paymentProcessingTime_msg")
+					: lang.get("paymentMethodNotAvailable_msg")
+			))
 		} else if (this._selectedPaymentMethod === PaymentMethodType.AccountBalance) {
 			return m(".flex-center", m(MessageBoxN, {
 				style: {marginTop: px(16)},
