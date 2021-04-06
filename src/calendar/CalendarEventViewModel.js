@@ -33,7 +33,7 @@ import {
 	getTimeZone,
 	hasCapabilityOnGroup,
 	incrementByRepeatPeriod,
-	incrementSequence,
+	incrementSequence, prepareCalendarDescription,
 	timeString,
 	timeStringInZone
 } from "./CalendarUtils"
@@ -249,7 +249,7 @@ export class CalendarEventViewModel {
 			this.repeat = null
 		}
 		this.location(existingEvent.location)
-		this.note = existingEvent.description
+		this.note = prepareCalendarDescription(existingEvent.description)
 
 		this._calendarModel.loadAlarms(existingEvent.alarmInfos, this._userController.user).then((alarms) => {
 			alarms.forEach((alarm) => this.addAlarm(downcast(alarm.alarmInfo.trigger)))

@@ -4,7 +4,7 @@ import {
 	getCalendarMonth,
 	getStartOfWeek,
 	getWeekNumber,
-	hasCapabilityOnGroup
+	hasCapabilityOnGroup, prepareCalendarDescription
 } from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
@@ -280,6 +280,33 @@ o.spec("calendar utils tests", function () {
 			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(false)
 			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(false)
 			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(false)
+		})
+	})
+
+	o.spec("prepareCalendarDescription", function () {
+		o("angled link replaced with a proper link", function () {
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path>"))
+				.equals(`JoinBlahBlah<a href="https://the-link.com/path">https://the-link.com/path</a>`)
+		})
+
+		o("normal HTML link is not touched", function () {
+			o(prepareCalendarDescription(`JoinBlahBlah<a href="https://the-link.com/path">a link</a>`))
+				.equals(`JoinBlahBlah<a href="https://the-link.com/path">a link</a>`)
+		})
+
+		o("non-HTTP/HTTPS link is not allowed", function () {
+			o(prepareCalendarDescription(`JoinBlahBlah<protocol://the-link.com/path>`))
+				.equals(`JoinBlahBlah<protocol://the-link.com/path>`)
+		})
+
+		o("link with additional text is not allowed", function () {
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text>"))
+				.equals(`JoinBlahBlah<https://the-link.com/path and some other text>`)
+		})
+
+		o("non-closed tag is not allowed", function () {
+			o(prepareCalendarDescription("JoinBlahBlah<https://the-link.com/path and some other text"))
+				.equals(`JoinBlahBlah<https://the-link.com/path and some other text`)
 		})
 	})
 })
