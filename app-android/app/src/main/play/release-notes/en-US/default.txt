@@ -1,3 +1,2 @@
-- Fix calendar attendees without PARTSTAT
-- Fix duplicated contacts in suggestion dialog
-- Fix initial scheduling of event reminders
+- Multiple calendar bugfixes
+- Security improvements
