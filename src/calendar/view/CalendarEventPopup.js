@@ -16,6 +16,7 @@ import {UserError} from "../../api/main/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
+import {prepareCalendarDescription} from "../CalendarUtils"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
@@ -35,9 +36,11 @@ export class CalendarEventPopup implements ModalComponent {
 		this._eventBubbleRect = eventBubbleRect
 		this._onEditEvent = onEditEvent
 		this._viewModel = viewModel
+
+		const preparedDescription = prepareCalendarDescription(calendarEvent.description)
 		// We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
-		this._sanitizedDescription = calendarEvent.description
-			? htmlSanitizer.sanitize(calendarEvent.description, {blockExternalContent: true}).text
+		this._sanitizedDescription = preparedDescription
+			? htmlSanitizer.sanitize(preparedDescription, {blockExternalContent: true}).text
 			: ""
 
 		if (calendarEvent._ownerGroup == null) {
@@ -86,7 +89,7 @@ export class CalendarEventPopup implements ModalComponent {
 					oncreate: ({dom}) => {
 						// This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
 						// size.
-					setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)
+						setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)
 					},
 				},
 				[
