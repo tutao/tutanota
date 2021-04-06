@@ -2,7 +2,7 @@
 import o from "ospec"
 import n from "../nodemocker"
 import type {ElectronNotificationFactory} from "../../../src/desktop/NotificatonFactory"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import {DesktopNotifier} from "../../../src/desktop/DesktopNotifier"
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray"
 import type {NativeImage} from "electron"
@@ -17,11 +17,12 @@ o.spec("Desktop Notifier Test", function () {
 	let createdNotifications
 	let desktopTray: DesktopTray
 	let notificationFactory: ElectronNotificationFactory
+	let notificationMade = defer()
 
 	o.beforeEach(function () {
 		createdNotifications = []
 		desktopTray = downcast({
-			getIcon: () => appIcon,
+			getAppIcon: () => appIcon,
 			update: o.spy(() => {}),
 			setBadge: o.spy(() => {})
 		})
@@ -33,6 +34,7 @@ o.spec("Desktop Notifier Test", function () {
 						click,
 					}
 					createdNotifications.push(n)
+					notificationMade.resolve()
 					return () => n.close()
 				})
 			}
@@ -89,10 +91,15 @@ o.spec("Desktop Notifier Test", function () {
 		// Notice the same "gn1". The second replaces the first and calls its "close"
 		notifier.submitGroupedNotification("Title1", "Message1", "gn1", () => {
 		})
+		await notificationMade.promise
+		notificationMade = defer()
 		notifier.submitGroupedNotification("Title2", "Message2", "gn1", () => {
 		})
+		await notificationMade.promise
+		notificationMade = defer()
 		notifier.submitGroupedNotification("Title3", "Message3", "gn2", () => {
 		})
+		await notificationMade.promise
 
 		o(createdNotifications.length).equals(3)
 		o(createdNotifications[0].close.callCount).equals(1)
