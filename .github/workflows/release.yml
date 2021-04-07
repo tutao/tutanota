@@ -16,5 +16,5 @@ jobs:
         run: npm i @octokit/rest
       - name: release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node buildSrc/github-release
