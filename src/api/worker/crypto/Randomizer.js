@@ -15,7 +15,7 @@ class Randomizer {
 		this.random = new sjcl.prng(6)
 	}
 
-	addEntropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {
+	addEntropy(entropyCache: Array<{source: EntropySrcEnum, entropy: number, data: number}>): Promise<void> {
 		entropyCache.forEach(entry => {
 			this.random.addEntropy(entry.data, entry.entropy, entry.source)
 		})

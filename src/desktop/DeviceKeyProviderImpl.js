@@ -5,6 +5,7 @@ import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
 
+// exported for testing
 export const SERVICE_NAME = 'tutanota-vault'
 export const ACCOUNT_NAME = 'tuta'
 

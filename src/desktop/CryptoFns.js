@@ -9,6 +9,8 @@ import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
 import forge from "node-forge"
 import crypto from "crypto"
 import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
+import {EntropySrc} from "../api/common/TutanotaConstants"
+import {random} from "../api/worker/crypto/Randomizer"
 
 export interface CryptoFunctions {
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
@@ -60,10 +62,18 @@ export const cryptoFns: CryptoFunctions = {
 	},
 
 	aes256RandomKey(): Aes256Key {
+		this._addEntropy()
 		return aes256RandomKey()
 	},
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
 		return decryptAndMapToInstance(model, instance, sk)
+	},
+
+	_addEntropy() {
+		const valueList = crypto.randomBytes(32)
+		for (let i = 0; i < valueList.length; i++) {
+			random.addEntropy([{source: EntropySrc.random, entropy: 32, data: valueList[i]}])
+		}
 	}
 }
