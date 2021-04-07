@@ -23,7 +23,7 @@ async function run() {
 		repo: "tutanota",
 		draft: true,
 		name: "test-draft",
-		tag_name: process.argv[1],
+		tag_name: process.argv[2],
 	})
 }
 
