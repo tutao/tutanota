@@ -1,10 +1,10 @@
 name: Create a release draft
 
 on:
-  workflow_dispatch
-  inputs:
-    tag:
-      required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
 
 jobs:
   release:
