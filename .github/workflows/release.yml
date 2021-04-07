@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 14.6
+      - name: Use Node.js 14.15.4
         uses: actions/setup-node@v1
         with:
-          node-version: 14.6
+          node-version: 14.15.4
       - name: npm i
         run: npm i @octokit/rest
       - name: release
