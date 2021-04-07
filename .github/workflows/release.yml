@@ -20,4 +20,4 @@ jobs:
       - name: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node buildSrc/github-release
+        run: node buildSrc/github-release ${{ github.event.inputs.tag }}

@@ -22,7 +22,8 @@ async function run() {
 		owner: "tutao",
 		repo: "tutanota",
 		draft: true,
-		name: "test-draft"
+		name: "test-draft",
+		tag_name: process.argv[1],
 	})
 }
 
