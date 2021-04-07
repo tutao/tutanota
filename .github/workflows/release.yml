@@ -1,18 +1,20 @@
 name: Create a release draft
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        required: true
+  workflow_dispatch
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - name: install hub
-      run: apt install -y hub
-    - name: release
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      run: hub release --draft ${{ github.event.inputs.tag }}
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.6
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.6
+      - name: npm i
+        run: npm i @octokit/rest
+      - name: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: node buildSrc/github-release
