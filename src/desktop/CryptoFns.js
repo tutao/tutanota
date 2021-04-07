@@ -58,22 +58,14 @@ export const cryptoFns: CryptoFunctions = {
 	},
 
 	randomBytes(bytes: number): Uint8Array {
-		return crypto.randomBytes(bytes)
+		return random.generateRandomData(bytes)
 	},
 
 	aes256RandomKey(): Aes256Key {
-		this._addEntropy()
 		return aes256RandomKey()
 	},
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
 		return decryptAndMapToInstance(model, instance, sk)
-	},
-
-	_addEntropy() {
-		const valueList = crypto.randomBytes(32)
-		for (let i = 0; i < valueList.length; i++) {
-			random.addEntropy([{source: EntropySrc.random, entropy: 32, data: valueList[i]}])
-		}
 	}
 }

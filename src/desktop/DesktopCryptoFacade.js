@@ -9,6 +9,9 @@ import {
 } from "../api/common/utils/Encoding"
 import type {CryptoFunctions} from "./CryptoFns"
 import {IV_BYTE_LENGTH} from "../api/worker/crypto/Aes"
+import crypto from "crypto"
+import {random} from "../api/worker/crypto/Randomizer"
+import {EntropySrc} from "../api/common/TutanotaConstants"
 
 
 export class DesktopCryptoFacade {
@@ -18,6 +21,7 @@ export class DesktopCryptoFacade {
 	constructor(fs: $Exports<"fs">, cryptoFns: CryptoFunctions) {
 		this.fs = fs
 		this.cryptoFns = cryptoFns
+		this._addEntropy()
 	}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: {}): string {
@@ -96,5 +100,13 @@ export class DesktopCryptoFacade {
 
 	generateDeviceKey(): Aes256Key {
 		return this.cryptoFns.aes256RandomKey()
+	}
+
+	_addEntropy() {
+		const valueList = crypto.randomBytes(16 * 32)
+		for (let i = 0; i < valueList.length; i++) {
+			// 8 because we have byte values
+			random.addEntropy([{source: EntropySrc.random, entropy: 8, data: valueList[i]}])
+		}
 	}
 }
