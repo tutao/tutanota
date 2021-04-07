@@ -1,7 +1,12 @@
 import {Octokit} from "@octokit/rest"
 import {createTokenAuth} from "@octokit/auth-token";
 
-(async function () {
+run().catch(e => {
+	console.error(e)
+	process.exit(1)
+})
+
+async function run() {
 	const releaseToken = process.env.GITHUB_TOKEN
 	if (!releaseToken) {
 		throw new Error("No GITHUB_TOKEN set!")
@@ -19,5 +24,5 @@ import {createTokenAuth} from "@octokit/auth-token";
 		draft: true,
 		name: "test-draft"
 	})
-})()
+}
 
