@@ -287,6 +287,7 @@ export const DnsRecordType = Object.freeze({
 	DNS_RECORD_TYPE_CNAME_DKIM: "2",
 	DNS_RECORD_TYPE_TXT_DMARC: "3",
 	DNS_RECORD_TYPE_CNAME_MTA_STS: "4",
+	DNS_RECORD_TYPE_TXT_VERIFY: "5",
 })
 export type DnsRecordTypeEnum = $Values<typeof DnsRecordType>;
 
@@ -295,7 +296,8 @@ export const DnsRecordTypeToName = Object.freeze({
 	"1": "TXT",
 	"2": "CNAME",
 	"3": "TXT",
-	"4": "CNAME"
+	"4": "CNAME",
+	"5": "TXT"
 })
 
 export const SessionState = Object.freeze({
