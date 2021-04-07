@@ -95,28 +95,52 @@ export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uin
 }
 
 export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
+	const rsa = new RSAKey()
+	// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
+	// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+	rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(publicKey.modulus)))
+	rsa.e = publicKey.publicExponent
+	const paddedBytes = oaepPad(bytes, publicKey.keyLength, seed)
+	const paddedHex = uint8ArrayToHex(paddedBytes)
+
+	const bigInt = parseBigInt(paddedHex, 16)
+	let encrypted
 	try {
-		let rsa = new RSAKey()
-		//FIXME remove double conversion
-		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(publicKey.modulus))) // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-		rsa.e = publicKey.publicExponent
-		let paddedBytes = oaepPad(bytes, publicKey.keyLength, seed)
-		let paddedHex = _bytesToHex(paddedBytes)
-
-		let bigInt = parseBigInt(paddedHex, 16)
-		let encrypted = rsa.doPublic(bigInt)
-
-		//FIXME remove hex conversion
-
-		let encryptedHex = encrypted.toString(16)
-		if ((encryptedHex.length % 2) === 1) {
-			encryptedHex = "0" + encryptedHex
-			}
-
-		return hexToUint8Array(encryptedHex)
+		// toByteArray() produces Array so we convert it to buffer.
+		encrypted = new Uint8Array(rsa.doPublic(bigInt).toByteArray())
 	} catch (e) {
 		throw new CryptoError("failed RSA encryption", e)
 	}
+
+	// the encrypted value might have leading zeros or needs to be padded with zeros
+	return _padAndUnpadLeadingZeros(publicKey.keyLength / 8, encrypted)
+}
+
+/**
+ * Adds leading 0's to the given byte array until targeByteLength bytes are reached. Removes leading 0's if byteArray is longer than targetByteLength.
+ */
+export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Uint8Array): Uint8Array {
+	const result = new Uint8Array(targetByteLength)
+	// JSBN produces results which are not always exact length.
+
+	// The byteArray might have leading 0 that make it larger than the actual result array length.
+	// Here we cut them off
+	// byteArray [0, 0, 1, 1, 1]
+	// target       [0, 0, 0, 0]
+	// result       [0, 1, 1, 1]
+	if (byteArray.length > result.length) {
+		const lastExtraByte = byteArray[byteArray.length - result.length - 1]
+		if (lastExtraByte !== 0) {
+			throw new CryptoError(`leading byte is not 0 but ${lastExtraByte}, encrypted length: ${byteArray.length}`)
+		}
+		byteArray = byteArray.slice(byteArray.length - result.length)
+	}
+	// If the byteArray is not as long as the result array we add leading 0's
+	// byteArray     [1, 1, 1]
+	// target     [0, 0, 0, 0]
+	// result     [0, 1, 1, 1]
+	result.set(byteArray, result.length - byteArray.length)
+	return result
 }
 
 /**
@@ -131,8 +155,8 @@ export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<U
 
 export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
 	try {
-		let rsa = new RSAKey()
-		//FIXME remove double conversion
+		const rsa = new RSAKey()
+		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
 		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
 		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
 		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
@@ -142,20 +166,12 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
 		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
 		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
 
-		//FIXME remove hex conversion
-		let hex = _bytesToHex(bytes)
-		let bigInt = parseBigInt(hex, 16)
-		let paddedBigInt = rsa.doPrivate(bigInt)
-		let decryptedHex = paddedBigInt.toString(16)
-		// fill the hex string to have a padded block of exactly (keylength / 8 - 1 bytes) for the unpad function
-		// two possible reasons for smaller string:
-		// - one "0" of the byte might be missing because toString(16) does not consider this
-		// - the bigint value might be smaller than (keylength / 8 - 1) bytes
-		let expectedPaddedHexLength = (privateKey.keyLength / 8 - 1) * 2
-		let fill = Array(expectedPaddedHexLength - decryptedHex.length + 1).join("0") // creates the missing zeros
-		decryptedHex = fill + decryptedHex
-		let paddedBytes = hexToUint8Array(decryptedHex)
-		return oaepUnpad(paddedBytes, privateKey.keyLength)
+		const hex = uint8ArrayToHex(bytes)
+		const bigInt = parseBigInt(hex, 16)
+		const decrypted = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
+		// the decrypted value might have leading zeros or needs to be padded with zeros
+		const paddedDecrypted = _padAndUnpadLeadingZeros(privateKey.keyLength / 8 - 1, decrypted)
+		return oaepUnpad(paddedDecrypted, privateKey.keyLength)
 	} catch (e) {
 		throw new CryptoError("failed RSA decryption", e)
 	}
@@ -182,17 +198,14 @@ export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
 
 		var salt = random.generateRandomData(32);
 		let paddedBytes = encode(bytes, privateKey.keyLength, salt)
-		let paddedHex = _bytesToHex(paddedBytes)
+
+		let paddedHex = uint8ArrayToHex(paddedBytes)
 
 		let bigInt = parseBigInt(paddedHex, 16)
-		let signed = rsa.doPrivate(bigInt)
+		let signed = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
 
-		let signedHex = signed.toString(16)
-		if ((signedHex.length % 2) === 1) {
-			signedHex = "0" + signedHex
-			}
-
-		return hexToUint8Array(signedHex)
+		let result = _padAndUnpadLeadingZeros(privateKey.keyLength / 8, signed)
+		return result
 	} catch (e) {
 		throw new CryptoError("failed RSA sign", e)
 	}
@@ -212,25 +225,16 @@ export function verifySignature(publicKey: PublicKey, bytes: Uint8Array, signatu
 		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(publicKey.modulus))) // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
 		rsa.e = publicKey.publicExponent
 
-		let signatureHex = _bytesToHex(signature)
+		let signatureHex = uint8ArrayToHex(signature)
 		let bigInt = parseBigInt(signatureHex, 16)
-		let padded = rsa.doPublic(bigInt)
+		let unpadded = new Uint8Array(rsa.doPublic(bigInt).toByteArray())
 
-		let paddedHex = padded.toString(16)
-		if ((paddedHex.length % 2) === 1) {
-			paddedHex = "0" + paddedHex
-		}
-		let paddedBytes = hexToUint8Array(paddedHex)
-		_verify(bytes, paddedBytes, publicKey.keyLength - 1)
+		let padded = _padAndUnpadLeadingZeros(publicKey.keyLength / 8, unpadded)
+
+		_verify(bytes, padded, publicKey.keyLength - 1)
 	} catch (e) {
 		throw new CryptoError("failed RSA verify sign", e)
 	}
-}
-
-
-// TODO remove the following function
-function _bytesToHex(bytes) {
-	return uint8ArrayToHex(new Uint8Array(bytes))
 }
 
 /********************************* OAEP *********************************/
