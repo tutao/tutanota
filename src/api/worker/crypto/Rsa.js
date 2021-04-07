@@ -103,25 +103,17 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
 		let paddedBytes = oaepPad(bytes, publicKey.keyLength, seed)
 		let paddedHex = _bytesToHex(paddedBytes)
 
-		const bigInt = parseBigInt(paddedHex, 16)
-		const encrypted = rsa.doPublic(bigInt).toByteArray()
+		let bigInt = parseBigInt(paddedHex, 16)
+		let encrypted = rsa.doPublic(bigInt)
 
-		// Pad the data up to the required length, required by some RSA implementations
-		const expectedLength = publicKey.keyLength / 8
-		const result = new Uint8Array(expectedLength)
+		//FIXME remove hex conversion
 
-		let leadingZeroes = 0 // JSBN sometimes not only produces shorter arrays but also longer ones (at least with one leading zero)
-		for (let i = 0; i < encrypted.length; i++) {
-			if (encrypted[i] !== 0) {
-				leadingZeroes = i
-				break
+		let encryptedHex = encrypted.toString(16)
+		if ((encryptedHex.length % 2) === 1) {
+			encryptedHex = "0" + encryptedHex
 			}
-		}
-		const paddingLength = expectedLength - (encrypted.length - leadingZeroes)
-		result.fill(0, 0, paddingLength)
-		result.set(encrypted.slice(leadingZeroes), paddingLength)
 
-		return result
+		return hexToUint8Array(encryptedHex)
 	} catch (e) {
 		throw new CryptoError("failed RSA encryption", e)
 	}
@@ -154,24 +146,15 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
 		let hex = _bytesToHex(bytes)
 		let bigInt = parseBigInt(hex, 16)
 		let paddedBigInt = rsa.doPrivate(bigInt)
-		const decryptedBytes = paddedBigInt.toByteArray()
-		// fill the hex string to have a padded block of exactly (keylength / 8 bytes) for the unpad function
+		let decryptedHex = paddedBigInt.toString(16)
+		// fill the hex string to have a padded block of exactly (keylength / 8 - 1 bytes) for the unpad function
 		// two possible reasons for smaller string:
 		// - one "0" of the byte might be missing because toString(16) does not consider this
 		// - the bigint value might be smaller than (keylength / 8 - 1) bytes
-		// We changed padding in encryption case but we might still need to decrypt older data
-		const expectedPaddedLength = privateKey.keyLength / 8
-		const paddedBytes = new Uint8Array(expectedPaddedLength)
-		let leadingZeroes = 0
-		for (let i = 0; i < decryptedBytes.length; i++) {
-			if (decryptedBytes[i] !== 0) {
-				leadingZeroes = i
-				break
-			}
-		}
-		const effectivePaddingLength = expectedPaddedLength - (decryptedBytes.length - leadingZeroes)
-		paddedBytes.fill(0, 0, effectivePaddingLength)
-		paddedBytes.set(decryptedBytes.slice(leadingZeroes), effectivePaddingLength)
+		let expectedPaddedHexLength = (privateKey.keyLength / 8 - 1) * 2
+		let fill = Array(expectedPaddedHexLength - decryptedHex.length + 1).join("0") // creates the missing zeros
+		decryptedHex = fill + decryptedHex
+		let paddedBytes = hexToUint8Array(decryptedHex)
 		return oaepUnpad(paddedBytes, privateKey.keyLength)
 	} catch (e) {
 		throw new CryptoError("failed RSA decryption", e)
@@ -185,10 +168,7 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
  * @param bytes
  * @return returns the signature.
  */
-export function sign(privateKey: PrivateKey, bytes: Uint8Array, salt: Uint8Array = random.generateRandomData(32)): Uint8Array {
-	if (salt.length !== 32) {
-		throw new Error("Invalid salt length: " + salt.length)
-	}
+export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
 	try {
 		let rsa = new RSAKey()
 		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
@@ -200,26 +180,19 @@ export function sign(privateKey: PrivateKey, bytes: Uint8Array, salt: Uint8Array
 		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
 		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
 
-		const paddedBytes = encode(bytes, privateKey.keyLength, salt)
-		const paddedHex = _bytesToHex(paddedBytes)
+		var salt = random.generateRandomData(32);
+		let paddedBytes = encode(bytes, privateKey.keyLength, salt)
+		let paddedHex = _bytesToHex(paddedBytes)
 
-		const bigInt = parseBigInt(paddedHex, 16)
-		const signed: Array<number> = rsa.doPrivate(bigInt).toByteArray()
-		// JSBN does not pad array (neither with toString() nor with toByteArray()) so we have to do it manually
-		const expectedLength = privateKey.keyLength / 8
-		const result = new Uint8Array(expectedLength)
-		let leadingZeroes = 0 // JSBN sometimes not only produces shorter arrays but also longer ones (at least with one leading zero)
-		for (let i = 0; i < signed.length; i++) {
-			if (signed[i] !== 0) {
-				leadingZeroes = i
-				break
+		let bigInt = parseBigInt(paddedHex, 16)
+		let signed = rsa.doPrivate(bigInt)
+
+		let signedHex = signed.toString(16)
+		if ((signedHex.length % 2) === 1) {
+			signedHex = "0" + signedHex
 			}
-		}
-		const resultPaddingLength = expectedLength - (signed.length - leadingZeroes)
-		// Fill padding bytes with zeroes
-		result.fill(0, 0, resultPaddingLength)
-		result.set(signed, resultPaddingLength)
-		return result
+
+		return hexToUint8Array(signedHex)
 	} catch (e) {
 		throw new CryptoError("failed RSA sign", e)
 	}
@@ -306,8 +279,9 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
  */
 export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
-	if (value.length !== keyLength / 8) {
-		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8) + " bytes!")
+	if (value.length !== keyLength / 8 - 1) {
+		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1)
+			+ " bytes!")
 	}
 
 	let seedMask = mgf1(value.slice(hashLength, value.length), hashLength)
