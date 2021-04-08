@@ -141,7 +141,7 @@ export function resolveRecipientInfo(mailModel: MailModel, recipientInfo: Recipi
 }
 
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean): string {
-	if (name === "") {
+	if (!name || name === "") {
 		return mailAddress;
 	} else if (preferNameOnly) {
 		return name

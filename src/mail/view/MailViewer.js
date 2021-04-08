@@ -270,8 +270,8 @@ export class MailViewer {
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
 									m(".subject.text-break.selectable", {
-										"aria-label": lang.get("subject_label") + ", " + this.mail.subject,
-									}, this.mail.subject),
+										"aria-label": lang.get("subject_label") + ", " + (this.mail.subject || ""),
+									}, this.mail.subject || ""),
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg"
 										+ (this.mail.confidential ? ".ml-negative-xs" : ""), {
 										// Orca refuses to read ut unless it's not focusable
