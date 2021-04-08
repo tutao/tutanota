@@ -207,16 +207,24 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 
 	const lines = []
 	if (organizer) {
-		const namePart = organizer.name ? `;CN="${organizer.name}"` : ""
+		const namePart = organizer.name ? `;CN=${quotedString(organizer.name)}` : ""
 		lines.push(`ORGANIZER${namePart};EMAIL=${organizer.address}:mailto:${organizer.address}`)
 	}
 	const attendeesProperties = attendees.map(({address, status}) => {
-		const namePart = address.name ? `;CN=${address.name}` : ""
+		const namePart = address.name ? `;CN=${quotedString(address.name)}` : ""
 		const partstat = calendarAttendeeStatusToParstat[downcast<CalendarAttendeeStatusEnum>(status)]
 		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${partstat}`
 			+ `;RSVP=TRUE${namePart};EMAIL=${address.address}:mailto:${address.address}`
 	})
 	return lines.concat(attendeesProperties)
+}
+
+/**
+ * Create an ical quoted-string param-value
+ * double quotes are not allowed inside of param-value properties so they are removed
+ */
+function quotedString(input: string): string {
+	return `"${input.replace(/"/g, '')}"`
 }
 
 function escapeSemicolons(value: string): string {
