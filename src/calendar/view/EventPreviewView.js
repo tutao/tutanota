@@ -32,7 +32,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
-				m(".flex.pb-s.items-center", [this._renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable", event.summary)]),
+				m(".flex.pb-s.items-center", [this._renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable.text-break", event.summary)]),
 				m(".flex.pb-s.items-center", [
 						this._renderSectionIndicator(Icons.Time),
 						m(".align-self-center.selectable", formatEventDuration(event, getTimeZone(), false))
@@ -41,7 +41,11 @@ export class EventPreviewView implements MComponent<Attrs> {
 				event.location
 					? m(".flex.pb-s.items-center", [
 						this._renderSectionIndicator(Icons.Pin),
-						m("a", {href: url.toString(), target: "_blank"}, m(".text-ellipsis.selectable.underline", event.location))
+						m(".text-ellipsis.selectable", m("a", {
+							href: url.toString(),
+							target: "_blank",
+							rel: "noopener noreferrer"
+						}, event.location))
 					])
 					: null,
 				event.attendees.length
