@@ -88,7 +88,7 @@ function _getDisplayableRecordValue(record: DnsRecord): string {
 	return record.value
 }
 
-export function renderCheckResult(domainStatus: DomainDnsStatus): ChildArray {
+export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButton: boolean = false): ChildArray {
 	const result = domainStatus.getLoadedCustomDomainCheckReturn()
 	if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
 		let array = []
@@ -120,11 +120,14 @@ export function renderCheckResult(domainStatus: DomainDnsStatus): ChildArray {
 			return validatedRecord
 		})
 		array.push(m(".mt-m.mb-s", lang.get("setDnsRecords_msg")))
-		array.push(createDnsRecordTableN(validatedRecords, {
-			label: "refresh_action",
-			icon: () => BootIcons.Progress,
-			click: () => _updateDnsStatus(domainStatus)
-		}))
+		const refreshButtonAttrs = hideRefreshButton
+			? null
+			: {
+				label: "refresh_action",
+				icon: () => BootIcons.Progress,
+				click: () => _updateDnsStatus(domainStatus)
+			}
+		array.push(createDnsRecordTableN(validatedRecords, refreshButtonAttrs))
 		array.push(m("span.small.mt-m", lang.get("moreInfo_msg") + " "))
 		array.push(m("span.small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))))
 
