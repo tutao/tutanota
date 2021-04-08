@@ -17,7 +17,7 @@ export function showDnsCheckDialog(domainStatus: DomainDnsStatus) {
 		title: () => lang.get("checkDnsRecords_action"),
 		okActionTextId: "checkAgain_action",
 		cancelActionTextId: "close_alt",
-		child: () => renderCheckResult(domainStatus),
+		child: () => renderCheckResult(domainStatus, true),
 		okAction: () => {
 			domainStatus.loadCurrentStatus().then(() => {
 				if (domainStatus.areRecordsFine()) {
@@ -27,7 +27,5 @@ export function showDnsCheckDialog(domainStatus: DomainDnsStatus) {
 				}
 			})
 		},
-	}).setCloseHandler(() => {
-		dialog.close()
 	})
 }
