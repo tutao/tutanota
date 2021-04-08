@@ -623,15 +623,17 @@ export class MailView implements CurrentView {
 				colors: ButtonColors.Nav,
 				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => {
+					let mailsToMove = []
 					// the dropped mail is among the selected mails, move all selected mails
 					if (this.mailList.list.isEntitySelected(droppedMailId)) {
-						moveMails(locator.mailModel, this.mailList.list.getSelectedEntities(), folder)
+						mailsToMove = this.mailList.list.getSelectedEntities()
 					} else {
 						let entity = this.mailList.list.getEntity(droppedMailId)
 						if (entity) {
-							locator.mailModel.moveMails([entity], folder)
+							mailsToMove.push(entity)
 						}
 					}
+					moveMails(locator.mailModel, mailsToMove, folder)
 				}
 			}
 
