@@ -201,6 +201,10 @@ export class MailModel {
 		return Promise.resolve()
 	}
 
+	/**
+	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
+	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
+	 */
 	moveMails(mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
