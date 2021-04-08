@@ -144,6 +144,25 @@ o.spec("EventQueueTest", function () {
 		})
 
 
+		o("create + create", async function () {
+			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
+			const createEvent2 = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u2")
+
+			queue.add("batch-id-1", "group-id", [createEvent])
+			queue.add("batch-id-2", "group-id", [createEvent2])
+			queue.resume()
+			await lastProcess.promise
+
+			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
+			const expectedCreate2 = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u2")
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id"}],
+				[{events: [expectedCreate2], batchId: "batch-id-2", groupId: "group-id"}],
+			])
+		})
+
+
 		o("create + update + delete == delete", async function () {
 			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
 			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u2")
@@ -404,6 +423,7 @@ o.spec("EventQueueTest", function () {
 				[{events: [expectedCreate], batchId: "batch-id-4", groupId: "group-id"}],
 			])
 		})
+
 
 		o("same batch in two different groups", async function () {
 			const createEvent1 = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
