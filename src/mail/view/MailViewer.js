@@ -1217,8 +1217,12 @@ export class MailViewer {
 			if (sendAllowed) {
 				return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					let prefix = "Re: "
-					let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
-						+ this.mail.subject
+					const mailSubject = this.mail.subject
+					let subject = mailSubject
+						? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()))
+							? mailSubject
+							: prefix + mailSubject
+						: ""
 					let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 						+ this.mail.sender.address + ":";
 					let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
@@ -1229,7 +1233,7 @@ export class MailViewer {
 					if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
 						toRecipients.push(this.mail.sender)
 					} else if (this.mail.state === MailState.RECEIVED) {
-						if (this.mail.replyTos.length > 0) {
+						if (this.mail.replyTos.filter(address => !downcast(address)._errors).length > 0) {
 							addAll(toRecipients, this.mail.replyTos)
 						} else {
 							toRecipients.push(this.mail.sender)
@@ -1308,7 +1312,9 @@ export class MailViewer {
 			                                              .join(", ")
 			infoLine += "<br>";
 		}
-		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
+
+		const mailSubject = this.mail.subject || ""
+		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject);
 
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
@@ -1322,7 +1328,7 @@ export class MailViewer {
 				              ccRecipients: [],
 				              bccRecipients: [],
 				              attachments: this._attachments.slice(),
-				              subject: "FWD: " + this.mail.subject,
+				              subject: "FWD: " + mailSubject,
 				              bodyText: addSignature ? prependEmailSignature(body, logins) : body,
 				              replyTos,
 			              }
