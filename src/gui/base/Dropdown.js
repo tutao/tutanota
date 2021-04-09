@@ -178,6 +178,11 @@ export class Dropdown {
 							this._domInput.focus()
 						}
 					},
+					onclick: (e) => {
+						if (!(e.target: any).classList.contains("doNotClose")) {
+							this.close();
+						}
+					}
 				},
 				[_inputField(), _contents()]
 			)
@@ -185,10 +190,7 @@ export class Dropdown {
 	}
 
 	backgroundClick(e: MouseEvent) {
-		if (!(e.target: any).classList.contains("doNotClose") && (this._domDropdown.contains((e.target: any))
-			|| this._domDropdown.parentNode === e.target)) {
-			this.close();
-		}
+		this.close()
 	}
 
 	_getFilterHeight(): number {
