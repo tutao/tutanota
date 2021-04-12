@@ -83,7 +83,7 @@ export class DesktopIntegratorLinux {
 
 	disableAutoLaunch(): Promise<void> {
 		return this.isAutoLaunchEnabled()
-		           .then(enabled => enabled ? this._fs.unlink(this.autoLaunchPath) : Promise.resolve())
+		           .then(enabled => enabled ? this._fs.promises.unlink(this.autoLaunchPath) : Promise.resolve())
 		           .catch(e => {
 			           // don't throw if file not found
 			           if (e.code !== 'ENOENT') throw e
@@ -105,8 +105,8 @@ export class DesktopIntegratorLinux {
 				this.checkFileIsThere(this.nointegrationpath).then(isThere => {
 					if (isThere) {
 						const forbiddenPaths = this._fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
-						                         .trim()
-						                         .split('\n')
+						                           .trim()
+						                           .split('\n')
 						if (!forbiddenPaths.includes(this.packagePath)) {
 							return this.askPermission()
 						}
@@ -145,14 +145,13 @@ export class DesktopIntegratorLinux {
 
 	unintegrate(): Promise<void> {
 		return Promise.all([
-			this._fs.unlink(this.iconTargetPath64),
-			this._fs.unlink(this.iconTargetPath512)
+			this._fs.promises.unlink(this.iconTargetPath64),
+			this._fs.promises.unlink(this.iconTargetPath512)
 		]).catch(e => {
 			if (!e.message.startsWith('ENOENT')) {
 				throw e
 			}
-		}).then(
-			() => this._fs.unlink(this.desktopFilePath)
+		}).then(() => this._fs.promises.unlink(this.desktopFilePath)
 		).catch(e => {
 			if (!e.message.startsWith('ENOENT')) {
 				throw e
@@ -174,7 +173,7 @@ Categories=Network;
 X-Tutanota-Version=${this._electron.app.getVersion()}
 TryExec=${this.packagePath}`
 		return this._fs.promises.mkdir(path.dirname(this.desktopFilePath), {recursive: true})
-		         .then(() => this._fs.promises.writeFile(this.desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
+		           .then(() => this._fs.promises.writeFile(this.desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
 	}
 
 	copyIcons(): Promise<void> {
