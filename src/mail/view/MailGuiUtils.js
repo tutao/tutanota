@@ -103,7 +103,7 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 }
 
 export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,
-                                            onContext: (TutanotaFile | DataFile, Event, HTMLElement) => mixed): Array<HTMLElement> {
+                                            onContext: (TutanotaFile | DataFile, (MouseEvent | TouchEvent), HTMLElement) => mixed): Array<HTMLElement> {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	const elementsWithCid = []

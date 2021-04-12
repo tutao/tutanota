@@ -18,6 +18,7 @@ import type {PosRect} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
+import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 
 assertMainOrNode()
 
@@ -319,6 +320,12 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?Dropd
 			modal.displayUnique(dropdown, false)
 		})
 	}: clickHandler)
+}
+
+export function showDropdownAtPosition(buttons: $ReadOnlyArray<DropdownChildAttrs>, xPos: number, yPos: number, width: number = 200) {
+	const dropdown = new DropdownN(() => buttons, width)
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(xPos, yPos, 0, 0))
+	modal.displayUnique(dropdown, false)
 }
 
 // We override type of click to be optional because we wrap it in our own

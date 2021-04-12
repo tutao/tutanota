@@ -1,19 +1,18 @@
 //@flow
-import m from "mithril"
 import type {Country} from "../../api/common/CountryList"
 import {Countries} from "../../api/common/CountryList"
 import {DropDownSelector} from "./DropDownSelector"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./ButtonN"
+import {ButtonColors, ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import type {DropdownChildAttrs} from "./DropdownN"
 import {attachDropdown} from "./DropdownN"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
-import {mapLazily, noOp} from "../../api/common/utils/Utils"
+import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Dialog} from "./Dialog"
-import type {ButtonAttrs} from "./ButtonN"
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLabel?: lazy<string>, label: TranslationKey | lazy<string> = "invoiceCountry_label"): DropDownSelector<?Country> {
@@ -84,4 +83,22 @@ export function getConfirmation(message: TranslationKey | lazy<string>, confirmM
 	}
 
 	return confirmation
+}
+
+/**
+ * Get either the coord of a mouseevent or the coord of the first touch of a touch event
+ * @param event
+ * @returns {{x: number, y: number}}
+ */
+export function getCoordsOfMouseOrTouchEvent(event: MouseEvent | TouchEvent): {x: number, y: number} {
+	return event instanceof MouseEvent
+		? {
+			x: event.clientX,
+			y: event.clientY
+		}
+		: {
+			// Why would touches be empty?
+			x: assertNotNull(event.touches.item(0)).clientX,
+			y: assertNotNull(event.touches.item(0)).clientY
+		}
 }
