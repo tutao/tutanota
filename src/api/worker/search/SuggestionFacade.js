@@ -1,16 +1,17 @@
 //@flow
 import type {Db} from "./SearchTypes"
-import {SearchTermSuggestionsOS} from "./DbFacade"
+import {SearchTermSuggestionsOS} from "./SearchIndexDb"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {random} from "../crypto/Randomizer"
 import {TypeRef} from "../../common/utils/TypeRef";
+import type {SomeEntity} from "../../common/utils/EntityUtils"
 
 export type SuggestionsType = {
 	[key: string]: string[]
 }
 
-export class SuggestionFacade<T> {
+export class SuggestionFacade<T: SomeEntity> {
 	_db: Db
 	type: TypeRef<T>
 	_suggestions: SuggestionsType

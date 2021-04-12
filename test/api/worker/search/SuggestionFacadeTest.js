@@ -6,8 +6,8 @@ import o from "ospec"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {SuggestionFacade} from "../../../../src/api/worker/search/SuggestionFacade"
-import {SearchTermSuggestionsOS} from "../../../../src/api/worker/search/DbFacade"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
+import {SearchTermSuggestionsOS} from "../../../../src/api/worker/search/SearchIndexDb"
 
 
 o.spec("SuggestionFacade test", () => {

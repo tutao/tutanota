@@ -27,7 +27,8 @@ import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import type {User} from "../../../src/api/entities/sys/User"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/User"
-import {isExternal, isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
+import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
+import {isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import type {EventController} from "../../../src/api/main/EventController"
@@ -42,11 +43,10 @@ import {CustomerAccountCreateDataTypeRef} from "../../../src/api/entities/tutano
 import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/NotificationMail"
 import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils"
-import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
+import type {Entity} from "../../../src/api/common/utils/EntityUtils"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils";
-import {isSameTypeRef, TypeRef} from "../../../src/api/common/utils/TypeRef";
-import {CancelledError} from "../../../src/api/common/error/CancelledError"
+import {isSameTypeRef, TypeRef} from "../../../src/api/common/utils/TypeRef"
 
 
 type TestIdGenerator = {
@@ -163,26 +163,24 @@ o.spec("SendMailModel", function () {
 	let mockedAttributeReferences = []
 
 	o.beforeEach(function () {
-
-		currentIdValue: 0,
-			testIdGenerator = {
-				currentListIdValue: 0,
-				newId(): Id {
-					return (this.currentIdValue++).toString()
-				},
-				newListId(): Id {
-					return (this.currentListIdValue++).toString()
-				},
-				newIdTuple(): IdTuple {
-					return [this.newListId(), this.newId()]
-				}
+		testIdGenerator = {
+			currentListIdValue: 0,
+			newId(): Id {
+				return (this.currentIdValue++).toString()
+			},
+			newListId(): Id {
+				return (this.currentListIdValue++).toString()
+			},
+			newIdTuple(): IdTuple {
+				return [this.newListId(), this.newId()]
 			}
+		}
 
 		worker = mockWorker()
 		locator.init(worker) // because it is used in certain parts of the code
 
 		entity = new EntityClient(worker)
-		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {
+		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T: Entity>(typeRef: TypeRef<T>, groupId: Id) => {
 			if (isSameTypeRef(typeRef, ContactListTypeRef)) {
 				return Promise.resolve(downcast({contacts: testIdGenerator.newId()}))
 			} else {

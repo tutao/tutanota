@@ -10,7 +10,6 @@ import {
 // $FlowIgnore[untyped-import]
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import {TypeRef} from "./TypeRef"
-import type {SomeEntity} from "../../main/Entity"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -33,6 +32,20 @@ export const CUSTOM_MIN_ID = ""
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const READ_ONLY_HEADER = "read-only"
+
+export type Entity = {
+	/* Should be TypeRef<self> but Flow doesn't allow it. */
+	_type: TypeRef<*>,
+	// Should be included but cannot be unified with types without this property.
+	// _ownerEncSessionKey?: ?Uint8Array,
+	...
+}
+
+export type ElementEntity = Entity & Element
+
+export type ListElementEntity = Entity & ListElement
+
+export type SomeEntity = ElementEntity | ListElementEntity
 
 /**
  * Tests if one id is bigger than another.
@@ -103,10 +116,12 @@ export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean 
 }
 
 export type Element = {
-	_id: Id
+	_id: Id,
+	...
 }
 export type ListElement = {
-	_id: IdTuple
+	_id: IdTuple,
+	...
 }
 
 export function getEtId(entity: Element): Id {

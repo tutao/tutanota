@@ -3,42 +3,35 @@ import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../../common/error/QuotaExceededError"
+import {downcast} from "../../common/utils/Utils"
 
 
 export type ObjectStoreName = string
-export const SearchIndexOS: ObjectStoreName = "SearchIndex"
-export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
-export const ElementDataOS: ObjectStoreName = "ElementData"
-export const MetaDataOS: ObjectStoreName = "MetaData"
-export const GroupDataOS: ObjectStoreName = "GroupMetaData"
-export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
-
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
 export type IndexName = string
-export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 export const indexName = (indexName: IndexName): string => indexName
 
-const DB_VERSION = 3
-
+export type DbKey = string | number | Array<string | number | null>
 
 export interface DbTransaction {
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]>;
+	getAll(objectStore: ObjectStoreName): Promise<{key: DbKey, value: any}[]>;
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T>;
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T>;
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]>;
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]>;
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any>;
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any>;
 
-
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void>;
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void>;
 
 	abort(): void;
 
 	wait(): Promise<void>;
 
-	aborted: boolean
+	aborted: boolean;
+
+	getRange<T>(objectStore: ObjectStoreName, fixedKey: Array<*>, start: DbKey, count: number, reverse: boolean, index: ?IndexName): Promise<Array<T>>;
 }
 
 
@@ -54,86 +47,56 @@ export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
 	_activeTransactions: number;
-	indexingSupported: boolean;
+	/** stub for now */
+	indexingSupported: boolean = true
 
-	constructor(supported: boolean, onupgrade?: () => void) {
+	constructor(version: number, onupgrade: (event: any, db: IDBDatabase) => void) {
 		this._activeTransactions = 0
-		this.indexingSupported = supported
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
 			// ask the main thread if indexedDB is supported.
-			if (!this.indexingSupported) {
-				return Promise.reject(new IndexingNotSupportedError("indexedDB not supported"))
-			} else {
-				return Promise.fromCallback(callback => {
-					let DBOpenRequest
-					try {
+			return Promise.fromCallback(callback => {
+				try {
+					const openRequest: IDBOpenDBRequest = self.indexedDB.open(this._id, version)
+					openRequest.onerror = (event) => {
+						// Copy all the keys from the error, including inheritent ones so we can get some info
 
-						DBOpenRequest = self.indexedDB.open(this._id, DB_VERSION)
-						DBOpenRequest.onerror = (event) => {
-							// Copy all the keys from the error, including inheritent ones so we can get some info
+						const requestErrorEntries = extractErrorProperties(openRequest.error)
+						const eventProperties = extractErrorProperties(event)
+						const message = "DbFacade.open.onerror: " + this._id +
+							"\nrequest.error: " + requestErrorEntries +
+							"\nevent: " + eventProperties +
+							"\nevent.target.error: " + (event.target ? event.target.error : "[none]")
 
-							const requestErrorEntries = extractErrorProperties(DBOpenRequest.error)
-							const eventProperties = extractErrorProperties(event)
-							this.indexingSupported = false
-							const message = "DbFacade.open.onerror: " + this._id +
-								"\nrequest.error: " + requestErrorEntries +
-								"\nevent: " + eventProperties +
-								"\nevent.target.error: " + (event.target ? event.target.error : "[none]")
-
-							if (event.target && event.target.error && event.target.error.name === "QuotaExceededError") {
-								console.log("Storage Quota is exceeded")
-								callback(new QuotaExceededError(message, DBOpenRequest.error || event.target.error))
-							} else {
-								callback(new IndexingNotSupportedError(message, DBOpenRequest.error || event.target.error))
-							}
+						if (event.target && event.target.error && event.target.error.name === "QuotaExceededError") {
+							console.log("Storage Quota is exceeded")
+							callback(new QuotaExceededError(message, openRequest.error || event.target.error))
+						} else {
+							callback(new IndexingNotSupportedError(message, openRequest.error || event.target.error))
 						}
-
-						DBOpenRequest.onupgradeneeded = (event) => {
-							//console.log("upgrade db", event)
-							let db = event.target.result
-							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
-								if (onupgrade) onupgrade()
-
-								this._deleteObjectStores(db,
-									SearchIndexOS,
-									ElementDataOS,
-									MetaDataOS,
-									GroupDataOS,
-									SearchTermSuggestionsOS,
-									SearchIndexMetaDataOS
-								)
-							}
-
-							try {
-								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
-								const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
-								db.createObjectStore(ElementDataOS)
-								db.createObjectStore(MetaDataOS)
-								db.createObjectStore(GroupDataOS)
-								db.createObjectStore(SearchTermSuggestionsOS)
-								metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
-							} catch (e) {
-								callback(new DbError("could not create object store searchindex", e))
-							}
-						}
-
-						DBOpenRequest.onsuccess = (event) => {
-							//console.log("opened db", event)
-							DBOpenRequest.result.onabort = (event) => console.log("db aborted", event)
-							DBOpenRequest.result.onclose = (event) => {
-								console.log("db closed", event)
-								this._db.reset()
-							}
-							DBOpenRequest.result.onerror = (event) => console.log("db error", event)
-							callback(null, DBOpenRequest.result)
-						}
-					} catch (e) {
-						this.indexingSupported = false
-						callback(new IndexingNotSupportedError(`exception when accessing indexeddb ${this._id}`, e))
 					}
-				})
-			}
+
+					openRequest.onupgradeneeded = (event) => {
+						//console.log("upgrade db", event)
+						let db = event.target.result
+						onupgrade(event, event.target.result)
+					}
+
+					openRequest.onsuccess = (event) => {
+						//console.log("opened db", event)
+						const db: IDBDatabase = downcast(openRequest.result)
+						db.onabort = (event) => console.log("db aborted", event)
+						db.onclose = (event) => {
+							console.log("db closed", event)
+							this._db.reset()
+						}
+						db.onerror = (event) => console.log("db error", event)
+						callback(null, db)
+					}
+				} catch (e) {
+					callback(new IndexingNotSupportedError(`exception when accessing indexeddb ${this._id}`, e))
+				}
+			})
 		})
 	}
 
@@ -185,7 +148,6 @@ export class DbFacade {
 			try {
 				const idbTransaction = db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite")
 				const transaction = new IndexedDbTransaction(idbTransaction, () => {
-					this.indexingSupported = false
 					this._db.reset()
 				})
 				this._activeTransactions++
@@ -240,7 +202,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<{key: DbKey, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
@@ -263,7 +225,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T> {
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
 		return Promise.fromCallback((callback) => {
 			try {
 				const os = this._transaction.objectStore(objectStore)
@@ -285,12 +247,12 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
 		           .then(result => result || [])
 	}
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = key
@@ -309,7 +271,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void> {
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
@@ -321,6 +283,45 @@ export class IndexedDbTransaction implements DbTransaction {
 				}
 			} catch (e) {
 				this._handleDbError(e, null, ".delete().catch " + objectStore, callback)
+			}
+		})
+	}
+
+	getRange<T>(objectStore: ObjectStoreName, fixedKey: Array<*>, start: DbKey, count: number, reverse: boolean, index: ?IndexName): Promise<Array<T>> {
+		return Promise.fromCallback((callback) => {
+			const result = []
+			const os = this._transaction.objectStore(objectStore)
+			let range: IDBKeyRange
+			let direction: IDBDirection
+			if (reverse) {
+				// $FlowIssue[prop-missing]
+				range = IDBKeyRange.upperBound(fixedKey.concat(start), /*open*/true) // <
+				direction = 'prev'
+			} else {
+				// $FlowIssue[prop-missing]
+				range = IDBKeyRange.lowerBound(fixedKey.concat(start), /*open*/true) // >
+				direction = 'next'
+			}
+			const request = index ? os.index(index).openCursor(range, direction) : os.openCursor(range, direction)
+			request.onerror = (event) => this._handleDbError(event, request, "getRange.onerror " + objectStore, callback)
+			request.onsuccess = (event) => {
+				const cursor: ?IDBCursorWithValue = event.target.result
+				if (cursor) {
+					for (let i = 0; i < fixedKey.length; i++) {
+						if (cursor.key[i] !== fixedKey[i]) {
+							callback(null, result)
+							return
+						}
+					}
+					result.push(cursor.value)
+					if (result.length < count) {
+						cursor.continue()
+					} else {
+						callback(null, result)
+					}
+				} else {
+					callback(null, result)
+				}
 			}
 		})
 	}

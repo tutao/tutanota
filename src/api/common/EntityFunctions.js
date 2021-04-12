@@ -6,7 +6,7 @@ import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
 import monitorModelMap from "../entities/monitor/monitorModelMap"
-import type {ListElement} from "./utils/EntityUtils"
+import type {ElementEntity, ListElement, ListElementEntity, SomeEntity} from "./utils/EntityUtils"
 import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT} from "./utils/EntityUtils"
 import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
@@ -58,7 +58,7 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 }
 
 
-export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
+export function _setupEntity<T: ElementEntity | ListElementEntity>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (typeModel.type === Type.ListElement) {
@@ -72,7 +72,7 @@ export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInte
 	})
 }
 
-export function _updateEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
+export function _updateEntity<T: ElementEntity | ListElementEntity>(instance: T, target: EntityRestInterface): Promise<void> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (!(instance: any)._id) throw new Error("Id must be defined")
@@ -89,7 +89,7 @@ export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promi
 	})
 }
 
-export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface, extraHeaders?: Params): Promise<T> {
+export function _loadEntity<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface, extraHeaders?: Params): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
 		let listId = null
@@ -115,7 +115,7 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 /**
  * load multiple does not guarantee order or completeness of returned elements.
  */
-export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
+export function _loadMultipleEntities<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
 	// split the ids into chunks
 	let idChunks = [];
 	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
@@ -134,7 +134,7 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 	})
 }
 
-export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
+export function _loadEntityRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
                                     extraHeaders?: Params): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
@@ -169,7 +169,7 @@ export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((Id, Id) => 
 	}
 }
 
-export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
+export function _loadReverseRangeBetween<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
                                                          rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
