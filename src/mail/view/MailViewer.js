@@ -88,7 +88,7 @@ import type {ButtonAttrs, ButtonColorEnum} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {styles} from "../../gui/styles"
 import {worker} from "../../api/main/WorkerClient"
-import {createAsyncDropdown, createDropdown} from "../../gui/base/DropdownN"
+import {createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {RecipientButton} from "../../gui/base/RecipientButton"
@@ -115,6 +115,7 @@ import {locator} from "../../api/main/MainLocator"
 import {makeMailBundle} from "../export/Bundler"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
+import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 
 assertMainOrNode()
 
@@ -811,19 +812,23 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) =>
-					file._type !== "DataFile"
-						? createDropdown(() => [
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
+					if (file._type !== "DataFile") {
+						const coords = getCoordsOfMouseOrTouchEvent(event)
+						showDropdownAtPosition([
 							{
 								label: "download_action",
-								click: () => {
-									this._downloadAndOpenAttachment(downcast(file), true)
-								},
+								click: () => this._downloadAndOpenAttachment(file, false),
 								type: ButtonType.Dropdown
-							}
-						])(downcast(event), dom)
-						: noOp
-				)
+							},
+							{
+								label: "open_action",
+								click: () => this._downloadAndOpenAttachment(file, true),
+								type: ButtonType.Dropdown
+							},
+						], coords.x, coords.y)
+					}
+				})
 			})
 		})
 	}
