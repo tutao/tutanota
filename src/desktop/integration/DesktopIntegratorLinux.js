@@ -59,10 +59,9 @@ export class DesktopIntegratorLinux {
 	}
 
 	checkFileIsThere(pathToCheck: string): Promise<boolean> {
-		return this._fs.promises.access(
-			pathToCheck,
-			this._fs.constants.F_OK | this._fs.constants.W_OK | this._fs.constants.R_OK
-		).then(() => true).catch(() => false)
+		return this._fs.promises.access(pathToCheck, this._fs.constants.F_OK | this._fs.constants.W_OK | this._fs.constants.R_OK)
+		           .then(() => true)
+		           .catch(() => false)
 	}
 
 	enableAutoLaunch(): Promise<void> {

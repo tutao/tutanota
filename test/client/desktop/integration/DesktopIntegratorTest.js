@@ -84,14 +84,6 @@ o.spec("DesktopIntegrator Test", () => {
 			deletedFiles.push(f)
 		},
 		readFileSync: () => "",
-		unlink(path, cb) {
-			deletedFiles.push(path)
-			if (cb) {
-				setImmediate(cb)
-			} else {
-				return Promise.resolve()
-			}
-		},
 		constants: {
 			F_OK: 0,
 			W_OK: 1,
@@ -112,6 +104,14 @@ o.spec("DesktopIntegrator Test", () => {
 			writeFile(file, content, opts) {
 				writtenFiles.push({file, content, opts})
 				return Promise.resolve()
+			},
+			unlink(path, cb) {
+				deletedFiles.push(path)
+				if (cb) {
+					setImmediate(cb)
+				} else {
+					return Promise.resolve()
+				}
 			},
 		}
 	}
@@ -250,7 +250,7 @@ o.spec("DesktopIntegrator Test", () => {
 			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
 
 			await integrator.disableAutoLaunch()
-			o(fsExtraMock.unlink.callCount).equals(0)
+			o(fsExtraMock.promises.unlink.callCount).equals(0)
 		})
 
 		o("enable when on", async function () {
@@ -276,9 +276,9 @@ o.spec("DesktopIntegrator Test", () => {
 			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
 
 			await integrator.disableAutoLaunch()
-			o(fsExtraMock.unlink.callCount).equals(1)
-			o(fsExtraMock.unlink.args.length).equals(1)
-			o(fsExtraMock.unlink.args[0]).equals('/app/path/file/.config/autostart/appName.desktop')
+			o(fsExtraMock.promises.unlink.callCount).equals(1)
+			o(fsExtraMock.promises.unlink.args.length).equals(1)
+			o(fsExtraMock.promises.unlink.args[0]).equals('/app/path/file/.config/autostart/appName.desktop')
 		})
 
 		o("runIntegration without integration, clicked yes, no no_integration, not checked", async function () {
