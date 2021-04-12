@@ -1,5 +1,6 @@
 //@flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {load, serviceRequestVoid} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
@@ -14,7 +15,6 @@ import {U2fClient, U2fError, U2fTimeoutError, U2fWrongDeviceError} from "./U2fCl
 import {assertMainOrNode} from "../api/common/Env"
 import {AccessBlockedError, BadRequestError, NotAuthenticatedError, NotFoundError} from "../api/common/error/RestError"
 import {Icons, SecondFactorImage} from "../gui/base/icons/Icons"
-import {TextField} from "../gui/base/TextField"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -24,6 +24,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
 import {isSameId} from "../api/common/utils/EntityUtils";
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -141,18 +142,23 @@ export class SecondFactorHandler {
 			const otpChallenge = challenges.find(challenge => challenge.type === SecondFactorType.totp)
 			const u2fClient = new U2fClient()
 			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
-			const otpCodeField = new TextField("totpCode_label")
+
+			let otpCodeFieldValue = ""
+			const otpCodeFieldAttrs = {
+				label: "totpCode_label",
+				value: stream(otpCodeFieldValue),
+				oninput: (value) => otpCodeFieldValue = value.trim(),
+				injectionsRight: () => state.otpInProgress ? m(".mr-s", progressIcon()) : null,
+			}
 
 			const state: {otpInProgress: bool, u2fError: ?TranslationKey} = {otpInProgress: false, u2fError: null}
-
-			otpCodeField._injectionsRight = () => state.otpInProgress ? m(".mr-s", progressIcon()) : null
 
 			const otpClickHandler = () => {
 				state.otpInProgress = true
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
-				auth.otpCode = otpCodeField.value().replace(/ /g, "")
+				auth.otpCode = otpCodeFieldValue.replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 					.then(() => {
 						this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
@@ -219,7 +225,7 @@ export class SecondFactorHandler {
 										])
 									]
 									: null,
-								otpChallenge ? m(".left.mb", m(otpCodeField)) : null,
+								otpChallenge ? m(".left.mb", m(TextFieldN, otpCodeFieldAttrs)) : null,
 								(otherLoginDomain && !keyForThisDomainExisting && u2fSupported)
 									? m("a", {
 										href: "https://" + otherLoginDomain
