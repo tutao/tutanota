@@ -2,25 +2,23 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
-export class StatusField {
+export type StatusFieldAttrs = {
+	status: Status,
+}
 
-	view: Function;
-	_status: Stream<Status>;
+export class StatusField implements MComponent<StatusFieldAttrs> {
+	_status: Status;
 
-	constructor(status: Stream<Status>) {
-		this._status = status
-		this.view = () => m("", lang.get(this._status().text))
+	constructor(vnode: Vnode<StatusFieldAttrs>) {
+		this._status = vnode.attrs.status
 	}
 
-	isValid(): boolean {
-		return this._status().type === 'valid'
-	}
+	view(vnode: Vnode<StatusFieldAttrs>): Children {
+		if (!this._status) return null
 
-	getErrorMessageId(): ?TranslationKey {
-		return (this._status().type !== "valid") ? this._status().text : null
+		return m("", lang.get(this._status.text))
 	}
 }
