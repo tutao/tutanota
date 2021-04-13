@@ -11,7 +11,6 @@ import {theme} from "../../gui/theme"
 import {NBSP} from "../../api/common/utils/StringUtils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ActionBar} from "../../gui/base/ActionBar"
-import {neverNull} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -86,7 +85,7 @@ export class MultiContactViewer {
 				label: "exportSelectedAsVCard_action",
 				click: () => {
 					return this._contactView._contactList
-						? exportContacts(neverNull(this._contactView._contactList).list.getSelectedEntities())
+						? exportContacts(this._contactView._contactList.list.getSelectedEntities())
 						: Promise.resolve()
 				},
 				isVisible: () => !!this._contactView._contactList,

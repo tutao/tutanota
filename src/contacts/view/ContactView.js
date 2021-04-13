@@ -99,10 +99,11 @@ export class ContactView implements CurrentView {
 		this._multiContactViewer = new MultiContactViewer(this)
 
 		const contactColumnTitle = () => {
-			let selectedEntities = this._contactList ? this._contactList.list.getSelectedEntities() : []
-			if (selectedEntities.length > 0) {
-				let selectedIndex = neverNull(this._contactList).list._loadedEntities.indexOf(selectedEntities[0]) + 1
-				return selectedIndex + "/" + neverNull(this._contactList).list._loadedEntities.length
+			const contactList = this._contactList
+			let selectedEntities = contactList ? contactList.list.getSelectedEntities() : []
+			if (selectedEntities.length > 0 && contactList) {
+				let selectedIndex = contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
+				return selectedIndex + "/" + contactList.list._loadedEntities.length
 			} else {
 				return ""
 			}
@@ -127,76 +128,78 @@ export class ContactView implements CurrentView {
 		})
 	}
 
-	/**
-	 * @pre this._contactList must be defined
-	 */
 	createNewContact(): void {
-		if (this._contactList) {
-			new ContactEditor(null, neverNull(this._contactList).listId, contactId => neverNull(this._contactList).list.scrollToIdAndSelectWhenReceived(contactId)).show()
+		const contactList = this._contactList
+		if (contactList) {
+			new ContactEditor(null, contactList.listId, contactId => contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 		}
 	}
 
 	headerRightView(): Children {
-		return !!this._contactList && m(ButtonN, {
-			label: "newContact_action",
-			click: () => this.createNewContact(),
-			type: ButtonType.Action,
-			icon: () => Icons.Add,
-			colors: ButtonColors.Header,
-		})
+		if (this._contactList) {
+			return m(ButtonN, {
+				label: "newContact_action",
+				click: () => this.createNewContact(),
+				type: ButtonType.Action,
+				icon: () => Icons.Add,
+				colors: ButtonColors.Header,
+			})
+		} else {
+			return null
+		}
 	}
 
 	_setupShortcuts() {
 		let shortcuts: Shortcut[] = [
 			{
 				key: Keys.UP,
-				exec: () => neverNull(this._contactList).list.selectPrevious(false),
+				exec: () => this._contactList && this._contactList.list.selectPrevious(false),
 				enabled: () => !!this._contactList,
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.K,
-				exec: () => neverNull(this._contactList).list.selectPrevious(false),
+				exec: () => this._contactList && this._contactList.list.selectPrevious(false),
 				enabled: () => !!this._contactList,
 				help: "selectPrevious_action"
 			},
 			{
 				key: Keys.UP,
 				shift: true,
-				exec: () => neverNull(this._contactList).list.selectPrevious(true),
+				exec: () => this._contactList && this._contactList.list.selectPrevious(true),
 				enabled: () => !!this._contactList,
 				help: "addPrevious_action"
 			},
 			{
 				key: Keys.K,
 				shift: true,
-				exec: () => neverNull(this._contactList).list.selectPrevious(true),
+				exec: () => this._contactList && this._contactList.list.selectPrevious(true),
 				enabled: () => !!this._contactList,
 				help: "addPrevious_action"
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => neverNull(this._contactList).list.selectNext(false),
+				exec: () => this._contactList && this._contactList.list.selectNext(false),
 				enabled: () => !!this._contactList,
 				help: "selectNext_action"
 			},
 			{
 				key: Keys.J,
-				exec: () => neverNull(this._contactList).list.selectNext(false),
+				exec: () => this._contactList && this._contactList.list.selectNext(false),
 				enabled: () => !!this._contactList,
 				help: "selectNext_action"
 			},
 			{
 				key: Keys.DOWN,
 				shift: true,
-				exec: () => neverNull(this._contactList).list.selectNext(true),
+				exec: () => this._contactList && this._contactList.list.selectNext(true),
 				enabled: () => !!this._contactList,
 				help: "addNext_action"
 			},
 			{
 				key: Keys.J,
 				shift: true,
-				exec: () => neverNull(this._contactList).list.selectNext(true),
+				exec: () => this._contactList && this._contactList.list.selectNext(true),
 				enabled: () => !!this._contactList,
 				help: "addNext_action"
 			},
@@ -417,10 +420,11 @@ export class ContactView implements CurrentView {
 	}
 
 	_deleteSelected(): Promise<void> {
-		if (!this._contactList) return Promise.resolve()
+		const contactList = this._contactList
+		if (!contactList) return Promise.resolve()
 		return Dialog.confirm("deleteContacts_msg").then(confirmed => {
 			if (confirmed) {
-				neverNull(this._contactList).list.getSelectedEntities().forEach(contact => {
+				contactList.list.getSelectedEntities().forEach(contact => {
 					erase(contact)
 						.catch(NotFoundError, noOp)
 						.catch(LockedError, noOp)
@@ -433,9 +437,10 @@ export class ContactView implements CurrentView {
 	 * @pre the number of selected contacts is 2
 	 */
 	mergeSelected(): Promise<void> {
-		if (!!this._contactList && this._contactList.list.getSelectedEntities().length === 2) {
-			let keptContact = this._contactList.list.getSelectedEntities()[0]
-			let goodbyeContact = neverNull(this._contactList).list.getSelectedEntities()[1]
+		const contactList = this._contactList
+		if (contactList && contactList.list.getSelectedEntities().length === 2) {
+			let keptContact = contactList.list.getSelectedEntities()[0]
+			let goodbyeContact = contactList.list.getSelectedEntities()[1]
 
 			if (!keptContact.presharedPassword || !goodbyeContact.presharedPassword
 				|| (keptContact.presharedPassword === goodbyeContact.presharedPassword)) {
@@ -510,20 +515,27 @@ export class ContactView implements CurrentView {
 	 * @returns {Children} Mithril children or null
 	 */
 	headerView(): Children {
-		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this._contactList && this._contactList.list
-		&& this._contactList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
-			selectNoneHandler: () => {
-				if (this._contactList) neverNull(this._contactList).list.selectNone()
-			},
-			selectedEntiesLength: this._contactList.list.getSelectedEntities().length,
-			content: {
-				view: () => m(ActionBar, {
-					buttons: this._multiContactViewer.createActionBarButtons(() => {
-						if (this._contactList) this._contactList.list.selectNone()
-					}, false)
-				})
-			}
-		}) : null
+		const contactList = this._contactList
+		if (this.viewSlider.getVisibleBackgroundColumns().length === 1 &&
+			contactList &&
+			contactList.list && contactList.list.isMobileMultiSelectionActionActive()
+		) {
+			return m(MultiSelectionBar, {
+				selectNoneHandler: () => {
+					contactList.list.selectNone()
+				},
+				selectedEntiesLength: contactList.list.getSelectedEntities().length,
+				content: {
+					view: () => m(ActionBar, {
+						buttons: this._multiContactViewer.createActionBarButtons(() => {
+							if (contactList) contactList.list.selectNone()
+						}, false)
+					})
+				}
+			})
+		} else {
+			return null
+		}
 	}
 }
 
