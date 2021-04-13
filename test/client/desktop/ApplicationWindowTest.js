@@ -277,6 +277,8 @@ o.spec("ApplicationWindow Test", function () {
 			'remote-get-builtin',
 			'remote-get-current-web-contents',
 			'remote-get-current-window',
+			'did-navigate',
+			'did-navigate-in-page',
 			'zoom-changed',
 			'update-target-url'
 		])("webContents registered callbacks dont match")
@@ -716,7 +718,7 @@ o.spec("ApplicationWindow Test", function () {
 		})
 
 		w.setBounds({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false, scale: 2})
-		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false, scale: 2})
+		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false, scale: 1})
 
 		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: true, scale: 1})
 		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: true, scale: 1})
@@ -729,7 +731,7 @@ o.spec("ApplicationWindow Test", function () {
 			o(w.getBounds()).deepEquals({
 				rect: {width: 0, height: 0, x: 0, y: -10},
 				fullscreen: false,
-				scale: 0.5
+				scale: 1
 			})
 			done()
 		}, 250)

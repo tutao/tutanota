@@ -19,6 +19,8 @@ import {fileExists} from "./PathUtils"
 import type {MailExportMode} from "../mail/export/Exporter"
 import {BuildConfigKey, DesktopConfigEncKey} from "./config/ConfigKeys"
 import type {SseInfo} from "./sse/DesktopSseClient"
+import {isRectContainedInRect} from "./DesktopUtils"
+import {downcast} from "../api/common/utils/Utils"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -37,6 +39,7 @@ export class WindowManager {
 	+dl: DesktopDownloadManager
 	+_newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
 	+_dragIcons: {[MailExportMode]: NativeImage}
+	_currentBounds: WindowBounds
 
 	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
 	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager) {
@@ -50,6 +53,12 @@ export class WindowManager {
 			"eml": this._tray.getIconByName("eml.png"),
 			"msg": this._tray.getIconByName("msg.png"),
 		}
+		// this is the global default for window placement & scale
+		this._currentBounds = {
+			scale: 1,
+			fullscreen: false,
+			rect: {height: 600, width: 800, x: 200, y: 200}
+		}
 	}
 
 	/**
@@ -60,10 +69,11 @@ export class WindowManager {
 	}
 
 	async newWindow(showWhenReady: boolean, noAutoLogin?: boolean): Promise<ApplicationWindow> {
+		await this.loadStartingBounds()
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 		w.on('close', ev => {
-			this.saveBounds(w)
+			this.saveBounds(w.getBounds())
 		}).on('closed', ev => {
 			windows.splice(windows.indexOf(w), 1)
 			this._tray.update(this._notifier)
@@ -79,17 +89,22 @@ export class WindowManager {
 				w.setUserInfo(null)
 			}
 			this._tray.update(this._notifier)
+		}).on('zoom-changed', (ev: Event, direction: "in" | "out") => {
+			let scale = ((this._currentBounds.scale * 100) + (direction === "out" ? -5 : 5)) / 100
+			if (scale > 3) scale = 3
+			else if (scale < 0.5) scale = 0.5
+			this._currentBounds.scale = scale
+			windows.forEach(w => w.setZoomFactor(scale))
+			const w = this.getEventSender(downcast(ev))
+			if(!w) return
+			this.saveBounds(w.getBounds())
+		}).on('did-navigate', () => {
+			// electron likes to override the zoom factor when the URL changes.
+			windows.forEach(w => w.setZoomFactor(this._currentBounds.scale))
 		}).once('ready-to-show', async () => {
 			this._tray.update(this._notifier)
-			const startingBounds: ?WindowBounds = await this.getStartingBounds()
-			if (startingBounds) {
-				w.setBounds(startingBounds)
-			} else {
-				w.center()
-			}
-			if (showWhenReady) {
-				w.show()
-			}
+			w.setBounds(this._currentBounds)
+			if (showWhenReady) w.show()
 		})
 
 		w.setContextMenuHandler((params) => this._contextMenu.open(params))
@@ -176,28 +191,34 @@ export class WindowManager {
 			|| this.newWindow(true, true)
 	}
 
-	saveBounds(w: ApplicationWindow): void {
-		const lastBounds = w.getBounds()
-		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-			log.debug("saving bounds:", lastBounds)
-			this._conf.setVar('lastBounds', lastBounds)
-		}
+	/**
+	 * Set window size & location in the WindowManager and save them and the manager's window scale to config.
+	 * The WindowManagers scale will be retained even if passed bounds has a different scale.
+	 * @param bounds {WindowBounds} the bounds containing the size & location to save
+	 */
+	saveBounds(bounds: WindowBounds): void {
+		const displayRect = screen.getDisplayMatching(bounds.rect).bounds
+		if (!isRectContainedInRect(displayRect, bounds.rect)) return
+		this._currentBounds.fullscreen = bounds.fullscreen
+		this._currentBounds.rect = bounds.rect
+		this._conf.setVar('lastBounds', this._currentBounds)
 	}
 
-	async getStartingBounds(): Promise<?WindowBounds> {
-		const lastBounds: WindowBounds = await this._conf.getVar("lastBounds")
-		if (!lastBounds || !this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-			return null
-		} else {
-			return Object.assign({scale: 1, fullscreen: false, rect: {height: 600, width: 800, x: 200, y: 200}}, lastBounds)
-		}
-	}
-
-	isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
-		return lastBounds.x >= closestRect.x - 10
-			&& lastBounds.y >= closestRect.y - 10
-			&& lastBounds.width + lastBounds.x <= closestRect.width + 10
-			&& lastBounds.height + lastBounds.y <= closestRect.height + 10
+	/**
+	 * load lastBounds from config.
+	 * if there are none or they don't match a screen, save default bounds to config
+	 */
+	async loadStartingBounds(): Promise<void> {
+		const loadedBounds: WindowBounds = await this._conf.getVar("lastBounds")
+		if(!loadedBounds) this.saveBounds(this._currentBounds)
+		const lastBounds = loadedBounds || this._currentBounds
+		const displayRect = screen.getDisplayMatching(lastBounds.rect).bounds
+		// we may have loaded bounds that are not in bounds of the screen
+		// if ie the resolution changed, more/less screens, ...
+		const result = isRectContainedInRect(displayRect, lastBounds.rect)
+			? Object.assign(this._currentBounds, lastBounds)
+			: this._currentBounds
+		this.saveBounds(result)
 	}
 
 	async _newWindow(electron: $Exports<"electron">, localShortcut: LocalShortcutManager, noAutoLogin: ?boolean): Promise<ApplicationWindow> {

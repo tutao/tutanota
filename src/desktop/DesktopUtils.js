@@ -9,6 +9,7 @@ import {downcast, noOp} from "../api/common/utils/Utils"
 import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
+import type {Rectangle} from "electron"
 
 
 import {delay} from "../api/common/utils/PromiseUtils"
@@ -248,4 +249,11 @@ async function _unregisterOnWin() {
 
 export function readJSONSync(absolutePath: string): {[string]: mixed} {
 	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
+}
+
+export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
+	return lastBounds.x >= closestRect.x - 10
+		&& lastBounds.y >= closestRect.y - 10
+		&& lastBounds.width + lastBounds.x <= closestRect.width + 10
+		&& lastBounds.height + lastBounds.y <= closestRect.height + 10
 }

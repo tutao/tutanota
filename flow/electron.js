@@ -401,7 +401,7 @@ declare module 'electron' {
 		constructor(any): BrowserWindow;
 		on(BrowserWindowEvent, (Event, ...Array<any>) => mixed): BrowserWindow;
 		once(BrowserWindowEvent, (Event, ...Array<any>) => mixed): BrowserWindow;
-		emit(BrowserWindowEvent): void;
+		emit(BrowserWindowEvent, ...Array<any>): void;
 		focus(): void;
 		hide(): void;
 		close(): void;
@@ -480,7 +480,7 @@ declare module 'electron' {
 
 	declare export type DragInfo = {files: string[] | string, icon?: NativeImage | string}
 
-	declare export type WebContentsEvent = {sender: WebContents, preventDefault: ()=>void}
+	declare export type WebContentsEvent = {+sender: WebContents, +preventDefault: ()=>void}
 
 	declare export class WebContents {
 		on(WebContentsEventType, (WebContentsEvent, ...Array<any>) => void): WebContents;
@@ -743,6 +743,8 @@ export type BrowserWindowEvent
 	| 'sheet-end'
 	| 'new-window-for-tab'
 	| 'did-start-navigation' // passed through from webContents
+	| 'did-navigate' // passed through from webContents
+	| 'zoom-changed' // passed through from webContents
 
 // https://github.com/electron/electron/blob/master/docs/api/web-contents.md#instance-events
 export type WebContentsEventType

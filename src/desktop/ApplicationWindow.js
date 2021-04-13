@@ -227,16 +227,9 @@ export class ApplicationWindow {
 		    .on('remote-get-builtin', e => e.preventDefault())
 		    .on('remote-get-current-web-contents', e => e.preventDefault())
 		    .on('remote-get-current-window', e => e.preventDefault())
-		    .on('zoom-changed', (ev: WebContentsEvent, direction: "in" | "out") => {
-			    const wc = ev.sender
-			    let newFactor = ((wc.getZoomFactor() * 100) + (direction === "out" ? -10 : 10)) / 100
-			    if (newFactor > 3) {
-				    newFactor = 3
-			    } else if (newFactor < 0.5) {
-				    newFactor = 0.5
-			    }
-			    wc.setZoomFactor(newFactor)
-		    })
+		    .on('did-navigate', () => this._browserWindow.emit('did-navigate'))
+		    .on('did-navigate-in-page', () => this._browserWindow.emit('did-navigate'))
+		    .on('zoom-changed', (ev: WebContentsEvent, direction: "in" | "out") => this._browserWindow.emit('zoom-changed', ev, direction))
 		    .on('update-target-url', (ev, url) => {
 			    this._ipc.sendRequest(this.id, 'updateTargetUrl', [url, this._startFileURLString])
 		    })
@@ -303,7 +296,7 @@ export class ApplicationWindow {
 		).then(() => this.show())
 	}
 
-	setContextMenuHandler(handler: (ContextMenuParams)=>void) {
+	setContextMenuHandler(handler: (ContextMenuParams) => void) {
 		const wc = this.browserWindow.webContents
 		wc.on('context-menu', (e, params) => handler(params))
 	}
@@ -465,7 +458,7 @@ export class ApplicationWindow {
 		return {
 			fullscreen: this._browserWindow.isFullScreen(),
 			rect: this._browserWindow.getBounds(),
-			scale: this._browserWindow.webContents.zoomFactor
+			scale: 1, // turns out we can't really trust wc.getZoomFactor
 		}
 	}
 }
