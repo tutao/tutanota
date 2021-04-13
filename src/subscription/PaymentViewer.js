@@ -4,7 +4,6 @@ import {assertMainOrNode, isIOSApp} from "../api/common/Env"
 import {neverNull} from "../api/common/utils/Utils"
 import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel.js"
-import {TextField} from "../gui/base/TextField"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {HtmlEditor, Mode} from "../gui/editor/HtmlEditor"
@@ -52,14 +51,12 @@ assertMainOrNode()
 
 export class PaymentViewer implements UpdatableSettingsViewer {
 	_invoiceAddressField: HtmlEditor;
-	_paymentMethodField: TextField;
 	_customer: ?Customer;
 	_accountingInfo: ?AccountingInfo;
 	_postings: CustomerAccountPosting[]
 	_outstandingBookingsPrice: number
 	_lastBooking: ?Booking
 	_paymentBusy: boolean;
-	_invoiceVatNumber: TextField;
 	_invoiceInfo: ?InvoiceInfo;
 
 	view: Function;
@@ -92,40 +89,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}, () => logins.getUserController().isPremiumAccount()),
 			icon: () => Icons.Edit
 		}
-		const changePaymentDataButtonAttrs = {
-			label: "paymentMethod_label",
-			click: createNotAvailableForFreeClickHandler(true, () => {
-					if (this._accountingInfo) {
-						let nextPayment = this._postings.length
-							? Number(this._postings[0].balance) * -1
-							: 0
-						showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
-							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
-						})).then(price => {
-							return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
-								if (success) {
-									if (this._isPayButtonVisible()) {
-										return this._showPayDialog(this._amountOwed())
-									}
-								}
-							})
-						})
-					}
-				},
-				// iOS app doesn't work with PayPal button or 3dsecure redirects
-				() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
-			icon: () => Icons.Edit
-		}
-		const paymentMethodHelpLabel = () => {
-			if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
-				return lang.get("paymentProcessingTime_msg")
-			}
-			return ""
-		}
 
-		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMethodField = new TextField("paymentMethod_label", paymentMethodHelpLabel).setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMethodField._injectionsRight = () => [m(ButtonN, changePaymentDataButtonAttrs)]
 		this._postings = []
 		this._lastBooking = null
 		this._paymentBusy = false
@@ -134,6 +98,56 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 
 		this.view = (): VirtualElement => {
+			const changePaymentDataButtonAttrs = {
+				label: "paymentMethod_label",
+				click: createNotAvailableForFreeClickHandler(true, () => {
+						if (this._accountingInfo) {
+							let nextPayment = this._postings.length
+								? Number(this._postings[0].balance) * -1
+								: 0
+							showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
+								return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
+							})).then(price => {
+								return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
+									if (success) {
+										if (this._isPayButtonVisible()) {
+											return this._showPayDialog(this._amountOwed())
+										}
+									}
+								})
+							})
+						}
+					},
+					// iOS app doesn't work with PayPal button or 3dsecure redirects
+					() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
+				icon: () => Icons.Edit
+			}
+			const invoiceVatId = (this._accountingInfo) ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg")
+			const invoiceVatNumberFieldAttrs = {
+				label: "invoiceVatIdNo_label",
+				value: stream(invoiceVatId),
+				disabled: true,
+			}
+
+			const paymentMethodHelpLabel = () => {
+				if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
+					return lang.get("paymentProcessingTime_msg")
+				}
+				return ""
+			}
+
+			const paymentMethod = (this._accountingInfo)
+				? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo)))
+				+ " "
+				+ getPaymentMethodInfoText(neverNull(this._accountingInfo))
+				: lang.get("loading_msg")
+			const paymentMethodFieldAttrs = {
+				label: "paymentMethod_label",
+				value: stream(paymentMethod),
+				helpLabel: paymentMethodHelpLabel,
+				disabled: true,
+				injectionsRight: () => [m(ButtonN, changePaymentDataButtonAttrs)],
+			}
 			return m("#invoicing-settings.fill-absolute.scroll.plr-l", {
 				role: "group",
 			}, [
@@ -143,9 +157,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				]),
 				m(this._invoiceAddressField),
 				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0)
-					? m(this._invoiceVatNumber)
+					? m(TextFieldN, invoiceVatNumberFieldAttrs)
 					: null,
-				m(this._paymentMethodField),
+				m(TextFieldN, paymentMethodFieldAttrs),
 				this._renderPostings(postingExpanded),
 			])
 		}
@@ -244,9 +258,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
 		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
-		this._invoiceVatNumber.setValue(accountingInfo.invoiceVatIdNo)
-		this._paymentMethodField.setValue(getPaymentMethodName(getPaymentMethodType(accountingInfo)) + " "
-			+ getPaymentMethodInfoText(accountingInfo))
 		m.redraw()
 	}
 

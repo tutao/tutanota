@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextFieldN"
 import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"

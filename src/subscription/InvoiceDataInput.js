@@ -3,7 +3,6 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {TextField} from "../gui/base/TextField"
 import type {Country} from "../api/common/CountryList"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, Mode} from "../gui/editor/HtmlEditor"
@@ -13,6 +12,7 @@ import {SysService} from "../api/entities/sys/Services"
 import type {LocationServiceGetReturn} from "../api/entities/sys/LocationServiceGetReturn"
 import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
 import {createCountryDropdown} from "../gui/base/GuiUtils"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 
 export class InvoiceDataInput {
@@ -20,8 +20,8 @@ export class InvoiceDataInput {
 	oncreate: Function;
 	selectedCountry: Stream<?Country>;
 	_invoiceAddressComponent: HtmlEditor;
-	_vatNumberField: TextField;
 	_businessUse: boolean;
+	_vatNumber: string
 
 	constructor(businessUse: boolean, invoiceData: InvoiceData) {
 		this._businessUse = businessUse
@@ -32,20 +32,26 @@ export class InvoiceDataInput {
 			.setMode(Mode.HTML)
 			.setHtmlMonospace(false)
 
-		this._vatNumberField = new TextField("invoiceVatIdNo_label", () => lang.get("invoiceVatIdNoInfoBusiness_msg"))
+
+		this._vatNumber = ""
+		const vatNumberFieldAttrs = {
+			label: "invoiceVatIdNo_label",
+			value: stream(this._vatNumber),
+			helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
+			oninput: (value) => this._vatNumber = value,
+		}
 
 		this.selectedCountry = stream(null)
 		const countryInput = createCountryDropdown(this.selectedCountry, () => lang.get("invoiceCountryInfoConsumer_msg"))
 
 		this._invoiceAddressComponent.setValue(invoiceData.invoiceAddress)
-		this._vatNumberField.setValue(invoiceData.vatNumber)
 		this.selectedCountry(invoiceData.country)
 
 		this.view = () => [
 			m(".pt", m(this._invoiceAddressComponent)),
 			m(".small", lang.get(businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 			m(countryInput),
-			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
+			this._isVatIdFieldVisible() ? m(TextFieldN, vatNumberFieldAttrs) : null
 		]
 
 		this.oncreate = () => {
@@ -93,7 +99,7 @@ export class InvoiceDataInput {
 			invoiceAddress: address,
 			country: selectedCountry,
 			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU
-				&& this._businessUse) ? this._vatNumberField.value() : ""
+				&& this._businessUse) ? this._vatNumber : ""
 		}
 	}
 

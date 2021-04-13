@@ -1,5 +1,5 @@
 // @flow
-import {Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"

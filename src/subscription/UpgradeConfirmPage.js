@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {TextField} from "../gui/base/TextField"
 import {formatPrice, getPaymentMethodName} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
@@ -23,71 +23,103 @@ import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, Subsc
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
-	_orderField: TextField;
-	_subscriptionField: TextField;
-	_priceField: TextField;
-	_priceNextYearField: TextField;
-	_paymentMethodField: TextField;
-
-	constructor() {
-		this._orderField = new TextField("subscription_label").setDisabled()
-		this._subscriptionField = new TextField("subscriptionPeriod_label").setDisabled()
-		this._priceField = new TextField(() => lang.get("priceFirstYear_label")).setDisabled()
-		this._priceNextYearField = new TextField("priceForNextYear_label").setDisabled()
-		this._paymentMethodField = new TextField("paymentMethod_label").setDisabled()
-	}
-
-	oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
-		const data = vnode.attrs.data
-		this._orderField.setValue(getDisplayNameOfSubscriptionType(data.type))
-		this._subscriptionField.setValue((data.options.paymentInterval() === 12
-			? lang.get("pricing.yearly_label")
-			: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
-		const netOrGross = data.options.businessUse()
-			? lang.get("net_label")
-			: lang.get("gross_label")
-		if (!data.priceNextYear) this._priceField = new TextField(() => lang.get("price_label")).setDisabled()
-		this._priceField.setValue(formatPrice(Number(data.price), true) + " "
-			+ (data.options.paymentInterval() === 12
-				? lang.get("pricing.perYear_label")
-				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
-		if (data.priceNextYear) {
-			this._priceNextYearField.setValue(formatPrice(Number(data.priceNextYear), true) + " " +
-				(data.options.paymentInterval() === 12
-					? lang.get("pricing.perYear_label")
-					: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
-		}
-
-		this._paymentMethodField.setValue(getPaymentMethodName(data.paymentData.paymentMethod))
-	}
+	// oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+	// 	const data = vnode.attrs.data
+	// 	this._orderField.setValue(getDisplayNameOfSubscriptionType(data.type))
+	// 	this._subscriptionField.setValue((data.options.paymentInterval() === 12
+	// 		? lang.get("pricing.yearly_label")
+	// 		: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
+	// 	const netOrGross = data.options.businessUse()
+	// 		? lang.get("net_label")
+	// 		: lang.get("gross_label")
+	// 	if (!data.priceNextYear) this._priceField = new TextField(() => lang.get("price_label")).setDisabled()
+	// 	this._priceField.setValue(formatPrice(Number(data.price), true) + " "
+	// 		+ (data.options.paymentInterval() === 12
+	// 			? lang.get("pricing.perYear_label")
+	// 			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
+	// 	if (data.priceNextYear) {
+	// 		this._priceNextYearField.setValue(formatPrice(Number(data.priceNextYear), true) + " " +
+	// 			(data.options.paymentInterval() === 12
+	// 				? lang.get("pricing.perYear_label")
+	// 				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
+	// 	}
+	//
+	// 	this._paymentMethodField.setValue(getPaymentMethodName(data.paymentData.paymentMethod))
+	// }
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const a = vnode.attrs
-		const newAccountData = a.data.newAccountData
+		const attrs = vnode.attrs
+		const newAccountData = attrs.data.newAccountData
+
+		const orderFieldAttrs = {
+			label: "subscription_label",
+			value: stream(getDisplayNameOfSubscriptionType(attrs.data.type)),
+			disabled: true,
+		}
+
+		const subscription =
+			(attrs.data.options.paymentInterval() === 12)
+				? lang.get("pricing.yearly_label")
+				: lang.get("pricing.monthly_label") + ", " + lang.get("automaticRenewal_label")
+		const subscriptionFieldAttrs = {
+			label: "subscriptionPeriod_label",
+			value: stream(subscription),
+			disabled: true,
+		}
+
+		const netOrGross = attrs.data.options.businessUse()
+			? lang.get("net_label")
+			: lang.get("gross_label")
+
+		const price = formatPrice(Number(attrs.data.price), true) + " " + (attrs.data.options.paymentInterval() === 12
+			? lang.get("pricing.perYear_label")
+			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
+		const priceFieldAttrs = {
+			label: "priceFirstYear_label",
+			value: stream(price),
+			disabeld: true,
+		}
+
+		const priceNextyear = formatPrice(Number(attrs.data.priceNextYear), true) + " " + (attrs.data.options.paymentInterval() === 12
+			? lang.get("pricing.perYear_label")
+			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
+		const priceNextYearFieldAttrs = {
+			label: "priceForNextYear_label",
+			value: stream(priceNextyear),
+			disabled: true,
+		}
+
+		const paymentMethodFieldAttrs = {
+			label: "paymentMethod_label",
+			value: stream(getPaymentMethodName(attrs.data.paymentData.paymentMethod)),
+			disabled: true,
+		}
 
 		const upgrade = () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			serviceData.subscriptionType = this._subscriptionTypeToPaidSubscriptionType(a.data.type)
+			serviceData.subscriptionType = this._subscriptionTypeToPaidSubscriptionType(attrs.data.type)
 			serviceData.date = Const.CURRENT_DATE
-			serviceData.campaign = a.data.campaign
+			serviceData.campaign = attrs.data.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
 				.then(() => {
 					return worker.switchFreeToPremiumGroup()
 				}))
 				.then(() => {
 					deleteCampaign()
-					return this.close(a.data, vnode.dom)
+					return this.close(attrs.data, vnode.dom)
 				})
 				.catch(PreconditionFailedError, e => {
 					Dialog.error(() => lang.get(getPreconditionFailedPaymentMsg(e.data))
-						+ ((a.data.upgradeType === UpgradeType.Signup) ? " "
+						+ ((attrs.data.upgradeType === UpgradeType.Signup) ? " "
 							+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 				.catch(BadGatewayError, e => {
-					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((a.data.upgradeType === UpgradeType.Signup) ? " "
+					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((attrs.data.upgradeType
+						=== UpgradeType.Signup) ? " "
 						+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 		}
@@ -99,7 +131,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					m(RecoverCodeField, {showMessage: true, recoverCode: newAccountData.recoverCode})
 				])
 				: null,
-			a.data.type === SubscriptionType.Free
+			attrs.data.type === SubscriptionType.Free
 				? [
 					m(".flex-space-around.flex-wrap", [
 						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
@@ -107,7 +139,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					]),
 					m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
 						label: "ok_action",
-						click: () => this.close(a.data, vnode.dom),
+						click: () => this.close(attrs.data, vnode.dom),
 						type: ButtonType.Login,
 					})))
 				]
@@ -115,11 +147,11 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 					m(".flex-space-around.flex-wrap", [
 						m(".flex-grow-shrink-half.plr-l", [
-							m(this._orderField),
-							m(this._subscriptionField),
-							m(this._priceField),
-							a.data.priceNextYear ? m(this._priceNextYearField) : null,
-							m(this._paymentMethodField),
+							m(TextFieldN, orderFieldAttrs),
+							m(TextFieldN, subscriptionFieldAttrs),
+							m(TextFieldN, priceFieldAttrs),
+							attrs.data.priceNextYear ? m(TextFieldN, priceNextYearFieldAttrs) : null,
+							m(TextFieldN, paymentMethodFieldAttrs),
 						]),
 						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))

@@ -2,8 +2,6 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {ColumnWidth} from "../gui/base/TableN"
-import {Table} from "../gui/base/Table"
 import {erase, load, loadAll} from "../api/main/Entity"
 import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -13,7 +11,6 @@ import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {createContactForm} from "../api/entities/tutanota/ContactForm"
 import {loadGroupInfos} from "./LoadingUtils"
 import {Icons} from "../gui/base/icons/Icons"
-import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -103,15 +100,6 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 			disables: true
 		}
 
-		let statisticsFieldsTable = null
-		if (language.statisticsFields.length > 0) {
-			statisticsFieldsTable = new Table(["name_label", "type_label"], [
-				ColumnWidth.Largest, ColumnWidth.Largest
-			], false)
-			statisticsFieldsTable.updateEntries(language.statisticsFields.map(f => new TableLine([
-				f.name, statisticsFieldTypeToString(f)
-			])))
-		}
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
 		let contactFormReportTo = new DatePicker(startOfTheWeekOffset, "dateTo_label")
@@ -133,9 +121,6 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get("display_action")),
 					m(TextFieldN, urlFieldAttrs),
 					m(TextFieldN, pageTitleFieldAttrs),
-					(statisticsFieldsTable) ? m(".h4.mt-l", lang.get("statisticsFields_label")) : null,
-					(statisticsFieldsTable) ? m(statisticsFieldsTable) : null,
-					(statisticsFieldsTable) ? m(".small", lang.get("statisticsFieldsInfo_msg")) : null,
 					m(".mt-l", [
 						m(".h4", lang.get("contactFormReport_label")),
 						m(".small", lang.get("contactFormReportInfo_msg")),

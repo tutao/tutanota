@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextFieldN"
 import {PasswordIndicator} from "../gui/PasswordIndicator"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"

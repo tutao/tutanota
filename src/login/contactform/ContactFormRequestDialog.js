@@ -2,7 +2,7 @@
 import m from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {Button} from "../../gui/base/Button"
-import {Type} from "../../gui/base/TextField"
+import {Type} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../../misc/Formatter"
 import {ConversationType, InputFieldType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
