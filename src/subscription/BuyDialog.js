@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
-import {Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextFieldN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"

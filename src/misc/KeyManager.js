@@ -10,6 +10,7 @@ import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
 import type {KeysEnum} from "../api/common/TutanotaConstants"
 import {Keys} from "../api/common/TutanotaConstants"
+import stream from "mithril/stream/stream.js"
 
 assertMainOrNodeBoot()
 
@@ -142,25 +143,28 @@ class KeyManager {
 	}
 
 	openF1Help() {
-		Promise.all([import("../gui/base/Dialog.js"), import("../gui/base/ButtonN"), import("../gui/base/TextField")])
-		       .then(([{Dialog}, {ButtonType}, {TextField}]) => {
+		Promise.all([import("../gui/base/Dialog.js"), import("../gui/base/ButtonN"), import("../gui/base/TextFieldN")])
+		       .then(([{Dialog}, {ButtonType}, {TextFieldN}]) => {
 			       if (this._helpDialog && this._helpDialog.visible) {
 				       return
 			       }
 			       let shortcuts = ((this._modalShortcuts.length
 				       > 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
-			       let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-			                                 .map(shortcut => {
-				                                 return new TextField(() => this._getShortcutName(shortcut))
-					                                 .setValue(lang.get(shortcut.help))
-					                                 .setDisabled()
-			                                 })
+			       let textFieldAttrs = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
+			                                     .map(shortcut => {
+					                                     return {
+						                                     label: () => this._getShortcutName(shortcut),
+						                                     value: stream(lang.get(shortcut.help)),
+						                                     disabled: true
+					                                     }
+				                                     }
+			                                     )
 			       this._helpDialog = Dialog.largeDialog({
 				       left: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
 				       middle: () => lang.get("keyboardShortcuts_title")
 			       }, {
 				       view: () => {
-					       return m("div.pb", textFields.map(t => m(t)))
+					       return m("div.pb", textFieldAttrs.map(t => m(TextFieldN, t)))
 				       }
 			       }).addShortcut({
 				       key: Keys.ESC,

@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {TextField, Type} from "../gui/base/TextField"
+import {Type} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"

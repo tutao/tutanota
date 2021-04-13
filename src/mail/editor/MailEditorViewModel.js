@@ -184,13 +184,13 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 	bubbleDeleted: Bubble<RecipientInfo> => void
 	_contactModel: ContactModel
 
-	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel) {
+	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel, injectionsRight: ?lazy<Children>, disabled: ?boolean) {
 
 		this.model = model
 		this.field = fieldType
 
 		const handler = new RecipientInfoBubbleHandler(this, contactModel)
-		this.component = new BubbleTextField(_getRecipientFieldLabelTranslationKey(this.field), handler)
+		this.component = new BubbleTextField(_getRecipientFieldLabelTranslationKey(this.field), handler, {}, injectionsRight, disabled)
 
 		// we want to fill in the field with existing recipients from the model
 		this.component.bubbles = this._modelRecipients().map(recipient => this.createBubble(recipient.name, recipient.mailAddress, recipient.contact))

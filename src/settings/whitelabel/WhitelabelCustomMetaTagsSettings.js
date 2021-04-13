@@ -1,7 +1,7 @@
 // @flow
 
 import stream from "mithril/stream/stream.js"
-import {Type} from "../../gui/base/TextField"
+import {Type} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import m from "mithril"

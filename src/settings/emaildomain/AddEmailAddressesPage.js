@@ -205,8 +205,6 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 			return showProgressDialog("pleaseWait_msg", worker
 				.addMailAlias(this.data.editAliasFormAttrs.userGroupInfo.group, this.mailAddress))
 				.then(() => {
-					// FIXME: email must be reset after adding it to the list of emails, dewit
-					// this.data.emailAliasInput._username("")
 					return true
 				})
 				.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
