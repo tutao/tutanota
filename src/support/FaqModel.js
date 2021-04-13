@@ -65,7 +65,7 @@ export class FaqModel {
 					const sanitized = htmlSanitizer.sanitize(unsanitizedText)
 					// Delay to spread sanitize() calls between event loops. Otherwise we stop main thread for way too long and UI gets
 					// laggy.
-					return delay(1).then(() => [key, sanitized])
+					return delay(1).then(() => [key, sanitized.text])
 				}).then((entries) => {
 					const translations = Object.fromEntries(entries)
 					return {code: langCode, keys: translations}
