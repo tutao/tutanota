@@ -277,7 +277,8 @@ declare module 'electron' {
 			options: MessageBoxOptions
 		): Promise<{response: number, checkboxChecked: boolean}>,
 		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions): Promise<{canceled: boolean, filePaths: string[]}>,
-		showSaveDialog(browserWindow: ?BrowserWindow, options: SaveDialogOptions): Promise<{canceled: boolean, filePath?: string, bookmark?: string}>
+		showSaveDialog(browserWindow: ?BrowserWindow, options: SaveDialogOptions): Promise<{canceled: boolean, filePath?: string, bookmark?: string}>,
+		showErrorBox(title: string, content: string): void,
 	}
 
 	declare export type OpenDialogOptions = {

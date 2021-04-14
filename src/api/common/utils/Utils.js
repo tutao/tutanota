@@ -47,6 +47,7 @@ import {CancelledError} from "../error/CancelledError"
 import {FileOpenError} from "../error/FileOpenError"
 import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
+import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -470,6 +471,7 @@ const ErrorNameToType = {
 	CancelledError,
 	FileOpenError,
 	PayloadTooLargeError,
+	DeviceStorageUnavailableError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,

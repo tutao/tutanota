@@ -1,5 +1,6 @@
 //@flow
 import {load, loadAll, setup, update} from "../../api/main/Entity"
+import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
 import {neverNull} from "../../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../../api/common/TutanotaConstants"
@@ -12,9 +13,8 @@ import {logins} from "../../api/main/LoginController"
 import {worker} from "../../api/main/WorkerClient"
 import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
-import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {getElementId} from "../../api/common/utils/EntityUtils";
-import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
+import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -54,6 +54,9 @@ class PushServiceApp {
 				           }
 			           })
 			           .then(this._initPushNotifications)
+			           .catch(DeviceStorageUnavailableError, (e) => {
+				           console.warn("Device storage is unavailable, cannot register for push notifications", e)
+			           })
 		} else if (isIOSApp()) {
 			return this._loadPushIdentifierFromNative()
 			           .then(identifier => {

@@ -109,7 +109,10 @@ export class WindowManager {
 				    })
 			}
 		}
-		this._conf.on(DesktopConfigEncKey.sseInfo, sseValueListener, true)
+		this._conf.on(DesktopConfigEncKey.sseInfo, sseValueListener)
+		// call with value initially
+		this._conf.getVar(DesktopConfigEncKey.sseInfo)
+		    .then(sseValueListener, (e) => log.error("Failed to get sseInfo", e))
 	}
 
 	hide() {

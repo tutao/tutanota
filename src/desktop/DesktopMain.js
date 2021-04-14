@@ -53,13 +53,6 @@ const tray = new DesktopTray(conf)
 const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, fs, electron)
 const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, deviceKeyProvider)
-deviceKeyProvider.getDeviceKey()
-                 .then(() => {
-	                 log.debug("alarm storage initialized")
-                 })
-                 .catch(e => {
-	                 console.warn("alarm storage failed to initialize:", e)
-                 })
 const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 const shortcutManager = new LocalShortcutManager()
 const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
@@ -102,7 +95,8 @@ function startupInstance() {
 
 	DesktopUtils.makeSingleInstance().then(willStay => {
 		if (!willStay) return
-		sse.start()
+		sse.start().catch(e => log.warn("unable to start sse client", e))
+
 		app.on('second-instance', (ev, args) => {
 			DesktopUtils.singleInstanceLockOverridden().then(overridden => {
 				if (overridden) {
@@ -134,6 +128,10 @@ function startupInstance() {
 }
 
 async function onAppReady() {
+	deviceKeyProvider.getDeviceKey().catch(() => {
+		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
+	})
+
 	app.on('window-all-closed', async () => {
 		if (!(await conf.getVar('runAsTrayApp'))) {
 			app.quit()
