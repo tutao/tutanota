@@ -125,9 +125,10 @@ export class SearchBar implements Component {
 			}
 		}
 
-		let indexStateStream
+		let stateStream
 		let routeChangeStream
 		let lastQueryStream
+		let indexStateStream
 		let shortcuts
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
@@ -136,7 +137,7 @@ export class SearchBar implements Component {
 						this._domWrapper = vnode.dom
 						shortcuts = this._setupShortcuts()
 						keyManager.registerShortcuts(shortcuts)
-						locator.search.indexState.map((indexState) => {
+						indexStateStream = locator.search.indexState.map((indexState) => {
 							// When we finished indexing, search again forcibly to not confuse anyone with old results
 							const currentResult = this._state().searchResult
 							if (!indexState.failedIndexingUpTo &&
@@ -148,7 +149,7 @@ export class SearchBar implements Component {
 							}
 							this._updateState({indexState})
 						})
-						indexStateStream = this._state.map((state) => {
+						stateStream = this._state.map((state) => {
 							this._showOverlay()
 							if (this._domInput) {
 								const input = this._domInput
@@ -181,14 +182,17 @@ export class SearchBar implements Component {
 					},
 					onremove: () => {
 						shortcuts && keyManager.unregisterShortcuts(shortcuts)
-						if (indexStateStream) {
-							indexStateStream.end(true)
+						if (stateStream) {
+							stateStream.end(true)
 						}
 						if (routeChangeStream) {
 							routeChangeStream.end(true)
 						}
 						if (lastQueryStream) {
 							lastQueryStream.end(true)
+						}
+						if (indexStateStream) {
+							indexStateStream.end(true)
 						}
 						this._closeOverlay()
 					},
