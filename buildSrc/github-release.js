@@ -37,7 +37,7 @@ async function run() {
 	const issues = await getIssuesForMilestone(octokit, versionMilestone)
 	const {bugs, rest} = sortIssues(issues)
 	const {whatsNewListRendered, bugsListRendered} = renderIssues(rest, bugs)
-	const body = renderReleaseBody(whatsNewListRendered, bugsListRendered)
+	const body = renderReleaseBody(versionMilestone.html_url, whatsNewListRendered, bugsListRendered)
 	console.log(body)
 	await createReleaseDraft(octokit, version, tag, body)
 }
@@ -86,14 +86,22 @@ function renderIssues(rest, bugs) {
 	return {whatsNewListRendered, bugsListRendered}
 }
 
-function renderReleaseBody(whatsNewListRendered, bugsListRendered) {
+function renderReleaseBody(milestoneUrl, whatsNewListRendered, bugsListRendered) {
+	const milestoneUrlObject = new URL(milestoneUrl)
+	milestoneUrlObject.searchParams.append("closed", "1")
 	return `
 # What's new
 ${whatsNewListRendered}
+
 # Bugfixes
 ${bugsListRendered}
+
+# Milestone
+${milestoneUrlObject.toString()}
+
 # TAR Checksum
 TBA
+
 # APK Checksum
 TBA`
 }
