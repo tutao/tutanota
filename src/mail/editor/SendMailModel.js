@@ -67,6 +67,7 @@ import {getFromMap} from "../../api/common/utils/MapUtils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
+import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
 
 assertMainOrNode()
 
@@ -182,20 +183,7 @@ export class SendMailModel {
 
 
 		this._selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
-		// sort list of all languages alphabetically
-		// then we see if the user has custom notification templates,
-		// in which case we replace the list with just the templates that the user has specified
-		this._availableNotificationTemplateLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-		getTemplateLanguages(this._availableNotificationTemplateLanguages, this._entity, this._logins)
-			.then((filteredLanguages) => {
-				if (filteredLanguages.length > 0) {
-					const languageCodes = filteredLanguages.map(l => l.code)
-					this._selectedNotificationLanguage =
-						_getSubstitutedLanguageCode(userProps.notificationMailLanguage || lang.code, languageCodes)
-						|| languageCodes[0]
-					this._availableNotificationTemplateLanguages = filteredLanguages
-				}
-			})
+		this.updateAvailableNotificationTemplateLanguages()
 
 		this._entityEventReceived = (updates) => {
 			return Promise.each(updates, update => {
@@ -212,6 +200,26 @@ export class SendMailModel {
 		this.onRecipientDeleted = stream(null)
 
 		this.onBeforeSend = noOp
+	}
+
+	/**
+	 * Sort list of all languages alphabetically
+	 * then we see if the user has custom notification templates
+	 * in which case we replace the list with just the templates that the user has specified
+	 */
+	updateAvailableNotificationTemplateLanguages(): Promise<void> {
+		this._availableNotificationTemplateLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		return getTemplateLanguages(this._availableNotificationTemplateLanguages, this._entity, this._logins)
+			.then((filteredLanguages) => {
+				if (filteredLanguages.length > 0) {
+					const languageCodes = filteredLanguages.map(l => l.code)
+					this._selectedNotificationLanguage =
+						_getSubstitutedLanguageCode(this._logins.getUserController().props.notificationMailLanguage
+							|| lang.code, languageCodes)
+						|| languageCodes[0]
+					this._availableNotificationTemplateLanguages = filteredLanguages
+				}
+			})
 	}
 
 	logins(): LoginController {
@@ -976,6 +984,8 @@ export class SendMailModel {
 				}
 			}
 			this.setMailChanged(true)
+		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
+			this.updateAvailableNotificationTemplateLanguages()
 		}
 		return Promise.resolve()
 	}
