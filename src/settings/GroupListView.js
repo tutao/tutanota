@@ -29,6 +29,7 @@ import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {locator} from "../api/main/MainLocator"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 
 assertMainOrNode()
@@ -142,7 +143,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			this._settingsView.detailsViewer = null
 			m.redraw()
 		} else if (groupInfos.length === 1 && selectionChanged) {
-			this._settingsView.detailsViewer = new GroupViewer(groupInfos[0])
+			this._settingsView.detailsViewer = new GroupViewer(locator.entityClient, groupInfos[0])
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()
 			}

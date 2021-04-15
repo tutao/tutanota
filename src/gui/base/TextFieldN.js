@@ -169,6 +169,10 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 						a.value(this.domInput.value) // update the input on each change
 						a.oninput && a.oninput(this.domInput.value, this.domInput)
 					},
+					onremove: () => {
+						// We clean up any value that might still be in DOM e.g. password
+						if (this.domInput) this.domInput.value = ""
+					},
 					style: {
 						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 						lineHeight: px(inputLineHeight),

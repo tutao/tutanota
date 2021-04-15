@@ -184,7 +184,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 	bubbleDeleted: Bubble<RecipientInfo> => void
 	_contactModel: ContactModel
 
-	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel, injectionsRight: ?lazy<Children>, disabled: ?boolean) {
+	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel, injectionsRight: ?lazy<Children>, disabled?: boolean) {
 
 		this.model = model
 		this.field = fieldType
