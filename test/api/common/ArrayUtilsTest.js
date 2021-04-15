@@ -4,7 +4,7 @@ import {
 	arrayEquals, arrayEqualsWithPredicate,
 	concat,
 	deduplicate, difference,
-	findLastIndex,
+	findLastIndex, flat, flatMap, groupBy, groupByAndMap, groupByAndMapUniquely,
 	insertIntoSortedArray,
 	splitInChunks
 } from "../../../src/api/common/utils/ArrayUtils"
@@ -145,6 +145,137 @@ o.spec("array utils", function () {
 			null, 1, null, 2, 3, 0, 0, "word", "word", "anotherword", undefined, undefined, {a: 10}, {a: 10}, object, object, {a: 20}
 		]))
 			.deepEquals([null, 1, 2, 3, 0, "word", "anotherword", undefined, {a: 10}, {a: 10}, object, {a: 20}])
+	})
+
+	o("flat", function () {
+		o(flat([]))
+			.deepEquals([])
+
+		o(flat([[], [], []]))
+			.deepEquals([])
+
+		o(flat([[0, 1, 2, 3]]))
+			.deepEquals([0, 1, 2, 3])
+
+		o(flat([[], [0], [1, 2, 3], [4, 5, 6], [], [7, 8, 9]]))
+			.deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+		o(flat([[[0]], [[1, 2, 3], [4, 5, 6]], [], [[]]]))
+			.deepEquals([[0], [1, 2, 3], [4, 5, 6], []])
+	})
+
+	o("flatMap", function () {
+
+		o(flatMap([], v => [v]))
+			.deepEquals([])
+
+		o(flatMap([0, 1, 2, 3], _ => []))
+			.deepEquals([])
+
+		o(flatMap([0, 1, 2, 3], v => [v * v]))
+			.deepEquals([0, 1, 4, 9])
+
+		o(flatMap([0, 1, 2, 3], v => [v, v * v]))
+			.deepEquals([0, 0, 1, 1, 2, 4, 3, 9])
+
+		o(flatMap([0, 1, 2, 3], v => [[v, v * v]]))
+			.deepEquals([[0, 0], [1, 1], [2, 4], [3, 9]])
+
+		o(flatMap([[0, 1, 2], [3, 4, 5]], v => v))
+			.deepEquals([0, 1, 2, 3, 4, 5])
+	})
+
+	o("groupBy", function () {
+
+		const toRaw = map => Array.from(map.entries())
+
+		o(toRaw(groupBy([], v => v % 2)))
+			.deepEquals([])
+
+		o(toRaw(groupBy([0], v => v % 2)))
+			.deepEquals([
+				[0, [0]]
+			])
+
+		o(toRaw(groupBy([0, 1, 2, 3, 4], _ => 1)))
+			.deepEquals([
+				[1, [0, 1, 2, 3, 4]]
+			])
+
+		o(toRaw(groupBy([0, 1, 2, 3, 4], v => v % 2)))
+			.deepEquals([
+				[0, [0, 2, 4]],
+				[1, [1, 3]]
+			])
+
+		o(toRaw(groupBy([0, 1, 2, 3, 3, 4, 4], v => v % 3)))
+			.deepEquals([
+				[0, [0, 3, 3]],
+				[1, [1, 4, 4]],
+				[2, [2]]
+			])
+	})
+
+	o("groupByAndMap", function () {
+
+		const toRaw = map => Array.from(map.entries())
+		const mapper = v => v * v
+
+		o(toRaw(groupByAndMap([], v => v % 2, mapper)))
+			.deepEquals([])
+
+		o(toRaw(groupByAndMap([0], v => v % 2, mapper)))
+			.deepEquals([
+				[0, [0]]
+			])
+		o(toRaw(groupByAndMap([0, 1, 2, 3, 4], _ => 1, mapper)))
+			.deepEquals([
+				[1, [0, 1, 4, 9, 16]]
+			])
+
+		o(toRaw(groupByAndMap([0, 1, 2, 3, 4], v => v % 2, mapper)))
+			.deepEquals([
+				[0, [0, 4, 16]],
+				[1, [1, 9]]
+			])
+
+		o(toRaw(groupByAndMap([0, 1, 2, 3, 3, 4, 4], v => v % 3, mapper)))
+			.deepEquals([
+				[0, [0, 9, 9]],
+				[1, [1, 16, 16]],
+				[2, [4]]
+			])
+	})
+
+	o("groupByAndMapUniquely", function () {
+
+		const toRaw = map => Array.from(map.entries()).map(([k, v]) => [k, Array.from(v)])
+		const mapper = v => v * v
+
+		o(toRaw(groupByAndMapUniquely([], v => v % 2, mapper)))
+			.deepEquals([])
+
+		o(toRaw(groupByAndMapUniquely([0], v => v % 2, mapper)))
+			.deepEquals([
+				[0, [0]]
+			])
+		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 4], _ => 1, mapper)))
+			.deepEquals([
+				[1, [0, 1, 4, 9, 16]]
+			])
+
+		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 4], v => v % 2, mapper)))
+			.deepEquals([
+				[0, [0, 4, 16]],
+				[1, [1, 9]]
+			])
+
+		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 3, 4, 4], v => v % 3, mapper)))
+			.deepEquals([
+				[0, [0, 9]],
+				[1, [1, 16]],
+				[2, [4]]
+			])
 	})
 
 	o("difference", function () {

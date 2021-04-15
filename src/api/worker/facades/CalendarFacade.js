@@ -21,7 +21,6 @@ import type {RepeatRule} from "../../entities/sys/RepeatRule"
 import {createRepeatRule} from "../../entities/sys/RepeatRule"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import {UserManagementFacade} from "./UserManagementFacade"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -39,11 +38,14 @@ import {hash} from "../crypto/Sha256"
 import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
-import {elementIdPart, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
+import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
 import {Request} from "../../common/WorkerProtocol"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacade} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
+import {promiseMap} from "../../common/utils/PromiseUtils"
+import {flat, flatMap, groupBy, groupByAndMapUniquely} from "../../common/utils/ArrayUtils"
+import {getFromMap} from "../../common/utils/MapUtils"
 
 assertWorkerOrNode()
 
@@ -217,9 +219,11 @@ export class CalendarFacade {
 
 	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
-		return this.loadAlarmEvents().then((eventsWithAlarmInfo) => {
-			const alarmNotifications = eventsWithAlarmInfo.map(({event, userAlarmInfo}) =>
-				createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))
+		return this.loadAlarmEvents().then((eventsWithAlarmInfos) => {
+
+			const alarmNotifications = flatMap(eventsWithAlarmInfos, ({event, userAlarmInfos}) =>
+				userAlarmInfos.map(userAlarmInfo => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)))
+
 			// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
 			// to store alarms securely.
 			const notificationKey = aes128RandomKey()
@@ -237,36 +241,47 @@ export class CalendarFacade {
 		})
 	}
 
-	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
-		const user = this._loginFacade.getLoggedInUser()
-		const alarmInfoList = user.alarmInfoList
-		if (alarmInfoList) {
-			return this._entity.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
-			           .then((userAlarmInfos) =>
-				           Promise
-					           .mapSeries(userAlarmInfos, (userAlarmInfo) =>
-						           this._entity.load(CalendarEventTypeRef, [
-							           userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId
-						           ])
-						               .then((event) => {
-							               return {event, userAlarmInfo}
-						               })
-						               .catch(NotFoundError, () => {
-							               // We do not allow to delete userAlarmInfos currently but when we update the server we should do that
-							               //erase(userAlarmInfo).catch(noOp)
-							               return null
-						               })
-						               .catch(NotAuthorizedError, (e) => {
-							               // Should not happen normally but could happen when user is removed from the calendar
-							               console.warn("NotAuthorized when downloading alarm event", e)
-							               return null
-						               }))
-					           .then((alarms) => alarms.filter(Boolean)) // filter out orphan alarms
-			           )
-		} else {
+	/**
+	 * Load all events that have an alarm assigned.
+	 * @return: Map from concatenated ListId of an event to list of UserAlarmInfos for that event
+	 */
+	async loadAlarmEvents(): Promise<Array<EventWithAlarmInfos>> {
+
+		const alarmInfoList = this._loginFacade.getLoggedInUser().alarmInfoList
+		if (!alarmInfoList) {
 			console.warn("No alarmInfo list on user")
-			return Promise.resolve([])
+			return []
 		}
+
+		const userAlarmInfos = await this._entity.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
+
+		// Group referenced event ids by list id so we can load events of one list in one request.
+		const listIdToElementIds = groupByAndMapUniquely(userAlarmInfos,
+			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.listId,
+			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.elementId)
+
+		// we group by the full concatenated list id
+		// because there might be collisions between event element ids due to being custom ids
+		const eventIdToAlarmInfos = groupBy(userAlarmInfos,
+			userAlarmInfo => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
+
+		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
+			return this._entity.loadMultipleEntities(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
+				// handle NotAuthorized here because user could have been removed from group.
+				if (error instanceof NotAuthorizedError) {
+					console.warn("NotAuthorized when downloading alarm events", error)
+					return []
+				}
+				throw error
+			})
+		})
+
+		return flat(calendarEvents).map(event => {
+			return {
+				event,
+				userAlarmInfos: getFromMap(eventIdToAlarmInfos, getLetId(event).join(""), () => [])
+			}
+		})
 	}
 
 	/**
@@ -300,9 +315,9 @@ export class CalendarFacade {
 	}
 }
 
-export type EventWithAlarmInfo = {
+export type EventWithAlarmInfos = {
 	event: CalendarEvent,
-	userAlarmInfo: UserAlarmInfo
+	userAlarmInfos: Array<UserAlarmInfo>
 }
 
 function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {
@@ -339,4 +354,8 @@ function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepea
 		interval: calendarRepeatRule.interval,
 		timeZone: calendarRepeatRule.timeZone
 	})
+}
+
+function getEventIdFromUserAlarmInfo(userAlarmInfo: UserAlarmInfo): IdTuple {
+	return [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId]
 }

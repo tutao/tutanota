@@ -19,7 +19,7 @@ import {client} from "../../misc/ClientDetector"
 import {downcast, identity, objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
-import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
+import type {EventWithAlarmInfos} from "../worker/facades/CalendarFacade"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAccountReturn"
 import type {User} from "../entities/sys/User"
@@ -559,7 +559,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("scheduleAlarmsForNewDevice", [pushIdentifier]))
 	}
 
-	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
+	loadAlarmEvents(): Promise<Array<EventWithAlarmInfos>> {
 		return this._queue.postMessage(new Request("loadAlarmEvents", []))
 	}
 

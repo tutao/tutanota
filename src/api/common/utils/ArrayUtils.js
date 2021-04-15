@@ -197,6 +197,18 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
 	})
 }
 
+/**
+ * Group an array based on the given separator, but each group will have only unique items
+ */
+export function groupByAndMapUniquely<T, R, E>(iterable: Iterable<T>, separator: T => R, mapper: T => E): Map<R, Set<E>> {
+	const map = new Map()
+	for (let el of iterable) {
+		const key = separator(el)
+		getFromMap(map, key, () => new Set()).add(mapper(el))
+	}
+	return map
+}
+
 export function groupByAndMap<T, R, E>(iterable: Iterable<T>, separator: (T) => R, mapper: (T) => E): Map<R, Array<E>> {
 	const map = new Map()
 	for (let el of iterable) {
@@ -232,6 +244,17 @@ export function flat<T>(arrays: $ReadOnlyArray<$ReadOnlyArray<T>>): Array<T> {
 		return acc
 	}, [])
 }
+
+/**
+ * Maps an array into a nested array and then flattens it
+ * @param array
+ * @param mapper
+ * @returns {T|*[]}
+ */
+export function flatMap<T, U>(array: $ReadOnlyArray<T>, mapper: T => Array<U>): Array<U> {
+	return array.reduce((acc, val) => acc.concat(mapper(val)), [])
+}
+
 
 /**
  * Inserts element into the sorted array. Will find <b>the last</b> matching position.

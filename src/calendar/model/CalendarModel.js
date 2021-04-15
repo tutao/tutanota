@@ -334,9 +334,11 @@ export class CalendarModelImpl implements CalendarModel {
 		if (this._localAlarmsEnabled()) {
 			return this._worker.loadAlarmEvents()
 			           .then((eventsWithInfos) => {
-				           eventsWithInfos.forEach(({event, userAlarmInfo}) => {
-					           this._scheduleUserAlarmInfo(event, userAlarmInfo)
-				           })
+				           for (let {event, userAlarmInfos} of eventsWithInfos) {
+					           for (let userAlarmInfo of userAlarmInfos) {
+						           this._scheduleUserAlarmInfo(event, userAlarmInfo)
+					           }
+				           }
 			           })
 		} else {
 			return Promise.resolve()
