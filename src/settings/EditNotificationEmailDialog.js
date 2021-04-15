@@ -22,6 +22,24 @@ import type {CustomerProperties} from "../api/entities/sys/CustomerProperties"
 import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {UserError} from "../api/main/UserError"
+import type {Booking} from "../api/entities/sys/Booking"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
+import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
+
+
+export function showBuyOrSetNotificationEmailDialog(lastBooking: ?Booking, customerProperties: LazyLoaded<CustomerProperties>, existingTemplate: ?NotificationMailTemplate) {
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(false)
+	} else {
+		const whitelabelFailedPromise = isWhitelabelActive(lastBooking) ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
+		whitelabelFailedPromise.then(failed => {
+			if (!failed) {
+				show(existingTemplate, customerProperties)
+			}
+		})
+	}
+}
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
