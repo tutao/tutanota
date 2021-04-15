@@ -14,6 +14,7 @@ import {theme} from "../theme"
 import {TabIndex} from "../../api/common/TutanotaConstants"
 import {ease} from "../animation/Easing"
 import type {TextFieldTypeEnum} from "./TextFieldN"
+import {Type} from "./TextFieldN"
 
 assertMainOrNode()
 
@@ -77,7 +78,7 @@ export class BubbleTextField<T> {
 	_domSuggestions: HTMLElement;
 
 	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, bubbleHandler: BubbleHandler<T, any>,
-	            suggestionStyle: {[string]: any} = {}, injectionsRight: ?lazy<Children> = () => {return null}, disabled: ?boolean = false) {
+	            suggestionStyle: {[string]: any} = {}, injectionsRight: ?lazy<Children> = () => null, disabled: ?boolean = false) {
 		this.loading = null
 		this.suggestions = []
 		this.selectedSuggestion = null

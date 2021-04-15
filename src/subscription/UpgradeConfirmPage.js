@@ -23,33 +23,10 @@ import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, Subsc
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
-	// oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
-	// 	const data = vnode.attrs.data
-	// 	this._orderField.setValue(getDisplayNameOfSubscriptionType(data.type))
-	// 	this._subscriptionField.setValue((data.options.paymentInterval() === 12
-	// 		? lang.get("pricing.yearly_label")
-	// 		: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label"))
-	// 	const netOrGross = data.options.businessUse()
-	// 		? lang.get("net_label")
-	// 		: lang.get("gross_label")
-	// 	if (!data.priceNextYear) this._priceField = new TextField(() => lang.get("price_label")).setDisabled()
-	// 	this._priceField.setValue(formatPrice(Number(data.price), true) + " "
-	// 		+ (data.options.paymentInterval() === 12
-	// 			? lang.get("pricing.perYear_label")
-	// 			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
-	// 	if (data.priceNextYear) {
-	// 		this._priceNextYearField.setValue(formatPrice(Number(data.priceNextYear), true) + " " +
-	// 			(data.options.paymentInterval() === 12
-	// 				? lang.get("pricing.perYear_label")
-	// 				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
-	// 	}
-	//
-	// 	this._paymentMethodField.setValue(getPaymentMethodName(data.paymentData.paymentMethod))
-	// }
-
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const attrs = vnode.attrs
 		const newAccountData = attrs.data.newAccountData
@@ -81,15 +58,6 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			label: "priceFirstYear_label",
 			value: stream(price),
 			disabeld: true,
-		}
-
-		const priceNextyear = formatPrice(Number(attrs.data.priceNextYear), true) + " " + (attrs.data.options.paymentInterval() === 12
-			? lang.get("pricing.perYear_label")
-			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
-		const priceNextYearFieldAttrs = {
-			label: "priceForNextYear_label",
-			value: stream(priceNextyear),
-			disabled: true,
 		}
 
 		const paymentMethodFieldAttrs = {
@@ -150,7 +118,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 							m(TextFieldN, orderFieldAttrs),
 							m(TextFieldN, subscriptionFieldAttrs),
 							m(TextFieldN, priceFieldAttrs),
-							attrs.data.priceNextYear ? m(TextFieldN, priceNextYearFieldAttrs) : null,
+							attrs.data.priceNextYear ? m(TextFieldN, this._createPriceNextYearFieldAttrs(netOrGross, attrs.data)) : null,
 							m(TextFieldN, paymentMethodFieldAttrs),
 						]),
 						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
@@ -189,6 +157,18 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		promise.then(() => {
 			emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE)
 		})
+	}
+
+	_createPriceNextYearFieldAttrs(netOrGross: string, data: UpgradeSubscriptionData): TextFieldAttrs {
+		const priceNextyear = formatPrice(Number(data.priceNextYear), true) + " " + (data.options.paymentInterval() === 12
+			? lang.get("pricing.perYear_label")
+			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
+
+		return {
+			label: "priceForNextYear_label",
+			value: stream(priceNextyear),
+			disabled: true,
+		}
 	}
 }
 

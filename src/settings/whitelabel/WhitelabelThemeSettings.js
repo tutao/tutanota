@@ -72,6 +72,7 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 							customTheme.logo = imageData
 							onThemeChanged(customTheme)
 							customLogoTextFieldValue = lang.get("activated_label")
+							m.redraw()
 						}
 					})
 				},

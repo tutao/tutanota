@@ -77,7 +77,6 @@ export class SearchView implements CurrentView {
 	oncreate: Function;
 	onremove: Function;
 
-	_timeDisplayValue: string
 	_mailFolder: NavButtonAttrs;
 	_contactFolder: NavButtonAttrs;
 	_endDate: ?Date; // null = today
@@ -105,7 +104,6 @@ export class SearchView implements CurrentView {
 		this._endDate = null
 		this._startDate = null
 
-		this._timeDisplayValue = ""
 
 		let mailAttributes = SEARCH_MAIL_FIELDS.map(f => {
 			return {name: lang.get(f.textId), value: f.field}
@@ -297,7 +295,7 @@ export class SearchView implements CurrentView {
 			}
 		}
 
-		this._timeDisplayValue = start + " - " + end
+		const timeDisplayValue = start + " - " + end
 
 		const changeTimeButtonAttrs = {
 			label: "selectPeriodOfTime_label",
@@ -328,7 +326,7 @@ export class SearchView implements CurrentView {
 
 		const timeDisplayAttrs = {
 			label: "periodOfTime_label",
-			value: stream(this._timeDisplayValue),
+			value: stream(timeDisplayValue),
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, changeTimeButtonAttrs)]
 		}

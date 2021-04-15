@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {Type} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {PasswordIndicator} from "../gui/PasswordIndicator"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"
@@ -16,7 +16,6 @@ import {showProgressDialog} from "../gui/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
-import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
