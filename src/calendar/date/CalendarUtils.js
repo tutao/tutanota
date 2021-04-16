@@ -1,5 +1,5 @@
 //@flow
-import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
 import type {
 	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
@@ -7,7 +7,7 @@ import type {
 	EventTextTimeOptionEnum,
 	RepeatPeriodEnum,
 	WeekStartEnum
-} from "../api/common/TutanotaConstants"
+} from "../../api/common/TutanotaConstants"
 import {
 	AlarmInterval,
 	CalendarAttendeeStatus,
@@ -17,24 +17,28 @@ import {
 	getWeekStart,
 	RepeatPeriod,
 	WeekStart
-} from "../api/common/TutanotaConstants"
+} from "../../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {clone, downcast, filterInt, neverNull} from "../api/common/utils/Utils"
-import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
-import {lang} from "../misc/LanguageViewModel"
-import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../misc/Formatter"
-import {size} from "../gui/size"
-import {assertMainOrNode} from "../api/common/Env"
-import {logins} from "../api/main/LoginController"
-import {getFromMap} from "../api/common/utils/MapUtils"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import {isColorLight} from "../gui/base/Color"
-import type {CalendarInfo} from "./view/CalendarView"
-import {isSameId} from "../api/common/utils/EntityUtils";
-import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
+import {clone, downcast, filterInt, neverNull} from "../../api/common/utils/Utils"
+import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
+import {createCalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
+import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
+import {lang} from "../../misc/LanguageViewModel"
+import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../../misc/Formatter"
+import {size} from "../../gui/size"
+import {assertMainOrNode} from "../../api/common/Env"
+import {getFromMap} from "../../api/common/utils/MapUtils"
+import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
+import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
+import type {User} from "../../api/entities/sys/User"
+import type {Group} from "../../api/entities/sys/Group"
+import type {GroupMembership} from "../../api/entities/sys/GroupMembership"
+import {isColorLight} from "../../gui/base/Color"
+import type {CalendarInfo} from "../view/CalendarView"
+import {isSameId} from "../../api/common/utils/EntityUtils";
+import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
+import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 
 assertMainOrNode()
 
@@ -72,15 +76,6 @@ export function shouldDefaultToAmPmTimeFormat(): boolean {
 	return lang.code === "en"
 }
 
-export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date {
-	return DateTime.fromObject({
-		year: utcDate.getUTCFullYear(),
-		month: utcDate.getUTCMonth() + 1,
-		day: utcDate.getUTCDate(),
-		zone: timeZone
-	}).toJSDate()
-}
-
 
 export function getMonth(date: Date, zone: string): CalendarMonthTimeRange {
 	const startDateTime = DateTime.fromJSDate(date, {zone})
@@ -101,8 +96,105 @@ export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, {zone}).set({hour: 0, minute: 0, second: 0, millisecond: 0}).plus({day: 1}).toJSDate()
 }
 
+
+export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, ianaTimeZone?: string): Date {
+	let diff
+	switch (interval) {
+		case AlarmInterval.FIVE_MINUTES:
+			diff = {minutes: 5}
+			break
+		case AlarmInterval.TEN_MINUTES:
+			diff = {minutes: 10}
+			break
+		case AlarmInterval.THIRTY_MINUTES:
+			diff = {minutes: 30}
+			break
+		case AlarmInterval.ONE_HOUR:
+			diff = {hours: 1}
+			break
+		case AlarmInterval.ONE_DAY:
+			diff = {days: 1}
+			break
+		case AlarmInterval.TWO_DAYS:
+			diff = {days: 2}
+			break
+		case AlarmInterval.THREE_DAYS:
+			diff = {days: 3}
+			break
+		case AlarmInterval.ONE_WEEK:
+			diff = {weeks: 1}
+			break
+		default:
+			diff = {minutes: 5}
+	}
+	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
+}
+
+export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date {
+	return DateTime.fromObject({
+		year: utcDate.getUTCFullYear(),
+		month: utcDate.getUTCMonth() + 1,
+		day: utcDate.getUTCDate(),
+		zone: timeZone
+	}).toJSDate()
+}
+
+export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
+	switch (repeatPeriod) {
+		case RepeatPeriod.DAILY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
+		case RepeatPeriod.WEEKLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({weeks: interval}).toJSDate()
+		case RepeatPeriod.MONTHLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
+		case RepeatPeriod.ANNUALLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
+		default:
+			throw new Error("Unknown repeat period")
+	}
+}
+
+export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: string): Date {
+	if (isAllDayEventByTimes(startTime, endTime)) {
+		return getAllDayDateForTimezone(startTime, timeZone)
+	} else {
+		return startTime
+	}
+}
+
+export function getValidTimeZone(zone: string, fallback: ?string): string {
+	if (IANAZone.isValidZone(zone)) {
+		return zone
+	} else {
+		if (fallback && IANAZone.isValidZone(fallback)) {
+			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
+			return fallback
+		} else {
+			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
+			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
+			return actualFallback
+		}
+	}
+}
+
 export function getTimeZone(): string {
 	return DateTime.local().zoneName
+}
+
+export interface DateProvider {
+	now(): number;
+
+	timeZone(): string;
+}
+
+export class DateProviderImpl implements DateProvider {
+	now(): number {
+		return Date.now()
+	}
+
+	timeZone(): string {
+		return getTimeZone()
+	}
 }
 
 export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): CalendarRepeatRule {
@@ -279,8 +371,8 @@ export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
 	}
 }
 
-export function getStartOfTheWeekOffsetForUser(): number {
-	return getStartOfTheWeekOffset(getWeekStart(logins.getUserController().userSettingsGroupRoot))
+export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: UserSettingsGroupRoot): number {
+	return getStartOfTheWeekOffset(getWeekStart(userSettingsGroupRoot))
 }
 
 
@@ -299,11 +391,7 @@ export function getEventEnd(event: CalendarEvent, timeZone: string): Date {
 }
 
 export function getEventStart(event: CalendarEvent, timeZone: string): Date {
-	if (isAllDayEvent(event)) {
-		return getAllDayDateForTimezone(event.startTime, timeZone)
-	} else {
-		return event.startTime
-	}
+	return getEventStartByTimes(event.startTime, event.endTime, timeZone)
 }
 
 export function getAllDayDateUTCFromZone(date: Date, timeZone: string): Date {
@@ -327,8 +415,8 @@ export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean 
 }
 
 
-export function hasAlarmsForTheUser(event: CalendarEvent): boolean {
-	const useAlarmList = neverNull(logins.getUserController().user.alarmInfoList).alarms
+export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
+	const useAlarmList = neverNull(user.alarmInfoList).alarms
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
@@ -452,24 +540,9 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 	}
 }
 
-export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
-	switch (repeatPeriod) {
-		case RepeatPeriod.DAILY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
-		case RepeatPeriod.WEEKLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({weeks: interval}).toJSDate()
-		case RepeatPeriod.MONTHLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
-		case RepeatPeriod.ANNUALLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
-		default:
-			throw new Error("Unknown repeat period")
-	}
-}
+export type AlarmOccurrence = {alarmTime: Date, occurrenceNumber: number, eventTime: Date}
 
-const OCCURRENCES_SCHEDULED_AHEAD = 10
-
-export function iterateEventOccurrences(
+export function findNextAlarmOccurrence(
 	now: Date,
 	timeZone: string,
 	eventStart: Date,
@@ -479,12 +552,9 @@ export function iterateEventOccurrences(
 	endType: EndTypeEnum,
 	endValue: number,
 	alarmTrigger: AlarmIntervalEnum,
-	localTimeZone: string,
-	callback: (time: Date, occurrence: number) => mixed) {
-
-
-	let occurrences = 0
-	let futureOccurrences = 0
+	localTimeZone: string
+): ?AlarmOccurrence {
+	let occurrenceNumber = 0
 
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
 	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
@@ -494,69 +564,21 @@ export function iterateEventOccurrences(
 			: new Date(endValue)
 		: null
 
-	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
-		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval
-			* occurrences, isAllDayEvent ? localTimeZone : timeZone);
+	while (endType !== EndType.Count || occurrenceNumber < endValue) {
+		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrenceNumber,
+			isAllDayEvent ? localTimeZone : timeZone
+		)
 
 		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
-			break;
+			return null
 		}
 
-		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone);
+		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone)
 
 		if (alarmTime >= now) {
-			callback(alarmTime, occurrences);
-			futureOccurrences++;
+			return {alarmTime, occurrenceNumber: occurrenceNumber, eventTime: occurrenceDate}
 		}
-		occurrences++;
-	}
-}
-
-export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, ianaTimeZone?: string): Date {
-	let diff
-	switch (interval) {
-		case AlarmInterval.FIVE_MINUTES:
-			diff = {minutes: 5}
-			break
-		case AlarmInterval.TEN_MINUTES:
-			diff = {minutes: 10}
-			break
-		case AlarmInterval.THIRTY_MINUTES:
-			diff = {minutes: 30}
-			break
-		case AlarmInterval.ONE_HOUR:
-			diff = {hours: 1}
-			break
-		case AlarmInterval.ONE_DAY:
-			diff = {days: 1}
-			break
-		case AlarmInterval.TWO_DAYS:
-			diff = {days: 2}
-			break
-		case AlarmInterval.THREE_DAYS:
-			diff = {days: 3}
-			break
-		case AlarmInterval.ONE_WEEK:
-			diff = {weeks: 1}
-			break
-		default:
-			diff = {minutes: 5}
-	}
-	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
-}
-
-export function getValidTimeZone(zone: string, fallback: ?string): string {
-	if (IANAZone.isValidZone(zone)) {
-		return zone
-	} else {
-		if (fallback && IANAZone.isValidZone(fallback)) {
-			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
-			return fallback
-		} else {
-			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
-			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
-			return actualFallback
-		}
+		occurrenceNumber++
 	}
 }
 
@@ -738,3 +760,14 @@ export function prepareCalendarDescription(description: string): string {
 }
 
 export const DEFAULT_HOUR_OF_DAY = 6
+
+/** Get CSS class for the date element. */
+export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Date): string {
+	if (isSameDayOfDate(day, selectedDate)) {
+		return ".date-selected"
+	} else if (isSameDayOfDate(day, currentDate)) {
+		return ".date-current"
+	} else {
+		return ""
+	}
+}

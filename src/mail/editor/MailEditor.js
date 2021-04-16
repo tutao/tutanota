@@ -682,7 +682,7 @@ export function newMailEditorFromTemplate(
 
 
 export function getSupportMailSignature(): Promise<string> {
-	return import("../../calendar/CalendarUtils").then(({getTimeZone}) => {
+	return import("../../calendar/date/CalendarUtils").then(({getTimeZone}) => {
 		return LINE_BREAK + LINE_BREAK + "--"
 			+ `<br>Client: ${client.getIdentifier()}`
 			+ `<br>Tutanota version: ${env.versionNumber}`

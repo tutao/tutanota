@@ -10,13 +10,13 @@ import {EventPreviewView} from "./EventPreviewView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarInfo} from "./CalendarView"
-import {CalendarEventViewModel} from "../CalendarEventViewModel"
+import {CalendarEventViewModel} from "../date/CalendarEventViewModel"
 import type {MailboxDetail} from "../../mail/model/MailModel"
 import {UserError} from "../../api/main/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
-import {prepareCalendarDescription} from "../CalendarUtils"
+import {prepareCalendarDescription} from "../date/CalendarUtils"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent

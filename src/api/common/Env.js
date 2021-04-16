@@ -106,7 +106,11 @@ export function isTest(): boolean {
 	return env.mode === Mode.Test
 }
 
-let boot = !isWorker()
+export function isDesktopMainThread(): boolean {
+	return typeof process !== "undefined" && typeof env !== "undefined" && env.mode === Mode.Desktop
+}
+
+let boot = !isDesktopMainThread() && !isWorker()
 
 export function assertMainOrNode() {
 	if (!isMainOrNode()) {

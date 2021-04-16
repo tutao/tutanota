@@ -51,7 +51,7 @@ import {header} from "../../gui/base/Header"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {worker} from "../../api/main/WorkerClient"
-import {getStartOfTheWeekOffsetForUser} from "../../calendar/CalendarUtils"
+import {getStartOfTheWeekOffsetForUser} from "../../calendar/date/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {ContactEditor} from "../../contacts/ContactEditor";
@@ -303,7 +303,8 @@ export class SearchView implements CurrentView {
 				if (logins.getUserController().isFreeAccount()) {
 					showNotAvailableForFreeDialog(true)
 				} else {
-					showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+					const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+					showDatePickerDialog(startOfWeek, (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
 						(this._endDate) ? this._endDate : new Date())
 						.then(dates => {
 							if (dates.end && isToday(dates.end)) {

@@ -49,7 +49,8 @@ import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
 import type {Customer} from "../../entities/sys/Customer"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
-import {FeatureType} from "../TutanotaConstants"
+
+export type Thunk = () => mixed
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -501,19 +502,6 @@ const ErrorNameToType = {
 	"android.content.ActivityNotFoundException": FileOpenError,
 	"de.tutao.tutanota.TutFileViewer": FileOpenError,
 	"NSURLErrorDomain": ConnectionError
-}
-
-
-/**
- * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
- * for non admin users because they are not allowed to access the bookings.
- */
-export function isBusinessFeatureCustomizationEnabled(customer: Customer): boolean {
-	return isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
-}
-
-export function isPremiumLegacyCustomizationEnabled(customer: Customer): boolean {
-	return isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy)
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureTypeEnum): boolean {

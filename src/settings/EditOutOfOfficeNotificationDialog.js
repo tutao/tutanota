@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
+import {getStartOfTheWeekOffsetForUser} from "../calendar/date/CalendarUtils"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -91,8 +91,9 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 
 	constructor(vnode: Vnode<EditoOutOfOfficeNotificationDialogAttrs>) {
 		const {model} = vnode.attrs
-		this._startDatePicker = new DatePicker(getStartOfTheWeekOffsetForUser(), "dateFrom_label", "emptyString_msg", false, model.startDate)
-		this._endDatePicker = new DatePicker(getStartOfTheWeekOffsetForUser(), "dateTo_label", "emptyString_msg", false, model.endDate)
+		const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+		this._startDatePicker = new DatePicker(startOfWeek, "dateFrom_label", "emptyString_msg", false, model.startDate)
+		this._endDatePicker = new DatePicker(startOfWeek, "dateTo_label", "emptyString_msg", false, model.endDate)
 
 		const statusItems = [
 			{

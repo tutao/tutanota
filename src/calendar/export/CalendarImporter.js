@@ -4,7 +4,7 @@ import {AlarmInterval, EndType, SECOND_MS} from "../../api/common/TutanotaConsta
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
 import {calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
 import {getAllDayDateLocal, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {generateUid, getTimeZone} from "../CalendarUtils"
+import {generateUid, getTimeZone} from "../date/CalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"

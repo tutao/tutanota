@@ -6,13 +6,21 @@ import {incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
 import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {CALENDAR_EVENT_HEIGHT, DEFAULT_HOUR_OF_DAY, eventEndsAfterDay, eventStartsBefore, getEventColor, getTimeZone} from "../CalendarUtils"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	DEFAULT_HOUR_OF_DAY,
+	eventEndsAfterDay,
+	eventStartsBefore,
+	getEventColor,
+	getTimeZone
+} from "../date/CalendarUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import {logins} from "../../api/main/LoginController"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,
@@ -115,6 +123,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: (_, domEvent) => vnode.attrs.onEventClicked(e, domEvent),
 						showTime: EventTextTimeOption.NO_TIME,
+						user: logins.getUserController().user,
 					})
 				})),
 				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
@@ -124,6 +133,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: (_, domEvent) => vnode.attrs.onEventClicked(e, domEvent),
 					showTime: EventTextTimeOption.START_TIME,
+					user: logins.getUserController().user
 				}))),
 				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0
 					? m(".mt-s")

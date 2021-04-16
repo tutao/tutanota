@@ -1,7 +1,7 @@
 //@flow
 
 import m from "mithril"
-import {colorForBg} from "../CalendarUtils"
+import {colorForBg} from "../date/CalendarUtils"
 import {px, size} from "../../gui/size"
 import {Icon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"

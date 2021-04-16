@@ -48,7 +48,7 @@ export class EventBanner implements MComponent<Attrs> {
 				m(".ml-negative-s.limit-width.align-self-start", m(ButtonN, {
 					label: "viewEvent_action",
 					type: ButtonType.Secondary,
-					click: () => import("../../calendar/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
+					click: () => import("../../calendar/date/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
 				})),
 			],
 		)
@@ -82,7 +82,7 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 }
 
 function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatusEnum, previousMail: Mail) {
-	showProgressDialog("pleaseWait_msg", import("../../calendar/CalendarInvites")
+	showProgressDialog("pleaseWait_msg", import("../../calendar/date/CalendarInvites")
 		.then(({getLatestEvent, replyToEventInvitation}) => {
 			return getLatestEvent(event).then(latestEvent => {
 				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)

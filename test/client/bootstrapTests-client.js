@@ -1,6 +1,5 @@
 import bluebird from "bluebird"
 import env from "@tutanota/env"
-import {noOp} from "../../src/api/common/utils/Utils"
 
 globalThis.env = env
 globalThis.Promise = bluebird.Promise

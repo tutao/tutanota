@@ -278,6 +278,7 @@ declare module "luxon" {
 		toFormat(fmt: string, options?: {|round?: boolean|}): string;
 		toISO(): string;
 		toJSON(): string;
+		toMillis(): number;
 		toObject(options: {|includeConfig: true|}): DurationObject &
 			DurationConfig;
 		toObject(options?: {|includeConfig?: boolean|}): DurationObject;

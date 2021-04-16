@@ -12,11 +12,10 @@ import {
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
-	getEventStart,
-	getTimeZone,
+	getEventStart, getTimeZone,
 	getWeekNumber,
 	layOutEvents
-} from "../CalendarUtils"
+} from "../date/CalendarUtils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {neverNull} from "../../api/common/utils/Utils"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
@@ -273,6 +272,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 						color: getEventColor(event, attrs.groupColors),
 						onEventClicked: attrs.onEventClicked,
 						showTime: isAllDayEvent(event) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME,
+						user: logins.getUserController().user
 					}))
 				}))
 		}, true)

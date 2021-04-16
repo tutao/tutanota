@@ -1,20 +1,20 @@
 //@flow
-import {parseCalendarFile} from "./export/CalendarImporter"
-import {worker} from "../api/main/WorkerClient"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {File as TutanotaFile} from "../api/entities/tutanota/File"
-import {locator} from "../api/main/MainLocator"
-import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
-import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
-import {CalendarMethod, getAsEnumValue} from "../api/common/TutanotaConstants"
-import {assertNotNull, clone, filterInt} from "../api/common/utils/Utils"
+import {parseCalendarFile} from "../export/CalendarImporter"
+import {worker} from "../../api/main/WorkerClient"
+import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
+import {locator} from "../../api/main/MainLocator"
+import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
+import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
+import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
+import {assertNotNull, clone, filterInt} from "../../api/common/utils/Utils"
 import {findPrivateCalendar, getTimeZone} from "./CalendarUtils"
-import {logins} from "../api/main/LoginController"
-import type {Mail} from "../api/entities/tutanota/Mail"
+import {logins} from "../../api/main/LoginController"
+import type {Mail} from "../../api/entities/tutanota/Mail"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
-import {Dialog} from "../gui/base/Dialog"
-import {UserError} from "../api/main/UserError"
-import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
+import {Dialog} from "../../gui/base/Dialog"
+import {UserError} from "../../api/main/UserError"
+import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
 	try {
@@ -37,7 +37,7 @@ export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<voi
 		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()),
 		locator.mailModel.getUserMailboxDetails(),
 		getLatestEvent(event),
-		import("./view/CalendarEventEditDialog")
+		import("../view/CalendarEventEditDialog")
 	]).then(([calendarInfo, mailboxDetails, latestEvent, {showCalendarEventDialog}]) => {
 		showCalendarEventDialog(latestEvent.startTime, calendarInfo, mailboxDetails, latestEvent, mail)
 	})
@@ -94,7 +94,7 @@ export function replyToEventInvitation(
 		locator.mailModel.getMailboxDetailsForMail(previousMail)
 	]).then(([calendar, mailboxDetails]) => {
 
-		return import("../mail/editor/SendMailModel").then(({SendMailModel}) => {
+		return import("../../mail/editor/SendMailModel").then(({SendMailModel}) => {
 			const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)

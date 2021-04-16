@@ -8,22 +8,17 @@ import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
-import {downcast, isBusinessFeatureCustomizationEnabled} from "../../api/common/utils/Utils"
+import {downcast, isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "../GroupSharingUtils"
-import {
-	getCapabilityText,
-	getDefaultGroupName,
-	getInvitationGroupType,
-	groupRequiresBusinessFeature,
-} from "../GroupUtils"
+import {getCapabilityText, getDefaultGroupName, getInvitationGroupType, groupRequiresBusinessFeature,} from "../GroupUtils"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
-import {GroupType} from "../../api/common/TutanotaConstants"
+import {FeatureType, GroupType} from "../../api/common/TutanotaConstants"
 import {ColorPicker} from "../../gui/base/ColorPicker"
 
 
@@ -130,7 +125,9 @@ function checkCanAcceptInvitation(invitation: ReceivedGroupInvitation): Promise<
 			}
 
 			return logins.getUserController().loadCustomer().then(customer => {
-				if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) && !isBusinessFeatureCustomizationEnabled(customer)) {
+				if (groupRequiresBusinessFeature(getInvitationGroupType(invitation)) &&
+					!isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
+				) {
 					return showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
 				} else {
 					return true

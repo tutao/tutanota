@@ -364,6 +364,7 @@ export const FeatureType = Object.freeze({
 	HideBuyDialogs: "8",
 	DisableCalendar: "9",
 	ExternalEmailProvider: "10",
+	/** This is required for non admin users because they are not allowed to access the bookings. */
 	BusinessFeatureEnabled: "11",
 	PremiumLegacy: "12",
 	KnowledgeBase: "13"

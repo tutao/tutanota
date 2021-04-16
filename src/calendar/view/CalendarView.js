@@ -30,7 +30,7 @@ import {
 } from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
-import type {CalendarMonthTimeRange} from "../CalendarUtils"
+import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
 	addDaysForEvent,
 	addDaysForLongEvent,
@@ -40,11 +40,10 @@ import {
 	getMonth,
 	getNextHalfHour,
 	getStartOfTheWeekOffset,
-	getStartOfWeek,
-	getTimeZone,
+	getStartOfWeek, getTimeZone,
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
-} from "../CalendarUtils"
+} from "../date/CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../../api/main/WorkerClient"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
@@ -87,7 +86,7 @@ import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
-import {createCalendarEventViewModel} from "../CalendarEventViewModel"
+import {createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {showGroupInvitationDialog} from "../../sharing/view/ReceivedGroupInvitationDialog"
 import {

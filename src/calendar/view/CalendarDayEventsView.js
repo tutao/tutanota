@@ -5,12 +5,13 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
-import {expandEvent, getEventColor, getEventText, getTimeZone, hasAlarmsForTheUser, layOutEvents} from "../CalendarUtils"
+import {expandEvent, getEventColor, getEventText, getTimeZone, hasAlarmsForTheUser, layOutEvents} from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
 import {neverNull} from "../../api/common/utils/Utils"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import {logins} from "../../api/main/LoginController"
 
 export type Attrs = {
 	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
@@ -114,7 +115,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			color: getEventColor(ev, attrs.groupColors),
 			click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 			height: height - 2,
-			hasAlarm: hasAlarmsForTheUser(ev),
+			hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
 			verticalPadding: 2
 		}))
 	}

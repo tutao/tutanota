@@ -4,21 +4,20 @@ import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEve
 import {CalendarEventTypeRef, createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {
 	addDaysForEvent,
-	addDaysForLongEvent, addDaysForRecurringEvent,
+	addDaysForLongEvent,
+	addDaysForRecurringEvent,
 	createRepeatRuleWithValues,
 	getAllDayDateUTCFromZone,
 	getMonth,
 	getTimeZone,
 	incrementByRepeatPeriod,
-	iterateEventOccurrences
-} from "../../../src/calendar/CalendarUtils"
+	findNextAlarmOccurrence
+} from "../../../src/calendar/date/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, downcast, neverNull, noOp} from "../../../src/api/common/utils/Utils"
 import {asResult, mapToObject} from "../../api/TestUtils"
 import type {CalendarModel} from "../../../src/calendar/model/CalendarModel"
-import {
-	CalendarModelImpl
-} from "../../../src/calendar/model/CalendarModel"
+import {CalendarModelImpl} from "../../../src/calendar/model/CalendarModel"
 import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
@@ -42,6 +41,7 @@ import type {LoginController} from "../../../src/api/main/LoginController"
 import {ProgressTracker} from "../../../src/api/main/ProgressTracker"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {MailModel} from "../../../src/mail/model/MailModel"
+import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
@@ -662,48 +662,6 @@ o.spec("CalendarModel", function () {
 		})
 	})
 
-	o.spec("iterateEventOccurrences", function () {
-		const timeZone = 'Europe/Berlin'
-		o("iterates", function () {
-			const now = DateTime.fromObject({year: 2019, month: 5, day: 2, zone: timeZone}).toJSDate()
-			const eventStart = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 12, zone: timeZone}).toJSDate()
-			const eventEnd = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 14, zone: timeZone}).toJSDate()
-			const occurrences = []
-			iterateEventOccurrences(now, timeZone, eventStart, eventEnd, RepeatPeriod.WEEKLY, 1, EndType.Never, 0, AlarmInterval.ONE_HOUR, timeZone, (time) => {
-				occurrences.push(time)
-			})
-
-			o(occurrences.slice(0, 4)).deepEquals([
-				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 11, zone: timeZone}).toJSDate(),
-				DateTime.fromObject({year: 2019, month: 5, day: 9, hour: 11, zone: timeZone}).toJSDate(),
-				DateTime.fromObject({year: 2019, month: 5, day: 16, hour: 11, zone: timeZone}).toJSDate(),
-				DateTime.fromObject({year: 2019, month: 5, day: 23, hour: 11, zone: timeZone}).toJSDate()
-			])
-		})
-
-		o("ends for all-day event correctly", function () {
-			const repeatRuleTimeZone = "Asia/Anadyr" // +12
-
-			const now = DateTime.fromObject({year: 2019, month: 5, day: 1, zone: timeZone}).toJSDate()
-			// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
-			const eventStart = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 2}).toJSDate())
-			const eventEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 3}).toJSDate())
-			const repeatEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 4}).toJSDate())
-			const occurrences = []
-			iterateEventOccurrences(now, repeatRuleTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY, 1, EndType.UntilDate,
-				repeatEnd.getTime(), AlarmInterval.ONE_DAY,
-				timeZone,
-				(time) => {
-					occurrences.push(time)
-				})
-
-			o(occurrences).deepEquals([
-				DateTime.fromObject({year: 2019, month: 5, day: 1, hour: 0, zone: timeZone}).toJSDate(),
-				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 0, zone: timeZone}).toJSDate(),
-			])
-		})
-	})
-
 	o.spec("calendar event updates", function () {
 		let workerMock: WorkerMock
 		let groupRoot: CalendarGroupRoot
@@ -721,7 +679,6 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("reply but sender is not a guest", async function () {
-			const {eventController} = makeEventController()
 			const uid = "uid"
 			const existingEvent = createCalendarEvent({
 				uid,
@@ -730,8 +687,9 @@ o.spec("CalendarModel", function () {
 				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
 				updateCalendarEvent: o.spy(() => Promise.resolve()),
 			})
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, makeLoginController(),
-				makeProgressTracker(), new EntityClient(workerClient), makeMailModel())
+			const model = init({
+				workerClient,
+			})
 
 			await model.processCalendarUpdate("sender@example.com", {
 				method: CalendarMethod.REPLY,
@@ -748,7 +706,6 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("reply", async function () {
-			const {eventController} = makeEventController()
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const anotherGuest = "another-attendee"
@@ -776,8 +733,7 @@ o.spec("CalendarModel", function () {
 			}))
 			workerMock.eventByUid.set(uid, existingEvent)
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
-				new EntityClient(workerClient), makeMailModel())
+			const model = init({workerClient})
 
 			await model.processCalendarUpdate(sender, {
 				summary: "v2", // should be ignored
@@ -818,13 +774,11 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("request as a new invite", async function () {
-			const {eventController} = makeEventController()
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const workerMock = new WorkerMock()
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
-				new EntityClient(workerClient), makeMailModel())
+			const model = init({workerClient})
 
 			await model.processCalendarUpdate(sender, {
 				summary: "1",
@@ -849,7 +803,6 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("request as an update", async function () {
-			const {eventController} = makeEventController()
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const alarm = createAlarmInfo({_id: "alarm-id"})
@@ -869,8 +822,7 @@ o.spec("CalendarModel", function () {
 			workerMock.eventByUid.set(uid, existingEvent)
 
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
-				new EntityClient(workerClient), makeMailModel())
+			const model = init({workerClient})
 
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
@@ -892,7 +844,6 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("event is re-created when the start time changes", async function () {
-			const {eventController} = makeEventController()
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const alarm = createAlarmInfo({_id: "alarm-id"})
@@ -913,8 +864,7 @@ o.spec("CalendarModel", function () {
 			workerMock.eventByUid.set(uid, existingEvent)
 
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
-				new EntityClient(workerClient), makeMailModel())
+			const model = init({workerClient})
 
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
@@ -941,7 +891,6 @@ o.spec("CalendarModel", function () {
 
 		o.spec("cancel", function () {
 			o("event is cancelled by organizer", async function () {
-				const {eventController} = makeEventController()
 				const uid = "uid"
 				const sender = "sender@example.com"
 				const existingEvent = createCalendarEvent({
@@ -955,8 +904,7 @@ o.spec("CalendarModel", function () {
 				workerMock.eventByUid.set(uid, existingEvent)
 
 				const workerClient = makeWorkerClient(workerMock)
-				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
-					new EntityClient(workerClient), makeMailModel())
+				const model = init({workerClient})
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
 				await model.processCalendarUpdate(sender, {
@@ -970,7 +918,6 @@ o.spec("CalendarModel", function () {
 			})
 
 			o("event is cancelled by someone else than organizer", async function () {
-				const {eventController} = makeEventController()
 				const uid = "uid"
 				const sender = "sender@example.com"
 				const existingEvent = createCalendarEvent({
@@ -984,8 +931,7 @@ o.spec("CalendarModel", function () {
 				workerMock.eventByUid.set(uid, existingEvent)
 
 				const workerClient = makeWorkerClient(workerMock)
-				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
-					new EntityClient(workerClient), makeMailModel())
+				const model = init({workerClient})
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
 				await model.processCalendarUpdate("another-sender", {
@@ -1071,6 +1017,29 @@ class WorkerMock extends EntityRestClientMock {
 	}
 }
 
+function makeAlarmScheduler(): AlarmScheduler {
+	return {
+		scheduleAlarm: o.spy(),
+		cancelAlarm: o.spy(),
+	}
+}
+
+
 function makeMailModel(): MailModel {
 	return downcast({})
+}
+
+function init({
+	              notifications = makeNotifications(),
+	              eventController = makeEventController().eventController,
+	              workerClient,
+	              loginController = makeLoginController(),
+	              progressTracker = makeProgressTracker(),
+	              entityClient = new EntityClient(workerClient),
+	              mailModel = makeMailModel(),
+	              alarmScheduler = makeAlarmScheduler(),
+              }): CalendarModelImpl {
+	const lazyScheduler = async () => alarmScheduler
+	return new CalendarModelImpl(notifications, lazyScheduler, eventController, workerClient, loginController, progressTracker,
+		entityClient, mailModel)
 }

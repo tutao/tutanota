@@ -33,6 +33,9 @@ import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
 import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
 import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
+import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
+import {SchedulerImpl} from "../misc/Scheduler"
+import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 
 mp()
 
@@ -56,13 +59,15 @@ const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, deviceKeyProvi
 const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 const shortcutManager = new LocalShortcutManager()
 const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
-const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto)
-alarmScheduler.rescheduleAll()
+const dateProvider = new DateProviderImpl()
+const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
+const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
+desktopAlarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
+const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 const integrator = new DesktopIntegrator(electron, fs, child_process, () => import("winreg"))
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, alarmScheduler)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, desktopAlarmScheduler)
 wm.setIPC(ipc)
 
 conf.getConst("appUserModelId")

@@ -14,6 +14,7 @@ import type {CalendarModel} from "../../calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
 import {defer} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
+import {SchedulerImpl} from "../../misc/Scheduler"
 
 assertMainOrNode()
 
@@ -42,8 +43,22 @@ export const locator: MainLocatorType = ({
 		this.entityClient = new EntityClient(worker)
 
 		this.mailModel = new MailModel(notifications, this.eventController, worker, this.entityClient)
-		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker,
-			this.entityClient, this.mailModel)
+		const lazyScheduler = async () => {
+			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
+			const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
+			const dateProvider = new DateProviderImpl()
+			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window))
+		}
+		this.calendarModel = new CalendarModelImpl(
+			notifications,
+			lazyScheduler,
+			this.eventController,
+			worker,
+			logins,
+			this.progressTracker,
+			this.entityClient,
+			this.mailModel
+		)
 		this.contactModel = new ContactModelImpl(worker, this.entityClient, logins)
 		workerDeferred.resolve(worker)
 	}

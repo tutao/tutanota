@@ -1,18 +1,23 @@
 // @flow
 import o from "ospec"
+import type {CalendarMonth} from "../../../src/calendar/date/CalendarUtils";
 import {
+	findNextAlarmOccurrence,
 	getCalendarMonth,
 	getStartOfWeek,
 	getWeekNumber,
+
 	prepareCalendarDescription
-} from "../../../src/calendar/CalendarUtils"
+} from "../../../src/calendar/date/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createUser} from "../../../src/api/entities/sys/User"
-import {GroupType, ShareCapability} from "../../../src/api/common/TutanotaConstants"
-import type {CalendarMonth} from "../../../src/calendar/CalendarUtils";
+import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../../../src/api/common/TutanotaConstants"
+import {AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability} from "../../../src/api/common/TutanotaConstants"
 import {parseTime, timeStringFromParts} from "../../../src/misc/Formatter";
+import {DateTime} from "luxon"
+import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {hasCapabilityOnGroup} from "../../../src/sharing/GroupUtils"
 
 o.spec("calendar utils tests", function () {
@@ -310,12 +315,62 @@ o.spec("calendar utils tests", function () {
 				.equals(`JoinBlahBlah<https://the-link.com/path and some other text`)
 		})
 	})
-})
 
+	o.spec("findNextAlarmOccurrence", function () {
+		const timeZone = 'Europe/Berlin'
+		o("weekly never ends", function () {
+			const now = DateTime.fromObject({year: 2019, month: 5, day: 2, zone: timeZone}).toJSDate()
+			const eventStart = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 12, zone: timeZone}).toJSDate()
+			const eventEnd = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 14, zone: timeZone}).toJSDate()
+			const occurrences = iterateAlarmOccurrences(now, timeZone, eventStart, eventEnd, RepeatPeriod.WEEKLY, 1, EndType.Never,
+				0, AlarmInterval.ONE_HOUR, timeZone, 10)
+
+			o(occurrences.slice(0, 4)).deepEquals([
+				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 9, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 16, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 23, hour: 11, zone: timeZone}).toJSDate()
+			])
+		})
+
+		o("ends for all-day event correctly", function () {
+			const repeatRuleTimeZone = "Asia/Anadyr" // +12
+
+			const now = DateTime.fromObject({year: 2019, month: 5, day: 1, zone: timeZone}).toJSDate()
+			// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
+			const eventStart = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 2}).toJSDate())
+			const eventEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 3}).toJSDate())
+			const repeatEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 4}).toJSDate())
+			const occurrences = iterateAlarmOccurrences(now, repeatRuleTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY, 1,
+				EndType.UntilDate, repeatEnd.getTime(), AlarmInterval.ONE_DAY, timeZone, 10)
+
+			o(occurrences).deepEquals([
+				DateTime.fromObject({year: 2019, month: 5, day: 1, hour: 0, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 0, zone: timeZone}).toJSDate(),
+			])
+		})
+	})
+})
 
 function toCalendarString(calenderMonth: CalendarMonth) {
 	return calenderMonth.weekdays.join(",") + "\n"
 		+ calenderMonth.weeks.map(w => w.map(d => d.day).join(",")).join("\n")
 }
 
-
+function iterateAlarmOccurrences(now: Date, timeZone: string, eventStart: Date, eventEnd: Date, repeatPeriod: RepeatPeriodEnum,
+                                 interval: number, endType: EndTypeEnum, endValue: number, alarmInterval: AlarmIntervalEnum,
+                                 calculationZone: string, maxOccurrences: number,
+) {
+	const occurrences = []
+	while (occurrences.length < maxOccurrences) {
+		const next = findNextAlarmOccurrence(now, timeZone, eventStart, eventEnd, repeatPeriod, interval, endType, endValue,
+			alarmInterval, calculationZone)
+		if (next) {
+			occurrences.push(next.alarmTime)
+			now = new Date(next.eventTime.getTime())
+		} else {
+			break
+		}
+	}
+	return occurrences
+}
