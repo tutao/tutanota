@@ -3,7 +3,7 @@ import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupR
 import {CALENDAR_MIME_TYPE, fileController} from "../../file/FileController";
 import stream from "mithril/stream/stream.js";
 import {ProgressMonitor} from "../../api/common/utils/ProgressMonitor";
-import {assignEventId, getTimeZone} from "../CalendarUtils";
+import {assignEventId, getTimeZone} from "../date/CalendarUtils";
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent";
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo";

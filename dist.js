@@ -19,7 +19,7 @@ import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
 import os from "os"
 import {rollup} from "rollup"
-import {babelPlugins, bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
+import {getChunkName, babelPlugins, bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
@@ -190,94 +190,7 @@ async function buildWebapp(version) {
 		format: "system",
 		dir: "build/dist",
 		manualChunks(id, {getModuleInfo, getModuleIds}) {
-			// See HACKING.md for rules
-			const code = getModuleInfo(id).code
-			if (code.includes("@bundleInto:common-min")) {
-				return "common-min"
-			} else if (code.includes("assertMainOrNodeBoot")) {
-				// everything marked as assertMainOrNodeBoot goes into boot bundle right now
-				// (which is getting merged into app.js)
-				return "boot"
-			} else if (id.includes("src/gui/date") ||
-				id.includes("src/misc/DateParser") ||
-				id.includes("luxon") ||
-				id.includes("src/calendar/CalendarUtils") ||
-				id.includes("src/calendar/CalendarInvites") ||
-				id.includes("src/calendar/CalendarUpdateDistributor") ||
-				id.includes("src/calendar/export")
-			) {
-				// luxon and everything that depends on it goes into date bundle
-				return "date"
-			} else if (id.includes("src/misc/HtmlSanitizer")) {
-				return "sanitizer"
-			} else if (id.includes("src/misc/Urlifier")) {
-				return "urlifier"
-			} else if (id.includes("src/gui/base") || id.includes("src/gui/nav")) {
-				// these gui elements are used from everywhere
-				return "gui-base"
-			} else if (id.includes("src/native/main") || id.includes("SearchInPageOverlay")) {
-				return "native-main"
-			} else if (id.includes("src/mail/editor") ||
-				id.includes("squire") ||
-				id.includes("src/gui/editor") ||
-				id.includes("src/mail/signature")
-			) {
-				// squire is most often used with mail editor and they are both not too big so we merge them
-				return "mail-editor"
-			} else if (
-				id.includes("src/api/main") ||
-				id.includes("src/mail/model") ||
-				id.includes("src/contacts/model") ||
-				id.includes("src/calendar/model") ||
-				id.includes("src/search/model") ||
-				id.includes("src/misc/ErrorHandlerImpl") ||
-				id.includes("src/misc") ||
-				id.includes("src/file") ||
-				id.includes("src/gui")
-			) {
-				// Things which we always need for main thread anyway, at least currently
-				return "main"
-			} else if (id.includes("src/mail/view")) {
-				return "mail-view"
-			} else if (id.includes("src/native/worker")) {
-				return "worker"
-			} else if (id.includes("src/native/common")) {
-				return "native-common"
-			} else if (id.includes("src/search")) {
-				return "search"
-			} else if (id.includes("src/calendar/view")) {
-				return "calendar-view"
-			} else if (id.includes("src/contacts")) {
-				return "contacts"
-			} else if (id.includes("src/login/recover") || id.includes("src/support") || id.includes("src/login/contactform")) {
-				// Collection of small UI components which are used not too often
-				// Perhaps contact form should be separate
-				// Recover things depends on HtmlEditor which we don't want to load on each login
-				return "ui-extra"
-			} else if (id.includes("src/login")) {
-				return "login"
-			} else if (id.includes("src/api/common") || id.includes("src/api/entities")) {
-				// things that are used in both worker and client
-				// entities could be separate in theory but in practice they are anyway
-				return "common"
-			} else if (id.includes("rollupPluginBabelHelpers") || id.includes("commonjsHelpers")) {
-				return "polyfill-helpers"
-			} else if (id.includes("src/settings") || id.includes("src/subscription")) {
-				// subscription and settings depend on each other right now.
-				// subscription is also a kitchen sink with signup, utils and views, we should break it up
-				return "settings"
-			} else if (id.includes("src/api/worker")) {
-				return "worker" // avoid that crypto stuff is only put into native
-			} else {
-				// Put all translations into "translation-code"
-				// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
-				// This groups chunks but does not rename them for some reason so we do chunkFileNames below
-				const match = /.*\/translations\/(\w+)+\.js/.exec(id)
-				if (match) {
-					const language = match[1]
-					return "translation-" + language
-				}
-			}
+			return getChunkName(id, {getModuleInfo})
 		},
 		chunkFileNames: (chunkInfo) => {
 			// I would love to test chunkInfo.name but it will be just "en", not "translation-en" for some reason

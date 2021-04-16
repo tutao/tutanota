@@ -59,7 +59,7 @@ export class DesktopNotifier {
 			}))
 	}
 
-	submitGroupedNotification(title: string, message: string, id: string, onClick: () => void): void {
+	submitGroupedNotification(title: string, message: string, id: string, onClick: (NotificationResultEnum) => void): void {
 		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
 			this._notificationCloseFunctions[id]()
 		}

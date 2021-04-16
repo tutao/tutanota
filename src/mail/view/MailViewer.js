@@ -901,7 +901,7 @@ export class MailViewer {
 						           && mail.state === MailState.RECEIVED
 					           ) {
 						           Promise.all([
-							           import("../../calendar/CalendarInvites")
+							           import("../../calendar/date/CalendarInvites")
 								           .then(({getEventFromFile}) => getEventFromFile(calendarFile)),
 							           this._getSenderOfResponseMail()
 						           ]).then(([event, recipient]) => {

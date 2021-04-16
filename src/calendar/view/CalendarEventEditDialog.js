@@ -17,7 +17,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum} from "../../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../../api/common/utils/ArrayUtils"
-import {getStartOfTheWeekOffsetForUser} from "../CalendarUtils"
+import {getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -28,8 +28,8 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {client} from "../../misc/ClientDetector"
-import type {Guest} from "../CalendarEventViewModel"
-import {CalendarEventViewModel, createCalendarEventViewModel} from "../CalendarEventViewModel"
+import type {Guest} from "../date/CalendarEventViewModel"
+import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {RecipientInfoType} from "../../api/common/RecipientInfo"
 import {UserError} from "../../api/main/UserError"
@@ -45,6 +45,7 @@ import {TimePicker} from "../../gui/TimePicker"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
+import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
@@ -73,7 +74,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		import("../../gui/editor/HtmlEditor"),
 		createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)
 	]).then(([{HtmlEditor}, viewModel]) => {
-		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
 		const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
 		const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
 		startDatePicker.setDate(viewModel.startDate)

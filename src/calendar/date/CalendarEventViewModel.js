@@ -1,23 +1,24 @@
 //@flow
-import type {CalendarInfo} from "./view/CalendarView"
-import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import type {CalendarInfo} from "../view/CalendarView"
+import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, EndTypeEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
 import {
 	AccountType,
 	CalendarAttendeeStatus,
 	EndType,
+	FeatureType,
 	getAttendeeStatus,
 	RepeatPeriod,
 	ShareCapability,
 	TimeFormat
-} from "../api/common/TutanotaConstants"
-import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
-import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
-import type {MailboxDetail} from "../mail/model/MailModel"
+} from "../../api/common/TutanotaConstants"
+import {createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
+import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import {createCalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
+import {createAlarmInfo} from "../../api/entities/sys/AlarmInfo"
+import type {MailboxDetail} from "../../mail/model/MailModel"
 import stream from "mithril/stream/stream.js"
-import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser} from "../mail/model/MailUtils"
+import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser} from "../../mail/model/MailUtils"
 import {
 	createRepeatRuleWithValues,
 	generateUid,
@@ -36,39 +37,31 @@ import {
 	timeString,
 	timeStringInZone
 } from "./CalendarUtils"
-import {
-	assertNotNull,
-	clone,
-	downcast,
-	isBusinessFeatureCustomizationEnabled,
-	isPremiumLegacyCustomizationEnabled,
-	neverNull,
-	noOp
-} from "../api/common/utils/Utils"
-import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {CalendarModel} from "./model/CalendarModel"
+import {assertNotNull, clone, downcast, isCustomizationEnabledForCustomer, neverNull, noOp} from "../../api/common/utils/Utils"
+import {generateEventElementId, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
+import {CalendarModel} from "../model/CalendarModel"
 import {DateTime} from "luxon"
-import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../api/common/error/RestError"
-import {incrementDate} from "../api/common/utils/DateUtils"
+import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../api/common/error/RestError"
+import {incrementDate} from "../../api/common/utils/DateUtils"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
-import type {IUserController} from "../api/main/UserController"
-import type {RecipientInfo, RecipientInfoTypeEnum} from "../api/common/RecipientInfo"
-import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {SendMailModel} from "../mail/editor/SendMailModel"
-import {addMapEntry, deleteMapEntry} from "../api/common/utils/MapUtils"
-import type {RepeatRule} from "../api/entities/sys/RepeatRule"
-import {UserError} from "../api/main/UserError"
-import type {Mail} from "../api/entities/tutanota/Mail"
-import {logins} from "../api/main/LoginController"
-import {locator} from "../api/main/MainLocator"
-import {EntityClient} from "../api/common/EntityClient"
-import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
-import {parseTime, timeStringFromParts} from "../misc/Formatter"
-import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
+import type {IUserController} from "../../api/main/UserController"
+import type {RecipientInfo, RecipientInfoTypeEnum} from "../../api/common/RecipientInfo"
+import {isExternal, RecipientInfoType} from "../../api/common/RecipientInfo"
+import type {Contact} from "../../api/entities/tutanota/Contact"
+import type {SendMailModel} from "../../mail/editor/SendMailModel"
+import {addMapEntry, deleteMapEntry} from "../../api/common/utils/MapUtils"
+import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
+import {UserError} from "../../api/main/UserError"
+import type {Mail} from "../../api/entities/tutanota/Mail"
+import {logins} from "../../api/main/LoginController"
+import {locator} from "../../api/main/MainLocator"
+import {EntityClient} from "../../api/common/EntityClient"
+import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
+import {parseTime, timeStringFromParts} from "../../misc/Formatter"
+import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -327,8 +320,8 @@ export class CalendarEventViewModel {
 	updateCustomerFeatures(): Promise<void> {
 		return this._userController.loadCustomer()
 		           .then(customer => {
-			           this.hasBusinessFeature(isBusinessFeatureCustomizationEnabled(customer))
-			           this.hasPremiumLegacy(isPremiumLegacyCustomizationEnabled(customer))
+			           this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
+			           this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
 		           }).return()
 	}
 
@@ -1020,7 +1013,7 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 export function createCalendarEventViewModel(date: Date, calendars: Map<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
                                              existingEvent: ?CalendarEvent, previousMail: ?Mail, resolveRecipientsLazily: boolean,
 ): Promise<CalendarEventViewModel> {
-	return import("../mail/editor/SendMailModel").then((model) => {
+	return import("../../mail/editor/SendMailModel").then((model) => {
 		return new CalendarEventViewModel(
 			logins.getUserController(),
 			calendarUpdateDistributor,

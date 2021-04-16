@@ -1,5 +1,11 @@
 // @flow
 
+/**
+ * @file DateUtils which do not use Luxon. Used in worker as well as in client parts.
+ * As functions here do not use Luxon it cannot be used for calculating things in different time zones, they
+ * are dependent on the system time zone.
+ */
+
 export const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
 /**
@@ -69,16 +75,6 @@ export function incrementDate(date: Date, byValue: number): Date {
 }
 
 
-export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Date): string {
-	if (isSameDayOfDate(day, selectedDate)) {
-		return ".date-selected"
-	} else if (isSameDayOfDate(day, currentDate)) {
-		return ".date-current"
-	} else {
-		return ""
-	}
-}
-
 export function isSameDayOfDate(date1: ?Date, date2: ?Date): boolean {
 	return !date1 && !date2
 		|| date1 != null && date2 != null
@@ -112,15 +108,4 @@ export function formatSortableDateTime(date: Date): string {
  */
 export function sortableTimestamp(): string {
 	return formatSortableDateTime(new Date())
-}
-
-// TODO TEST AND MAKE SURE IT WORKS !!!!!
-/**
- * Calculate the absolute difference in days between two dates
- * @param a
- * @param b
- * @returns {number}
- */
-export function getDifferenceInDays(a: Date, b: Date): number {
-	return Math.abs(a - b) / DAY_IN_MILLIS
 }

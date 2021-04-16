@@ -83,11 +83,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	} else if (moduleId.includes("src/gui/date") ||
 		moduleId.includes("src/misc/DateParser") ||
 		moduleId.includes("luxon") ||
-		moduleId.includes("src/calendar/CalendarUtils") ||
-		moduleId.includes("src/calendar/CalendarInvites") ||
-		moduleId.includes("src/calendar/CalendarUpdateDistributor") ||
-		moduleId.includes("src/calendar/export") ||
-		moduleId.includes("src/calendar/CalendarEventViewModel")
+		moduleId.includes("src/calendar/date") ||
+		moduleId.includes("src/calendar/export")
 	) {
 		// luxon and everything that depends on it goes into date bundle
 		return "date"

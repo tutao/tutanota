@@ -7,19 +7,18 @@ import type {WeekStartEnum} from "../../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {
-	CALENDAR_EVENT_HEIGHT,
-	getAllDayDateForTimezone, getCalendarMonth,
+	CALENDAR_EVENT_HEIGHT, getAllDayDateForTimezone,
+	getCalendarMonth, getDateIndicator,
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
-	getStartOfTheWeekOffset,
-	getTimeZone,
+	getStartOfTheWeekOffset, getTimeZone,
 	getWeekNumber,
 	layOutEvents
-} from "../CalendarUtils"
-import {getDateIndicator, incrementDate} from "../../api/common/utils/DateUtils"
+} from "../date/CalendarUtils"
+import {incrementDate} from "../../api/common/utils/DateUtils"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import {theme} from "../../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -32,7 +31,8 @@ import {Icon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {CalendarDay} from "../CalendarUtils"
+import type {CalendarDay} from "../date/CalendarUtils"
+import {logins} from "../../api/main/LoginController"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -291,6 +291,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			endsAfter: endsAfterWeek,
 			color: getEventColor(event, attrs.groupColors),
 			showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
+			user: logins.getUserController().user,
 			onEventClicked: (e, domEvent) => {
 				attrs.onEventClicked(event, domEvent)
 			},
@@ -318,8 +319,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 /**
  * Optimization to not create luxon's DateTime in simple case.
  * May not work if we allow override time zones.
- */
-function getDiffInDaysFast(left: Date, right: Date): number {
+ */function getDiffInDaysFast(left: Date, right: Date): number {
 	if (left.getMonth() === right.getMonth()) {
 		return left.getDate() - right.getDate()
 	} else {

@@ -8,7 +8,7 @@ import {createUserAlarmInfo} from "../../../src/api/entities/sys/UserAlarmInfo"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
-import {getAllDayDateUTCFromZone} from "../../../src/calendar/CalendarUtils"
+import {getAllDayDateUTCFromZone} from "../../../src/calendar/date/CalendarUtils"
 import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
 

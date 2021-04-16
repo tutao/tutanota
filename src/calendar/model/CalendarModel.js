@@ -1,10 +1,8 @@
 //@flow
-import {isToday} from "../../api/common/utils/DateUtils"
 import {getFromMap} from "../../api/common/utils/MapUtils"
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {assertNotNull, clone, defer, downcast, filterInt, noOp} from "../../api/common/utils/Utils"
-import {CalendarMethod, EndType, FeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants"
-import {Notifications} from "../../gui/Notifications"
+import {CalendarMethod, FeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import type {WorkerClient} from "../../api/main/WorkerClient"
@@ -13,14 +11,11 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
-import {formatDateWithWeekdayAndTime, formatTime} from "../../misc/Formatter"
-import {lang} from "../../misc/LanguageViewModel"
 import {isApp} from "../../api/common/Env"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
 import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {client} from "../../misc/ClientDetector"
-import m from "mithril"
 import type {User} from "../../api/entities/sys/User"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import {CalendarGroupRootTypeRef} from "../../api/entities/tutanota/CalendarGroupRoot"
@@ -42,6 +37,9 @@ import {EntityClient} from "../../api/common/EntityClient"
 import type {MailModel} from "../../mail/model/MailModel"
 import {elementIdPart, getElementId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {FileTypeRef} from "../../api/entities/tutanota/File"
+import type {AlarmScheduler} from "../date/AlarmScheduler"
+import type {Notifications} from "../../gui/Notifications"
+import m from "mithril"
 
 
 // Complete as needed
@@ -71,26 +69,31 @@ export interface CalendarModel {
 }
 
 export class CalendarModelImpl implements CalendarModel {
-	_notifications: Notifications;
 	_worker: WorkerClient;
 	_scheduledNotifications: Map<string, TimeoutID>;
+	_notifications: Notifications
 	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
 	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
 	_progressTracker: ProgressTracker
 	_logins: LoginController;
 	_entityClient: EntityClient;
 	_mailModel: MailModel;
+	_alarmScheduler: () => Promise<AlarmScheduler>;
+	+_userAlarmToAlarmInfo: Map<string, string>
 
-	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, logins: LoginController,
-	            progressTracker: ProgressTracker, entityClient: EntityClient, mailModel: MailModel) {
-		this._logins = logins
+	constructor(notifications: Notifications, alarmScheduler: () => Promise<AlarmScheduler>, eventController: EventController, worker: WorkerClient,
+	            logins: LoginController, progressTracker: ProgressTracker, entityClient: EntityClient, mailModel: MailModel
+	) {
 		this._notifications = notifications
+		this._alarmScheduler = alarmScheduler
+		this._logins = logins
 		this._worker = worker
 		this._scheduledNotifications = new Map()
 		this._pendingAlarmRequests = new Map()
 		this._progressTracker = progressTracker
 		this._entityClient = entityClient
 		this._mailModel = mailModel
+		this._userAlarmToAlarmInfo = new Map()
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				return this._entityEventsReceived(updates)
@@ -169,7 +172,7 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
-		return import("../CalendarUtils")
+		return import("../date/CalendarUtils")
 			.then(({findPrivateCalendar}) => {
 				return this.loadCalendarInfos(progressMonitor)
 				           .then((calendarInfo) => (!this._logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfo))
@@ -181,7 +184,7 @@ export class CalendarModelImpl implements CalendarModel {
 	_doCreate(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot, alarmInfos: Array<AlarmInfo>,
 	          existingEvent: ?CalendarEvent
 	): Promise<void> {
-		return import("../CalendarUtils").then(({assignEventId}) => {
+		return import("../date/CalendarUtils").then(({assignEventId}) => {
 			// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
 			// one.
 			assignEventId(event, zone, groupRoot)
@@ -332,42 +335,12 @@ export class CalendarModelImpl implements CalendarModel {
 			return this._worker.loadAlarmEvents()
 			           .then((eventsWithInfos) => {
 				           eventsWithInfos.forEach(({event, userAlarmInfo}) => {
-					           this.scheduleUserAlarmInfo(event, userAlarmInfo)
+					           this._scheduleUserAlarmInfo(event, userAlarmInfo)
 				           })
 			           })
 		} else {
 			return Promise.resolve()
 		}
-	}
-
-	scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo): Promise<*> {
-		return import("../CalendarUtils")
-			.then(({getTimeZone, getValidTimeZone, iterateEventOccurrences, getEventStart, calculateAlarmTime}) => {
-				const repeatRule = event.repeatRule
-				const localZone = getTimeZone()
-				if (repeatRule) {
-					let repeatTimeZone = getValidTimeZone(repeatRule.timeZone, localZone)
-
-					let calculationLocalZone = getValidTimeZone(localZone, null)
-					iterateEventOccurrences(new Date(),
-						repeatTimeZone,
-						event.startTime,
-						event.endTime,
-						downcast(repeatRule.frequency),
-						Number(repeatRule.interval),
-						downcast(repeatRule.endType) || EndType.Never,
-						Number(repeatRule.endValue),
-						downcast(userAlarmInfo.alarmInfo.trigger),
-						calculationLocalZone,
-						(time, occurrence) => {
-							this._scheduleNotification(getElementId(userAlarmInfo) + occurrence, event, time)
-						})
-				} else {
-					if (getEventStart(event, localZone).getTime() > Date.now()) {
-						this._scheduleNotification(getElementId(userAlarmInfo), event, calculateAlarmTime(event.startTime, downcast(userAlarmInfo.alarmInfo.trigger)))
-					}
-				}
-			})
 	}
 
 	loadAlarms(alarmInfos: Array<IdTuple>, user: User): Promise<Array<UserAlarmInfo>> {
@@ -381,35 +354,6 @@ export class CalendarModelImpl implements CalendarModel {
 			return Promise.resolve([])
 		}
 		return this._entityClient.loadMultipleEntities(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
-	}
-
-	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
-		this._runAtDate(time, identifier, () => {
-			return import("../CalendarUtils").then(({getEventStart, getTimeZone}) => {
-				const title = lang.get("reminder_label")
-				const eventStart = getEventStart(event, getTimeZone())
-				let dateString: string
-				if (isToday(eventStart)) {
-					dateString = formatTime(eventStart)
-				} else {
-					dateString = formatDateWithWeekdayAndTime(eventStart)
-				}
-				const body = `${dateString} ${event.summary}`
-				return this._notifications.showNotification(title, {body}, () => {
-					m.route.set("/calendar/agenda")
-				})
-			})
-		})
-	}
-
-	_runAtDate(date: Date, identifier: string, func: () => mixed) {
-		const now = Date.now()
-		const then = date.getTime()
-		const diff = Math.max((then - now), 0)
-		const timeoutId = diff > 0x7FFFFFFF // setTimeout limit is MAX_INT32=(2^31-1)
-			? setTimeout(() => this._runAtDate(date, identifier, func), 0x7FFFFFFF)
-			: setTimeout(func, diff)
-		this._scheduledNotifications.set(identifier, timeoutId)
 	}
 
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
@@ -432,7 +376,7 @@ export class CalendarModelImpl implements CalendarModel {
 						deferredEvent.promise.then(() => {
 							return this._entityClient.load(CalendarEventTypeRef, [listId, elementId])
 							           .then(calendarEvent => {
-								           this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
+								           return this._scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
 							           })
 							           .catch(NotFoundError, () => {
 								           console.log("event not found", [listId, elementId])
@@ -441,13 +385,7 @@ export class CalendarModelImpl implements CalendarModel {
 						return Promise.resolve()
 					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))
 				} else if (entityEventData.operation === OperationType.DELETE) {
-					this._scheduledNotifications.forEach((value, key) => {
-						if (key.startsWith(entityEventData.instanceId)) {
-							this._scheduledNotifications.delete(key)
-							clearTimeout(value)
-						}
-					})
-					return Promise.resolve()
+					return this._cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)
 				&& (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)) {
@@ -466,6 +404,23 @@ export class CalendarModelImpl implements CalendarModel {
 	_localAlarmsEnabled(): boolean {
 		return !isApp() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
 	}
+
+
+	async _scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo): Promise<*> {
+		const scheduler: AlarmScheduler = await this._alarmScheduler()
+		this._userAlarmToAlarmInfo.set(getElementId(userAlarmInfo), userAlarmInfo.alarmInfo.alarmIdentifier)
+		await scheduler.scheduleAlarm(event, userAlarmInfo.alarmInfo, event.repeatRule, (title, body) => {
+			this._notifications.showNotification(title, {body}, () => m.route.set("/calendar"))
+		})
+	}
+
+	async _cancelUserAlarmInfo(userAlarmInfoId: Id): Promise<*> {
+		const identifier = this._userAlarmToAlarmInfo.get(userAlarmInfoId)
+		if (identifier) {
+			const alarmScheduler = await this._alarmScheduler()
+			alarmScheduler.cancelAlarm(identifier)
+		}
+	}
 }
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
@@ -483,9 +438,3 @@ function repeatRulesEqual(repeatRule: ?CalendarRepeatRule, repeatRule2: ?Calenda
 			repeatRule.interval === repeatRule2.interval &&
 			repeatRule.timeZone === repeatRule2.timeZone)
 }
-
-
-// if (replaced) {
-// 	Object.assign(calendarModel, replaced.calendarModel)
-// }
-

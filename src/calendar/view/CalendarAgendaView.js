@@ -11,15 +11,15 @@ import {
 	eventStartsBefore,
 	getEventColor,
 	getEventText,
-	getStartOfDayWithZone,
-	getTimeZone,
+	getStartOfDayWithZone, getTimeZone,
 	hasAlarmsForTheUser
-} from "../CalendarUtils"
+} from "../date/CalendarUtils"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {px, size} from "../../gui/size"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import {logins} from "../../api/main/LoginController"
 
 type Attrs = {
 	/**
@@ -108,7 +108,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 										text: getEventText(ev, textOption),
 										secondLineText: ev.location,
 										color: getEventColor(ev, attrs.groupColors),
-										hasAlarm: !startsBefore && hasAlarmsForTheUser(ev),
+										hasAlarm: !startsBefore && hasAlarmsForTheUser(logins.getUserController().user, ev),
 										click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 										height: 38,
 										verticalPadding: 2

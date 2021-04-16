@@ -1,11 +1,11 @@
 // @flow
-import {downcast} from "../../api/common/utils/Utils"
 import type {DesktopConfig} from "../config/DesktopConfig"
-import type {EncryptedAlarmNotification, TimeoutData} from "./DesktopAlarmScheduler"
+import type {EncryptedAlarmNotification} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 import type {DeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import {findAllAndRemove} from "../../api/common/utils/ArrayUtils"
 
 
 /**
@@ -90,11 +90,28 @@ export class DesktopAlarmStorage {
 		throw new Error("could not resolve pushIdentifierSessionKey")
 	}
 
-	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: EncryptedAlarmNotification}}): Promise<void> {
-		return this._conf.setVar(DesktopConfigKey.scheduledAlarms, Object.values(scheduledNotifications).map(val => downcast(val).an))
+	async storeAlarm(alarm: EncryptedAlarmNotification): Promise<void> {
+		const allAlarms = await this.getScheduledAlarms()
+		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
+		allAlarms.push(alarm)
+		await this._saveAlarms(allAlarms)
+	}
+
+	async deleteAlarm(identifier: string): Promise<void> {
+		const allAlarms = await this.getScheduledAlarms()
+		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === identifier)
+		await this._saveAlarms(allAlarms)
+	}
+
+	deleteAllAlarms(): Promise<void> {
+		return this._saveAlarms([])
 	}
 
 	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {
 		return await this._conf.getVar(DesktopConfigKey.scheduledAlarms) || []
+	}
+
+	_saveAlarms(alarms: $ReadOnlyArray<EncryptedAlarmNotification>): Promise<void> {
+		return this._conf.setVar(DesktopConfigKey.scheduledAlarms, alarms)
 	}
 }
