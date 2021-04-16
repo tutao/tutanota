@@ -32,7 +32,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {deviceConfig} from "../misc/DeviceConfig"
+import {deviceConfig} from "../../misc/DeviceConfig"
 // import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 
 export type Attrs = {
