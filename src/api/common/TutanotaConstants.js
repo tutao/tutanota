@@ -504,6 +504,12 @@ export const TimeFormat = Object.freeze({
 })
 export type TimeFormatEnum = $Values<typeof TimeFormat>
 
+export const AlternativeDateOptions = Object.freeze({
+	HIDE: '0',
+	SHOW: '1',
+})
+export type AlternativeDateEnum = $Values<typeof AlternativeDateOptions>
+
 export const WeekStart = Object.freeze({
 	MONDAY: '0',
 	SUNDAY: '1',
