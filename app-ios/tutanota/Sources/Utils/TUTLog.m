@@ -39,11 +39,13 @@ static TUTLogger *singleton = nil;
 }
 
 -(void)addEntry:(NSString *)entry {
+  @synchronized (self) {
     self.buffer[self.index] = entry;
     self.index++;
     if (self.index == LOG_SIZE) {
         self.index = 0;
     }
+  }
 }
 
 -(NSArray<NSString *> *)entries {
