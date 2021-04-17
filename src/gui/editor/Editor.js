@@ -101,6 +101,7 @@ export class Editor implements ImageHandler {
 		let squire = new (SquireEditor: any)(domElement,
 			{
 				sanitizeToDOMFragment: this._sanitizer,
+				blockAttributes: { dir: "auto" }
 			})
 			.addEventListener('keyup', (e) => {
 				// Resolve logins.getUserController dependenciy and uncomment block
