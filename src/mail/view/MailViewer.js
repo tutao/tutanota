@@ -849,15 +849,17 @@ export class MailViewer {
 				this._checkMailForPhishing(mail, sanitizeResult.links)
 
 				/**
-				 * check if we need to improve contrast for dark theme.
-				 * 1. theme id must be 'dark'
-				 * 2. html body needs to contain any tag with a style attribute that has the color property set (besides "inherit")
-				 * OR
-				 * there is a font tag with the color attribute set
+				 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
+				 * the html body of the mail
+				 *  * any tag with a style attribute that has the color property set (besides "inherit")
+				 *  * any tag with a style attribute that has the background-color set (besides "inherit")
+				 *  * any font tag with the color attribute set
 				 */
 				this._contrastFixNeeded = (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-					                            .find(s => s.color !== "" && s.color !== "inherit" && typeof s.color !== 'undefined')
+					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style).find(s =>
+						(s.color !== "" && s.color !== "inherit" && typeof s.color !== 'undefined') ||
+						(s.backgroundColor !== "" && s.backgroundColor !== "inherit" && typeof s.backgroundColor !== 'undefined')
+					)
 					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
 				)
 
