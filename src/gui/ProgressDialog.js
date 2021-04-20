@@ -8,7 +8,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {progressIcon} from "./base/Icon"
 import {PasswordIndicator} from "./PasswordIndicator"
 import stream from "mithril/stream/stream.js"
-import {WorkerClient} from "../api/main/WorkerClient"
+import type {WorkerClient} from "../api/main/WorkerClient"
 import {TabIndex} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
