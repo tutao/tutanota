@@ -28,7 +28,6 @@ import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
 import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
-import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream/stream.js"
@@ -69,6 +68,7 @@ import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs
 import {SettingsExpander} from "../settings/SettingsExpander"
 import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
+import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 
 assertMainOrNode()
 
@@ -157,7 +157,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 		const changeStorageCapacityButtonAttrs = {
 			label: "storageCapacity_label",
-			click: createNotAvailableForFreeClickHandler(false, () => StorageCapacityOptionsDialog.show(), isPremiumPredicate),
+			click: createNotAvailableForFreeClickHandler(false, () => showStorageCapacityOptionsDialog(), isPremiumPredicate),
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 		}
