@@ -395,8 +395,8 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			onload: (ev) => {
 			}
 		}, [
-			m(this.recipientFields.to.component),
-			m(ExpanderPanelN, {expanded: a.areDetailsExpanded},
+			m(".rel", m(this.recipientFields.to.component)),
+			m(".rel", m(ExpanderPanelN, {expanded: a.areDetailsExpanded},
 				m(".details", [
 					m(this.recipientFields.cc.component),
 					m(this.recipientFields.bcc.component),
@@ -412,7 +412,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 
 					]),
 				])
-			),
+			)),
 			isConfidential
 				? m(".external-recipients.overflow-hidden", {
 					oncreate: vnode => animate(vnode.dom, true),
