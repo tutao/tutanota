@@ -49,6 +49,7 @@ import {
 	isSameId
 } from "../../common/utils/EntityUtils";
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import {addSearchIndexDeletedLogEntry} from "../../../misc/IndexerDebugLogger"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -159,7 +160,7 @@ export class Indexer {
 				                           .then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
 				           .catch(OutOfSyncError, e => {
 					           console.log("out of sync - delete database and disable mail indexing")
-					           return this.disableMailIndexing()
+					           return this.disableMailIndexing("found to be out of sync when loading new entities")
 				           })
 			}).catch(e => {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
@@ -197,13 +198,17 @@ export class Indexer {
 		})
 	}
 
-	disableMailIndexing(): Promise<void> {
+	/**
+	 * @param reason: To pass to the debug logger for find the reason that this is happening at updates
+	 * @returns {Promise<R>|Promise<void>}
+	 */
+	disableMailIndexing(reason: string): Promise<void> {
 		return this.db.initialized
 		           .then(() => {
 			           if (!this._core.isStoppedProcessing()) {
 				           this._core.stopProcessing()
-				           return this._mail.disableMailIndexing()
-				                      .then(() => this.init(this._initParams.user, this._initParams.groupKey))
+				           addSearchIndexDeletedLogEntry(new Date(), reason, this._initParams.user)
+				           return this._mail.disableMailIndexing().then(() => this.init(this._initParams.user, this._initParams.groupKey))
 			           }
 		           })
 	}
@@ -299,7 +304,7 @@ export class Indexer {
 			           if (indexedGroupIds.length === 0) {
 				           // tried to index twice, this is probably not our fault
 				           console.log("no group ids in database, disabling indexer")
-				           this.disableMailIndexing()
+				           this.disableMailIndexing("no group ids were found in the database")
 			           }
 			           this._indexedGroupIds = indexedGroupIds
 		           })
