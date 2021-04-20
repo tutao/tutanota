@@ -236,7 +236,7 @@ export class WorkerImpl {
 				return locator.indexer.enableMailIndexing()
 			},
 			disableMailIndexing: (message: Request) => {
-				return locator.indexer.disableMailIndexing()
+				return locator.indexer.disableMailIndexing("requested by the user")
 			},
 
 			extendMailIndex: (message: Request) => {

@@ -13,6 +13,8 @@ import {isColorLight} from "../gui/base/Color"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {UserError} from "../api/main/UserError"
+import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {createDataFile} from "../api/common/DataFile"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -68,6 +70,14 @@ function sendDeviceLogs() {
 			.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
 			.then((workerLogFile) => attachments.push(workerLogFile))
 	}
+
+	p = p.then(() => import("../misc/IndexerDebugLogger"))
+	     .then(({getSearchIndexDeletedLogs}) => {
+		     const logs = getSearchIndexDeletedLogs()
+		     if (logs) {
+		        attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
+		     }
+	     })
 
 	if (isDesktop()) {
 		p = p
