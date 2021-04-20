@@ -7,7 +7,6 @@ import {
 	AccessDeactivatedError,
 	AccessExpiredError,
 	BadRequestError,
-	ConnectionError,
 	LockedError,
 	NotAuthenticatedError,
 	NotFoundError,
@@ -40,8 +39,8 @@ import {getHourCycle} from "../misc/Formatter"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
-import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs";
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -307,23 +306,18 @@ export class LoginViewController implements ILoginViewController {
 	}
 
 	_checkStorageWarningLimit(): Promise<void> {
-		if (logins.getUserController().isOutlookAccount()) {
-			return Promise.resolve();
+		if (logins.getUserController().isOutlookAccount() || !logins.getUserController().isGlobalAdmin()) {
+			return Promise.resolve()
 		}
-		if (logins.getUserController().isGlobalAdmin()) {
-			return worker.readUsedCustomerStorage().then(usedStorage => {
-				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
-					return worker.readAvailableCustomerStorage().then(availableStorage => {
-						if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
-							showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
-						}
-					})
-				}
-			})
-		} else {
-			return Promise.resolve();
-		}
-
+		return worker.readUsedCustomerStorage().then(usedStorage => {
+			if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
+				return worker.readAvailableCustomerStorage().then(availableStorage => {
+					if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
+						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
+					}
+				})
+			}
+		})
 	}
 
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {

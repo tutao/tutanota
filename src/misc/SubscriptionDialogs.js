@@ -8,6 +8,7 @@ import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "./LanguageViewModel";
 import {lang} from "./LanguageViewModel"
 import {isIOSApp} from "../api/common/Env"
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -62,20 +63,22 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 	})
 }
 
-export function showMoreStorageNeededOrderDialog(loginController: LoginController,
-                                                 messageIdOrMessageFunction: TranslationKey | lazy<string>
-): Promise<void> {
-	return Dialog.confirm(messageIdOrMessageFunction, "upgrade_action").then((confirm) => {
-		if (confirm) {
-			if (loginController.getUserController().isPremiumAccount()) {
-				import("../subscription/StorageCapacityOptionsDialog").then((StorageCapacityOptionsDialog) => {
-					StorageCapacityOptionsDialog.show()
-				})
-			} else {
-				showNotAvailableForFreeDialog(false)
+export function showMoreStorageNeededOrderDialog(loginController: LoginController, messageIdOrMessageFunction: TranslationKey): Promise<void> {
+	const userController = logins.getUserController()
+	if (!userController.isGlobalAdmin()) {
+		throw new ProgrammingError("changing storage or other subscription options is only allowed for global admins")
+	}
+	if (userController.isFreeAccount()) {
+		const confirmMsg = () => lang.get(messageIdOrMessageFunction) + "\n\n" + lang.get("onlyAvailableForPremiumNotIncluded_msg")
+		return Dialog.confirm(confirmMsg, "upgrade_action").then((confirm) => {
+			if (confirm) {
+				import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
 			}
-		}
-	})
+		})
+	} else {
+		return import("../subscription/StorageCapacityOptionsDialog")
+			.then(({showStorageCapacityOptionsDialog}) => showStorageCapacityOptionsDialog(messageIdOrMessageFunction))
+	}
 }
 
 /**

@@ -37,7 +37,7 @@ import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
-import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
+import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
 
 assertMainOrNode()
 
