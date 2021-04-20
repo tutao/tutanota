@@ -1,7 +1,7 @@
 // @flow
 import {inputLineHeight, px, size} from "../size"
 import m from "mithril"
-import {animations, fontSize, height, transform} from "./../animation/Animations"
+import {animations, fontSize, transform} from "./../animation/Animations"
 import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
@@ -15,6 +15,7 @@ import {TabIndex} from "../../api/common/TutanotaConstants"
 import {ease} from "../animation/Easing"
 import type {TextFieldTypeEnum} from "./TextFieldN"
 import {Type} from "./TextFieldN"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -63,6 +64,11 @@ export interface Suggestion {
 	selected: boolean;
 }
 
+/**
+ * Some parent element of the BubbleTextField needs to have position relative for the suggestions to be correctly positioned.
+ * We do not add position relative here because it allows us to show the suggestions dropdown even if a parent has overflow hidden
+ * by making the element with position relative a parent of that element!
+ */
 export class BubbleTextField<T> {
 	loading: ?Promise<void>;
 	bubbles: Bubble<T>[];
@@ -72,13 +78,14 @@ export class BubbleTextField<T> {
 	selectedSuggestion: ?Suggestion;
 	suggestionAnimation: Promise<void>;
 	bubbleHandler: BubbleHandler<T, Suggestion>;
-	view: Function;
+	view: (Vnode<T>) => Children;
+	oncreate: (VnodeDOM<T>) => mixed;
 
 	_textField: TextField;
 	_domSuggestions: HTMLElement;
+	_keyboardHeight: number;
 
-	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, bubbleHandler: BubbleHandler<T, any>,
-	            suggestionStyle: {[string]: any} = {}, injectionsRight: ?lazy<Children> = () => null, disabled: ?boolean = false) {
+	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, bubbleHandler: BubbleHandler<T, any>, injectionsRight: ?lazy<Children> = () => null, disabled: ?boolean = false) {
 		this.loading = null
 		this.suggestions = []
 		this.selectedSuggestion = null
@@ -117,6 +124,15 @@ export class BubbleTextField<T> {
 
 		this.bubbleHandler = bubbleHandler
 
+		this._keyboardHeight = 0
+
+		this.oncreate = () => {
+			windowFacade.addKeyboardSizeListener((newSize) => {
+				this._keyboardHeight = newSize
+				this.animateSuggestionsHeight(this.suggestions.length, this.suggestions.length)
+			})
+		}
+
 		this.view = () => {
 			return m('.bubble-text-field', [
 				m(this._textField, {
@@ -133,10 +149,12 @@ export class BubbleTextField<T> {
 						})
 					}
 				}),
-				m(".suggestions.text-ellipsis.ml-negative-l", {
+				m(`.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${this.suggestions.length ? ".dropdown-shadow" : ""}`, {
 					oncreate: vnode => this._domSuggestions = vnode.dom,
 					onmousedown: e => this._textField.skipNextBlur = true,
-					style: suggestionStyle,
+					style: {
+						transition: "height 0.2s"
+					},
 				}, this.suggestions.map(s => m(s, {
 					mouseDownHandler: e => {
 						this.selectedSuggestion = s
@@ -190,9 +208,25 @@ export class BubbleTextField<T> {
 	}
 
 	animateSuggestionsHeight(currentCount: number, newCount: number) {
-		let currentHeight = this.bubbleHandler.suggestionHeight * currentCount
-		let newHeight = this.bubbleHandler.suggestionHeight * newCount
-		this.suggestionAnimation = this.suggestionAnimation.then(() => animations.add(this._domSuggestions, height(currentHeight, newHeight)))
+		// *-------------------*  -
+		// |                   |  |
+		// |   -------------   |  - <- top
+		// |   |           |   |
+		// |   |-----------|   |
+		// |-------------------|  - <- keyboardHeight
+		// | q w e r t z u i o |  |
+		// | a s d f g h j k l |  -
+		//
+		// On iOS screen is not resized when keyboard is opened. Instead we send a signal to WebView with keyboard height.
+		// We need to calculate how much space can be actually used for the dropdown. We cannot just add margin like we do with dialog
+		// because the suggestions dropdown is absolutely positioned.
+		if (this._domSuggestions) {
+			const desiredHeight = this.bubbleHandler.suggestionHeight * newCount
+			const top = this._domSuggestions.getBoundingClientRect().top
+			const availableHeight = window.innerHeight - top - this._keyboardHeight - size.vpad
+			const finalHeight = Math.min(availableHeight, desiredHeight)
+			this._domSuggestions.style.height = px(finalHeight)
+		}
 	}
 
 

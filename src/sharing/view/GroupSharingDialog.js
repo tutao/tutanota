@@ -193,7 +193,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 		title: () => lang.get("addParticipant_action"),
 		child: () => [
 			m(".pt", texts.addMemberMessage(customGroupName || realGroupName)),
-			m(invitePeopleValueTextField),
+			m(".rel", m(invitePeopleValueTextField)),
 			m(DropDownSelectorN, {
 				label: "permissions_label",
 				items: [

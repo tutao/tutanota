@@ -365,7 +365,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			return m(".calendar-edit-container.pb", [
 					renderHeading(),
 					renderChangesMessage(),
-					m(".mb", m(ExpanderPanelN, {
+					m(".mb.rel", m(ExpanderPanelN, {
 							expanded: attendeesExpanded,
 						},
 						[
@@ -538,7 +538,7 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 		},
 	}, contactModel)
 
-	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, {marginLeft: 0}, () => renderConfidentialButton(viewModel))
+	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, () => renderConfidentialButton(viewModel))
 	return invitePeopleValueTextField
 }
 
