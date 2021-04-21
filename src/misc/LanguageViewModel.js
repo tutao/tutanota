@@ -151,7 +151,7 @@ export const LanguageNames = Object.freeze({
 	uk: 'languageUkrainian_label',
 	vi: 'languageVietnamese_label',
 	zh: 'languageChineseSimplified_label',
-	zh_tw: 'languageChineseTraditional_label',
+	zh_hant: 'languageChineseTraditional_label',
 })
 export type LanguageCode = $Keys<typeof LanguageNames>
 
