@@ -29,6 +29,7 @@ import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 
 assertMainOrNode()
 
@@ -103,16 +104,14 @@ export class GroupListView implements UpdatableSettingsViewer {
 		})
 
 		this.view = (): VirtualElement => {
-			return m(".flex.flex-column.fill-absolute", [
-				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
-					m(".mr-negative-s.align-self-end", m(ButtonN, {
+			return m(ListColumnWrapper, {
+					headerContent: m(".mr-negative-s.align-self-end", m(ButtonN, {
 						label: "addGroup_label",
 						type: ButtonType.Primary,
 						click: () => this.addButtonClicked()
 					}))
-				),
-				m(".rel.flex-grow", m(this.list))
-			])
+				},
+				m(this.list))
 		}
 
 		this.list.loadInitial()

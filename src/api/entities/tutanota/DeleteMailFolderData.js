@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createDeleteMailFolderData(values?: $Shape<$Exact<DeleteMailFolderData>>): DeleteMailFolderData {

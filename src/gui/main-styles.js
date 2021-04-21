@@ -139,7 +139,6 @@ styles.registerStyle('main', () => {
 		'.smaller': {
 			'font-size': px(size.font_size_smaller),
 		},
-
 		'.b': {
 			'font-weight': 'bold',
 		},
@@ -161,7 +160,6 @@ styles.registerStyle('main', () => {
 			'overflow-x': 'hidden'
 		},
 
-
 		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
 		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
 		'h2, .h2': {'font-size': px(size.font_size_base * 1.8)},
@@ -179,6 +177,11 @@ styles.registerStyle('main', () => {
 		".border": {border: `1px solid ${theme.content_border}`},
 
 		".white-space-pre": {'white-space': "pre"},
+
+		".min-content": {
+			width: "min-content",
+			height: "min-content"
+		},
 
 		// margins
 		'.m-0': {margin: 0},
@@ -288,6 +291,7 @@ styles.registerStyle('main', () => {
 
 		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
 
+
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
 		'.bg-white': {'background-color': 'white'},
@@ -330,7 +334,7 @@ styles.registerStyle('main', () => {
 		'.underline': {'text-decoration': 'underline'},
 		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
-		// positioning
+		// positioning1
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
 		'.fixed': {position: 'fixed'},
@@ -400,10 +404,12 @@ styles.registerStyle('main', () => {
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
 		'.flex-column': {'flex-direction': "column"}, //TODO migrate to .col
 		".col": {'flex-direction': "column"},
+		".row": {'flex-direction': "row"},
 		'.flex-column-reverse': {'flex-direction': "column-reverse"}, //TODO: migrate to col-reverse
 		'.col-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
 		'.flex-grow': {flex: "1"},
+		'.flex-hide': {flex: "0"},
 		'.flex-third': {flex: '1 0 0', 'min-width': "100px"}, // splits a flex layout into three same width columns
 		'.flex-third-middle': {flex: '2 1 0'}, // take up more space for the middle column
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
@@ -433,9 +439,11 @@ styles.registerStyle('main', () => {
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
 		'.justify-start': {'justify-content': 'flex-start'},
+		'.justify-right': {'justify-content': 'right'},
 		'.child-grow > *': {flex: "1 1 auto"},
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
+		'.flex-transition': {transition: 'flex 200ms linear'},
 
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
@@ -669,6 +677,11 @@ styles.registerStyle('main', () => {
 			'align-items': 'center',
 			position: "relative"
 		},
+		'.template-list-row': {
+			'border-left': px(size.border_selection) + ' solid transparent',
+			'align-items': 'center',
+			position: "relative"
+		},
 		'.folder-counter': {
 			position: 'absolute',
 			top: px(0),
@@ -687,6 +700,7 @@ styles.registerStyle('main', () => {
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},
+		'.hoverable-list-item:hover': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 
 		'.expander': {height: px(size.button_height), 'min-width': px(size.button_height)},
 
@@ -864,12 +878,19 @@ styles.registerStyle('main', () => {
 			'background-color': theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},
-		'.bubbleTag': {
+		'.keyword-bubble': {
+			'max-width': "300px",
+			'border-radius': px(size.border_radius),
+			'margin-bottom': px(size.vpad_small / 2),
+			'margin-right': px(size.vpad_small / 2),
+			'background-color': theme.button_bubble_bg,
+			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
+		},
+		'.keyword-bubble-no-padding': {
 			'max-width': "300px",
 			'border-radius': px(size.border_radius),
 			'margin': px(size.vpad_small / 2),
 			'background-color': theme.button_bubble_bg,
-			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
 		},
 		'mark': {
 			// 'background-color': theme.content_button,
@@ -1108,7 +1129,6 @@ styles.registerStyle('main', () => {
 			'box-sizing': 'content-box',
 			'cursor': 'pointer',
 		},
-
 		'.fade-in': {
 			opacity: 1,
 			'animation-name': 'fadeInOpacity',

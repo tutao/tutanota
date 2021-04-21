@@ -1,6 +1,6 @@
 // @flow
 //@bundleInto:common-min
-import type {OperationTypeEnum} from "../TutanotaConstants"
+import type {FeatureTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import type {EntityUpdateData} from "../../main/EventController"
 import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
@@ -47,7 +47,9 @@ import {CancelledError} from "../error/CancelledError"
 import {FileOpenError} from "../error/FileOpenError"
 import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
+import type {Customer} from "../../entities/sys/Customer"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
+import {FeatureType} from "../TutanotaConstants"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -115,6 +117,12 @@ export function assertNotNull<T>(object: ?T): T {
 		throw new Error("Assertion failed: null")
 	}
 	return object
+}
+
+export function assert(assertion: MaybeLazy<boolean>, message: string) {
+	if (!resolveMaybeLazy(assertion)) {
+		throw new Error(`Assertion failed: ${message}`)
+	}
 }
 
 export function downcast<R>(object: *): R {
@@ -486,4 +494,21 @@ const ErrorNameToType = {
 	"android.content.ActivityNotFoundException": FileOpenError,
 	"de.tutao.tutanota.TutFileViewer": FileOpenError,
 	"NSURLErrorDomain": ConnectionError
+}
+
+
+/**
+ * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
+ * for non admin users because they are not allowed to access the bookings.
+ */
+export function isBusinessFeatureCustomizationEnabled(customer: Customer): boolean {
+	return isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled)
+}
+
+export function isPremiumLegacyCustomizationEnabled(customer: Customer): boolean {
+	return isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy)
+}
+
+export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureTypeEnum): boolean {
+	return !!customer.customizations.find(customization => customization.feature === feature)
 }

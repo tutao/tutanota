@@ -110,7 +110,7 @@ export default {
 		"calendarRepeatIntervalWeekly_label": "Ik nedēļu",
 		"calendarRepeatStopConditionDate_label": "Datumā",
 		"calendarRepeatStopConditionNever_label": "Nekad",
-		"calendarShareCapabilityWrite_label": "Lasīt un rakstīt",
+		"groupCapabilityWrite_label": "Lasīt un rakstīt",
 		"calendarView_action": "Pārslēgties uz kalendāra skatu",
 		"calendar_label": "Kalendārs",
 		"cameraUsageDescription_msg": "Uzņemt fotoattēlu vai video lai pievienotu pielikumā.",

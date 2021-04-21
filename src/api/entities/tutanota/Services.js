@@ -21,6 +21,7 @@ export const TutanotaService = Object.freeze({
 	ListUnsubscribeService: "listunsubscribeservice",
 	CalendarService: "calendarservice",
 	GroupInvitationService: "groupinvitationservice",
-	ReportPhishingService: "reportphishingservice",
-	EntropyService: "entropyservice"
+	ReportMailService: "reportmailservice",
+	EntropyService: "entropyservice",
+	TemplateGroupService: "templategroupservice"
 })

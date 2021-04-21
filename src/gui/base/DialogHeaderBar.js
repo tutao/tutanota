@@ -8,7 +8,7 @@ import {resolveMaybeLazy} from "../../api/common/utils/Utils"
 
 export type DialogHeaderBarAttrs = {|
 	left?: MaybeLazy<Array<ButtonAttrs>>,
-	right?: Array<ButtonAttrs>,
+	right?: MaybeLazy<Array<ButtonAttrs>>,
 	middle?: lazy<string>,
 	create?: () => void,
 	remove?: () => void,
@@ -29,7 +29,7 @@ export class DialogHeaderBar implements MComponent<DialogHeaderBarAttrs> {
 			m(columnClass + ".ml-negative-s", resolveMaybeLazy(a.left).map(a => isVisible(a) ? m(ButtonN, a) : null)),
 			// ellipsis is not working if the text is directly in the flex element, so create a child div for it
 			a.middle ? m("#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b", [m(".text-ellipsis", a.middle())]) : null,
-			m(columnClass + ".mr-negative-s.flex.justify-end", a.right.map(a => isVisible(a) ? m(ButtonN, a) : null))
+			m(columnClass + ".mr-negative-s.flex.justify-end", resolveMaybeLazy(a.right).map(a => isVisible(a) ? m(ButtonN, a) : null))
 		])
 	}
 }

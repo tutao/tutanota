@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createRemoteImapSyncInfo(values?: $Shape<$Exact<RemoteImapSyncInfo>>): RemoteImapSyncInfo {

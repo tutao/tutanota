@@ -10,7 +10,7 @@ import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo";
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils";
 import {worker} from "../../api/main/WorkerClient";
 import {showProgressDialog} from "../../gui/ProgressDialog";
-import {ParserError} from "../../misc/parsing";
+import {ParserError} from "../../misc/parsing/ParserCombinator";
 import {Dialog} from "../../gui/base/Dialog";
 import {lang} from "../../misc/LanguageViewModel";
 import {parseCalendarFile, serializeCalendar} from "./CalendarImporter";

@@ -4,9 +4,9 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 
-export const ReportPhishingPostDataTypeRef: TypeRef<ReportPhishingPostData> = new TypeRef("tutanota", "ReportPhishingPostData")
+export const ReportMailPostDataTypeRef: TypeRef<ReportMailPostData> = new TypeRef("tutanota", "ReportMailPostData")
 export const _TypeModel: TypeModel = {
-	"name": "ReportPhishingPostData",
+	"name": "ReportMailPostData",
 	"since": 40,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 1066,
@@ -46,15 +46,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
-export function createReportPhishingPostData(values?: $Shape<$Exact<ReportPhishingPostData>>): ReportPhishingPostData {
-	return Object.assign(create(_TypeModel, ReportPhishingPostDataTypeRef), values)
+export function createReportMailPostData(values?: $Shape<$Exact<ReportMailPostData>>): ReportMailPostData {
+	return Object.assign(create(_TypeModel, ReportMailPostDataTypeRef), values)
 }
 
-export type ReportPhishingPostData = {
-	_type: TypeRef<ReportPhishingPostData>;
+export type ReportMailPostData = {
+	_type: TypeRef<ReportMailPostData>;
 
 	_format: NumberString;
 	mailSessionKey: Uint8Array;

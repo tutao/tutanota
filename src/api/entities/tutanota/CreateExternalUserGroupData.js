@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createCreateExternalUserGroupData(values?: $Shape<$Exact<CreateExternalUserGroupData>>): CreateExternalUserGroupData {

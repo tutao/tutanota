@@ -43,6 +43,7 @@ export function applicationPaths(
 		"/search/:category/:id": searchViewResolver,
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
+		"/settings/:folder/:id": settingsViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/calendar": calendarViewResolver,
 		"/calendar/:view": calendarViewResolver,

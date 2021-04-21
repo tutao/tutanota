@@ -6,7 +6,7 @@ import {assertMainOrNodeBoot} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
-import {remove} from "../../api/common/utils/ArrayUtils"
+import {last, remove} from "../../api/common/utils/ArrayUtils"
 import {downcast, insideRect} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
@@ -36,7 +36,11 @@ class Modal {
 			return m("#modal.fill-absolute", {
 				oncreate: (vnode) => {
 					this._domModal = vnode.dom
-
+					// TODO
+					// const lastComponent = last(this.components)
+					// if (lastComponent) {
+					// 	lastComponent.component.backgroundClick(e)
+					// }
 				},
 				style: {
 					'z-index': 99,

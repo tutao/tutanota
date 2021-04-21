@@ -17,7 +17,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum} from "../../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../../api/common/utils/ArrayUtils"
-import {getCalendarName, getStartOfTheWeekOffsetForUser} from "../CalendarUtils"
+import {getStartOfTheWeekOffsetForUser} from "../CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -44,6 +44,7 @@ import {PasswordIndicator} from "../../gui/PasswordIndicator"
 import {TimePicker} from "../../gui/TimePicker"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
+import {getSharedGroupName} from "../../sharing/GroupUtils"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -284,7 +285,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				? m(DropDownSelectorN, ({
 					label: "calendar_label",
 					items: availableCalendars.map((calendarInfo) => {
-						return {name: getCalendarName(calendarInfo.groupInfo, calendarInfo.shared), value: calendarInfo}
+						return {name: getSharedGroupName(calendarInfo.groupInfo, calendarInfo.shared), value: calendarInfo}
 					}),
 					selectedValue: viewModel.selectedCalendar,
 					icon: BootIcons.Expand,

@@ -56,6 +56,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"groupType": {
+			"id": 1868,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"inviteeMailAddress": {
 			"id": 1613,
 			"type": "String",
@@ -126,6 +133,7 @@ export type ReceivedGroupInvitation = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	capability: NumberString;
+	groupType: ?NumberString;
 	inviteeMailAddress: string;
 	inviterMailAddress: string;
 	inviterName: string;

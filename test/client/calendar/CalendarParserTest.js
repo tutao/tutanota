@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {parseDuration, parseProperty, parsePropertyKeyValue, parseTime, propertySequenceParser} from "../../../src/calendar/export/CalendarParser"
-import {ParserError, StringIterator} from "../../../src/misc/parsing"
+import {ParserError, StringIterator} from "../../../src/misc/parsing/ParserCombinator"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {

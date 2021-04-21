@@ -13,7 +13,13 @@ import {noOp} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
-export type SelectorItem<T> = {name: string, value: T, selectable?: boolean, icon?: AllIconsEnum}
+export type SelectorItem<T> = {
+	name: string,
+	value: T,
+	selectable?: boolean,
+	icon?: AllIconsEnum
+}
+
 export type SelectorItemList<T> = $ReadOnlyArray<SelectorItem<T>>
 
 export type DropDownSelectorAttrs<T> = {
@@ -29,7 +35,7 @@ export type DropDownSelectorAttrs<T> = {
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,
 	disabled?: boolean,
-	class?: string,
+	class?: string
 }
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
@@ -61,7 +67,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 			        .map(item => {
 				        return {
 					        label: () => item.name,
-					        click: () => {
+					        click: (e) => {
 						        if (a.selectionChangedHandler) {
 							        a.selectionChangedHandler(item.value)
 						        } else {

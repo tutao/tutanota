@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec"
 import {
-	arrayEquals,
+	arrayEquals, arrayEqualsWithPredicate,
 	concat,
 	deduplicate,
 	findLastIndex,
@@ -33,6 +33,19 @@ o.spec("array utils", function () {
 		o(arrayEquals(["a"], ["b"])).equals(false)
 		o(arrayEquals(["a"], [])).equals(false)
 		o(arrayEquals([], ["a"])).equals(false)
+	})
+
+	o("arrayEqualsWithPredicate ", function () {
+		const predicate = (a: any, b: any) => a.value === b.value
+
+		o(arrayEqualsWithPredicate([], [], predicate)).equals(true)
+		o(arrayEqualsWithPredicate([{value: "a"}], [{value: "a"}], predicate)).equals(true)
+		o(arrayEqualsWithPredicate([{value: "a"}], [{value: "b"}], predicate)).equals(false)
+		o(arrayEqualsWithPredicate([{value: "a"}], [], predicate)).equals(false)
+		o(arrayEqualsWithPredicate([{value: "a"}], [{someOtherValue: "a"}], predicate)).equals(false)
+		o(arrayEqualsWithPredicate([{someOtherValue: "a"}], [{value: "a"}], predicate)).equals(false)
+		o(arrayEqualsWithPredicate([{someOtherValue: "a"}], [{someOtherValue: "a"}], predicate)).equals(true)
+		o(arrayEqualsWithPredicate([], [{value: "a"}], predicate)).equals(false)
 	})
 
 	o("splitInChunks", function () {

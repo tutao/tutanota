@@ -28,6 +28,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
+import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 
 assertMainOrNode()
 
@@ -99,16 +100,13 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		})
 
 		this.view = (): Children => {
-			return m(".flex.flex-column.fill-absolute", [
-				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
-					m(".mr-negative-s.align-self-end", m(ButtonN, {
-						label: "createContactForm_label",
-						type: ButtonType.Primary,
-						click: () => this.addButtonClicked()
-					}))
-				),
-				m(".rel.flex-grow", m(this.list))
-			])
+			return m(ListColumnWrapper, {
+				headerContent: m(".mr-negative-s.align-self-end", m(ButtonN, {
+					label: "createContactForm_label",
+					type: ButtonType.Primary,
+					click: () => this.addButtonClicked()
+				}))
+			}, m(this.list))
 		}
 
 		this.list.loadInitial()

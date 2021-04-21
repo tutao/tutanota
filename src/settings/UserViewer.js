@@ -193,7 +193,7 @@ export class UserViewer {
 
 
 		this.view = () => {
-			const whitelistProtestciton = this._whitelistProtection
+			const whitelistProtection = this._whitelistProtection
 
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -218,10 +218,10 @@ export class UserViewer {
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(EditAliasesFormN, this._editAliasFormAttrs),
-					logins.getUserController().isPremiumAccount() && whitelistProtestciton
+					logins.getUserController().isPremiumAccount() && whitelistProtection
 						? [
 							m(".h4.mt-l", lang.get('mailSettings_label')),
-							m(whitelistProtestciton)
+							m(whitelistProtection)
 						]
 						: null
 				]),

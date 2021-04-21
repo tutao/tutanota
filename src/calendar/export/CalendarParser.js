@@ -10,7 +10,7 @@ import {createRepeatRule} from "../../api/entities/sys/RepeatRule"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
-import type {Parser} from "../../misc/parsing"
+import type {Parser} from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
 	makeCharacterParser,
@@ -21,7 +21,7 @@ import {
 	numberParser,
 	ParserError,
 	StringIterator
-} from "../../misc/parsing"
+} from "../../misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
 import {createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"

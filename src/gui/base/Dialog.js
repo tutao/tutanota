@@ -8,7 +8,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {KeyPress, Shortcut} from "../../misc/KeyManager"
-import {focusNext, focusPrevious} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, keyManager} from "../../misc/KeyManager"
 import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
@@ -27,6 +27,9 @@ import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {getAsLazy, mapLazily} from "../../api/common/utils/Utils"
+import type {ModalComponent} from "./Modal"
+import {DialogInjectionRight} from "./DialogInjectionRight"
+import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 
 assertMainOrNode()
 
@@ -56,19 +59,22 @@ type ActionDialogProps = {|
 	type?: DialogTypeEnum,
 |}
 
-export class Dialog {
+export class Dialog implements ModalComponent {
 	static _keyboardHeight: number = 0;
 	_domDialog: HTMLElement;
 	_shortcuts: Shortcut[];
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
+	_wasFocusOnLoadCalled: boolean
 	_closeHandler: ?() => mixed;
 	_focusedBeforeShown: ?HTMLElement
+	_injectionRightAttrs: ?DialogInjectionRightAttrs<*>
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
 		this._focusOnLoadFunction = this._defaultFocusOnLoad
+		this._wasFocusOnLoadCalled = false
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
@@ -102,39 +108,48 @@ export class Dialog {
 								? px(Dialog._keyboardHeight)
 								: dialogType === DialogType.EditLarge ? 0 : marginPx,
 						},
-					}, m(this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"), {
-						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
-						oncreate: vnode => {
-							this._domDialog = vnode.dom
-							let animation = null
-							if (dialogType === DialogType.EditLarge) {
-								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
-								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
-							} else {
-								let bgcolor = getElevatedBackground()
-								let children = Array.from(this._domDialog.children)
-								children.forEach(child => child.style.opacity = '0')
-								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
-								animation = Promise.all([
-									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
-									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
-								])
-							}
+					}, [
 
-							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
-							window.requestAnimationFrame(() => {
-								if (document.activeElement && typeof document.activeElement.blur === "function") {
-									document.activeElement.blur()
+						m(this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"), {
+							onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
+							oncreate: vnode => {
+								this._domDialog = vnode.dom
+								let animation = null
+								if (dialogType === DialogType.EditLarge) {
+									vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
+									animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
+								} else {
+									let bgcolor = getElevatedBackground()
+									let children = Array.from(this._domDialog.children)
+									children.forEach(child => child.style.opacity = '0')
+									this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
+									animation = Promise.all([
+										animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
+										animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
+									])
 								}
-							})
-							animation.then(() => {
-								this._focusOnLoadFunction()
-							})
-						},
-					}, m(childComponent))
+
+								// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
+								window.requestAnimationFrame(() => {
+									if (document.activeElement && typeof document.activeElement.blur === "function") {
+										document.activeElement.blur()
+									}
+								})
+								animation.then(() => {
+									this._focusOnLoadFunction()
+									this._wasFocusOnLoadCalled = true
+								})
+							},
+						}, m(childComponent)),
+						this._injectionRightAttrs ? m(DialogInjectionRight, this._injectionRightAttrs) : null
+					]
 				)
 			)
 		}
+	}
+
+	setInjectionRight(injectionRightAttrs: DialogInjectionRightAttrs<*>) {
+		this._injectionRightAttrs = injectionRightAttrs
 	}
 
 	_defaultFocusOnLoad() {
@@ -149,11 +164,16 @@ export class Dialog {
 		}
 	}
 
+
 	/**
 	 * By default the focus is set on the first text field after this dialog is fully visible. This behavior can be overwritten by calling this function.
+	 * If it has already been called, then calls it instantly
 	 */
 	setFocusOnLoadFunction(callback: Function): void {
 		this._focusOnLoadFunction = callback
+		if (this._wasFocusOnLoadCalled) {
+			this._focusOnLoadFunction()
+		}
 	}
 
 	_getDialogWrapperStyle(dialogType: DialogTypeEnum): string {
@@ -187,6 +207,9 @@ export class Dialog {
 
 	addShortcut(shortcut: Shortcut): Dialog {
 		this._shortcuts.push(shortcut)
+		if (this.visible) {
+			keyManager.registerModalShortcuts([shortcut])
+		}
 		return this
 	}
 
@@ -632,6 +655,9 @@ export class Dialog {
 		})
 	}
 
+	/**
+	 * @deprecated useLargeDialogN instead
+	 */
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: (Component | Class<MComponent<void>>)): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {

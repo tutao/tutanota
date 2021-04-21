@@ -92,7 +92,10 @@ export class HtmlSanitizer {
 
 		const base = this._prepareSanitize(html, _config || {})
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, base, {RETURN_DOM_FRAGMENT: true})
+			Object.assign({}, base, {
+				RETURN_DOM_FRAGMENT: true,
+				ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+			})
 
 		return {
 			html: this.purifier.sanitize(html, config),

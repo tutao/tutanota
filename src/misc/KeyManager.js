@@ -41,7 +41,7 @@ export function focusPrevious(dom: HTMLElement): boolean {
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
-		//squiere makes a list which can be indented and manages this with tab and shift tab
+		//squire makes a list which can be indented and manages this with tab and shift tab
 		const selection = window.getSelection()
 		if (selection && selection.focusNode
 			&& (selection.focusNode.nodeName === "LI"

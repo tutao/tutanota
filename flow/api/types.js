@@ -144,6 +144,7 @@ type WorkerRequestType = 'setup'
 	| 'generateGiftCard'
 	| 'redeemGiftCard'
 	| 'getGiftCardInfo'
+	| 'createTemplateGroup'
 
 
 type MainRequestType = 'execNative'

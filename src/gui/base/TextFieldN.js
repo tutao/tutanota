@@ -25,7 +25,7 @@ export type TextFieldAttrs = {
 	class?: string,
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
-	onclick?: clickHandler,
+	onclick?: clickHandler
 }
 
 export const Type = Object.freeze({
@@ -217,6 +217,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					this.domInput.style.height = '0px'
 					this.domInput.style.height = px(this.domInput.scrollHeight)
 					a.value(this.domInput.value) // update the input on each change
+					if (a.oninput) {
+						a.oninput(this.domInput.value, this.domInput)
+					}
 				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.

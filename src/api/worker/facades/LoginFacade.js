@@ -87,6 +87,7 @@ import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderSta
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
+import {GroupTypeRef} from "../../entities/sys/Group"
 
 assertWorkerOrNode()
 
@@ -383,7 +384,7 @@ export class LoginFacade {
 				throw e
 			})
 	}
-
+	
 	_initIndexer(): Promise<void> {
 		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 		           .catch(ServiceUnavailableError, e => {

@@ -21,7 +21,7 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {assertMainOrNode} from "../../api/common/Env"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {
 	createRecipientInfo,
 	getDefaultSender,
@@ -143,6 +143,8 @@ export class SendMailModel {
 
 	onRecipientDeleted: Stream<?{field: RecipientField, recipient: RecipientInfo}>
 
+	onBeforeSend: () => mixed
+
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -208,6 +210,8 @@ export class SendMailModel {
 		this.onMailChanged = stream(false)
 
 		this.onRecipientDeleted = stream(null)
+
+		this.onBeforeSend = noOp
 	}
 
 	logins(): LoginController {
@@ -697,6 +701,8 @@ export class SendMailModel {
 		waitHandler: (TranslationKey | lazy<string>, Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg"): Promise<boolean> {
 
+		this.onBeforeSend()
+
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].mailAddress.toLowerCase().trim()
 			=== "approval@tutao.de") {
 			return this._sendApprovalMail(this.getBody()).then(() => true)
@@ -967,6 +973,10 @@ export class SendMailModel {
 			this.setMailChanged(true)
 		}
 		return Promise.resolve()
+	}
+
+	setOnBeforeSendFunction(fun: () => mixed) {
+		this.onBeforeSend = fun
 	}
 }
 

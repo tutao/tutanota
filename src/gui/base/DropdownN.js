@@ -17,15 +17,17 @@ import stream from "mithril/stream/stream.js"
 import type {PosRect} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
+import {filterNull} from "../../api/common/utils/ArrayUtils"
+import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 
 assertMainOrNode()
 
-export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
+export type DropdownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 
 
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN {
-	children: $ReadOnlyArray<DropDownChildAttrs>;
+	children: $ReadOnlyArray<DropdownChildAttrs>;
 	_domDropdown: HTMLElement;
 	origin: ?PosRect;
 	maxHeight: number;
@@ -40,7 +42,7 @@ export class DropdownN {
 	_isFilterable: boolean;
 
 
-	constructor(lazyChildren: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<$ReadOnlyArray<?DropdownChildAttrs>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
@@ -48,7 +50,7 @@ export class DropdownN {
 		this._filterString = stream("")
 
 		this.oninit = () => {
-			this.children = lazyChildren()
+			this.children = filterNull(lazyChildren())
 			this._isFilterable = this.children.length > 10
 			this.children.map(child => {
 				if (typeof child === 'string') {
@@ -271,7 +273,7 @@ export class DropdownN {
 		return Promise.resolve()
 	}
 
-	_visibleChildren(): Array<DropDownChildAttrs> {
+	_visibleChildren(): Array<DropdownChildAttrs> {
 		return this.children.filter(b => {
 			return (typeof b === "string")
 				? b.includes(this._filterString().toLowerCase())
@@ -284,13 +286,13 @@ export class DropdownN {
 	}
 }
 
-export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
+export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropdownChildAttrs>>, width: number = 200): clickHandler {
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 
 const importBase = typeof module !== "undefined" ? module.id : __moduleName
 
-export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
+export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?DropdownChildAttrs>>, width: number = 200): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
 		let originalButtons = lazyButtons()
@@ -320,6 +322,12 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 	}: clickHandler)
 }
 
+export function showDropdownAtPosition(buttons: $ReadOnlyArray<DropdownChildAttrs>, xPos: number, yPos: number, width: number = 200) {
+	const dropdown = new DropdownN(() => buttons, width)
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(xPos, yPos, 0, 0))
+	modal.displayUnique(dropdown, false)
+}
+
 // We override type of click to be optional because we wrap it in our own
 export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
 
@@ -334,7 +342,7 @@ export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
  */
 export function attachDropdown(
 	mainButtonAttrs: DropdownButtonAttrs,
-	childAttrs: lazy<$Promisable<$ReadOnlyArray<DropDownChildAttrs>>>,
+	childAttrs: lazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>,
 	showDropdown?: lazy<boolean> = () => true,
 	width?: number): ButtonAttrs {
 

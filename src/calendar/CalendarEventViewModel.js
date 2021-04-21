@@ -5,7 +5,6 @@ import {
 	AccountType,
 	CalendarAttendeeStatus,
 	EndType,
-	FeatureType,
 	getAttendeeStatus,
 	RepeatPeriod,
 	ShareCapability,
@@ -31,13 +30,21 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getTimeZone,
-	hasCapabilityOnGroup,
 	incrementByRepeatPeriod,
-	incrementSequence, prepareCalendarDescription,
+	incrementSequence,
+	prepareCalendarDescription,
 	timeString,
 	timeStringInZone
 } from "./CalendarUtils"
-import {assertNotNull, clone, downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {
+	assertNotNull,
+	clone,
+	downcast,
+	isBusinessFeatureCustomizationEnabled,
+	isPremiumLegacyCustomizationEnabled,
+	neverNull,
+	noOp
+} from "../api/common/utils/Utils"
 import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {CalendarModel} from "./model/CalendarModel"
 import {DateTime} from "luxon"
@@ -61,7 +68,7 @@ import {locator} from "../api/main/MainLocator"
 import {EntityClient} from "../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../misc/Formatter"
-import type {Customer} from "../api/entities/sys/Customer"
+import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -320,8 +327,8 @@ export class CalendarEventViewModel {
 	updateCustomerFeatures(): Promise<void> {
 		return this._userController.loadCustomer()
 		           .then(customer => {
-			           this.hasBusinessFeature(isUsingBusinessFeatureAllowed(customer))
-			           this.hasPremiumLegacy(isUsingPremiumLegacyFeaturesAllowed(customer))
+			           this.hasBusinessFeature(isBusinessFeatureCustomizationEnabled(customer))
+			           this.hasPremiumLegacy(isPremiumLegacyCustomizationEnabled(customer))
 		           }).return()
 	}
 
@@ -1029,21 +1036,4 @@ export function createCalendarEventViewModel(date: Date, calendars: Map<Id, Cale
 			resolveRecipientsLazily,
 		)
 	})
-}
-
-
-/**
- * Checks if the business feature is booked for the customer. Can be used without loading the last booking instance. This is required
- * for non admin users because they are not allowed to access the bookings.
- */
-function isUsingBusinessFeatureAllowed(customer: Customer): boolean {
-	return !!customer.customizations.find(feature => feature.feature === FeatureType.BusinessFeatureEnabled)
-}
-
-/**
- * Return true if the customer has a premium legacy subscription that allows using parts of the business feature
- * (adding multiple custom domains and sending calendar invites).
- */
-function isUsingPremiumLegacyFeaturesAllowed(customer: Customer): boolean {
-	return !!customer.customizations.find(feature => feature.feature === FeatureType.PremiumLegacy)
 }

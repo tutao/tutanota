@@ -33,7 +33,7 @@ export type NavButtonAttrs = {|
 
 const navButtonSelector = (vertical) =>
 	"a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
-	+ (vertical ? ".col" : "")
+		+ (vertical ? ".col" : "")
 
 export class NavButtonN implements MComponent<NavButtonAttrs> {
 	_domButton: HTMLElement;

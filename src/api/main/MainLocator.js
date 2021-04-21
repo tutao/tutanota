@@ -7,8 +7,8 @@ import {MailModel} from "../../mail/model/MailModel"
 import {assertMainOrNode} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
-import {ContactModelImpl} from "../../contacts/model/ContactModel"
 import type {ContactModel} from "../../contacts/model/ContactModel"
+import {ContactModelImpl} from "../../contacts/model/ContactModel"
 import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
@@ -40,6 +40,7 @@ export const locator: MainLocatorType = ({
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(worker)
 		this.entityClient = new EntityClient(worker)
+
 		this.mailModel = new MailModel(notifications, this.eventController, worker, this.entityClient)
 		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker,
 			this.entityClient, this.mailModel)

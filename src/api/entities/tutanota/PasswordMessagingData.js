@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createPasswordMessagingData(values?: $Shape<$Exact<PasswordMessagingData>>): PasswordMessagingData {

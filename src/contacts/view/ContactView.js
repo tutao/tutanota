@@ -47,6 +47,7 @@ import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
+import {SidebarSection} from "../../gui/SidebarSection"
 
 assertMainOrNode()
 
@@ -77,9 +78,8 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
-						m(FolderExpander, {
-							label: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo),
-							expanded: contactsExpanded,
+						m(SidebarSection, {
+							name: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
 						}, this.createContactFoldersExpanderChildren())
 					],
 					ariaLabel: "folderTitle_label"

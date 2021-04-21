@@ -7,7 +7,7 @@ import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
 import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	getSpamRuleType,
-	getSparmRuleField,
+	getSpamRuleField,
 	SpamRuleFieldType,
 	SpamRuleType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS
@@ -45,7 +45,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderLi
 	const selectedType = stream(existingSpamRuleOrTemplate && getSpamRuleType(existingSpamRuleOrTemplate) || typeItems[0].value)
 	const valueFieldValue = stream(existingSpamRuleOrTemplate ? existingSpamRuleOrTemplate.value : "")
 	const fieldValues = getSpamRuleFieldMapping()
-	const selectedField = stream(existingSpamRuleOrTemplate ? getSparmRuleField(existingSpamRuleOrTemplate) : fieldValues[0].value)
+	const selectedField = stream(existingSpamRuleOrTemplate ? getSpamRuleField(existingSpamRuleOrTemplate) : fieldValues[0].value)
 	let form = () => [
 		m(DropDownSelectorN, {
 			items: fieldValues,
