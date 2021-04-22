@@ -158,6 +158,7 @@ type MainRequestType = 'execNative'
 	| 'infoMessage'
 	| 'createProgressMonitor'
 	| 'progressWorkDone'
+	| 'writeIndexerDebugLog'
 
 type NativeRequestType = 'init'
 	| 'generateRsaKey'

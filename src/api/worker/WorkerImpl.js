@@ -24,6 +24,7 @@ import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
+import type {User} from "../entities/sys/User"
 
 assertWorkerOrNode()
 
@@ -448,6 +449,9 @@ export class WorkerImpl {
 		return this._queue.postMessage(new Request("updateLeaderStatus", [status]))
 	}
 
+	writeIndexerDebugLog(reason: string, user: User): Promise<void> {
+		return this._queue.postMessage(new Request("writeIndexerDebugLog", [reason, user]))
+	}
 }
 
 

@@ -49,7 +49,6 @@ import {
 	isSameId
 } from "../../common/utils/EntityUtils";
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
-import {addSearchIndexDeletedLogEntry} from "../../../misc/IndexerDebugLogger"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -207,7 +206,7 @@ export class Indexer {
 		           .then(() => {
 			           if (!this._core.isStoppedProcessing()) {
 				           this._core.stopProcessing()
-				           addSearchIndexDeletedLogEntry(new Date(), reason, this._initParams.user)
+				           this._worker.writeIndexerDebugLog(reason, this._initParams.user)
 				           return this._mail.disableMailIndexing().then(() => this.init(this._initParams.user, this._initParams.groupKey))
 			           }
 		           })
@@ -428,7 +427,7 @@ export class Indexer {
 							           // Bad scenario happened.
 							           // None of the events we want to process were processed before, we're too far away, stop the process and delete
 							           // the index.
-							           throw new OutOfSyncError()
+						           throw new OutOfSyncError()
 						           }
 						           batchesOfAllGroups.push(...batchesToQueue)
 					           })
