@@ -41,26 +41,27 @@ export function handleBackPress(): Promise<boolean> {
 					m.route.set(navButtonRoutes.mailUrl)
 					return true
 				} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
-					// If the first background column is visible, quit
-					return false
+					// If the first background column is focused in mail view (showing a folder), move to inbox.
+					// If in inbox already, quit
+					if (m.route.get().startsWith(MAIL_PREFIX)) {
+						const parts = m.route.get().split("/").filter(part => part !== "")
+						if (parts.length > 1) {
+							const selectedMailListId = parts[1]
+							return locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
+								const inboxMailListId = getInboxFolder(mailboxDetails[0].folders).mails
+								if (inboxMailListId !== selectedMailListId) {
+									m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
+									return true
+								} else {
+									return false
+								}
+							})
+						}
+					}
+					return false;
 				} else if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back
 					viewSlider.focusPreviousColumn()
 					return true
-				} else if (m.route.get().startsWith(MAIL_PREFIX)) {
-					const parts = m.route.get().split("/").filter(part => part !== "")
-					if (parts.length > 1) {
-						const selectedMailListId = parts[1]
-						return locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
-							const inboxMailListId = getInboxFolder(mailboxDetails[0].folders).mails
-							if (inboxMailListId !== selectedMailListId) {
-								m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
-								return true
-							} else {
-								return false
-							}
-						})
-					}
-					return false
 				} else {
 					return false
 				}
