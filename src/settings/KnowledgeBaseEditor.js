@@ -110,7 +110,7 @@ class KnowledgeBaseEditor implements MComponent<KnowledgeBaseEditorModel> {
 		const model = vnode.attrs
 		return m("", [
 			m(TextFieldN, {
-				label: "title_label",
+				label: "title_placeholder",
 				value: model.title
 			}),
 			m(TextFieldN, {
