@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -127,8 +127,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Никад",
 		"calendarRepeatStopConditionOccurrences_label": "Након појаве",
 		"calendarRepeatStopCondition_label": "Завршава",
-		"groupCapabilityWrite_label": "само читање",
-		"groupCapabilityWrite_label": "чита и пише",
 		"calendarView_action": "Пребаци на приказ календара",
 		"calendar_label": "Календар",
 		"callNumber_alt": "Назовите овај број",
@@ -408,6 +406,8 @@ export default {
 		"globalSettings_label": "Глобална подешавања",
 		"goPremium_msg": "Као премијум корисник можете подешавати филтере претраге у менију лево.",
 		"gross_label": "Укључи порезе",
+		"groupCapabilityRead_label": "само читање",
+		"groupCapabilityWrite_label": "чита и пише",
 		"groupMembers_label": "Чланови групе",
 		"groupNotEmpty_msg": "Групе које нису празне се не могу деактивирати.",
 		"groups_label": "Групе",

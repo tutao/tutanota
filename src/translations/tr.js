@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -148,9 +148,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "asla",
 		"calendarRepeatStopConditionOccurrences_label": "olaydan sonra ",
 		"calendarRepeatStopCondition_label": "Sonlandır",
-		"groupCapabilityInvite_label": "Paylaşımı yaz ve yönet",
-		"groupCapabilityWrite_label": "Sadece okunabilir",
-		"groupCapabilityWrite_label": "Okuma ve düzenleme",
 		"calendarView_action": "Takvim görünümüne geç",
 		"calendar_label": "Takvim",
 		"callNumber_alt": "Bu numarayı ara",
@@ -487,6 +484,9 @@ export default {
 		"globalSettings_label": "Genel ayarlar",
 		"goPremium_msg": "Premium kullanıcı olarak arama filtrenizi soldaki menüden ayarlayabilirsiniz.",
 		"gross_label": "vergiler dahil",
+		"groupCapabilityInvite_label": "Paylaşımı yaz ve yönet",
+		"groupCapabilityRead_label": "Sadece okunabilir",
+		"groupCapabilityWrite_label": "Okuma ve düzenleme",
 		"groupMembers_label": "Grup üyeleri",
 		"groupNotEmpty_msg": "Boş olmayan gruplar devre dışı bırakılamaz.",
 		"groups_label": "Gruplar",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -153,9 +153,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Ei koskaan",
 		"calendarRepeatStopConditionOccurrences_label": "Toistojen jälkeen",
 		"calendarRepeatStopCondition_label": "Loppuu",
-		"groupCapabilityInvite_label": "Kirjoita ja hallitse jakamista",
-		"groupCapabilityWrite_label": "Vain luku",
-		"groupCapabilityWrite_label": "Luku ja kirjoitus",
 		"calendarView_action": "Kalenterinäkymä",
 		"calendar_label": "Kalenteri",
 		"callNumber_alt": "Soita numeroon",
@@ -509,6 +506,9 @@ export default {
 		"globalSettings_label": "Yleiset asetukset",
 		"goPremium_msg": "Premium-käyttäjänä voit muuttaa hakusuodattimia vasemmalla olevasta valikosta.",
 		"gross_label": "sisältäen verot",
+		"groupCapabilityInvite_label": "Kirjoita ja hallitse jakamista",
+		"groupCapabilityRead_label": "Vain luku",
+		"groupCapabilityWrite_label": "Luku ja kirjoitus",
 		"groupMembers_label": "Ryhmän jäsenet",
 		"groupNotEmpty_msg": "Käytössä olevia ryhmiä ei voi poistaa.",
 		"groups_label": "Ryhmät",

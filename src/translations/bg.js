@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -144,9 +144,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Никога",
 		"calendarRepeatStopConditionOccurrences_label": "След повторения",
 		"calendarRepeatStopCondition_label": "Свършва",
-		"groupCapabilityInvite_label": "Пиши и управлявай споделяне",
-		"groupCapabilityWrite_label": "Само четене",
-		"groupCapabilityWrite_label": "Четане и писане",
 		"calendarView_action": "Превключи в изглед \"Календар\"",
 		"calendar_label": "Календар",
 		"callNumber_alt": "Обадете се на този номер",
@@ -485,6 +482,9 @@ export default {
 		"globalSettings_label": "Глобални настройки",
 		"goPremium_msg": "Като премиум потребител можете да регулирате филтрите си за търсене в менюто вляво.",
 		"gross_label": "Цена с включени данъци",
+		"groupCapabilityInvite_label": "Пиши и управлявай споделяне",
+		"groupCapabilityRead_label": "Само четене",
+		"groupCapabilityWrite_label": "Четане и писане",
 		"groupMembers_label": "Членове",
 		"groupNotEmpty_msg": "Групи, които не са празни, не могат да се деактивират.",
 		"groups_label": "Групи",

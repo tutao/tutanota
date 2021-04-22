@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -146,9 +146,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Jamais",
 		"calendarRepeatStopConditionOccurrences_label": "Après occurrences",
 		"calendarRepeatStopCondition_label": "se termine",
-		"groupCapabilityInvite_label": "Ecrire et gérer le partage",
-		"groupCapabilityWrite_label": "Lecture seule.",
-		"groupCapabilityWrite_label": "Lire et écrire",
 		"calendarView_action": "Passer à la vue calendrier",
 		"calendar_label": "Calendrier",
 		"callNumber_alt": "Appeler ce numéro",
@@ -468,6 +465,9 @@ export default {
 		"globalSettings_label": "Paramètres généraux",
 		"goPremium_msg": "En tant qu'utilisateur Premium, vous pouvez modifier les filtres de recherche dans le menu à gauche.",
 		"gross_label": "taxes incluses",
+		"groupCapabilityInvite_label": "Ecrire et gérer le partage",
+		"groupCapabilityRead_label": "Lecture seule.",
+		"groupCapabilityWrite_label": "Lire et écrire",
 		"groupMembers_label": "Membres du groupe",
 		"groupNotEmpty_msg": "Les groupes non vides ne peuvent pas être désactivés.",
 		"groups_label": "Groupes",

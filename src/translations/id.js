@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
@@ -142,9 +142,6 @@ export default {
 		"calendarRepeatStopConditionDate_label": "Pada tanggal",
 		"calendarRepeatStopConditionNever_label": "Tidak pernah",
 		"calendarRepeatStopCondition_label": "Berakhir",
-		"groupCapabilityInvite_label": "Tuliskan dan atur pembagian",
-		"groupCapabilityWrite_label": "Hanya dapat dibaca",
-		"groupCapabilityWrite_label": "Baca dan tulis",
 		"calendarView_action": "Ganti ke tampilan kalender",
 		"calendar_label": "Kalender",
 		"callNumber_alt": "Panggil nomor ini",
@@ -485,6 +482,9 @@ export default {
 		"globalSettings_label": "Pengaturan global",
 		"goPremium_msg": "Sebagai pengguna Premium Anda dapat menyesuaikan fitur filter pencarian pada menu di sisi kiri.",
 		"gross_label": "termasuk pajak",
+		"groupCapabilityInvite_label": "Tuliskan dan atur pembagian",
+		"groupCapabilityRead_label": "Hanya dapat dibaca",
+		"groupCapabilityWrite_label": "Baca dan tulis",
 		"groupMembers_label": "Anggota grup",
 		"groupNotEmpty_msg": "Grup yang tidak kosong tidak bisa dinonaktifkan.",
 		"groups_label": "Grup",

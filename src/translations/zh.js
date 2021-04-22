@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2021-03-15T16:39:32Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -134,9 +134,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "一直重复",
 		"calendarRepeatStopConditionOccurrences_label": "发生之后",
 		"calendarRepeatStopCondition_label": "完结",
-		"groupCapabilityInvite_label": "编辑和管理共享",
-		"groupCapabilityWrite_label": "只读",
-		"groupCapabilityWrite_label": "读取和写入",
 		"calendarView_action": "切换到日历视图",
 		"calendar_label": "日历",
 		"callNumber_alt": "拨打该号码",
@@ -427,6 +424,9 @@ export default {
 		"globalSettings_label": "全局设置",
 		"goPremium_msg": "高级用户能够用左侧的菜单调整搜索过滤器。",
 		"gross_label": "含税",
+		"groupCapabilityInvite_label": "编辑和管理共享",
+		"groupCapabilityRead_label": "只读",
+		"groupCapabilityWrite_label": "读取和写入",
 		"groupMembers_label": "群组成员",
 		"groupNotEmpty_msg": "非空群组无法停用。",
 		"groups_label": "群组",

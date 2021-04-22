@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -149,9 +149,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Nikad",
 		"calendarRepeatStopConditionOccurrences_label": "Nakon pojave",
 		"calendarRepeatStopCondition_label": "Završava",
-		"groupCapabilityInvite_label": "Pišite i upravljajte dijeljenjem",
-		"groupCapabilityWrite_label": "Samo za čitanje",
-		"groupCapabilityWrite_label": "Čitanje i pisanje",
 		"calendarView_action": "Pređi na prikaz kalendara",
 		"calendar_label": "Kalendar",
 		"callNumber_alt": "Nazovite ovaj broj",
@@ -502,6 +499,9 @@ export default {
 		"globalSettings_label": "Globalne postavke",
 		"goPremium_msg": "Kao Premium korisnik možete prilagoditi filtre pretraživanja u izborniku s lijeve strane.",
 		"gross_label": "uključuje poreze",
+		"groupCapabilityInvite_label": "Pišite i upravljajte dijeljenjem",
+		"groupCapabilityRead_label": "Samo za čitanje",
+		"groupCapabilityWrite_label": "Čitanje i pisanje",
 		"groupMembers_label": "Članovi grupe",
 		"groupNotEmpty_msg": "Grupe koje nisu prazne ne mogu biti deaktivirane.",
 		"groups_label": "Grupe",

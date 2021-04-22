@@ -81,7 +81,7 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 
 		// Initialize Attributes for TextFields and Buttons
 		this._enterTitleAttrs = {
-			label: "title_label",
+			label: "title_placeholder",
 			value: this.model.title
 		}
 

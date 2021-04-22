@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -134,9 +134,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "هرگز",
 		"calendarRepeatStopConditionOccurrences_label": "بعد ازوقوع ",
 		"calendarRepeatStopCondition_label": "پایان",
-		"groupCapabilityInvite_label": "بنویسید و اشتراک گذاری را مدیریت کنید",
-		"groupCapabilityWrite_label": "فقط خواندنی",
-		"groupCapabilityWrite_label": "خواندن و نوشتن",
 		"calendar_label": "تقویم",
 		"callNumber_alt": "تماس به این شماره تلفن ",
 		"cameraUsageDescription_msg": "یک عکس یا ویدیو برای اضافه کردن به عنوان پیوست بگیرید.",
@@ -430,6 +427,9 @@ export default {
 		"globalSettings_label": "تنظیمات سراسری",
 		"goPremium_msg": "به عنوان یک کاربر با نسخهٔ پیشرفته می‌توانید فیلترهای جستجوی خودتان را در فهرست سمت چپ تنظیم کنید.",
 		"gross_label": "شامل مالیات‌ها",
+		"groupCapabilityInvite_label": "بنویسید و اشتراک گذاری را مدیریت کنید",
+		"groupCapabilityRead_label": "فقط خواندنی",
+		"groupCapabilityWrite_label": "خواندن و نوشتن",
 		"groupMembers_label": "اعضاء گروه",
 		"groupNotEmpty_msg": "گروه های غیرخالی نمی‌توانند غیرفعال شوند.",
 		"groups_label": "گروه ها",

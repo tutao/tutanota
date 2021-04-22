@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -150,9 +150,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Nigdy",
 		"calendarRepeatStopConditionOccurrences_label": "Po wystąpieniu",
 		"calendarRepeatStopCondition_label": "Kończy się",
-		"groupCapabilityInvite_label": "Napisz i zarządzaj współdzieleniem",
-		"groupCapabilityWrite_label": "Tylko do odczytu",
-		"groupCapabilityWrite_label": "Odczyt i zapis",
 		"calendarView_action": "Przełącz do widoku kalendarza",
 		"calendar_label": "Kalendarz",
 		"callNumber_alt": "Zadzwoń na ten numer",
@@ -494,6 +491,9 @@ export default {
 		"globalSettings_label": "Ustawienia globalne",
 		"goPremium_msg": "Jako użytkownik wersji Premium możesz dostosować filtry wyszukiwania w menu po lewej stronie.",
 		"gross_label": "w tym podatek",
+		"groupCapabilityInvite_label": "Napisz i zarządzaj współdzieleniem",
+		"groupCapabilityRead_label": "Tylko do odczytu",
+		"groupCapabilityWrite_label": "Odczyt i zapis",
 		"groupMembers_label": "Członkowie grupy",
 		"groupNotEmpty_msg": "Niepuste grupy nie mogą być zdezaktywowane.",
 		"groups_label": "Grupy",

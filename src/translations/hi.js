@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2021-03-17T14:41:23Z",
+	"updated_at": "2021-04-08T14:21:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -144,9 +144,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "कभी नहीँ",
 		"calendarRepeatStopConditionOccurrences_label": "घटनाओं के बाद",
 		"calendarRepeatStopCondition_label": "समाप्त होता है",
-		"groupCapabilityInvite_label": "साझाकरण लिखें और प्रबंधित करें",
-		"groupCapabilityWrite_label": "केवल पढ़ें",
-		"groupCapabilityWrite_label": "पढ़ना और लिखना",
 		"calendarView_action": "कैलेंडर दृश्य पर स्विच करें",
 		"calendar_label": "कैलेंडर\n",
 		"callNumber_alt": "इस नंबर पर संपर्क करें",
@@ -494,6 +491,9 @@ export default {
 		"globalSettings_label": "वैश्विक व्यवस्था",
 		"goPremium_msg": "एक प्रीमियम सदस्य के रूप में आप मेनू में अपने खोज फ़िल्टर को बाईं ओर समायोजित कर सकते हैं।",
 		"gross_label": "करों सहित",
+		"groupCapabilityInvite_label": "साझाकरण लिखें और प्रबंधित करें",
+		"groupCapabilityRead_label": "केवल पढ़ें",
+		"groupCapabilityWrite_label": "पढ़ना और लिखना",
 		"groupMembers_label": "समूह के सदस्य",
 		"groupNotEmpty_msg": "खाली समूहों को निष्क्रिय नहीं किया जा सकता.",
 		"groups_label": "समूह",

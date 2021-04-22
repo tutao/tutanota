@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2021-03-17T14:41:23Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -142,9 +142,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Mai",
 		"calendarRepeatStopConditionOccurrences_label": "Després d'ocurrències",
 		"calendarRepeatStopCondition_label": "Acaba",
-		"groupCapabilityInvite_label": "Escriure i administrar l'ús compartit",
-		"groupCapabilityWrite_label": "Només lectura",
-		"groupCapabilityWrite_label": "Llegir i escriure",
 		"calendarView_action": "Canvia a vista de calendari",
 		"calendar_label": "Calendari",
 		"callNumber_alt": "Truca al número",
@@ -461,6 +458,9 @@ export default {
 		"globalSettings_label": "Configuració global",
 		"goPremium_msg": "Com a usuari de Premium pot ajustar els filtres de cerca al menú a l'esquerra.",
 		"gross_label": "impostos inclosos",
+		"groupCapabilityInvite_label": "Escriure i administrar l'ús compartit",
+		"groupCapabilityRead_label": "Només lectura",
+		"groupCapabilityWrite_label": "Llegir i escriure",
 		"groupMembers_label": "Membres del grup",
 		"groupNotEmpty_msg": "Els grups que no estiguin buits no es poden desactivar.",
 		"groups_label": "Grups",

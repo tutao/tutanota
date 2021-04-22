@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2021-03-17T14:41:22Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -149,9 +149,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Aldri",
 		"calendarRepeatStopConditionOccurrences_label": "Etter forekomster",
 		"calendarRepeatStopCondition_label": "Slutter",
-		"groupCapabilityInvite_label": "Skriv og administrer deling",
-		"groupCapabilityWrite_label": "Kun lesing",
-		"groupCapabilityWrite_label": "Les og skriv",
 		"calendarView_action": "Bytt til kalendervisningen",
 		"calendar_label": "Kalender",
 		"callNumber_alt": "Ring dette nummeret",
@@ -492,6 +489,9 @@ export default {
 		"globalSettings_label": "Globale innstillinger",
 		"goPremium_msg": "Som Premium bruker kan du justere søkefiltrene i menyen til venstre.",
 		"gross_label": "inklusive mva",
+		"groupCapabilityInvite_label": "Skriv og administrer deling",
+		"groupCapabilityRead_label": "Kun lesing",
+		"groupCapabilityWrite_label": "Les og skriv",
 		"groupMembers_label": "Gruppemedlemmer",
 		"groupNotEmpty_msg": "Du kan bare deaktivere gruppen når den er tom.",
 		"groups_label": "Grupper",

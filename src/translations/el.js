@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2021-03-23T08:36:25Z",
+	"updated_at": "2021-04-08T14:21:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -157,9 +157,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Ποτέ",
 		"calendarRepeatStopConditionOccurrences_label": "Μετά από εμφανίσεις",
 		"calendarRepeatStopCondition_label": "Τελειώνει",
-		"groupCapabilityInvite_label": "Εγγραφή και διαχείριση κοινοποίησης",
-		"groupCapabilityWrite_label": "Μόνο ανάγνωση",
-		"groupCapabilityWrite_label": "Εγγραφή και ανάγνωση",
 		"calendarView_action": "Μετάβαση στο Ημερολόγιο",
 		"calendar_label": "Ημερολόγιο",
 		"callNumber_alt": "Καλέστε αυτό τον αριθμό",
@@ -513,6 +510,9 @@ export default {
 		"globalSettings_label": "Γενικές ρυθμίσεις",
 		"goPremium_msg": "Σαν Premium χρήστης μπορείτε να παραμετροποιήσετε τα φίλτρα αναζήτησης από το μενού στα αριστερά.",
 		"gross_label": "Συμπεριλαμβάνεται ο φόρος ",
+		"groupCapabilityInvite_label": "Εγγραφή και διαχείριση κοινοποίησης",
+		"groupCapabilityRead_label": "Μόνο ανάγνωση",
+		"groupCapabilityWrite_label": "Εγγραφή και ανάγνωση",
 		"groupMembers_label": "Μέλη ομάδας",
 		"groupNotEmpty_msg": "Δεν είναι δυνατή η απενεργοποίηση των γκρούπ όταν περιέχουν μέλη.",
 		"groups_label": "Ομάδες ",

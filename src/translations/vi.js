@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2021-03-17T14:41:23Z",
+	"updated_at": "2021-04-08T14:21:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -152,9 +152,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "Không bao giờ",
 		"calendarRepeatStopConditionOccurrences_label": "Sau số lần xảy ra",
 		"calendarRepeatStopCondition_label": "Kết thúc",
-		"groupCapabilityInvite_label": "Ghi và quản lí chia sẻ",
-		"groupCapabilityWrite_label": "Chỉ đọc",
-		"groupCapabilityWrite_label": "Đọc và ghi",
 		"calendarView_action": "Đi đến màn hình lịch",
 		"calendar_label": "Lịch",
 		"callNumber_alt": "Gọi số này",
@@ -509,6 +506,9 @@ export default {
 		"globalSettings_label": "Thiết lập chung",
 		"goPremium_msg": "Là một người dùng Premium, bạn có thể điều chỉnh các bộ lọc tìm kiếm của bạn trong trình đơn bên trái.",
 		"gross_label": "thuế đã b.gồm",
+		"groupCapabilityInvite_label": "Ghi và quản lí chia sẻ",
+		"groupCapabilityRead_label": "Chỉ đọc",
+		"groupCapabilityWrite_label": "Đọc và ghi",
 		"groupMembers_label": "Thành viên nhóm",
 		"groupNotEmpty_msg": "Không thể tắt nhóm không rỗng.",
 		"groups_label": "Nhóm",

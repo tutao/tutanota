@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2021-02-26T13:13:49Z",
+	"updated_at": "2021-04-08T14:21:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",
@@ -110,7 +110,6 @@ export default {
 		"calendarRepeatIntervalWeekly_label": "Ik nedēļu",
 		"calendarRepeatStopConditionDate_label": "Datumā",
 		"calendarRepeatStopConditionNever_label": "Nekad",
-		"groupCapabilityWrite_label": "Lasīt un rakstīt",
 		"calendarView_action": "Pārslēgties uz kalendāra skatu",
 		"calendar_label": "Kalendārs",
 		"cameraUsageDescription_msg": "Uzņemt fotoattēlu vai video lai pievienotu pielikumā.",
@@ -350,6 +349,7 @@ export default {
 		"globalAdmin_label": "Vispārīga administrēšana",
 		"globalSettings_label": "Globālie uzstādījumi",
 		"goPremium_msg": "Kā Premium konta lietotājs jūs varat mainīt filtrus izvēlnē pa labi.",
+		"groupCapabilityWrite_label": "Lasīt un rakstīt",
 		"groupMembers_label": "Grupas dalībnieki",
 		"groupNotEmpty_msg": "Pilnas grupas nevar deaktivizēt.",
 		"groups_label": "Grupas",
