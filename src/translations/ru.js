@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2021-04-08T14:24:54Z",
+	"updated_at": "2021-04-26T11:59:04Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -258,7 +258,7 @@ export default {
 		"creditCardCVVFormat_label": "Введите три или четыре цифры кода безопасности.",
 		"creditCardCVVInvalid_msg": "Неверный код безопасности.",
 		"creditCardCVV_label": "Код безопасности",
-		"creditCardDeclined_msg": "К сожалению, ваша карта была отклонена. Пожалуйста, свяжитесь с вашим банком для решения проблемы или выберите другой метод оплаты.",
+		"creditCardDeclined_msg": "К сожалению, ваша карта была отклонена. Пожалуйста,  проверьте, что все введённые данные верны, свяжитесь с вашим банком или выберите другой метод оплаты.",
 		"creditCardExpirationDateFormat_msg": "Формат: ММ/ГГГГ",
 		"creditCardExpirationDate_label": "Дата истечения срока действия",
 		"creditCardExprationDateInvalid_msg": "Неверная дата истечения срока действия.",
