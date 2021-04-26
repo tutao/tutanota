@@ -3,7 +3,7 @@ import o from "ospec"
 import {
 	arrayEquals, arrayEqualsWithPredicate,
 	concat,
-	deduplicate,
+	deduplicate, difference,
 	findLastIndex,
 	insertIntoSortedArray,
 	splitInChunks
@@ -145,5 +145,20 @@ o.spec("array utils", function () {
 			null, 1, null, 2, 3, 0, 0, "word", "word", "anotherword", undefined, undefined, {a: 10}, {a: 10}, object, object, {a: 20}
 		]))
 			.deepEquals([null, 1, 2, 3, 0, "word", "anotherword", undefined, {a: 10}, {a: 10}, object, {a: 20}])
+	})
+
+	o("difference", function () {
+		const comp = (a, b) => a === b
+		const diff = (a, b) => difference(a, b, comp)
+		o(diff([], [])).deepEquals([])
+		o(diff([], [1, 2, 3])).deepEquals([])
+		o(diff([1, 2, 3], [])).deepEquals([1, 2, 3])
+		o(diff([1, 2, 3], [1, 2, 3])).deepEquals([])
+		o(diff([1, 2, 3], [4, 5, 6])).deepEquals([1, 2, 3])
+		o(diff([1, 2, 3, 4, 5, 6], [1, 2, 3])).deepEquals([4, 5, 6])
+		o(diff([1, 2, 3, 4, 5, 6], [4, 5, 6])).deepEquals([1, 2, 3])
+		o(diff([1, 2, 3, 4, 5, 6], [1, 3, 5])).deepEquals([2, 4, 6])
+		o(diff([1, 2, 3], [1, 2, 3, 4, 5, 6])).deepEquals([])
+		o(diff([1, 2, 3], [4, 5, 6, 7, 8, 9])).deepEquals([1, 2, 3])
 	})
 })
