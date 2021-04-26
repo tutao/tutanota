@@ -329,7 +329,13 @@ export function getPreconditionFailedPaymentMsg(data: ?string): TranslationKey {
 		case "card.3ds2_pending":
 			return "creditCardPendingVerification_msg"
 		case "card.3ds2_failed":
-			return "creditCardDeclined_msg"
+			return "creditCardVerificationFailed_msg"
+		case "card.cvv_invalid":
+			return "creditCardCVVInvalid_msg"
+		case "card.number_invalid":
+			return "creditCardNumberInvalid_msg"
+		case "card.date_invalid":
+			return "creditCardExprationDateInvalid_msg"
 		default:
 			return "payContactUsError_msg"
 	}
