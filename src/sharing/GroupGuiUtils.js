@@ -7,6 +7,7 @@ import type {GroupTypeEnum} from "../api/common/TutanotaConstants"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {getDefaultGroupName} from "./GroupUtils"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 
 export type GroupSharingTexts = {
 	+groupNameLabel: TranslationKey,
@@ -25,7 +26,7 @@ export type GroupSharingTexts = {
 
 	+alreadyGroupMemberMessage: TranslationText,
 	+receivedGroupInvitationMessage: string,
-	+sharedGroupDefaultCustomName: (groupOwnerName: string) => string,
+	+sharedGroupDefaultCustomName: (invitation: ReceivedGroupInvitation) => string,
 	+yourCustomNameLabel: (groupName: string) => string,
 
 }
@@ -93,7 +94,9 @@ const TEMPLATE_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 	sharingNotOrderedAdmin: lang.get("templateSharingNotOrdered_msg"),
 	alreadyGroupMemberMessage: "alreadyTemplateGroupMember_msg",
 	receivedGroupInvitationMessage: `${lang.get("shareTemplateGroupWarning_msg")} ${lang.get("shareCalendarWarningAliases_msg")}`,
-	sharedGroupDefaultCustomName: ownerName => lang.get("sharedTemplateGroupDefaultName_label", {"{ownerName}": ownerName}),
+	sharedGroupDefaultCustomName: invitation => lang.get("sharedTemplateGroupDefaultName_label", {
+		"{ownerName}": invitation.inviterName || invitation.inviterMailAddress
+	}),
 	yourCustomNameLabel: groupName => lang.get("customTemplateListName_label", {"{customName}": groupName})
 })
 
