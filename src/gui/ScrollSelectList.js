@@ -31,7 +31,7 @@ export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>>
 	view(vnode: Vnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
 		const items = resolveMaybeLazy(a.items)
-		return m(".flex.flex-column.scroll",
+		return m(".flex.flex-column.scroll-no-overlay",
 			{
 				oncreate: vnode => {
 					this.scrollDom = vnode.dom
