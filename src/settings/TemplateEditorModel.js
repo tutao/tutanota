@@ -70,7 +70,7 @@ export class TemplateEditorModel {
 	 * @returns {Array<{name: string, value: LanguageCode}>}
 	 */
 	getAdditionalLanguages(): Array<Language> {
-		return difference(languages, this.getAddedLanguages(), (lang1, lang2) => lang1.code === lang2)
+		return difference(languages, this.getAddedLanguages(), (lang1, lang2) => lang1.code === lang2.code)
 	}
 
 	getAddedLanguages(): Array<Language> {
