@@ -159,19 +159,23 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 					m.redraw()
 				})
 
-		const templateButtonAttrs: ButtonAttrs = {
-			label: "emptyString_msg",
-			title: "openTemplatePopup_msg",
-			click: () => {
-				this.openTemplates()
-			},
-			type: ButtonType.Toggle,
-			icon: () => Icons.ListAlt,
-		}
+		const templateButtonAttrs = this.templateModel
+			? [
+				{
+					label: "emptyString_msg",
+					title: "openTemplatePopup_msg",
+					click: () => {
+						this.openTemplates()
+					},
+					type: ButtonType.Toggle,
+					icon: () => Icons.ListAlt,
+				}
+			]
+			: []
 
 		this.toolbar = new RichTextToolbar(this.editor, {
 			imageButtonClickHandler: insertImageHandler,
-			customButtonAttrs: [templateButtonAttrs]
+			customButtonAttrs: templateButtonAttrs
 		})
 
 		this.recipientFields = {
@@ -530,24 +534,26 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 
 	const createKnowledgebaseButtonAttrs = (editor: Editor) => {
-		return logins.getUserController().loadCustomer().then(customer => {
-			// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
-			if (styles.isDesktopLayout()
-				&& templatePopupModel
-				&& logins.getUserController().getTemplateMemberships().length > 0
-				&& isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
-				return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
-					.init()
-					.then(knowledgebaseModel => {
-						const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
-						const knowledgebaseButtonAttrs = createOpenKnowledgeBaseButtonAttrs(knowledgebaseInjection, () => editor.getValue())
-						dialog.setInjectionRight(knowledgebaseInjection)
-						return knowledgebaseButtonAttrs
-					})
-			} else {
-				return null
-			}
-		})
+		return logins.isInternalUserLoggedIn()
+			? logins.getUserController().loadCustomer().then(customer => {
+				// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
+				if (styles.isDesktopLayout()
+					&& templatePopupModel
+					&& logins.getUserController().getTemplateMemberships().length > 0
+					&& isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
+					return new KnowledgeBaseModel(locator.eventController, locator.entityClient, logins.getUserController())
+						.init()
+						.then(knowledgebaseModel => {
+							const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
+							const knowledgebaseButtonAttrs = createOpenKnowledgeBaseButtonAttrs(knowledgebaseInjection, () => editor.getValue())
+							dialog.setInjectionRight(knowledgebaseInjection)
+							return knowledgebaseButtonAttrs
+						})
+				} else {
+					return null
+				}
+			})
+			: Promise.resolve(null)
 	}
 
 	mailEditorAttrs = createMailEditorAttrs(model,
