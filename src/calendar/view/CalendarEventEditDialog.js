@@ -45,6 +45,7 @@ import {TimePicker} from "../../gui/TimePicker"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
+import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -433,23 +434,26 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 		viewModel.attendees.map(m.redraw)
 
-		const dialog = Dialog.largeDialog(
-			{
-				left: [{label: "cancel_action", click: finish, type: ButtonType.Secondary}],
-				right: [{label: "save_action", click: () => okAction(), type: ButtonType.Primary}],
-				middle: () => lang.get("createEvent_label"),
-			},
-			{view: () => m(".calendar-edit-container.pb", renderDialogContent())}
+		const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: finish, type: ButtonType.Secondary}],
+			middle: () => lang.get("createEvent_label"),
+			// right: save button is only added if the event is not read-only
+		}
+		const dialog = Dialog.largeDialog(dialogHeaderBarAttrs, {view: () => m(".calendar-edit-container.pb", renderDialogContent())}
 		).addShortcut({
 			key: Keys.ESC,
 			exec: finish,
 			help: "close_alt"
-		}).addShortcut({
-			key: Keys.S,
-			ctrl: true,
-			exec: () => okAction(),
-			help: "save_action"
 		})
+		if (!viewModel.isReadOnlyEvent()) {
+			dialogHeaderBarAttrs.right = [{label: "save_action", click: () => okAction(), type: ButtonType.Primary}]
+			dialog.addShortcut({
+				key: Keys.S,
+				ctrl: true,
+				exec: () => okAction(),
+				help: "save_action"
+			})
+		}
 		if (client.isMobileDevice()) {
 			// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 			dialog.setFocusOnLoadFunction(noOp)
