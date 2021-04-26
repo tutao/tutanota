@@ -41,7 +41,10 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
 
-	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation.inviterName) : invitation.sharedGroupName)
+	const nameStream = stream(isDefaultGroupName
+		? texts.sharedGroupDefaultCustomName(invitation)
+		: invitation.sharedGroupName)
+
 	const isMember = !!logins.getUserController().getCalendarMemberships().find((ms) => isSameId(ms.group, invitation.sharedGroup))
 	let dialog
 
