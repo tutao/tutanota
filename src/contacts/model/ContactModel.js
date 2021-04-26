@@ -12,7 +12,8 @@ import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {LoginController} from "../../api/main/LoginController"
 import type {ContactList} from "../../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../api/entities/tutanota/ContactList"
-import {compareOldestFirst} from "../../api/common/utils/EntityUtils";
+import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils";
+import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -73,18 +74,19 @@ export class ContactModelImpl implements ContactModel {
 	 */
 	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
 		return this._worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
-		             .then(result => {
-			             // load one by one because they may be in different lists when we have different lists
-			             return Promise.map(result.results, idTuple => {
-				             return this._entityClient.load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
-					             return null
-				             }).catch(NotAuthorizedError, e => {
-					             return null
-				             })
-			             }).filter(contact => contact != null)
-		             })
+		           .then(result => {
+			           const resultsByListId = groupBy(result.results, listIdPart)
+			           return Promise.map(resultsByListId, ([listId, idTuples]) => {
+				           // we try to load all contacts from the same list in one request
+				           return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
+				                      .catch(NotAuthorizedError, e => {
+					                      console.log("tried to access contact without authorization", e)
+					                      return []
+				                      })
+			           }, {concurrency: 3})
+			                         .then(flat)
+		           })
 	}
-
 
 	/**
 	 * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
