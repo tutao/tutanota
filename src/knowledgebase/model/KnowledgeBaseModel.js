@@ -12,7 +12,7 @@ import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants
 import {EmailTemplateTypeRef} from "../../api/entities/tutanota/EmailTemplate"
 import {lang} from "../../misc/LanguageViewModel"
 import {downcast} from "../../api/common/utils/Utils"
-import {getElementId, getEtId, isSameId} from "../../api/common/utils/EntityUtils"
+import {getElementId, getEtId, getLetId, isSameId} from "../../api/common/utils/EntityUtils"
 import type {TemplateGroupInstance} from "../../templates/model/TemplateGroupModel"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {loadTemplateGroupInstance} from "../../templates/model/TemplatePopupModel"
@@ -225,6 +225,10 @@ export class KnowledgeBaseModel {
 						           }
 					           })
 				} else if (update.operation === OperationType.DELETE) {
+					const selected = this.selectedEntry()
+					if (selected && isSameId(getLetId(selected), [update.instanceListId, update.instanceId])) {
+						this.selectedEntry(null)
+					}
 					this._allEntries.removeFirst((e) => isSameId(getElementId(e), update.instanceId))
 					this.filter(this._filterValue)
 				}

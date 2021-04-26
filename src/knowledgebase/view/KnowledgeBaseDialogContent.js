@@ -13,7 +13,7 @@ import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {makeListSelectionChangedScrollHandler} from "../../gui/ScrollSelectList"
 
-export type KnowledgebaseViewAttrs = {|
+export type KnowledgebaseDialogContentAttrs = {|
 	+onTemplateSelect: (EmailTemplate,) => void,
 	+model: KnowledgeBaseModel,
 |}
@@ -21,13 +21,13 @@ export type KnowledgebaseViewAttrs = {|
 /**
  *  Renders the SearchBar and the pages (list, entry, template) of the knowledgeBase besides the MailEditor
  */
-export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseViewAttrs> {
+export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseDialogContentAttrs> {
 
 	_streams: Array<Stream<*>>
 	_filterInputFieldAttrs: TextFieldAttrs
 	_selectionChangedListener: Stream<void>
 
-	constructor({attrs}: Vnode<KnowledgebaseViewAttrs>) {
+	constructor({attrs}: Vnode<KnowledgebaseDialogContentAttrs>) {
 		this._streams = []
 		this._filterInputFieldAttrs = {
 			label: () => lang.get("filter_label"),
@@ -35,7 +35,7 @@ export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseViewA
 		}
 	}
 
-	oncreate({attrs}: Vnode<KnowledgebaseViewAttrs>) {
+	oncreate({attrs}: Vnode<KnowledgebaseDialogContentAttrs>) {
 		const {model} = attrs
 		this._streams.push(stream.combine(() => {
 			m.redraw()
@@ -53,7 +53,7 @@ export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseViewA
 		}
 	}
 
-	view({attrs}: Vnode<KnowledgebaseViewAttrs>): Children {
+	view({attrs}: Vnode<KnowledgebaseDialogContentAttrs>): Children {
 		const model = attrs.model
 		const selectedEntry = model.selectedEntry()
 		return selectedEntry
@@ -86,7 +86,7 @@ export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseViewA
 		])
 	}
 
-	_renderList(model: KnowledgeBaseModel, attrs: KnowledgebaseViewAttrs): Children {
+	_renderList(model: KnowledgeBaseModel, attrs: KnowledgebaseDialogContentAttrs): Children {
 		return m(".mt-s.scroll", {
 			oncreate: (vnode) => {
 				this._selectionChangedListener =

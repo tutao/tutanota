@@ -2,7 +2,7 @@
 
 import {KnowledgeBaseModel} from "../model/KnowledgeBaseModel"
 import {Editor} from "../../gui/editor/Editor"
-import type {KnowledgebaseViewAttrs} from "./KnowledgeBaseDialogContent"
+import type {KnowledgebaseDialogContentAttrs} from "./KnowledgeBaseDialogContent"
 import {KnowledgeBaseDialogContent} from "./KnowledgeBaseDialogContent"
 import {showTemplatePopupInEditor} from "../../templates/view/TemplatePopup"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
@@ -20,7 +20,7 @@ import {getSharedGroupName} from "../../sharing/GroupUtils"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
 
 
-export function createKnowledgeBaseDialogInjection(knowledgeBase: KnowledgeBaseModel, templateModel: TemplatePopupModel, editor: Editor): DialogInjectionRightAttrs<KnowledgebaseViewAttrs> {
+export function createKnowledgeBaseDialogInjection(knowledgeBase: KnowledgeBaseModel, templateModel: TemplatePopupModel, editor: Editor): DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> {
 	const knowledgebaseAttrs = {
 		onTemplateSelect: (template) => {
 			showTemplatePopupInEditor(templateModel, editor, template, "")
@@ -36,7 +36,7 @@ export function createKnowledgeBaseDialogInjection(knowledgeBase: KnowledgeBaseM
 	}
 }
 
-export function createOpenKnowledgeBaseButtonAttrs(dialogInjectionAttrs: DialogInjectionRightAttrs<KnowledgebaseViewAttrs>, getEmailContent: () => string): ButtonAttrs {
+export function createOpenKnowledgeBaseButtonAttrs(dialogInjectionAttrs: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>, getEmailContent: () => string): ButtonAttrs {
 
 	return {
 		label: "openKnowledgebase_action",
@@ -54,7 +54,7 @@ export function createOpenKnowledgeBaseButtonAttrs(dialogInjectionAttrs: DialogI
 	}
 }
 
-function _createHeaderAttrs(attrs: KnowledgebaseViewAttrs, isDialogVisible: Stream<boolean>): lazy<DialogHeaderBarAttrs> {
+function _createHeaderAttrs(attrs: KnowledgebaseDialogContentAttrs, isDialogVisible: Stream<boolean>): lazy<DialogHeaderBarAttrs> {
 	return () => {
 		const selectedEntry = attrs.model.selectedEntry()
 		return selectedEntry
