@@ -26,6 +26,7 @@ import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
 import {createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {isMailAddress} from "../../misc/FormatValidator"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -461,8 +462,8 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		eventObj.properties.forEach((property) => {
 			if (property.name === "ATTENDEE") {
 				const attendeeAddress = parseMailtoValue(property.value)
-				if (!attendeeAddress) {
-					console.log("attendee has no address, ignoring")
+				if (!attendeeAddress || !isMailAddress(attendeeAddress, false)) {
+					console.log("attendee has no address or address is invalid, ignoring: ", attendeeAddress)
 					return
 				}
 				const partStatString = property.params["PARTSTAT"]
@@ -487,11 +488,13 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		const organizerProp = eventObj.properties.find(p => p.name === "ORGANIZER")
 		if (organizerProp) {
 			const organizerAddress = parseMailtoValue(organizerProp.value)
-			if (organizerAddress) {
+			if (organizerAddress && isMailAddress(organizerAddress, false)) {
 				event.organizer = createEncryptedMailAddress({
 					address: organizerAddress,
 					name: organizerProp.params["name"] || "",
 				})
+			} else {
+				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
 			}
 		}
 		try {
