@@ -2,7 +2,7 @@
 
 import m from "mithril"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
-import {memoized, neverNull} from "../../api/common/utils/Utils"
+import {memoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {startsWith} from "../../api/common/utils/StringUtils"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -11,6 +11,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TemplateGroupRoot"
 import {locator} from "../../api/main/MainLocator"
 import {getConfirmation} from "../../gui/base/GuiUtils"
+import {NotFoundError} from "../../api/common/error/RestError"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry,
@@ -61,7 +62,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 			type: ButtonType.Action,
 			click: () => {
 				getConfirmation("deleteEntryConfirm_msg")
-					.confirmed(() => locator.entityClient.erase(entry))
+					.confirmed(() => locator.entityClient.erase(entry).catch(NotFoundError, noOp))
 			}
 		}
 
