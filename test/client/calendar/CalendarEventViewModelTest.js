@@ -374,6 +374,40 @@ o.spec("CalendarEventViewModel", function () {
 			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([attendee.address.address])
 		})
 
+		o("own event with non-existing internal attendees in own calendar", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const nonExistingAttendee = makeAttendee()
+			const existingAttendee = makeAttendee("other.address@tutanota.com")
+			const ownAttendee = makeAttendee(encMailAddress.address)
+			const calendarModel = makeCalendarModel()
+			const mailModel = makeMailModel(["other.address@tutanota.com"])
+			const existingEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: encMailAddress,
+				attendees: [ownAttendee, existingAttendee, nonExistingAttendee],
+				sequence: "1",
+			})
+			const newEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: encMailAddress,
+				attendees: [ownAttendee, existingAttendee, nonExistingAttendee],
+				sequence: "2",
+				startTime: existingEvent.startTime,
+				endTime: existingEvent.endTime,
+			})
+			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel})
+
+			await viewModel.deleteEvent()
+
+			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
+			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
+			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([newEvent])
+			o(cancelModel.bccRecipients().length).equals(1)
+		})
+
 		o("own event with external attendees in own calendar, has password, not confidential", async function () {
 			const calendars = makeCalendars("own")
 			const distributor = makeDistributor()
