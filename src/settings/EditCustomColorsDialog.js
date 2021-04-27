@@ -5,11 +5,9 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import type {Theme} from "../gui/theme"
-import {theme, themeManager} from "../gui/theme"
+import {themeManager} from "../gui/theme"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {update} from "../api/main/Entity"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
@@ -21,11 +19,11 @@ let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeManager.getDefaultTheme())
-	                               .filter(name => name !== "logo")
+	                               .filter(name => name !== "logo" && name !== "themeId")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
-	                               	       // value is closed over by injectionsRight,
-		                                   // so the color swatch will always be up to date with the contents of the text field
+			                               // value is closed over by injectionsRight,
+			                               // so the color swatch will always be up to date with the contents of the text field
 			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,

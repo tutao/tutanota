@@ -30,7 +30,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 			, {
 				style: {
 					background: "#" + attrs.color,
-					color: colorForBg(attrs.color),
+					color: colorForBg("#" + attrs.color),
 					minHeight: px(defaultBubbleHeight),
 					height: px(attrs.height ? attrs.height : defaultBubbleHeight),
 					"padding-top": px(attrs.verticalPadding || 0),
@@ -43,7 +43,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 				attrs.hasAlarm
 					? m(Icon, {
 						icon: Icons.Notifications,
-						style: {fill: colorForBg(attrs.color), "padding-top": "2px", "padding-right": "2px"},
+						style: {fill: colorForBg("#" + attrs.color), "padding-top": "2px", "padding-right": "2px"},
 						class: "icon-small",
 					})
 					: null,

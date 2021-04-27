@@ -196,7 +196,12 @@
 		3D9A1F4A22031B99002C2455 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0522031B99002C2455 /* LaunchScreen.storyboard */; };
 		3D9A1F4B22031B99002C2455 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0722031B99002C2455 /* Main.storyboard */; };
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
+		3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */; };
 		3DB9A20E22BA5C23004EA08F /* TUTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DB9A20D22BA5C23004EA08F /* TUTUtils.m */; };
+		3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299F9267358AF00E1E79F /* ThemeManager.swift */; };
+		3DC299FB267358AF00E1E79F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299F9267358AF00E1E79F /* ThemeManager.swift */; };
+		3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299FC2673668000E1E79F /* QueryUtils.swift */; };
+		3DC299FE2673668000E1E79F /* QueryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299FC2673668000E1E79F /* QueryUtils.swift */; };
 		3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* TUTViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
@@ -205,6 +210,8 @@
 		3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
 		3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */; };
 		3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
+		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
+		3DE1E446266672870018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
@@ -337,8 +344,12 @@
 		3D9A1F0622031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3D9A1F0822031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
 		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
+		3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanotaTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensionsTest.swift; sourceTree = "<group>"; };
 		3DB9A20C22BA5C23004EA08F /* TUTUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTUtils.h; sourceTree = "<group>"; };
 		3DB9A20D22BA5C23004EA08F /* TUTUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTUtils.m; sourceTree = "<group>"; };
+		3DC299F9267358AF00E1E79F /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		3DC299FC2673668000E1E79F /* QueryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryUtils.swift; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08620F8C6240086EB36 /* TUTAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAppDelegate.h; sourceTree = "<group>"; };
 		3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAppDelegate.m; sourceTree = "<group>"; };
@@ -355,6 +366,7 @@
 		3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModelTest.m; sourceTree = "<group>"; };
 		3DD7A23622C604F000876B85 /* TUTAlarmModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmModel.h; sourceTree = "<group>"; };
 		3DD7A23722C604F000876B85 /* TUTAlarmModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModel.m; sourceTree = "<group>"; };
+		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
@@ -436,6 +448,7 @@
 				3DD4A08A20F8C6240086EB36 /* TUTViewController.m */,
 				3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */,
 				3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */,
+				3DC299F9267358AF00E1E79F /* ThemeManager.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -490,6 +503,8 @@
 				3D63A0E2233D009E00D05259 /* TUTLog.m */,
 				3D2DE2C623FC387700FFB95B /* AsyncBlockOperation.h */,
 				3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */,
+				3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */,
+				3DC299FC2673668000E1E79F /* QueryUtils.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1110,11 +1125,13 @@
 		3DD4A09E20F8C6260086EB36 /* tutanotaTests */ = {
 			isa = PBXGroup;
 			children = (
+				3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */,
 				3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */,
 				3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */,
 				3DD4A0A120F8C6260086EB36 /* Info.plist */,
 				3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */,
 				3D63A0E4233D0C1400D05259 /* TUTLogTest.m */,
+				3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1197,6 +1214,7 @@
 					};
 					3DD4A09A20F8C6260086EB36 = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1250;
 						TestTargetID = 3DD4A08220F8C6240086EB36;
 					};
 				};
@@ -1488,7 +1506,9 @@
 				3D378F002536F79A0001F1F3 /* TUTUtils.m in Sources */,
 				3D378F012536F79A0001F1F3 /* TUTErrorFactory.m in Sources */,
 				3D378F022536F79A0001F1F3 /* TUTEncodingConverter.m in Sources */,
+				3DC299FE2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D378F032536F79A0001F1F3 /* TUTAes128Facade.m in Sources */,
+				3DC299FB267358AF00E1E79F /* ThemeManager.swift in Sources */,
 				3D378F042536F79A0001F1F3 /* TUTFileUtil.m in Sources */,
 				3D378F052536F79A0001F1F3 /* TUTSubKeys.m in Sources */,
 				3D378F062536F79A0001F1F3 /* TUTContactsSource.m in Sources */,
@@ -1497,6 +1517,7 @@
 				3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */,
 				3D378F0B2536F79A0001F1F3 /* TUTAlarmInfo.m in Sources */,
 				3D378F0C2536F79A0001F1F3 /* TUTAlarmModel.m in Sources */,
+				3DE1E446266672870018C9DE /* UIColor+utils.swift in Sources */,
 				3D378F0D2536F79A0001F1F3 /* main.m in Sources */,
 				3D378F0E2536F79A0001F1F3 /* TUTAppDelegate.m in Sources */,
 			);
@@ -1524,7 +1545,9 @@
 				3DB9A20E22BA5C23004EA08F /* TUTUtils.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
+				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
+				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
 				3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */,
@@ -1533,6 +1556,7 @@
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
 				3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */,
 				3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */,
+				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
 				3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */,
 			);
@@ -1545,6 +1569,7 @@
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 				3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */,
 				3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */,
+				3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2333,6 +2358,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				INFOPLIST_FILE = tutanotaTests/Info.plist;
@@ -2343,6 +2369,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tutanota.app/tutanota";
 			};
@@ -2353,6 +2382,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
 				INFOPLIST_FILE = tutanotaTests/Info.plist;
@@ -2363,6 +2393,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanotaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanotaTests/tutanotaTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tutanota.app/tutanota";
 			};

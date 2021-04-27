@@ -49,7 +49,7 @@ globalThis.mocks = {}
 		globalThis.window = browserMock.default()
 		globalThis.window.getElementsByTagName = function () {
 		} // for styles.js
-		globalThis.window.location = {hostname: "https://tutanota.com"}
+		globalThis.window.location = {hostname: "tutanota.com", search: ""}
 		globalThis.window.document.addEventListener = function () {
 		}
 		globalThis.document = globalThis.window.document

@@ -50,6 +50,7 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) TUTKeychainManager *keychainManager;
 @property (readonly, nonnull) TUTUserPreferenceFacade *userPreferences;
 @property (readonly, nonnull) TUTAlarmManager *alarmManager;
+@property (readonly, nonnull) ThemeManager *themeManager;
 @property BOOL darkTheme;
 @end
 
@@ -64,6 +65,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 		_fileChooser = [[TUTFileChooser alloc] initWithViewController:self];
 		_fileUtil = [[TUTFileUtil alloc] initWithViewController:self];
 		_contactsSource = [TUTContactsSource new];
+    _themeManager = [ThemeManager new];
 		_keyboardSize = 0;
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
@@ -85,6 +87,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 	_webView.scrollView.bounces = false;
 	_webView.scrollView.scrollEnabled = NO;
 	_webView.scrollView.delegate = self;
+  _webView.opaque = NO;
 	if (@available(iOS 11.0, *)) {
   		_webView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
 	}
@@ -116,7 +119,9 @@ alarmManager:(TUTAlarmManager *)alarmManager
 	[_webView.topAnchor constraintEqualToAnchor:self.view.topAnchor].active = YES;
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
-    
+  let theme = [_themeManager currenThemeWithFallback];
+  [self applyTheme:theme];
+  
     if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
         [self.appDelegate.alarmManager resetStoredState];
     } else {
@@ -130,7 +135,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
         [self.appDelegate.alarmManager rescheduleAlarms];
     }
     
-    [self loadMainPageWithParams:nil];
+    [self loadMainPageWithParams:[NSDictionary new]];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -190,10 +195,6 @@ alarmManager:(TUTAlarmManager *)alarmManager
 		[_fileUtil getSizeForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"getMimeType" isEqualToString:type]) {
 		[_fileUtil getMimeTypeForPath:arguments[0] completion:sendResponseBlock];
-	} else if ([@"changeTheme" isEqualToString:type]) {
-        _darkTheme = [@"dark" isEqual:arguments[0]];
-        [self setNeedsStatusBarAppearanceUpdate];
-		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"aesEncryptFile" isEqualToString:type]) {
 		[_crypto aesEncryptFileWithKey:arguments[0] atPath:arguments[1] completion:sendResponseBlock];
 	} else if ([@"aesDecryptFile" isEqualToString:type]) {
@@ -282,6 +283,19 @@ alarmManager:(TUTAlarmManager *)alarmManager
     }
     NSError *error;
     [self.alarmManager processNewAlarms:alarms error:&error];
+  } else if ([@"getSelectedTheme" isEqualToString:type]) {
+      sendResponseBlock(_themeManager.selectedThemeId, nil);
+  } else if ([@"setSelectedTheme" isEqualToString:type]) {
+    NSString *themeId = arguments[0];
+    _themeManager.selectedThemeId = themeId;
+    [self applyTheme:_themeManager.currenTheme];
+    sendResponseBlock(NSNull.null, nil);
+  } else if ([@"getThemes" isEqualToString:type]) {
+    sendResponseBlock(_themeManager.themes, nil);
+  } else if ([@"setThemes" isEqualToString:type]) {
+    NSArray<NSDictionary<NSString *, NSString*> *> *themes = arguments[0];
+    _themeManager.themes = themes;
+    sendResponseBlock(NSNull.null, nil);
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		TUTLog(@"%@", message);
@@ -300,18 +314,30 @@ alarmManager:(TUTAlarmManager *)alarmManager
 	};
 }
 
-- (void) loadMainPageWithParams:(NSString * _Nullable)params {
-	var fileUrl = [self appUrl];
-	let folderUrl = [fileUrl URLByDeletingLastPathComponent];
-	if (params != nil) {
-		let newUrlString = [NSString stringWithFormat:@"%@%@", [fileUrl absoluteString], params];
-		fileUrl = [NSURL URLWithString:newUrlString];
-	}
-	[_webView loadFileURL:fileUrl allowingReadAccessToURL:folderUrl];
+- (void) loadMainPageWithParams:(NSDictionary<NSString *, NSString*> *_Nonnull)params {
+  var fileUrl = [self appUrl];
+  let folderUrl = [fileUrl URLByDeletingLastPathComponent];
+  NSMutableDictionary<NSString *, NSString *> *mutableParams = params.mutableCopy;
+  let theme = _themeManager.currenTheme;
+  if (theme != nil) {
+    let encodedTheme = [self objectToJson:theme];
+    [mutableParams setObject:encodedTheme forKey:@"theme"];
+  }
+  let queryParams = [NSURLQueryItem fromDict:mutableParams];
+  let components = [NSURLComponents componentsWithURL:fileUrl resolvingAgainstBaseURL:NO];
+  components.queryItems = queryParams;
+  
+  let url = components.URL;
+  [_webView loadFileURL:url allowingReadAccessToURL:folderUrl];
 }
 
 - (void) sendResponseWithId:(NSString*)responseId value:(id)value {
 	[self sendResponseWithId:responseId type:@"response" value:value];
+}
+
+- (NSString *)objectToJson:(id)object {
+  return [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:object options:0 error:nil]
+                  encoding:NSUTF8StringEncoding];
 }
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
@@ -323,8 +349,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 			const NSObject *value = dict[key];
 			newDict[key] = value.description;
 		}
-		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:newDict options:0 error:nil]
-										encoding:NSUTF8StringEncoding];
+		message = [self objectToJson:newDict];
 	}
 
 	let errorDict = @{
@@ -384,22 +409,21 @@ alarmManager:(TUTAlarmManager *)alarmManager
 - (void)webView:(WKWebView *)webView
 decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    
-    var requestUrl = navigationAction.request.URL;
-    
-	if ([requestUrl.scheme isEqualToString:@"file"]  // check if request url is the appUrl possible with query parameters
-        && [requestUrl.path isEqualToString:self.appUrl.path]) {
-		decisionHandler(WKNavigationActionPolicyAllow);
-    } else if([requestUrl.scheme isEqualToString:@"file"] && [requestUrl.absoluteString hasPrefix:self.appUrl.absoluteString]) {
-        // If the app is removed from memory, the URL won't point to the file but will have additional path.
-        // We ignore additional path for now.
-        decisionHandler(WKNavigationActionPolicyCancel);
-        var params = [NSString stringWithFormat:@"?%@", navigationAction.request.URL.query];
-        [self loadMainPageWithParams:params];
-    } else {
-		decisionHandler(WKNavigationActionPolicyCancel);
-		[[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
-	}
+  
+  var requestUrl = navigationAction.request.URL;
+  
+  if ([requestUrl.scheme isEqualToString:@"file"]  // check if request url is the appUrl possible with query parameters
+      && [requestUrl.path isEqualToString:self.appUrl.path]) {
+    decisionHandler(WKNavigationActionPolicyAllow);
+  } else if([requestUrl.scheme isEqualToString:@"file"] && [requestUrl.absoluteString hasPrefix:self.appUrl.absoluteString]) {
+    // If the app is removed from memory, the URL won't point to the file but will have additional path.
+    // We ignore additional path for now.
+    decisionHandler(WKNavigationActionPolicyCancel);
+    [self loadMainPageWithParams:[NSDictionary new]];
+  } else {
+    decisionHandler(WKNavigationActionPolicyCancel);
+    [[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
+  }
 }
 
 -(void)sendRequestWithType:(NSString * _Nonnull)type
@@ -499,6 +523,14 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
             return UIStatusBarStyleDefault;
         }
     }
+}
+
+- (void)applyTheme:(NSDictionary<NSString *,NSString *> *_Nonnull)theme {
+  NSString *contentBgString = theme[@"content_bg"];
+  let contentBg = [[UIColor alloc] initWithHex:contentBgString];
+  self.darkTheme = ![UIColor isColorLight:contentBgString];
+  self.view.backgroundColor = contentBg;
+  [self setNeedsStatusBarAppearanceUpdate];
 }
 
 @end

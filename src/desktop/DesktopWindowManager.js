@@ -21,6 +21,7 @@ import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/Co
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
 import {downcast} from "../api/common/utils/Utils"
+import {ThemeManager} from "./ThemeManager"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -36,6 +37,7 @@ export class WindowManager {
 	+_notifier: DesktopNotifier
 	_contextMenu: DesktopContextMenu
 	+_electron: $Exports<"electron">
+	+_themeManager: ThemeManager;
 	ipc: IPC
 	+dl: DesktopDownloadManager
 	+_newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
@@ -43,7 +45,7 @@ export class WindowManager {
 	_currentBounds: WindowBounds
 
 	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
-	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager) {
+	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager, themeManager: ThemeManager) {
 		this._conf = conf
 		conf.getVar(DesktopConfigKey.spellcheck).then(l => this._setSpellcheckLang(l))
 		conf.on(DesktopConfigKey.spellcheck, l => this._setSpellcheckLang(l))
@@ -51,6 +53,8 @@ export class WindowManager {
 		this._notifier = notifier
 		this.dl = dl
 		this._electron = electron
+		this._themeManager = themeManager
+
 		this._newWindowFactory = (noAutoLogin) => this._newWindow(electron, localShortcut, noAutoLogin)
 		this._dragIcons = {
 			"eml": this._tray.getIconByName("eml.png"),
@@ -240,12 +244,14 @@ export class WindowManager {
 			: "https://mail.tutanota.com/desktop/" // custom builds get the dicts from us as well
 
 		const icon = await this.getIcon()
+
 		return new ApplicationWindow(
 			this,
 			desktopHtml,
 			icon,
 			electron,
 			localShortcut,
+			this._themeManager,
 			dictUrl,
 			noAutoLogin,
 		)

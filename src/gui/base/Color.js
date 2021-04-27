@@ -1,11 +1,15 @@
 //@flow
 
 import {assertMainOrNodeBoot} from "../../api/common/Env"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 assertMainOrNodeBoot()
 
 export function isColorLight(c: string): boolean {
-	const rgb = parseInt(c, 16);   // convert rrggbb to decimal
+	if (c[0] !== "#" || c.length !== 7) {
+		throw new ProgrammingError("Invalid color format: " + c)
+	}
+	const rgb = parseInt(c.slice(1), 16);   // convert rrggbb to decimal
 	const r = (rgb >> 16) & 0xff  // extract red
 	const g = (rgb >> 8) & 0xff   // extract green
 	const b = (rgb >> 0) & 0xff   // extract blue

@@ -1,7 +1,7 @@
 // @flow
 import {Cat, log, timer} from "../misc/Log"
 import {size} from "./size"
-import {assertMainOrNodeBoot, isAdminClient} from "../api/common/Env"
+import {assertMainOrNodeBoot, isAdminClient, isTest} from "../api/common/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeManager} from "./theme"
 import {neverNull} from "../api/common/utils/Utils"
@@ -59,6 +59,10 @@ class Styles {
 	}
 
 	_updateDomStyles() {
+		// This is hacking but we currently import gui stuff from a lot of tested things
+		if (isTest()) {
+			return
+		}
 		let time = timer(Cat.css)
 		Array.from(this.styles.entries()).map((entry) => {
 			this._updateDomStyle(entry[0], entry[1])

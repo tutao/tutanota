@@ -179,6 +179,10 @@ export function firstThrow<T>(array: $ReadOnlyArray<T>): T {
 	return array[0]
 }
 
+export function first<T>(array: $ReadOnlyArray<T>): T | null {
+	return array[0] || null
+}
+
 export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {
 	const index = findLastIndex(array, predicate)
 	if (index !== -1) {
@@ -391,4 +395,15 @@ export function partition<T>(array: Array<T>, predicate: T => boolean): [Array<T
 	}
 
 	return [left, right]
+}
+
+export function filterMap<T, R>(array: $ReadOnlyArray<T>, predicate: (T) => ?R): Array<R> {
+	const result = []
+	for (const item of array) {
+		const mapped = predicate(item)
+		if (mapped) {
+			result.push(mapped)
+		}
+	}
+	return result
 }

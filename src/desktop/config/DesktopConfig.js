@@ -13,6 +13,7 @@ import type {DeviceKeyProvider} from "../DeviceKeyProviderImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 
 type AllConfigKeysEnum = DesktopConfigKeyEnum | DesktopConfigEncKeyEnum
@@ -137,6 +138,8 @@ export class DesktopConfig {
 			} else {
 				await this._setEncryptedVar(key, value)
 			}
+		} else {
+			throw new ProgrammingError("Unknown config key: " + key)
 		}
 
 		await this._saveAndNotify(key, value)

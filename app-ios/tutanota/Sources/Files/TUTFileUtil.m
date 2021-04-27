@@ -183,7 +183,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		});
 }
 
-+ (NSString*) getEncryptedFolder:(NSError**)error {
++ (NSString *) getEncryptedFolder:(NSError **)error {
     NSString * encryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"encrypted"];
     [[NSFileManager defaultManager] createDirectoryAtPath:encryptedFolder
                               withIntermediateDirectories:YES
@@ -192,8 +192,8 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
     return encryptedFolder;
 }
 
-+ (NSString*) getDecryptedFolder:(NSError**)error  {
-    NSString * decryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"decrypted"];
++ (NSString *) getDecryptedFolder:(NSError **)error  {
+    NSString *decryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"decrypted"];
     [[NSFileManager defaultManager] createDirectoryAtPath:decryptedFolder
                               withIntermediateDirectories:YES
                                                attributes:nil

@@ -4,7 +4,7 @@ import {client} from "./ClientDetector"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {LanguageCode} from "./LanguageViewModel"
-import type {ThemeId} from "../gui/theme"
+import type {Theme, ThemeId} from "../gui/theme"
 
 assertMainOrNodeBoot()
 
@@ -26,9 +26,6 @@ export class DeviceConfig {
 	_hiddenCalendars: {[userId: Id]: Id[]}
 	_signupToken: string;
 
-	/**
-	 * @param config The config to copy from
-	 */
 	constructor() {
 		this._version = ConfigVersion
 		this._load()
@@ -38,7 +35,6 @@ export class DeviceConfig {
 		this._credentials = []
 		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? this._parseConfig(loadedConfigString) : null
-
 		this._themeId = defaultThemeId
 		if (loadedConfig) {
 			if (loadedConfig._themeId) {
@@ -47,7 +43,6 @@ export class DeviceConfig {
 				this._themeId = loadedConfig._theme
 			}
 		}
-
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
