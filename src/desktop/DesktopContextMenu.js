@@ -3,16 +3,23 @@
 import type {ContextMenuParams, Menu, WebContents} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {IPC} from "./IPC"
+import type {ResolvedObjectUrl} from "../native/main/NativeWrapperCommands"
+import type {DesktopDownloadManager} from "./DesktopDownloadManager"
+import {WindowManager} from "./DesktopWindowManager"
 
 type Electron = $Exports<"electron">
 
 export class DesktopContextMenu {
 	_ipc: IPC;
 	_electron: Electron;
+	_wm: WindowManager
+	_dl: DesktopDownloadManager
 
-	constructor(electron: Electron, ipc: IPC) {
+	constructor(electron: Electron, ipc: IPC, wm: WindowManager, dl: DesktopDownloadManager) {
 		this._electron = electron
 		this._ipc = ipc
+		this._wm = wm
+		this._dl = dl
 	}
 
 	open(params: ContextMenuParams) {
@@ -57,11 +64,23 @@ export class DesktopContextMenu {
 			label: lang.get("spelling_label"),
 			submenu: this._spellingSubmenu(misspelledWord, dictionarySuggestions)
 		})
+		const downloadImage = new this._electron.MenuItem({
+			label: lang.get("save_action"),
+			click: (mi, bw) => {
+				const window = this._wm.get(bw.id)
+				window && this._wm.ipc.sendRequest(window.id, 'resolveUrl', [params.srcURL])
+				              .then((resolved: ResolvedObjectUrl) => {
+					              this._dl.saveBlob(resolved.name || "file", resolved.data, window)
+				              })
+			},
+			visible: params.hasImageContents && params.mediaType === "image"
+		})
 
 		menu.append(copyItem)
 		menu.append(cutItem)
 		menu.append(copyLinkItem)
 		menu.append(pasteItem)
+		menu.append(downloadImage)
 		menu.append(new this._electron.MenuItem({type: 'separator'}))
 		menu.append(undoItem)
 		menu.append(redoItem)

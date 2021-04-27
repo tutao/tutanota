@@ -3,6 +3,8 @@ import {Request} from "../../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
+import {mimeTypeToFileExtension} from "../../api/common/utils/FileUtils"
+import {downcast} from "../../api/common/utils/Utils"
 
 async function createMailEditor(msg: Request): Promise<void> {
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
@@ -158,6 +160,33 @@ function openCustomer(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
+export type ResolvedObjectUrl = {
+	data: Uint8Array,
+	name: ?string,
+	mimeType: string
+}
+
+async function resolveUrl(msg: Request): Promise<ResolvedObjectUrl> {
+	const url = msg.args[0]
+	const {fileController} = await import("../../file/FileController")
+	const {lang} = await import("../../misc/LanguageViewModel.js")
+
+	const data = await fetch(url)
+	const blob = await data.blob()
+	const buffer = await blob.arrayBuffer()
+
+	const fileName =
+		(url.startsWith("http")
+			? url.split("/").reverse()[0]
+			: fileController.getFileNameFromObjectUrl(url))
+		|| `${lang.get("unknown_label").toLowerCase()}${mimeTypeToFileExtension(downcast(blob.type)) || ""}`
+	return {
+		data: new Uint8Array(buffer),
+		mimeType: blob.type,
+		name: fileName
+	}
+}
+
 /**
  * /**
  * this updates the link-reveal on hover when the main thread detects that
@@ -238,5 +267,6 @@ export const desktopCommands = {
 	appUpdateDownloaded,
 	openCustomer,
 	updateTargetUrl,
+	resolveUrl,
 	showSpellcheckDropdown
 }

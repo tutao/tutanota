@@ -82,7 +82,6 @@ import type {PosRect} from "../../gui/base/Dropdown"
 import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import Badge from "../../gui/base/Badge"
-import {FileOpenError} from "../../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -106,7 +105,12 @@ import type {ResponseMailParameters} from "../editor/SendMailModel"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {EntityClient} from "../../api/common/EntityClient"
-import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
+import {
+	downloadAndMaybeOpenFile,
+	moveMails,
+	promptAndDeleteMails,
+	replaceCidsWithInlineImages
+} from "./MailGuiUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
@@ -123,7 +127,8 @@ import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
-export type InlineImages = Map<string, {file: TutanotaFile | DataFile, url: string}>
+export type InlineImage = {file: TutanotaFile | DataFile, url: string}
+export type InlineImages = Map<string, InlineImage>
 
 // synthetic events are fired in code to distinguish between double and single click events
 type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
@@ -842,23 +847,7 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
-					if (file._type !== "DataFile") {
-						const coords = getCoordsOfMouseOrTouchEvent(event)
-						showDropdownAtPosition([
-							{
-								label: "download_action",
-								click: () => this._downloadAndOpenAttachment(file, false),
-								type: ButtonType.Dropdown
-							},
-							{
-								label: "open_action",
-								click: () => this._downloadAndOpenAttachment(file, true),
-								type: ButtonType.Dropdown
-							},
-						], coords.x, coords.y)
-					}
-				})
+				replaceCidsWithInlineImages(domBody, loadedInlineImages)
 			})
 		})
 	}
@@ -947,7 +936,7 @@ export class MailViewer {
 							           })
 							           inlineImages.set(neverNull(file.cid), {
 								           file,
-								           url: URL.createObjectURL(blob)
+								           url: fileController.createObjectUrlForFile(blob, file.name)
 							           })
 						           })).return(inlineImages)
 				           })
@@ -1095,7 +1084,7 @@ export class MailViewer {
 		this.onbeforeremove = () => {
 			this._inlineImages.then((inlineImages) => {
 				for (let img of inlineImages.values()) {
-					URL.revokeObjectURL(img.url)
+					fileController.revokeObjectUrlForFile(img.url)
 				}
 			})
 		}
@@ -1519,16 +1508,6 @@ export class MailViewer {
 		}
 	}
 
-	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
-		fileController.downloadAndOpen(file, open)
-		              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-		              .catch(e => {
-			              const msg = e || "unknown error"
-			              console.error("could not open file:", msg)
-			              return Dialog.error("errorDuringFileOpen_msg")
-		              })
-	}
-
 	_createAttachmentsButtons(files: $ReadOnlyArray<TutanotaFile>, inlineCids: $ReadOnlyArray<Id>): Button[] {
 		// Only show file buttons which do not correspond to inline images in HTML
 		files = files.filter((item) => inlineCids.includes(item.cid) === false)
@@ -1539,9 +1518,9 @@ export class MailViewer {
 				const dropdownButton: Button = createDropDownButton(() => file.name,
 					() => Icons.Attachment,
 					() => [
-						new Button("open_action", () => this._downloadAndOpenAttachment(file, true), null)
+						new Button("open_action", () => downloadAndMaybeOpenFile(file, true), null)
 							.setType(ButtonType.Dropdown),
-						new Button("download_action", () => this._downloadAndOpenAttachment(file, false), null)
+						new Button("download_action", () => downloadAndMaybeOpenFile(file, false), null)
 							.setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
@@ -1556,7 +1535,7 @@ export class MailViewer {
 			})
 		} else {
 			buttons = files.map(file => new Button(() => file.name,
-				() => this._downloadAndOpenAttachment(file, true),
+				() => downloadAndMaybeOpenFile(file, true),
 				() => Icons.Attachment)
 				.setType(ButtonType.Bubble)
 				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")

@@ -42,7 +42,8 @@ declare module 'electron' {
 		openPath(fullPath: string): Promise<string>;
 	};
 
-	declare export class NativeImage {}
+	declare export class NativeImage {
+	}
 
 	declare export type Rectangle = {|
 		x: number,
@@ -54,7 +55,7 @@ declare module 'electron' {
 	declare export type ClipBoard = {
 		writeText(string): void;
 	}
-
+	// https://www.electronjs.org/docs/api/web-contents#event-context-menu
 	declare export type ContextMenuParams = {
 		linkURL: string,
 		misspelledWord: string,
@@ -65,7 +66,10 @@ declare module 'electron' {
 			canCopy: boolean,
 			canUndo: boolean,
 			canRedo: boolean
-		}
+		},
+		hasImageContents: boolean,
+		mediaType: "none" | "image" | "audio" | "video" | "canvas" | "file" | "plugin",
+		srcURL?: string
 	}
 
 	declare export type IncomingMessage = {
@@ -279,7 +283,7 @@ declare module 'electron' {
 			options: MessageBoxOptions
 		): Promise<{response: number, checkboxChecked: boolean}>,
 		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions): Promise<{canceled: boolean, filePaths: string[]}>,
-		showSaveDialog(browserWindow: ?BrowserWindow, options: SaveDialogOptions): Promise<{canceled: boolean, filePath?: string, bookmark?: string}>,
+		showSaveDialog(browserWindow: ?BrowserWindow, options: SaveDialogOptions): Promise<SaveDialogReturn>,
 		showErrorBox(title: string, content: string): void,
 	}
 
@@ -291,11 +295,16 @@ declare module 'electron' {
 		properties: Array<'openFile' | 'openDirectory' | 'multiSelection' | 'showHiddenFiles'>,
 	}
 
+	// https://www.electronjs.org/docs/api/dialog#dialogshowsavedialogbrowserwindow-options
 	declare export type SaveDialogOptions = {
 		title?: string,
 		defaultPath?: string,
 		// Incomplete
 	}
+
+	declare export type SaveDialogReturn =
+		{canceled: true, bookmark?: string}
+		| {canceled: false, filePath: string, bookmark?: string}
 
 	declare export type MessageBoxOptions = {
 		// type of the message box
@@ -396,6 +405,7 @@ declare module 'electron' {
 		}): MenuItem;
 		click(): void;
 		enabled: boolean;
+		visible: boolean;
 	}
 
 	declare export class BrowserWindow {

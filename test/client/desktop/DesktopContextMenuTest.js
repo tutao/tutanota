@@ -29,22 +29,27 @@ o.spec("DesktopContextMenu Test", () => {
 			})
 		}
 
-		const ipc = {
+		const ipc = {}
 
-		}
+		const wm = {}
+
+		const dl = {}
 
 		const electronMock: $Exports<"electron"> = n.mock('electron', electron).set()
 		const ipcMock = n.mock('__ipc', ipc).set()
-
+		const wmMock = n.mock('__wm', wm).set()
+		const dlMock = n.mock('__dl', dl).set()
 		return {
 			electronMock,
 			ipcMock,
+			wmMock,
+			dlMock
 		}
 	}
 
 	o("can handle undefined browserWindow and webContents in callback", () => {
-		const {electronMock, ipcMock} = standardMocks()
-		const contextMenu = new DesktopContextMenu(electronMock, ipcMock)
+		const {electronMock, ipcMock, wmMock, dlMock} = standardMocks()
+		const contextMenu = new DesktopContextMenu(electronMock, ipcMock, wmMock, dlMock)
 		contextMenu.open({
 			linkURL: "nourl",
 			editFlags: {
@@ -55,7 +60,9 @@ o.spec("DesktopContextMenu Test", () => {
 				canRedo: false
 			},
 			dictionarySuggestions: [],
-			misspelledWord: ""
+			misspelledWord: "",
+			hasImageContents: false,
+			mediaType: "none"
 		})
 		downcast(electronMock.MenuItem).mockedInstances.forEach(i => i.click && i.click(undefined, undefined))
 		downcast(electronMock.MenuItem).mockedInstances.forEach(i => i.click && i.click(undefined, "nowebcontents"))

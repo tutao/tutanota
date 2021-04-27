@@ -209,18 +209,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 				m.redraw()
 
 				this.editor.initialized.promise.then(() => {
-					this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), loadedInlineImages, (file, event, dom) => {
-						createDropdown(() => [
-							{
-								label: "download_action",
-								click: () => file._type !== "DataFile" // it's a TutanotaFile
-									? fileController.downloadAndOpen(downcast(file), true)
-									                .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-									: noOp,
-								type: ButtonType.Dropdown
-							}
-						])(downcast(event), dom)
-					})
+					this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), loadedInlineImages)
 				})
 			})
 		}

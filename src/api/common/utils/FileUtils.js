@@ -125,3 +125,17 @@ export function isReservedFilename(filename: string): boolean {
 
 	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
+
+const MimeTypeToFileExtension = Object.freeze({
+	"image/jpeg": ".jpg",
+	"image/png": ".png",
+	"image/gif": ".gif",
+	"image/svg+xml": ".svg"
+})
+
+export type MimeType = $Keys<typeof MimeTypeToFileExtension>
+export type FileExtension = $Values<typeof MimeTypeToFileExtension>
+
+export function mimeTypeToFileExtension(mimeType: MimeType): FileExtension {
+	return MimeTypeToFileExtension[mimeType]
+}
