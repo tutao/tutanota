@@ -20,6 +20,7 @@ import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {IUserController} from "../../api/main/UserController"
 import {SortedArray} from "../../api/common/utils/SortedArray"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
+import {flat} from "../../api/common/utils/ArrayUtils"
 
 export const SELECT_NEXT_ENTRY = "next";
 
@@ -239,5 +240,5 @@ export class KnowledgeBaseModel {
 
 function loadKnowledgebaseEntries(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<KnowledgeBaseEntry>> {
 	return promiseMap(templateGroups, group => entityClient.loadAll(KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase))
-		.then(groupedTemplates => groupedTemplates.flat())
+		.then(groupedTemplates => flat(groupedTemplates))
 }
