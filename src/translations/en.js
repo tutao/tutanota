@@ -115,6 +115,7 @@ export default {
 		"balance_label": "Balance",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Birthday",
+		"blue_label": "Blue",
 		"bookingItemUsersIncludingWhitelabel_label": "Users incl. whitelabel feature",
 		"bookingItemUsersIncluding_label": "Users including:",
 		"bookingItemUsers_label": "Users",

@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {LogoSvg} from "../gui/base/icons/Logo"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
@@ -9,7 +8,6 @@ import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
-import {isColorLight} from "../gui/base/Color"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {UserError} from "../api/main/UserError"
@@ -20,7 +18,7 @@ export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
-			m(".center.mt", m.trust(isColorLight(theme.content_bg.slice(1)) ? LogoSvg.Red : LogoSvg.Cyan)),
+			m(".center.mt", m.trust(theme.logo)),
 			m(".flex.justify-center.mt-l.flex-wrap", [
 				aboutLink(lang.getInfoLink("homePage_link"), "Website"),
 				aboutLink('https://github.com/tutao/tutanota/releases', 'Releases'),
