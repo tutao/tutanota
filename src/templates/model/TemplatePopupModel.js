@@ -22,6 +22,7 @@ import {GroupTypeRef} from "../../api/entities/sys/Group"
 import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import {SortedArray} from "../../api/common/utils/SortedArray"
+import {flat} from "../../api/common/utils/ArrayUtils"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -242,7 +243,7 @@ export function loadTemplateGroupInstance(groupMembership: GroupMembership, enti
 
 function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<EmailTemplate>> {
 	return promiseMap(templateGroups, group => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates))
-		.then(groupedTemplates => groupedTemplates.flat())
+		.then(groupedTemplates => flat(groupedTemplates))
 }
 
 class TemplateSearchFilter {
