@@ -32,7 +32,6 @@ import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
-import {isApp} from "../../api/common/Env"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -91,11 +90,9 @@ export class TemplatePopup implements ModalComponent {
 		this._rect = rect
 		this._onSelect = onSelect
 		this._initialWindowWidth = window.innerWidth
-		this._resizeListener =
-			isApp()
-				? noOp
-				: () => this._close()
-
+		this._resizeListener = () => {
+			this._close()
+		}
 		this._searchBarValue = stream(initialSearchString)
 		this._templateModel = templateModel
 
