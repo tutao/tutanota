@@ -75,6 +75,9 @@ export class LoginView {
 			.then(module => new module.LoginViewController(this))
 
 		if (window.location.href.includes('signup')) {
+			if (window.location.hash.includes('theme=blue')) {
+				setThemeId('blue')
+			}
 			this.permitAutoLogin = false
 			this._signup()
 		} else if (window.location.href.endsWith('recover')) {
@@ -170,6 +173,8 @@ export class LoginView {
 									case 'light':
 										return setThemeId('dark')
 									case 'dark':
+										return setThemeId('blue')
+									default:
 										return setThemeId('light')
 								}
 							}

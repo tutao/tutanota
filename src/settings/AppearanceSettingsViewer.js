@@ -48,7 +48,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
 			label: "switchColorTheme_action",
-			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}],
+			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}, {name: lang.get("blue_label"), value: "blue"}],
 			selectedValue: themeId,
 			selectionChangedHandler: (value) => setThemeId(value)
 		}

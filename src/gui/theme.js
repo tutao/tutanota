@@ -1,5 +1,5 @@
 // @flow
-import {LogoSvg} from "./base/icons/Logo"
+import {getLogoSvg} from "./base/icons/Logo"
 import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/common/Env"
@@ -86,6 +86,8 @@ function getTheme(): Theme {
 			return (Object.assign({}, getLightTheme(), customTheme): any)
 		case 'dark':
 			return getDarkTheme()
+		case 'blue':
+			return getBlueTheme()
 		default:
 			return getLightTheme()
 	}
@@ -139,9 +141,10 @@ function getLightTheme() {
 	const grey_darker_1 = '#303030'
 
 	const red = '#840010'
+	const logo_text_grey = '#4a4a4a'
 
 	return {
-		logo: LogoSvg.Red,
+		logo: getLogoSvg(red, logo_text_grey),
 
 
 		button_bubble_bg: grey_lighter_3,
@@ -199,9 +202,11 @@ function getDarkTheme(): Theme {
 	const dark_darker_0 = '#111111'
 
 	const green = '#00d2a7'
+	const logo_text_grey = '#c5c7c7'
+
 
 	return {
-		logo: LogoSvg.Cyan,
+		logo: getLogoSvg(green, logo_text_grey),
 
 		button_bubble_bg: dark_lighter_2,
 		button_bubble_fg: light_lighter_1,
@@ -243,3 +248,61 @@ function getDarkTheme(): Theme {
 		navigation_menu_icon: light,
 	}
 }
+
+
+function getBlueTheme(): Theme {
+	const light = '#ffffff'
+
+	const grey_lighter_4 = '#f6f6f6'
+	const grey_lighter_3 = '#eaeaea'
+	const grey_lighter_2 = "#e1e1e1"
+	const grey_lighter_1 = '#d5d5d5'
+	const grey_lighter_0 = '#b8b8b8'
+	const grey = '#868686'
+	const grey_darker_0 = '#707070'
+	const grey_darker_1 = '#303030'
+
+	const blue = '#0f52ba'
+	const logo_text_grey = '#4a4a4a'
+
+	return {
+		logo: getLogoSvg(blue, logo_text_grey),
+
+		button_bubble_bg: grey_lighter_3,
+		button_bubble_fg: grey_darker_1,
+
+		content_fg: grey_darker_1,
+		content_button: grey_darker_0,
+		content_button_selected: blue,
+		content_button_icon: light,
+		content_button_icon_selected: light,
+		content_accent: blue,
+		content_bg: light,
+		content_border: grey_lighter_1,
+		content_message_bg: grey_lighter_0,
+
+		header_bg: light,
+		header_box_shadow_bg: grey_lighter_1,
+		header_button: grey_darker_0,
+		header_button_selected: blue,
+
+		list_bg: light,
+		list_alternate_bg: grey_lighter_4,
+		list_accent_fg: blue,
+		list_message_bg: grey_lighter_0,
+		list_border: grey_lighter_2,
+
+		modal_bg: grey_darker_1,
+		elevated_bg: light,
+
+		navigation_bg: grey_lighter_4,
+		navigation_border: grey_lighter_2,
+		navigation_button: grey_darker_0,
+		navigation_button_icon: light,
+		navigation_button_selected: blue,
+		navigation_button_icon_selected: light,
+		navigation_menu_bg: grey_lighter_3,
+		navigation_menu_icon: grey
+	}
+}
+
