@@ -7,9 +7,8 @@ import {createContact} from "../../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../../api/entities/tutanota/ContactMailAddress"
 import type {ConversationTypeEnum, MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
 import {
-	AccountType,
 	ContactAddressType,
-	ConversationType, FeatureType,
+	ConversationType,
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
@@ -24,7 +23,7 @@ import {logins as globalLogins} from "../../api/main/LoginController"
 import type {Language} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {MailboxDetail, MailModel} from "./MailModel"
+import type {MailboxDetail} from "./MailModel"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import type {lazyIcon} from "../../gui/base/Icon"
 import {endsWith} from "../../api/common/utils/StringUtils"
@@ -43,6 +42,12 @@ import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperti
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import type {InboxRule} from "../../api/entities/tutanota/InboxRule"
 import type {TutanotaProperties} from "../../api/entities/tutanota/TutanotaProperties"
+import type {PublicKeyReturn} from "../../api/entities/sys/PublicKeyReturn"
+import {PublicKeyReturnTypeRef} from "../../api/entities/sys/PublicKeyReturn"
+import {SysService} from "../../api/entities/sys/Services"
+import {HttpMethod} from "../../api/common/EntityFunctions"
+import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
+import type {WorkerClient} from "../../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -128,16 +133,25 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 /**
  * @throws TooManyRequestsError if the recipient could not be resolved because of too many requests.
  */
-export function resolveRecipientInfo(mailModel: MailModel, recipientInfo: RecipientInfo): Promise<RecipientInfo> {
+export function resolveRecipientInfo(worker: WorkerClient, recipientInfo: RecipientInfo): Promise<RecipientInfo> {
 	if (recipientInfo.type !== RecipientInfoType.UNKNOWN) {
 		return Promise.resolve(recipientInfo)
 	} else {
-		return mailModel.getRecipientKeyData(recipientInfo.mailAddress)
+		return getRecipientKeyData(worker, recipientInfo.mailAddress)
 		                .then((keyData) => {
 			                recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
 			                return recipientInfo
 		                })
 	}
+}
+
+function getRecipientKeyData(worker: WorkerClient, mailAddress: string): Promise<?PublicKeyReturn> {
+	return worker.serviceRequest(
+		SysService.PublicKeyService,
+		HttpMethod.GET,
+		createPublicKeyData({mailAddress}),
+		PublicKeyReturnTypeRef
+	).catch(NotFoundError, () => null)
 }
 
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean): string {

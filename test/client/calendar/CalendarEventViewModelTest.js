@@ -57,6 +57,11 @@ import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
 import {createFeature} from "../../../src/api/entities/sys/Feature"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
+import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
+import {TypeRef} from "../../../src/api/common/utils/TypeRef"
+import {Request} from "../../../src/api/common/WorkerProtocol"
+import {SysService} from "../../../src/api/entities/sys/Services"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -66,6 +71,9 @@ const accountMailAddress = "address@tutanota.com"
 const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
 const userId = "12356"
 const getAddress = a => a.mailAddress
+let internalAddresses = []
+let delay = 0
+let mockedAttributeReferences = []
 
 o.spec("CalendarEventViewModel", function () {
 	let inviteModel: SendMailModel
@@ -81,7 +89,7 @@ o.spec("CalendarEventViewModel", function () {
 		              calendars,
 		              existingEvent,
 		              calendarModel = makeCalendarModel(),
-		              mailModel = makeMailModel(),
+		              mailModel = downcast({}),
 		              contactModel = makeContactModel(),
 		              mail = null
 	              }: {|
@@ -147,6 +155,21 @@ o.spec("CalendarEventViewModel", function () {
 	o.beforeEach(function () {
 		askForUpdates = o.spy(async () => "yes")
 		askInsecurePassword = o.spy(async () => true)
+		internalAddresses = []
+		delay = 0
+
+		function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
+			if (service === SysService.PublicKeyService) {
+				return Promise.delay(delay).then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
+			}
+			return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
+		}
+		mockedAttributeReferences.push(mockAttribute(worker, worker.serviceRequest, serviceRequest))
+	})
+
+	o.afterEach(function () {
+		mockedAttributeReferences.forEach(ref => unmockAttribute(ref))
+		mockedAttributeReferences = []
 	})
 
 	o("init with existing event", function () {
@@ -323,7 +346,8 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			const mailModel = makeMailModel([attendee.address.address])
+			internalAddresses = [attendee.address.address]
+			const mailModel = downcast({})
 			const existingEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
 				_ownerGroup: calendarGroupId,
@@ -356,7 +380,7 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			const mailModel = makeMailModel([])
+			const mailModel = downcast({})
 			const contact = createContact({
 				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
 				presharedPassword: "123",
@@ -403,7 +427,7 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			const mailModel = makeMailModel()
+			const mailModel = downcast({})
 			const contact = createContact({
 				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
 				presharedPassword: "123",
@@ -442,7 +466,7 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			const mailModel = makeMailModel()
+			const mailModel = downcast({})
 			const contact = createContact({
 				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
 				presharedPassword: null,
@@ -481,7 +505,8 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			const mailModel = makeMailModel([], 100) // delay resolving
+			delay = 100
+			const mailModel = downcast({}) // delay resolving
 			const contact = createContact({
 				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
 				presharedPassword: null,
@@ -1763,14 +1788,6 @@ function makeCalendarModel(): CalendarModel {
 		deleteEvent: o.spy(() => Promise.resolve()),
 		loadAlarms: o.spy(() => Promise.resolve([]))
 	})
-}
-
-function makeMailModel(internal: Array<string> = [], delay: number = 0): MailModel {
-	return downcast({
-			getRecipientKeyData: (address) =>
-				Promise.delay(delay).then(() => internal.includes(address) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
-		}
-	)
 }
 
 function makeContactModel(contacts: Array<Contact> = []): ContactModel {

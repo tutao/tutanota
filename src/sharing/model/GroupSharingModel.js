@@ -22,10 +22,12 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import {worker} from "../../api/main/WorkerClient"
 import {UserError} from "../../api/main/UserError"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
+import {RecipientInfoType} from "../../api/common/RecipientInfo"
 import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
 import {lang} from "../../misc/LanguageViewModel"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {resolveRecipientInfo} from "../../mail/model/MailUtils"
 
 export class GroupSharingModel {
 	+info: GroupInfo
@@ -110,32 +112,45 @@ export class GroupSharingModel {
 
 
 	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
-
-		return this.worker.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients, capability)
-		           .then((groupInvitationReturn) => {
-			           if (groupInvitationReturn.existingMailAddresses.length > 0
-				           || groupInvitationReturn.invalidMailAddresses.length > 0) {
-				           const existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
-				           const invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
-				           throw new UserError(() => {
-					           let msg = ""
-					           msg += existingMailAddresses.length === 0
-						           ? ""
-						           : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
-					           msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0
-						           ? ""
-						           : "\n\n"
-					           msg += invalidMailAddresses.length === 0
-						           ? ""
-						           : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-					           return msg
-				           })
-			           }
-			           return groupInvitationReturn.invitedMailAddresses
-		           })
-		           .catch(RecipientsNotFoundError, e => {
-			           throw new UserError(() => `${lang.get("invalidRecipients_msg")}\n${e.message}`)
-		           })
+		const externalRecipients = []
+		return Promise.each(recipients, (recipient) => {
+			return resolveRecipientInfo(this.worker, recipient)
+				.then(r => {
+					if (r.type !== RecipientInfoType.INTERNAL) {
+						externalRecipients.push(r.mailAddress)
+					}
+				})
+		}).then(() => {
+			if (externalRecipients.length) {
+				throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
+					+ externalRecipients.join("\n"))
+			}
+			return this.worker.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients, capability)
+			           .then((groupInvitationReturn) => {
+				           if (groupInvitationReturn.existingMailAddresses.length > 0
+					           || groupInvitationReturn.invalidMailAddresses.length > 0) {
+					           const existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
+					           const invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
+					           throw new UserError(() => {
+						           let msg = ""
+						           msg += existingMailAddresses.length === 0
+							           ? ""
+							           : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
+						           msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0
+							           ? ""
+							           : "\n\n"
+						           msg += invalidMailAddresses.length === 0
+							           ? ""
+							           : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+						           return msg
+					           })
+				           }
+				           return groupInvitationReturn.invitedMailAddresses
+			           })
+			           .catch(RecipientsNotFoundError, e => {
+				           throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
+			           })
+		})
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {

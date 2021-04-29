@@ -239,7 +239,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 				}
 			}
 			if (invalidText !== "") {
-				throw new UserError(() => lang.get("invalidRecipients_msg") + "\n" + invalidText)
+				throw new UserError(() => lang.get("invalidRecipients_msg") + invalidText)
 			}
 		})
 

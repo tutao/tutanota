@@ -605,7 +605,7 @@ export default {
 		"invalidLink_msg": "Sorry, this link is not valid.",
 		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 		"invalidPassword_msg": "Invalid password. Please check it again.",
-		"invalidRecipients_msg": "Please correct the invalid email address(es) in the recipient fields.",
+		"invalidRecipients_msg": "Please correct or remove the invalid email addresses:",
 		"invalidRegexSyntax_msg": "Invalid regex syntax",
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
 		"invalidTimePeriod_msg": "The entered time period is invalid.",
@@ -1367,5 +1367,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"tutanotaAddressDoesNotExist_msg": "The following Tutanota email addresses do not exist.",
+		"featureTutanotaOnly_msg": "You may only use this feature with other Tutanota users."
 	}
 }

@@ -5,7 +5,6 @@ import {containsEventOfType, neverNull, noOp} from "../../api/common/utils/Utils
 import {createMoveMailData} from "../../api/entities/tutanota/MoveMailData"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
-import {NotFoundError} from "../../api/common/error/RestError"
 import {logins} from "../../api/main/LoginController"
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {MailBox} from "../../api/entities/tutanota/MailBox"
@@ -28,10 +27,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {Notifications} from "../../gui/Notifications"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import type {WebsocketCounterData} from "../../api/entities/sys/WebsocketCounterData"
-import {SysService} from "../../api/entities/sys/Services"
-import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
-import type {PublicKeyReturn} from "../../api/entities/sys/PublicKeyReturn"
-import {PublicKeyReturnTypeRef} from "../../api/entities/sys/PublicKeyReturn"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {groupBy, splitInChunks} from "../../api/common/utils/ArrayUtils"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -336,14 +331,5 @@ export class MailModel {
 
 	isFinalDelete(folder: ?MailFolder): boolean {
 		return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
-	}
-
-	getRecipientKeyData(mailAddress: string): Promise<?PublicKeyReturn> {
-		return this._worker.serviceRequest(
-			SysService.PublicKeyService,
-			HttpMethod.GET,
-			createPublicKeyData({mailAddress}),
-			PublicKeyReturnTypeRef
-		).catch(NotFoundError, () => null)
 	}
 }
