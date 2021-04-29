@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2021-04-26T11:59:03Z",
+	"updated_at": "2021-04-29T01:34:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -471,7 +471,7 @@ export default {
 		"executableOpen_label": "مرفق قابل للتنفيذ",
 		"executableOpen_msg": "هذا الملف يشبه البرنامج. هل أنت متأكد أنك تريد تنفيذه الآن؟",
 		"existingAccount_label": "استخدم حساب موجود",
-		"existingMailAddress_msg": "لا يمكن دعوة عناوين البريد الإلكتروني التالية لأنها إما مشاركة أو مدعوة إلى التقويم :",
+		"existingMailAddress_msg": "تعذر دعوة عناوين البريد الإلكتروني التالية لأنها إما مشاركة أو لديها بالفعل دعوة معلقة :",
 		"expiredLink_msg": "معذرة، هذا الرابط لم يعد صالحاً للإستخدام. المفترض أنك استلمت إخطاراً جديداً بالبريد مرفق به الرابط الصالح حالياً. الروابط السابقة تم إلفائها لأسباب أمنية.",
 		"exportSelectedAsVCard_action": "تصدير جهات الاتصال المحددة كـ vCard ",
 		"exportVCard_action": "تصدير بطاقة vCard",

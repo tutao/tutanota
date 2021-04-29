@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-04-26T11:59:04Z",
+	"updated_at": "2021-04-26T12:36:12Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -636,6 +636,7 @@ export default {
 		"IpAddress_label": "IP adresa",
 		"keyboardShortcuts_title": "Klávesové zkratky",
 		"keywords_label": "Klíčová slova",
+		"knowledgebase_label": "Báze znalostí",
 		"knownCredentials_label": "Uložené účty",
 		"languageAlbanianref_label": "Albánština reformovaná",
 		"languageAlbanian_label": "Albánština",
@@ -697,6 +698,7 @@ export default {
 		"leaveGroup_action": "Opustit skupinu",
 		"light_label": "Světlé",
 		"linkedin_label": "LinkedIn",
+		"linkTemplate_label": "Připojit šablonu",
 		"loadingDNSRecords_msg": "Načítání DNS záznamů...",
 		"loadingTemplates_label": "Načítání šablon...",
 		"loading_msg": "Načítání ...",
@@ -835,6 +837,7 @@ export default {
 		"onlyPrivateAccountFeature_msg": "Pouze soukromé účty mohou uplatnit dárkové poukazy.",
 		"onlyPrivateComputer_msg": "Tuto možnost zvolte pouze v případě, že používáte soukromé zařízení.",
 		"openCamera_action": "Fotoaparát",
+		"openKnowledgebase_action": "Otevřít okno s bází znalostí",
 		"openNewWindow_action": "Nové okno",
 		"openTemplatePopup_msg": "Otevřít okno s šablonami",
 		"open_action": "Otevřít",

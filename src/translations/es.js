@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2021-04-26T11:59:04Z",
+	"updated_at": "2021-04-28T11:51:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -468,7 +468,7 @@ export default {
 		"executableOpen_label": "Adjunto ejecutable",
 		"executableOpen_msg": "Este archivo parece un programa. ¿Estás seguro de que quieres ejecutarlo ahora?",
 		"existingAccount_label": "Usar una cuenta existente",
-		"existingMailAddress_msg": "No se pudo invitar a las siguientes direcciones de correo electrónico porque ya participan o han sido invitadas al calendario:",
+		"existingMailAddress_msg": "No se pudo invitar a las siguientes direcciones de correo electrónico porque ya participan o tienen una invitación pendiente:",
 		"expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por motivos de seguridad.",
 		"exportSelectedAsVCard_action": "Exportar los contactos seleccionados como vCard",
 		"exportVCard_action": "Exportar vCard",
@@ -1149,7 +1149,7 @@ export default {
 		"sharedMailbox_label": "Buzón compartido",
 		"sharedTemplateGroupDefaultName_label": "Plantillas de {ownerName}",
 		"shareLink_action": "Enlace para compartir",
-		"shareTemplateGroupEmailBody_msg": "Hola <br/>{inviter} te ha invitado a usar su lista de plantillas \"{groupName}\". Puedes comprobar los detalles de esta invitación en la configuración y elegir aceptarla o rechazarla.<br/><br/>Este es un mensaje automatizado.",
+		"shareTemplateGroupEmailBody_msg": "Hola <br/>{inviter} te ha invitado a usar su lista de plantillas «{groupName}». Puedes comprobar los detalles de esta invitación en la configuración y elegir aceptarla o rechazarla.<br/><br/>Este es un mensaje automatizado.",
 		"shareTemplateGroupEmailSubject_msg": "Invitación a usar una lista de plantillas",
 		"shareTemplateGroupWarning_msg": "Todos los usuarios de la lista de plantillas podrán ver tu nombre y la dirección de correo electrónico principal de tu buzón de correo.",
 		"shareViaEmail_action": "Compartir por correo electrónico",
