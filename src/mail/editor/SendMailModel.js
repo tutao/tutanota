@@ -14,7 +14,8 @@ import {
 	AccessBlockedError,
 	LockedError,
 	NotAuthorizedError,
-	NotFoundError, PayloadTooLargeError,
+	NotFoundError,
+	PayloadTooLargeError,
 	PreconditionFailedError,
 	TooManyRequestsError
 } from "../../api/common/error/RestError"
@@ -42,8 +43,7 @@ import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
 import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
-import type {MailboxDetail} from "../model/MailModel"
-import type {MailModel} from "../model/MailModel"
+import type {MailboxDetail, MailModel} from "../model/MailModel"
 import {RecipientNotResolvedError} from "../../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import type {EntityEventsListener, EntityUpdateData} from "../../api/main/EventController"
@@ -228,6 +228,10 @@ export class SendMailModel {
 
 	mails(): MailModel {
 		return this._mailModel
+	}
+
+	worker(): WorkerClient {
+		return this._worker
 	}
 
 	events(): EventController {
@@ -575,7 +579,7 @@ export class SendMailModel {
 						}
 					})
 			}
-			p = resolveRecipientInfo(this._mailModel, ri).then((resolved) => {
+			p = resolveRecipientInfo(this._worker, ri).then((resolved) => {
 				this.setMailChanged(true)
 				return resolved
 			})
@@ -752,7 +756,8 @@ export class SendMailModel {
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
 			.catch(RecipientsNotFoundError, (e) => {
 				let invalidRecipients = e.message
-				throw new UserError(() => lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
+				throw new UserError(() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
+					+ invalidRecipients)
 			})
 			.catch(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)})
 			.catch(AccessBlockedError, e => {
@@ -924,7 +929,7 @@ export class SendMailModel {
 	 */
 	_waitForResolvedRecipients(): Promise<RecipientInfo[]> {
 		return Promise.all(this.allRecipients().map(recipientInfo => {
-			return resolveRecipientInfo(this._mailModel, recipientInfo).then(recipientInfo => {
+			return resolveRecipientInfo(this._worker, recipientInfo).then(recipientInfo => {
 				if (recipientInfo.resolveContactPromise) {
 					return recipientInfo.resolveContactPromise.return(recipientInfo)
 				} else {

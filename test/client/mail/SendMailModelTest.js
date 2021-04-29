@@ -17,8 +17,6 @@ import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/MailboxGroupRoot"
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createMailBox} from "../../../src/api/entities/tutanota/MailBox"
-import type {PublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
-import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
 import type {WorkerClient} from "../../../src/api/main/WorkerClient"
 import {ConversationType, GroupType, MailMethod, OperationType} from "../../../src/api/common/TutanotaConstants"
 import {lang} from "../../../src/misc/LanguageViewModel"
@@ -27,7 +25,8 @@ import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import type {User} from "../../../src/api/entities/sys/User"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/User"
-import {isExternal, isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
+import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
+import {isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import type {EventController} from "../../../src/api/main/EventController"
@@ -42,11 +41,12 @@ import {CustomerAccountCreateDataTypeRef} from "../../../src/api/entities/tutano
 import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/NotificationMail"
 import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils"
-import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../../src/api/common/utils/TypeRef";
-import {CancelledError} from "../../../src/api/common/error/CancelledError"
+import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
+import {SysService} from "../../../src/api/entities/sys/Services"
+import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
 
 
 type TestIdGenerator = {
@@ -55,6 +55,7 @@ type TestIdGenerator = {
 	newIdTuple: () => IdTuple
 }
 let testIdGenerator: TestIdGenerator
+let internalAddresses = []
 
 function mockWorker(): WorkerClient {
 	return downcast({
@@ -68,6 +69,12 @@ function mockWorker(): WorkerClient {
 			return Promise.resolve()
 		},
 		entityRequest(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
+			if (service === SysService.PublicKeyService) {
+				return Promise.resolve().then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
+			}
 			return Promise.resolve()
 		}
 	})
@@ -88,20 +95,6 @@ function mockUserController(user: User, props: TutanotaProperties, customer: Cus
 		props
 	})
 }
-
-function mockMailModel(internalAddresses: Array<String>): MailModel {
-	return downcast({
-		internalAddresses,
-		getRecipientKeyData(mailAddress: string): Promise<?PublicKeyReturn> {
-			return Promise.resolve(
-				this.internalAddresses.includes(mailAddress)
-					? createPublicKeyReturn()
-					: null
-			)
-		}
-	})
-}
-
 
 class ContactModelMock implements ContactModel {
 	contacts: Array<Contact>
@@ -228,7 +221,7 @@ o.spec("SendMailModel", function () {
 			removeEntityListener: o.spy(() => {})
 		})
 
-		mailModel = mockMailModel([])
+		mailModel = downcast({})
 
 		contactModel = new ContactModelMock([])
 
@@ -735,9 +728,6 @@ o.spec("SendMailModel", function () {
 			]
 
 			await model.initWithTemplate({to: recipients}, "they all drink lemonade", "")
-		})
-
-		o.afterEach(function () {
 		})
 
 		o("nonmatching event", async function () {

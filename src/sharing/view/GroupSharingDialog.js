@@ -19,16 +19,17 @@ import {showProgressDialog} from "../../gui/ProgressDialog"
 import type {ShareCapabilityEnum} from "../../api/common/TutanotaConstants"
 import {ShareCapability} from "../../api/common/TutanotaConstants"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import {PreconditionFailedError} from "../../api/common/error/RestError"
+import {PreconditionFailedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {
 	getCapabilityText,
-	getSharedGroupName,
 	getMemberCabability,
-	hasCapabilityOnGroup, isShareableGroupType,
+	getSharedGroupName,
+	hasCapabilityOnGroup,
+	isShareableGroupType,
 	isSharedGroupOwner,
 } from "../GroupUtils"
 import {sendShareNotificationEmail} from "../GroupSharingUtils"
@@ -39,8 +40,8 @@ import {worker} from "../../api/main/WorkerClient"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {getConfirmation} from "../../gui/base/GuiUtils"
-import {getTextsForGroupType} from "../GroupGuiUtils"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
+import {getTextsForGroupType} from "../GroupGuiUtils"
 
 export function showGroupSharingDialog(groupInfo: GroupInfo,
                                        allowGroupNameOverride: boolean) {
@@ -246,6 +247,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 									}
 								})
 								.catch(UserError, showUserError)
+								.catch(TooManyRequestsError, e => Dialog.error("tooManyAttempts_msg"))
 						}
 					})
 			}
