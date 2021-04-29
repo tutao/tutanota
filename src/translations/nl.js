@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2021-04-26T11:59:04Z",
+	"updated_at": "2021-04-28T12:06:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -468,7 +468,7 @@ export default {
 		"executableOpen_label": "Uitvoerbare Bijlage",
 		"executableOpen_msg": "Dit bestand lijkt op een programma. Bent u zeker dat u het nu wilt uitvoeren?",
 		"existingAccount_label": "Gebruik een bestaand account",
-		"existingMailAddress_msg": "De volgende e-mailadressen konden niet worden uitgenodigd omdat zij al deelnemer zijn of al uitgenodigd zijn voor de agenda:",
+		"existingMailAddress_msg": "De volgende ontvangers konden niet worden uitgenodigd omdat ze al zijn uitgenodigd of deelnemers zijn:",
 		"expiredLink_msg": "Helaas is deze link niet meer geldig. U heeft een nieuwe notificatie-e-mail met een geldige link ontvangen. Eerdere links zijn gedeactiveerd om veiligheidsredenen.",
 		"exportSelectedAsVCard_action": "Geselecteerde contacten als vCard exporteren",
 		"exportVCard_action": "vCard exporteren",

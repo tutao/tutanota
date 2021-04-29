@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-04-26T11:59:04Z",
+	"updated_at": "2021-04-26T15:33:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -465,7 +465,7 @@ export default {
 		"executableOpen_label": "Futtatható csatolmány",
 		"executableOpen_msg": "Ez a fájl programnak tűnik. Valóban el akarja indítani?",
 		"existingAccount_label": "Használj meglévő fiókot",
-		"existingMailAddress_msg": "A következő e-mail címeket nem lehetett meghívni, mert vagy résztvevő, vagy meghívást kaptak a naptárba:",
+		"existingMailAddress_msg": "A következő e-mail címeket nem lehetett meghívni, mert vagy résztvevők, vagy kaptak már meghívót: ",
 		"expiredLink_msg": "Sajnálom, ez a hivatkozás már nem érvényes. Kapnia kellett egy értesítést, mely az érvényes hivatkozást tartalmazza. A korábbi hivatkozások biztonsági okokból kikapcsolásra kerültek.",
 		"exportSelectedAsVCard_action": "A kiválasztott kapcsolatok exportálása \"vCard\" formátumba.",
 		"exportVCard_action": "vCard exportálása",
@@ -1147,7 +1147,7 @@ export default {
 		"sharedMailbox_label": "Megosztott postafiók",
 		"sharedTemplateGroupDefaultName_label": "Tulajdonos {ownerName} Sablonjai",
 		"shareLink_action": "Hivatkozás megosztása",
-		"shareTemplateGroupEmailBody_msg": "Üdvözlöm <br/>{inviter} meghívta Önt a sablon listájuk felhasználójának \"{groupName}\". A meghívó részleteit a beállításokban ellenőrizheti, és dönthet úgy, hogy elfogadja vagy elutasítja azt.<br/><br/>Ez egy automatikus üzenet.",
+		"shareTemplateGroupEmailBody_msg": "Üdvözlöm, <br/>{inviter} meghívta Önt a \"{groupName}\" nevű sablon listájuk használatára. A meghívó részleteit a beállításokban ellenőrizheti, ahol dönthet úgy, hogy elfogadja vagy elutasítja azokat.<br/><br/>Ez egy automatikus üzenet.",
 		"shareTemplateGroupEmailSubject_msg": "Meghívó sablonlista használatára",
 		"shareTemplateGroupWarning_msg": "A sablonlista minden felhasználója láthatja az Ön nevét és a postaládája fő e-mail címét.",
 		"shareViaEmail_action": "Megosztás email útján",
