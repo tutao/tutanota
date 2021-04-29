@@ -262,7 +262,7 @@ function getBlueTheme(): Theme {
 	const grey_darker_0 = '#707070'
 	const grey_darker_1 = '#303030'
 
-	const blue = '#0f52ba'
+	const blue = '#005885'
 	const logo_text_grey = '#4a4a4a'
 
 	return {
