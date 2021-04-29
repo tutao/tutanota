@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-04-26T11:59:05Z",
+	"updated_at": "2021-04-29T09:51:49Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",

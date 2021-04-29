@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-04-29T08:41:57Z",
+	"updated_at": "2021-04-29T09:51:47Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -299,10 +299,10 @@ export default {
 		"creditCardNumber_label": "Credit card number",
 		"creditCardPaymentErrorVerificationNeeded_msg": "Please update your payment details. This will trigger a verification of the credit card which is required by your bank.",
 		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your card at a later time if this problem persists.",
+		"creditCardVerificationFailed_msg": "Sorry, your credit card verification failed. You may try again or select a different payment method.",
 		"creditCardVerificationLimitReached_msg": "You have reached the credit card verification limit. Please try again in a few hours and make sure that the entered data is valid. Please contact your bank if further verifications fail.",
 		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
 		"creditCardVerification_msg": "Your credit card will be verified now...",
-		"creditCardVerificationFailed_msg": "Sorry, your credit card verification failed. You may try again or select a different payment method.",
 		"creditUsageOptions_msg": "Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
 		"credit_label": "Credit",
 		"currentBalance_label": "Current Account Balance",
