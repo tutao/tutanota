@@ -25,7 +25,8 @@
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.11.1",
 		"systemjs": "6.8.3",
-		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22"
+		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22",
+		"electron-builder": "^22.9.1"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.10.5",
@@ -51,7 +52,7 @@
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
 		"electron": "11.4.4",
-		"electron-builder": "22.9.1",
+		"electron-builder": "^22.9.1",
 		"electron-notarize": "1.0.0",
 		"electron-packager": "15.1.0",
 		"electron-rebuild": "2.0.3",
