@@ -152,8 +152,18 @@ export class Editor implements ImageHandler {
 
 	setEnabled(enabled: boolean) {
 		this._enabled = enabled
+		// not working currently
+		// text is pasted before the event is triggered
+		const pasteSuppressor = (e: Event) => {
+			e.preventDefault()
+		}
 		if (this._domElement) {
 			this._domElement.setAttribute("contenteditable", String(enabled))
+			if (this._enabled) {
+				this._domElement.removeEventListener('paste', pasteSuppressor)
+			} else {
+				this._domElement.addEventListener('paste', pasteSuppressor)
+			}
 		}
 	}
 
