@@ -17,11 +17,10 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {keyManager} from "../../misc/KeyManager"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonColors, NavButtonN} from "../../gui/base/NavButtonN"
-import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
-import {px, size} from "../../gui/size"
+import {size} from "../../gui/size"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {
 	createRestriction,
@@ -63,6 +62,7 @@ import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {TextFieldN} from "../../gui/base/TextFieldN"
+import {SidebarSection} from "../../gui/SidebarSection"
 
 assertMainOrNode()
 
@@ -163,26 +163,12 @@ export class SearchView implements CurrentView {
 				return m(FolderColumnView, {
 					button: this.getMainButton(restriction.type),
 					content: [
-						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-								lang.get("search_label").toLocaleUpperCase())
-						]),
-						m(".folders", [
-							m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
-							m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
+						m(SidebarSection, {name: "search_label"}, [
+							m(".folder-row.flex-start.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
+							m(".folder-row.flex-start.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
 						]),
 						isNavButtonSelected(this._mailFolder)
-							? m("", [
-								m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-									m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-										lang.get("filter_label").toLocaleUpperCase())
-								]),
-								m(".plr-l.mt-negative-s", [
-									this._getUpdatedTimeField(),
-									this._mailFieldSelection ? m(this._mailFieldSelection) : null,
-									this._mailFolderSelection ? m(this._mailFolderSelection) : null,
-								])
-							])
+							? m(SidebarSection, {name: "filter_label"}, this._renderSearchFilters())
 							: null
 					],
 					ariaLabel: "search_label"
@@ -216,6 +202,14 @@ export class SearchView implements CurrentView {
 				return this.entityEventReceived(update)
 			}).return()
 		})
+	}
+
+	_renderSearchFilters(): Children {
+		return [
+			this._getUpdatedTimeField(),
+			this._mailFieldSelection ? m(this._mailFieldSelection) : null,
+			this._mailFolderSelection ? m(this._mailFolderSelection) : null,
+		].map(row => m(".folder-row.plr-l.content-fg", row))
 	}
 
 	getViewSlider(): ?IViewSlider {

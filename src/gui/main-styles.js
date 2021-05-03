@@ -691,7 +691,6 @@ styles.registerStyle('main', () => {
 		'.folders': {'margin-bottom': px(12)},
 		'.folder-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
-			'margin-right': px(-size.hpad_button),
 			'align-items': 'center',
 			position: "relative"
 		},

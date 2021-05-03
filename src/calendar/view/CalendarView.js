@@ -1,16 +1,14 @@
 // @flow
 import m from "mithril"
-import {load, loadAll, serviceRequestVoid, update} from "../../api/main/Entity"
+import {load, serviceRequestVoid, update} from "../../api/main/Entity"
 import stream from "mithril/stream/stream.js"
 import type {CurrentView} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {theme} from "../../gui/theme"
 import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../../api/common/utils/DateUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
@@ -29,7 +27,7 @@ import {
 	TimeFormat
 } from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
-import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import {downcast, freezeMap, memoized, neverNull} from "../../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
 	addDaysForEvent,
@@ -40,13 +38,13 @@ import {
 	getMonth,
 	getNextHalfHour,
 	getStartOfTheWeekOffset,
-	getStartOfWeek, getTimeZone,
+	getStartOfWeek,
+	getTimeZone,
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
 } from "../date/CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../../api/main/WorkerClient"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {findAllAndRemove, findAndRemove} from "../../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../../misc/Formatter"
@@ -64,20 +62,15 @@ import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import type {GroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
-import {attachDropdown} from "../../gui/base/DropdownN"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {Dialog} from "../../gui/base/Dialog"
 import {isApp} from "../../api/common/Env"
-import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
-import {ReceivedGroupInvitationTypeRef} from "../../api/entities/sys/ReceivedGroupInvitation"
 import type {Group} from "../../api/entities/sys/Group"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/UserSettingsGroupRoot"
-import {getDisplayText} from "../../mail/model/MailUtils"
-import {UserGroupRootTypeRef} from "../../api/entities/sys/UserGroupRoot"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {deviceConfig} from "../../misc/DeviceConfig"
@@ -88,14 +81,7 @@ import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtil
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
 import {createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
-import {showGroupInvitationDialog} from "../../sharing/view/ReceivedGroupInvitationDialog"
-import {
-	getSharedGroupName,
-	getCapabilityText,
-	hasCapabilityOnGroup,
-	loadGroupMembers,
-	loadReceivedGroupInvitations
-} from "../../sharing/GroupUtils"
+import {getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers} from "../../sharing/GroupUtils"
 import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
 import {moreButton} from "../../gui/base/GuiUtils"
 import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolderRow"
@@ -428,8 +414,9 @@ export class CalendarView implements CurrentView {
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
-		return calendarViewValues.map(viewType => m(".folder-row.plr-l",
-			m(NavButtonN, {
+		return calendarViewValues.map(viewType => m(".folder-row.flex-start.plr-l",
+			// undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
+			m(".flex-grow.ml-negative-s", m(NavButtonN, {
 				label: () => viewType.name,
 				icon: () => viewType.icon,
 				href: m.route.get(),
@@ -440,7 +427,7 @@ export class CalendarView implements CurrentView {
 					this._setUrl(viewType.value, this.selectedDate())
 					this.viewSlider.focus(this.contentColumn)
 				}
-			})
+			}))
 		))
 	}
 
@@ -528,7 +515,6 @@ export class CalendarView implements CurrentView {
 								     style: {
 									     "border-color": colorValue,
 									     "background": this._hiddenCalendars.has(groupRootId) ? "" : colorValue,
-									     "margin-left": "-4px", // .folder-row > a adds -10px margin to other items but it has 6px padding
 									     "transition": "all 0.3s",
 									     "cursor": "pointer",
 								     }

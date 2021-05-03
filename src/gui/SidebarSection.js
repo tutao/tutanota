@@ -19,7 +19,7 @@ export class SidebarSection implements MComponent<SidebarSectionAttrs> {
 		const content = vnode.children
 		return m(".sidebar-section.mb", {style: {color: theme.navigation_button}}, [
 			m(".folder-row.flex-space-between.plr-l.pt-s.button-height", [
-				m("small.b.align-self-center.ml-negative-xs",
+				m("small.b.align-self-center",
 					lang.getMaybeLazy(name).toLocaleUpperCase()),
 				buttonAttrs ? m(ButtonN, buttonAttrs) : null
 			]),
