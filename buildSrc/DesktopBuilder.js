@@ -1,5 +1,6 @@
 import {babelDesktopPlugins, resolveLibs} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin} from "./Builder.js"
+import {resolveLibs} from "./RollupConfig.js"
+import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./Builder.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import Promise from "bluebird"
 import fs from "fs"
@@ -23,7 +24,7 @@ export async function buildDesktop({
 	                                   nameSuffix, // suffix used to distinguish test-, prod- or snapshot builds on the same machine
 	                                   notarize, // for the MacOs notarization feature
 	                                   outDir, // where copy the finished artifacts
-	                                   unpacked // output desktop client without packing it into an installer
+	                                   unpacked, // output desktop client without packing it into an installer
                                    }) {
 	// The idea is that we
 	// - build desktop code into build/dist/desktop
@@ -111,25 +112,16 @@ async function rollupDesktop(dirname, outDir, version) {
 			babelPreset(),
 			resolveLibs(),
 			nativeDepWorkaroundPlugin(),
-			resolveKeytarPlugin(),
+			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
-			commonjs({exclude: "src/**"}),
+			commonjs({
+				exclude: "src/**",
+				requireReturnsDefault: "preferred",
+			}),
 			terser(),
 			preludeEnvPlugin(createEnv(null, version, "Desktop", true))
 		]
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
 	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload.js"), path.join(outDir, "preload.js"))
-}
-
-function resolveKeytarPlugin() {
-	return {
-		name: "resolve-keytar",
-		resolveId(id) {
-			// These are packaged as-is in node_modules
-			if (id === "keytar") {
-				return false
-			}
-		}
-	}
 }
