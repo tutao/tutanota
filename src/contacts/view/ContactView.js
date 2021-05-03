@@ -30,6 +30,17 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import {locator} from "../../api/main/MainLocator"
 import {ContactMergeView} from "./ContactMergeView"
+import {getMergeableContacts, mergeContacts} from "../ContactMergeUtils"
+import {exportContacts} from "../VCardExporter"
+import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
+import type {EntityUpdateData} from "../../api/main/EventController"
+import {isUpdateForTypeRef} from "../../api/main/EventController"
+import {navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
+import {NavButtonN} from "../../gui/base/NavButtonN"
+import {styles} from "../../gui/styles"
+import {size} from "../../gui/size"
+import {FolderColumnView} from "../../gui/base/FolderColumnView"
+import {flat} from "../../api/common/utils/ArrayUtils"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils";
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
@@ -37,19 +48,9 @@ import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
-import {navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
-import {FolderColumnView} from "../../gui/base/FolderColumnView"
-import {styles} from "../../gui/styles"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import {size} from "../../gui/size"
-import {NavButtonN} from "../../gui/base/NavButtonN"
-import {flat} from "../../api/common/utils/ArrayUtils"
-import {getMergeableContacts, mergeContacts} from "../ContactMergeUtils"
 import {compareContacts} from "./ContactGuiUtils"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
-import {exportContacts} from "../VCardExporter"
+
 assertMainOrNode()
 
 export class ContactView implements CurrentView {

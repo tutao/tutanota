@@ -40,7 +40,7 @@ import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes, SETTINGS_PREFIX} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import {getEtId, getLetId, isSameId} from "../api/common/utils/EntityUtils";
+import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 import {TemplateListView} from "./TemplateListView"
 import {KnowledgeBaseListView} from "./KnowledgeBaseListView"
 import {promiseMap} from "../api/common/utils/PromiseUtils"
@@ -55,8 +55,7 @@ import {getDefaultGroupName, getSharedGroupName, isSharedGroupOwner} from "../sh
 import {worker} from "../api/main/WorkerClient"
 import {DummyTemplateListView} from "./DummyTemplateListView"
 import {SettingsFolderRow} from "./SettingsFolderRow"
-import {showGroupInvitationDialog} from "../sharing/view/ReceivedGroupInvitationDialog"
-import {isCustomizationEnabledForCustomer, noOp} from "../api/common/utils/Utils"
+import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {showProgressDialog} from "../gui/ProgressDialog"
 import {serviceRequestVoid} from "../api/main/Entity"
@@ -66,7 +65,6 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/UserAreaGroupDeleteData"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
-import type {AllIconsEnum} from "../gui/base/Icon"
 
 assertMainOrNode()
 
