@@ -77,6 +77,13 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "MailBox"
 		},
+		"mailboxProperties": {
+			"id": 1203,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "MailboxProperties"
+		},
 		"outOfOfficeNotification": {
 			"id": 1150,
 			"type": "ELEMENT_ASSOCIATION",
@@ -114,7 +121,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
@@ -133,6 +140,7 @@ export type MailboxGroupRoot = {
 	outOfOfficeNotificationRecipientList: ?OutOfOfficeNotificationRecipientList;
 	contactFormUserContactForm: ?IdTuple;
 	mailbox: Id;
+	mailboxProperties: ?Id;
 	outOfOfficeNotification: ?Id;
 	participatingContactForms: IdTuple[];
 	serverProperties: Id;

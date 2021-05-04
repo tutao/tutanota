@@ -81,7 +81,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createSharedGroupData(values?: $Shape<$Exact<SharedGroupData>>): SharedGroupData {

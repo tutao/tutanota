@@ -93,9 +93,7 @@ import {createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../..
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {RecipientButton} from "../../gui/base/RecipientButton"
-import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import type {Mail} from "../../api/entities/tutanota/Mail"
-import {_TypeModel as MailTypeModel} from "../../api/entities/tutanota/Mail"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import {EventBanner} from "./EventBanner"
@@ -119,7 +117,6 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {locator} from "../../api/main/MainLocator"
-import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
 import {getCoordsOfMouseOrTouchEvent, createMoreSecondaryButtonAttrs} from "../../gui/base/GuiUtils"
@@ -756,30 +753,22 @@ export class MailViewer {
 
 	_reportMail() {
 		const sendReport = (reportType: MailReportTypeEnum) => {
-			worker.resolveSessionKey(MailTypeModel, this.mail)
-			      .then((mailSessionKeyB64) => {
-				      const postData = createReportMailPostData({
-					      mailId: this.mail._id,
-					      mailSessionKey: base64ToUint8Array(neverNull(mailSessionKeyB64)),
-					      reportType,
-				      })
-				      return serviceRequestVoid(TutanotaService.ReportMailService, HttpMethod.POST, postData)
-			      })
-			      .then(() => {
-				      if (reportType === MailReportType.PHISHING) {
-					      this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-					      return this._entityClient.update(this.mail)
-				      }
-			      })
-			      .then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
-			      .then((mailboxDetails) => {
-				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-				      return moveMails(this._mailModel, [this.mail], spamFolder)
-			      })
-			      .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg")))
-			      .catch(ofClass(NotFoundError, () => console.log("mail already moved")))
-			      .then(m.redraw)
-
+			this._mailModel.reportMails(reportType, [this.mail])
+			    .then(() => {
+				    if (reportType === MailReportType.PHISHING) {
+					    this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
+					    return this._entityClient.update(this.mail)
+				    }
+			    })
+			    .then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
+			    .then((mailboxDetails) => {
+				    const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
+				    // do not report moved mails again
+				    return moveMails(this._mailModel, [this.mail], spamFolder, false)
+			    })
+			    .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg")))
+			    .catch(ofClass(NotFoundError, () => console.log("mail already moved")))
+			    .then(m.redraw)
 		}
 
 		const dialog = Dialog.showActionDialog({

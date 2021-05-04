@@ -75,7 +75,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createConversationEntry(values?: $Shape<$Exact<ConversationEntry>>): ConversationEntry {
