@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createPasswordChannelPhoneNumber(values?: $Shape<$Exact<PasswordChannelPhoneNumber>>): PasswordChannelPhoneNumber {

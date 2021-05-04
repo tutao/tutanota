@@ -5,50 +5,57 @@ import {TypeRef} from "../../common/utils/TypeRef"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
-export const MailboxServerPropertiesTypeRef: TypeRef<MailboxServerProperties> = new TypeRef("tutanota", "MailboxServerProperties")
+export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")
 export const _TypeModel: TypeModel = {
-	"name": "MailboxServerProperties",
-	"since": 18,
+	"name": "MailboxProperties",
+	"since": 47,
 	"type": "ELEMENT_TYPE",
-	"id": 677,
-	"rootId": "CHR1dGFub3RhAAKl",
+	"id": 1195,
+	"rootId": "CHR1dGFub3RhAASr",
 	"versioned": false,
-	"encrypted": false,
+	"encrypted": true,
 	"values": {
 		"_format": {
-			"id": 681,
+			"id": 1199,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"id": 679,
+			"id": 1197,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
+		"_ownerEncSessionKey": {
+			"id": 1201,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"_ownerGroup": {
-			"id": 682,
+			"id": 1200,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"id": 680,
+			"id": 1198,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"whitelistProtectionEnabled": {
-			"id": 683,
-			"type": "Boolean",
+		"reportMovedMails": {
+			"id": 1202,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
-			"encrypted": false
+			"encrypted": true
 		}
 	},
 	"associations": {},
@@ -56,16 +63,18 @@ export const _TypeModel: TypeModel = {
 	"version": "47"
 }
 
-export function createMailboxServerProperties(values?: $Shape<$Exact<MailboxServerProperties>>): MailboxServerProperties {
-	return Object.assign(create(_TypeModel, MailboxServerPropertiesTypeRef), values)
+export function createMailboxProperties(values?: $Shape<$Exact<MailboxProperties>>): MailboxProperties {
+	return Object.assign(create(_TypeModel, MailboxPropertiesTypeRef), values)
 }
 
-export type MailboxServerProperties = {
-	_type: TypeRef<MailboxServerProperties>;
+export type MailboxProperties = {
+	_type: TypeRef<MailboxProperties>;
+	_errors: Object;
 
 	_format: NumberString;
 	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	whitelistProtectionEnabled: boolean;
+	reportMovedMails: NumberString;
 }

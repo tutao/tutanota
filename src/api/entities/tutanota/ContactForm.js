@@ -109,7 +109,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createContactForm(values?: $Shape<$Exact<ContactForm>>): ContactForm {

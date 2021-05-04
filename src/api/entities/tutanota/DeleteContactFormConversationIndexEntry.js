@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "46"
+	"version": "47"
 }
 
 export function createDeleteContactFormConversationIndexEntry(values?: $Shape<$Exact<DeleteContactFormConversationIndexEntry>>): DeleteContactFormConversationIndexEntry {

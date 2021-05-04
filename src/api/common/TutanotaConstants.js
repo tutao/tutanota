@@ -264,6 +264,13 @@ export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFiel
 	return downcast(spamRule.field)
 }
 
+export const ReportMovedMailsType = Object.freeze({
+	ALWAYS_ASK: "0",
+	AUTOMATICALLY_ONLY_SPAM: "1",
+	NEVER: "3",
+})
+export type ReportMovedMailsTypeEnum = $Values<typeof ReportMovedMailsType>;
+
 export const EmailSignatureType = Object.freeze({
 	EMAIL_SIGNATURE_TYPE_DEFAULT: "0",
 	EMAIL_SIGNATURE_TYPE_CUSTOM: "1",
@@ -691,7 +698,7 @@ export type MailAuthenticationStatusEnum = $Values<typeof MailAuthenticationStat
 
 export const MailReportType = Object.freeze({
 	PHISHING: "0",
-	SPAM: "1",
+	SPAM: "1"
 })
 export type MailReportTypeEnum = $Values<typeof MailReportType>
 
