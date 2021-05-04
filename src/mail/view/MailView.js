@@ -239,7 +239,6 @@ export class MailView implements CurrentView {
 				},
 				help: "scrollToBottom_action"
 			},
-		].concat(listSelectionKeyboardShortcuts(() => this.mailList.list)).concat([
 			{
 				key: Keys.N,
 				exec: () => (this._showNewMailDialog().catch(PermissionError, noOp): any),
@@ -333,7 +332,7 @@ export class MailView implements CurrentView {
 				enabled: canDoDragAndDropExport,
 				help: "dragAndDrop_action"
 			}
-		])
+		]
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
 		locator.mailModel.mailboxDetails.map(mailboxDetails => {
