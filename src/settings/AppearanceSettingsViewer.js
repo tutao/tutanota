@@ -19,6 +19,7 @@ import {incrementDate} from "../api/common/utils/DateUtils"
 import {getHourCycle} from "../misc/Formatter"
 import {Mode} from "../api/common/Env"
 import type {LanguageCode} from "../misc/LanguageViewModel"
+import type {ThemeId} from "../gui/theme"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {

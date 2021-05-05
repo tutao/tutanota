@@ -4,11 +4,14 @@ import {client} from "./ClientDetector"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {LanguageCode} from "./LanguageViewModel"
+import type {ThemeId} from "../gui/theme"
 
 assertMainOrNodeBoot()
 
 const ConfigVersion = 2
 const LocalStorageKey = 'tutanotaConfig'
+
+export const defaultThemeId: ThemeId = 'light'
 
 /**
  * Device config for internal user auto login. Only one config per device is stored.
@@ -17,7 +20,7 @@ class DeviceConfig {
 	_version: number;
 	_credentials: Credentials[];
 	_scheduledAlarmUsers: Id[];
-	_theme: ThemeId;
+	_themeId: ThemeId;
 	_language: ?LanguageCode;
 	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
 	_hiddenCalendars: {[userId: Id]: Id[]}
@@ -35,7 +38,16 @@ class DeviceConfig {
 		this._credentials = []
 		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? this._parseConfig(loadedConfigString) : null
-		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
+
+		this._themeId = defaultThemeId
+		if (loadedConfig) {
+			if (loadedConfig._themeId) {
+				this._themeId = loadedConfig._themeId
+			} else if (loadedConfig._theme) {
+				this._themeId = loadedConfig._theme
+			}
+		}
+
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
@@ -149,12 +161,12 @@ class DeviceConfig {
 	}
 
 	getTheme(): ThemeId {
-		return this._theme
+		return this._themeId
 	}
 
 	setTheme(theme: ThemeId) {
-		if (this._theme !== theme) {
-			this._theme = theme
+		if (this._themeId !== theme) {
+			this._themeId = theme
 			this._store()
 		}
 	}

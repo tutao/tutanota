@@ -135,9 +135,6 @@ declare interface View {
 
 type LogCategory = {[key: string]: string}
 
-// Enums
-type ThemeId = 'light' | 'dark' | 'blue' | 'custom'
-
 declare var navigator: Navigator;
 
 type SanitizeResult = {
