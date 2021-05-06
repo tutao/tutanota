@@ -569,6 +569,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		{key: Keys.ESC, exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) }, help: "close_alt"},
 		{key: Keys.S, ctrl: true, exec: () => { save() }, help: "save_action"},
 		{key: Keys.S, ctrl: true, shift: true, exec: send, help: "send_action"},
+		{key: Keys.RETURN, ctrl: true, exec: send, help: "send_action"}
 	]
 
 	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs,)
