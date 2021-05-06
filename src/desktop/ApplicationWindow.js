@@ -112,11 +112,8 @@ export class ApplicationWindow {
 	hide: (() => void) = () => this._browserWindow.hide()
 	center: (() => void) = () => this._browserWindow.center()
 	showInactive: (() => void) = () => this._browserWindow.showInactive()
+	focus: () => void = () => this._browserWindow.focus()
 	isFocused: (() => boolean) = () => this._browserWindow.isFocused()
-
-	get browserWindow(): BrowserWindow {
-		return this._browserWindow
-	}
 
 	show() {
 		if (!this._browserWindow) {
@@ -297,7 +294,7 @@ export class ApplicationWindow {
 	}
 
 	setContextMenuHandler(handler: (ContextMenuParams) => void) {
-		const wc = this.browserWindow.webContents
+		const wc = this._browserWindow.webContents
 		wc.on('context-menu', (e, params) => handler(params))
 	}
 

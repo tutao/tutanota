@@ -276,7 +276,7 @@ export class IPC {
 			}
 			case 'focusApplicationWindow': {
 				const window = this._wm.get(windowId)
-				window && window.browserWindow.focus()
+				window && window.focus()
 				return Promise.resolve()
 			}
 			case 'checkFileExistsInExportDirectory': {
