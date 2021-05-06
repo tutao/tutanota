@@ -64,9 +64,8 @@ export class DesktopConfig {
 			downcast<MigrationKind>(buildConfig["configMigrationFunction"]),
 			populatedConfig,
 		)
-		await fs.mkdirSync(path.join(this._app.getPath('userData')), {recursive: true})
-		const json = JSON.stringify(desktopConfig, null, 2)
-		await fs.writeFileSync(this._desktopConfigPath, json)
+		await fs.promises.mkdir(path.join(this._app.getPath('userData')), {recursive: true})
+		await writeJSON(this._desktopConfigPath, desktopConfig)
 		this._desktopConfig.resolve(desktopConfig)
 	}
 
@@ -94,8 +93,7 @@ export class DesktopConfig {
 		}
 
 		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
-		const decryptedValue = this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
-		return decryptedValue
+		return this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
 	}
 
 	async _setEncryptedVar(key: DesktopConfigEncKeyEnum, value: any) {
@@ -127,8 +125,7 @@ export class DesktopConfig {
 
 	async _saveAndNotify(key: AllConfigKeysEnum, value: any, oldValue: any): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
-		const json = JSON.stringify(desktopConfig, null, 2)
-		fs.writeFileSync(this._desktopConfigPath, json)
+		await writeJSON(this._desktopConfigPath, desktopConfig)
 		this._notifyChangeListeners(key, value, oldValue)
 	}
 
@@ -188,7 +185,12 @@ export class DesktopConfig {
 	}
 }
 
-async function readJSON(path: string): Promise<mixed> {
-	const text: string = fs.readFileSync(path, "utf8")
+async function readJSON(path: string): Promise<any> {
+	const text: string = await fs.promises.readFile(path, "utf8")
 	return JSON.parse(text)
+}
+
+async function writeJSON(path: string, obj: any): Promise<void> {
+	const json = JSON.stringify(obj, null, 2)
+	return fs.promises.writeFile(path, json)
 }
