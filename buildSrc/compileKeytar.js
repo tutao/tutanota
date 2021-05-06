@@ -3,7 +3,7 @@ import fs from "fs-extra"
 import options from "commander"
 import path, {dirname} from "path"
 import {fileURLToPath} from "url"
-import { createRequire } from 'module';
+import {createRequire} from 'module';
 
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -51,7 +51,8 @@ async function buildElectron(opts) {
 		console.log(`Calling gyp '${gypCommand}' using options: ${gypOpts}`)
 	}
 
-	const spawnOptions = {stdio: "inherit"}
+	// need shell: true to build on windows ...
+	const spawnOptions = {stdio: "inherit", shell: true}
 	const gyp = spawn(
 		'node-gyp',
 		[
@@ -89,7 +90,13 @@ function findKeytarModuleDir() {
 	const seperator = path.sep
 	const pathFragments = pathName.split(seperator)
 	const nodeModulesPathFragments = pathFragments.slice(0, pathFragments.lastIndexOf("node_modules") + 1)
-	const keytarModuleDir = path.join("/", ...nodeModulesPathFragments, "keytar")
+	let keytarModuleDir
+	// on unixoids prepend '/' to path, on windows don't
+	if (process.platform == 'win32') {
+		keytarModuleDir = path.join(...nodeModulesPathFragments, "keytar")
+	} else {
+		keytarModuleDir = path.join('/', ...nodeModulesPathFragments, "keytar")
+	}
 	return keytarModuleDir
 
 }
