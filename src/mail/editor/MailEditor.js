@@ -525,7 +525,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	}
 
 
-	const templatePopupModel = logins.isInternalUserLoggedIn()
+	const templatePopupModel = logins.isInternalUserLoggedIn() && client.isDesktopDevice()
 		? new TemplatePopupModel(locator.eventController, logins, locator.entityClient)
 		: null
 
