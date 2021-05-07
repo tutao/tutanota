@@ -1,6 +1,6 @@
 import {babelDesktopPlugins, resolveLibs} from "./RollupConfig.js"
 import {resolveLibs} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./Builder.js"
+import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import Promise from "bluebird"
 import fs from "fs"
@@ -114,6 +114,7 @@ async function rollupDesktop(dirname, outDir, version) {
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
+			// requireReturnsDefault: "preferred" is needed in order to correclty generate a wrapper for the native keytar module
 			commonjs({
 				exclude: "src/**",
 				requireReturnsDefault: "preferred",
