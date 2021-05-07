@@ -32,13 +32,15 @@ interface Lifecycle<Attrs> {
 
 type LifecycleAttrs<T> = T & Lifecycle<T>
 
+type Attrs = $ReadOnly<{[?string]: any}>
+
 declare interface Mithril {
 	// We would like to write a definition which allows omitting Attrs if all keys are optional
 	(component: string | Component | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
 
-	<Attrs: $ReadOnly<{[?string]: any}>>(
-		component: string | Component | Class<MComponent<Attrs>> | MComponent<Attrs>,
-		attributes: Attrs,
+	<AttrsT: Attrs>(
+		component: string | Component | Class<MComponent<AttrsT>> | MComponent<AttrsT>,
+		attributes: AttrsT,
 		children?: Children
 	): Vnode<any>;
 

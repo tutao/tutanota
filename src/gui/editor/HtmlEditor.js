@@ -88,7 +88,7 @@ export class HtmlEditor {
 		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions)
 
 		this.view = () => {
-			const borderClasses = this._showBorders
+			const borderClasses: string = this._showBorders
 				? (this._active
 						? ".editor-border-active"
 						: (".editor-border" + (this._modeSwitcher ? ".editor-no-top-border" : ""))

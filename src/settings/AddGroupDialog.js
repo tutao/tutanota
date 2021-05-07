@@ -97,7 +97,7 @@ export class AddGroupDialogViewModel {
 	validateAddGroupInput(): ?TranslationKey {
 		if (this.groupType === GroupType.Mail) {
 			return this.errorMessageId
-		} else if (this.type === GroupType.Template
+		} else if (this.groupType === GroupType.Template
 			|| this.groupType === GroupType.MailingList
 			&& this.groupName.trim() === "") {
 			return "enterName_msg"
@@ -161,8 +161,8 @@ export function show(): mixed {
 							}
 						})
 				)
-				} else if (typeField.selectedValue() === GroupType.Template) {
-					addTemplateGroup(nameField.value()).then(success => {
+				} else if (viewModel.groupType === GroupType.Template) {
+					addTemplateGroup(viewModel.groupName).then(success => {
 						if (success) {
 							dialog.close()
 						}
