@@ -323,22 +323,18 @@ export class GroupViewer {
 		return this.groupInfo.groupType === GroupType.Mail
 	}
 
-	_updateUsedStorage(): Promise<void> {
-		return Promise.resolve
-		              .then(() => {
-			              if (this._isMailGroup()) {
-				              return worker.readUsedGroupStorage(this.groupInfo.group).then(usedStorage => {
-					              this._usedStorageInBytes = usedStorage
-				              }).catch(BadRequestError, e => {
-					              // may happen if the user gets the admin flag removed
-				              })
-			              } else {
-				              this._usedStorageInBytes = 0
-				              return Promise.resolve()
-			              }
-		              })
-		              .then(() => m.redraw())
+	async _updateUsedStorage(): Promise<void> {
+		if (this._isMailGroup()) {
+			const usedStorage = await worker.readUsedGroupStorage(this.groupInfo.group)
+			                                .catch(BadRequestError, e => {
+				                                // may happen if the user gets the admin flag removed
+			                                })
+			if (usedStorage) this._usedStorageInBytes = usedStorage
+		} else {
+			this._usedStorageInBytes = 0
+		}
 
+		m.redraw()
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

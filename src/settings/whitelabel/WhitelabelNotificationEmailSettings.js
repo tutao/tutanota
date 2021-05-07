@@ -9,6 +9,8 @@ import {ButtonType} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
+import {downcast} from "../../api/common/utils/Utils"
+import type {LanguageCode} from "../../misc/LanguageViewModel"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {
 	notificationMailTemplates: Array<NotificationMailTemplate>,
@@ -54,7 +56,8 @@ export class WhitelabelNotificationEmailSettings implements MComponent<Whitelabe
 					icon: () => Icons.Add
 				},
 				lines: notificationMailTemplates.map((template) => {
-					const langName = lang.get(languageByCode[template.language].textId)
+					const languageCode: LanguageCode = downcast(template.language)
+					const langName = lang.get(languageByCode[languageCode].textId)
 					return {
 						cells: [langName, template.subject],
 						actionButtonAttrs: attachDropdown(
