@@ -1,10 +1,16 @@
+/*
+	This file contains logic for compiling the native keytar module for the current platform.
+	It can be executed without any arguments and will figure all required information (electron-version, keytar directory, ...) by itself.
+
+	You can use the --verbose option to get more output from the build command (gyp), there also is a --debug option that will pass the
+	DEBUG flag to the keytar build.
+ */
 import {spawn} from "child_process"
 import fs from "fs-extra"
 import options from "commander"
 import path, {dirname} from "path"
 import {fileURLToPath} from "url"
 import {createRequire} from 'module';
-
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -18,9 +24,9 @@ options
 	})
 	.parse(process.argv)
 
-buildElectron(opts)
+buildKeytarForElectron(opts)
 
-async function buildElectron(opts) {
+async function buildKeytarForElectron(opts) {
 	console.log("Compiling keytar from source using gyp ...")
 
 	const arch = process.arch
@@ -51,7 +57,7 @@ async function buildElectron(opts) {
 		console.log(`Calling gyp '${gypCommand}' using options: ${gypOpts}`)
 	}
 
-	// need shell: true to build on windows ...
+	// need "shell: true" to build on windows ...
 	const spawnOptions = {stdio: "inherit", shell: true}
 	const gyp = spawn(
 		'node-gyp',
