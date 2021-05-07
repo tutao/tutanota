@@ -2,16 +2,16 @@ import path from "path"
 
 // These are the dependencies that must be provided for the module loader systemjs
 export const dependencyMap = {
-	"mithril": "./libs/mithril.js",
-	"mithril/stream/stream.js": "./libs/stream.js",
-	"squire-rte": "./libs/squire-raw.js",
-	"bluebird": "./libs/bluebird.js",
-	"dompurify": "./libs/purify.js",
-	"autolinker": "./libs/Autolinker.js",
-	"qrcode": "./libs/qrcode.js",
-	"jszip": "./libs/jszip.js",
-	"luxon": "./libs/luxon.js",
-	"oxmsg": "./node_modules/oxmsg/dist/oxmsg.js"
+	"mithril": path.normalize("./libs/mithril.js"),
+	"mithril/stream/stream.js": path.normalize("./libs/stream.js"),
+	"squire-rte": path.normalize("./libs/squire-raw.js"),
+	"bluebird": path.normalize("./libs/bluebird.js"),
+	"dompurify": path.normalize("./libs/purify.js"),
+	"autolinker": path.normalize("./libs/Autolinker.js"),
+	"qrcode": path.normalize("./libs/qrcode.js"),
+	"jszip": path.normalize("./libs/jszip.js"),
+	"luxon": path.normalize("./libs/luxon.js"),
+	"oxmsg": path.normalize("./node_modules/oxmsg/dist/oxmsg.js")
 }
 
 /**
@@ -70,97 +70,100 @@ export function resolveLibs(baseDir = ".") {
 export function getChunkName(moduleId, {getModuleInfo}) {
 	// See HACKING.md for rules
 	const code = getModuleInfo(moduleId).code
-	if (code.includes("@bundleInto:common-min") || moduleId.includes("libs/stream")) {
+	if (code.includes("@bundleInto:common-min") || moduleId.includes(path.normalize("libs/stream"))) {
 		return "common-min"
 	} else if (code.includes("assertMainOrNodeBoot") ||
-		moduleId.includes("libs/mithril") ||
-		moduleId.includes("src/app.js") ||
+		moduleId.includes(path.normalize("libs/mithril")) ||
+		moduleId.includes(path.normalize("src/app.js")) ||
 		code.includes("@bundleInto:boot")
 	) {
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
 		// (which is getting merged into app.js)
 		return "boot"
-	} else if (moduleId.includes("src/gui/date") ||
-		moduleId.includes("src/misc/DateParser") ||
+	} else if (moduleId.includes(path.normalize("src/gui/date")) ||
+		moduleId.includes(path.normalize("src/misc/DateParser")) ||
 		moduleId.includes("luxon") ||
-		moduleId.includes("src/calendar/date") ||
-		moduleId.includes("src/calendar/export")
+		moduleId.includes(path.normalize("src/calendar/date")) ||
+		moduleId.includes(path.normalize("src/calendar/export"))
 	) {
 		// luxon and everything that depends on it goes into date bundle
 		return "date"
-	} else if (moduleId.includes("src/misc/HtmlSanitizer") || moduleId.includes("libs/purify")) {
+	} else if (moduleId.includes(path.normalize("src/misc/HtmlSanitizer")) || moduleId.includes(path.normalize("libs/purify"))) {
 		return "sanitizer"
-	} else if (moduleId.includes("src/misc/Urlifier") || moduleId.includes("libs/Autolinker")) {
+	} else if (moduleId.includes(path.normalize("src/misc/Urlifier")) || moduleId.includes(path.normalize("libs/Autolinker"))) {
 		return "urlifier"
-	} else if (moduleId.includes("src/gui/base") || moduleId.includes("src/gui/nav")) {
+	} else if (moduleId.includes(path.normalize("src/gui/base")) || moduleId.includes(path.normalize("src/gui/nav"))) {
 		// these gui elements are used from everywhere
 		return "gui-base"
-	} else if (moduleId.includes("src/native/main") || moduleId.includes("SearchInPageOverlay")) {
+	} else if (moduleId.includes(path.normalize("src/native/main")) || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
-	} else if (moduleId.includes("src/mail/editor") ||
+	} else if (moduleId.includes(path.normalize("src/mail/editor")) ||
 		moduleId.includes("squire") ||
-		moduleId.includes("src/gui/editor") ||
-		moduleId.includes("src/mail/signature") ||
-		moduleId.includes("src/templates") ||
-		moduleId.includes("src/knowledgebase")
+		moduleId.includes(path.normalize("src/gui/editor")) ||
+		moduleId.includes(path.normalize("src/mail/signature")) ||
+		moduleId.includes(path.normalize("src/templates")) ||
+		moduleId.includes(path.normalize("src/knowledgebase"))
 	) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"
 	} else if (
-		moduleId.includes("src/api/main") ||
-		moduleId.includes("src/mail/model") ||
-		moduleId.includes("src/contacts/model") ||
-		moduleId.includes("src/calendar/model") ||
-		moduleId.includes("src/search/model") ||
-		moduleId.includes("src/misc/ErrorHandlerImpl") ||
-		moduleId.includes("src/misc") ||
-		moduleId.includes("src/file") ||
-		moduleId.includes("src/gui")
+		moduleId.includes(path.normalize("src/api/main")) ||
+		moduleId.includes(path.normalize("src/mail/model")) ||
+		moduleId.includes(path.normalize("src/contacts/model")) ||
+		moduleId.includes(path.normalize("src/calendar/model")) ||
+		moduleId.includes(path.normalize("src/search/model")) ||
+		moduleId.includes(path.normalize("src/misc/ErrorHandlerImpl")) ||
+		moduleId.includes(path.normalize("src/misc")) ||
+		moduleId.includes(path.normalize("src/file")) ||
+		moduleId.includes(path.normalize("src/gui"))
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"
-	} else if (moduleId.includes("src/mail/view") || moduleId.includes("src/mail/export")) {
+	} else if (moduleId.includes(path.normalize("src/mail/view")) || moduleId.includes(path.normalize("src/mail/export"))) {
 		return "mail-view"
-	} else if (moduleId.includes("src/native/worker")) {
+	} else if (moduleId.includes(path.normalize("src/native/worker"))) {
 		return "worker"
-	} else if (moduleId.includes("src/native/common") || moduleId.includes("src/desktop/config/ConfigKeys.js")) {
+	} else if (moduleId.includes(path.normalize("src/native/common"))
+		|| moduleId.includes(path.normalize("src/desktop/config/ConfigKeys.js"))) {
 		return "native-common"
-	} else if (moduleId.includes("src/search")) {
+	} else if (moduleId.includes(path.normalize("src/search"))) {
 		return "search"
-	} else if (moduleId.includes("src/calendar/view")) {
+	} else if (moduleId.includes(path.normalize("src/calendar/view"))) {
 		return "calendar-view"
-	} else if (moduleId.includes("src/contacts")) {
+	} else if (moduleId.includes(path.normalize("src/contacts"))) {
 		return "contacts"
-	} else if (moduleId.includes("src/login/recover") || moduleId.includes("src/support") || moduleId.includes("src/login/contactform")) {
+	} else if (moduleId.includes(path.normalize("src/login/recover"))
+		|| moduleId.includes(path.normalize("src/support"))
+		|| moduleId.includes(path.normalize("src/login/contactform"))) {
 		// Collection of small UI components which are used not too often
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
-	} else if (moduleId.includes("src/login")) {
+	} else if (moduleId.includes(path.normalize("src/login"))) {
 		return "login"
-	} else if (moduleId.includes("src/api/common") || moduleId.includes("src/api/entities")) {
+	} else if (moduleId.includes(path.normalize("src/api/common")) || moduleId.includes(path.normalize("src/api/entities"))) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
 		return "common"
 	} else if (moduleId.includes("rollupPluginBabelHelpers") || moduleId.includes("commonjsHelpers")) {
 		return "polyfill-helpers"
-	} else if (moduleId.includes("src/settings") ||
-		moduleId.includes("src/subscription") ||
-		moduleId.includes("libs/qrcode")) {
+	} else if (moduleId.includes(path.normalize("src/settings")) ||
+		moduleId.includes(path.normalize("src/subscription")) ||
+		moduleId.includes(path.normalize("libs/qrcode"))) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
-	} else if (moduleId.includes("src/sharing")) {
+	} else if (moduleId.includes(path.normalize("src/sharing"))) {
 		return "sharing"
-	} else if (moduleId.includes("src/api/worker")) {
+	} else if (moduleId.includes(path.normalize("src/api/worker"))) {
 		return "worker" // avoid that crypto stuff is only put into native
-	} else if (moduleId.includes("libs/jszip")) {
+	} else if (moduleId.includes(path.normalize("libs/jszip"))) {
 		return "jszip"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
 		// This groups chunks but does not rename them for some reason so we do chunkFileNames below
-		const match = /.*\/translations\/(\w+)+\.js/.exec(moduleId)
+		const match = /.*[\\|\/]translations[\\|\/](\w+)+\.js/.exec(moduleId)
 		if (match) {
 			const language = match[1]
 			return "translation-" + language
@@ -181,7 +184,7 @@ export function bundleDependencyCheckPlugin() {
 			for (const chunk of Object.values(bundle)) {
 				for (const moduleId of Object.keys(chunk.modules)) {
 					// Its a translation file and they are in their own chunks. We can skip further checks.
-					if (moduleId.includes("src/translations")) {
+					if (moduleId.includes(path.normalize("src/translations"))) {
 						continue
 					}
 					const ownChunk = getChunkName(moduleId, {getModuleInfo})
@@ -191,7 +194,7 @@ export function bundleDependencyCheckPlugin() {
 
 					for (const importedId of getModuleInfo(moduleId).importedIds) {
 						// static dependencies on translation files are not allowed
-						if (importedId.includes("src/translations")) {
+						if (importedId.includes(path.normalize("src/translations"))) {
 							throw new Error(`Static dependency of ${importedId} is not allowed from ${moduleId}`)
 						}
 						const importedChunk = getChunkName(importedId, {getModuleInfo})
