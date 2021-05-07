@@ -77,7 +77,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
-			"artifactName": "${name}-${os}.${ext}",
+			"artifactName": "${name}-${os}-${arch}.${ext}",
 			"afterSign": notarize ? "buildSrc/notarize.cjs" : undefined,
 			"protocols": [
 				{
@@ -117,7 +117,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"target": [
 					{
 						"target": unpacked ? "dir" : "nsis",
-						"arch": "x64"
+						"arch": ["x64", "arm64"]
 					}
 				]
 			},
@@ -141,15 +141,15 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 					"LSUIElement": 1 //hide dock icon on startup
 				},
 				"target": unpacked
-					? [{"target": "dir", "arch": "x64"}]
+					? [{"target": "dir", "arch": ["x64", "arm64"]}]
 					: [
 						{
 							"target": "zip",
-							"arch": "x64"
+							"arch": ["x64", "arm64"]
 						},
 						{
 							"target": "dmg",
-							"arch": "x64"
+							"arch": ["x64", "arm64"]
 						}
 					]
 			},
@@ -163,7 +163,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"target": [
 					{
 						"target": unpacked ? "dir" : "AppImage",
-						"arch": "x64"
+						"arch": ["x64", "arm64"]
 					}
 				]
 			}

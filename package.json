@@ -19,13 +19,13 @@
 		"autolinker": "3.11.1",
 		"bluebird": "3.7.2",
 		"dompurify": "2.2.7",
-		"keytar": "7.2.0",
+		"keytar": "7.6.0",
 		"luxon": "1.26.0",
 		"mithril": "2.0.4",
+		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.11.1",
-		"systemjs": "6.8.3",
-		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22"
+		"systemjs": "6.8.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.10.5",
