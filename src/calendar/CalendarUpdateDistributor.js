@@ -6,7 +6,6 @@ import {CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMet
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {defaultTheme} from "../gui/theme"
 import {assertNotNull, noOp} from "../api/common/utils/Utils"
 import type {SendMailModel} from "../mail/editor/SendMailModel"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -16,6 +15,7 @@ import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEvent
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {themeManager} from "../gui/theme"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
@@ -191,7 +191,7 @@ function makeInviteEmailBody(sender: string, event: CalendarEvent, message: stri
 	const logo = isTutanotaMailAddress(sender)
 		? `
   <img style="width: 200px; max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
-  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(defaultTheme.logo))}"
+  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(themeManager.getDefaultTheme().logo))}"
   alt="logo"/>
 `
 		: ""

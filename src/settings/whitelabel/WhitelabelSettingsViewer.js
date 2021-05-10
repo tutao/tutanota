@@ -15,7 +15,6 @@ import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import {WhitelabelConfigTypeRef} from "../../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../../gui/theme"
-import {updateCustomTheme} from "../../gui/theme"
 import {progressIcon} from "../../gui/base/Icon"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import type {Booking} from "../../api/entities/sys/Booking"
@@ -43,6 +42,7 @@ import {WhitelabelCustomMetaTagsSettings} from "./WhitelabelCustomMetaTagsSettin
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
+import {themeManager} from "../../gui/theme"
 
 assertMainOrNode()
 
@@ -142,7 +142,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const onThemeChanged = (theme) => {
 			neverNull(this._whitelabelConfig).jsonTheme = JSON.stringify(theme)
 			update(neverNull(this._whitelabelConfig))
-			updateCustomTheme(theme)
+			themeManager.updateCustomTheme(theme)
 		}
 
 		const whitelabelThemeSettingsAttrs = {

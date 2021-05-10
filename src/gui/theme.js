@@ -1,6 +1,6 @@
 // @flow
 import {getLogoSvg} from "./base/icons/Logo"
-import {defaultThemeId, deviceConfig} from "../misc/DeviceConfig"
+import {defaultThemeId, DeviceConfig, deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
@@ -233,44 +233,86 @@ export const themes: Themes = {
 	})
 }
 
-const savedTheme = loadSavedTheme()
 
-/** read-only, only use to subscribe */
-export const themeId: Stream<ThemeId> = stream(savedTheme)
-export const defaultTheme: Theme = getTheme(defaultThemeId)
-/** always have up-to-date theme definition */
-export const theme: Theme = getTheme(themeId())
+class ThemeManager {
 
-let customTheme: ?Theme = null
-if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
-	updateCustomTheme(whitelabelCustomizations.theme)
-}
+	_theme: Theme
+	_themeId: ThemeId
 
-/** use this to change theme */
-export function setThemeId(newThemeId: ThemeId) {
-	// Always overwrite light theme so that optional things are not kept when switching
-	Object.keys(theme).forEach(key => delete downcast(theme)[key])
-	Object.assign(theme, themes.light, getTheme(newThemeId))
+	customTheme: ?Theme
+	deviceConfig: DeviceConfig
 
-	themeId(newThemeId)
+	// Subscribe to this to get theme change events. Cannot be used to update the theme
+	themeIdChangedStream: Stream<ThemeId>
 
-	deviceConfig.setTheme(newThemeId)
-}
+	constructor(deviceConfig: DeviceConfig) {
+		this.deviceConfig = deviceConfig
+		this.customTheme = null
+		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
+			this.updateCustomTheme(whitelabelCustomizations.theme)
+		}
 
-export function updateCustomTheme(updatedTheme: Object) {
-	const logo = updatedTheme.logo
-	// set no logo until we sanitize it
-	customTheme = Object.assign({}, defaultTheme, updatedTheme, {logo: ""})
-	const nonNullTheme = customTheme
-	if (logo) {
-		import("dompurify").then((dompurify) => {
-			nonNullTheme.logo = dompurify.default.sanitize(logo)
-			setThemeId("custom") // let it copy attributes in .map() listener
-			m.redraw()
-		})
+		const savedThemeId = deviceConfig.getTheme()
+		this._themeId = savedThemeId
+		this._theme = this._getTheme(savedThemeId)
+		this.themeIdChangedStream = stream(this.themeId)
 	}
-	setThemeId('custom')
+
+	get themeId(): ThemeId {
+		return this._themeId
+	}
+
+	_getTheme(themeId: ThemeId): Theme {
+		// Make a defensive copy so that original theme definition is not modified.
+		switch (themeId) {
+			case 'custom':
+				return Object.assign({}, themes.light, this.customTheme)
+			case 'dark':
+				return Object.assign({}, themes.dark)
+			case 'blue':
+				return Object.assign({}, themes.blue)
+			default:
+				return Object.assign({}, themes.light)
+		}
+	}
+
+	setThemeId(newThemeId: ThemeId) {
+		// Always overwrite light theme so that optional things are not kept when switching
+		Object.keys(this._theme).forEach(key => delete downcast(this._theme)[key])
+		Object.assign(this._theme, themes.light, this._getTheme(newThemeId))
+
+		this._themeId = newThemeId
+
+		deviceConfig.setTheme(newThemeId)
+
+		this.themeIdChangedStream(newThemeId)
+	}
+
+	updateCustomTheme(updatedTheme: Object) {
+		const logo = updatedTheme.logo
+		// set no logo until we sanitize it
+		this.customTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme, {logo: ""})
+		const nonNullTheme = this.customTheme
+		if (logo) {
+			import("dompurify").then((dompurify) => {
+				nonNullTheme.logo = dompurify.default.sanitize(logo)
+				this.setThemeId("custom") // let it copy attributes in .map() listener
+				m.redraw()
+			})
+		}
+		this.setThemeId('custom')
+	}
+
+	getDefaultTheme(): Theme {
+		return this._getTheme(defaultThemeId)
+	}
 }
+
+export const themeManager: ThemeManager = new ThemeManager(deviceConfig)
+
+// ThemeManager.updateTheme updates the object in place, so this will always be current
+// We keep this singleton available because it is convenient to refer to, and already everywhere in the code before the addition of ThemeManager
+export const theme = themeManager._theme
 
 export function getContentButtonIconBackground(): string {
 	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg
@@ -291,26 +333,3 @@ export function getNavigationMenuBg(): string {
 export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
-
-function loadSavedTheme(): ThemeId {
-	if (deviceConfig.getTheme()) {
-		return deviceConfig.getTheme()
-	} else {
-		return 'light'
-	}
-}
-
-function getTheme(themeId: ThemeId): Theme {
-	// Make a defensive copy so that original theme definition is not modified.
-	switch (themeId) {
-		case 'custom':
-			return Object.assign({}, themes.light, customTheme)
-		case 'dark':
-			return Object.assign({}, themes.dark)
-		case 'blue':
-			return Object.assign({}, themes.blue)
-		default:
-			return Object.assign({}, themes.light)
-	}
-}
-

@@ -6,7 +6,6 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {setThemeId, themeId} from "../gui/theme"
 import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
@@ -20,6 +19,7 @@ import {getHourCycle} from "../misc/Formatter"
 import {Mode} from "../api/common/Env"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
+import {themeManager} from "../gui/theme"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -49,9 +49,12 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
 			label: "switchColorTheme_action",
-			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}, {name: lang.get("blue_label"), value: "blue"}],
-			selectedValue: themeId,
-			selectionChangedHandler: (value) => setThemeId(value)
+			items: [
+				{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"},
+				{name: lang.get("blue_label"), value: "blue"}
+			],
+			selectedValue: stream(themeManager.themeId),
+			selectionChangedHandler: (value) => themeManager.setThemeId(value)
 		}
 
 		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
@@ -91,7 +94,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".h4.mt-l", lang.get('settingsForDevice_label')),
 			m(DropDownSelectorN, languageDropDownAttrs),
-			themeId() === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
+			(themeManager.themeId === 'custom') ? null : m(DropDownSelectorN, themeDropDownAttrs),
 			m(".h4.mt-l", lang.get('userSettings_label')),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
