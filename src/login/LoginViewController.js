@@ -26,7 +26,6 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "../misc/SecondFactorHandler"
 import {showProgressDialog} from "../gui/ProgressDialog"
-import {themeId} from "../gui/theme"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
 import {isMailAddress} from "../misc/FormatValidator"
@@ -41,6 +40,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
+import {themeManager} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -67,7 +67,7 @@ export class LoginViewController implements ILoginViewController {
 		if (isApp()) {
 			worker.initialized.then(() => {
 
-				themeId.map((theme) => {
+				themeManager.themeIdChangedStream.map((theme) => {
 					import("../native/main/SystemApp").then(({changeColorTheme}) => changeColorTheme(theme))
 				})
 			})

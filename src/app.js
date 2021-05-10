@@ -8,7 +8,6 @@ import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import {downcast, neverNull} from "./api/common/utils/Utils"
-import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
 import {Const} from "./api/common/TutanotaConstants"
@@ -17,6 +16,7 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
+import {themeManager} from "./gui/theme"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -40,7 +40,7 @@ window.tutao = {
 	root,
 	logins,
 	currentView,
-	themeId,
+	themeManager,
 	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }

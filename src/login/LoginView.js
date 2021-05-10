@@ -7,7 +7,6 @@ import {lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {setThemeId, themeId} from "../gui/theme"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -24,6 +23,7 @@ import {UserError} from "../api/main/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
+import {themeManager} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -76,7 +76,7 @@ export class LoginView {
 
 		if (window.location.href.includes('signup')) {
 			if (window.location.hash.includes('theme=blue')) {
-				setThemeId('blue')
+				themeManager.setThemeId('blue')
 			}
 			this.permitAutoLogin = false
 			this._signup()
@@ -169,13 +169,13 @@ export class LoginView {
 							label: "switchColorTheme_action",
 							type: ButtonType.Secondary,
 							click: () => {
-								switch (themeId()) {
+								switch (themeManager.themeId) {
 									case 'light':
-										return setThemeId('dark')
+										return themeManager.setThemeId('dark')
 									case 'dark':
-										return setThemeId('blue')
+										return themeManager.setThemeId('blue')
 									default:
-										return setThemeId('light')
+										return themeManager.setThemeId('light')
 								}
 							}
 						})
@@ -212,7 +212,7 @@ export class LoginView {
 	}
 
 	_switchThemeLinkVisible(): boolean {
-		return (themeId() !== 'custom')
+		return (themeManager.themeId !== 'custom')
 	}
 
 	_recoverLoginVisible(): boolean {

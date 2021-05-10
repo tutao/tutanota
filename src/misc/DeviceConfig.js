@@ -16,7 +16,7 @@ export const defaultThemeId: ThemeId = 'light'
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
-class DeviceConfig {
+export class DeviceConfig {
 	_version: number;
 	_credentials: Credentials[];
 	_scheduledAlarmUsers: Id[];
