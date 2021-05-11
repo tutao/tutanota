@@ -72,7 +72,7 @@ export class DesktopAlarmScheduler {
 				this._cancelAlarms(alarm)
 			}
 		})
-		return this._alarmStorage.deleteAllAlarms()
+		return this._alarmStorage.deleteAllAlarms(userId)
 	}
 
 	/**

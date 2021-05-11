@@ -6,8 +6,6 @@ import type {Thunk} from "../api/common/utils/Utils"
 export opaque type ScheduledId = TimeoutID
 
 export interface Scheduler {
-	scheduleAfter(thunk: Thunk, ms: number): ScheduledId;
-
 	scheduleAt(thunk: Thunk, date: Date): ScheduledId;
 
 	unschedule(id: ScheduledId): void;
@@ -26,17 +24,15 @@ export class SchedulerImpl implements Scheduler {
 	+_dateProvider: DateProvider
 	+_systemTimeout: SystemTimeout;
 
+	/**
+	 * This points from the originally scheduled timeout to the most recent timeout
+	 */
 	+_bridgedTimeouts: Map<ScheduledId, ScheduledId>;
 
 	constructor(dateProvider: DateProvider, systemTimeout: SystemTimeout) {
 		this._dateProvider = dateProvider
 		this._systemTimeout = systemTimeout
 		this._bridgedTimeouts = new Map()
-	}
-
-
-	scheduleAfter(callback: Thunk, ms: number): ScheduledId {
-		return this._systemTimeout.setTimeout(callback, ms)
 	}
 
 	scheduleAt(callback: Thunk, date: Date): ScheduledId {
@@ -60,12 +56,12 @@ export class SchedulerImpl implements Scheduler {
 
 		let timeoutId
 		if (diff > SET_TIMEOUT_LIMIT) {
-			timeoutId = this.scheduleAfter(() => {
-				const newTimoutId = this._scheduleAtInternal(thunk, date)
-				this._bridgedTimeouts.set(timeoutId, newTimoutId)
+			timeoutId = this._systemTimeout.setTimeout(() => {
+				const newTimeoutId = this._scheduleAtInternal(thunk, date)
+				this._bridgedTimeouts.set(timeoutId, newTimeoutId)
 			}, SET_TIMEOUT_LIMIT)
 		} else {
-			timeoutId = this.scheduleAfter(thunk, diff)
+			timeoutId = this._systemTimeout.setTimeout(thunk, diff)
 		}
 		return timeoutId
 	}

@@ -6,7 +6,6 @@ import {CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMet
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {defaultTheme} from "../../gui/theme"
 import {assertNotNull, noOp} from "../../api/common/utils/Utils"
 import type {SendMailModel} from "../../mail/editor/SendMailModel"
 import type {Mail} from "../../api/entities/tutanota/Mail"

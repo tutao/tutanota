@@ -319,7 +319,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 /**
  * Optimization to not create luxon's DateTime in simple case.
  * May not work if we allow override time zones.
- */function getDiffInDaysFast(left: Date, right: Date): number {
+ */
+function getDiffInDaysFast(left: Date, right: Date): number {
 	if (left.getMonth() === right.getMonth()) {
 		return left.getDate() - right.getDate()
 	} else {
