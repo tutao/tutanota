@@ -31,22 +31,19 @@ let currentAnimationTimeout: ?TimeoutID = null
 
 class SnackBar implements MComponent<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
-		return m(".snackbar-content.flex.flex-space-between.border-radius.plr", [
-			m(".flex.center-vertically.smaller.pt-s.pb-s", lang.getMaybeLazy(vnode.attrs.message)),
+		// use same padding as MinimizedEditor
+		return m(".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs", [
+			m(".flex.center-vertically.smaller", lang.getMaybeLazy(vnode.attrs.message)),
 			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(ButtonN, vnode.attrs.button)) : null
 		])
 	}
 }
 
-function makeButtonAttrsForSnackBar(button?: SnackBarButtonAttrs): ?ButtonAttrs {
-	if (!button) {
-		return null
-	}
-	const upperCaseLabel = lang.getMaybeLazy(button.label).toLocaleUpperCase()
+function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 	return {
-		label: () => upperCaseLabel,
+		label: button.label,
 		click: button.click,
-		type: ButtonType.Primary
+		type: ButtonType.Secondary
 	}
 }
 
@@ -56,7 +53,7 @@ function makeButtonAttrsForSnackBar(button?: SnackBarButtonAttrs): ?ButtonAttrs 
  * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
  * @param onClose called when the snackbar is closed (either by timeout or button click)
  */
-export function showSnackBar(message: TranslationKey | lazy<string>, snackBarButton?: SnackBarButtonAttrs, onClose: ?() => void) {
+export function showSnackBar(message: TranslationKey | lazy<string>, snackBarButton: SnackBarButtonAttrs, onClose: ?() => void) {
 	const button = makeButtonAttrsForSnackBar(snackBarButton)
 	notificationQueue.push({message, button, onClose})
 	if (notificationQueue.length > 1) {
