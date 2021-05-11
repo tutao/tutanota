@@ -9,6 +9,7 @@ assertMainOrNodeBoot()
 export const LayerType = Object.freeze({
 	View: 0,
 	LowPriorityOverlay: 100, // Minimized editors, SearchBarOverlay
+	LowPriorityNotification: 150, // SnackBars, notifications that require no user interaction
 	ForegroundMenu: 200, // Foreground menu in mobile layout
 	Modal: 300, // Editors, Dialogs
 	Overlay: 400, // Error message dialogs, Notifications

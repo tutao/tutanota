@@ -97,7 +97,7 @@ export const themes: Themes = {
 		navigation_button_selected: red,
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
-		navigation_menu_icon: grey
+		navigation_menu_icon: grey,
 	}),
 
 	dark: Object.freeze({
@@ -184,7 +184,7 @@ export const themes: Themes = {
 		navigation_button_selected: blue,
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
-		navigation_menu_icon: grey
+		navigation_menu_icon: grey,
 	})
 }
 

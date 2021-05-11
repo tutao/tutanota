@@ -69,7 +69,6 @@ export const overlay: MComponent<void> = {
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
 		const position = attrs.position()
-
 		return m(".abs.elevated-bg." + attrs.shadowClass, {
 			key,
 			style: {
