@@ -23,30 +23,6 @@ o.spec("Scheduler", function () {
 		scheduler = new SchedulerImpl(dateProvider, downcast<SystemTimeout>(timeoutMock))
 	})
 
-	o("simple scheduleAfer", function () {
-		const cb = o.spy()
-		scheduler.scheduleAfter(cb, 5000)
-
-		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([5000])
-		o(cb.callCount).equals(0)("Not called earlier")
-
-		assertNotNull(timeoutMock.scheduledAfter.get(5000)).thunk()
-
-		o(cb.callCount).equals(1)("Was called after timeout")
-	})
-
-	o("scheduleAfter then cancel", function () {
-		const cb = o.spy()
-		const scheduledId = scheduler.scheduleAfter(cb, 5000)
-
-		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([5000])
-		o(cb.callCount).equals(0)("Not called earlier")
-
-		scheduler.unschedule(scheduledId)
-
-		o(Array.from(timeoutMock.cancelled.values())).deepEquals([scheduledId])
-	})
-
 	o("scheduleAt close", function () {
 		const cb = o.spy()
 		const duration = Duration.fromObject({minutes: 10})

@@ -103,8 +103,17 @@ export class DesktopAlarmStorage {
 		await this._saveAlarms(allAlarms)
 	}
 
-	deleteAllAlarms(): Promise<void> {
-		return this._saveAlarms([])
+	/**
+	 * If userId is null then we delete alarms for all users
+	 */
+	async deleteAllAlarms(userId: ?Id): Promise<void> {
+		if (userId == null) {
+			return this._saveAlarms([])
+		} else {
+			const allScheduledAlarms = await this.getScheduledAlarms()
+			findAllAndRemove(allScheduledAlarms, alarm => alarm.user === userId)
+			return this._saveAlarms(allScheduledAlarms)
+		}
 	}
 
 	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {

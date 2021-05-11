@@ -79,11 +79,11 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 
 	cancelAlarm(alarmIdentifier: string) {
 		// try to cancel single first
-		this._cancelOccurrence(alarmIdentifier, "")
+		this._cancelOccurrence(alarmIdentifier)
 	}
 
-	_cancelOccurrence(alarmIdentifier: string, occurrenceId: string) {
-		const timeoutId = this._scheduledNotifications.get(alarmIdentifier + occurrenceId)
+	_cancelOccurrence(alarmIdentifier: string) {
+		const timeoutId = this._scheduledNotifications.get(alarmIdentifier)
 		if (timeoutId != null) {
 			this._scheduler.unschedule(timeoutId)
 		}
