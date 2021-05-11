@@ -83,7 +83,7 @@ export class MailListView implements Component {
 					m(Icon, {icon: Icons.Folder}),
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
-				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
+				renderRightSpacer: () => [m(Icon, {icon: Icons.Trash}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
