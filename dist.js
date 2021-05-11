@@ -19,7 +19,7 @@ import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
 import os from "os"
 import {rollup} from "rollup"
-import {bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
+import {babelPlugins, bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
@@ -130,23 +130,7 @@ async function buildWebapp(version) {
 		input: ["src/polyfill.js"],
 		plugins: [
 			babel({
-				plugins: [
-					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
-					"@babel/plugin-transform-flow-strip-types",
-					"@babel/plugin-proposal-class-properties",
-					"@babel/plugin-syntax-dynamic-import",
-					"@babel/plugin-transform-arrow-functions",
-					"@babel/plugin-transform-classes",
-					"@babel/plugin-transform-computed-properties",
-					"@babel/plugin-transform-destructuring",
-					"@babel/plugin-transform-for-of",
-					"@babel/plugin-transform-parameters",
-					"@babel/plugin-transform-shorthand-properties",
-					"@babel/plugin-transform-spread",
-					"@babel/plugin-transform-template-literals",
-					"@babel/plugin-transform-block-scoping",
-					"@babel/plugin-proposal-object-rest-spread",
-				],
+				plugins: babelPlugins,
 				babelHelpers: "bundled",
 			}),
 			MINIFY && terser(),
@@ -184,12 +168,7 @@ async function buildWebapp(version) {
 		perf: true,
 		plugins: [
 			babel({
-				plugins: [
-					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
-					"@babel/plugin-transform-flow-strip-types",
-					"@babel/plugin-proposal-class-properties",
-					"@babel/plugin-syntax-dynamic-import",
-				],
+				plugins: babelPlugins,
 				babelHelpers: "bundled",
 			}),
 			resolveLibs(),
@@ -428,15 +407,7 @@ async function bundleServiceWorker(bundles, version) {
 		input: ["src/serviceworker/sw.js"],
 		plugins: [
 			babel({
-				plugins: [
-					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
-					"@babel/plugin-transform-flow-strip-types",
-					"@babel/plugin-proposal-class-properties",
-					"@babel/plugin-transform-computed-properties",
-					"@babel/plugin-transform-parameters",
-					"@babel/plugin-transform-shorthand-properties",
-					"@babel/plugin-transform-spread",
-				],
+				plugins: babelPlugins,
 				babelHelpers: "bundled",
 			}),
 			MINIFY && terser(),

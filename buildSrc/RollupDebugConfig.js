@@ -3,7 +3,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import Promise from "bluebird"
 import fs from "fs-extra"
-import {dependencyMap} from "./RollupConfig.js";
+import {babelPlugins, dependencyMap} from "./RollupConfig.js";
 
 const {babel} = pluginBabel
 
@@ -20,12 +20,7 @@ function resolveLibs(baseDir = ".") {
 export function rollupDebugPlugins(baseDir) {
 	return [
 		babel({
-			plugins: [
-				// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
-				"@babel/plugin-transform-flow-strip-types",
-				"@babel/plugin-proposal-class-properties",
-				"@babel/plugin-syntax-dynamic-import"
-			],
+			plugins: babelPlugins,
 			inputSourceMap: false,
 			babelHelpers: "bundled",
 			retainLines: true,
