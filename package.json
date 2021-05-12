@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.83.4",
+	"version": "3.83.5",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -19,14 +19,14 @@
 		"autolinker": "3.11.1",
 		"bluebird": "3.7.2",
 		"dompurify": "2.2.7",
+		"electron-builder": "22.11.1",
 		"keytar": "7.2.0",
 		"luxon": "1.26.0",
 		"mithril": "2.0.4",
+		"oxmsg": "github:tutao/oxmsg#c5895617bca13befcf54cf3e42a6c3ea075dcb8b",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.11.1",
-		"systemjs": "6.8.3",
-		"oxmsg": "tutao/oxmsg#a201b436f34e6b795359597b3a454cacc1aaff22",
-		"electron-builder": "22.11.1"
+		"systemjs": "6.8.3"
 	},
 	"devDependencies": {
 		"@babel/core": "7.14.0",
