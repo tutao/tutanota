@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../common/Env"
+import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isWorker} from "../../common/Env"
 import {
 	ConnectionError,
 	handleRestError,
@@ -147,6 +147,9 @@ export class RestClient {
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
 	_checkRequestSizeLimit(path: string, method: HttpMethodEnum, body: ?string | ?Uint8Array) {
+		if (isAdminClient()) {
+			return
+		}
 		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) || REQUEST_SIZE_LIMIT_DEFAULT
 		if (body && body.length > limit) {
 			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
