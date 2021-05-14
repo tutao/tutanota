@@ -213,4 +213,7 @@ export const babelPlugins = [
 	"@babel/plugin-transform-flow-strip-types",
 	"@babel/plugin-proposal-class-properties",
 	"@babel/plugin-syntax-dynamic-import",
+	// We technically don't need to have this as we expect async to just work but we rely on bluebird in many places and native async
+	// doesn't care about us redefining global Promise.
+	"@babel/plugin-transform-async-to-generator",
 ]
