@@ -110,14 +110,14 @@ import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./Ma
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
-import {stringifyFragment} from "../../gui/HtmlUtils"
 import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {InfoBanner} from "../../gui/base/InfoBanner"
 import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import {ActionBanner} from "../../gui/base/icons/ActionBanner"
-import type {SanitizedHTML} from "../../misc/HtmlSanitizer"
+import type {Link} from "../../misc/HtmlSanitizer"
+import {DocumentFragmentRenderer} from "../../gui/base/DocumentFragmentRenderer"
 
 assertMainOrNode()
 
@@ -146,7 +146,7 @@ export class MailViewer {
 	mail: Mail;
 	_mailBody: ?MailBody;
 	_contrastFixNeeded: boolean;
-	_htmlBody: string; // always sanitized
+	_htmlBody: ?DocumentFragment; // always sanitized in this.setSanitizedMailBodyFromMail
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
@@ -200,7 +200,7 @@ export class MailViewer {
 		}
 		this._attachments = []
 		this._attachmentButtons = []
-		this._htmlBody = ""
+		this._htmlBody = null
 		this._contrastFixNeeded = false
 		// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
 		this._contentBlockingStatus = ContentBlockingStatus.NoExternalContent
@@ -329,7 +329,7 @@ export class MailViewer {
 							|| m("hr.hr.mt-s")
 						]),
 
-						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt"
+						m(".flex-grow.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt"
 							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay")
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
 								ontouchstart: (event) => {
@@ -353,36 +353,7 @@ export class MailViewer {
 									}
 								},
 							},
-							m("#mail-body.selectable.touch-callout.break-word-links", {
-								oncreate: vnode => {
-									this._domBodyDeferred.resolve(vnode.dom)
-									this._updateLineHeight()
-									this._rescale(false)
-								},
-								onupdate: (vnode) => {
-									if (this._domBodyDeferred.promise.isPending()) {
-										this._domBodyDeferred.resolve(vnode.dom)
-									}
-									this._rescale(false)
-								},
-								onsubmit: (event: Event) => this._confirmSubmit(event),
-								style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
-							}, (this._mailBody == null && !this._errorOccurred)
-								? m(".progress-panel.flex-v-center.items-center", {
-									style: {
-										height: '200px'
-									}
-								}, [
-									progressIcon(),
-									m("small", lang.get("loading_msg"))
-								])
-								: ((this._errorOccurred || this.mail._errors || (this._mailBody != null && this._mailBody._errors))
-									? m(ColumnEmptyMessageBox, {
-										message: "corrupted_msg",
-										icon: Icons.Warning,
-										color: theme.content_message_bg,
-									})
-									: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+							this.renderMailBodySection()
 						)
 					],
 				),
@@ -391,6 +362,49 @@ export class MailViewer {
 
 		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+	}
+
+	renderMailBodySection(): Children {
+		if (this._htmlBody && !this._didErrorsOccur()) {
+			return m(DocumentFragmentRenderer, {
+				// this._htmlBody has been sanitized before it was created, in this.setSanitizedMailBodyFromMail
+				fragment: this._htmlBody,
+				wrapper: m("#mail-body.selectable.touch-callout.break-word-links", {
+					oncreate: vnode => {
+						this._domBodyDeferred.resolve(vnode.dom)
+						this._updateLineHeight()
+						this._rescale(false)
+					},
+					onupdate: (vnode) => {
+						if (this._domBodyDeferred.promise.isPending()) {
+							this._domBodyDeferred.resolve(vnode.dom)
+						}
+						this._rescale(false)
+					},
+					onsubmit: (event: Event) => this._confirmSubmit(event),
+					style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
+				})
+			})
+		} else if (!this._didErrorsOccur()) {
+			return m(".progress-panel.flex-v-center.items-center", {
+				style: {
+					height: '200px'
+				}
+			}, [
+				progressIcon(),
+				m("small", lang.get("loading_msg"))
+			])
+		} else {
+			return m(ColumnEmptyMessageBox, {
+				message: "corrupted_msg",
+				icon: Icons.Warning,
+				color: theme.content_message_bg,
+			})
+		}
+	}
+
+	_didErrorsOccur(): boolean {
+		return this._errorOccurred || this.mail._errors || (this._mailBody != null && this._mailBody._errors)
 	}
 
 	_renderEventBanner(): Children {
@@ -856,21 +870,6 @@ export class MailViewer {
 		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
 
 		this._checkMailForPhishing(mail, sanitizeResult.links)
-
-		/**
-				 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
-				 * the html body of the mail
-				 *  * any tag with a style attribute that has the color property set (besides "inherit")
-				 *  * any tag with a style attribute that has the background-color set (besides "inherit")
-				 *  * any font tag with the color attribute set
-		 */
-		this._contrastFixNeeded = (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style).find(s =>
-						(s.color !== "" && s.color !== "inherit" && typeof s.color !== 'undefined') ||
-						(s.backgroundColor !== "" && s.backgroundColor !== "inherit" && typeof s.backgroundColor !== 'undefined')
-					)
-			|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-		)
 
 		this._contentBlockingStatus = isAllowedAndAuthenticatedExternalSender
 			? ContentBlockingStatus.AlwaysShow
@@ -1682,17 +1681,28 @@ export class MailViewer {
 		this._replaceInlineImages()
 	}
 
-	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<SanitizedHTML> {
-
+	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<{inlineImageCids: Array<string>, links: Array<Link>, externalContent: Array<string>}> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
-		const {urlify} = await import("../../misc/Urlifier")
 
-		const sanitizedFragment = htmlSanitizer.sanitizeFragment(this._getMailBody(), {
+		const {html, inlineImageCids, links, externalContent} = htmlSanitizer.sanitizeFragment(this._getMailBody(), {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail)
 		})
 
-		this._htmlBody = urlify(stringifyFragment(sanitizedFragment.html))
-		return sanitizedFragment
+		/**
+		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
+		 * the html body of the mail
+		 *  * any tag with a style attribute that has the color property set (besides "inherit")
+		 *  * any tag with a style attribute that has the background-color set (besides "inherit")
+		 *  * any font tag with the color attribute set
+		 */
+		this._contrastFixNeeded =
+			Array.from(html.querySelectorAll('*[style]'), e => e.style)
+			     .some(s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"))
+			|| html.querySelectorAll('font[color]').length > 0
+
+		this._htmlBody = html
+
+		return {inlineImageCids, links, externalContent}
 	}
 }

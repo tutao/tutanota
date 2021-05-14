@@ -21,7 +21,7 @@ export type Attrs = {
 export default class ColumnEmptyMessageBox implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>): Children {
 		return m(".fill-absolute.flex.col.items-center.justify-center",
-			m(".mt-negative-l.flex.col.items-center.justify-center.mlr", {
+			m(".flex.col.items-center.justify-center.mlr", {
 				style: {
 					'margin-top': px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl)
 				}
