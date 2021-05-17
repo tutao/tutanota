@@ -47,7 +47,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {downcast, isCustomizationEnabledForCustomer, neverNull, noOp} from "../../api/common/utils/Utils"
+import {downcast, isCustomizationEnabledForCustomer, noOp} from "../../api/common/utils/Utils"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils";
 import {client} from "../../misc/ClientDetector"
@@ -58,10 +58,6 @@ import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} from "../../knowledgebase/view/KnowledgeBaseDialog"
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
-import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
-import {BookingTypeRef} from "../../api/entities/sys/Booking"
-import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -353,45 +349,44 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 				           onbeforeremove: vnode => animate(vnode.dom, false)
 			           })))
 
-		// we only want global admins to see the option to configure custom notifications in the mail editor
-		// by clicking on the link, the configuration dialog or the buy dialogs are opened respectively
-		// we expect this to be used so rarely that we only want to load entities here as needed!
-		const customNotificationHelpLabel = () => {
-			const userController = logins.getUserController()
-			if (!userController.isGlobalAdmin()) {
-				return ""
-			}
-			return m(".underline", {
-				onclick: () => {
-					userController.loadCustomer().then(customer => {
-						if (customer.properties) {
-							const customerProperties = new LazyLoaded(() => model._entity.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
-							return userController.loadCustomerInfo().then(customerInfo => {
-								return customerInfo.bookings
-									? model._entity.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
-									       .then(bookings => bookings.length === 1 ? bookings[0] : null)
-									: null
-							}).then(lastBooking => {
-								return import("../../settings/EditNotificationEmailDialog")
-									.then(({showBuyOrSetNotificationEmailDialog}) => showBuyOrSetNotificationEmailDialog(lastBooking, customerProperties, null))
-							})
-						}
-					})
-				}
-			}, lang.get("configureCustomNotificationEmail_label"))
-		}
-
+		const selectedNotificationLanguage = stream(model.getSelectedNotificationLanguageCode())
 		const lazyLanguageDropDownAttrs = () => {
 			return {
 				label: "notificationMailLanguage_label",
 				items: model.getAvailableNotificationTemplateLanguages().map(language => {
 					return {name: lang.get(language.textId), value: language.code}
 				}),
-				helpLabel: customNotificationHelpLabel,
-				selectedValue: stream(model.getSelectedNotificationLanguageCode()),
+				selectedValue: selectedNotificationLanguage,
 				selectionChangedHandler: (v) => model.setSelectedNotificationLanguageCode(v),
 				dropdownWidth: 250
 			}
+		}
+
+		let editCustomNotificationMailAttrs = null
+		if (logins.getUserController().isGlobalAdmin()) {
+			editCustomNotificationMailAttrs = attachDropdown({
+					label: "edit_action",
+					click: () => {},
+					icon: () => Icons.Edit,
+				},
+				() => [
+					{
+						label: "add_action",
+						click: () => {
+							import("../../settings/EditNotificationEmailDialog")
+								.then(({showAddOrEditNotificationEmailDialog}) => showAddOrEditNotificationEmailDialog(logins.getUserController()))
+						},
+						type: ButtonType.Dropdown,
+					},
+					{
+						label: "edit_action",
+						click: () => {
+							import("../../settings/EditNotificationEmailDialog")
+								.then(({showAddOrEditNotificationEmailDialog}) => showAddOrEditNotificationEmailDialog(logins.getUserController(), selectedNotificationLanguage))
+						},
+						type: ButtonType.Dropdown,
+					}
+				])
 		}
 
 		return m("#mail-editor.full-height.text.touch-callout", {
@@ -439,16 +434,20 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 						'min-width': '250px'
 					},
 				}, m(DropDownSelectorN, senderFieldAttrs)),
-				m("", isConfidential
-					? m("", {
+				isConfidential
+					? m(".flex", {
 						style: {
 							'min-width': '250px'
 						},
 						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-					}, m(DropDownSelectorN, lazyLanguageDropDownAttrs()))
+					}, [
+						m(".flex-grow", m(DropDownSelectorN, lazyLanguageDropDownAttrs())),
+						editCustomNotificationMailAttrs
+							? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(ButtonN, editCustomNotificationMailAttrs)))
+							: null
+					])
 					: null
-				)
 			]),
 			isConfidential
 				? m(".external-recipients.overflow-hidden", {
