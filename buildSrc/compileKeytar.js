@@ -104,5 +104,4 @@ function findKeytarModuleDir() {
 		keytarModuleDir = path.join('/', ...nodeModulesPathFragments, "keytar")
 	}
 	return keytarModuleDir
-
 }
