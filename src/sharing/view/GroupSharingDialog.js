@@ -43,6 +43,9 @@ import {getConfirmation} from "../../gui/base/GuiUtils"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
 
+// the maximum number of BTF suggestions so the suggestions dropdown does not overflow the dialog
+const SHOW_CONTACT_SUGGESTIONS_MAX = 3
+
 export function showGroupSharingDialog(groupInfo: GroupInfo,
                                        allowGroupNameOverride: boolean) {
 
@@ -151,7 +154,7 @@ class GroupSharingDialogContent implements MComponent<GroupSharingDialogAttrs> {
 }
 
 function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingTexts) {
-	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new RecipientInfoBubbleHandler({
+	const bubbleHandler = new RecipientInfoBubbleHandler({
 		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
 			let recipientInfo = createRecipientInfo(mailAddress, name, contact)
 			recipientInfo.resolveContactPromise =
@@ -182,7 +185,8 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 			})
 			return buttonAttrs
 		}
-	}, locator.contactModel))
+	}, locator.contactModel, SHOW_CONTACT_SUGGESTIONS_MAX)
+	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", bubbleHandler)
 	const capability: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 	const realGroupName = getSharedGroupName(model.info, false)
 	const customGroupName = getSharedGroupName(model.info, true)
@@ -192,7 +196,6 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 		type: DialogType.EditMedium,
 		title: () => lang.get("addParticipant_action"),
 		child: () => [
-			m(".pt", texts.addMemberMessage(customGroupName || realGroupName)),
 			m(".rel", m(invitePeopleValueTextField)),
 			m(DropDownSelectorN, {
 				label: "permissions_label",
@@ -214,7 +217,8 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 							? null
 							: texts.yourCustomNameLabel(customGroupName))
 				}
-			})
+			}),
+			m(".pt", texts.addMemberMessage(customGroupName || realGroupName))
 		],
 		okAction: () => {
 			invitePeopleValueTextField.createBubbles()

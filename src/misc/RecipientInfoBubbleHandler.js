@@ -25,13 +25,15 @@ export interface RecipientInfoBubbleFactory {
 export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
 
 	suggestionHeight: number;
+	maximumSuggestions: ?number;
 	_bubbleFactory: RecipientInfoBubbleFactory;
 	_contactModel: ContactModel
 
-	constructor(bubbleFactory: RecipientInfoBubbleFactory, contactModel: ContactModel) {
+	constructor(bubbleFactory: RecipientInfoBubbleFactory, contactModel: ContactModel, maximumSuggestions?: number) {
 		this._bubbleFactory = bubbleFactory
 		this._contactModel = contactModel
 		this.suggestionHeight = ContactSuggestionHeight
+		this.maximumSuggestions = maximumSuggestions
 	}
 
 	async getSuggestions(text: string): Promise<ContactSuggestion[]> {

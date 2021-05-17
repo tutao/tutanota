@@ -11,7 +11,7 @@ import {NotFoundError} from "../../api/common/error/RestError"
 import {Dialog} from "../../gui/base/Dialog"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import {makeListSelectionChangedScrollHandler} from "../../gui/ScrollSelectList"
+import {makeListSelectionChangedScrollHandler} from "../../gui/base/GuiUtils"
 
 export type KnowledgebaseDialogContentAttrs = {|
 	+onTemplateSelect: (EmailTemplate,) => void,
