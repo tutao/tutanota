@@ -15,6 +15,7 @@ import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import {WhitelabelConfigTypeRef} from "../../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../../gui/theme"
+import {themeManager} from "../../gui/theme"
 import {progressIcon} from "../../gui/base/Icon"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import type {Booking} from "../../api/entities/sys/Booking"
@@ -24,14 +25,13 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import type {CustomerProperties} from "../../api/entities/sys/CustomerProperties"
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
 import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
+import {showBuyOrSetNotificationEmailDialog} from "../EditNotificationEmailDialog"
 import {isWhitelabelActive} from "../../subscription/SubscriptionUtils"
 import {SysService} from "../../api/entities/sys/Services"
 import {BrandingDomainGetReturnTypeRef} from "../../api/entities/sys/BrandingDomainGetReturn"
 import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
-import {showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
-import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {WhitelabelBrandingDomainSettings} from "./WhitelabelBrandingDomainSettings"
 import {WhitelabelThemeSettings} from "./WhitelabelThemeSettings"
@@ -42,7 +42,6 @@ import {WhitelabelCustomMetaTagsSettings} from "./WhitelabelCustomMetaTagsSettin
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
-import {themeManager} from "../../gui/theme"
 
 assertMainOrNode()
 
@@ -311,7 +310,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const notificationMailTemplates = customerProperties.notificationMailTemplates
 
 		const onAddTemplate = () => {
-			this._showBuyOrSetNotificationEmailDialog()
+			showBuyOrSetNotificationEmailDialog(this._lastBooking, this._customerProperties)
 		}
 
 		const onEditTemplate = (template) => {
@@ -330,20 +329,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		return m(WhitelabelNotificationEmailSettings, whitelabelNotificationEmailSettingsAttrs)
-	}
-
-	_showBuyOrSetNotificationEmailDialog(existingTemplate: ? NotificationMailTemplate) {
-		if (logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(false)
-		} else {
-			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
-				Promise.resolve(false) : showWhitelabelBuyDialog(true)
-			whitelabelFailedPromise.then(failed => {
-				if (!failed) {
-					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)
-				}
-			})
-		}
 	}
 
 	_removeNotificationMailTemplate(template: NotificationMailTemplate) {
