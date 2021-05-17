@@ -34,7 +34,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 			m(".flex.col.smaller", [
 				m(".flex.pb-s.items-center", [
 					this._renderSectionIndicator(BootIcons.Calendar),
-					m(".h3.selectable.text-wrap.scroll-no-overlay", {
+					m(".h3.selectable.text-break.scroll-no-overlay", {
 						style: {
 							maxHeight: "3em",
 						}
@@ -65,7 +65,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 					? m(".flex.pb-s.items-start", [
 						this._renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
 						limitDescriptionHeight
-							? m(".scroll-no-overlay.full-width.selectable.text-wrap", {
+							? m(".scroll-no-overlay.full-width.selectable.text-break", {
 								style: {
 									maxHeight: "100px"
 								}
