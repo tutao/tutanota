@@ -1,16 +1,16 @@
 //@flow
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import m from "mithril"
+import type {AllIconsEnum} from "../../gui/base/Icon"
 import {Icon} from "../../gui/base/Icon"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {Icons} from "../../gui/base/icons/Icons"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {formatEventDuration, getTimeZone} from "../date/CalendarUtils"
-import {attendeeStatusByCode, getAttendeeStatus} from "../../api/common/TutanotaConstants"
+import {getAttendeeStatus} from "../../api/common/TutanotaConstants"
 import {memoized} from "../../api/common/utils/Utils"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
-import type {AllIconsEnum} from "../../gui/base/Icon"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -32,7 +32,14 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
-				m(".flex.pb-s.items-center", [this._renderSectionIndicator(BootIcons.Calendar), m(".h3.selectable.text-break", event.summary)]),
+				m(".flex.pb-s.items-center", [
+					this._renderSectionIndicator(BootIcons.Calendar),
+					m(".h3.selectable.text-wrap.scroll-no-overlay", {
+						style: {
+							maxHeight: "3em",
+						}
+					}, event.summary)
+				]),
 				m(".flex.pb-s.items-center", [
 						this._renderSectionIndicator(Icons.Time),
 						m(".align-self-center.selectable", formatEventDuration(event, getTimeZone(), false))
@@ -58,7 +65,11 @@ export class EventPreviewView implements MComponent<Attrs> {
 					? m(".flex.pb-s.items-start", [
 						this._renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
 						limitDescriptionHeight
-							? m(".scroll.visible-scrollbar.full-width.selectable", {style: {maxHeight: "100px"}}, m.trust(sanitizedDescription))
+							? m(".scroll-no-overlay.full-width.selectable.text-wrap", {
+								style: {
+									maxHeight: "100px"
+								}
+							}, m.trust(sanitizedDescription))
 							: m(".selectable", m.trust(sanitizedDescription))
 					])
 					: null,
