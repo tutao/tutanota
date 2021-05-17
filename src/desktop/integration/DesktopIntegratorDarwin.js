@@ -2,10 +2,11 @@
 import type {MenuItemConstructorOptions} from "electron"
 import type {WindowManager} from "../DesktopWindowManager"
 import {lang} from "../../misc/LanguageViewModel"
+import type {DesktopIntegrator} from "./DesktopIntegrator"
 
 type Electron = $Exports<"electron">
 
-export class DesktopIntegratorDarwin {
+export class DesktopIntegratorDarwin implements DesktopIntegrator {
 	_electron: Electron;
 
 	constructor(electron: Electron) {

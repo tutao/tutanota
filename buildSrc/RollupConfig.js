@@ -217,3 +217,9 @@ export const babelPlugins = [
 	// doesn't care about us redefining global Promise.
 	"@babel/plugin-transform-async-to-generator",
 ]
+export const babelDesktopPlugins = [
+	// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
+	"@babel/plugin-transform-flow-strip-types",
+	"@babel/plugin-proposal-class-properties",
+	"@babel/plugin-syntax-dynamic-import",
+]

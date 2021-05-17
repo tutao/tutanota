@@ -1,4 +1,4 @@
-import {resolveLibs} from "./RollupConfig.js"
+import {babelDesktopPlugins, resolveLibs} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin} from "./Builder.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import Promise from "bluebird"
@@ -83,10 +83,10 @@ export async function buildDesktop({
 		fs.readdirSync(path.join(distDir, '/installers'))
 		  .filter((file => file.startsWith(content.name) || file.endsWith('.yml') || file.endsWith("-unpacked")))
 		  .map(file => fs.promises.rename(
-				path.join(distDir, '/installers/', file),
-				path.join(outDir, file)
-				)
-			)
+			  path.join(distDir, '/installers/', file),
+			  path.join(outDir, file)
+			  )
+		  )
 	)
 	await Promise.all([
 		fs.promises.rmdir(path.join(distDir, '/installers/'), {recursive: true}),
@@ -99,12 +99,7 @@ export async function buildDesktop({
 async function rollupDesktop(dirname, outDir, version) {
 	function babelPreset() {
 		return babel({
-			plugins: [
-				// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
-				"@babel/plugin-transform-flow-strip-types",
-				"@babel/plugin-proposal-class-properties",
-				"@babel/plugin-syntax-dynamic-import",
-			],
+			plugins: babelDesktopPlugins,
 			babelHelpers: "bundled",
 		})
 	}

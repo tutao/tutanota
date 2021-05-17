@@ -1,12 +1,15 @@
 // @flow
 import o from "ospec"
 import n from "../../nodemocker"
-import {DesktopIntegrator} from "../../../../src/desktop/integration/DesktopIntegrator"
+import { getDesktopIntegratorForPlatform} from "../../../../src/desktop/integration/DesktopIntegrator"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager"
 import {lang} from "../../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../../src/translations/en"
+import {DesktopIntegratorLinux} from "../../../../src/desktop/integration/DesktopIntegratorLinux"
+import {DesktopIntegratorDarwin} from "../../../../src/desktop/integration/DesktopIntegratorDarwin"
+import {DesktopIntegratorWin32} from "../../../../src/desktop/integration/DesktopIntegratorWin32"
 
 const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.'
 	+ '\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application'
@@ -157,8 +160,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("enable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock} = standardMocks()
+			const integrator = new DesktopIntegratorDarwin(electronMock)
 			await integrator.enableAutoLaunch()
 
 			o(electronMock.app.getLoginItemSettings.callCount).equals(1)
@@ -169,8 +172,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("disable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock} = standardMocks()
+			const integrator = new DesktopIntegratorDarwin(electronMock)
 			await integrator.disableAutoLaunch()
 
 			o(electronMock.app.setLoginItemSettings.callCount).equals(0)
@@ -182,8 +185,7 @@ o.spec("DesktopIntegrator Test", () => {
 					getLoginItemSettings() {return {openAtLogin: true}}
 				}
 			}).set()
-			const {fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const integrator = new DesktopIntegratorDarwin(electronMock)
 			await integrator.enableAutoLaunch()
 
 			o(electronMock.app.getLoginItemSettings.callCount).equals(1)
@@ -196,8 +198,7 @@ o.spec("DesktopIntegrator Test", () => {
 					getLoginItemSettings() {return {openAtLogin: true}}
 				}
 			}).set()
-			const {fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const integrator = new DesktopIntegratorDarwin(electronMock)
 			await integrator.disableAutoLaunch()
 
 			o(electronMock.app.getLoginItemSettings.callCount).equals(1)
@@ -208,8 +209,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("ApplicationMenu gets created", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock} = standardMocks()
+			const integrator = new DesktopIntegratorDarwin(electronMock)
 
 			const wmMock = downcast<WindowManager>({newWindow: o.spy(() => {})})
 			await integrator.runIntegration(wmMock)
@@ -229,9 +230,9 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("enable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
+			const {electronMock, fsExtraMock, cpMock} = standardMocks()
 			o(fsExtraMock.writeFileSync.callCount).equals(0)("test is not ready")
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.enableAutoLaunch()
 
@@ -246,8 +247,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("disable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, fsExtraMock, cpMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.disableAutoLaunch()
 			o(fsExtraMock.promises.unlink.callCount).equals(0)
@@ -259,8 +260,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: (path, mode) => Promise.resolve()
 				},
 			}).set()
-			const {electronMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.enableAutoLaunch()
 			o(fsExtraMock.writeFileSync.callCount).equals(0)
@@ -272,8 +273,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: () => Promise.resolve()
 				},
 			}).set()
-			const {electronMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.disableAutoLaunch()
 			o(fsExtraMock.promises.unlink.callCount).equals(1)
@@ -282,8 +283,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("runIntegration without integration, clicked yes, no no_integration, not checked", async function () {
-			const {electronMock, fsExtraMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, fsExtraMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 			await integrator.runIntegration(wmMock)
 
 			o(electronMock.dialog.showMessageBox.callCount).equals(1)
@@ -325,8 +326,8 @@ o.spec("DesktopIntegrator Test", () => {
 					showMessageBox: () => Promise.resolve({response: 1, checkboxChecked: true})
 				}
 			}).set()
-			const {fsExtraMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {fsExtraMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 			await integrator.runIntegration(wmMock)
 			o(fsExtraMock.promises.mkdir.args[0]).equals("/app/path/file/.local/share/applications")
 			o(writtenFiles).deepEquals([
@@ -360,8 +361,8 @@ o.spec("DesktopIntegrator Test", () => {
 					showMessageBox: () => Promise.resolve({response: 0, checkboxChecked: false})
 				}
 			}).set()
-			const {fsExtraMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {fsExtraMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 			await integrator.runIntegration(wmMock)
 			o(fsExtraMock.promises.mkdir.callCount).equals(0)
 			o(writtenFiles).deepEquals([])
@@ -375,8 +376,8 @@ o.spec("DesktopIntegrator Test", () => {
 					showMessageBox: () => Promise.resolve({response: 0, checkboxChecked: true})
 				}
 			}).set()
-			const {fsExtraMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {fsExtraMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 			await integrator.runIntegration(wmMock)
 			o(fsExtraMock.promises.mkdir.args[0]).equals("/app/path/file/.config/tuta_integration")
 			o(writtenFiles).deepEquals([
@@ -396,8 +397,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: () => Promise.resolve(),
 				}
 			}).set()
-			const {electronMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.runIntegration(wmMock)
 
@@ -431,8 +432,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: () => Promise.resolve()
 				},
 			}).set()
-			const {electronMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.runIntegration(wmMock)
 
@@ -449,8 +450,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: p => p === '/app/path/file/.config/tuta_integration/no_integration' ? Promise.resolve() : Promise.reject()
 				},
 			}).set()
-			const {electronMock, cpMock, wmMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock, wmMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.runIntegration(wmMock)
 
@@ -468,8 +469,8 @@ o.spec("DesktopIntegrator Test", () => {
 					access: p => p === '/app/path/file/.config/tuta_integration/no_integration' ? Promise.resolve() : Promise.reject()
 				},
 			}).set()
-			const {electronMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, cpMock} = standardMocks()
+			const integrator = new DesktopIntegratorLinux(electronMock, fsExtraMock, cpMock)
 
 			await integrator.integrate()
 			await integrator.unintegrate()
@@ -486,8 +487,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("enable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, winregMock} = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
 
 			await integrator.enableAutoLaunch()
 			o(winregMock.mockedInstances.length).equals(1)
@@ -503,8 +504,8 @@ o.spec("DesktopIntegrator Test", () => {
 		})
 
 		o("disable when off", async function () {
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, winregMock} = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
 
 			await integrator.disableAutoLaunch()
 			o(winregMock.mockedInstances.length).equals(1)
@@ -519,8 +520,8 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("enable when on", async function () {
 			itemToReturn = "not undefined"
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, winregMock} = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
 
 			await integrator.enableAutoLaunch()
 			o(winregMock.mockedInstances.length).equals(1)
@@ -532,8 +533,8 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("disable when on", async function () {
 			itemToReturn = "not undefined"
-			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
-			const integrator = new DesktopIntegrator(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			const {electronMock, winregMock} = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
 
 			await integrator.disableAutoLaunch()
 			o(winregMock.mockedInstances.length).equals(1)
@@ -543,6 +544,29 @@ o.spec("DesktopIntegrator Test", () => {
 			o(regInst.remove.callCount).equals(1)
 			o(regInst.remove.args.length).equals(2)
 			o(regInst.remove.args[0]).equals("appName")
+		})
+	})
+
+	o.spec("Dispatch", function () {
+		o("Linux", async function () {
+			n.setPlatform("linux")
+			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			o(integrator instanceof DesktopIntegratorLinux).equals(true)("Integrator should be a DesktopIntegratorLinux")
+		})
+
+		o("Win32", async function () {
+			n.setPlatform("win32")
+			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			o(integrator instanceof DesktopIntegratorWin32).equals(true)("Integrator should be a DesktopIntegratorLinux")
+		})
+
+		o("Darwin", async function () {
+			n.setPlatform("darwin")
+			const {electronMock, fsExtraMock, cpMock, winregMock} = standardMocks()
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({default: winregMock}))
+			o(integrator instanceof DesktopIntegratorDarwin).equals(true)("Integrator should be a DesktopIntegratorLinux")
 		})
 	})
 })

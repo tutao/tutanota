@@ -3,12 +3,13 @@ import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import type {WindowManager} from "../DesktopWindowManager"
 import {log} from "../DesktopLog"
+import type {DesktopIntegrator} from "./DesktopIntegrator"
 
 type Electron = $Exports<"electron">
 type Fs = $Exports<"fs">
 type ChildProcess = $Exports<"child_process">
 
-export class DesktopIntegratorLinux {
+export class DesktopIntegratorLinux implements DesktopIntegrator {
 	_electron: Electron;
 	_fs: Fs;
 	_childProcess: ChildProcess
@@ -89,32 +90,31 @@ export class DesktopIntegratorLinux {
 		           })
 	}
 
-	runIntegration(wm: WindowManager): Promise<void> {
-		if (this.executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
-		return this.isIntegrated().then(integrated => {
-			if (integrated) {
-				log.debug(`desktop file exists, checking version...`)
-				const desktopEntryVersion = this.getDesktopEntryVersion()
-				if (desktopEntryVersion !== this._electron.app.getVersion()) {
-					log.debug("version mismatch, reintegrating...")
-					return this.integrate()
+	async runIntegration(wm: WindowManager): Promise<void> {
+		if (this.executablePath.includes("node_modules/electron/dist/electron")) return
+
+		const integrated = await this.isIntegrated()
+		if (integrated) {
+			log.debug(`desktop file exists, checking version...`)
+			const desktopEntryVersion = this.getDesktopEntryVersion()
+			if (desktopEntryVersion !== this._electron.app.getVersion()) {
+				log.debug("version mismatch, reintegrating...")
+				return this.integrate()
+			}
+		} else {
+			log.debug(`${this.desktopFilePath} does not exist, checking for permission to ask for permission...`)
+			const isThere = await this.checkFileIsThere(this.nointegrationpath)
+			if (isThere) {
+				const forbiddenPaths = this._fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
+				                           .trim()
+				                           .split('\n')
+				if (!forbiddenPaths.includes(this.packagePath)) {
+					return this.askPermission()
 				}
 			} else {
-				log.debug(`${this.desktopFilePath} does not exist, checking for permission to ask for permission...`)
-				this.checkFileIsThere(this.nointegrationpath).then(isThere => {
-					if (isThere) {
-						const forbiddenPaths = this._fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
-						                           .trim()
-						                           .split('\n')
-						if (!forbiddenPaths.includes(this.packagePath)) {
-							return this.askPermission()
-						}
-					} else {
-						return this.askPermission()
-					}
-				})
+				return this.askPermission()
 			}
-		})
+		}
 	}
 
 	/**
@@ -199,8 +199,9 @@ TryExec=${this.packagePath}`
 	 * records the current path to the appImage in
 	 * ~/.config/tuta_integration/no_integration
 	 */
-	askPermission(): Promise<void> {
-		return this._electron.dialog.showMessageBox(null, {
+	async askPermission(): Promise<void> {
+
+		const {response, checkboxChecked} = await this._electron.dialog.showMessageBox(null, {
 			title: lang.get('desktopIntegration_label'),
 			buttons: [lang.get('no_label'), lang.get('yes_label')],
 			defaultId: 1,
@@ -208,18 +209,16 @@ TryExec=${this.packagePath}`
 			checkboxLabel: lang.get("doNotAskAgain_label"),
 			checkboxChecked: false,
 			type: 'question'
-		}).then(({response, checkboxChecked}) => {
-			let p: Promise<void> = Promise.resolve()
-			if (checkboxChecked) {
-				log.debug("updating no_integration blacklist...")
-				p.then(() => this._fs.promises.mkdir(path.dirname(this.nointegrationpath), {recursive: true}))
-				 .then(() => this._fs.promises.writeFile(this.nointegrationpath, this.packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
-			}
-			if (response === 1) { // clicked yes
-				return p.then(() => this.integrate())
-			}
-			return p;
 		})
+
+		if (checkboxChecked) {
+			log.debug("updating no_integration blacklist...")
+			await this._fs.promises.mkdir(path.dirname(this.nointegrationpath), {recursive: true})
+			await this._fs.promises.writeFile(this.nointegrationpath, this.packagePath + '\n', {encoding: 'utf-8', flag: 'a'})
+		}
+		if (response === 1) { // clicked yes
+			await this.integrate()
+		}
 	}
 }
 
