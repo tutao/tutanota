@@ -48,6 +48,7 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -60,9 +61,9 @@ export class UserViewer {
 	_senderName: string
 	_groupsTable: ?Table;
 	_contactFormsTable: ?Table;
-	_admin: DropDownSelector<boolean>;
+	_adminStatusSelector: DropDownSelector<boolean>;
 	_administratedBy: DropDownSelector<?Id>;
-	_deactivated: DropDownSelector<boolean>;
+	_userStatusSelector: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
 	_editAliasFormAttrs: EditAliasesFormAttrs;
@@ -83,7 +84,7 @@ export class UserViewer {
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
 		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
 
-		this._admin = new DropDownSelector("globalAdmin_label", null, [
+		this._adminStatusSelector = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
 			{name: lang.get("yes_label"), value: true}
 		], stream(isAdmin)).setSelectionChangedHandler(makeAdmin => {
@@ -99,11 +100,11 @@ export class UserViewer {
 			}
 		})
 
-		this._deactivated = new DropDownSelector("state_label", null, [
+		this._userStatusSelector = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},
 			{name: lang.get("deactivated_label"), value: true}
 		], stream(this.userGroupInfo.deleted != null)).setSelectionChangedHandler(deactivate => {
-			if (this._admin.selectedValue()) {
+			if (this._adminStatusSelector.selectedValue()) {
 				Dialog.error("deactivateOwnAccountInfo_msg")
 			} else {
 				this._deleteUser(!deactivate)
@@ -179,7 +180,7 @@ export class UserViewer {
 	}
 
 	view(vnode: Vnode<any>): Children {
-		const editSenderNameButtonAttrs = {
+		const editSenderNameButtonAttrs: ButtonAttrs = {
 			label: "edit_action",
 			click: () => {
 				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName)
@@ -188,7 +189,7 @@ export class UserViewer {
 					      update(this.userGroupInfo)
 				      })
 			},
-			icon: Icons.Edit,
+			icon: () => Icons.Edit,
 		}
 		const senderNameFieldAttrs = {
 			label: "mailName_label",
@@ -215,10 +216,10 @@ export class UserViewer {
 			disabled: true,
 		}
 
-		const changePasswordButtonAttrs = {
+		const changePasswordButtonAttrs: ButtonAttrs = {
 			label: "changePassword_label",
 			click: () => this._changePassword(),
-			icon: Icons.Edit,
+			icon: () => Icons.Edit,
 
 		}
 		const passwordFieldAttrs = {
@@ -240,10 +241,10 @@ export class UserViewer {
 				m(TextFieldN, senderNameFieldAttrs),
 				m(TextFieldN, passwordFieldAttrs),
 				!logins.getUserController().isGlobalAdmin() ? null : [
-					m(this._admin),
+					m(this._adminStatusSelector),
 					this._administratedBy ? m(this._administratedBy) : null,
 				],
-				m(this._deactivated)
+				m(this._userStatusSelector)
 			]),
 			(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
 			(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
@@ -267,7 +268,7 @@ export class UserViewer {
 	_changePassword(): void {
 		if (this._isItMe()) {
 			PasswordForm.showChangeOwnPasswordDialog()
-		} else if (this._admin.selectedValue()) {
+		} else if (this._adminStatusSelector.selectedValue()) {
 			Dialog.error("changeAdminPassword_msg")
 		} else {
 			this._user.getAsync().then(user => {
@@ -411,7 +412,7 @@ export class UserViewer {
 	_updateUsedStorageAndAdminFlag(): Promise<void> {
 		return this._user.getAsync().then(user => {
 			let isAdmin = this._isAdmin(user)
-			this._admin.selectedValue(isAdmin)
+			this._adminStatusSelector.selectedValue(isAdmin)
 
 			return worker.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage = usedStorage
@@ -457,7 +458,7 @@ export class UserViewer {
 				promise = load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 					this.userGroupInfo = updatedUserGroupInfo
 					this._senderName = updatedUserGroupInfo.name
-					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
+					this._userStatusSelector.selectedValue(updatedUserGroupInfo.deleted != null)
 					return this._updateUsedStorageAndAdminFlag().then(() => {
 						if (this._administratedBy) {
 							this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)

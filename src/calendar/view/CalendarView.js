@@ -338,7 +338,6 @@ export class CalendarView implements CurrentView {
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
 			streamListeners.push(this._calendarInvitations.invitations.map(invitations => {
-				console.log("update invitations: redraw calendar view")
 				m.redraw()
 			}))
 		}
