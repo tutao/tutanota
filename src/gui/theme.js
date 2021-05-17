@@ -248,14 +248,17 @@ class ThemeManager {
 	constructor(deviceConfig: DeviceConfig) {
 		this.deviceConfig = deviceConfig
 		this.customTheme = null
-		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
-			this.updateCustomTheme(whitelabelCustomizations.theme)
-		}
 
 		const savedThemeId = deviceConfig.getTheme()
 		this._themeId = savedThemeId
 		this._theme = this._getTheme(savedThemeId)
 		this.themeIdChangedStream = stream(this.themeId)
+
+		// If being accessed from a custom domain, the definition of whitelabelCustomizations is added to index.js serverside upon request
+		// see RootHandler::applyWhitelabelFileModifications.
+		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
+			this.updateCustomTheme(whitelabelCustomizations.theme)
+		}
 	}
 
 	get themeId(): ThemeId {
@@ -282,9 +285,7 @@ class ThemeManager {
 		Object.assign(this._theme, themes.light, this._getTheme(newThemeId))
 
 		this._themeId = newThemeId
-
 		deviceConfig.setTheme(newThemeId)
-
 		this.themeIdChangedStream(newThemeId)
 	}
 
