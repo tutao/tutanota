@@ -109,28 +109,3 @@ export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>>
 		}
 	}
 }
-
-export function makeListSelectionChangedScrollHandler(scrollDom: HTMLElement, entryHeight: number, getSelectedEntryIndex: lazy<number>): () => void {
-	return function () {
-		const selectedIndex = getSelectedEntryIndex()
-
-		const scrollWindowHeight = scrollDom.getBoundingClientRect().height
-		const scrollOffset = scrollDom.scrollTop
-
-		// Actual position in the list
-		const selectedTop = entryHeight * selectedIndex
-		const selectedBottom = selectedTop + entryHeight
-
-		// Relative to the top of the scroll window
-		const selectedRelativeTop = selectedTop - scrollOffset
-		const selectedRelativeBottom = selectedBottom - scrollOffset
-
-		// clamp the selected item to stay between the top and bottom of the scroll window
-		if (selectedRelativeTop < 0) {
-			scrollDom.scrollTop = selectedTop
-		} else if (selectedRelativeBottom > scrollWindowHeight) {
-			scrollDom.scrollTop = selectedBottom - scrollWindowHeight
-		}
-	}
-}
-

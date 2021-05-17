@@ -16,6 +16,7 @@ import {ease} from "../animation/Easing"
 import type {TextFieldTypeEnum} from "./TextFieldN"
 import {Type} from "./TextFieldN"
 import {windowFacade} from "../../misc/WindowFacade"
+import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
 
 assertMainOrNode()
 
@@ -54,6 +55,11 @@ export interface BubbleHandler<T, S:Suggestion> {
 	 * Height of a suggestion in pixels
 	 */
 	suggestionHeight: number;
+
+	/**
+	 * Limit the number of suggestions to show if defined.
+	 */
+	maximumSuggestions: ?number;
 }
 
 /**
@@ -75,7 +81,7 @@ export class BubbleTextField<T> {
 	previousQuery: string;
 	originalIsEmpty: Function;
 	suggestions: Suggestion[];
-	selectedSuggestion: ?Suggestion;
+	selectedSuggestion: Stream<?Suggestion>;
 	suggestionAnimation: Promise<void>;
 	bubbleHandler: BubbleHandler<T, Suggestion>;
 	view: (Vnode<T>) => Children;
@@ -84,11 +90,12 @@ export class BubbleTextField<T> {
 	_textField: TextField;
 	_domSuggestions: HTMLElement;
 	_keyboardHeight: number;
+	_selectedSuggestionChangedListener: Stream<void>
 
 	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, bubbleHandler: BubbleHandler<T, any>, injectionsRight: ?lazy<Children> = () => null, disabled: ?boolean = false) {
 		this.loading = null
 		this.suggestions = []
-		this.selectedSuggestion = null
+		this.selectedSuggestion = stream(null)
 		this.suggestionAnimation = Promise.resolve()
 		this.previousQuery = ""
 		this._textField = new TextField(labelIdOrLabelTextFunction)
@@ -150,19 +157,31 @@ export class BubbleTextField<T> {
 					}
 				}),
 				m(`.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${this.suggestions.length ? ".dropdown-shadow" : ""}`, {
-					oncreate: vnode => this._domSuggestions = vnode.dom,
+					oncreate: vnode => {
+						this._domSuggestions = vnode.dom
+						this._selectedSuggestionChangedListener = this.selectedSuggestion.map(
+							makeListSelectionChangedScrollHandler(this._domSuggestions, this.bubbleHandler.suggestionHeight, this._getSelectedSuggestionIndex.bind(this))
+						)
+					},
+					onbeforeremove: () => {
+						this._selectedSuggestionChangedListener.end(true)
+					},
 					onmousedown: e => this._textField.skipNextBlur = true,
 					style: {
 						transition: "height 0.2s"
 					},
 				}, this.suggestions.map(s => m(s, {
 					mouseDownHandler: e => {
-						this.selectedSuggestion = s
+						this.selectedSuggestion(s)
 						this.createBubbles()
 					}
 				})))
 			])
 		}
+	}
+
+	_getSelectedSuggestionIndex(): number {
+		return this.suggestions.indexOf(this.selectedSuggestion())
 	}
 
 	_updateSuggestions() {
@@ -182,10 +201,10 @@ export class BubbleTextField<T> {
 					this.animateSuggestionsHeight(this.suggestions.length, newSuggestions.length)
 					this.suggestions = newSuggestions
 					if (this.suggestions.length > 0) {
-						this.selectedSuggestion = this.suggestions[0]
-						this.selectedSuggestion.selected = true
+						this.suggestions[0].selected = true
+						this.selectedSuggestion(this.suggestions[0])
 					} else {
-						this.selectedSuggestion = null
+						this.selectedSuggestion(null)
 					}
 					this.previousQuery = query
 					let input = this._textField._domInput
@@ -202,7 +221,7 @@ export class BubbleTextField<T> {
 		} else if (query.length === 0 && query !== this.previousQuery) {
 			this.animateSuggestionsHeight(this.suggestions.length, 0)
 			this.suggestions = []
-			this.selectedSuggestion = null
+			this.selectedSuggestion(null)
 			this.previousQuery = query
 		}
 	}
@@ -221,7 +240,10 @@ export class BubbleTextField<T> {
 		// We need to calculate how much space can be actually used for the dropdown. We cannot just add margin like we do with dialog
 		// because the suggestions dropdown is absolutely positioned.
 		if (this._domSuggestions) {
-			const desiredHeight = this.bubbleHandler.suggestionHeight * newCount
+			const showableSuggestionsNum = this.bubbleHandler.maximumSuggestions
+				? Math.min(newCount, this.bubbleHandler.maximumSuggestions)
+				: newCount
+			const desiredHeight = this.bubbleHandler.suggestionHeight * showableSuggestionsNum
 			const top = this._domSuggestions.getBoundingClientRect().top
 			const availableHeight = window.innerHeight - top - this._keyboardHeight - size.vpad
 			const finalHeight = Math.min(availableHeight, desiredHeight)
@@ -266,8 +288,9 @@ export class BubbleTextField<T> {
 		if (value === "") return
 
 		// if there is a selected suggestion, we shall create a bubble from that suggestions instead of the entered text
-		if (this.selectedSuggestion != null) {
-			let bubble = this.bubbleHandler.createBubbleFromSuggestion(this.selectedSuggestion)
+		const selectedSuggestion = this.selectedSuggestion()
+		if (selectedSuggestion != null) {
+			let bubble = this.bubbleHandler.createBubbleFromSuggestion(selectedSuggestion)
 			if (bubble) {
 				this.bubbles.push(bubble)
 				this._textField.value("")
@@ -337,30 +360,32 @@ export class BubbleTextField<T> {
 	}
 
 	handleUpArrow(): boolean {
-		if (this.selectedSuggestion != null) {
-			this.selectedSuggestion.selected = false
-			let next = (this.suggestions.indexOf(this.selectedSuggestion) - 1) % this.suggestions.length
+		const selectedSuggestion = this.selectedSuggestion()
+		if (selectedSuggestion != null) {
+			selectedSuggestion.selected = false
+			let next = (this.suggestions.indexOf(selectedSuggestion) - 1) % this.suggestions.length
 			if (next === -1) {
 				next = this.suggestions.length - 1
 			}
-			this.selectedSuggestion = this.suggestions[next]
-			this.selectedSuggestion.selected = true
+			this.suggestions[next].selected = true
+			this.selectedSuggestion(this.suggestions[next])
 		}
 		return false
 	}
 
 	handleDownArrow(): boolean {
-		if (this.selectedSuggestion != null) {
-			this.selectedSuggestion.selected = false
-			let next = (this.suggestions.indexOf(this.selectedSuggestion) + 1)
+		const selectedSuggestion = this.selectedSuggestion()
+		if (selectedSuggestion != null) {
+			selectedSuggestion.selected = false
+			let next = (this.suggestions.indexOf(selectedSuggestion) + 1)
 			if (next === this.suggestions.length) {
 				next = 0
 			}
-			this.selectedSuggestion = this.suggestions[next]
-			this.selectedSuggestion.selected = true
+			this.suggestions[next].selected = true
+			this.selectedSuggestion(this.suggestions[next])
 		} else if (this.suggestions.length > 0) {
-			this.selectedSuggestion = this.suggestions[0]
-			this.selectedSuggestion.selected = true
+			this.suggestions[0].selected = true
+			this.selectedSuggestion(this.suggestions[0])
 		}
 		return false
 	}
