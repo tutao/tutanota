@@ -54,33 +54,43 @@ pipeline {
         }
 
         stage('Build Desktop clients'){
-			when {
-				expression { params.RELEASE }
-			}
             parallel {
                 stage('desktop-win') {
-					environment {
-        		        PATH="${env.NODE_PATH}:${env.PATH}"
+					stages {
+						stage('compile-keytar-win') {
+							agent {
+								label 'win-full'
+							}
+							steps {
+								bat 'npm ci'
+								stash includes: 'node_modules/keytar/build/Release/keytar.node', name: 'keytar_win'
+							}
+						}
+						stage('compile-desktop-win') {
+							environment {
+								PATH="${env.NODE_PATH}:${env.PATH}"
+                        	}
+							agent {
+								label 'win'
+							}
+							steps {
+								sh 'npm ci'
+								unstash 'keytar_win'
+								unstash 'web_base'
+								withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+									sh '''
+									export JENKINS=TRUE;
+									export HSM_USER_PIN=${PW};
+									export WIN_CSC_FILE="/opt/etc/codesign.crt";
+									node dist -ew '''
+								}
+								dir('build') {
+									stash includes: 'desktop-test/*', name:'win_installer_test'
+									stash includes: 'desktop/*', name:'win_installer'
+								}
+							}
+						}
 					}
-                    agent {
-                        label 'win'
-                    }
-                    steps {
-            			sh 'npm ci'
-						sh 'rm -rf ./build/*'
-						unstash 'web_base'
-						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-						    sh '''
-						    export JENKINS=TRUE;
-						    export HSM_USER_PIN=${PW};
-						    export WIN_CSC_FILE="/opt/etc/codesign.crt";
-						    node dist -ew '''
-						}
-						dir('build') {
-							stash includes: 'desktop-test/*', name:'win_installer_test'
-							stash includes: 'desktop/*', name:'win_installer'
-						}
-                	}
                 }
 
                 stage('desktop-mac') {
@@ -107,7 +117,6 @@ pipeline {
 						}
                     }
                 }
-
 
                 stage('desktop-linux') {
                     agent {
