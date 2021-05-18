@@ -7,6 +7,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {repeat} from "../../api/common/utils/StringUtils"
 import type {keyHandler} from "../../misc/KeyManager"
+import {TabIndex} from "../../api/common/TutanotaConstants"
 
 export type TextFieldAttrs = {
 	id?: string,
@@ -122,9 +123,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 			// This is mostly done to prevent autofill which happens if the field type="password".
 
 			const autofillGuard = a.preventAutofill ? [
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Text})
 			] : []
 
 			return m('.flex-grow.rel', autofillGuard.concat([

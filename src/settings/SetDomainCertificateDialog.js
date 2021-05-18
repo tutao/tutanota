@@ -58,13 +58,12 @@ function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?
 
 export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
-	let domainAllLowercase = ""
 	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
+	const domain = whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream("")
 	const domainFieldAttrs = {
 		label: "whitelabelDomain_label",
-		value: whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream(""),
+		value: domain,
 		disabled: whitelabelDomainInfo ? true : false,
-		oninput: (value) => {domainAllLowercase = value.trim().toLowerCase()}
 	}
 
 	let certChainFile: ?DataFile = null
@@ -142,6 +141,7 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 		title: lang.get("whitelabelDomain_label"),
 		child: form,
 		okAction: () => {
+			const domainAllLowercase = domain().trim().toLowerCase()
 			if (!isDomainName(domainAllLowercase) || domainAllLowercase.split(".").length < 3) {
 				Dialog.error("notASubdomain_msg")
 			} else if (customerInfo.domainInfos.find(di => !di.whitelabelConfig && di.domain === domainAllLowercase)) {

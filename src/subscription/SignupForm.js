@@ -265,7 +265,7 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 						middle: () => lang.get("captchaDisplay_label")
 					}
 					const captchaInputAttrs = {
-						label: lang.get("captchaInput_label") + ' (hh:mm)',
+						label: () => lang.get("captchaInput_label") + ' (hh:mm)',
 						helpLabel: () => lang.get("captchaInfo_msg"),
 						value: stream(captchaInput),
 						oninput: (value) => captchaInput = value,
