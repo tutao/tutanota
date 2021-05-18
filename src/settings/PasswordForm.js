@@ -63,7 +63,7 @@ export class PasswordForm {
 			oninput: (value) => this._onNewPasswordInput(value),
 			type: Type.Password,
 			preventAutofill: true,
-			injectionsRight: () => [m(passwordIndicator)],
+			injectionsRight: () => m(".mb-s.mlr", m(passwordIndicator)),
 		}
 
 		const repeatedPasswordFieldAttrs = {
