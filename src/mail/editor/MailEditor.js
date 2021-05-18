@@ -439,8 +439,14 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 						style: {
 							'min-width': '250px'
 						},
-						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+						oncreate: vnode => {
+							vnode.dom.style.opacity = '0'
+							return animations.add(vnode.dom, opacity(0, 1, true))
+						},
+						onbeforeremove: vnode => {
+							vnode.dom.style.opacity = '1'
+							return animations.add(vnode.dom, opacity(1, 0, true))
+						}
 					}, [
 						m(".flex-grow", m(DropDownSelectorN, lazyLanguageDropDownAttrs())),
 						editCustomNotificationMailAttrs
