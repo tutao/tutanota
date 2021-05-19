@@ -130,6 +130,7 @@ export const OperationType = {
 export type OperationTypeEnum = $Values<typeof OperationType>;
 
 export const AccountType = Object.freeze({
+	SYSTEM: '0',
 	FREE: '1',
 	STARTER: '2',
 	PREMIUM: '3',
