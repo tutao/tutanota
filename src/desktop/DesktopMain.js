@@ -155,9 +155,7 @@ async function startupInstance(components: Components) {
 	}).on('open-url', (e, url) => {
 		// MacOS mailto handling
 		e.preventDefault()
-		if (!url.startsWith('mailto:')) {
-			// do nothing if this is not a mailto: url
-		} else {
+		if (url.startsWith('mailto:')) {
 			DesktopUtils.callWhenReady(() => handleMailto(url, components))
 		}
 	}).on('will-quit', (e) => {
