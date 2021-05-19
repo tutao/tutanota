@@ -14,11 +14,13 @@ import {HttpMethod} from "../../common/EntityFunctions"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {createUserDataDelete} from "../../entities/sys/UserDataDelete"
 import {aes128RandomKey} from "../crypto/Aes"
+import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
 import {createUserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
 import {createUserAccountCreateData} from "../../entities/tutanota/UserAccountCreateData"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {random} from "../crypto/Randomizer"
 import type {GroupManagementFacade} from "./GroupManagementFacade"
+import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import type {LoginFacade, RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -27,8 +29,6 @@ import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
 import {generateRsaKey} from "../crypto/Rsa"
 import type {User} from "../../entities/sys/User"
-import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
-import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 
 assertWorkerOrNode()
@@ -63,28 +63,29 @@ export class UserManagementFacade {
 		})
 	}
 
-	changeAdminFlag(user: User, admin: boolean): Promise<void> {
+	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
-		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
-			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			return this._getAccountKeyData().then(keyData => {
-				if (admin) {
-					return this._groupManagement.addUserToGroup(user, adminGroupId).then(() => {
-						// we can not use addUserToGroup here because the admin is not admin of the account group
-						let addAccountGroup = createMembershipAddData()
-						addAccountGroup.user = user._id
-						addAccountGroup.group = keyData.group
-						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), keyData.symEncGKey))
-						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
-					})
-				} else {
-					return this._groupManagement.removeUserFromGroup(user._id, adminGroupId).then(() => {
-						return this._groupManagement.removeUserFromGroup(user._id, keyData.group)
-					})
-				}
-			})
-		})
+		const userGroup = await load(GroupTypeRef, user.userGroup.group)
+		let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
+		if (admin) {
+			await this._groupManagement.addUserToGroup(user, adminGroupId)
+			if (user.accountType !== AccountType.SYSTEM) {
+				const keyData = await this._getAccountKeyData()
+				// we can not use addUserToGroup here because the admin is not admin of the account group
+				let addAccountGroup = createMembershipAddData()
+				addAccountGroup.user = user._id
+				addAccountGroup.group = keyData.group
+				addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), keyData.symEncGKey))
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
+			}
+		} else {
+			await this._groupManagement.removeUserFromGroup(user._id, adminGroupId)
+			if (user.accountType !== AccountType.SYSTEM) {
+				const keyData = await this._getAccountKeyData()
+				return this._groupManagement.removeUserFromGroup(user._id, keyData.group)
+			}
+		}
 	}
 
 	/**
@@ -246,7 +247,7 @@ export class UserManagementFacade {
 		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
 	}
-	
+
 
 	generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): ContactFormUserData {
 		let salt = generateRandomSalt()
