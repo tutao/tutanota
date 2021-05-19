@@ -8,6 +8,7 @@ import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
+import {babelDesktopPlugins} from "./RollupConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -167,7 +168,7 @@ async function buildAndStartDesktop(log, version) {
 	const nodePreBundle = await nollup({
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
-			...rollupDebugPlugins(path.resolve(".")),
+			...rollupDebugPlugins(path.resolve("."), babelDesktopPlugins),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),

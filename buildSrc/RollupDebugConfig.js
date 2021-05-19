@@ -17,10 +17,10 @@ function resolveLibs(baseDir = ".") {
 	}
 }
 
-export function rollupDebugPlugins(baseDir) {
+export function rollupDebugPlugins(baseDir, pluginsForBabel = babelPlugins) {
 	return [
 		babel({
-			plugins: babelPlugins,
+			plugins: pluginsForBabel,
 			inputSourceMap: false,
 			babelHelpers: "bundled",
 			retainLines: true,

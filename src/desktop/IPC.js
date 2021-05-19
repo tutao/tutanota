@@ -170,8 +170,7 @@ export class IPC {
 					this._integrator.isIntegrated(),
 					Boolean(this._updater && this._updater.updateInfo),
 				])
-				const result: IntegrationInfo = {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable}
-				return result
+				return {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable}
 			case 'openFileChooser':
 				if (args[1]) { // open folder dialog
 					return this._electron.dialog.showOpenDialog(null, {properties: ['openDirectory']}).then(({filePaths}) => filePaths)
@@ -200,9 +199,13 @@ export class IPC {
 				this._wm.newWindow(true)
 				return Promise.resolve()
 			case 'enableAutoLaunch':
-				return this._integrator.enableAutoLaunch()
+				return this._integrator.enableAutoLaunch().catch(e => {
+					log.debug("could not enable auto launch:", e)
+				})
 			case 'disableAutoLaunch':
-				return this._integrator.disableAutoLaunch()
+				return this._integrator.disableAutoLaunch().catch(e => {
+					log.debug("could not disable auto launch:", e)
+				})
 			case 'getPushIdentifier':
 				const uInfo = {
 					userId: args[0].toString(),

@@ -128,6 +128,7 @@ o.spec("DesktopSseClient Test", function () {
 			request: function (url, params) {
 				const r = new this.ClientRequest(url, params)
 				this.requestMade.resolve()
+				this.requestMade = defer()
 				return r
 			},
 			ClientRequest: n.classify({
@@ -201,13 +202,13 @@ o.spec("DesktopSseClient Test", function () {
 		await netMock.requestMade.promise
 		o(netMock.request.callCount).equals(1)
 
-		netMock.requestMade = defer()
 		timeoutMock.next()
 		await netMock.requestMade.promise
 
 		//wait for first and second connection attempt
 		o(netMock.request.callCount).equals(2) // we timed out once
 
+		timeoutMock.next()
 		const requestUrl = url.parse(netMock.request.args[0])
 		o(requestUrl.pathname).equals("/sse")
 		const requestBody = JSON.parse(querystring.parse(neverNull(requestUrl.query))._body)
@@ -258,7 +259,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		// heartbeat times out...
 		timeoutMock.next()
-		await Promise.resolve()
+		await netMock.requestMade.promise
 
 		// should have rescheduled
 		o(sse._nextReconnect).notEquals(oldTimeoutId)
@@ -275,7 +276,7 @@ o.spec("DesktopSseClient Test", function () {
 		timeoutMock.next()
 		await netMock.requestMade.promise
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		await Promise.resolve()
+		await net.requestMade.promise
 		o(confMock.setVar.args[0]).equals(DesktopConfigEncKey.sseInfo)
 		o(confMock.setVar.args[1]).deepEquals({
 			identifier,
@@ -296,14 +297,14 @@ o.spec("DesktopSseClient Test", function () {
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await net.requestMade.promise
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 
 		await Promise.resolve()
 		res.callbacks['data']("data: heartbeatTimeout:42\n")
 		res.callbacks['data']("data: heartbeatTimeout:baz\n")
 
-		await Promise.delay(10)
+		await Promise.resolve()
 		o(sse._readTimeoutInSeconds).equals(42)
 
 		// done
@@ -319,13 +320,13 @@ o.spec("DesktopSseClient Test", function () {
 		await sse.start()
 		o(timeoutSpy.callCount).equals(1)
 		timeoutSpy.next()
-		await Promise.resolve()
+		await net.requestMade.promise
 		o(timeoutSpy.callCount).equals(2)
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:1\n")
 		res.callbacks["data"]("data: notification\n")
 
-		// await Promise.resolve()
+		// await Promise.delay(1)
 		o(timeoutSpy.callCount).equals(3)
 		downcast(electronMock.app).callbacks['will-quit']()
 	})
@@ -337,7 +338,7 @@ o.spec("DesktopSseClient Test", function () {
 		let oldTimeout
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await net.requestMade.promise
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:3\n")
@@ -410,7 +411,7 @@ o.spec("DesktopSseClient Test", function () {
 		let sseConnectResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await net.requestMade.promise
 		const sseConnectRequest = net.ClientRequest.mockedInstances[0]
 		const clientRequest = url.parse(sseConnectRequest.requestUrl)
 		o(clientRequest.pathname).equals("/sse")
@@ -420,7 +421,7 @@ o.spec("DesktopSseClient Test", function () {
 		await Promise.delay(5)
 		o(setVars[DesktopConfigKey.heartbeatTimeoutInSeconds]).equals(3)
 
-		await Promise.resolve()
+		await Promise.delay(1)
 		const missedNotificationRequest = net.ClientRequest.mockedInstances[1]
 		o(missedNotificationRequest.requestParams.headers.lastProcessedNotificationId).equals(lastProcessedId)
 		const missedNotification = {
@@ -442,7 +443,7 @@ o.spec("DesktopSseClient Test", function () {
 		missedNotificationResponse.callbacks['end']()
 		sseConnectResponse.callbacks['data'](`data: notification\n`)
 
-		await Promise.resolve()
+		await Promise.delay(1)
 		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
@@ -458,7 +459,7 @@ o.spec("DesktopSseClient Test", function () {
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await net.requestMade.promise
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:3\n")
@@ -491,14 +492,14 @@ o.spec("DesktopSseClient Test", function () {
 		await sse.start()
 		timeoutMock.next()
 
-		await Promise.resolve()
+		await netMock.requestMade.promise
 		const sseRequest = net.ClientRequest.mockedInstances[0]
 		await sseRequest.callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseResponse.callbacks['data'](`data: notification\n`)
 
-		await Promise.resolve()
-
+		timeoutMock.next()
+		await netMock.requestMade.promise
 		let missedNotificationResponse = new net.Response(200)
 		o(netMock.request.callCount).equals(2)
 		o(netMock.request.args[0]).equals("http://here.there/rest/sys/missednotification/aWRlbnRpZmllcg")
@@ -542,6 +543,8 @@ o.spec("DesktopSseClient Test", function () {
 			confirmationId: "missedNotificationConfId"
 		}
 
+		timeoutMock.next()
+		await netMock.requestMade.promise
 		const missedNotificationRequest = net.ClientRequest.mockedInstances[1]
 		await missedNotificationRequest.callbacks['response'](missedNotificationResponse)
 		missedNotificationResponse.callbacks['data'](`${JSON.stringify(missedNotification)}\n`)
@@ -583,12 +586,12 @@ o.spec("DesktopSseClient Test", function () {
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
-
+		await netMock.requestMade.promise
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:3\n")
 		res.callbacks['data'](`data: notification\n`)
-		await Promise.resolve()
+		timeoutMock.next()
+		await netMock.requestMade.promise
 		// wait for missedNotification request to be sent...
 		let missedNotificationResponse = new net.Response(200)
 		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
@@ -606,21 +609,24 @@ o.spec("DesktopSseClient Test", function () {
 		let res = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await netMock.requestMade.promise
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		res.callbacks['data']("data: heartbeatTimeout:3\n")
 		res.callbacks['data'](`data: notification\n`)
-		await Promise.resolve()
+
+		timeoutMock.next()
+		await netMock.requestMade.promise
 		// wait for missedNotification request to be sent...
 		let missedNotificationResponse = new net.Response(401)
 		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
 
 		await sse._handlingPushMessage.catch(noOp)
+		await Promise.resolve()
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		o(confMock.setVar.calls.find(c => c.args[0] === DesktopConfigEncKey.sseInfo).args).deepEquals([
+		o(confMock.setVar.calls.find(c => c.args[0] === DesktopConfigEncKey.sseInfo)?.args).deepEquals([
 			DesktopConfigEncKey.sseInfo, {
 				identifier,
 				sseOrigin: 'http://here.there',
