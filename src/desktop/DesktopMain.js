@@ -69,10 +69,12 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 } else if (opts.registerAsMailHandler) {
 	//register as mailto handler, then quit
 	DesktopUtils.registerAsMailtoHandler(false)
+	            .then(() => app.exit(0))
 	            .catch(() => app.exit(1))
 } else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
 	DesktopUtils.unregisterAsMailtoHandler(false)
+	            .then(() => app.exit(0))
 	            .catch(() => app.exit(1))
 } else {
 	createComponents().then(startupInstance)
