@@ -52,25 +52,33 @@ type Components = {
 	+updater: ElectronUpdater,
 	+integrator: DesktopIntegrator,
 	+tray: DesktopTray,
-	+wasAutolaunched: boolean
 }
 
-//check if there are any cli parameters that should be handled without a window
-if (process.argv.indexOf("-r") !== -1) {
+const opts = {
+	registerAsMailHandler: process.argv.some(arg => arg === "-r"),
+	unregisterAsMailHandler: process.argv.some(arg => arg === "-u"),
+	mailTo: findMailToUrlInArgv(process.argv),
+	wasAutoLaunched: process.platform !== 'darwin'
+		? process.argv.some(arg => arg === "-a")
+		: app.getLoginItemSettings().wasOpenedAtLogin
+}
+
+if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
+	console.log("Incompatible options '-r' and '-u'")
+	app.exit(1)
+} else if (opts.registerAsMailHandler) {
 	//register as mailto handler, then quit
 	DesktopUtils.registerAsMailtoHandler(false)
-	            .then(() => app.exit(0))
 	            .catch(() => app.exit(1))
-} else if (process.argv.indexOf("-u") !== -1) {
+} else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
 	DesktopUtils.unregisterAsMailtoHandler(false)
-	            .then(() => app.exit(0))
 	            .catch(() => app.exit(1))
 } else {
-	init().then(startupInstance)
+	createComponents().then(startupInstance)
 }
 
-async function init(): Promise<Components> {
+async function createComponents(): Promise<Components> {
 	lang.init(en)
 	const secretStorage = new KeytarSecretStorage()
 	const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
@@ -107,10 +115,6 @@ async function init(): Promise<Components> {
 	    .then((appUserModelId) => {app.setAppUserModelId(appUserModelId)})
 	log.debug("version:  ", app.getVersion())
 
-	const wasAutolaunched = process.platform !== 'darwin'
-		? process.argv.indexOf("-a") !== -1
-		: app.getLoginItemSettings().wasOpenedAtLogin
-
 	return {
 		wm,
 		ipc,
@@ -123,7 +127,6 @@ async function init(): Promise<Components> {
 		updater,
 		integrator,
 		tray,
-		wasAutolaunched
 	}
 }
 
@@ -132,42 +135,39 @@ async function startupInstance(components: Components) {
 	// Delete the temp directory on startup, because we may not always be able to do it on shutdown
 	dl.deleteTutanotaTempDirectory()
 
-	DesktopUtils.makeSingleInstance().then(willStay => {
-		if (!willStay) return
-		sse.start().catch(e => log.warn("unable to start sse client", e))
+	if (!await DesktopUtils.makeSingleInstance()) return
 
-		app.on('second-instance', (ev, args) => {
-			DesktopUtils.singleInstanceLockOverridden().then(overridden => {
-				if (overridden) {
-					app.quit()
-				} else {
-					if (wm.getAll().length === 0) {
-						wm.newWindow(true)
-					} else {
-						wm.getAll().forEach(w => w.show())
-					}
-					handleArgv(args, components)
-				}
-			})
-		}).on('open-url', (e, url) => {
-			// MacOS mailto handling
-			e.preventDefault()
-			if (!url.startsWith('mailto:')) {
-				// do nothing if this is not a mailto: url
+	sse.start().catch(e => log.warn("unable to start sse client", e))
+
+	app.on('second-instance', async (ev, args) => {
+		if (await DesktopUtils.singleInstanceLockOverridden()) {
+			app.quit()
+		} else {
+			if (wm.getAll().length === 0) {
+				wm.newWindow(true)
 			} else {
-				DesktopUtils.callWhenReady(() => handleMailto(url, components))
+				wm.getAll().forEach(w => w.show())
 			}
-		}).on('will-quit', (e) => {
-			dl.deleteTutanotaTempDirectory()
-		})
-		// it takes a short while to get here,
-		// the event may already have fired
-		DesktopUtils.callWhenReady(() => {onAppReady(components)})
+			handleMailto(findMailToUrlInArgv(args), components)
+		}
+	}).on('open-url', (e, url) => {
+		// MacOS mailto handling
+		e.preventDefault()
+		if (!url.startsWith('mailto:')) {
+			// do nothing if this is not a mailto: url
+		} else {
+			DesktopUtils.callWhenReady(() => handleMailto(url, components))
+		}
+	}).on('will-quit', (e) => {
+		dl.deleteTutanotaTempDirectory()
 	})
+	// it takes a short while to get here,
+	// the event may already have fired
+	DesktopUtils.callWhenReady(() => onAppReady(components))
 }
 
 async function onAppReady(components: Components) {
-	const {ipc, wm, deviceKeyProvider, conf, wasAutolaunched} = components
+	const {ipc, wm, deviceKeyProvider, conf} = components
 	deviceKeyProvider.getDeviceKey().catch(() => {
 		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
 	})
@@ -181,7 +181,7 @@ async function onAppReady(components: Components) {
 	err.init(wm, ipc)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = await wm.getLastFocused(!(await conf.getVar('runAsTrayApp') && wasAutolaunched))
+	const w = await wm.getLastFocused(!(await conf.getVar('runAsTrayApp') && opts.wasAutoLaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id).then(() => main(components))
 }
@@ -203,18 +203,16 @@ function main(components: Components) {
 	notifier.start(2000)
 	updater.start()
 	integrator.runIntegration(wm)
-	handleArgv(process.argv, components)
-}
-
-function handleArgv(argv: string[], components: Components) {
-	const mailtoUrl = argv.find((arg) => arg.startsWith('mailto'))
-	if (mailtoUrl) {
-		argv.splice(argv.indexOf(mailtoUrl), 1)
-		return handleMailto(mailtoUrl, components)
+	if (opts.mailTo) {
+		handleMailto(opts.mailTo, components)
 	}
 }
 
-async function handleMailto(mailtoArg?: string, {wm, ipc}: Components) {
+function findMailToUrlInArgv(argv: string[]): ?string {
+	return argv.find((arg) => arg.startsWith('mailto'))
+}
+
+async function handleMailto(mailtoArg: ?string, {wm, ipc}: Components) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
 		const w = await wm.getLastFocused(true)
