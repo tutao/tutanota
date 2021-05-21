@@ -26,7 +26,6 @@ import {
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
-import {delay} from "../../api/common/utils/PromiseUtils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -389,15 +388,19 @@ export class DesktopSseClient {
 			                })
 			                .on('response', res => {
 				                log.debug("missed notification response", res.statusCode)
-				                if (res.statusCode === ServiceUnavailableError.CODE &&
+				                if ((res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
 					                (res.headers["retry-after"] || res.headers["suspension-time"])
 				                ) {
 					                // headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
 					                const time = filterInt(res.headers["retry-after"] || res.headers["suspension-time"])
 					                log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
-					                delay(time * 1000)
-						                .then(() => this._downloadMissedNotification(userId))
-						                .then(resolve, reject)
+
+					                res.destroy()
+					                req.abort()
+
+					                this._delayHandler(() => {
+						                this._downloadMissedNotification(userId).then(resolve, reject)
+					                }, time * 1000)
 					                return
 				                } else if (res.statusCode !== 200) {
 					                const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)

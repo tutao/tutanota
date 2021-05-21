@@ -122,11 +122,12 @@ export function makeTimeoutMock(): TimeoutMock {
 		timeoutId++
 		return downcast(timeoutId)
 	}
+	const spiedMock = o.spy(timeoutMock)
 
-	timeoutMock.next = function () {
+	spiedMock.next = function () {
 		scheduledFn && scheduledFn()
 	}
-	return timeoutMock
+	return spiedMock
 }
 
 /** Catch error and return either value or error */
