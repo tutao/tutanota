@@ -15,7 +15,7 @@ import {worker} from "../../api/main/WorkerClient"
 import {progressIcon} from "../../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../../mail/model/MailUtils"
 import {AccessDeactivatedError} from "../../api/common/error/RestError"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
 import {HttpMethod as HttpMethodEnum} from "../../api/common/EntityFunctions"
@@ -43,21 +43,19 @@ export class ContactFormRequestDialog {
 	_subject: string
 	_dialog: Dialog;
 	_editor: HtmlEditor;
-	view: Function;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
 	_loadingAttachments: boolean;
 	_contactForm: ContactForm;
-	_domElement: HTMLElement;
 	_statisticFields: Map<string, string>
 	_notificationEmailAddress: string;
 	_passwordForm: PasswordForm;
 	_privacyPolicyAccepted: Stream<boolean>;
+	_windowCloseUnsubscribe: () => void;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
 	 * to an existing message or edit an existing draft.
-	 *
 	 */
 	constructor(contactForm: ContactForm) {
 		this._contactForm = contactForm
@@ -65,7 +63,9 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._statisticFields = new Map()
-
+		this._subject = ""
+		this._notificationEmailAddress = ""
+		this._windowCloseUnsubscribe = noOp
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 
 		this._privacyPolicyAccepted = stream(false)
@@ -95,6 +95,7 @@ export class ContactFormRequestDialog {
 		                     }).setCloseHandler(() => this._close())
 
 		worker.createContactFormUserGroupData()
+
 	}
 
 	view: Function = () => {
@@ -108,7 +109,7 @@ export class ContactFormRequestDialog {
 
 		const subject = m(TextFieldN, {
 			label: "subject_label",
-			value: stream(this._subject || ""),
+			value: stream(this._subject),
 			helpLabel: this.getConfidentialStateMessage,
 			injectionsRight: () => [attachFilesButton],
 			oninput: (value) => this._subject = value.trim()
@@ -116,7 +117,7 @@ export class ContactFormRequestDialog {
 
 		const notificationEmailAddress = m(TextFieldN, {
 			label: "mailAddress_label",
-			value: stream(this._notificationEmailAddress || ""),
+			value: stream(this._notificationEmailAddress),
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
 			oninput: (value) => {
 				this._notificationEmailAddress = value.trim()
@@ -131,13 +132,11 @@ export class ContactFormRequestDialog {
 			disabled: true
 		})
 
-		let windowCloseUnsubscribe = () => {}
 		return m("#mail-editor.text.pb", {
 			oncreate: vnode => {
-				this._domElement = vnode.dom
-				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
+				this._windowCloseUnsubscribe = windowFacade.addWindowCloseListener(noOp)
 			},
-			onremove: vnode => windowCloseUnsubscribe(),
+			onremove: vnode => this._windowCloseUnsubscribe(),
 			ondragover: (ev) => {
 				// do not check the datatransfer here because it is not always filled, e.g. in Safari
 				ev.stopPropagation()
@@ -336,7 +335,7 @@ export class ContactFormRequestDialog {
 								                                       let recipientInfo =
 									                                       createRecipientInfo(contactFormResult.requestMailAddress, "", null)
 
-						                                     return p.then(() => resolveRecipientInfo(worker, recipientInfo)
+								                                       return p.then(() => resolveRecipientInfo(worker, recipientInfo)
 									                                       .then(r => {
 										                                       let recipientInfos = [r]
 										                                       return worker.createMailDraft(this._subject,
