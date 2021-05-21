@@ -50,7 +50,7 @@ declare interface Mithril {
 
 	fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
 
-	trust(html: string): any;
+	trust(html: string): Vnode<void>;
 
 	withAttr(attrName: string, callback: Function): Function;
 
