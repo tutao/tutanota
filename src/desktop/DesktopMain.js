@@ -63,6 +63,11 @@ const opts = {
 		: app.getLoginItemSettings().wasOpenedAtLogin
 }
 
+
+// In windows we require elevated permissions in order to be able to register/deregister as a mailto handler, since it requires registry
+// modifications. If we don't have admin rights, apparently the easiest way to get them is just to spin up a new instance of the app
+// with admin privileges, and then call DesktopUtils.[un]registerAsMailHandler from that instance.
+// Tutanota isn't a CLI app, so while this functionality is technically available to users, we don't publicise it as such
 if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	console.log("Incompatible options '-r' and '-u'")
 	app.exit(1)

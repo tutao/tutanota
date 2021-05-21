@@ -33,6 +33,8 @@ export class DesktopUtils {
 				return checkForAdminStatus()
 					.then((isAdmin) => {
 						if (!isAdmin && tryToElevate) {
+							// We require admin rights in windows, so we will recursively run the tutanota client with admin privileges
+							// and then call this method again at startup of the elevated app
 							return _elevateWin(process.execPath, ["-r"])
 						} else if (isAdmin) {
 							return _registerOnWin()
