@@ -24,6 +24,8 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	                               .filter(name => name !== "logo")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
+	                               	       // value is closed over by injectionsRight,
+		                                   // so the color swatch will always be up to date with the contents of the text field
 			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,
