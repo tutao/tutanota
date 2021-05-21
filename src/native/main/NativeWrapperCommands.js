@@ -4,35 +4,31 @@ import {getMimeType, getName, getSize} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
 
-const createMailEditor = (msg: Request): Promise<void> => {
-	return Promise.all([
-		import('../../api/main/MainLocator.js'),
-		import('../../mail/editor/MailEditor.js'),
-		import('../../mail/model/MailUtils.js'),
-		import('../../api/main/LoginController.js'),
-		import("../../mail/signature/Signature")
-	]).then(([mainLocatorModule, mailEditorModule, mailUtilsModule, {logins}, signatureModule]) => {
-		const [filesUris, text, addresses, subject, mailToUrl] = msg.args
-		return logins.waitForUserLogin()
-		             .then(() => Promise.join(
-			             mailToUrl ? [] : getFilesData(filesUris),
-			             mainLocatorModule.locator.mailModel.getUserMailboxDetails(),
-			             (files, mailboxDetails) => {
-				             const address = addresses && addresses[0] || ""
-				             const recipients = address ? {to: [{name: "", address: address}]} : {}
-				             const editorPromise = mailToUrl
-					             ? mailEditorModule.newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
-					             : mailEditorModule.newMailEditorFromTemplate(
-						             mailboxDetails,
-						             recipients,
-						             subject || (files.length > 0 ? files[0].name : ""),
-						             signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-						             files
-					             )
-				             return editorPromise.then(editor => editor.show())
-			             })
-		             )
-	})
+async function createMailEditor(msg: Request): Promise<void> {
+	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
+
+	const {locator} = await import('../../api/main/MainLocator.js')
+	const {newMailtoUrlMailEditor, newMailEditorFromTemplate} = await import('../../mail/editor/MailEditor.js')
+	const {logins} = await import('../../api/main/LoginController.js')
+	const signatureModule = await import("../../mail/signature/Signature")
+
+	await logins.waitForUserLogin()
+
+	const files = mailToUrl ? [] : await getFilesData(filesUris)
+	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+
+	const address = addresses && addresses[0] || ""
+	const recipients = address ? {to: [{name: "", address: address}]} : {}
+	const editor = mailToUrl
+		? await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
+		: await newMailEditorFromTemplate(
+			mailboxDetails,
+			recipients,
+			subject || (files.length > 0 ? files[0].name : ""),
+			signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+			files
+		)
+	editor.show()
 }
 
 const showAlertDialog = (msg: Request): Promise<void> => {
@@ -167,7 +163,7 @@ function openCustomer(msg: Request): Promise<void> {
  * this updates the link-reveal on hover when the main thread detects that
  * the hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)
  */
-function updateTargetUrl(msg: Request) : Promise<void> {
+function updateTargetUrl(msg: Request): Promise<void> {
 	const url = msg.args[0]
 	const appPath = msg.args[1]
 	let linkToolTip = document.getElementById("link-tt")
