@@ -258,6 +258,9 @@ class ThemeManager {
 		// see RootHandler::applyWhitelabelFileModifications.
 		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
 			this.updateCustomTheme(whitelabelCustomizations.theme)
+		} else if (this.themeId === "custom") {
+			// if they have a custom theme set but no custom theme exists, we should set them back to light theme
+			this.setThemeId("light")
 		}
 	}
 
@@ -279,17 +282,27 @@ class ThemeManager {
 		}
 	}
 
-	setThemeId(newThemeId: ThemeId) {
+	/**
+	 * Set the theme, if permanent is true then the locally saved theme will be updated
+	 * @param newThemeId
+	 * @param permanent
+	 */
+	setThemeId(newThemeId: ThemeId, permanent: boolean = true) {
 		// Always overwrite light theme so that optional things are not kept when switching
 		Object.keys(this._theme).forEach(key => delete downcast(this._theme)[key])
 		Object.assign(this._theme, themes.light, this._getTheme(newThemeId))
 
 		this._themeId = newThemeId
-		deviceConfig.setTheme(newThemeId)
+		if (permanent) {
+			deviceConfig.setTheme(newThemeId)
+		}
 		this.themeIdChangedStream(newThemeId)
 	}
 
-	updateCustomTheme(updatedTheme: Object) {
+	/**
+	 * Set the custom theme, if permanent === true, then the new theme will be saved to localStorage
+	 */
+	updateCustomTheme(updatedTheme: Object, permanent: boolean = true) {
 		const logo = updatedTheme.logo
 		// set no logo until we sanitize it
 		this.customTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme, {logo: ""})
@@ -297,11 +310,11 @@ class ThemeManager {
 		if (logo) {
 			import("dompurify").then((dompurify) => {
 				nonNullTheme.logo = dompurify.default.sanitize(logo)
-				this.setThemeId("custom") // let it copy attributes in .map() listener
+				this.setThemeId("custom", permanent) // let it copy attributes in .map() listener
 				m.redraw()
 			})
 		}
-		this.setThemeId('custom')
+		this.setThemeId('custom', permanent)
 	}
 
 	getDefaultTheme(): Theme {

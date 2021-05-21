@@ -24,18 +24,17 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	                               .filter(name => name !== "logo")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
-			                               const value = themeToEdit[colorName] || ""
+			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,
-				                               value: stream(value || ""),
+				                               value: value,
 				                               injectionsRight: () => [
 					                               m("", {
 						                               style: {
 							                               width: "106px", // 100 + 6px negative margin
 							                               height: "20px",
 							                               "margin-bottom": "2px",
-							                               "background-color": getValidColorValue(value)
-								                               || theme.content_bg
+							                               "background-color": getValidColorValue(value()) || "transparent"
 						                               }
 					                               })
 				                               ]

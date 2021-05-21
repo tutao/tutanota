@@ -141,7 +141,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const onThemeChanged = (theme) => {
 			neverNull(this._whitelabelConfig).jsonTheme = JSON.stringify(theme)
 			update(neverNull(this._whitelabelConfig))
-			themeManager.updateCustomTheme(theme)
+			themeManager.updateCustomTheme(theme, false)
 		}
 
 		const whitelabelThemeSettingsAttrs = {
