@@ -117,7 +117,7 @@ import {InfoBanner} from "../../gui/base/InfoBanner"
 import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import {ActionBanner} from "../../gui/base/icons/ActionBanner"
 import type {Link} from "../../misc/HtmlSanitizer"
-import {DocumentFragmentRenderer} from "../../gui/base/DocumentFragmentRenderer"
+import {stringifyFragment} from "../../gui/HtmlUtils"
 
 assertMainOrNode()
 
@@ -146,7 +146,7 @@ export class MailViewer {
 	mail: Mail;
 	_mailBody: ?MailBody;
 	_contrastFixNeeded: boolean;
-	_htmlBody: ?DocumentFragment; // always sanitized in this.setSanitizedMailBodyFromMail
+	_sanitizedMailBody: ?Vnode<void>; // always sanitized in this.setSanitizedMailBodyFromMail
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
@@ -200,7 +200,7 @@ export class MailViewer {
 		}
 		this._attachments = []
 		this._attachmentButtons = []
-		this._htmlBody = null
+		this._sanitizedMailBody = null
 		this._contrastFixNeeded = false
 		// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
 		this._contentBlockingStatus = ContentBlockingStatus.NoExternalContent
@@ -365,26 +365,23 @@ export class MailViewer {
 	}
 
 	renderMailBodySection(): Children {
-		if (this._htmlBody && !this._didErrorsOccur()) {
-			return m(DocumentFragmentRenderer, {
-				// this._htmlBody has been sanitized before it was created, in this.setSanitizedMailBodyFromMail
-				fragment: this._htmlBody,
-				wrapper: m("#mail-body.selectable.touch-callout.break-word-links", {
-					oncreate: vnode => {
+		if (this._sanitizedMailBody && !this._didErrorsOccur()) {
+
+			return m("#mail-body.selectable.touch-callout.break-word-links", {
+				oncreate: vnode => {
+					this._domBodyDeferred.resolve(vnode.dom)
+					this._updateLineHeight()
+					this._rescale(false)
+				},
+				onupdate: (vnode) => {
+					if (this._domBodyDeferred.promise.isPending()) {
 						this._domBodyDeferred.resolve(vnode.dom)
-						this._updateLineHeight()
-						this._rescale(false)
-					},
-					onupdate: (vnode) => {
-						if (this._domBodyDeferred.promise.isPending()) {
-							this._domBodyDeferred.resolve(vnode.dom)
-						}
-						this._rescale(false)
-					},
-					onsubmit: (event: Event) => this._confirmSubmit(event),
-					style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
-				})
-			})
+					}
+					this._rescale(false)
+				},
+				onsubmit: (event: Event) => this._confirmSubmit(event),
+				style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
+			}, this._sanitizedMailBody)
 		} else if (!this._didErrorsOccur()) {
 			return m(".progress-panel.flex-v-center.items-center", {
 				style: {
@@ -1701,7 +1698,7 @@ export class MailViewer {
 			     .some(s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"))
 			|| html.querySelectorAll('font[color]').length > 0
 
-		this._htmlBody = html
+		this._sanitizedMailBody = m.trust(stringifyFragment(html))
 
 		return {inlineImageCids, links, externalContent}
 	}
