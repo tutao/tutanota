@@ -44,13 +44,12 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 
 	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
 		this._isVerficationBusy = false
-		this._messageId = stream("mailAddressNeutral_msg")
 		this._checkAddressTimeout = null
 		const preSelectedDomain = firstThrow(attrs.availableDomains)
 		this._domain = stream(preSelectedDomain)
 		this._username = stream("")
-		this.cleanMailAddress = stream.merge([this._username, this._domain])
-		                              .map(([name, domain]) => formatMailAddressFromParts(name, domain))
+		this._messageId = stream("mailAddressNeutral_msg")
+		this.cleanMailAddress = this._createCleanMailAddressStream()
 	}
 
 	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
@@ -75,7 +74,12 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 			const originalCallback = attrs.injectionsRightButtonAttrs.click
 			attrs.injectionsRightButtonAttrs.click = (event, dom) => {
 				originalCallback(event, dom)
+				// We can't just do this._username(""), because that will trigger email validation,
+				// which does a whole bunch of stuff that we don't want it to do
+				this.cleanMailAddress.end(true)
 				this._username = stream("")
+				this._messageId("mailAddressNeutral_msg")
+				this.cleanMailAddress = this._createCleanMailAddressStream()
 			}
 		}
 
@@ -94,6 +98,11 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 			]
 		}
 		return m(TextFieldN, userNameAttrs)
+	}
+
+	_createCleanMailAddressStream(): Stream<string> {
+		return stream.merge([this._username, this._domain])
+		             .map(([name, domain]) => formatMailAddressFromParts(name, domain))
 	}
 
 	_addressHelpLabel(): Children {
