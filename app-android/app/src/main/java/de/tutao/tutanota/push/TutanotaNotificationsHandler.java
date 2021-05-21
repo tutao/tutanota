@@ -104,6 +104,14 @@ public class TutanotaNotificationsHandler {
 				} catch (InterruptedException ignored) {
 				}
 				// tries are not decremented and we don't return, we just wait and try again.
+			} catch (TooManyRequestsException e) {
+				Log.d(TAG, "TooManyRequestsException when downloading missed notification, waiting " +
+						e.getRetryAfterSeconds() + "s");
+				try {
+					Thread.sleep(TimeUnit.SECONDS.toMillis(e.getRetryAfterSeconds()));
+				} catch (InterruptedException ignored) {
+				}
+				// tries are not decremented and we don't return, we just wait and try again.
 			} catch (ServerResponseException e) {
 				triesLeft--;
 				Log.w(TAG, e);
@@ -155,26 +163,35 @@ public class TutanotaNotificationsHandler {
 	}
 
 	private void handleResponseCode(HttpURLConnection urlConnection, int responseCode)
-			throws FileNotFoundException, ServerResponseException, ClientRequestException, ServiceUnavailableException {
+			throws FileNotFoundException, ServerResponseException, ClientRequestException, ServiceUnavailableException,
+			TooManyRequestsException {
 		if (responseCode == 404) {
 			throw new FileNotFoundException("Missed notification not found: " + 404);
 		} else if (responseCode == ServiceUnavailableException.CODE) {
-			String retryAfterHeader = urlConnection.getHeaderField("Retry-After");
-			if (retryAfterHeader == null) {
-				retryAfterHeader = urlConnection.getHeaderField("Suspension-Time");
-			}
-			int suspensionTime;
-			try {
-				suspensionTime = Integer.parseInt(retryAfterHeader);
-			} catch (NumberFormatException e) {
-				suspensionTime = 0;
-			}
+			int suspensionTime = extractSuspectionTime(urlConnection);
 			throw new ServiceUnavailableException(suspensionTime);
+		} else if (responseCode == TooManyRequestsException.CODE) {
+			int suspensionTime = extractSuspectionTime(urlConnection);
+			throw new TooManyRequestsException(suspensionTime);
 		} else if (400 <= responseCode && responseCode < 500) {
 			throw new ClientRequestException(responseCode);
 		} else if (500 <= responseCode && responseCode <= 600) {
 			throw new ServerResponseException(responseCode);
 		}
+	}
+
+	private int extractSuspectionTime(HttpURLConnection urlConnection) {
+		String retryAfterHeader = urlConnection.getHeaderField("Retry-After");
+		if (retryAfterHeader == null) {
+			retryAfterHeader = urlConnection.getHeaderField("Suspension-Time");
+		}
+		int suspensionTime;
+		try {
+			suspensionTime = Integer.parseInt(retryAfterHeader);
+		} catch (NumberFormatException e) {
+			suspensionTime = 0;
+		}
+		return suspensionTime;
 	}
 
 	private URL makeAlarmNotificationUrl(SseInfo sseInfo) throws MalformedURLException {
@@ -224,6 +241,20 @@ public class TutanotaNotificationsHandler {
 	static class ServerResponseException extends HttpException {
 		ServerResponseException(int code) {
 			super(code);
+		}
+	}
+
+	static class TooManyRequestsException extends HttpException {
+		static final int CODE = 429;
+		private final int retryAfterSeconds;
+
+		public TooManyRequestsException(int retryAfterSeconds) {
+			super(CODE);
+			this.retryAfterSeconds = retryAfterSeconds;
+		}
+
+		public int getRetryAfterSeconds() {
+			return retryAfterSeconds;
 		}
 	}
 
