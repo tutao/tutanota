@@ -20,6 +20,7 @@ import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFac
 import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage"
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient"
+import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = 'identifier'
@@ -662,6 +663,76 @@ o.spec("DesktopSseClient Test", function () {
 		o(notifierMock.showOneShot.args.length).equals(1)
 		o(notifierMock.showOneShot.args[0]).deepEquals({title: "Failed to handle PushMessage"})
 
+		downcast(electronMock.app).callbacks['will-quit']()
+	})
+
+	o("suspension on downloadMissedNotification", async function () {
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmStorageMock, langMock, timeoutMock)
+		const sseResponse = new net.Response(200)
+		await sse.start()
+		timeoutMock.next()
+		await Promise.delay(8)
+
+		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
+		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks['data'](`data: notification\n`)
+
+		// wait for missedNotification request to be sent...
+		await Promise.delay(1)
+		let missedNotificationResponse = new net.Response(ServiceUnavailableError.CODE)
+		missedNotificationResponse.headers["suspension-time"] = 5
+
+		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
+		o(missedNotificationResponse.destroy.callCount).equals(1)
+
+		o(downcast(timeoutMock).calls.some(c => c.args[1] === 5000)).equals(true)
+		timeoutMock.next()
+
+		// wait for missedNotification request to be sent...
+		let successfulResponse = new net.Response(200)
+		await net.ClientRequest.mockedInstances[1].callbacks['response'](successfulResponse)
+		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
+
+		await Promise.resolve()
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
+		downcast(electronMock.app).callbacks['will-quit']()
+	})
+
+	o("suspension on downloadMissedNotification", async function () {
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmStorageMock, langMock, timeoutMock)
+		const sseResponse = new net.Response(200)
+		await sse.start()
+		timeoutMock.next()
+		await Promise.delay(8)
+
+		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
+		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
+		sseResponse.callbacks['data'](`data: notification\n`)
+
+		// wait for missedNotification request to be sent...
+		await Promise.delay(1)
+		let missedNotificationResponse = new net.Response(TooManyRequestsError.CODE)
+		missedNotificationResponse.headers["retry-after"] = 5
+
+		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
+		o(missedNotificationResponse.destroy.callCount).equals(1)
+
+		o(downcast(timeoutMock).calls.some(c => c.args[1] === 5000)).equals(true)
+		timeoutMock.next()
+
+		// wait for missedNotification request to be sent...
+		let successfulResponse = new net.Response(200)
+		await net.ClientRequest.mockedInstances[1].callbacks['response'](successfulResponse)
+		successfulResponse.callbacks["data"](JSON.stringify(createMissedNotification()) + "\n")
+
+		await Promise.resolve()
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
 		downcast(electronMock.app).callbacks['will-quit']()
 	})
 
