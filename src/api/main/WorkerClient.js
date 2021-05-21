@@ -626,6 +626,10 @@ export class WorkerClient implements EntityRestInterface {
 	createTemplateGroup(name: string):Promise<Id> {
 		return this._postRequest(new Request('createTemplateGroup', arguments))
 	}
+
+	generatePassword(): Promise<string> {
+		return this._postRequest(new Request("generatePassword", []))
+	}
 }
 
 export const worker: WorkerClient = new WorkerClient()

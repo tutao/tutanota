@@ -8,7 +8,7 @@ import {EntropySrc} from "../../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
-class Randomizer {
+export class Randomizer {
 	random: any;
 
 	constructor() {

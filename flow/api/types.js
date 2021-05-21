@@ -148,6 +148,7 @@ type WorkerRequestType = 'setup'
 	| 'redeemGiftCard'
 	| 'getGiftCardInfo'
 	| 'createTemplateGroup'
+	| 'generatePassword'
 
 
 type MainRequestType = 'execNative'

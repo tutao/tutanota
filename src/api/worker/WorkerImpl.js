@@ -25,6 +25,7 @@ import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {User} from "../entities/sys/User"
+import {generatePassword} from "./utils/PasswordGenerator"
 
 assertWorkerOrNode()
 
@@ -360,6 +361,9 @@ export class WorkerImpl {
 			},
 			createTemplateGroup: (message: Request) => {
 				return locator.groupManagement.createTemplateGroup.apply(locator.groupManagement, message.args)
+			},
+			generatePassword: (message: Request) => {
+				return Promise.resolve(generatePassword(random))
 			},
 		})
 
