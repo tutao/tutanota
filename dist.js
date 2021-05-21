@@ -36,9 +36,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
 // which looks like a problem e.g. for accessing fields.
 
-// change this to disable minification and name mangling.
-const MINIFY = true
-
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.arguments('[stage] [host]')
@@ -49,6 +46,7 @@ options
 	.option('-d, --deb', 'Build .deb package. Requires -wlm to be set or installers to be present')
 	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
 	.option('--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
+	.option('--disable-minify', "disable minification")
 	.option('--unpacked', "don't pack the app into an installer")
 	.option('--out-dir <outDir>', "where to copy the client",)
 	.action((stage, host) => {
@@ -79,6 +77,11 @@ options
 				: undefined
 	})
 	.parse(process.argv)
+
+const MINIFY = options.disableMinify !== true
+if (!MINIFY) {
+	console.warn("Minification is disabled")
+}
 
 doBuild().catch(e => {
 	console.error(e)
