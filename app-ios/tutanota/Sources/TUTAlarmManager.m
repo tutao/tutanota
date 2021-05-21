@@ -36,6 +36,12 @@ NSString *const TUTOperationDelete = @"2";
 static const int EVENTS_SCHEDULED_AHEAD = 24;
 static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
 
+static const int OK_HTTP_CODE = 200;
+static const int NOT_AUTHENTICATED_HTTP_CODE = 401;
+static const int NOT_FOUND_HTTP_CODE = 404;
+static const int TOO_MANY_REQUESTS_HTTP_CODE = 429;
+static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
+
 @interface TUTAlarmManager ()
 @property (nonnull, readonly) TUTKeychainManager *keychainManager;
 @property (nonnull, readonly) TUTUserPreferenceFacade *userPreference;
@@ -107,33 +113,25 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
             if (error) {
                 complete(error);
-            } else if (httpResponse.statusCode == 401) {
+            } else if (httpResponse.statusCode == NOT_AUTHENTICATED_HTTP_CODE) {
                 TUTLog(@"Not authenticated to download missed notification w/ user %@", userId);
                 // Not authenticated, remove user id and try again with the next one
                 [strongSelf unscheduleAllAlarmsForUserId:userId];
                 [strongSelf.userPreference removeUser:userId];
                 queueCompletionHandler();
                 [strongSelf fetchMissedNotifications:completionHandler];
-            } else if (httpResponse.statusCode == 503) {
-              NSString *_Nullable retryAfterHeader = httpResponse.allHeaderFields[@"Retry-After"];
-              if (retryAfterHeader == nil) {
-                retryAfterHeader = httpResponse.allHeaderFields[@"Suspension-Time"];
-              }
-              int suspensionTime;
-              if (retryAfterHeader != nil) {
-                suspensionTime = retryAfterHeader.intValue;
-              } else {
-                suspensionTime = 0;
-              }
+            } else if (httpResponse.statusCode == SERVICE_UNAVAILABLE_HTTP_CODE ||
+                       httpResponse.statusCode == TOO_MANY_REQUESTS_HTTP_CODE) {
+              int suspensionTime = [strongSelf extractSuspensionTimeFrom:httpResponse];
               TUTLog(@"ServiceUnavailible when downloading missed notifications, waiting for %d s", suspensionTime);
               dispatch_after(dispatch_time(DISPATCH_TIME_NOW, suspensionTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                 TUTLog(@"Timer fired");
                 [weakSelf fetchMissedNotifications:completionHandler];
               });
               queueCompletionHandler();
-            } else if (httpResponse.statusCode == 404) {
+            } else if (httpResponse.statusCode == NOT_FOUND_HTTP_CODE) {
                 complete(nil);
-            } else if (httpResponse.statusCode != 200) {
+            } else if (httpResponse.statusCode != OK_HTTP_CODE) {
                 let error = [NSError errorWithDomain:TUT_NETWORK_ERROR
                                                 code:httpResponse.statusCode
                                             userInfo:@{@"message": @"Failed to fetch missed notification"}
@@ -160,6 +158,20 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     }];
     
     
+}
+
+- (int)extractSuspensionTimeFrom:(NSHTTPURLResponse *)httpResponse {
+  NSString *_Nullable retryAfterHeader = httpResponse.allHeaderFields[@"Retry-After"];
+  if (retryAfterHeader == nil) {
+    retryAfterHeader = httpResponse.allHeaderFields[@"Suspension-Time"];
+  }
+  int suspensionTime;
+  if (retryAfterHeader != nil) {
+    suspensionTime = retryAfterHeader.intValue;
+  } else {
+    suspensionTime = 0;
+  }
+  return suspensionTime;
 }
 
 - (BOOL)hasNotificationTTLExpired {
