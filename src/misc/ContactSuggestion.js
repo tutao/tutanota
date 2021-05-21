@@ -19,7 +19,7 @@ export class ContactSuggestion implements Suggestion {
 		this.contact = contact
 		this.selected = false
 
-		this.view = vnode => m(".pt-s.pb-s.click.content-hover", {
+		this.view = vnode => m(".text-ellipsis.pt-s.pb-s.click.content-hover", {
 			class: this.selected ? 'content-accent-fg row-selected' : '',
 			onmousedown: vnode.attrs.mouseDownHandler,
 			style: {
@@ -28,8 +28,8 @@ export class ContactSuggestion implements Suggestion {
 				height: px(ContactSuggestionHeight),
 			}
 		}, [
-			m("small", this.name),
-			m(".name", this.mailAddress),
+			m("small.full-width", this.name),
+			m(".name.full-width", this.mailAddress),
 		])
 	}
 
