@@ -284,8 +284,6 @@ class ThemeManager {
 
 	/**
 	 * Set the theme, if permanent is true then the locally saved theme will be updated
-	 * @param newThemeId
-	 * @param permanent
 	 */
 	setThemeId(newThemeId: ThemeId, permanent: boolean = true) {
 		// Always overwrite light theme so that optional things are not kept when switching
