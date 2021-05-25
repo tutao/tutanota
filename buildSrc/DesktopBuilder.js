@@ -1,5 +1,4 @@
 import {babelDesktopPlugins, resolveLibs} from "./RollupConfig.js"
-import {resolveLibs} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import Promise from "bluebird"
