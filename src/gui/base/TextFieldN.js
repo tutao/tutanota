@@ -26,7 +26,8 @@ export type TextFieldAttrs = {
 	class?: string,
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
-	onclick?: clickHandler
+	onclick?: clickHandler,
+	doShowBorder?: ?boolean
 }
 
 export const Type = Object.freeze({
@@ -61,6 +62,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 		const a = vnode.attrs
 		const labelBase = !this.active && a.value() === "" && !a.disabled && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
+		const doShowBorder = a.doShowBorder !== false
+		const borderWidth = this.active ? "2px" : "1px"
+		const borderColor = this.active ? theme.content_accent : theme.content_border
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
@@ -83,7 +87,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					style: {
 						'min-height': px(size.button_height + 2), // 2 px border
 						'padding-bottom': this.active ? px(0) : px(1),
-						'border-bottom': this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
+						'border-bottom': doShowBorder ? `${borderWidth} solid ${borderColor}` : "",
 					},
 				}, [
 					a.injectionsLeft ? a.injectionsLeft() : null,

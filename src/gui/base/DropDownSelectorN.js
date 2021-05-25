@@ -22,7 +22,7 @@ export type SelectorItem<T> = {
 
 export type SelectorItemList<T> = $ReadOnlyArray<SelectorItem<T>>
 
-export type DropDownSelectorAttrs<T> = {
+export type DropDownSelectorAttrs<T> = {|
 	label: TranslationKey | lazy<string>,
 	items: SelectorItemList<T>,
 	selectedValue: Stream<?T>,
@@ -35,8 +35,9 @@ export type DropDownSelectorAttrs<T> = {
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,
 	disabled?: boolean,
-	class?: string
-}
+	class?: string,
+	doShowBorder?: ?boolean
+|}
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
 
@@ -56,7 +57,8 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 					icon: () => a.icon ? a.icon : BootIcons.Expand,
 					click: noOp,
 					colors: ButtonColors.DrawerNav
-				})
+				}),
+			doShowBorder: a.doShowBorder
 		})
 	}
 
