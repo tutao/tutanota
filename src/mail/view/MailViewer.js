@@ -119,6 +119,7 @@ import {ActionBanner} from "../../gui/base/icons/ActionBanner"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -177,8 +178,11 @@ export class MailViewer {
 	_entityClient: EntityClient;
 	_mailModel: MailModel;
 	_contactModel: ContactModel;
+	_delayBodyRenderingUntil: Promise<*>
 
-	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel) {
+	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
+	            delayBodyRenderingUntil: Promise<*>) {
+		this._delayBodyRenderingUntil = delayBodyRenderingUntil
 		if (isDesktop()) {
 			import("../../native/common/NativeWrapper").then(({nativeApp}) =>
 				nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}])))
@@ -252,6 +256,13 @@ export class MailViewer {
 			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
 			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 		})
+
+		let delayIsOver = false
+		delayBodyRenderingUntil
+			.then(() => {
+				delayIsOver = true
+				m.redraw()
+			})
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -354,7 +365,7 @@ export class MailViewer {
 									}
 								},
 							},
-							this.renderMailBodySection()
+							delayIsOver ? this.renderMailBodySection() : null
 						)
 					],
 				),
@@ -875,6 +886,9 @@ export class MailViewer {
 		                                                .catch(e => false)
 		const isAllowedAndAuthenticatedExternalSender = isAllowListedExternalSender
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+
+		// We should not try to sanitize body while we still animate because it's a heavy operation.
+		await this._delayBodyRenderingUntil
 
 		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
 
