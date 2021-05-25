@@ -7,8 +7,8 @@ import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
-import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin, pluginNativeLoader, babelDesktopPlugins} from "./RollupPlugins.js"
+import {bundleDependencyCheckPlugin, babelDesktopPlugins} from "./RollupConfig.js"
+import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
