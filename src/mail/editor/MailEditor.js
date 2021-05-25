@@ -290,8 +290,10 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			icon: () => Icons.Attachment,
 			noRecipientInfoBubble: true
 		}
-
-		const toolbarButton = () => (!logins.getUserController().props.sendPlaintextOnly)
+		
+		const plaintextFormatting = logins.getUserController().props.sendPlaintextOnly
+		this.editor.setCreatesLists(!plaintextFormatting)
+		const toolbarButton = () => (!plaintextFormatting)
 			? m(ButtonN, {
 				label: 'showRichTextToolbar_action',
 				icon: () => Icons.FontSize,
