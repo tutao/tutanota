@@ -1,5 +1,5 @@
 //@flow
-import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate, isValidDate} from "../../api/common/utils/DateUtils"
 import type {
 	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
@@ -424,23 +424,37 @@ function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
 	return l.startTime.getTime() - r.startTime.getTime()
 }
 
+function assertDateIsValid(date: Date) {
+	if (!isValidDate(date)) {
+		throw new Error("Date is invalid!")
+	}
+}
+
+const MAX_EVENT_ITERATIONS = 10000
+
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
                                 zone: string = getTimeZone()) {
 	const eventStart = getEventStart(event, zone)
 	let calculationDate = getStartOfDayWithZone(eventStart, zone)
-	const eventEndDate = getEventEnd(event, zone);
+	const eventEndDate = getEventEnd(event, zone)
 
 	// only add events when the start time is inside this month
 	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
 		return
 	}
 
+	let iterations = 0
 	// if start time is in current month then also add events for subsequent months until event ends
 	while (calculationDate.getTime() < eventEndDate.getTime()) {
+		assertDateIsValid(calculationDate)
+		if (iterations > MAX_EVENT_ITERATIONS) {
+			throw new Error("Run into the infinite loop, addDaysForEvent")
+		}
 		if (eventEndDate.getTime() >= month.start.getTime()) {
 			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
 		}
 		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+		iterations++
 	}
 }
 
@@ -480,6 +494,12 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	while ((endOccurrences == null || iteration <= endOccurrences)
 	&& (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime)
 	&& calcStartTime.getTime() < month.end.getTime()) {
+		assertDateIsValid(calcStartTime)
+		assertDateIsValid(calcEndTime)
+		if (iteration > MAX_EVENT_ITERATIONS) {
+			throw new Error("Run into the infinite loop, addDaysForRecurringEvent")
+		}
+
 		if (calcEndTime.getTime() >= month.start.getTime()) {
 			const eventClone = clone(event)
 			if (allDay) {
@@ -532,9 +552,10 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 
 	let iterations = 0
 	while (calculationDate.getTime() < eventEndInMonth) {
+		assertDateIsValid(calculationDate)
 		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
 		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-		if (iterations++ > 10000) {
+		if (iterations++ > MAX_EVENT_ITERATIONS) {
 			throw new Error("Run into the infinite loop, addDaysForLongEvent")
 		}
 	}
@@ -558,6 +579,8 @@ export function findNextAlarmOccurrence(
 
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
 	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
+	assertDateIsValid(calcEventStart)
+
 	const endDate = endType === EndType.UntilDate
 		? isAllDayEvent
 			? getAllDayDateForTimezone(new Date(endValue), localTimeZone)
