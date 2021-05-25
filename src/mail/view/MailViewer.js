@@ -118,6 +118,7 @@ import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import {ActionBanner} from "../../gui/base/icons/ActionBanner"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
+import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -677,7 +678,7 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
-					if (this._isShowingExternalContent()) {
+					if (locator.search.indexingSupported && this._isShowingExternalContent()) {
 						moreButtons.push({
 							label: "disallowExternalContent_action",
 							click: () => {
@@ -861,7 +862,9 @@ export class MailViewer {
 			throw e
 		}
 
-		const isAllowedAndAuthenticatedExternalSender = (await worker.isAllowedExternalSender(mail.sender.address))
+		const isAllowListedExternalSender = await worker.isAllowedExternalSender(mail.sender.address)
+		                                                .catch(e => false)
+		const isAllowedAndAuthenticatedExternalSender = isAllowListedExternalSender
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
 		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
@@ -1622,10 +1625,12 @@ export class MailViewer {
 						text: "showBlockedContent_action",
 						click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
 					},
-					{
-						text: "allowExternalContentSender_action",
-						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
-					}
+					locator.search.indexingSupported
+						? {
+							text: "allowExternalContentSender_action",
+							click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+						}
+						: null
 				]
 			})
 			: null
@@ -1641,7 +1646,7 @@ export class MailViewer {
 				helpLink,
 				action: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
 			})
-		} else if (this._contentBlockingStatus === ContentBlockingStatus.Show) {
+		} else if (locator.search.indexingSupported && this._contentBlockingStatus === ContentBlockingStatus.Show) {
 			return m(ActionBanner, {
 				text: "allowExternalContentSender_action",
 				icon,
@@ -1666,10 +1671,10 @@ export class MailViewer {
 		this._contentBlockingStatus = status
 
 		if (this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
-			worker.addAllowedExternalSender(this.mail.sender.address)
+			worker.addAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
 		} else if (previousContentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
 			// if we're going from allow to something else it means we're revoking the whitelisting of the given sender
-			worker.removeAllowedExternalSender(this.mail.sender.address)
+			worker.removeAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
 		}
 
 		// We don't check mail authentication status here because the user has manually called this

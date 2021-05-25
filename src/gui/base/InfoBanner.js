@@ -19,7 +19,7 @@ export type InfoBannerAttrs = {
 	message: TranslationKey | lazy<string>,
 	icon: AllIconsEnum,
 	helpLink?: ?InfoLink,
-	buttons: $ReadOnlyArray<ButtonParams>,
+	buttons: $ReadOnlyArray<?ButtonParams>,
 }
 
 /**
@@ -34,7 +34,7 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 			m(".flex.center-vertically", [
 				this.renderIcon(icon),
 				m("small.smaller.text-break.mr", lang.getMaybeLazy(message)),
-				m("small.no-wrap.ml", buttons.map(button => this.renderButton(button))),
+				m("small.no-wrap.ml", buttons.filter(Boolean).map(button => this.renderButton(button))),
 			]),
 			mapNullable(helpLink, helpLink => this.renderHelpLink(helpLink))
 		])
