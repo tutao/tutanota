@@ -257,8 +257,8 @@ export class ViewSlider implements IViewSlider {
 	}
 
 
-	focus(viewColumn: ViewColumn) {
-		this._busy.then(() => {
+	focus(viewColumn: ViewColumn): Promise<void> {
+		return this._busy.then(() => {
 			// hide the foreground column if the column is in foreground
 			if (this.focusedColumn.isInForeground) {
 				this._busy = this._slideForegroundColumn(this.focusedColumn, false)

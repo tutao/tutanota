@@ -21,7 +21,7 @@ import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMail
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import {defer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -689,9 +689,11 @@ export class MailView implements CurrentView {
 
 	elementSelected: (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => void =
 		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
+			const animationOverDeferred = defer()
+
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel, animationOverDeferred.promise)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -722,8 +724,13 @@ export class MailView implements CurrentView {
 				if (elementClicked) {
 					this.mailList.list._loading.then(() => {
 						this.viewSlider.focus(this.mailColumn)
+						    .then(() => animationOverDeferred.resolve())
 					})
+				} else {
+					animationOverDeferred.resolve()
 				}
+			} else {
+				animationOverDeferred.resolve()
 			}
 		}
 
@@ -758,7 +765,8 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel)
+						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel,
+							Promise.resolve())
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})
