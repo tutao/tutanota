@@ -109,3 +109,7 @@ export function formatSortableDateTime(date: Date): string {
 export function sortableTimestamp(): string {
 	return formatSortableDateTime(new Date())
 }
+
+export function isValidDate(date: Date): boolean {
+	return !isNaN(date.getTime())
+}
