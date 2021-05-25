@@ -100,7 +100,6 @@ async function doBuild() {
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		await buildWebapp(version)
 		await buildDesktopClient(version)
-		await signDesktopClients()
 		await packageDeb(version)
 		await publish(version)
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
@@ -412,21 +411,6 @@ function packageDeb(version) {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		if (options.stage === "release" || options.stage === "prod") {
-			console.log("create " + desktopDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
-
-		if (options.stage === "release" || options.stage === "test") {
-			console.log("create " + desktopTestDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
 	}
 }
 
