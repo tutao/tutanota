@@ -592,15 +592,21 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	addAllowedExternalSender(address: string): Promise<void> {
-		return this._queue.postMessage(new Request("addAllowedExternalSender", [address]))
+		return locator.search.indexingSupported
+			? this._queue.postMessage(new Request("addAllowedExternalSender", [address]))
+			: Promise.resolve()
 	}
 
 	removeAllowedExternalSender(address: string): Promise<void> {
-		return this._queue.postMessage(new Request("removeAllowedExternalSender", [address]))
+		return locator.search.indexingSupported
+			? this._queue.postMessage(new Request("removeAllowedExternalSender", [address]))
+			: Promise.resolve()
 	}
 
 	isAllowedExternalSender(address: string): Promise<boolean> {
-		return this._queue.postMessage(new Request("isAllowedExternalSender", [address]))
+		return locator.search.indexingSupported
+			? this._queue.postMessage(new Request("isAllowedExternalSender", [address]))
+			: Promise.resolve(false)
 	}
 
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
@@ -623,7 +629,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._leaderStatus.leaderStatus
 	}
 
-	createTemplateGroup(name: string):Promise<Id> {
+	createTemplateGroup(name: string): Promise<Id> {
 		return this._postRequest(new Request('createTemplateGroup', arguments))
 	}
 }
