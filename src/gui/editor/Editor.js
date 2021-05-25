@@ -29,6 +29,7 @@ export class Editor implements ImageHandler {
 	_domElement: HTMLElement;
 	_enabled: boolean;
 	_active: boolean;
+	_createsLists: boolean;
 	_minHeight: ?number;
 	_sanitizer: SanitizerFn;
 	// _tutanotaProperties: TutanotaProperties;
@@ -59,6 +60,7 @@ export class Editor implements ImageHandler {
 				this.initialized = defer()
 			}
 		}
+		this._createsLists = true
 
 		this._styleActions = Object.freeze({
 			'b': [() => this._squire.bold(), () => this._squire.removeBold(), () => this.styles.b],
@@ -96,6 +98,11 @@ export class Editor implements ImageHandler {
 		this._minHeight = minHeight
 		return this
 	}
+	
+	setCreatesLists(createsLists: boolean) : Editor {
+		this._createsLists = createsLists
+		return this
+	}
 
 	initSquire(domElement: HTMLElement) {
 		let squire = new (SquireEditor: any)(domElement,
@@ -103,17 +110,16 @@ export class Editor implements ImageHandler {
 				sanitizeToDOMFragment: this._sanitizer,
 			})
 			.addEventListener('keyup', (e) => {
-				// Resolve logins.getUserController dependenciy and uncomment block
-				// if (!this._tutanotaProperties.sendPlaintextOnly) {
-				if (e.which === 32) {
-					let blocks = []
-					squire.forEachBlock((block) => {
-						blocks.push(block)
-					})
-					createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
-					createList(blocks, /^\*\s$/, false) // create an ordered list if a line is started with '1. '
+				if (this._createsLists) {
+					if (e.which === 32) {
+						let blocks = []
+						squire.forEachBlock((block) => {
+							blocks.push(block)
+						})
+						createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
+						createList(blocks, /^\*\s$/, false) // create an ordered list if a line is started with '1. '
+					}
 				}
-				// }
 			})
 
 		this._squire = squire
