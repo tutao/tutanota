@@ -1,7 +1,7 @@
 // @flow
 import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
-import {downcast} from "../api/common/utils/Utils"
+import {assert, downcast} from "../api/common/utils/Utils"
 import {search} from "./PlainTextSearch"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -53,30 +53,34 @@ export class FaqModel {
 		return this._lazyLoaded.getAsync()
 	}
 
-	fetchFAQ(langCode: string): Promise<Translation> {
+	async fetchFAQ(langCode: string): Promise<Translation> {
 		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
-		return fetch(faqPath)
-			.then(translations => translations.json())
-			.then((translation) => {
-				return promiseMap(Object.entries(translation.keys), ([key, unsanitizedText]) => {
-					if (typeof unsanitizedText !== "string") {
-						throw new Error("Translation is not a string: " + String(unsanitizedText))
-					}
-					// Declaring some types manually because there seem to be a bug where types are not checked
-					const sanitized: SanitizeResult = htmlSanitizer.sanitize(unsanitizedText)
-					// Delay to spread sanitize() calls between event loops. Otherwise we stop main thread for way too long and UI gets
-					// laggy.
-					return delay(1).then(() => [key, sanitized.text])
-				}).then((entries: Array<[string, string]>) => {
-					const translations = Object.fromEntries(entries)
-					return {code: langCode, keys: translations}
-				})
-			})
+
+		const keys = await fetch(faqPath)
+			.then(response => response.json())
+			.then(language => language.keys)
 			.catch(error => {
-					console.log("Failed to fetch FAQ entries", error)
-					return {keys: {}, code: langCode}
-				}
-			)
+				console.log("Failed to fetch FAQ entries", error)
+				return {}
+			})
+
+		const entries = await promiseMap(Object.entries(keys), async ([key, entry]) => {
+
+			// If entry isn't a string it means we're getting malformed responses
+			assert(typeof entry === "string", "invalid translation entry")
+			const unsanitizedText = downcast(entry)
+
+			// Declaring some types manually because there seem to be a bug where types are not checked
+			const sanitized: SanitizeResult = htmlSanitizer.sanitize(unsanitizedText, {blockExternalContent: false})
+
+			// Delay to spread sanitize() calls between event loops.
+			// Otherwise we stop main thread for way too long and UI gets laggy.
+			await delay(1)
+			return [key, sanitized.text]
+		})
+
+		const translations = Object.fromEntries(entries)
+		return {code: langCode, keys: translations}
 	}
 
 	getList(): Array<FaqEntry> {
