@@ -47,11 +47,6 @@ import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
-import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import {compareContacts} from "./ContactGuiUtils"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
-
 assertMainOrNode()
 
 export class ContactView implements CurrentView {
@@ -66,25 +61,8 @@ export class ContactView implements CurrentView {
 	oncreate: Function;
 	onremove: Function;
 	_throttledSetUrl: (string) => void;
-	_doSortByFirstName: Stream<boolean>
 
 	constructor() {
-		this._doSortByFirstName = stream(true)
-		const sortSelectorAttrs: DropDownSelectorAttrs<boolean> = {
-			label: () => "Sort by",
-			selectedValue: this._doSortByFirstName,
-			items: [
-				{
-					name: lang.get("firstName_placeholder"),
-					value: true
-				},
-				{
-					name: lang.get("lastName_placeholder"),
-					value: false
-				}
-			],
-		}
-
 
 		const contactsExpanded = stream(true)
 		this._throttledSetUrl = throttleRoute()
@@ -98,7 +76,6 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
-						m(".plr", m(DropDownSelectorN, sortSelectorAttrs)),
 						m(SidebarSection, {
 							name: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
 						}, this.createContactFoldersExpanderChildren())
@@ -419,11 +396,8 @@ export class ContactView implements CurrentView {
 				if (args.listId !== contactListId) {
 					contactListId && this._setUrl(`/contact/${contactListId}`)
 				} else {
-					this._contactList = new ContactListView(args.listId, (this: any), (a, b) => compareContacts(a, b, this._doSortByFirstName())) // cast to avoid error in WebStorm
+					this._contactList = new ContactListView(args.listId, (this: any)) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
-					this._doSortByFirstName.map(_ => {
-						this._contactList && this._contactList.list.sort()
-					})
 				}
 			}).then(m.redraw)
 		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId
