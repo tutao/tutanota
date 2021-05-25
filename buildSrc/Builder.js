@@ -7,13 +7,13 @@ import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
-import {bundleDependencyCheckPlugin, babelDesktopPlugins} from "./RollupConfig.js"
+import {babelDesktopPlugins, bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
 
-async function createHtml(env, watch) {
+async function createHtml(env) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -47,7 +47,7 @@ function _writeFile(targetFile, content) {
 	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }
 
-async function prepareAssets(watch, stage, host, version) {
+async function prepareAssets(stage, host, version) {
 	let restUrl
 	await Promise.all([
 		await fs.emptyDir("build/images"),
@@ -70,9 +70,9 @@ async function prepareAssets(watch, stage, host, version) {
 
 
 	return Promise.all([
-		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser"), watch),
-		createHtml(env.create(restUrl, version, "App"), watch),
-		createHtml(env.create(restUrl, version, "Desktop"), watch)
+		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser")),
+		createHtml(env.create(restUrl, version, "App")),
+		createHtml(env.create(restUrl, version, "Desktop"))
 	])
 }
 
@@ -97,9 +97,9 @@ function debugModels() {
 	}
 }
 
-export async function build({watch, desktop, stage, host}, log) {
+export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
-	await prepareAssets(watch, stage, host, version)
+	await prepareAssets(stage, host, version)
 	const start = Date.now()
 	const nollup = (await import('nollup')).default
 
@@ -108,7 +108,7 @@ export async function build({watch, desktop, stage, host}, log) {
 	const bundle = await nollup({
 		input: ["src/app.js", "src/api/worker/worker.js"],
 		plugins: rollupDebugPlugins(path.resolve("."))
-			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : [])
+			.concat(devServerPort ? hmr({bundleId: '', hmrHost: `localhost:${devServerPort}`, verbose: true}) : [])
 			.concat(debugModels())
 			.concat(bundleDependencyCheckPlugin())
 	})
