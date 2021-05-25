@@ -45,20 +45,10 @@ o.spec("PlainTextSearchTest", function () {
 
 	o.spec("_search helper function", function () {
 
-		// o("check if completeMatch count is correct", function () {
-		// 	const searchResult = _search("test is", _searchEntries, attributeNames, false)
-		// 	o(searchResult[0].completeMatch).equals(2)
-		// })
-
 		o("returned entry should not be modified", function () {
 			const searchResult = _search("test is", _searchEntries, attributeNames, false)
 			o(searchResult[0].entry).deepEquals(_searchEntries[0])
 		})
-
-		// o("check if fullWordMatches count is correct", function () {
-		// 	const searchResult = _search("test", _searchEntries, attributeNames, false)
-		// 	o(searchResult[0].fullWordMatches).deepEquals(3)
-		// })
 
 		o("check if matchedWords array is correct", function () {
 			const query = "their some test notAHitForSure!"
@@ -190,30 +180,6 @@ o.spec("PlainTextSearchTest", function () {
 				"to other interesting pages with <mark>Link</mark>s."
 			])
 		})
-
-		// o("full matches", function () {
-		// 	let instance = {
-		// 		id: 32,
-		// 		title: "I have received an abusive email (spam, phishing) from one of your domains. What should I do?",
-		// 		text: "<p>If you would like to inform us about abusive us…contact addresses at abuse.net.</p>↵",
-		// 		tags: "fraud, stalker, threat, abuse, abusive, phishing",
-		// 		category: "other"
-		// 	}
-		// 	let result = _search("abuse", [instance], ["tags", "title", "text"], true)
-		// 	o(result[0].fullWordMatches).equals(2)
-		// })
-		//
-		// o("full matches 2", function () {
-		// 	let instance = {
-		// 		id: 39,
-		// 		title: "Are there email limits to protect Tutanota from being abused by spammers?",
-		// 		text: `<p>Yes, Tutanota uses different variables to calculate email limits for individual accounts. This is necessary to protect our free and anonymous email service from spammers who try to abuse Tutanota. If spammers were able to abuse Tutanota, it would harm all Tutanota users - ie Tutanota domains could end up on email blacklists, which we have to prevent under all circumstances.</p>↵<p>If you receive the following message in your Tutanota account &quot;It looks like you exceeded the number of allowed emails. Please try again later.&quot;, the anti-spam protection method has stopped your account temporarily from sending new emails. Please wait a day or two to send new emails again.</p>↵<p>If you need to send more emails immediately, please upgrade to our affordable Premium version (1 Euro per month) as limits for Premium users are much higher. Simply click on &#39;Premium&#39; in your top menu bar of Tutanota. </p>↵<p>Please note that Tutanota is not meant for sending out mass mailings such as newsletters. Please read our Terms &amp; Conditions for details: <a href="https://tutanota.com/terms">https://tutanota.com/terms</a></p>`,
-		// 		tags: "",
-		// 		category: "other",
-		// 	}
-		// 	let result = _search("abuse", [instance], ["tags", "title", "text"], true)
-		// 	o(result[0].fullWordMatches).equals(2)
-		// })
 	})
 
 })
