@@ -64,6 +64,7 @@ export class ContactEditor {
 
 	_newContactIdReceiver: ?(contactId: Id) => mixed
 	windowCloseUnsubscribe: () => mixed
+	_isNewContact: boolean
 
 	/**
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
@@ -75,6 +76,7 @@ export class ContactEditor {
 	constructor(entityClient: EntityClient, contact: ?Contact, listId: ?Id, newContactIdReceiver: ?(contactId: Id) => mixed) {
 		this.entityClient = entityClient
 		this.contact = contact ? clone(contact) : createContact()
+		this._isNewContact = contact == null
 		this._newContactIdReceiver = newContactIdReceiver
 		if (contact == null && listId == null) {
 			throw new Error("must provide contact to edit or listId for the new contact")
@@ -418,7 +420,7 @@ export class ContactEditor {
 	}
 
 	_createPresharedPasswordAttrs(): TextFieldAttrs | null {
-		if (!this.contact.presharedPassword) {
+		if (!this._isNewContact && !this.contact.presharedPassword) {
 			return null
 		}
 		return {
