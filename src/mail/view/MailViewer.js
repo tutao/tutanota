@@ -153,7 +153,8 @@ export class MailViewer {
 	_attachmentButtons: Button[];
 	_contentBlockingStatus: ExternalContentBlockingStatusEnum;
 	_domMailViewer: ?HTMLElement;
-	_bodyLineHeight: number;
+	/** it is set after we measured mail body element */
+	_bodyLineHeight: ?number;
 	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -205,7 +206,6 @@ export class MailViewer {
 		this._contrastFixNeeded = false
 		// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
 		this._contentBlockingStatus = ContentBlockingStatus.NoExternalContent
-		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._suspicious = false
@@ -230,7 +230,7 @@ export class MailViewer {
 			help: "close_alt"
 		}).setCloseHandler(closeAction)
 
-		const resizeListener = () => this._updateLineHeight()
+		const resizeListener = () => this._domBodyDeferred.promise.then((dom) => this._updateLineHeight(dom))
 		windowFacade.addResizeListener(resizeListener)
 
 		const bubbleMenuWidth = 300
@@ -371,17 +371,26 @@ export class MailViewer {
 			return m("#mail-body.selectable.touch-callout.break-word-links", {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
-					this._updateLineHeight()
+					this._updateLineHeight(vnode.dom)
 					this._rescale(false)
 				},
 				onupdate: (vnode) => {
 					if (this._domBodyDeferred.promise.isPending()) {
 						this._domBodyDeferred.resolve(vnode.dom)
 					}
+					// Only measure and update line height once.
+					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
+					// that it's a different vnode so oncreate might not be called.
+					if (!this._bodyLineHeight) {
+						this._updateLineHeight(vnode.dom)
+					}
 					this._rescale(false)
 				},
 				onsubmit: (event: Event) => this._confirmSubmit(event),
-				style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
+				style: {
+					'line-height': this._bodyLineHeight ? this._bodyLineHeight.toString() : size.line_height,
+					'transform-origin': 'top left'
+				},
 			}, this._sanitizedMailBody)
 		} else if (!this._didErrorsOccur()) {
 			return m(".progress-panel.flex-v-center.items-center", {
@@ -1078,18 +1087,16 @@ export class MailViewer {
 		}
 	}
 
-	_updateLineHeight() {
-		this._domBodyDeferred.promise.then((domBody) => {
-			const width = domBody.offsetWidth
-			if (width > 900) {
-				this._bodyLineHeight = size.line_height_l
-			} else if (width > 600) {
-				this._bodyLineHeight = size.line_height_m
-			} else {
-				this._bodyLineHeight = size.line_height
-			}
-			m.redraw()
-		})
+	_updateLineHeight(dom: HTMLElement) {
+		const width = dom.offsetWidth
+		if (width > 900) {
+			this._bodyLineHeight = size.line_height_l
+		} else if (width > 600) {
+			this._bodyLineHeight = size.line_height_m
+		} else {
+			this._bodyLineHeight = size.line_height
+		}
+		dom.style.lineHeight = String(this._bodyLineHeight)
 	}
 
 	_confirmSubmit(event: Event) {
