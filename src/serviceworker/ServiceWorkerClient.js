@@ -86,6 +86,18 @@ export function init() {
 					             }
 				             )
 			             })
+			             .catch(e => {
+				             console.warn("Failed to register the service worker:", e.message)
+
+				             // We get a rejection when trying to register the service worker in firefox with security settings like
+				             // "Delete cookies and site data and site data when Firefox is closed" enabled
+				             // Ignore this case but still allow other cases to show an error dialog
+				             const isSecurityError = e instanceof DOMException && e.name === "SecurityError" || e.code === e.SECURITY_ERR
+
+				             if (!isSecurityError) {
+					             throw e
+				             }
+			             })
 		}
 	} else {
 		console.log("ServiceWorker is not supported")
