@@ -107,7 +107,7 @@ export function isTest(): boolean {
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && typeof env !== "undefined" && env.mode === Mode.Desktop
+	return node && typeof env !== "undefined" && (env.mode === Mode.Desktop || env.mode === Mode.Admin)
 }
 
 let boot = !isDesktopMainThread() && !isWorker()
