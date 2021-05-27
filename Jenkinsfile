@@ -9,6 +9,11 @@ pipeline {
 
 	parameters {
         booleanParam(name: 'RELEASE', defaultValue: false, description: '')
+        booleanParam(
+        	name: 'UPDATE_DICTIONARIES',
+        	defaultValue: false,
+        	description: 'pull the spellcheck dictionaries from github when producing .debs'
+        )
     }
 
     agent {
@@ -165,7 +170,7 @@ pipeline {
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''
 					export HSM_USER_PIN=${PW};
-					node dist -edp release '''
+					node dist -edp ${params.UPDATE_DICTIONARIES ? "--get-dicts " : ""}release '''
 				}
             }
         }
