@@ -46,6 +46,8 @@ import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
 import type {UpdatableSettingsViewer} from "../SettingsView"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
+import {EntityClient} from "../../api/common/EntityClient"
 
 assertMainOrNode()
 
@@ -56,15 +58,17 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_whitelabelConfig: ?WhitelabelConfig
 	_certificateInfo: ?CertificateInfo
 	_whitelabelDomainInfo: ?DomainInfo
-	_customJsonTheme: ?Theme
+	_customJsonTheme: ?ThemeCustomizations
 
 	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
 	_customerProperties: LazyLoaded<CustomerProperties>;
 	_lastBooking: ?Booking;
+	_entityClient: EntityClient;
 
-	constructor() {
+	constructor(entityClient: EntityClient) {
 		this.view = this.view.bind(this)
+		this._entityClient = entityClient
 
 		this._customer = new LazyLoaded(() => {
 			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -118,7 +122,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (whitelabelConfig) {
 			onPrivacyStatementUrlChanged = (privacyStatementUrl) => {
 				whitelabelConfig.privacyStatementUrl = privacyStatementUrl
-				update(whitelabelConfig)
+				this._entityClient.update(whitelabelConfig)
 			}
 		}
 
@@ -127,7 +131,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (whitelabelConfig) {
 			onImprintUrlChanged = (imprintUrl) => {
 				whitelabelConfig.imprintUrl = imprintUrl
-				update(whitelabelConfig)
+				this._entityClient.update(whitelabelConfig)
 			}
 		}
 
@@ -143,18 +147,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 	_renderThemeSettings(): Children {
 		const customTheme = this._customJsonTheme
-		const onThemeChanged = (theme) => {
-			neverNull(this._whitelabelConfig).jsonTheme = JSON.stringify(theme)
-			update(neverNull(this._whitelabelConfig))
-			theme.themeId = assertNotNull(this._whitelabelDomainInfo).domain
-			// Make sure to not apply it always with realtime color change later
-			themeController.updateCustomTheme(theme, false)
-		}
+		const whitelabelConfig = this._whitelabelConfig
+		const whitelabelDomainInfo = this._whitelabelDomainInfo
 
 		const whitelabelThemeSettingsAttrs = {
-			customTheme,
-			onThemeChanged,
+			whitelabelData: whitelabelConfig && whitelabelDomainInfo && customTheme ? {customTheme, whitelabelConfig, whitelabelDomainInfo} : null
 		}
+
 		return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)
 	}
 
@@ -176,7 +175,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					domainWrapper.value = domain
 					neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
 				}
-				update(neverNull(this._whitelabelConfig))
+				this._entityClient.update(neverNull(this._whitelabelConfig))
 			}
 			if ((this._whitelabelConfig.whitelabelRegistrationDomains.length > 0)) {
 				currentRegistrationDomain = this._whitelabelConfig.whitelabelRegistrationDomains[0].value
@@ -188,7 +187,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (this._whitelabelConfig) {
 			onWhitelabelCodeChanged = (code) => {
 				neverNull(this._whitelabelConfig).whitelabelCode = code
-				update(neverNull(this._whitelabelConfig))
+				this._entityClient.update(neverNull(this._whitelabelConfig))
 			}
 		}
 
@@ -211,7 +210,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {
 			if (languageFile) {
 				neverNull(this._whitelabelConfig).germanLanguageCode = languageFile
-				update(neverNull(this._whitelabelConfig))
+				this._entityClient.update(neverNull(this._whitelabelConfig))
 				lang.setLanguage({code: languageFile, languageTag: lang.languageTag})
 			}
 		}
@@ -232,7 +231,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			metaTags = this._whitelabelConfig.metaTags
 			onMetaTagsChanged = (metaTags) => {
 				neverNull(this._whitelabelConfig).metaTags = metaTags
-				update(neverNull(this._whitelabelConfig))
+				this._entityClient.update(neverNull(this._whitelabelConfig))
 			}
 		}
 
@@ -343,7 +342,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			const index = customerProps.notificationMailTemplates.findIndex((t) => t.language === template.language)
 			if (index !== -1) {
 				customerProps.notificationMailTemplates.splice(index, 1)
-				update(customerProps)
+				this._entityClient.update(customerProps)
 			}
 		}))
 	}

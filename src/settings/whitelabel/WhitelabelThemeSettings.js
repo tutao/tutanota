@@ -2,8 +2,8 @@
 
 import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
-import type {Theme} from "../../gui/theme"
+import {assertNotNull, downcast, neverNull} from "../../api/common/utils/Utils"
+import {themeController} from "../../gui/theme"
 import {Icons} from "../../gui/base/icons/Icons"
 import {fileController} from "../../file/FileController"
 import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaConstants"
@@ -13,35 +13,52 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import * as EditCustomColorsDialog from "../EditCustomColorsDialog"
+import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
+import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
+import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
+import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
+import {update} from "../../api/main/Entity"
+import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
+import {locator} from "../../api/main/MainLocator"
+import {EntityClient} from "../../api/common/EntityClient"
+import type {LoginController} from "../../api/main/LoginController"
+import {logins} from "../../api/main/LoginController"
+
+export type WhitelabelData = {
+	customTheme: ThemeCustomizations,
+	whitelabelConfig: WhitelabelConfig,
+	whitelabelDomainInfo: DomainInfo,
+}
 
 export type WhitelabelThemeSettingsAttrs = {
-	customTheme: ?Theme,
-	onThemeChanged: (Theme) => mixed
+	whitelabelData: null | WhitelabelData
 }
 
 export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettingsAttrs> {
-	constructor(vnode: Vnode<WhitelabelThemeSettingsAttrs>) {}
 
 	view(vnode: Vnode<WhitelabelThemeSettingsAttrs>): Children {
-		const {customTheme, onThemeChanged} = vnode.attrs
-		return [this._renderCustomColorsConfig(customTheme, onThemeChanged), this._renderCustomLogoConfig(customTheme, onThemeChanged)]
+		const {whitelabelData} = vnode.attrs
+		return [
+			this._renderCustomColorsConfig(whitelabelData),
+			this._renderCustomLogoConfig(whitelabelData)
+		]
 	}
 
-	_renderCustomLogoConfig(customTheme: ?Theme, onThemeChanged: (Theme) => mixed): Children {
-		const customLogoDefined = customTheme && customTheme.logo
+	_renderCustomLogoConfig(data: ?WhitelabelData): Children {
+		const customLogoDefined = data?.customTheme.logo != null
 
 		let deleteCustomLogoAttrs = null
-		if (customLogoDefined) {
+		if (customLogoDefined && data) {
 			deleteCustomLogoAttrs = {
 				label: "deactivate_action",
 				click: () => {
 					Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
 						if (ok) {
-							if (neverNull(customTheme).logo) {
-								delete downcast(customTheme).logo
+							delete downcast(data.customTheme).logo
+							this.saveCustomTheme(data.customTheme, data.whitelabelConfig, data.whitelabelDomainInfo)
+							if (logins.isWhitelabel()) {
+								themeController.updateCustomTheme(data.customTheme)
 							}
-							onThemeChanged(neverNull(customTheme))
 						}
 					})
 				},
@@ -51,7 +68,7 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 
 		let customLogoTextFieldValue = lang.get(customLogoDefined ? "activated_label" : "deactivated_label")
 		let chooseLogoButtonAttrs = null
-		if (customTheme) {
+		if (data?.customTheme) {
 			chooseLogoButtonAttrs = {
 				label: "edit_action",
 				click: () => {
@@ -69,10 +86,12 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 									((extension === "jpeg") ? "jpg" : extension)
 									+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
 							}
-							customTheme.logo = imageData
-							onThemeChanged(customTheme)
+							data.customTheme.logo = imageData
+							this.saveCustomTheme(data.customTheme, data.whitelabelConfig, data.whitelabelDomainInfo)
+							if (logins.isWhitelabel()) {
+								themeController.updateCustomTheme(data.customTheme)
+							}
 							customLogoTextFieldValue = lang.get("activated_label")
-							m.redraw()
 						}
 					})
 				},
@@ -93,22 +112,26 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 		return m(TextFieldN, customLogoTextfieldAttrs)
 	}
 
-	_renderCustomColorsConfig(customTheme: ?Theme, onThemeChanged: (Theme) => mixed): Children {
-		const customColorsDefined = this._areCustomColorsDefined(customTheme)
+	_renderCustomColorsConfig(data: ?WhitelabelData): Children {
+
+		const customColorsDefined = data ? this._areCustomColorsDefined(data.customTheme) : false
 
 		let deactivateColorThemeAttrs = null
-		if (customColorsDefined && customTheme) {
+		if (customColorsDefined && data) {
 			deactivateColorThemeAttrs = {
 				label: "deactivate_action",
 				click: () => {
 					Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
 						if (ok) {
-							Object.keys(customTheme).forEach(key => {
+							Object.keys(data.customTheme).forEach(key => {
 								if (key !== "logo") {
-									delete downcast(customTheme)[key]
+									delete downcast(data.customTheme)[key]
 								}
 							})
-							onThemeChanged(customTheme)
+							this.saveCustomTheme(data.customTheme, data.whitelabelConfig, data.whitelabelDomainInfo)
+							if (logins.isWhitelabel()) {
+								themeController.updateCustomTheme(data.customTheme)
+							}
 						}
 					})
 				},
@@ -117,10 +140,12 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 		}
 
 		let editCustomColorButtonAttrs = null
-		if (customTheme) {
+		if (data && data.customTheme) {
 			editCustomColorButtonAttrs = {
 				label: "edit_action",
-				click: () => EditCustomColorsDialog.show(customTheme, onThemeChanged),
+				click: () => {
+					this.showCustomColorsDialog(data.customTheme, data.whitelabelConfig, data.whitelabelDomainInfo)
+				},
 				icon: () => Icons.Edit
 			}
 		}
@@ -139,11 +164,34 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 		return m(TextFieldN, customColorsTextfieldAttrs)
 	}
 
-	_areCustomColorsDefined(theme: ? Theme): boolean {
+	async showCustomColorsDialog(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: ?DomainInfo) {
+		const currentTheme = themeController.getCurrentTheme()
+		const viewModel = new CustomColorsEditorViewModel(
+			currentTheme,
+			customTheme,
+			whitelabelConfig,
+			assertNotNull(whitelabelDomainInfo),
+			themeController,
+			locator.entityClient,
+			logins
+		)
+		EditCustomColorsDialog.show(viewModel)
+	}
+
+	_areCustomColorsDefined(theme: ?ThemeCustomizations): boolean {
 		if (theme) {
 			return Object.keys(theme).find(key => key !== "logo" && neverNull(theme)[key]) != null
 		} else {
 			return false
 		}
+	}
+
+	/**
+	 *  duplicate code to not invoke model earlier
+	 */
+	saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: DomainInfo) {
+		neverNull(whitelabelConfig).jsonTheme = JSON.stringify(downcast(customTheme))
+		update(neverNull(whitelabelConfig))
+		customTheme.themeId = assertNotNull(whitelabelDomainInfo).domain
 	}
 }

@@ -13,6 +13,7 @@ assertMainOrNodeBoot()
  * Whitelabel themes use domain name as an ID.
  */
 export type ThemeId = 'light' | 'dark' | 'blue' | string
+export type BaseThemeId = 'light' | 'dark'
 
 export type Theme = {
 	themeId: ThemeId,
