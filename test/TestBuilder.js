@@ -5,6 +5,7 @@ import {promises as fs} from "fs"
 import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
+import nodeResolve from "@rollup/plugin-node-resolve"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -24,6 +25,7 @@ export async function build(options, log) {
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
+			nodeResolve({preferBuiltins: true}),
 			...rollupDebugPlugins(".."),
 		],
 	})
