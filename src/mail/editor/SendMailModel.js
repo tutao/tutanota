@@ -54,7 +54,7 @@ import {createApprovalMail} from "../../api/entities/monitor/ApprovalMail"
 import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
 import {deduplicate, remove} from "../../api/common/utils/ArrayUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
-import type {Language, TranslationKey} from "../../misc/LanguageViewModel"
+import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
 import type {IUserController} from "../../api/main/UserController"
 import {cleanMatch} from "../../api/common/utils/StringUtils"
@@ -708,58 +708,66 @@ export class SendMailModel {
 	 * @param tooManyRequestsError
 	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
 	 */
-	send(
+	async send(
 		mailMethod: MailMethodEnum,
-		getConfirmation: (TranslationKey | lazy<string>) => Promise<boolean> = _ => Promise.resolve(true),
-		waitHandler: (TranslationKey | lazy<string>, Promise<any>) => Promise<any> = (_, p) => p,
+		getConfirmation: (TranslationText) => Promise<boolean> = _ => Promise.resolve(true),
+		waitHandler: (TranslationText, Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg"): Promise<boolean> {
 
 		this.onBeforeSend()
 
-		if (this.allRecipients().length === 1 && this.allRecipients()[0].mailAddress.toLowerCase().trim()
-			=== "approval@tutao.de") {
-			return this._sendApprovalMail(this.getBody()).then(() => true)
+		if (this.allRecipients().length === 1
+			&& this.allRecipients()[0].mailAddress.toLowerCase().trim() === "approval@tutao.de") {
+			await this._sendApprovalMail(this.getBody())
+			return true
 		}
+
 
 		if (this.toRecipients().length === 0 && this.ccRecipients().length === 0 && this.bccRecipients().length === 0) {
-			return Promise.reject(new UserError("noRecipients_msg"))
+			throw new UserError("noRecipients_msg")
 		}
 
-		const confirmOrCancel = (needsConfirmation: boolean, message: TranslationKey) =>
-			needsConfirmation
-				? getConfirmation(message).then(confirmation => {
-					if (!confirmation) {
-						throw new CancelledError("user cancelled")
-					}
-				})
-				: Promise.resolve()
+		async function confirmOrCancel(needsConfirmation, confirmationMessage, getConfirmation) {
+			if (needsConfirmation) {
+				const confirmed = await getConfirmation(confirmationMessage)
+				if (!confirmed) {
+					throw new CancelledError("user cancelled")
+				}
+			}
+		}
 
 		const numVisibleRecipients = this.toRecipients().length + this.ccRecipients().length
-		const recipientLengthConfirm =
-			confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "manyRecipients_msg")
 
-		const subjectConfirm = () => confirmOrCancel(this.getSubject().length === 0, "noSubject_msg")
+		// Many recipients is a warning
+		await confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "manyRecipients_msg", getConfirmation)
 
-		return recipientLengthConfirm
-			.then(subjectConfirm)
-			.then(() => this._waitForResolvedRecipients())
-			.then(() => this._externalPasswordConfirm(getConfirmation))
-			.then(() => {
-				const sendPromise = this.saveDraft(true, mailMethod)
-				                        .then(() => this._updateContacts(this.allRecipients()))
-				                        .then(() => this._worker.sendMailDraft(
-					                        neverNull(this._draft),
-					                        this.allRecipients(),
-					                        this._selectedNotificationLanguage,
-				                        ))
-				                        .then(() => this._updatePreviousMail())
-				                        .then(() => this._updateExternalLanguage())
-				                        .then(() => true)
-				                        .catch(LockedError, () => { throw new UserError("operationStillActive_msg")})
+		// Empty subject is a warning
+		await confirmOrCancel(this.getSubject().length === 0, "noSubject_msg", getConfirmation)
 
+		// The next check depends on contacts being available
+		await this._waitForResolvedRecipients()
 
-				return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", sendPromise)
-			})
+		// No password in external confidential mail is an error
+		if (this.isConfidentialExternal()
+			&& this.getExternalRecipients().some(r => !this.getPassword(r.mailAddress))) {
+			throw new UserError("noPreSharedPassword_msg")
+		}
+
+		// Weak password is a warning
+		await confirmOrCancel(this.isConfidentialExternal() && this.hasInsecurePasswords(),
+			"presharedPasswordNotStrongEnough_msg", getConfirmation)
+
+		const doSend = async () => {
+			await this.saveDraft(true, mailMethod)
+			await this._updateContacts(this.allRecipients())
+			await this._worker.sendMailDraft(neverNull(this._draft), this.allRecipients(), this._selectedNotificationLanguage)
+			await this._updatePreviousMail()
+			await this._updateExternalLanguage()
+			return true
+		}
+
+		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
+			.catch(LockedError, () => { throw new UserError("operationStillActive_msg")})
 			.catch(CancelledError, () => false)
 			// catch all of the badness
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
@@ -783,20 +791,6 @@ export class SendMailModel {
 			})
 			.catch(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")})
 			.catch(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")})
-	}
-
-	_externalPasswordConfirm(getConfirmation: (TranslationKey | lazy<string>) => Promise<boolean>): Promise<void> {
-		if (this.isConfidentialExternal()
-			&& this.getExternalRecipients().some(r => !this.getPassword(r.mailAddress))) {
-			throw new UserError("noPreSharedPassword_msg")
-		}
-		return this.isConfidentialExternal() && this.hasInsecurePasswords()
-			? getConfirmation("presharedPasswordNotStrongEnough_msg").then(confirmation => {
-				if (!confirmation) {
-					throw new CancelledError("password not confirmed")
-				}
-			})
-			: Promise.resolve()
 	}
 
 	/**
@@ -849,6 +843,7 @@ export class SendMailModel {
 
 		return blockingWaitHandler("save_msg", savePromise)
 	}
+
 
 	_sendApprovalMail(body: string): Promise<void> {
 		const listId = "---------c--";

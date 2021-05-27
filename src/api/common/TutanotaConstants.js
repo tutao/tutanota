@@ -12,11 +12,11 @@ import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAtte
 import {isAdminClient, isApp, isDesktop} from "./Env"
 
 
-export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
-                                                                          .reduce((r, k) => {
-	                                                                          const v = objectMap[downcast(k)]
-	                                                                          return Object.assign(r, {[v]: k})
-                                                                          }, {})
+export const reverse: <K, V>({ [K]: V }) => { [V]: K } = (objectMap) => Object.keys(objectMap)
+																			  .reduce((r, k) => {
+																				  const v = objectMap[downcast(k)]
+																				  return Object.assign(r, {[v]: k})
+																			  }, {})
 // Also used in other projects
 export type $Reversed<T> = $Call<typeof reverse, T>
 
@@ -368,7 +368,8 @@ export const FeatureType = Object.freeze({
 	/** This is required for non admin users because they are not allowed to access the bookings. */
 	BusinessFeatureEnabled: "11",
 	PremiumLegacy: "12",
-	KnowledgeBase: "13"
+	KnowledgeBase: "13",
+	Newsletter: "14"
 })
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const ValueToFeatureType: {} = reverse(FeatureType)
@@ -752,7 +753,7 @@ const icalToMailMethodMapping = Object.freeze({
 	DECLINECOUNTER: MailMethod.ICAL_COUNTER
 })
 
-const mailMethodToIcalMapping: {[$ElementType<typeof icalToMailMethodMapping, $Keys<typeof icalToMailMethodMapping>>]: $Keys<typeof icalToMailMethodMapping>} = reverse(icalToMailMethodMapping)
+const mailMethodToIcalMapping: { [$ElementType<typeof icalToMailMethodMapping, $Keys<typeof icalToMailMethodMapping>>]: $Keys<typeof icalToMailMethodMapping> } = reverse(icalToMailMethodMapping)
 
 export function mailMethodToCalendarMethod(mailMethod: MailMethodEnum): CalendarMethodEnum {
 	const calendarMethod = mailMethodToIcalMapping[mailMethod]
@@ -778,7 +779,7 @@ export function calendarMethodToMailMethod(calendarMethod: CalendarMethodEnum): 
 
 export type MailMethodEnum = $Values<typeof MailMethod>
 
-export function getAsEnumValue<K, V>(enumValues: {[K]: V}, value: string): ?V {
+export function getAsEnumValue<K, V>(enumValues: { [K]: V }, value: string): ?V {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		const enumValue = enumValues[key]
 		if (enumValue === value) {
@@ -788,7 +789,7 @@ export function getAsEnumValue<K, V>(enumValues: {[K]: V}, value: string): ?V {
 	return null
 }
 
-export function assertEnumValue<K, V>(enumValues: {[K]: V}, value: string): V {
+export function assertEnumValue<K, V>(enumValues: { [K]: V }, value: string): V {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		const enumValue = enumValues[key]
 		if (enumValue === value) {
@@ -798,7 +799,7 @@ export function assertEnumValue<K, V>(enumValues: {[K]: V}, value: string): V {
 	throw new Error(`Invalid enum value ${value} for ${JSON.stringify(enumValues)}`)
 }
 
-export function assertEnumKey<K: string, V>(obj: {[K]: V}, key: string): K {
+export function assertEnumKey<K: string, V>(obj: { [K]: V }, key: string): K {
 	if (key in obj) {
 		return downcast(key)
 	} else {

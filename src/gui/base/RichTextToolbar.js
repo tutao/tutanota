@@ -25,7 +25,7 @@ export class RichTextToolbar {
 	view: Function;
 	selectedSize: Stream<number>;
 
-	constructor(editor: Editor, options: Options) {
+	constructor(editor: Editor, options?: Options) {
 
 		this.selectedSize = stream(size.font_size_base)
 
@@ -104,7 +104,10 @@ export class RichTextToolbar {
 			isSelected: () => editor.styles.listing === 'ol',
 			colors: ButtonColors.Elevated,
 		})
-		const attachHandler = options.imageButtonClickHandler
+
+		const {imageButtonClickHandler, customButtonAttrs, alignmentEnabled, fontSizeEnabled} = options || {}
+
+		const attachHandler = imageButtonClickHandler
 		if (attachHandler) {
 			styleToggleAttrs.unshift({
 				label: "emptyString_msg",
@@ -167,13 +170,13 @@ export class RichTextToolbar {
 		}))
 
 		const allButtonAttrs: Array<ButtonAttrs> = styleToggleAttrs
-		if (options.customButtonAttrs) {
-			allButtonAttrs.push(...options.customButtonAttrs)
+		if (customButtonAttrs) {
+			allButtonAttrs.push(...customButtonAttrs)
 		}
-		if (options.alignmentEnabled == null || options.alignmentEnabled) {
+		if (alignmentEnabled == null || alignmentEnabled) {
 			allButtonAttrs.push(alignDropdownAttrs)
 		}
-		if (options.fontSizeEnabled == null || options.fontSizeEnabled) {
+		if (fontSizeEnabled == null || fontSizeEnabled) {
 			allButtonAttrs.push(sizeButtonAttrs)
 		}
 		allButtonAttrs.push(removeFormattingButtonAttrs)

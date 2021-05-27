@@ -84,6 +84,19 @@ export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 }
 
 /**
+ * Find all items in an array that pass the given predicate
+ */
+export function findAll<T>(theArray: Array<T>, finder: finder<T>): Array<T> {
+	const found = []
+	for (let element of theArray) {
+		if (finder(element)) {
+			found.push(element)
+		}
+	}
+	return found
+}
+
+/**
  * @param theArray
  * @param finder
  * @return {boolean} if the element was found
@@ -345,6 +358,7 @@ export function lastIndex<T>(array: $ReadOnlyArray<T>): number {
 		return array.length - 1
 	}
 }
+
 export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 	return new Set(...iterables.map(iterable => Array.from(iterable)))
 }

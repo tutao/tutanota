@@ -21,7 +21,7 @@ import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMail
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {defer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import {defer, isCustomizationEnabledForCustomer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -103,12 +103,13 @@ export class MailView implements CurrentView {
 		this._throttledRouteSet = throttleRoute()
 		this.folderColumn = new ViewColumn({
 			view: () => m(FolderColumnView, {
-				button: (!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
-					? {
-						label: 'newMail_action',
-						click: () => this._showNewMailDialog().catch(PermissionError, noOp),
-					}
-					: null,
+				button:
+					(!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
+						? {
+							label: 'newMail_action',
+							click: () => this._showNewMailDialog().catch(PermissionError, noOp),
+						}
+						: null,
 				content: Array.from(this._mailboxSections.entries())
 				              .map(([mailGroupId, mailboxSection]) => {
 						              return m(SidebarSection, {
@@ -184,7 +185,49 @@ export class MailView implements CurrentView {
 			)
 		}
 
-		this._setupShortcuts()
+		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
+		locator.mailModel.mailboxDetails.map(mailboxDetails => {
+			for (let newMailboxDetail of mailboxDetails) {
+				const section = this._mailboxSections.get(newMailboxDetail.mailGroup._id)
+				if (section) {
+					section.customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
+				} else {
+					this._mailboxSections.set(newMailboxDetail.mailGroup._id, this.createMailboxSection(newMailboxDetail))
+				}
+			}
+
+			for (let mailGroupId of this._mailboxSections.keys()) {
+				if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id === mailGroupId) == null) {
+					this._mailboxSections.delete(mailGroupId)
+				}
+			}
+
+			if (this.selectedFolder) {
+				// find the folder in the new folder list that was previously selected
+				let currentlySelectedFolder = locator.mailModel.getMailFolder(this.selectedFolder.mails)
+				if (currentlySelectedFolder) {
+					this.selectedFolder = currentlySelectedFolder
+				} else {
+					let url = this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]]
+					if (isSelectedPrefix(MAIL_PREFIX)) {
+						this._setUrl(url)
+					} else {
+						navButtonRoutes.mailUrl = url
+					}
+				}
+			}
+		})
+
+		const shortcuts = this._getShortcuts()
+
+		this.oncreate = async () => {
+			this._countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
+			keyManager.registerShortcuts(await shortcuts)
+		}
+		this.onremove = async () => {
+			this._countersStream.end(true)
+			keyManager.unregisterShortcuts(await shortcuts)
+		}
 
 		locator.eventController.addEntityListener((updates) => {
 			return Promise.each(updates, update => {
@@ -209,8 +252,9 @@ export class MailView implements CurrentView {
 			: null
 	}
 
-	_setupShortcuts() {
-		const shortcuts: Array<Shortcut> = [
+	async _getShortcuts(): Promise<Array<Shortcut>> {
+		const customer = await logins.getUserController().loadCustomer()
+		return [
 			{
 				key: Keys.PAGE_UP,
 				exec: () => {
@@ -331,50 +375,21 @@ export class MailView implements CurrentView {
 				exec: () => false,
 				enabled: canDoDragAndDropExport,
 				help: "dragAndDrop_action"
+			},
+			{
+				key: Keys.P,
+				exec: () => {
+					new Promise(async resolve => {
+						const {openPressReleaseEditor} = await import("../press/PressReleaseEditor")
+						openPressReleaseEditor(await this._getMailboxDetails())
+						resolve()
+					})
+					return true
+				},
+				help: "emptyString_msg",
+				enabled: () => isCustomizationEnabledForCustomer(customer, FeatureType.Newsletter)
 			}
 		]
-
-		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
-		locator.mailModel.mailboxDetails.map(mailboxDetails => {
-			for (let newMailboxDetail of mailboxDetails) {
-				const section = this._mailboxSections.get(newMailboxDetail.mailGroup._id)
-				if (section) {
-					section.customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
-				} else {
-					this._mailboxSections.set(newMailboxDetail.mailGroup._id, this.createMailboxSection(newMailboxDetail))
-				}
-			}
-
-			for (let mailGroupId of this._mailboxSections.keys()) {
-				if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id === mailGroupId) == null) {
-					this._mailboxSections.delete(mailGroupId)
-				}
-			}
-
-			if (this.selectedFolder) {
-				// find the folder in the new folder list that was previously selected
-				let currentlySelectedFolder = locator.mailModel.getMailFolder(this.selectedFolder.mails)
-				if (currentlySelectedFolder) {
-					this.selectedFolder = currentlySelectedFolder
-				} else {
-					let url = this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]]
-					if (isSelectedPrefix(MAIL_PREFIX)) {
-						this._setUrl(url)
-					} else {
-						navButtonRoutes.mailUrl = url
-					}
-				}
-			}
-		})
-
-		this.oncreate = () => {
-			keyManager.registerShortcuts(shortcuts)
-			this._countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
-		}
-		this.onremove = () => {
-			keyManager.unregisterShortcuts(shortcuts)
-			this._countersStream.end(true)
-		}
 	}
 
 	_moveMails(): boolean {

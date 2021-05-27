@@ -101,7 +101,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		moduleId.includes(path.normalize("src/gui/editor")) ||
 		moduleId.includes(path.normalize("src/mail/signature")) ||
 		moduleId.includes(path.normalize("src/templates")) ||
-		moduleId.includes(path.normalize("src/knowledgebase"))
+		moduleId.includes(path.normalize("src/knowledgebase")) ||
+		moduleId.includes(path.normalize("src/mail/press"))
 	) {
 		// squire is most often used with mail editor and they are both not too big so we merge them
 		return "mail-editor"

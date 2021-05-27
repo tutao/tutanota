@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {KeyPress, Shortcut} from "../../misc/KeyManager"
@@ -417,6 +417,21 @@ export class Dialog implements ModalComponent {
 		  })
 		  .show()
 		return dialog
+	}
+
+	static choice<T>(message: TranslationText, choices: Array<{text: TranslationText, value: T}>): Promise<T> {
+		return new Promise(resolve => {
+			const choose = choice => {
+				dialog.close()
+				setTimeout(() => resolve(choice), DefaultAnimationTime)
+			}
+
+			const buttonAttrs = choices.map(choice => {
+				return {label: choice.text, click: () => choose(choice.value), type: ButtonType.Secondary}
+			})
+
+			const dialog = Dialog.confirmMultiple(message, buttonAttrs)
+		})
 	}
 
 	// used in admin client
