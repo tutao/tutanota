@@ -40,6 +40,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
+	.description(`main build tool for distributable tutanota artifacts
+
+the following environment variables are useful when developing:
+DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing the desktop client. More Info in Wiki -> Desktop Updater Test & Development
+`)
 	.arguments('[stage] [host]')
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
 	.option('-w --win', 'Build desktop client for windows')
@@ -84,6 +89,11 @@ options
 		}
 	})
 	.parse(process.argv)
+
+if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
+	options.outputHelp(a => "ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n" + a)
+	process.exit(1)
+}
 
 const MINIFY = options.disableMinify !== true
 if (!MINIFY) {
