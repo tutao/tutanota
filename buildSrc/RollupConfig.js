@@ -11,7 +11,6 @@ export const dependencyMap = {
 	"qrcode": path.normalize("./libs/qrcode.js"),
 	"jszip": path.normalize("./libs/jszip.js"),
 	"luxon": path.normalize("./libs/luxon.js"),
-	"oxmsg": path.normalize("./node_modules/oxmsg/dist/oxmsg.js")
 }
 
 /**
