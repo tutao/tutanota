@@ -16,7 +16,8 @@ const clientDependencies = [
 	"../node_modules/mithril/stream/stream.js",
 	"../node_modules/squire-rte/build/squire-raw.js",
 	"../node_modules/dompurify/dist/purify.js",
-	"../node_modules/autolinker/dist/Autolinker.js",
+	"../node_modules/linkifyjs/lib/linkify.js",
+	"../node_modules/linkifyjs/lib/linkify-html.js",
 	"../node_modules/luxon/build/cjs-browser/luxon.js",
 ]
 

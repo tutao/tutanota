@@ -25,6 +25,9 @@ import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {User} from "../entities/sys/User"
+import linkifyHtml from "linkify/html"
+import {urlify} from "./Urlifier"
+
 
 assertWorkerOrNode()
 
@@ -361,6 +364,10 @@ export class WorkerImpl {
 			createTemplateGroup: (message: Request) => {
 				return locator.groupManagement.createTemplateGroup.apply(locator.groupManagement, message.args)
 			},
+			urlify: async (message: Request) => {
+				const html: string = message.args[0]
+				return Promise.resolve(urlify(html))
+			}
 		})
 
 		// only register oncaught error handler if we are in the *real* worker scope

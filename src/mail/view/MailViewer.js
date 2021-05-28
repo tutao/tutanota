@@ -1673,7 +1673,6 @@ export class MailViewer {
 
 	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<{inlineImageCids: Array<string>, links: Array<Link>, externalContent: Array<string>}> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
-
 		const {html, inlineImageCids, links, externalContent} = htmlSanitizer.sanitizeFragment(this._getMailBody(), {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail)
@@ -1691,7 +1690,7 @@ export class MailViewer {
 			     .some(s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"))
 			|| html.querySelectorAll('font[color]').length > 0
 
-		this._sanitizedMailBody = m.trust(stringifyFragment(html))
+		this._sanitizedMailBody = m.trust(await worker.urlify(stringifyFragment(html)))
 
 		return {inlineImageCids, links, externalContent}
 	}

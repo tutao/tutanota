@@ -1,6 +1,6 @@
 //@flow
 import o from "ospec"
-import {urlify} from "../../../src/misc/Urlifier"
+import {urlify} from "../../../src/api/worker/Urlifier"
 
 o.spec("UrlifierTest", function () {
 
@@ -13,16 +13,9 @@ o.spec("UrlifierTest", function () {
 		o(urlify("https://www.tutanota.de")).equals('<a href=\"https://www.tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.tutanota.de</a>')
 		// email adresses
 		o(urlify("bed-free@tutanota.de")).equals('<a href=\"mailto:bed-free@tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">bed-free@tutanota.de</a>')
-		o(urlify("www.tutanota.de")).equals('<a href=\"http://www.tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">www.tutanota.de</a>')
 	})
 
 	o(" invalidHtmlLinks", function () {
-		// no html links
-		o(urlify("hello.it is nice to meet you.")).equals("hello.it is nice to meet you.")
-
-		o(urlify("tutanota.de")).equals("tutanota.de")
-		o(urlify("34.34.de")).equals("34.34.de")
-
 		// twitter
 		o(urlify("@de_tutanota")).equals("@de_tutanota")
 		o(urlify("#de_tutanota")).equals("#de_tutanota")

@@ -7,10 +7,11 @@ export const dependencyMap = {
 	"squire-rte": path.normalize("./libs/squire-raw.js"),
 	"bluebird": path.normalize("./libs/bluebird.js"),
 	"dompurify": path.normalize("./libs/purify.js"),
-	"autolinker": path.normalize("./libs/Autolinker.js"),
 	"qrcode": path.normalize("./libs/qrcode.js"),
 	"jszip": path.normalize("./libs/jszip.js"),
 	"luxon": path.normalize("./libs/luxon.js"),
+	"linkify": path.normalize("./libs/linkify.js"),
+	"linkify/html": path.normalize("./libs/linkify-html.js"),
 }
 
 /**
@@ -23,7 +24,6 @@ export const allowedImports = {
 	"common": ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
 	"main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
-	"urlifier": ["polyfill-helpers", "common-min", "common", "boot"],
 	"sanitizer": ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	"date": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
@@ -89,8 +89,6 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "date"
 	} else if (moduleId.includes(path.normalize("src/misc/HtmlSanitizer")) || moduleId.includes(path.normalize("libs/purify"))) {
 		return "sanitizer"
-	} else if (moduleId.includes(path.normalize("src/misc/Urlifier")) || moduleId.includes(path.normalize("libs/Autolinker"))) {
-		return "urlifier"
 	} else if (moduleId.includes(path.normalize("src/gui/base")) || moduleId.includes(path.normalize("src/gui/nav"))) {
 		// these gui elements are used from everywhere
 		return "gui-base"
@@ -121,7 +119,9 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "main"
 	} else if (moduleId.includes(path.normalize("src/mail/view")) || moduleId.includes(path.normalize("src/mail/export"))) {
 		return "mail-view"
-	} else if (moduleId.includes(path.normalize("src/native/worker"))) {
+	} else if (moduleId.includes(path.normalize("src/native/worker"))
+		|| moduleId.includes(path.normalize("libs/linkify"))
+		|| moduleId.includes(path.normalize("libs/linkify-html"))) {
 		return "worker"
 	} else if (moduleId.includes(path.normalize("src/native/common"))
 		|| moduleId.includes(path.normalize("src/desktop/config/ConfigKeys.js"))) {
