@@ -24,7 +24,7 @@ export class DesktopCryptoFacade {
 		this._addEntropy()
 	}
 
-	aesEncryptObject(encryptionKey: Aes256Key, object: {}): string {
+	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | $ReadOnlyArray<*> | {}): string {
 		const serializedObject = JSON.stringify(object)
 		const encryptedBytes = this.cryptoFns.aes256Encrypt(
 			encryptionKey,
@@ -33,14 +33,12 @@ export class DesktopCryptoFacade {
 			true,
 			true
 		)
-		// const encryptedBytes = stringToUtf8Uint8Array(serializedObject)
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 
 	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): {} {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
 		const decryptedBytes = this.cryptoFns.aes256Decrypt(encryptionKey, encryptedBytes, true, true)
-		// const decryptedBytes = encryptedBytes
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
 		return JSON.parse(stringObject)
 	}
