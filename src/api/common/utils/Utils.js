@@ -516,3 +516,7 @@ export function mapNullable<T, U>(val: ?T, action: T => U): U | null {
 		? action(val)
 		: null
 }
+
+export function isSecurityError(e: any): boolean {
+	return e instanceof DOMException && (e.name === "SecurityError" || e.code === e.SECURITY_ERR)
+}

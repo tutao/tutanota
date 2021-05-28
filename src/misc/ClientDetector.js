@@ -164,8 +164,12 @@ class ClientDetector {
 	}
 
 	localStorage(): boolean {
-		return typeof localStorage !== "undefined"
-
+		try {
+			return typeof localStorage !== "undefined"
+		} catch (e) {
+			// DOMException is thrown if all cookies are disabled
+			return false
+		}
 	}
 
 	/**

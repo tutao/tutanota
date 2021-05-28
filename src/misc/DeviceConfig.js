@@ -146,6 +146,7 @@ export class DeviceConfig {
 			localStorage.setItem(LocalStorageKey, JSON.stringify(this))
 		} catch (e) {
 			// may occur in Safari < 11 in incognito mode because it throws a QuotaExceededError
+			// DOMException will occurr if all cookies are disabled
 			console.log("could not store config", e)
 		}
 	}
