@@ -11,9 +11,13 @@ import {DesktopConfigEncKeyValues, DesktopConfigKeyValues} from "./ConfigKeys"
 import type {App} from "electron"
 import type {DeviceKeyProvider} from "../DeviceKeyProviderImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {CryptoError} from "../../api/common/error/CryptoError"
+import {log} from "../DesktopLog"
 
 
 type AllConfigKeysEnum = DesktopConfigKeyEnum | DesktopConfigEncKeyEnum
+
+type ConfigValue = string | number | {} | boolean | $ReadOnlyArray<ConfigValue>
 
 /**
  * manages build and user config
@@ -26,7 +30,7 @@ export class DesktopConfig {
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
-	_onValueSetListeners: {[AllConfigKeysEnum]: Array<(val: any)=>void>}
+	_onValueSetListeners: {[AllConfigKeysEnum]: Array<(val: ?ConfigValue) => void>}
 
 	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
 		this._deviceKeyProvider = deviceKeyProvider
@@ -93,12 +97,25 @@ export class DesktopConfig {
 		}
 
 		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
-		return this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
+		try {
+			return this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
+		} catch (e) {
+			if (e instanceof CryptoError) {
+				log.error(`Could not decrypt encrypted var ${key}`, e)
+				await this.setVar(key, null)
+				return null
+			}
+		}
 	}
 
-	async _setEncryptedVar(key: DesktopConfigEncKeyEnum, value: any) {
+	async _setEncryptedVar(key: DesktopConfigEncKeyEnum, value: ?ConfigValue) {
 		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
-		const encryptedValue = this._cryptoFacade.aesEncryptObject(deviceKey, value)
+		let encryptedValue
+		if (value != null) {
+			encryptedValue = this._cryptoFacade.aesEncryptObject(deviceKey, value)
+		} else {
+			encryptedValue = null
+		}
 		const desktopConfig = await this._desktopConfig.promise
 		desktopConfig[key] = encryptedValue
 	}
@@ -109,24 +126,26 @@ export class DesktopConfig {
 	 * @param value the new value
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
-	async setVar(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, value: any): Promise<void> {
+	async setVar(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, value: ?ConfigValue): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
-
-		const oldValue = await this.getVar(key)
 
 		if (DesktopConfigKeyValues.has(downcast(key))) {
 			desktopConfig[key] = value
 		} else if (DesktopConfigEncKeyValues.has(downcast(key))) {
-			await this._setEncryptedVar(key, value)
+			if (value == null) {
+				desktopConfig[key] = value
+			} else {
+				await this._setEncryptedVar(key, value)
+			}
 		}
 
-		await this._saveAndNotify(key, value, oldValue)
+		await this._saveAndNotify(key, value)
 	}
 
-	async _saveAndNotify(key: AllConfigKeysEnum, value: any, oldValue: any): Promise<void> {
+	async _saveAndNotify(key: AllConfigKeysEnum, value: ?ConfigValue): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
 		await writeJSON(this._desktopConfigPath, desktopConfig)
-		this._notifyChangeListeners(key, value, oldValue)
+		this._notifyChangeListeners(key, value)
 	}
 
 	/**
@@ -160,28 +179,12 @@ export class DesktopConfig {
 		return this
 	}
 
-	// calls every callback for the given key, and every "any" callback
-	_notifyChangeListeners(key: AllConfigKeysEnum, value: any, oldValue: any) {
-		if (this._onValueSetListeners["any"]) {
-			this._onValueSetListeners["any"].forEach(cb => cb(this._desktopConfig))
-		}
-		if (key === "any") {
-			// check if any props with listeners changed
-			for (const p of getChangedProps(value, oldValue)) {
-				const configKey: AllConfigKeysEnum = downcast(p)
-				if (configKey === 'any') continue;
-				if (this._onValueSetListeners[configKey]) {
-					for (const cb of this._onValueSetListeners[configKey]) {
-						cb(value[configKey])
-					}
-				}
-			}
-		} else if (this._onValueSetListeners[key]) {
+	_notifyChangeListeners(key: AllConfigKeysEnum, value: ?ConfigValue) {
+		if (this._onValueSetListeners[key]) {
 			for (const cb of this._onValueSetListeners[key]) {
 				cb(value)
 			}
 		}
-
 	}
 }
 
