@@ -16,11 +16,11 @@
 		"postinstall": "node ./buildSrc/compileKeytar"
 	},
 	"dependencies": {
-		"autolinker": "3.11.1",
 		"bluebird": "3.7.2",
 		"dompurify": "2.2.7",
 		"electron-builder": "22.11.1",
 		"keytar": "7.2.0",
+		"linkifyjs": "^3.0.0-beta.3",
 		"luxon": "1.26.0",
 		"mithril": "2.0.4",
 		"oxmsg": "github:tutao/oxmsg#c5895617bca13befcf54cf3e42a6c3ea075dcb8b",

@@ -148,7 +148,7 @@ type WorkerRequestType = 'setup'
 	| 'redeemGiftCard'
 	| 'getGiftCardInfo'
 	| 'createTemplateGroup'
-
+	| 'urlify'
 
 type MainRequestType = 'execNative'
 	| 'entityEvent'

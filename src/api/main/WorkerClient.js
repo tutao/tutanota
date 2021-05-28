@@ -632,6 +632,10 @@ export class WorkerClient implements EntityRestInterface {
 	createTemplateGroup(name: string): Promise<Id> {
 		return this._postRequest(new Request('createTemplateGroup', arguments))
 	}
+
+	urlify(html: string): Promise<string> {
+		return this._postRequest(new Request('urlify', arguments))
+	}
 }
 
 export const worker: WorkerClient = new WorkerClient()

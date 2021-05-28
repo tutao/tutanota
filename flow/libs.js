@@ -232,9 +232,18 @@ declare module '@hot' { // hmr, access to previously loaded module
 	declare export default any;
 	declare export var module: any;
 }
-declare module 'autolinker' {
-	declare export default {link(string, Object): any}
+// https://soapbox.github.io/linkifyjs/docs/options.html
+type LinkifyOptions = {|
+	attributes?: Object | (href: string, type: string) => Object,
+	target?: string,
+	validate?: {
+		url: (value: string, type: string) => boolean
+	}
+|}
+declare module 'linkify/html' {
+	declare export default function linkifyHtml(html: string, options: LinkifyOptions): string
 }
+
 declare module 'qrcode' {
 	declare export default any;
 }
