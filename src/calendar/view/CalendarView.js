@@ -295,13 +295,15 @@ export class CalendarView implements CurrentView {
 		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).tap(m.redraw)
 
 		this.selectedDate.map((d) => {
-			const previousMonthDate = new Date(d)
-			previousMonthDate.setMonth(d.getMonth() - 1)
+			const thisMonthStart = getMonth(d, getTimeZone()).start
 
-			const nextMonthDate = new Date(d)
-			nextMonthDate.setMonth(d.getMonth() + 1)
+			const previousMonthDate = new Date(thisMonthStart)
+			previousMonthDate.setMonth(thisMonthStart.getMonth() - 1)
 
-			this._loadMonthIfNeeded(d)
+			const nextMonthDate = new Date(thisMonthStart)
+			nextMonthDate.setMonth(thisMonthStart.getMonth() + 1)
+
+			this._loadMonthIfNeeded(thisMonthStart)
 			    .then(() => progressMonitor.workDone(1))
 			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
 			    .then(() => progressMonitor.workDone(1))
