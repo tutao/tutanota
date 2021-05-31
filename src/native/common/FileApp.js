@@ -3,6 +3,7 @@ import {nativeApp} from "./NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {uint8ArrayToBase64} from "../../api/common/utils/Encoding"
 import type {MailBundle} from "../../mail/export/Bundler";
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 
 export const fileApp = {
@@ -48,7 +49,7 @@ function openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>
 	}
 
 	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect, false]))
-	                .then((response) => response.map(uriToFileRef))
+	                .then((response: Array<string>) => promiseMap(response, uriToFileRef))
 }
 
 function openFolderChooser(): Promise<Array<string>> {

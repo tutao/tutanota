@@ -39,8 +39,10 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
-		.then(files => {
-			model.attachFiles((files: any))
+		.then(async files => {
+			if (files) {
+				model.attachFiles(files)
+			}
 			return files
 		}).catch(UserError, showUserError)
 }
