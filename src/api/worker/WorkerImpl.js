@@ -220,8 +220,8 @@ export class WorkerImpl {
 			setCatchAllGroup: (message: Request) => {
 				return locator.customer.setCatchAllGroup.apply(locator.customer, message.args)
 			},
-			uploadCertificate: (message: Request) => {
-				return locator.customer.uploadCertificate.apply(locator.customer, message.args)
+			orderWhitelabelCertificate: (message: Request) => {
+				return locator.customer.orderWhitelabelCertificate.apply(locator.customer, message.args)
 			},
 			deleteCertificate: (message: Request) => {
 				return locator.customer.deleteCertificate.apply(locator.customer, message.args)

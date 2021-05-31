@@ -5,15 +5,11 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
-import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {isDomainName} from "../misc/FormatValidator"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
-import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
 import {CertificateType, getCertificateType} from "../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
@@ -23,11 +19,9 @@ import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
-function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?DataFile, dialog: Dialog) {
+function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 	showProgressDialog("pleaseWait_msg",
-		worker.uploadCertificate(domain,
-			certChainFile && utf8Uint8ArrayToString(certChainFile.data),
-			privKeyFile && utf8Uint8ArrayToString(privKeyFile.data))
+		worker.orderWhitelabelCertificate(domain)
 		      .then(() => {
 			      dialog.close()
 		      })
@@ -114,27 +108,12 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 	}
 
 	const selectedType = stream(certificateInfo ? getCertificateType(certificateInfo) : CertificateType.LETS_ENCRYPT)
-	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
-		label: "certificateType_label",
-		items: [
-			{name: lang.get("certificateTypeAutomatic_label"), value: CertificateType.LETS_ENCRYPT},
-			{name: lang.get("certificateTypeManual_label"), value: CertificateType.MANUAL}
-		],
-		selectedValue: selectedType,
-		dropdownWidth: 250
-	}
 
 	let form = {
 		view: () => {
 			return [
 				m(TextFieldN, domainFieldAttrs),
-				m(DropDownSelectorN, certOptionDropDownAttrs),
-			].concat(selectedType() === CertificateType.MANUAL
-				? [
-					m(TextFieldN, certificateChainFieldAttrs),
-					m(TextFieldN, selectedPrivateKeyFieldAttrs),
-				]
-				: null)
+			]
 		}
 	}
 	let dialog = Dialog.showActionDialog({
@@ -146,20 +125,8 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 				Dialog.error("notASubdomain_msg")
 			} else if (customerInfo.domainInfos.find(di => !di.whitelabelConfig && di.domain === domainAllLowercase)) {
 				Dialog.error("customDomainErrorDomainNotAvailable_msg")
-			} else if (selectedType() === CertificateType.LETS_ENCRYPT) {
-				registerDomain(domainAllLowercase, null, null, dialog)
 			} else {
-				if (!certChainFile) {
-					Dialog.error("certificateChainInfo_msg")
-				} else if (!privKeyFile) {
-					Dialog.error("privateKeyInfo_msg")
-				} else {
-					try {
-						registerDomain(domainAllLowercase, certChainFile, privKeyFile, dialog)
-					} catch (e) {
-						Dialog.error("certificateError_msg")
-					}
-				}
+				orderWhitelabelCertificate(domainAllLowercase, dialog)
 			}
 		}
 	})

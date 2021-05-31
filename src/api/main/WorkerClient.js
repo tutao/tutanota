@@ -405,8 +405,8 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('setCatchAllGroup', arguments))
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
-		return this._postRequest(new Request('uploadCertificate', arguments))
+	orderWhitelabelCertificate(domainName: string): Promise<void> {
+		return this._postRequest(new Request('orderWhitelabelCertificate', arguments))
 	}
 
 	deleteCertificate(domainName: string): Promise<void> {
