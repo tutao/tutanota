@@ -1,10 +1,5 @@
-Per-domain domain verification codes
-Add confirm dialog when deleting custom email domain
-Fix links disappearing from calendar invites
-Fix creating contacts from mail editor
-Fix: First update after accepting calendar invite might be lost
-Dont hide calendar event popup when clicking on it
-Fix: Calendar event sometimes has vertical overflow
-Fix: Confirming event invitations in an email takes too long
-Fix: Activating email aliases of deactivated user is possible
-Fix Programming error when logging in certain cases
+External image loading allow list
+Make sender field more prominent in the mail edito
+New dropdown overlay for contact suggestions in the mail editor
+Improve mail viewer performance
+Allow sorting contacts by surname
