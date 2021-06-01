@@ -168,9 +168,8 @@ pipeline {
                     unstash 'win_installer_test'
 				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
-					sh '''
-					export HSM_USER_PIN=${PW};
-					node dist -edp ${params.UPDATE_DICTIONARIES ? "--get-dicts " : ""}release '''
+					sh '''export HSM_USER_PIN=${PW};
+					node dist -edp ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
 				}
             }
         }
