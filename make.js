@@ -3,7 +3,7 @@ import fs from "fs-extra"
 import {spawn} from "child_process"
 import flow from "flow-bin"
 import {fetchDictionaries} from "./buildSrc/DictionaryFetcher.js"
-import {BuildServerClient} from "./buildSrc/BuildServerClient.js"
+import {BuildServerClient} from "@tutao/tutanota-build-server"
 import path from "path"
 
 let opts

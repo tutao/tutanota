@@ -30,10 +30,11 @@ You also need to provide a builder with an appropriate `build()` function:
 		}
 		// use the provided log method to appenend to build server log file and print to STDOUT
 		log("Starting build")
-		doBuild()
+		return generateBundles()
 	}
 
 ## Components
+
 ### Build Server
 The build server (`BuildServer.js`) provides all functionality to build our code. This includes running a local devServer,
 watching for changes in source code and re-triggering builds. It can be used programatically from javascript code and
@@ -46,12 +47,16 @@ Page Applications (SPAs).
 If you define `watchFolders` with the build server, any changes files within the watched folders will trigger a rebuild
 of the affected bundles. Any changes will be propagated to the devServer using Hot Module Replacement (HMR).
 ### Build Server Factory
-The build server factory provides a simplified programmatic interface for starting a build server instance in a new 
+
+The build server factory provides a simplified programmatic interface for starting a build server instance in a new
 operating system process. It provides some IPC handling and should be the preferred way of starting a build server.
+
 ### Build Server Client
+
 Build server client uses the build server factory to bootstrap a build server when required, takes care of connection
 handling and forwards build commands to the build server. Using this class in your `Makefile.js` or build script is the
 recommended way of interacting with the build server.
+
 ### Builders
 The build server makes little assumption about what is built and how. The logic to execute the actual build process
 must be provided by the client in form of a _Builder_. Every Builder must have a `build()` function that takes three

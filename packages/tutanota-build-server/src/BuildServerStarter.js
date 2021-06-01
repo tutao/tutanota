@@ -35,13 +35,14 @@ async function startBuildServer(opts) {
 	})
 	process.on("SIGTERM", async () => {
 		buildServer.log("SIGTERM received, stopping")
-		await buildServer.stop().then(
-			process.exit(1)
-		)
-	})
-
-	await buildServer.start().catch((e) => {
-		console.log("Failed to run server", e)
+		await buildServer.stop()
 		process.exit(1)
 	})
+
+	try {
+		await buildServer.start()
+	} catch (e) {
+		console.log("Failed to run build server: ", e)
+		process.exit(1)
+	}
 }

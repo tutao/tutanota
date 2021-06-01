@@ -173,5 +173,25 @@ pipeline {
 				}
             }
         }
+
+        stage('Publish modules') {
+			when {
+				expression { params.RELEASE }
+			}
+			agent {
+				label 'linux'
+			}
+			environment {
+				PATH="${env.NODE_PATH}:${env.PATH}"
+			}
+
+			steps {
+				withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
+					sh "echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} >> .npmrc"
+				}
+				sh "npm --workspace=@tutao/tutanota-build-server publish"
+				sh "rm .npmrc"
+			}
+        }
     }
 }
