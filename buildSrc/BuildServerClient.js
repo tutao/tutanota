@@ -15,6 +15,9 @@ import {
 const directory = getBuildServerDirectory()
 const socketPath = path.join(directory, SOCKET)
 const waitTimeinMs = 600
+const STATE_SERVER_START_PENDING = "SERVER_START_PENDING"
+const STATE_CONNECTED = "CONNECTED"
+const STATE_DISCONNECTED = "DISCONNECTED"
 
 /**
  * Returns path to build server directory. Our convention is to use a directory in the os-specific tempdir and create a sub directory name
@@ -35,8 +38,7 @@ function getBuildServerDirectory() {
  */
 export class BuildServerClient {
 	constructor() {
-		this.isServerStartPending = false
-		this.isConnectedToServer = false
+		this.state = STATE_DISCONNECTED
 		this.buildServerHandle = null
 	}
 
@@ -57,11 +59,12 @@ export class BuildServerClient {
 			await this._restartServer({builder, watchFolders, devServerPort, webRoot, spaRedirect})
 		}
 		let connectionAttempts = 0
-		let isBuildSuccessful = false
-		while (connectionAttempts < 2 && !this.isConnectedToServer) {
+		let lastError = null
+		while (connectionAttempts < 2 && this.state !== STATE_CONNECTED) {
+			console.log("Binky", this.state)
 			await new Promise(r => setTimeout(r, waitTimeinMs));
 			try {
-				isBuildSuccessful = await this._connectAndBuild({
+				await this._connectAndBuild({
 						builder,
 						watchFolders,
 						devServerPort,
@@ -70,12 +73,14 @@ export class BuildServerClient {
 						buildOpts
 					}
 				)
+				lastError = null
 			} catch (e) {
+				lastError = e
 				connectionAttempts++
 			}
 		}
-		if (!isBuildSuccessful) {
-			throw new Error("Build failed")
+		if (lastError) {
+			throw lastError
 		}
 	}
 
@@ -84,9 +89,7 @@ export class BuildServerClient {
 	 * @private
 	 */
 	_onConnectionEstablished() {
-		this.serverStartPending = false
-		this.isConnectedToServer = true
-
+		this.state = STATE_CONNECTED
 		/* If the buildserver process was started by the current client process, we should have a handle to it.
 		*  Initially we connect the client's and server's StdIO so that we can receive and print any server error messages
 		*  during server bootstrap.Once a socket connection has been established between server and client, the server has an
@@ -123,6 +126,7 @@ export class BuildServerClient {
 					socket.write(data)
 				},
 				onData: (socket, data) => {
+					console.log("Received data from server")
 					const serverMessages = this._parseServerMessages(data)
 					serverMessages.forEach((serverMessage) => {
 						const {status, message} = serverMessage
@@ -140,7 +144,7 @@ export class BuildServerClient {
 				},
 				onError: async () => {
 					// If no build server is running, onError will be called on first connection attempt, start one if required
-					if (!this.serverStartPending) {
+					if (this.state !== STATE_SERVER_START_PENDING) {
 						console.log("No build server running, starting a fresh instance ...")
 						await this._start({
 								builder,
@@ -150,7 +154,7 @@ export class BuildServerClient {
 								spaRedirect,
 							}
 						)
-						this.serverStartPending = true
+						this.state = STATE_SERVER_START_PENDING
 						reject()
 					} else {
 						reject()
@@ -219,7 +223,7 @@ export class BuildServerClient {
 								spaRedirect
 							}
 						)
-						this.serverStartPending = true
+						this.state = STATE_SERVER_START_PENDING
 						resolve()
 					}
 				}
