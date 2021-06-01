@@ -84,16 +84,18 @@ export class ContactEditor {
 			this.listId = listId ? listId : neverNull(contact)._id[0]
 		}
 
-		this.mailAddresses = this.contact.mailAddresses.map((address) => [address, address._id])
+		const id = (entity) => entity._id || this._newId()
+
+		this.mailAddresses = this.contact.mailAddresses.map((address) => [address, id(address)])
 		this.mailAddresses.push(this._newMailAddress())
 
-		this.phoneNumbers = this.contact.phoneNumbers.map((phoneNumber) => [phoneNumber, phoneNumber._id])
+		this.phoneNumbers = this.contact.phoneNumbers.map((phoneNumber) => [phoneNumber, id(phoneNumber)])
 		this.phoneNumbers.push(this._newPhoneNumber())
 
-		this.addresses = this.contact.addresses.map((address) => [address, address._id])
+		this.addresses = this.contact.addresses.map((address) => [address, id(address)])
 		this.addresses.push(this._newAddress())
 
-		this.socialIds = this.contact.socialIds.map((socialId) => [socialId, socialId._id])
+		this.socialIds = this.contact.socialIds.map((socialId) => [socialId, id(socialId)])
 		this.socialIds.push(this._newSocialId())
 
 		this.firstName = stream(this.contact.firstName)
