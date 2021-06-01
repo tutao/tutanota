@@ -2,8 +2,9 @@ import options from "commander"
 import fs from "fs-extra"
 import {spawn} from "child_process"
 import flow from "flow-bin"
-import {buildWithServer} from "./buildSrc/BuildServerClient.js"
 import {fetchDictionaries} from "./buildSrc/DictionaryFetcher.js"
+import {BuildServerClient} from "./buildSrc/BuildServerClient.js"
+import path from "path"
 
 let opts
 options
@@ -45,12 +46,12 @@ function runBuild() {
 		preserveLogs: true
 	})
 	                 .then(async () => {
-			const dictPath = "build/dictionaries"
-			if (fs.existsSync(dictPath)) return
-			const {devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
-			return fetchDictionaries(devDependencies.electron, [dictPath])
-		})
-		.then(async () => {
+		                 const dictPath = "build/dictionaries"
+		                 if (fs.existsSync(dictPath)) return
+		                 const {devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
+		                 return fetchDictionaries(devDependencies.electron, [dictPath])
+	                 })
+	                 .then(async () => {
 		                 console.log("Build finished")
 		                 if (opts.desktop) {
 			                 // we don't want to quit here because we want to keep piping output to our stdout.

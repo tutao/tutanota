@@ -30,7 +30,7 @@ export class BuildServer {
 	 * @param devServerPort if set, a dev server will be listening on this port
 	 * @param builderPath absolute path to the builder which will be used by the server
 	 * @param preserveLogs boolean, logs will not be deleted on server shutdown if set to true
-	 * @param directory directory in which the build server will create its log file and socket
+	 * @param directory absolute path to directory in which the build server will create its log file and socket
 	 * @param watchFolders directories to watch for file changes that re-trigger the last build
 	 * @param webRoot absolute path to directory to be used as webRoot by devServer
 	 * @param spaRedirect boolean, if true the devServer will redirect any requests to '/?r=<requestedURL>'
@@ -58,7 +58,7 @@ export class BuildServer {
 		await this._initLog()
 
 		this.builder = await import(this.builderPath)
-		this.server = createServer(this._connectionListener.bind(this))
+		this.socketServer = createServer(this._connectionListener.bind(this))
 			.listen(this.socketPath)
 			.on("connection", (socket) => {this.log("Client connected to build server")})
 		this.log("Build server listening on ", this.socketPath)
@@ -69,12 +69,12 @@ export class BuildServer {
 	 * @returns {Promise<void>}
 	 */
 	async stop() {
-		await this._stopHttpServer()
-		if (this.server) {
-			await this.server.close()
-		}
 		if (this.watcher) {
 			this.watcher.close()
+		}
+		await this._stopDevServer()
+		if (this.socketServer) {
+			await this.socketServer.close()
 		}
 		this.log("Removing build server socket")
 		await this._removeSocket()
@@ -87,9 +87,9 @@ export class BuildServer {
 
 
 	async _connectionListener(socket) {
-		socket.on("data", async (data) => this._onData(data, socket, (...args) => this._logTee(socket, args)))
-		      .on("error", async (data) => this._onError(data, socket, (...args) => this._logTee(socket, args)))
-		      .on("close", async (data) => this._onClose(data, socket, (...args) => this._logTee(socket, args)))
+		socket.on("data", (data) => this._onData(data, socket, (...args) => this._logTee(socket, args)))
+		      .on("error", (data) => this._onError(data, socket, (...args) => this._logTee(socket, args)))
+		      .on("close", (data) => this._onClose(data, socket, (...args) => this._logTee(socket, args)))
 	}
 
 	/**
@@ -155,7 +155,7 @@ export class BuildServer {
 
 	async _runInitialBuild(socket, log) {
 		this.log("initial build")
-		this._stopHttpServer()
+		this._stopDevServer()
 		if (this.devServerPort) {
 			this._startDevServer()
 		}
@@ -252,7 +252,7 @@ export class BuildServer {
 		log("Client close")
 	}
 
-	async _stopHttpServer() {
+	async _stopDevServer() {
 		this.webSockets = []
 		if (this.httpServer) {
 			await this.httpServer.close()

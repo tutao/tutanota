@@ -17,7 +17,7 @@ export async function createBuildServer(options) {
 	const spaRedirect = options.spaRedirect || true
 
 	if (!directory) {
-		throw 'Build directory is required'
+		throw new Error('Build directory is required')
 	}
 
 	const args = [
@@ -65,7 +65,7 @@ export async function createBuildServer(options) {
 	})
 	buildServerProcess.stderr.on("data", data => {
 			if (data && data.length > 0) {
-				console.log("Server: " + data.toString())
+				console.error("Server: " + data.toString())
 			}
 		}
 	)
