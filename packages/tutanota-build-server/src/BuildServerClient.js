@@ -2,18 +2,10 @@ import {createConnection} from "net"
 import os from "os"
 import path from "path"
 import {createBuildServer} from "./BuildServerFactory.js"
-import {
-	STATUS_OK,
-	STATUS_ERROR,
-	STATUS_INFO,
-	SOCKET,
-	MESSAGE_SEPERATOR,
-	COMMAND_SHUTDOWN,
-	COMMAND_BUILD
-} from "./BuildServer.js"
+import {BuildServerStatus, BuildServerCommand, BuildServerConfiguration} from "./BuildServer.js"
 
 const directory = getBuildServerDirectory()
-const socketPath = path.join(directory, SOCKET)
+const socketPath = path.join(directory, BuildServerConfiguration.SOCKET)
 const waitTimeinMs = 600
 const STATE_SERVER_START_PENDING = "SERVER_START_PENDING"
 const STATE_CONNECTED = "CONNECTED"
@@ -113,7 +105,7 @@ export class BuildServerClient {
 					this._onConnectionEstablished()
 					console.log("Connected to the build server")
 					const data = JSON.stringify({
-						command: COMMAND_BUILD,
+						command: BuildServerCommand.BUILD,
 						options: buildOpts
 					})
 					socket.write(data)
@@ -122,12 +114,12 @@ export class BuildServerClient {
 					const serverMessages = this._parseServerMessages(data)
 					serverMessages.forEach((serverMessage) => {
 						const {status, message} = serverMessage
-						if (status === STATUS_OK) {
+						if (status === BuildServerStatus.OK) {
 							console.log("Server:", message)
 							resolve(true)
-						} else if (status === STATUS_INFO) {
+						} else if (status === BuildServerStatus.INFO) {
 							console.log("Server:", message)
-						} else if (status === STATUS_ERROR) {
+						} else if (status === BuildServerStatus.ERROR) {
 							reject(new Error("Server failed with error: " + message))
 						} else {
 							console.log("Unknown status code in server message: " + status)
@@ -169,7 +161,7 @@ export class BuildServerClient {
 		that no message by the server will be split across multiple calls of onData().
 		 */
 		const dataAsString = data.toString()
-		const messagesAsJSON = dataAsString.split(MESSAGE_SEPERATOR)
+		const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPERATOR)
 		const messagesAsObjects = []
 		messagesAsJSON.forEach((message) => {
 			try {
@@ -200,7 +192,7 @@ export class BuildServerClient {
 			this._connect({
 					onConnect: (socket) => {
 						console.log("Shutting down build server")
-						const message = JSON.stringify({command: COMMAND_SHUTDOWN})
+						const message = JSON.stringify({command: BuildServerCommand.SHUTDOWN})
 						socket.write(message)
 						resolve()
 					},

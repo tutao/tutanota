@@ -1,0 +1,30 @@
+{
+ "name": "@tutao/tutanota-build-server",
+ "version": "3.84.5",
+ "license": "GPL-3.0",
+ "main": "index.js",
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/tutao/tutanota.git",
+  "directory": "packages/tutanota-build-server"
+ },
+ "scripts": {
+  "test": "ospec test/**/*.js"
+ },
+ "type": "module",
+ "files": [
+  "index.js",
+  "README.md",
+  "LICENSE.txt",
+  "src/"
+ ],
+ "dependencies": {
+  "chokidar": "3.5.1",
+  "express": "4.17.1",
+  "express-ws": "4.0.0",
+  "fs-extra": "8.1.0"
+ },
+ "devDependencies": {
+  "ospec": "^4.1.1"
+ }
+}

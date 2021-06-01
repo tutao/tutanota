@@ -4,6 +4,7 @@ import options from "commander"
 
 import {spawnSync} from "child_process"
 import fs from "fs"
+import path from "path"
 
 options
 	.usage('<minor|patch>', "major.minor.patch, default is patch")
@@ -30,7 +31,11 @@ async function run() {
 	}
 	const newVersionString = newVersion.join(".")
 
-	spawnSync("npm", ["version", "--no-git-tag-version", which])
+	await bumpWorkspaces({version: newVersionString})
+	spawnSync("npm", ["version", "--no-git-tag-version", newVersionString])
+
+	// Need to run npm i to update package-lock.json
+	spawnSync("npm", ["i"], { stdio: "inherit"})
 
 	const infoPlistName = "app-ios/tutanota/Info.plist"
 	const infoPlistContents = fs.readFileSync(infoPlistName, "utf8")
@@ -56,4 +61,64 @@ function pad(num, size) {
 
 function versionToBuildNumber(version) {
 	return `${version[0]}${pad(version[1], 2)}${pad(version[2], 2)}0`
+}
+
+function getWorkspaceDirs() {
+	const packagesDir = path.resolve("./packages")
+	const relativePaths = fs.readdirSync(packagesDir)
+	return relativePaths.map(relativePath => path.join(packagesDir, relativePath))
+}
+
+async function getWorkspaces() {
+	const workspaces = []
+	const workspaceDirs = getWorkspaceDirs();
+	for (let workspaceDir of workspaceDirs) {
+		const packageJson = await readPackageJsonFromDir({directory: workspaceDir})
+		workspaces.push({
+			name: packageJson.name,
+			directory: workspaceDir,
+		})
+	}
+	return workspaces
+}
+
+async function bumpWorkspaces({version}) {
+	const workspaces = await getWorkspaces()
+	for (let workspace of workspaces) {
+		const dependency = workspace.name
+		await bumpWorkspaceVersion({version, workspace})
+		await updateDependencyForWorkspaces({version, dependency, workspaces})
+	}
+}
+
+async function bumpWorkspaceVersion({version, workspace}) {
+	spawnSync("npm", ["version", "--no-git-tag-version", `--workspace=${workspace.name}`, version])
+}
+
+async function readPackageJsonFromDir({directory}) {
+	const packageJsonPath = path.join(directory, "package.json")
+	const packageJsonContents = await fs.promises.readFile(packageJsonPath, {encoding: "utf8"})
+	return JSON.parse(packageJsonContents)
+}
+
+async function updateDependencyForWorkspaces({version, dependency, workspaces}) {
+	await updateDependency({version, dependency, directory: "."})
+	for (let workspace of workspaces) {
+		const directory = workspace.directory
+		await updateDependency({directory, dependency, version})
+	}
+}
+
+async function updateDependency({version, dependency, directory}) {
+	const packageJson = await readPackageJsonFromDir({directory})
+
+	if (packageJson.dependencies && dependency in packageJson.dependencies) {
+		packageJson.dependencies[dependency] = version
+	}
+
+	if (packageJson.devDependencies && dependency in packageJson.devDependencies) {
+		packageJson.devDependencies[dependency] = version
+	}
+
+	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, 4), {encoding: "utf8"})
 }
