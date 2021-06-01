@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2021-05-07T06:48:10Z",
+	"updated_at": "2021-05-28T07:26:16Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -222,7 +222,6 @@ export default {
 		"company_label": "Công ti",
 		"confidentialStatus_msg": "Thư này sẽ được gửi ở dạng mật mã hoá nối đầu.",
 		"confidential_action": "Mật",
-		"configureCustomNotificationEmail_label": "Cấu hình email thông báo của riêng bạn",
 		"confirmCountry_msg": "Để tính toán thuế giá trị gia tăng, chúng tôi cần bạn xác nhận quốc gia của mình: {1}.",
 		"confirmCustomDomainDeletion_msg": "Bạn có chắc chắn muốn xoá miền email riêng \"{domain}\" không?",
 		"confirmDeactivateCustomColors_msg": "Bạn có thật sự muốn tắt màu riêng của mình?",
