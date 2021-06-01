@@ -1,12 +1,12 @@
 //@flow
-import type {OutOfOfficeNotification} from "../entities/tutanota/OutOfOfficeNotification"
-import {OutOfOfficeNotificationTypeRef} from "../entities/tutanota/OutOfOfficeNotification"
-import {formatDate} from "../../misc/Formatter"
-import {lang} from "../../misc/LanguageViewModel"
-import {locator} from "./MainLocator"
-import {MailboxGroupRootTypeRef} from "../entities/tutanota/MailboxGroupRoot"
-import {logins} from "./LoginController"
-import {getDayShifted} from "../common/utils/DateUtils"
+import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {formatDate} from "./Formatter"
+import {lang} from "./LanguageViewModel"
+import {locator} from "../api/main/MainLocator"
+import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import {logins} from "../api/main/LoginController"
+import {getDayShifted} from "../api/common/utils/DateUtils"
 
 /**
  * Returns true if notifications are currently sent.

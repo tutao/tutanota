@@ -138,10 +138,10 @@ export function resolveRecipientInfo(worker: WorkerClient, recipientInfo: Recipi
 		return Promise.resolve(recipientInfo)
 	} else {
 		return getRecipientKeyData(worker, recipientInfo.mailAddress)
-		                .then((keyData) => {
-			                recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
-			                return recipientInfo
-		                })
+			.then((keyData) => {
+				recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
+				return recipientInfo
+			})
 	}
 }
 

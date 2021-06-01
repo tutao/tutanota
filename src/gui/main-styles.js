@@ -303,12 +303,14 @@ styles.registerStyle('main', () => {
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
 		'.bg-white': {'background-color': 'white'},
+		'.fg-icon-selected': {color: theme.content_button_icon_selected},
 		'.content-black': {'color': 'black'},
 
 		'.content-fg': {color: theme.content_fg},
 		'.content-accent-fg': {color: theme.content_accent},
 		'.svg-content-fg path': {fill: theme.content_fg},
 		'.content-bg': {'background-color': theme.content_bg,},
+		'.snackbar-bg': {'background-color': theme.snackbar_bg,},
 
 		'.content-hover:hover': {
 			color: theme.content_accent,
@@ -818,6 +820,10 @@ styles.registerStyle('main', () => {
 		'.dropdown-content > *': {width: '100%'},
 		'.dropdown-shadow': {
 			'box-shadow': boxShadow
+		},
+
+		'.snackbar-shadow': {
+			'box-shadow': `0 2px 6px rgba(0, 0, 0, 0.4)`
 		},
 
 		//dropdown filter bar

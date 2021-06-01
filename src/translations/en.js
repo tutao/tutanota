@@ -1374,6 +1374,14 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"spamReports_label": "Report spam",
+		"alwaysReport_action": "Always report",
+		"neverReport_action": "Never report",
+		"unencryptedTransmission_msg": "The email(s) moved to the spam folder will be transmitted to the server in unencrypted form to improve spam protection.",
+		"allowOperation_msg": "Do you want to allow this?",
+		"undoMailReport_msg": "The email(s) will be reported in unencrypted form.",
+		"rememberDecision_msg": "Remember decision",
+		"changeMailSettings_msg": "You may later change your decision in the email settings."
 	}
 }

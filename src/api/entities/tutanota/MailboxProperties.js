@@ -4,86 +4,76 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 
-export const CalendarEventUpdateTypeRef: TypeRef<CalendarEventUpdate> = new TypeRef("tutanota", "CalendarEventUpdate")
+export const MailboxPropertiesTypeRef: TypeRef<MailboxProperties> = new TypeRef("tutanota", "MailboxProperties")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarEventUpdate",
-	"since": 42,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 1104,
-	"rootId": "CHR1dGFub3RhAARQ",
+	"name": "MailboxProperties",
+	"since": 46,
+	"type": "ELEMENT_TYPE",
+	"id": 1194,
+	"rootId": "CHR1dGFub3RhAASq",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"id": 1108,
+			"id": 1198,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"id": 1106,
+			"id": 1196,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerEncSessionKey": {
-			"id": 1110,
+			"id": 1200,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"id": 1109,
+			"id": 1199,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"id": 1107,
+			"id": 1197,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"sender": {
-			"id": 1111,
-			"type": "String",
+		"reportMovedMails": {
+			"id": 1201,
+			"type": "Number",
 			"cardinality": "One",
-			"final": true,
+			"final": false,
 			"encrypted": true
 		}
 	},
-	"associations": {
-		"file": {
-			"id": 1112,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "File"
-		}
-	},
+	"associations": {},
 	"app": "tutanota",
 	"version": "46"
 }
 
-export function createCalendarEventUpdate(values?: $Shape<$Exact<CalendarEventUpdate>>): CalendarEventUpdate {
-	return Object.assign(create(_TypeModel, CalendarEventUpdateTypeRef), values)
+export function createMailboxProperties(values?: $Shape<$Exact<MailboxProperties>>): MailboxProperties {
+	return Object.assign(create(_TypeModel, MailboxPropertiesTypeRef), values)
 }
 
-export type CalendarEventUpdate = {
-	_type: TypeRef<CalendarEventUpdate>;
+export type MailboxProperties = {
+	_type: TypeRef<MailboxProperties>;
 	_errors: Object;
 
 	_format: NumberString;
-	_id: IdTuple;
+	_id: Id;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	sender: string;
-
-	file: IdTuple;
+	reportMovedMails: NumberString;
 }

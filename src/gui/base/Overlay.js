@@ -62,7 +62,7 @@ export const overlay = {
 		"aria-hidden": overlays.length === 0
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
-		return m(".abs.elevated-bg.dropdown-shadow", {
+		return m(".abs.elevated-bg", {
 			key,
 			style: {
 				width: attrs.position.width,

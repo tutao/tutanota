@@ -17,10 +17,11 @@ import type {Group} from "../../api/entities/sys/Group"
 import {GroupTypeRef} from "../../api/entities/sys/Group"
 import type {MailFolder} from "../../api/entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../api/entities/tutanota/MailFolder"
+import type {MailReportTypeEnum} from "../../api/common/TutanotaConstants"
 import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType} from "../../api/common/TutanotaConstants"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import type {Mail} from "../../api/entities/tutanota/Mail"
-import {MailTypeRef} from "../../api/entities/tutanota/Mail"
+import {_TypeModel as MailTypeModel, MailTypeRef} from "../../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {lang} from "../../misc/LanguageViewModel"
@@ -31,6 +32,9 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import {groupBy, splitInChunks} from "../../api/common/utils/ArrayUtils"
 import {EntityClient} from "../../api/common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
+import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
+import {base64ToUint8Array} from "../../api/common/utils/Encoding"
+import {NotFoundError} from "../../api/common/error/RestError"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -172,6 +176,21 @@ export class MailModel {
 			}
 		}
 		return null
+	}
+
+	reportMails(reportType: MailReportTypeEnum, mails: $ReadOnlyArray<Mail>): Promise<any> {
+		return Promise.each(mails, (mail) => {
+			return this._worker.resolveSessionKey(MailTypeModel, mail)
+			           .then((mailSessionKeyB64) => {
+				           const postData = createReportMailPostData({
+					           mailId: mail._id,
+					           mailSessionKey: base64ToUint8Array(neverNull(mailSessionKeyB64)),
+					           reportType,
+				           })
+				           return this._worker.serviceRequest(TutanotaService.ReportMailService, HttpMethod.POST, postData)
+			           })
+			           .catch(NotFoundError, e => console.log("mail to be reported not found", e))
+		})
 	}
 
 

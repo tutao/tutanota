@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createFileSystem(values?: $Shape<$Exact<FileSystem>>): FileSystem {
