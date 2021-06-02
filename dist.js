@@ -440,7 +440,7 @@ function packageDeb(version, electronVersion) {
 	const desktopDebName = `tutanota-desktop_${version}_amd64.deb`
 	const desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 	// the dicts are bound to an electron release, so we use that version number.
-	const dictDebName = `tutanota-desktop-dicts-${electronVersion}_amd64.deb`
+	const dictDebName = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
 	// overwrite output, source=dir target=deb, set owner
 	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
 
@@ -488,7 +488,7 @@ function publish(version, electronVersion) {
 	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
 	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 	// the dicts are bound to an electron release, so we use that version number.
-	const dictDebName = `tutanota-desktop-dicts-${electronVersion}_amd64.deb`
+	const dictDebName = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
 
 	if (options.publish) {
 		console.log("Create git tag and copy .deb")
