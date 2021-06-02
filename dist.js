@@ -20,7 +20,7 @@ import path, {dirname} from "path"
 import {fetchDictionaries} from './buildSrc/DictionaryFetcher.js'
 import os from "os"
 import {rollup} from "rollup"
-import {getChunkName, babelPlugins, bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
+import {babelPlugins, bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
@@ -120,7 +120,7 @@ async function doBuild() {
 		await signDesktopClients()
 		await getDictionaries(devDependencies.electron)
 		await packageDeb(version, devDependencies.electron)
-		await publish(version)
+		await publish(version, devDependencies.electron)
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
 	} catch (e) {
@@ -336,7 +336,7 @@ async function buildDesktopClient(version) {
 }
 
 async function getDictionaries(electronVersion) {
-	if(!options.getDicts) return
+	if (!options.getDicts) return
 	const baseTarget = path.join((options.outDir || 'build/dist'), '..')
 	const targets = options.deb
 		? [baseTarget]
@@ -483,10 +483,12 @@ function packageDeb(version, electronVersion) {
 	}
 }
 
-function publish(version) {
+function publish(version, electronVersion) {
 	let webAppDebName = `tutanota_${version}_amd64.deb`
 	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
 	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
+	// the dicts are bound to an electron release, so we use that version number.
+	const dictDebName = `tutanota-desktop-dicts-${electronVersion}_amd64.deb`
 
 	if (options.publish) {
 		console.log("Create git tag and copy .deb")
@@ -538,6 +540,18 @@ function publish(version) {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
+
+		// copy spell checker dictionaries.
+		if (options.getDicts) {
+			exitOnFail(spawnSync("/bin/cp", `-f build/${dictDebName} /opt/repository/tutanota/`.split(" "), {
+				cwd: __dirname,
+				stdio: [process.stdin, process.stdout, process.stderr]
+			}))
+			exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${dictDebName}`.split(" "), {
+				stdio: [process.stdin, process.stdout, process.stderr]
+			}))
+		}
+
 	}
 }
 
