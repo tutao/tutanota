@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 import {Icons} from "../base/icons/Icons"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
@@ -37,10 +37,10 @@ export class DatePicker implements MComponent<void> {
 	_showingDropdown: boolean;
 	_disabled: boolean;
 	_label: TranslationKey | lazy<string>
-	_nullSelectionHelpLabel: TranslationKey
+	_nullSelectionHelpLabel: TranslationText
 	_domInput: ?HTMLElement
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationText = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
 		this.date = dateStream ? dateStream : stream(null)
 		const initDate = this.date()
 		this._dateString = stream(initDate ? formatDate(initDate) : "")
@@ -79,7 +79,7 @@ export class DatePicker implements MComponent<void> {
 			} else if (this.date() != null) {
 				return formatDateWithWeekdayAndYear(neverNull(this.date()))
 			} else {
-				return lang.get(this._nullSelectionHelpLabel)
+				return lang.getMaybeLazy(this._nullSelectionHelpLabel)
 			}
 		}
 
