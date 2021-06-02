@@ -160,12 +160,12 @@ class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/blob.js
 	 */
 	blob(): boolean {
-		return typeof Blob !== undefined
+		return typeof Blob !== "undefined"
 	}
 
 	localStorage(): boolean {
 		try {
-			return typeof localStorage !== "undefined"
+			return localStorage != null
 		} catch (e) {
 			// DOMException is thrown if all cookies are disabled
 			return false
