@@ -9,11 +9,13 @@ import type {
 	CloseEventBusOptionEnum,
 	ConversationTypeEnum,
 	EntropySrcEnum,
+	ExternalImageRuleEnum,
 	MailMethodEnum,
 	ShareCapabilityEnum,
 	SpamRuleFieldTypeEnum,
 	SpamRuleTypeEnum
 } from "../common/TutanotaConstants"
+import {ExternalImageRule} from "../common/TutanotaConstants"
 import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity, objToError} from "../common/utils/Utils"
@@ -591,22 +593,16 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("checkMailForPhishing", [mail, links]))
 	}
 
-	addAllowedExternalSender(address: string): Promise<void> {
+	addExternalImageRule(address: string, rule: ExternalImageRuleEnum): Promise<void> {
 		return locator.search.indexingSupported
-			? this._queue.postMessage(new Request("addAllowedExternalSender", [address]))
+			? this._queue.postMessage(new Request("addExternalImageRule", [address, rule]))
 			: Promise.resolve()
 	}
 
-	removeAllowedExternalSender(address: string): Promise<void> {
+	getExternalImageRule(address: string): Promise<ExternalImageRuleEnum> {
 		return locator.search.indexingSupported
-			? this._queue.postMessage(new Request("removeAllowedExternalSender", [address]))
-			: Promise.resolve()
-	}
-
-	isAllowedExternalSender(address: string): Promise<boolean> {
-		return locator.search.indexingSupported
-			? this._queue.postMessage(new Request("isAllowedExternalSender", [address]))
-			: Promise.resolve(false)
+			? this._queue.postMessage(new Request("getExternalImageRule", [address]))
+			: Promise.resolve(ExternalImageRule.None)
 	}
 
 	getEventByUid(uid: string): Promise<?CalendarEvent> {

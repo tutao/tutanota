@@ -347,18 +347,14 @@ export class WorkerImpl {
 			getGiftCardInfo: (message: Request) => {
 				return locator.giftCards.getGiftCardInfo(message.args[0], base64ToKey(message.args[1]))
 			},
-
 			redeemGiftCard: (message: Request) => {
 				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
 			},
-			addAllowedExternalSender: (message: Request) => {
-				return locator.configFacade.addAllowedExternalSender(...message.args)
+			addExternalImageRule: (message: Request) => {
+				return locator.configFacade.addExternalImageRule(...message.args)
 			},
-			removeAllowedExternalSender: (message: Request) => {
-				return locator.configFacade.removeAllowedExternalSender(...message.args)
-			},
-			isAllowedExternalSender: (message: Request) => {
-				return locator.configFacade.isAllowedExternalSender(...message.args)
+			getExternalImageRule: (message: Request) => {
+				return locator.configFacade.getExternalImageRule(...message.args)
 			},
 			createTemplateGroup: (message: Request) => {
 				return locator.groupManagement.createTemplateGroup.apply(locator.groupManagement, message.args)
