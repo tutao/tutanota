@@ -86,6 +86,7 @@ export default {
 		"agenda_label": "Agenda",
 		"allDay_label": "All Day",
 		"allowExternalContentSender_action": "Always trust sender",
+		"blockExternalContentSender_action": "Always block sender",
 		"allowOperation_msg": "Do you want to allow this?",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
 		"all_contacts_label": "All contacts",

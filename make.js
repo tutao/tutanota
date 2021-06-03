@@ -2,7 +2,6 @@ import options from "commander"
 import fs from "fs-extra"
 import {spawn} from "child_process"
 import flow from "flow-bin"
-import {fetchDictionaries} from "./buildSrc/DictionaryFetcher.js"
 import {BuildServerClient} from "@tutao/tutanota-build-server"
 import path from "path"
 
@@ -52,10 +51,10 @@ function runBuild() {
 		preserveLogs: true,
 	})
 	                 .then(async () => {
-		                 const dictPath = "build/dictionaries"
-		                 if (fs.existsSync(dictPath)) return
-		                 const {devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
-		                 return fetchDictionaries(devDependencies.electron, [dictPath])
+			// const dictPath = "build/dictionaries"
+			// if(fs.existsSync(dictPath)) return
+			// const {devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
+			// return fetchDictionaries(devDependencies.electron, [dictPath])
 	                 })
 	                 .then(async () => {
 		                 console.log("Build finished")
