@@ -7,19 +7,27 @@ import {theme} from "../theme"
 import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonParams} from "./Banner"
-import {BannerHelpLink} from "./Banner"
+import {ButtonN, ButtonType} from "./ButtonN"
+import {NavButtonN} from "./NavButtonN"
 import {mapNullable} from "../../api/common/utils/Utils"
+import {Icons} from "./icons/Icons"
+
+const WARNING_RED = "#ca0606"
 
 export const BannerType = Object.freeze({
 	Info: "info",
 	Warning: "warning",
 })
 
+
+type BannerTypeEnum = $Values<typeof BannerType>
+
 export type InfoBannerAttrs = {
 	message: TranslationKey | lazy<string>,
 	icon: AllIconsEnum,
 	helpLink?: ?InfoLink,
-	buttons: $ReadOnlyArray<?ButtonParams>,
+	buttons?: ?$ReadOnlyArray<?ButtonParams>,
+	type: BannerTypeEnum
 }
 
 /**
@@ -27,44 +35,63 @@ export type InfoBannerAttrs = {
  */
 export class InfoBanner implements MComponent<InfoBannerAttrs> {
 	view(vnode: Vnode<InfoBannerAttrs>): Children {
-
-		const {message, icon, helpLink, buttons} = vnode.attrs
-
-		return m(".info-banner.flex-space-between.center-vertically.full-width.border-top.border-bottom.pt-s.pb-s.mt-s.pr-s", [
-			m(".flex.center-vertically", [
-				this.renderIcon(icon),
-				m("small.smaller.text-break.mr", lang.getMaybeLazy(message)),
-				m("small.no-wrap.ml", buttons.filter(Boolean).map(button => this.renderButton(button))),
+		const {message, icon, helpLink, buttons, type} = vnode.attrs
+		return m(".info-banner.center-vertically.full-width.border-bottom.pr-s.pl.mt-xs"
+			// keep the distance to the bottom of the banner the same in the case that buttons aren't present
+			+ (buttons && buttons.length > 0 ? "" : ".pb-s"), {
+			style: {
+				border: `solid 2px ${type === BannerType.Warning ? WARNING_RED : theme.content_border}`,
+			}
+		}, [
+			m(".flex", [
+				m(".mt-s.mr-s", this.renderIcon(icon, type)),
+				m(".flex-grow", [
+					m(".mr.pt-s", [
+						m(".small", lang.getMaybeLazy(message))
+					]),
+					m(".flex.ml-negative-s", {
+						// Adjust the top and bottom spacing because the buttons have a minimum height of 44px.
+						// This way the clickable area of the button overlaps with the text and the border a bit without having
+						// too much empty space
+						style: {marginTop: "-10px", marginBottom: "-6px"}
+					}, [
+						m(".small", this.renderButtons(buttons || [])),
+						// Push the help button all the way to the right
+						m(".flex-grow"),
+						mapNullable(helpLink, helpLink => this.renderHelpLink(helpLink))
+					])
+				])
 			]),
-			mapNullable(helpLink, helpLink => this.renderHelpLink(helpLink))
 		])
 	}
 
-	renderIcon(icon: AllIconsEnum): Children {
-		return m(".mr", m(Icon, {
+	renderIcon(icon: AllIconsEnum, type: BannerTypeEnum): Children {
+		return m(Icon, {
 			icon,
-			large: true,
 			style: {
-				fill: theme.content_button,
+				fill: type === BannerType.Warning ? WARNING_RED : theme.content_button,
+				display: "block"
 			},
-			container: "div"
+		})
+	}
+
+	renderButtons(buttons: $ReadOnlyArray<?ButtonParams>): Children {
+		return buttons.filter(Boolean).map(button => m(ButtonN, {
+			label: button.text,
+			type: ButtonType.Secondary,
+			click: button.click,
 		}))
 	}
 
-	renderButton(button: ButtonParams): Children {
-		return m("button.border.border-radius.content-fg.bg-transparent.mr-s.center.plr", {
-			style: {
-				minWidth: "60px",
-			},
-			onclick: button.click,
-		}, m("", lang.getMaybeLazy(button.text)))
-	}
-
-	renderHelpLink(link: InfoLink): Children {
-		return m(BannerHelpLink, {
-			link,
-			color: theme.content_button,
-			align: "center"
-		})
+	renderHelpLink(helpLink: InfoLink): Children {
+		return m(".button-content",
+			{style: {marginRight: "-10px"}},
+			m(NavButtonN, {
+				icon: () => Icons.QuestionMark,
+				href: lang.getInfoLink(helpLink),
+				small: true,
+				hideLabel: true,
+				centred: true
+			}))
 	}
 }

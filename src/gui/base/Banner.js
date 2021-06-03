@@ -89,7 +89,7 @@ export type BannerHelpLinkAttrs = {
 export class BannerHelpLink implements MComponent<BannerHelpLinkAttrs> {
 	view(vnode: Vnode<BannerHelpLinkAttrs>): Children {
 		const a = vnode.attrs
-		return m("a.ml-s.bg-transparent", {
+		return m("a.ml-s.pl-s.bg-transparent", {
 			style: {"align-self": a.align},
 			href: lang.getInfoLink(a.link),
 			target: "_blank",

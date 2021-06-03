@@ -3,7 +3,6 @@ import fs from "fs-extra"
 import {spawn} from "child_process"
 import flow from "flow-bin"
 import {buildWithServer} from "./buildSrc/BuildServerClient.js"
-import {fetchDictionaries} from "./buildSrc/DictionaryFetcher.js"
 
 let opts
 options
@@ -44,7 +43,7 @@ function runBuild() {
 	})
 		.then(async () => {
 			const dictPath = "build/dictionaries"
-			if(fs.existsSync(dictPath)) return
+			if (fs.existsSync(dictPath)) return
 			const {devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
 			return fetchDictionaries(devDependencies.electron, [dictPath])
 		})

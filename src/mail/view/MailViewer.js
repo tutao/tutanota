@@ -92,7 +92,6 @@ import {createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../..
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {RecipientButton} from "../../gui/base/RecipientButton"
-import {Banner, BannerType} from "../../gui/base/Banner"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel} from "../../api/entities/tutanota/Mail"
@@ -113,13 +112,11 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
-import {InfoBanner} from "../../gui/base/InfoBanner"
+import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
 import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
-import {ActionBanner} from "../../gui/base/icons/ActionBanner"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -236,9 +233,7 @@ export class MailViewer {
 
 		const resizeListener = () => this._domBodyDeferred.promise.then((dom) => this._updateLineHeight(dom))
 		windowFacade.addResizeListener(resizeListener)
-
 		const bubbleMenuWidth = 300
-
 		const details = this._createDetailsExpanderChildren(bubbleMenuWidth, mail)
 		const detailsExpanded = stream(false)
 		const expanderButtonStyle = {}
@@ -302,8 +297,13 @@ export class MailViewer {
 										"aria-label": lang.get(this.mail.confidential ? "confidential_action" : "nonConfidential_action")
 											+ ", " + dateTime
 									}, [
-										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
-										m("small.date.mt-xs", dateTime),
+										this.mail.confidential ? m(Icon, {
+											icon: Icons.Lock,
+											style: {
+												fill: theme.content_fg
+											}
+										}) : null,
+										m("small.date.mt-xs.content-fg", dateTime),
 										m(".flex-grow"),
 										m(".flex.flex-column-reverse",
 											!this._isAnnouncement() && styles.isUsingBottomNavigation()
@@ -314,31 +314,9 @@ export class MailViewer {
 								styles.isUsingBottomNavigation() ? null : this.actionButtons(),
 							]),
 							styles.isUsingBottomNavigation() ? this.actionButtons() : null,
-							this._suspicious
-								? m(Banner, {
-									type: BannerType.Warning,
-									title: "phishingMessage_label",
-									message: "phishingMessageBody_msg",
-									icon: Icons.Warning,
-									helpLink: "phishing_link",
-									buttons: [{text: "markAsNotPhishing_action", click: () => this._markAsNotPhishing()}]
-								})
-								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL
-								? m(Banner, {
-									type: BannerType.Warning,
-									title: "mailAuthFailed_label",
-									message: "mailAuthFailed_msg",
-									icon: Icons.Warning,
-									helpLink: "mailAuth_link",
-									buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
-								}) : null,
 							this._renderEventBanner(),
 							this._renderAttachments(),
-							// We will only show one banner at a time, with priority given to the mail auth soft fail banner
-							// and fall back to just a separator
-							this._renderSoftAuthenticationFailWarning(mail)
-							|| this._renderExternalContentBanner()
-							|| m("hr.hr.mt-s")
+							this._renderBanners(mail)
 						]),
 
 						m(".flex-grow.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt"
@@ -374,6 +352,16 @@ export class MailViewer {
 
 		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+	}
+
+	_renderBanners(mail: Mail): Children {
+		return [
+			this._renderPhishingWarning()
+			|| this._renderHardAuthenticationFailWarning(mail)
+			|| this._renderSoftAuthenticationFailWarning(mail),
+			this._renderExternalContentBanner(),
+			m("hr.hr.mt-xs"),
+		].filter(Boolean)
 	}
 
 	renderMailBodySection(): Children {
@@ -1597,45 +1585,46 @@ export class MailViewer {
 		this._lastBodyTouchEndTime = now
 	}
 
-	_renderSoftAuthenticationFailWarning(mail: Mail): Children {
-		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
-			const message = () => mail.differentEnvelopeSender
-				? lang.get("mailAuthMissingWithTechnicalSender_msg", {"{sender}": mail.differentEnvelopeSender})
-				: lang.get("mailAuthMissing_label")
+	_renderPhishingWarning(): ?Children {
+		if (this._suspicious) {
+			return m(InfoBanner, {
+				message: "phishingMessageBody_msg",
+				icon: Icons.Warning,
+				type: BannerType.Warning,
+				helpLink: "phishing_link",
+				buttons: [{text: "markAsNotPhishing_action", click: () => this._markAsNotPhishing()}]
+			})
+		}
+	}
 
-			const dismissBanner = () => this._warningDismissed = true
-			const icon = Icons.Warning
-			const helpLink = "mailAuth_link"
-			return styles.isDesktopLayout()
-				? m(InfoBanner, {
-					message,
-					icon,
-					helpLink,
-					buttons: [
-						{
-							text: "ok_action",
-							click: dismissBanner
-						}
-					]
-				})
-				: m(ActionBanner, {
-					text: message,
-					action: dismissBanner,
-					icon,
-					helpLink
-				})
+	_renderHardAuthenticationFailWarning(mail: Mail): ?Children {
+		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
+			return m(InfoBanner, {
+				message: "mailAuthFailed_msg",
+				icon: Icons.Warning,
+				helpLink: "mailAuth_link",
+				type: BannerType.Warning,
+				buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+			})
+		}
+	}
+
+	_renderSoftAuthenticationFailWarning(mail: Mail): ?Children {
+		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+			return m(InfoBanner, {
+				message: () => mail.differentEnvelopeSender
+					? lang.get("mailAuthMissingWithTechnicalSender_msg", {"{sender}": mail.differentEnvelopeSender})
+					: lang.get("mailAuthMissing_label"),
+				icon: Icons.Warning,
+				helpLink: "mailAuth_link",
+				buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+			})
 		} else {
 			return null
 		}
 	}
 
-	_renderExternalContentBanner(): Children {
-		return styles.isDesktopLayout()
-			? this._renderExternalContentBannerDesktop()
-			: this._renderExternalContentBannerMobile()
-	}
-
-	_renderExternalContentBannerDesktop(): Children {
+	_renderExternalContentBanner(): ?Children {
 		return this._contentBlockingStatus === ContentBlockingStatus.Block
 			? m(InfoBanner, {
 				message: "contentBlocked_msg",
@@ -1655,28 +1644,6 @@ export class MailViewer {
 				]
 			})
 			: null
-	}
-
-	_renderExternalContentBannerMobile(): Children {
-		const icon = Icons.Picture
-		const helpLink = "loadImages_link"
-		if (this._contentBlockingStatus === ContentBlockingStatus.Block) {
-			return m(ActionBanner, {
-				text: "showImages_action",
-				icon,
-				helpLink,
-				action: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
-			})
-		} else if (locator.search.indexingSupported && this._contentBlockingStatus === ContentBlockingStatus.Show) {
-			return m(ActionBanner, {
-				text: "allowExternalContentSender_action",
-				icon,
-				helpLink,
-				action: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
-			})
-		} else {
-			return null
-		}
 	}
 
 	async _setContentBlockingStatus(status: ExternalContentBlockingStatusEnum): Promise<void> {
