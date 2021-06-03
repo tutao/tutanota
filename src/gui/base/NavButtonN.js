@@ -19,7 +19,7 @@ assertMainOrNode()
 
 export type NavButtonAttrs = {|
 	label: TranslationKey | lazy<string>,
-	icon: lazyIcon,
+	icon?: lazyIcon,
 	href: string | lazy<string>,
 	isSelectedPrefix?: string | boolean,
 	click?: clickHandler,
@@ -29,11 +29,14 @@ export type NavButtonAttrs = {|
 	hideLabel?: boolean,
 	vertical?: boolean,
 	fontSize?: number,
+	small?: boolean,
+	centred?: boolean,
 |}
 
-const navButtonSelector = (vertical) =>
-	"a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
-		+ (vertical ? ".col" : "")
+const navButtonSelector = (vertical, centred) =>
+	"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
+	+ (vertical ? ".col" : "")
+	+ (!centred ? ".flex-start" : ".flex-center")
 
 export class NavButtonN implements MComponent<NavButtonAttrs> {
 	_domButton: HTMLElement;
@@ -50,10 +53,10 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 	view(vnode: Vnode<NavButtonAttrs>): Children {
 		const a = vnode.attrs
 		// allow nav button without label for registration button on mobile devices
-		return m((this._isExternalUrl(a.href) ? navButtonSelector(vnode.attrs.vertical) : m.route.Link),
+		return m((this._isExternalUrl(a.href) ? navButtonSelector(vnode.attrs.vertical, vnode.attrs.centred === true) : m.route.Link),
 			this.createButtonAttributes(a),
 			[
-				a.icon() ? m(Icon, {
+				a.icon && a.icon() ? m(Icon, {
 					icon: a.icon(),
 					class: this._getIconClass(a),
 					style: {
@@ -78,6 +81,8 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 		const isSelected = isNavButtonSelected(a)
 		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center icon-xl" + (isSelected ? " selected" : "")
+		} else if (a.small === true) {
+			return "flex-center items-center icon" + (isSelected ? " selected" : "")
 		} else {
 			return "flex-center items-center icon-large" + (isSelected ? " selected" : "")
 		}

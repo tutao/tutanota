@@ -201,6 +201,7 @@ styles.registerStyle('main', () => {
 		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
+		'.mr-xs': {'margin-right': px(size.vpad_xs)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
 		'.ml-m': {'margin-left': px(size.hpad_medium)},
 		'.ml-l': {'margin-left': px(size.hpad_large)},
@@ -408,8 +409,10 @@ styles.registerStyle('main', () => {
 		'.full-width': {width: '100%'},
 		'.half-width': {width: '50%'},
 		'.block': {display: 'block'},
+		'.inline-block': {display: 'inline-block'},
 		'.no-text-decoration': {'text-decoration': 'none'},
 		'.strike': {'text-decoration': 'line-through'},
+		'.text-align-vertical': {'vertical-align': 'text-top'},
 
 		// flex box
 		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
