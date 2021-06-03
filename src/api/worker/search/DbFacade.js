@@ -27,7 +27,6 @@ export interface DbTransaction {
 
 	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any>;
 
-
 	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void>;
 
 	abort(): void;
