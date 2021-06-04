@@ -1385,6 +1385,13 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"languageAfrikaans_label": "Afrikaans",
+		"languageWelsh_label": "Walisisch",
+		"languageFaroese_label": "Färöisch",
+		"languageArmenian_label": "Armenisch",
+		"languageNorwegianBokmal_label": "Norwegisches Bokmål",
+		"languageTajik_label": "Tadschikisch",
+		"languageSerboCroatian_label": "Serbokroatisch"
 	}
 }

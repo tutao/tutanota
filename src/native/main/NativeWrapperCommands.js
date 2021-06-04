@@ -3,6 +3,8 @@ import {Request} from "../../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {mapNullable} from "../../api/common/utils/Utils"
 
 async function createMailEditor(msg: Request): Promise<void> {
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
@@ -182,35 +184,58 @@ function updateTargetUrl(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
-function showSpellcheckDropdown(msg: Request): Promise<string> {
-	const [current, options] = msg.args
-	return Promise.join(
-		import('../../gui/base/Dialog.js'),
-		import('../../misc/LanguageViewModel.js'),
-		import('mithril/stream/stream.js'),
-		({Dialog}, {languages, lang}, stream) => {
-			const items = options.map(option => {
-				const language = languages.find(l => l.code === option.replace('-', '_').toLowerCase())
-					|| languages.find(l => l.code === option.slice(0, 2).toLowerCase())
-				const variant = option.length > 3
-					? ` (${option.slice(3)})`
-					: ""
-				const name = language
-					? lang.get(language.textId) + variant
-					: option
-				// some languages that can be spellchecked don't have a
-				// textId in the translations.
-				return {name, value: option}
-			})
+/**
+ * Electron has a different selection of spellchecker languages from what our client supports,
+ * so we can't get all of the names from the LanguageViewModel
+ */
+function getMissingLanguageLabel(code): TranslationKey {
+	return {
+		"af": "languageAfrikaans_label",
+		"cy": "languageWelsh_label",
+		"fo": "languageFaroese_label",
+		"hy": "languageArmenian_label",
+		"nb": "languageNorwegianBokmal_label",
+		"sh": "languageSerboCroatian_label",
+		"sq": "languageAlbanian_label",
+		"ta": "languageTamil_label",
+		"tg": "languageTajik_label",
+	}[code]
+}
 
-			return Dialog.showDropDownSelectionDialog(
-				"spelling_label",
-				"language_label",
-				null,
-				items,
-				stream.default(current)
-			)
-		})
+async function showSpellcheckDropdown(msg: Request): Promise<string> {
+	const [current, availableLanguages] = msg.args
+	const {Dialog} = await import('../../gui/base/Dialog.js')
+	const {languages, lang} = await import('../../misc/LanguageViewModel.js')
+	const stream = await import('mithril/stream/stream.js')
+	const items = availableLanguages.map(code => {
+
+		const [langCode, locale] = code.split("-")
+
+		const textId = mapNullable(languages.find(
+			language =>
+				// find the name for a language given a locale with a perfect match
+				(locale && language.code === `${langCode}_${locale.toLowerCase()}`)
+				// fine the name for a language without a locale, with a perfect match
+				|| language.code === langCode
+				// the code given by electron doesn't always have a locale when we do,
+				// e.g. for Persian we have "fa_ir" in LanguageViewModel, but electron only gives us "fa"
+				|| language.code.slice(0, 2) === langCode), language => language.textId)
+			|| getMissingLanguageLabel(langCode)
+
+		const name = textId
+			? lang.get(textId) + ` (${code})`
+			: code
+
+		return {name, value: code}
+	}).sort((a, b) => a.name.localeCompare(b.name))
+
+	return Dialog.showDropDownSelectionDialog(
+		"spelling_label",
+		"language_label",
+		null,
+		items,
+		stream.default(current)
+	)
 }
 
 export const appCommands = {
