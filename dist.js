@@ -15,7 +15,6 @@ import fs from "fs-extra"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
 import {spawn, spawnSync} from "child_process"
-import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
 import {fetchDictionaries} from './buildSrc/DictionaryFetcher.js'
 import os from "os"
@@ -115,12 +114,30 @@ async function doBuild() {
 	try {
 
 		const {version, devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
+		const electronVersion = devDependencies.electron
+
+		const debs = {
+			webApp: `tutanota_${version}_amd64.deb`,
+			desktop: `tutanota-desktop_${version}_amd64.deb`,
+			desktopTest: `tutanota-desktop-test_${version}_amd64.deb`,
+			// the dicts are bound to an electron release, so we use that version number.
+			dict: `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
+		}
+
 		await buildWebapp(version)
-		await buildDesktopClient(version)
-		await signDesktopClients()
-		await getDictionaries(devDependencies.electron)
-		await packageDeb(version, devDependencies.electron)
-		await publish(version, devDependencies.electron)
+		if (options.desktop) {
+			await buildDesktopClient(version)
+			await signDesktopClients()
+		}
+		if (options.getDicts) {
+			await getDictionaries(electronVersion)
+		}
+		if (options.deb) {
+			await packageDeb(version, debs, electronVersion)
+		}
+		if (options.publish) {
+			await publish(version, debs, electronVersion)
+		}
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
 	} catch (e) {
@@ -262,81 +279,78 @@ self.onmessage = function (msg) {
 }
 
 async function buildDesktopClient(version) {
-	if (options.desktop) {
-		const {buildDesktop} = await import("./buildSrc/DesktopBuilder.js")
-		const desktopBaseOpts = {
-			dirname: __dirname,
-			version,
-			targets: options.desktop,
-			updateUrl: options.customDesktopRelease
-				? ""
-				: "https://mail.tutanota.com/desktop",
-			nameSuffix: "",
-			notarize: !options.customDesktopRelease,
-			outDir: options.outDir,
-			unpacked: options.unpacked
-		}
+	const {buildDesktop} = await import("./buildSrc/DesktopBuilder.js")
+	const desktopBaseOpts = {
+		dirname: __dirname,
+		version,
+		targets: options.desktop,
+		updateUrl: options.customDesktopRelease
+			? ""
+			: "https://mail.tutanota.com/desktop",
+		nameSuffix: "",
+		notarize: !options.customDesktopRelease,
+		outDir: options.outDir,
+		unpacked: options.unpacked
+	}
 
-		if (options.stage === "release") {
-			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopBaseOpts)
-			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
-				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-					updateUrl: "https://test.tutanota.com/desktop",
-					nameSuffix: "-test",
-					// Do not notarize test build
-					notarize: false
-				})
-				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
-				await buildDesktop(desktopTestOpts)
-			}
-		} else if (options.stage === "local") {
-			// this is the only way to contact the local server from localhost, a VM and
-			// from other machines in the LAN with the same url.
-			const addr = Object
-				.values(os.networkInterfaces())
-				.map(net => net.find(a => a.family === "IPv4"))
-				.filter(Boolean)
-				.filter(net => !net.internal && net.address.startsWith('192.168.'))[0].address
-			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
-				version,
-				updateUrl: `http://${addr}:9000/client/build/desktop-snapshot`,
-				nameSuffix: "-snapshot",
-				notarize: false
-			})
-			await createHtml(env.create(`http://${addr}:9000`, version, "Desktop", true))
-			await buildDesktop(desktopLocalOpts)
-		} else if (options.stage === "test") {
+	if (options.stage === "release") {
+		await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
+		await buildDesktop(desktopBaseOpts)
+		if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 				updateUrl: "https://test.tutanota.com/desktop",
 				nameSuffix: "-test",
+				// Do not notarize test build
 				notarize: false
 			})
 			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
 			await buildDesktop(desktopTestOpts)
-		} else if (options.stage === "prod") {
-			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
-				version,
-				updateUrl: "http://localhost:9000/desktop",
-				notarize: false
-			})
-			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
-			await buildDesktop(desktopProdOpts)
-		} else { // stage = host
-			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
-				version,
-				updateUrl: "http://localhost:9000/desktop-snapshot",
-				nameSuffix: "-snapshot",
-				notarize: false
-			})
-			await createHtml(env.create(options.host, version, "Desktop", true))
-			await buildDesktop(desktopHostOpts)
 		}
+	} else if (options.stage === "local") {
+		// this is the only way to contact the local server from localhost, a VM and
+		// from other machines in the LAN with the same url.
+		const addr = Object
+			.values(os.networkInterfaces())
+			.map(net => net.find(a => a.family === "IPv4"))
+			.filter(Boolean)
+			.filter(net => !net.internal && net.address.startsWith('192.168.'))[0].address
+		const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
+			version,
+			updateUrl: `http://${addr}:9000/client/build/desktop-snapshot`,
+			nameSuffix: "-snapshot",
+			notarize: false
+		})
+		await createHtml(env.create(`http://${addr}:9000`, version, "Desktop", true))
+		await buildDesktop(desktopLocalOpts)
+	} else if (options.stage === "test") {
+		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
+			updateUrl: "https://test.tutanota.com/desktop",
+			nameSuffix: "-test",
+			notarize: false
+		})
+		await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
+		await buildDesktop(desktopTestOpts)
+	} else if (options.stage === "prod") {
+		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
+			version,
+			updateUrl: "http://localhost:9000/desktop",
+			notarize: false
+		})
+		await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
+		await buildDesktop(desktopProdOpts)
+	} else { // stage = host
+		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
+			version,
+			updateUrl: "http://localhost:9000/desktop-snapshot",
+			nameSuffix: "-snapshot",
+			notarize: false
+		})
+		await createHtml(env.create(options.host, version, "Desktop", true))
+		await buildDesktop(desktopHostOpts)
 	}
 }
 
 async function getDictionaries(electronVersion) {
-	if (!options.getDicts) return
 	const baseTarget = path.join((options.outDir || 'build/dist'), '..')
 	const targets = options.deb
 		? [baseTarget]
@@ -411,7 +425,9 @@ async function _writeFile(targetFile, content) {
 	await fs.writeFile(targetFile, content, 'utf-8')
 }
 
-function signDesktopClients() {
+async function signDesktopClients() {
+	// We import `sign` asynchronously because it uses node-forge, which is unavailable during the f-droid build and causes it to fail
+	const {sign} = await import("./buildSrc/installerSigner.js")
 	if (options.deb) {
 		if (options.stage === "release" || options.stage === "prod") {
 			sign('./build/desktop/tutanota-desktop-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
@@ -435,123 +451,109 @@ function signDesktopClients() {
 	}
 }
 
-function packageDeb(version, electronVersion) {
-	const webAppDebName = `tutanota_${version}_amd64.deb`
-	const desktopDebName = `tutanota-desktop_${version}_amd64.deb`
-	const desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
-	// the dicts are bound to an electron release, so we use that version number.
-	const dictDebName = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
+function packageDeb(version, debs, electronVersion) {
 	// overwrite output, source=dir target=deb, set owner
 	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
 
-	if (options.deb) {
-		const target = `/opt/tutanota`
-		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
-			cwd: __dirname + '/build/dist',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
+	const target = `/opt/tutanota`
+	exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
+		cwd: __dirname + '/build/dist',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
 
-		console.log("create " + webAppDebName)
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
+	console.log("create " + debs.webApp)
+	exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
+		cwd: __dirname + '/build',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	if (options.stage === "release" || options.stage === "prod") {
+		console.log("create " + debs.desktop)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
 			cwd: __dirname + '/build',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
-
-		if (options.stage === "release" || options.stage === "prod") {
-			console.log("create " + desktopDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
-
-		if (options.stage === "release" || options.stage === "test") {
-			console.log("create " + desktopTestDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
-
-		if (["release", "test", "prod"].includes(options.stage)) {
-			console.log("create " + dictDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
-				cwd: __dirname + "/build",
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
 	}
+
+	if (options.stage === "release" || options.stage === "test") {
+		console.log("create " + debs.desktopTest)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
+			cwd: __dirname + '/build',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+	}
+
+	if (["release", "test", "prod"].includes(options.stage)) {
+		console.log("create " + debs.dict)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
+			cwd: __dirname + "/build",
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+	}
+
 }
 
-function publish(version, electronVersion) {
-	let webAppDebName = `tutanota_${version}_amd64.deb`
-	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
-	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
-	// the dicts are bound to an electron release, so we use that version number.
-	const dictDebName = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
+function publish(version, debs, electronVersion) {
 
-	if (options.publish) {
-		console.log("Create git tag and copy .deb")
-		exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
+	console.log("Create git tag and copy .deb")
+	exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
 
-		exitOnFail(spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
+	exitOnFail(spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
 
-		exitOnFail(spawnSync("/bin/cp", `-f build/${webAppDebName} /opt/repository/tutanota/`.split(" "), {
+	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.webApp} /opt/repository/tutanota/`.split(" "), {
+		cwd: __dirname,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.desktop} /opt/repository/tutanota-desktop/`.split(" "), {
+		cwd: __dirname,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.desktopTest} /opt/repository/tutanota-desktop-test/`.split(" "), {
+		cwd: __dirname,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	// copy appimage for dev_clients
+	exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
+		cwd: __dirname,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	// user puppet needs to read the deb file from jetty
+	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debs.webApp}`.split(" "), {
+		cwd: __dirname + '/build/',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop/${debs.desktop}`.split(" "), {
+		cwd: __dirname + '/build/',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${debs.desktopTest}`.split(" "), {
+		cwd: __dirname + '/build/',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+	// in order to release this new version locally, execute:
+	// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
+	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
+		cwd: __dirname + '/build/',
+		stdio: [process.stdin, process.stdout, process.stderr]
+	}))
+
+	// copy spell checker dictionaries.
+	if (options.getDicts) {
+		exitOnFail(spawnSync("/bin/cp", `-f build/${deb.dict} /opt/repository/tutanota/`.split(" "), {
 			cwd: __dirname,
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
-
-		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopDebName} /opt/repository/tutanota-desktop/`.split(" "), {
-			cwd: __dirname,
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${deb.dict}`.split(" "), {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
-		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopTestDebName} /opt/repository/tutanota-desktop-test/`.split(" "), {
-			cwd: __dirname,
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
-		// copy appimage for dev_clients
-		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
-			cwd: __dirname,
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
-		// user puppet needs to read the deb file from jetty
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${webAppDebName}`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop/${desktopDebName}`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${desktopTestDebName}`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-		// in order to release this new version locally, execute:
-		// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
-		// copy spell checker dictionaries.
-		if (options.getDicts) {
-			exitOnFail(spawnSync("/bin/cp", `-f build/${dictDebName} /opt/repository/tutanota/`.split(" "), {
-				cwd: __dirname,
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-			exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${dictDebName}`.split(" "), {
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
-
 	}
 }
 
