@@ -61,7 +61,6 @@ export class BuildServerClient {
 		let connectionAttempts = 0
 		let lastError = null
 		while (connectionAttempts < 2 && this.state !== STATE_CONNECTED) {
-			console.log("Binky", this.state)
 			await new Promise(r => setTimeout(r, waitTimeinMs));
 			try {
 				await this._connectAndBuild({

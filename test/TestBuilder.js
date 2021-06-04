@@ -10,7 +10,7 @@ import nodeResolve from "@rollup/plugin-node-resolve"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
 
-export async function build(options, log) {
+export async function build(buildOptions, serverOptions, log) {
 	log("Build")
 
 	const pjPath = path.join(root, "./package.json")

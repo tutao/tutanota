@@ -260,6 +260,7 @@ export class BuildServer {
 	}
 
 	_startDevServer() {
+		if (!this.webRoot) return
 		const app = express()
 		const sockets = []
 
