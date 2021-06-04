@@ -1,7 +1,8 @@
 import Promise from "bluebird"
 import child_process, {spawn} from "child_process"
-import {buildWithServer} from "../buildSrc/BuildServerClient.js"
+import {BuildServerClient} from "../buildSrc/BuildServerClient.js"
 import flow from "flow-bin"
+import path from "path"
 
 let project
 if (process.argv.indexOf("api") !== -1) {
@@ -16,15 +17,14 @@ const clean = process.argv.includes("-c")
 
 spawn(flow, ["--quiet"], {stdio: "inherit"})
 
-buildWithServer({
-	clean,
-	// relative to buildSrc
-	builder: "../test/TestBuilder.js",
-	// Test is executed from the test directory so it's relative to it
-	watchFolders: ["api", "client", "../src"],
-	socketPath: "/tmp/testBuildServer",
+const buildServerClient = new BuildServerClient()
+buildServerClient.buildWithServer({
+	forceRestart: true,
+	builder: path.resolve("TestBuilder.js"),
+	watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
 	buildOpts: {}
-}).then(
+})
+.then(
 	async () => {
 		console.log("build finished!")
 		const code = await runTest(project)

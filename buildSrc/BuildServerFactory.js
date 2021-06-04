@@ -1,5 +1,6 @@
 import {spawn} from "child_process"
-import {default as path} from "path"
+import {default as path, dirname} from "path"
+import {fileURLToPath} from "url"
 
 /**
  *
@@ -20,8 +21,9 @@ export async function createBuildServer(options) {
 		throw new Error('Build directory is required')
 	}
 
+	const dirname = path.dirname(fileURLToPath(import.meta.url))
 	const args = [
-		path.resolve("./buildSrc/BuildServerStarter.js"),
+		path.join(dirname, "BuildServerStarter.js"),
 		'-p', port,
 		'-d', directory,
 	]
