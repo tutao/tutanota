@@ -1,7 +1,6 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
-import {client} from "./ClientDetector"
 import type {TranslationKeyType} from "./TranslationKey"
 
 export type TranslationKey = TranslationKeyType
@@ -128,12 +127,14 @@ export const LanguageNames = Object.freeze({
 	fi: 'languageFinnish_label',
 	fr: 'languageFrench_label',
 	gl: 'languageGalician_label',
+	he: 'languageHebrew_label',
 	hi: 'languageHindi_label',
 	hr: 'languageCroatian_label',
 	hu: 'languageHungarian_label',
 	id: 'languageIndonesian_label',
 	it: 'languageItalian_label',
 	ja: 'languageJapanese_label',
+	ko: 'languageKorean_label',
 	lt: 'languageLithuanian_label',
 	lv: 'languageLatvian_label',
 	nl: 'languageDutch_label',
