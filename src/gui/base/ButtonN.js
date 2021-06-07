@@ -8,7 +8,6 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
-import {noOp} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -225,6 +224,8 @@ export class ButtonN implements MComponent<LifecycleAttrs<ButtonAttrs>> {
 			return "flex-center items-center button-icon floating icon-large"
 		} else if (a.colors === ButtonColors.Header) {
 			return "flex-end items-center button-icon icon-xl"
+		} else if (a.colors === ButtonColors.DrawerNav) {
+			return "flex-end items-end button-icon"
 		} else if (type === ButtonType.Bubble) {
 			return "pr-s"
 		} else {
