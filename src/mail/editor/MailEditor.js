@@ -294,7 +294,13 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			? m(ButtonN, {
 				label: 'showRichTextToolbar_action',
 				icon: () => Icons.FontSize,
-				click: () => a.doShowToolbar(!a.doShowToolbar()),
+				click: (event) => {
+					a.doShowToolbar(!a.doShowToolbar())
+
+					// Stop the subject bar from being focused
+					event.stopPropagation()
+					this.editor.focus()
+				},
 				isSelected: a.doShowToolbar,
 				noRecipientInfoBubble: true
 			})
