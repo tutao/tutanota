@@ -119,7 +119,6 @@ import {ActionBanner} from "../../gui/base/icons/ActionBanner"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -303,7 +302,7 @@ export class MailViewer {
 											+ ", " + dateTime
 									}, [
 										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
-										m("small.date.mt-xs", dateTime),
+										m("small.date.mt-xs.selectable", dateTime),
 										m(".flex-grow"),
 										m(".flex.flex-column-reverse",
 											!this._isAnnouncement() && styles.isUsingBottomNavigation()
