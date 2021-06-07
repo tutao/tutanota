@@ -312,7 +312,7 @@ export class MailViewer {
 												fill: theme.content_fg
 											}
 										}) : null,
-										m("small.date.mt-xs.content-fg", dateTime),
+										m("small.date.mt-xs.content-fg.selectable", dateTime),
 										m(".flex-grow"),
 										m(".flex.flex-column-reverse",
 											!this._isAnnouncement() && styles.isUsingBottomNavigation()
