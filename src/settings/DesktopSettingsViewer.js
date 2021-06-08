@@ -257,9 +257,19 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				       systemApp.getConfigValue(DesktopConfigKey.runAsTrayApp),
 				       systemApp.getConfigValue(DesktopConfigKey.showAutoUpdateOption),
 				       systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
-				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode)
+				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
+				       systemApp.getConfigValue(DesktopConfigKey.spellcheck)
 			       ]).then((result) => {
-				       const [integrationInfo, defaultDownloadPath, runAsTrayApp, showAutoUpdateOption, enableAutoUpdate, mailExportMode] = result
+				       console.log(result)
+				       const [
+					       integrationInfo,
+					       defaultDownloadPath,
+					       runAsTrayApp,
+					       showAutoUpdateOption,
+					       enableAutoUpdate,
+					       mailExportMode,
+					       spellcheck
+				       ] = result
 				       const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
 
 				       this._isDefaultMailtoHandler(isMailtoHandler)
@@ -271,6 +281,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				       this._isAutoUpdateEnabled(enableAutoUpdate)
 				       this._updateAvailable(isUpdateAvailable)
 				       this._mailExportMode(mailExportMode)
+				       this._checkSpelling(spellcheck)
 				       m.redraw()
 			       })
 		       })
