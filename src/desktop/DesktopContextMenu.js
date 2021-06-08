@@ -101,11 +101,6 @@ export class DesktopContextMenu {
 
 	_changeSpellcheckLanguage(wc: WebContents) {
 		const id = this._electron.BrowserWindow.fromWebContents(wc).id
-		const args = [
-			wc.session.getSpellCheckerLanguages()[0], // currently active
-			wc.session.availableSpellCheckerLanguages
-		]
-		this._ipc.sendRequest(id, 'showSpellcheckDropdown', args)
-		    .then(newLang => wc.session.setSpellCheckerLanguages([newLang]))
+		this._ipc.sendRequest(id, 'showSpellcheckDropdown', []).then()
 	}
 }

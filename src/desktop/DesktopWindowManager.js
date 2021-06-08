@@ -45,6 +45,8 @@ export class WindowManager {
 	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
 	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager) {
 		this._conf = conf
+		conf.getVar(DesktopConfigKey.spellcheck).then(l => this._setSpellcheckLang(l))
+		conf.on(DesktopConfigKey.spellcheck, l => this._setSpellcheckLang(l))
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
@@ -93,12 +95,13 @@ export class WindowManager {
 			this._tray.update(this._notifier)
 		}).on('zoom-changed', (ev: Event, direction: "in" | "out") => {
 			let scale = ((this._currentBounds.scale * 100) + (direction === "out" ? -5 : 5)) / 100
-			if (scale > 3) scale = 3
-			else if (scale < 0.5) scale = 0.5
+			if (scale > 3) {
+				scale = 3
+			} else if (scale < 0.5) scale = 0.5
 			this._currentBounds.scale = scale
 			windows.forEach(w => w.setZoomFactor(scale))
 			const w = this.getEventSender(downcast(ev))
-			if(!w) return
+			if (!w) return
 			this.saveBounds(w.getBounds())
 		}).on('did-navigate', () => {
 			// electron likes to override the zoom factor when the URL changes.
@@ -206,13 +209,17 @@ export class WindowManager {
 		this._conf.setVar('lastBounds', this._currentBounds)
 	}
 
+	_setSpellcheckLang(l: string): void {
+		this._electron.session.defaultSession.setSpellCheckerLanguages(l === "" ? [] : [l])
+	}
+
 	/**
 	 * load lastBounds from config.
 	 * if there are none or they don't match a screen, save default bounds to config
 	 */
 	async loadStartingBounds(): Promise<void> {
 		const loadedBounds: WindowBounds = await this._conf.getVar("lastBounds")
-		if(!loadedBounds) this.saveBounds(this._currentBounds)
+		if (!loadedBounds) this.saveBounds(this._currentBounds)
 		const lastBounds = loadedBounds || this._currentBounds
 		const displayRect = screen.getDisplayMatching(lastBounds.rect).bounds
 		// we may have loaded bounds that are not in bounds of the screen
@@ -238,7 +245,6 @@ export class WindowManager {
 			icon,
 			electron,
 			localShortcut,
-			spellcheck,
 			dictUrl,
 			noAutoLogin,
 		)

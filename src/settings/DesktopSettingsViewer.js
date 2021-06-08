@@ -21,6 +21,7 @@ import type {MailExportMode} from "../mail/export/Exporter"
 import type {NativeWrapper} from "../native/common/NativeWrapper"
 import type {DesktopConfigKeyEnum} from "../desktop/config/ConfigKeys"
 import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
+import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
 
 assertMainOrNode()
 
@@ -34,7 +35,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_defaultDownloadPath: Stream<string>;
 	_runAsTrayApp: Stream<?boolean>;
 	_runOnStartup: Stream<?boolean>;
-	_checkSpelling: Stream<?boolean>;
+	_spellCheckLang: Stream<string>;
 	_isIntegrated: Stream<?boolean>;
 	_isAutoUpdateEnabled: Stream<?boolean>;
 	_showAutoUpdateOption: boolean;
@@ -49,19 +50,17 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isDefaultMailtoHandler = stream(false)
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
-		this._checkSpelling = stream(true)
+		this._spellCheckLang = stream("")
 		this._isIntegrated = stream(false)
 		this._isAutoUpdateEnabled = stream(false)
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
 		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
-		this._configKeys = import("../desktop/config/ConfigKeys").then((configKeys) => {
-			return configKeys.DesktopConfigKey
-		})
-		this._requestDesktopConfig()
+		this._configKeys = import("../desktop/config/ConfigKeys").then(configKeys => configKeys.DesktopConfigKey)
 	}
 
 	view(): Children {
+		this._requestDesktopConfig()
 		const setDefaultMailtoHandlerAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "defaultMailHandler_label",
 			helpLabel: () => lang.get("defaultMailHandler_msg"),
@@ -116,18 +115,19 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const setSpellCheckingAttrs: DropDownSelectorAttrs<boolean> = {
+		const editSpellcheckLanguageButtonAttrs: ButtonAttrs = {
 			label: "checkSpelling_action",
 			helpLabel: () => lang.get("requiresNewWindow_msg"),
-			items: [
-				{name: lang.get("yes_label"), value: true},
-				{name: lang.get("no_label"), value: false}
-			],
-			selectedValue: this._checkSpelling,
-			selectionChangedHandler: v => {
-				this._checkSpelling(v)
-				this.updateConfigBoolean('spellcheck', v)
-			}
+			click: () => showSpellcheckLanguageDialog()
+				.then(newLabel => this._spellCheckLang(newLabel)),
+			icon: () => Icons.Edit,
+		}
+
+		const spellcheckLanguageAttrs: TextFieldAttrs = {
+			label: "checkSpelling_action",
+			value: this._spellCheckLang,
+			disabled: false,
+			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)]
 		}
 
 		const setDesktopIntegrationAttrs: DropDownSelectorAttrs<boolean> = {
@@ -208,7 +208,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get('desktopSettings_label')),
-				m(DropDownSelectorN, setSpellCheckingAttrs),
+				m(TextFieldN, spellcheckLanguageAttrs),
 				env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
 				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
@@ -258,7 +258,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				       systemApp.getConfigValue(DesktopConfigKey.showAutoUpdateOption),
 				       systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
 				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
-				       systemApp.getConfigValue(DesktopConfigKey.spellcheck)
+				       getCurrentSpellcheckLanguageLabel()
 			       ]).then((result) => {
 				       console.log(result)
 				       const [
@@ -268,7 +268,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					       showAutoUpdateOption,
 					       enableAutoUpdate,
 					       mailExportMode,
-					       spellcheck
+					       spellcheckLabel
 				       ] = result
 				       const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
 
@@ -281,7 +281,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				       this._isAutoUpdateEnabled(enableAutoUpdate)
 				       this._updateAvailable(isUpdateAvailable)
 				       this._mailExportMode(mailExportMode)
-				       this._checkSpelling(spellcheck)
+				       this._spellCheckLang(spellcheckLabel)
 				       m.redraw()
 			       })
 		       })
