@@ -59,8 +59,11 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._configKeys = import("../desktop/config/ConfigKeys").then(configKeys => configKeys.DesktopConfigKey)
 	}
 
-	view(): Children {
+	oninit() {
 		this._requestDesktopConfig()
+	}
+
+	view(): Children {
 		const setDefaultMailtoHandlerAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "defaultMailHandler_label",
 			helpLabel: () => lang.get("defaultMailHandler_msg"),
@@ -126,7 +129,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const spellcheckLanguageAttrs: TextFieldAttrs = {
 			label: "checkSpelling_action",
 			value: this._spellCheckLang,
-			disabled: false,
+			disabled: true,
 			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)]
 		}
 
@@ -260,7 +263,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
 				       getCurrentSpellcheckLanguageLabel()
 			       ]).then((result) => {
-				       console.log(result)
+
 				       const [
 					       integrationInfo,
 					       defaultDownloadPath,
@@ -271,7 +274,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					       spellcheckLabel
 				       ] = result
 				       const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
-
 				       this._isDefaultMailtoHandler(isMailtoHandler)
 				       this._defaultDownloadPath(defaultDownloadPath || lang.get('alwaysAsk_action'))
 				       this._runAsTrayApp(runAsTrayApp)

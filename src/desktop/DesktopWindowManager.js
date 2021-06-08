@@ -97,7 +97,9 @@ export class WindowManager {
 			let scale = ((this._currentBounds.scale * 100) + (direction === "out" ? -5 : 5)) / 100
 			if (scale > 3) {
 				scale = 3
-			} else if (scale < 0.5) scale = 0.5
+			} else if (scale < 0.5) {
+				scale = 0.5
+			}
 			this._currentBounds.scale = scale
 			windows.forEach(w => w.setZoomFactor(scale))
 			const w = this.getEventSender(downcast(ev))
@@ -232,7 +234,6 @@ export class WindowManager {
 
 	async _newWindow(electron: $Exports<"electron">, localShortcut: LocalShortcutManager, noAutoLogin: ?boolean): Promise<ApplicationWindow> {
 		const desktopHtml = await this._conf.getConst(BuildConfigKey.desktophtml)
-		const spellcheck = await this._conf.getVar(DesktopConfigKey.spellcheck)
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== ""
 			? updateUrl
