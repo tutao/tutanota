@@ -2,7 +2,7 @@
 
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import m from "mithril"

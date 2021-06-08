@@ -30,7 +30,7 @@ import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
 	canDoDragAndDropExport,
 	getFolder,

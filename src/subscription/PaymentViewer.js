@@ -23,7 +23,7 @@ import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData
 import {SysService} from "../api/entities/sys/Services"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import stream from "mithril/stream/stream.js"

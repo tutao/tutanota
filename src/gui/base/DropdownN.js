@@ -301,7 +301,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?Dropd
 					originalButtons,
 					Promise.all([
 						Promise.delay(100),
-						import("../ProgressDialog.js")
+						import("../dialogs/ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {
 							return module.showProgressDialog("loading_msg", originalButtons)

@@ -358,7 +358,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 					buttonPromise,
 					Promise.all([
 						Promise.delay(100),
-						import("../ProgressDialog.js")
+						import("../dialogs/ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (buttonPromise.isPending()) {
 							return module.showProgressDialog("loading_msg", buttonPromise)

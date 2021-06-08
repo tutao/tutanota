@@ -12,7 +12,7 @@ import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api
 import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {SubscriptionActionButtons, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
 	buyAliases,

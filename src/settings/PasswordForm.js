@@ -12,7 +12,7 @@ import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";

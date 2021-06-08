@@ -33,7 +33,7 @@ import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {InputField} from "../../api/entities/tutanota/InputField"
 
