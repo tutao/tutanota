@@ -9,6 +9,9 @@ import EventEmitter from 'events'
 
 declare module 'electron' {
 	declare export var app: App;
+	declare export var session: {
+		defaultSession: ElectronSession
+	}
 	declare export var net: {
 		request: (string) => ClientRequest;
 	};

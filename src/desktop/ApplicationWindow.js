@@ -59,7 +59,7 @@ export class ApplicationWindow {
 	_localShortcut: LocalShortcutManager;
 
 	constructor(wm: WindowManager, desktophtml: string, icon: NativeImage, electron: $Exports<"electron">,
-	            localShortcutManager: LocalShortcutManager, spellcheck: boolean, dictUrl: string,
+	            localShortcutManager: LocalShortcutManager, dictUrl: string,
 	            noAutoLogin?: ?boolean
 	) {
 		this._userInfo = null
@@ -94,7 +94,6 @@ export class ApplicationWindow {
 		this._createBrowserWindow(wm, {
 			preloadPath,
 			icon,
-			spellcheck,
 			dictUrl
 		})
 		this._browserWindow.loadURL(
@@ -143,8 +142,8 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(wm: WindowManager, opts: {preloadPath: string, icon: NativeImage, spellcheck: ?boolean, dictUrl: string}) {
-		const {preloadPath, spellcheck, dictUrl, icon} = opts
+	_createBrowserWindow(wm: WindowManager, opts: {preloadPath: string, icon: NativeImage, dictUrl: string}) {
+		const {preloadPath, dictUrl, icon} = opts
 		this._browserWindow = new this._electron.BrowserWindow({
 			icon,
 			show: false,
@@ -167,7 +166,7 @@ export class ApplicationWindow {
 				navigateOnDragDrop: false,
 				autoplayPolicy: "user-gesture-required",
 				enableWebSQL: false,
-				spellcheck
+				spellcheck: true,
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)

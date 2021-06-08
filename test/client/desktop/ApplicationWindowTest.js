@@ -226,7 +226,7 @@ o.spec("ApplicationWindow Test", function () {
 	o("construction", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -246,7 +246,7 @@ o.spec("ApplicationWindow Test", function () {
 				enableRemoteModule: false,
 				allowRunningInsecureContent: false,
 				preload: '/path/to/app/desktop/preload.js',
-				spellcheck: false,
+				spellcheck: true,
 				webgl: false,
 				plugins: false,
 				experimentalFeatures: false,
@@ -287,7 +287,7 @@ o.spec("ApplicationWindow Test", function () {
 		])("webContents registered callbacks dont match")
 
 		// noAutoLogin=true
-		const w2 = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, true, "dictUrl", true)
+		const w2 = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl", true)
 		const bwInstance2 = electronMock.BrowserWindow.mockedInstances[1]
 		o(bwInstance2.loadURL.callCount).equals(1)
 		o(bwInstance2.loadURL.args[0]).equals('file:///path/to/app/desktophtml?noAutoLogin=true')
@@ -297,7 +297,7 @@ o.spec("ApplicationWindow Test", function () {
 	o("redirect to start page after failing to load a page due to 404", function () {
 		const {wmMock, electronMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
@@ -315,7 +315,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronLocalshortcutMock, wmMock, electronMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		downcast(w._browserWindow.webContents).callbacks['did-finish-load']()
 
@@ -338,7 +338,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronLocalshortcutMock, wmMock, electronMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		downcast(w._browserWindow.webContents).callbacks['did-finish-load']()
 
@@ -361,7 +361,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronLocalshortcutMock, wmMock, electronMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		downcast(w._browserWindow.webContents).callbacks['did-finish-load']()
 
@@ -380,7 +380,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks['did-finish-load']()
@@ -436,7 +436,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		o(wmMock.ipc.sendRequest.callCount).equals(0)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -469,7 +469,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks['did-finish-load']()
@@ -514,7 +514,7 @@ o.spec("ApplicationWindow Test", function () {
 			const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 			e = {preventDefault: o.spy()}
 
-			const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+			const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 			w.on('did-start-navigation', () => {})
 			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		})
@@ -558,7 +558,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		const e = {preventDefault: o.spy()}
@@ -583,7 +583,7 @@ o.spec("ApplicationWindow Test", function () {
 			let {wmMock, electronLocalshortcutMock} = sm
 
 
-			new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+			new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		})
 
@@ -630,7 +630,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		let args = {p: 'args'}
@@ -667,7 +667,7 @@ o.spec("ApplicationWindow Test", function () {
 
 	o("context-menu is passed to handler", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const handlerMock = n.spyify(() => {})
 		w.setContextMenuHandler(handlerMock)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -686,7 +686,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		w.openMailBox({userId: "userId", mailAddress: "a@b.c"}, "path")
 
 		setTimeout(() => {
@@ -712,7 +712,7 @@ o.spec("ApplicationWindow Test", function () {
 		n.setPlatform('linux')
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 
 		o(w.getBounds()).deepEquals({
 			rect: {height: 0, width: 0, x: 0, y: 0},
@@ -743,7 +743,7 @@ o.spec("ApplicationWindow Test", function () {
 	o("findInPage, setSearchOverlayState & stopFindInPage", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
 
 		w.stopFindInPage()
@@ -785,7 +785,7 @@ o.spec("ApplicationWindow Test", function () {
 	o("getPath returns correct substring", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
 
 		o(w.getPath()).equals("/meh/more")
@@ -799,7 +799,7 @@ o.spec("ApplicationWindow Test", function () {
 	o("show", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const bwMock = electronMock.BrowserWindow.mockedInstances[0]
 
 		o(bwMock.devToolsOpened).equals(false)
@@ -838,7 +838,7 @@ o.spec("ApplicationWindow Test", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock} = standardMocks()
 
 
-		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, false, "dictUrl")
+		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, "dictUrl")
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		let f = () => {

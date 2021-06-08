@@ -218,6 +218,7 @@ type NativeRequestType = 'init'
 	| 'scheduleAlarms'
 	| 'getConfigValue'
 	| 'getIntegrationInfo'
+	| 'getSpellcheckLanguages'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

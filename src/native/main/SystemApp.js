@@ -57,3 +57,7 @@ export function getIntegrationInfo(): Promise<IntegrationInfo> {
 export function setConfigValue(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, value: any): Promise<any> {
 	return nativeApp.invokeNative(new Request("setConfigValue", [key, value]))
 }
+
+export function getSpellcheckLanguages(): Promise<Array<string>> {
+	return nativeApp.invokeNative(new Request("getSpellcheckLanguages", []))
+}

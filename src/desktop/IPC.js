@@ -23,7 +23,6 @@ import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExpor
 import {fileExists} from "./PathUtils"
 import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
-import type {IntegrationInfo} from "../native/main/SystemApp"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -163,6 +162,10 @@ export class IPC {
 				return this._integrator.unintegrate()
 			case 'getConfigValue':
 				return this._conf.getVar(args[0])
+			case 'getSpellcheckLanguages': {
+				const ses = this._electron.session.defaultSession
+				return Promise.resolve(ses.availableSpellCheckerLanguages)
+			}
 			case 'getIntegrationInfo':
 				const [isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable] = await Promise.all([
 					this._desktopUtils.checkIsMailtoHandler(),
