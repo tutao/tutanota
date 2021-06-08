@@ -7,7 +7,7 @@ import {locator} from "../api/main/MainLocator"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {logins} from "../api/main/LoginController"
 import {MailMethod} from "../api/common/TutanotaConstants"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {GroupSharingTexts} from "./GroupGuiUtils"
 import {getDefaultGroupName, getInvitationGroupType, getSharedGroupName} from "./GroupUtils"
 

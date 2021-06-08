@@ -22,7 +22,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 

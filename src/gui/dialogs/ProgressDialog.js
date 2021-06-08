@@ -1,15 +1,15 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode, isAdminClient} from "../api/common/Env"
-import {Dialog, DialogType} from "./base/Dialog"
-import {DefaultAnimationTime} from "./animation/Animations"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {progressIcon} from "./base/Icon"
-import {PasswordIndicator} from "./PasswordIndicator"
+import {assertMainOrNode, isAdminClient} from "../../api/common/Env"
+import {Dialog, DialogType} from "../base/Dialog"
+import {DefaultAnimationTime} from "../animation/Animations"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
+import {progressIcon} from "../base/Icon"
+import {PasswordIndicator} from "../PasswordIndicator"
 import stream from "mithril/stream/stream.js"
-import type {WorkerClient} from "../api/main/WorkerClient"
-import {TabIndex} from "../api/common/TutanotaConstants"
+import type {WorkerClient} from "../../api/main/WorkerClient"
+import {TabIndex} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

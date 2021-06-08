@@ -23,7 +23,7 @@ import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";

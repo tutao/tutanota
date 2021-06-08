@@ -9,7 +9,7 @@ import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo";
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils";
 import {worker} from "../../api/main/WorkerClient";
-import {showProgressDialog} from "../../gui/ProgressDialog";
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog";
 import {ParserError} from "../../misc/parsing/ParserCombinator";
 import {Dialog} from "../../gui/base/Dialog";
 import {lang} from "../../misc/LanguageViewModel";

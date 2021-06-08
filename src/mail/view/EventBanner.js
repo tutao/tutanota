@@ -11,7 +11,7 @@ import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 
 export type Attrs = {
 	event: CalendarEvent,

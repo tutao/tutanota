@@ -11,7 +11,7 @@ import stream from "mithril/stream/stream.js"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
 

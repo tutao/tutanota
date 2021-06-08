@@ -28,7 +28,7 @@ import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayNa
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {Icons} from "../gui/base/icons/Icons"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {TableLineAttrs} from "../gui/base/TableN"

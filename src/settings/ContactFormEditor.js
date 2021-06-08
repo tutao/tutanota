@@ -25,7 +25,7 @@ import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/Cust
 import {NotFoundError} from "../api/common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"

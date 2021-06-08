@@ -8,7 +8,7 @@ import {
 	NotAuthenticatedError,
 	TooManyRequestsError
 } from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {lang} from "../../misc/LanguageViewModel"
 import {TextFieldN} from "../../gui/base/TextFieldN"

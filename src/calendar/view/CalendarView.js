@@ -55,7 +55,7 @@ import {geEventElementMaxId, getEventElementMinId} from "../../api/common/utils/
 import {UserTypeRef} from "../../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"

@@ -1,7 +1,7 @@
 // @flow
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {neverNull} from "../../api/common/utils/Utils"
 import {LockedError, PreconditionFailedError} from "../../api/common/error/RestError"

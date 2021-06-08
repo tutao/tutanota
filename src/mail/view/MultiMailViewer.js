@@ -20,7 +20,7 @@ import type {PosRect} from "../../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
-import {showProgressDialog} from "../../gui/ProgressDialog"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 
 assertMainOrNode()

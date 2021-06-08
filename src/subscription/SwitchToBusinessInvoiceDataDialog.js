@@ -14,7 +14,7 @@ import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defer} from "../api/common/utils/Utils"
-import {showProgressDialog} from "../gui/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
