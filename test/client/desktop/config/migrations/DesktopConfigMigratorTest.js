@@ -19,9 +19,17 @@ o.spec('desktop config migrator test', function () {
 			}
 		})
 
+		const electron = downcast({
+			session: {
+				defaultSession: {
+					getSpellCheckerLanguages: () => ["de-DE"]
+				}
+			}
+		})
+
 
 		deviceKeyProvider = makeDeviceKeyProvider(key)
-		migrator = new DesktopConfigMigrator(crypto, deviceKeyProvider)
+		migrator = new DesktopConfigMigrator(crypto, deviceKeyProvider, electron)
 	})
 	o("migrations result in correct default config, client", async function () {
 		const oldConfig = {
@@ -44,9 +52,9 @@ o.spec('desktop config migrator test', function () {
 			"defaultDownloadPath": null,
 			"enableAutoUpdate": true,
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 4,
+			"desktopConfigVersion": 5,
 			"showAutoUpdateOption": true,
-			"spellcheck": true,
+			"spellcheck": "de-DE",
 			"mailExportMode": "eml",
 			"sseInfo": JSON.stringify(oldConfig.pushIdentifier),
 		}
@@ -60,10 +68,10 @@ o.spec('desktop config migrator test', function () {
 		}
 		const requiredResult = {
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 4,
+			"desktopConfigVersion": 5,
 			"showAutoUpdateOption": true,
 			"mailExportMode": "eml",
-			"spellcheck": false,
+			"spellcheck": "",
 		}
 
 		o(await migrator.applyMigrations("migrateAdmin", oldConfig)).deepEquals(requiredResult)
