@@ -90,7 +90,7 @@ async function createComponents(): Promise<Components> {
 	const secretStorage = new KeytarSecretStorage()
 	const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
 	const deviceKeyProvider = new DeviceKeyProviderImpl(secretStorage, desktopCrypto)
-	const configMigrator = new DesktopConfigMigrator(desktopCrypto, deviceKeyProvider)
+	const configMigrator = new DesktopConfigMigrator(desktopCrypto, deviceKeyProvider, electron)
 	const conf = new DesktopConfig(app, configMigrator, deviceKeyProvider, desktopCrypto)
 	// Fire config loading, dont wait for it
 	conf.init().catch((e) => {

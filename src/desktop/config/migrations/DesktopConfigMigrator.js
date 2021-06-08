@@ -8,6 +8,7 @@ import * as migration0001 from "./migration-0001"
 import * as migration0002 from "./migration-0002"
 import * as migration0003 from "./migration-0003"
 import * as migration0004 from "./migration-0004"
+import * as migration0005 from "./migration-0005"
 
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
@@ -19,10 +20,12 @@ export type MigrationKind = "migrateClient" | "migrateAdmin"
 export class DesktopConfigMigrator {
 	+crypto: DesktopCryptoFacade;
 	_deviceKeyProvider: DeviceKeyProvider
+	_electron: $Exports<"electron">
 
-	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DeviceKeyProvider) {
+	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DeviceKeyProvider, electron: $Exports<"electron">) {
 		this.crypto = crypto
 		this._deviceKeyProvider = deviceKeyProvider
+		this._electron = electron
 	}
 
 	async applyMigrations(migrationFunction: MigrationKind, oldConfig: Config): Config {
@@ -41,6 +44,8 @@ export class DesktopConfigMigrator {
 			case 3:
 				await applyMigration(migration0004[migrationFunction], oldConfig)
 			case 4:
+				await applyMigration((config) => migration0005[migrationFunction](config, this._electron), oldConfig)
+			case 5:
 				log.debug("config up to date")
 				/* add new migrations as needed */
 				break
