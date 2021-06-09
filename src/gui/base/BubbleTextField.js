@@ -121,7 +121,16 @@ export class BubbleTextField<T> {
 			])
 		})
 		this._textField._injectionsRight = () => {
-			return this.loading != null ? m(".align-right.mr-s", progressIcon()) : injectionsRight && injectionsRight()
+			return [
+				// Placeholder element for the suggestion progress icon with a fixed width and height to avoid flickering.
+				// when reaching the end of the input line and when entering a text into the second line.
+				m(".align-right.mr-s.button-height.flex.items-end.pb-s", {
+					style: {
+						width: px(20) // in case the progress icon is not shown we reserve the width of the progress icon
+					}
+				}, this.loading != null ? progressIcon() : null),
+				injectionsRight ? injectionsRight() : null
+			]
 		}
 		this.originalIsEmpty = this._textField.isEmpty.bind(this._textField)
 		this._textField.isEmpty = () => this.originalIsEmpty() && this.bubbles.length === 0
@@ -194,30 +203,32 @@ export class BubbleTextField<T> {
 
 		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0
 			&& this.suggestions.length === 0)) {
-			this.loading = this.bubbleHandler.getSuggestions(query).then(newSuggestions => {
-				this.loading = null
-				// Only update search result if search query has not been changed during search and update in all other cases
-				if (query === this._textField.value().trim()) {
-					this.animateSuggestionsHeight(this.suggestions.length, newSuggestions.length)
-					this.suggestions = newSuggestions
-					if (this.suggestions.length > 0) {
-						this.suggestions[0].selected = true
-						this.selectedSuggestion(this.suggestions[0])
-					} else {
-						this.selectedSuggestion(null)
-					}
-					this.previousQuery = query
-					let input = this._textField._domInput
-					if (input && this._textField.value() !== input.value) {
-						// 1.) update before redraw to workaround missing updates
-						// 2.) only update in case of an updated value
-						this._textField.value(input.value)
-					}
-					m.redraw()
-				} else {
-					this._updateSuggestions()
-				}
-			})
+			const loadingStartTime = Date.now()
+			this.loading = this.bubbleHandler.getSuggestions(query)
+			                   .then(newSuggestions => {
+				                   this.loading = null
+				                   // Only update search result if search query has not been changed during search and update in all other cases
+				                   if (query === this._textField.value().trim()) {
+					                   this.animateSuggestionsHeight(this.suggestions.length, newSuggestions.length)
+					                   this.suggestions = newSuggestions
+					                   if (this.suggestions.length > 0) {
+						                   this.suggestions[0].selected = true
+						                   this.selectedSuggestion(this.suggestions[0])
+					                   } else {
+						                   this.selectedSuggestion(null)
+					                   }
+					                   this.previousQuery = query
+					                   let input = this._textField._domInput
+					                   if (input && this._textField.value() !== input.value) {
+						                   // 1.) update before redraw to workaround missing updates
+						                   // 2.) only update in case of an updated value
+						                   this._textField.value(input.value)
+					                   }
+					                   m.redraw()
+				                   } else {
+					                   this._updateSuggestions()
+				                   }
+			                   })
 		} else if (query.length === 0 && query !== this.previousQuery) {
 			this.animateSuggestionsHeight(this.suggestions.length, 0)
 			this.suggestions = []
