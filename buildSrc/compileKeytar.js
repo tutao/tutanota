@@ -82,6 +82,7 @@ async function readElectronVersionFromPackageDotJson() {
 	const packageDotJsonPath = path.join(__dirname, "../package.json")
 	const packageDotJsonContents = await fs.readJson(packageDotJsonPath)
 	electronVersion = packageDotJsonContents.devDependencies.electron
+	electronVersion = electronVersion.replace(/[~^]/, "")
 	return electronVersion;
 }
 
