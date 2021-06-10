@@ -1391,6 +1391,7 @@ export default {
 		"languageNorwegianBokmal_label": "Norwegian Bokmål",
 		"languageTajik_label": "Tajik",
 		"languageSerboCroatian_label": "Serbo-Croatian",
+		"mailBodyTooLarge_msg": "The mail couldn't be sent because it exceeds the maximum size limit",
 		"draftSaved_msg": "Draft saved.",
 		"draftNotSaved_msg": "Draft not saved."
 	}

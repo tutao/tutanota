@@ -31,6 +31,13 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
+		"compressedBodyText": {
+			"id": 1194,
+			"type": "CompressedString",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		},
 		"confidential": {
 			"id": 502,
 			"type": "Boolean",
@@ -112,7 +119,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createDraftData(values?: $Shape<$Exact<DraftData>>): DraftData {
@@ -124,6 +131,7 @@ export type DraftData = {
 
 	_id: Id;
 	bodyText: string;
+	compressedBodyText: ?string;
 	confidential: boolean;
 	method: NumberString;
 	senderMailAddress: string;

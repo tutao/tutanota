@@ -70,6 +70,7 @@ import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/Enti
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
+import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
 
 assertMainOrNode()
 
@@ -806,6 +807,7 @@ export class SendMailModel {
 			})
 			.catch(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")})
 			.catch(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")})
+			.catch(MailBodyTooLargeError, () => {throw new UserError("mailBodyTooLarge_msg")})
 	}
 
 	/**

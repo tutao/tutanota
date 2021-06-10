@@ -15,9 +15,10 @@ import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 // $FlowIgnore[untyped-import]
 import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../common/Env"
-import {uncompress} from "../lz4"
+import {compress, uncompress} from "../Compression"
 import {TypeRef} from "../../common/utils/TypeRef";
 import {promiseMap} from "../../common/utils/PromiseUtils"
+import {assertNotNull} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
 
@@ -135,8 +136,11 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 
 }
 
-export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: ?Aes128Key): any {
-	if (value == null && valueName !== '_id' && valueName !== '_permissions') {
+export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: ?Aes128Key): string | Base64 | null {
+
+	if (valueName === '_id' || valueName === '_permissions') {
+		return value
+	} else if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
 		} else {
@@ -145,12 +149,20 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
 	} else if (valueType.encrypted) {
 		let bytes = value
 		if (valueType.type !== ValueType.Bytes) {
-			bytes = stringToUtf8Uint8Array(convertJsToDbType(valueType.type, value))
+			const dbType = assertNotNull(convertJsToDbType(valueType.type, value))
+			bytes = typeof dbType === "string"
+				? stringToUtf8Uint8Array(dbType)
+				: dbType
 		}
-		return uint8ArrayToBase64(aes128Encrypt((sk: any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true,
-			ENABLE_MAC))
+		return uint8ArrayToBase64(
+			aes128Encrypt(assertNotNull(sk), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
 	} else {
-		return convertJsToDbType(valueType.type, value)
+		const dbType = convertJsToDbType(valueType.type, value)
+		if (typeof dbType === 'string' || dbType == null) {
+			return dbType
+		} else {
+			return uint8ArrayToBase64(dbType)
+		}
 	}
 }
 
@@ -177,15 +189,21 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: ?B
 	}
 }
 
-export function convertJsToDbType(type: typeof ValueType, value: any): Base64 | string {
+/**
+ * Returns bytes when the type === Bytes or type === CompressedString, otherwise returns a string
+ * @param type
+ * @param value
+ * @returns {string|string|NodeJS.Global.Uint8Array|*}
+ */
+export function convertJsToDbType(type: typeof ValueType, value: any): Uint8Array | string | null {
 	if (type === ValueType.Bytes && value != null) {
-		return uint8ArrayToBase64((value: any))
+		return value
 	} else if (type === ValueType.Boolean) {
 		return value ? '1' : '0'
 	} else if (type === ValueType.Date) {
 		return value.getTime().toString()
 	} else if (type === ValueType.CompressedString) {
-		throw new ProgrammingError("Compression is not implemented yet")
+		return compressString(value)
 	} else {
 		return value
 	}
@@ -205,6 +223,10 @@ export function convertDbToJsType(type: typeof ValueType, value: Base64 | string
 	}
 }
 
+function compressString(uncompressed: string): Uint8Array {
+	return compress(stringToUtf8Uint8Array(uncompressed))
+}
+
 function decompressString(compressed: Uint8Array): string {
 	if (compressed.length === 0) {
 		return ""
@@ -212,7 +234,6 @@ function decompressString(compressed: Uint8Array): string {
 	const output = uncompress(compressed)
 	return utf8Uint8ArrayToString(output)
 }
-
 
 export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
 	return aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
