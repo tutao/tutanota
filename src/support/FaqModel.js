@@ -83,7 +83,7 @@ export class FaqModel {
 		return {code: langCode, keys: translations}
 	}
 
-	getList(): Array<FaqEntry> {
+	getList(filterNames : (string) => boolean = () => true): Array<FaqEntry> {
 		if (this._list == null && this._faqLanguages == null) {
 			return []
 		}
@@ -91,18 +91,19 @@ export class FaqModel {
 			this._currentLanguageCode = lang.code
 			const faqNames = Object.keys(this._faqLanguages.fallback.keys)
 			this._list = faqNames.filter(key => key.startsWith(FAQ_PREFIX) && key.endsWith(MARKDOWN_SUFFIX))
+			                     .filter(filterNames)
 			                     .map((titleKey: string) => titleKey.substring(FAQ_PREFIX.length, titleKey.indexOf(MARKDOWN_SUFFIX)))
 			                     .map((name: string) => this.createFAQ(name))
 		}
 		return this._list
 	}
 
-	search(query: string): Array<FaqEntry> {
+	search(query: string, filterNames : (string) => boolean = () => true): Array<FaqEntry> {
 		const cleanQuery = query.trim()
 		if (cleanQuery === "") {
 			return []
 		} else {
-			return search(cleanQuery, this.getList(), ['tags', 'title', 'text'], true)
+			return search(cleanQuery, this.getList(filterNames), ['tags', 'title', 'text'], true)
 		}
 	}
 
