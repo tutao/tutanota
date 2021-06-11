@@ -8,6 +8,8 @@ import {Dialog} from "../base/Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'
 import type {ImageHandler} from '../../mail/model/MailUtils'
 import {TabIndex} from "../../api/common/TutanotaConstants"
+import {Keys} from "../../api/common/TutanotaConstants"
+import {isKeyPressed} from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -110,15 +112,13 @@ export class Editor implements ImageHandler {
 				sanitizeToDOMFragment: this._sanitizer,
 			})
 			.addEventListener('keyup', (e) => {
-				if (this._createsLists) {
-					if (e.which === 32) {
-						let blocks = []
-						squire.forEachBlock((block) => {
-							blocks.push(block)
-						})
-						createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
-						createList(blocks, /^\*\s$/, false) // create an ordered list if a line is started with '1. '
-					}
+				if (this._createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
+					let blocks = []
+					squire.forEachBlock((block) => {
+						blocks.push(block)
+					})
+					createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
+					createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
 				}
 			})
 
