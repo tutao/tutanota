@@ -16,6 +16,9 @@ import {showProgressDialog} from "../gui/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {BootIcons} from "../gui/base/icons/BootIcons"
+import {Icons} from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -36,10 +39,13 @@ export class PasswordForm {
 	_enforcePasswordStrength: boolean
 	_repeatPassword: boolean
 
+	_showingPassword: boolean
+
 	constructor(validateOldPassword: boolean, enforcePasswordStrength: boolean, repeatPassword: boolean, passwordInfoTextId: ?TranslationKey) {
 		this._validateOldPassword = validateOldPassword
 		this._enforcePasswordStrength = enforcePasswordStrength
 		this._repeatPassword = repeatPassword
+		this._showingPassword = false
 
 		// make sure both the input values and status fields are initialized correctly
 		this._onOldPasswordInput("")
@@ -56,25 +62,48 @@ export class PasswordForm {
 		}
 
 		const passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
-		const newPasswordFieldAttrs = {
-			label: "newPassword_label",
-			value: stream(this._newPassword),
-			helpLabel: () => m(StatusField, {status: this._newPasswordStatus}),
-			oninput: (value) => this._onNewPasswordInput(value),
-			type: Type.Password,
-			preventAutofill: true,
-			injectionsRight: () => m(".mb-s.mlr", m(passwordIndicator)),
-		}
-
-		const repeatedPasswordFieldAttrs = {
-			label: "repeatedPassword_label",
-			value: stream(this._repeatedPassword),
-			helpLabel: () => m(StatusField, {status: this._repeatedPasswordStatus}),
-			oninput: (value) => this._onRepeatedPasswordInput(value),
-			type: Type.Password,
-		}
 
 		this.view = () => {
+			const newPasswordFieldAttrs = {
+				label: "newPassword_label",
+				value: stream(this._newPassword),
+				helpLabel: () => m(StatusField, {status: this._newPasswordStatus}),
+				oninput: (value) => this._onNewPasswordInput(value),
+				type: this._showingPassword ? Type.Text : Type.Password,
+				preventAutofill : true,
+				monospace: true,
+				injectionsRight: () => m(".flex", [
+					m(".mb-s.mlr .flex .items-end", m(passwordIndicator)),
+					m(ButtonN, {
+						label: () => "Show the password",
+						click: () => {
+							this._showingPassword = !this._showingPassword
+						},
+						type: ButtonType.Action,
+						icon: () => Icons.Eye,
+					}),
+					m(ButtonN, {
+						label: () => "Generate a password",
+						click: async () => {
+							this._onNewPasswordInput(await worker.generatePassword())
+							this._showingPassword = true
+							m.redraw()
+						},
+						type: ButtonType.Action,
+						icon: () => BootIcons.Progress,
+					})
+				]),
+			}
+
+			const repeatedPasswordFieldAttrs = {
+				label: "repeatedPassword_label",
+				value: stream(this._repeatedPassword),
+				helpLabel: () => m(StatusField, {status: this._repeatedPasswordStatus}),
+				oninput: (value) => this._onRepeatedPasswordInput(value),
+				type: Type.Password,
+				monospace: true
+			}
+
 			return m("", {
 				onremove: () => {
 					this._oldPassword = ""

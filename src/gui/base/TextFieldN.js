@@ -26,7 +26,8 @@ export type TextFieldAttrs = {
 	class?: string,
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
-	onclick?: clickHandler
+	onclick?: clickHandler,
+	monospace?: boolean, // false by default
 }
 
 export const Type = Object.freeze({
@@ -129,7 +130,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 			] : []
 
 			return m('.flex-grow.rel', autofillGuard.concat([
-				m("input.input" + (a.alignRight ? ".right" : ""), {
+				m("input.input" + (a.alignRight ? ".right" : "") + (a.monospace ? ".monospace" : ""), {
 					autocomplete: a.preventAutofill ? "off" : "",
 					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
 					"aria-label": lang.getMaybeLazy(a.label),
