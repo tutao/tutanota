@@ -105,8 +105,8 @@ export class DesktopDownloadManager {
 	}
 
 	async saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
-		const write = ({canceled, filePath}): Promise<void> => {
-			if (!canceled) return this._fs.promises.writeFile(assertNotNull(filePath), data)
+		const write = (selection): Promise<void> => {
+			if (!selection.canceled) return this._fs.promises.writeFile(assertNotNull(selection.filePath), data)
 			return Promise.reject('canceled')
 		}
 

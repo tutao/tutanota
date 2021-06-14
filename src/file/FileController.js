@@ -20,6 +20,28 @@ export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export class FileController {
 
+	+_objectUrlsToFileNames: Map<string, string>
+
+	constructor() {
+		this._objectUrlsToFileNames = new Map()
+	}
+
+	getFileNameFromObjectUrl(url: string): ?string {
+		return this._objectUrlsToFileNames.get(url)
+	}
+
+	createObjectUrlForFile(blob: Blob, fileName: string): string {
+		const url = URL.createObjectURL(blob)
+		this._objectUrlsToFileNames.set(url, fileName)
+		return url
+	}
+
+	revokeObjectUrlForFile(url: string) {
+		this._objectUrlsToFileNames.delete(url)
+		URL.revokeObjectURL(url)
+	}
+
+
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */

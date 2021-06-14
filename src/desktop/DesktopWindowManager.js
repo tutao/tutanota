@@ -67,7 +67,7 @@ export class WindowManager {
 	 */
 	setIPC(ipc: IPC) {
 		this.ipc = ipc
-		this._contextMenu = new DesktopContextMenu(this._electron, ipc)
+		this._contextMenu = new DesktopContextMenu(this._electron, ipc, this, this.dl)
 	}
 
 	async newWindow(showWhenReady: boolean, noAutoLogin?: boolean): Promise<ApplicationWindow> {
@@ -98,7 +98,7 @@ export class WindowManager {
 			this._currentBounds.scale = scale
 			windows.forEach(w => w.setZoomFactor(scale))
 			const w = this.getEventSender(downcast(ev))
-			if(!w) return
+			if (!w) return
 			this.saveBounds(w.getBounds())
 		}).on('did-navigate', () => {
 			// electron likes to override the zoom factor when the URL changes.
@@ -212,7 +212,7 @@ export class WindowManager {
 	 */
 	async loadStartingBounds(): Promise<void> {
 		const loadedBounds: WindowBounds = await this._conf.getVar("lastBounds")
-		if(!loadedBounds) this.saveBounds(this._currentBounds)
+		if (!loadedBounds) this.saveBounds(this._currentBounds)
 		const lastBounds = loadedBounds || this._currentBounds
 		const displayRect = screen.getDisplayMatching(lastBounds.rect).bounds
 		// we may have loaded bounds that are not in bounds of the screen
