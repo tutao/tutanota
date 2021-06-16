@@ -19,7 +19,7 @@ spawn(flow, ["--quiet"], {stdio: "inherit"})
 
 const buildServerClient = new BuildServerClient()
 buildServerClient.buildWithServer({
-	forceRestart: true,
+	forceRestart: clean,
 	builder: path.resolve("TestBuilder.js"),
 	watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
 	buildOpts: {}
