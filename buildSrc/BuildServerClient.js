@@ -125,7 +125,6 @@ export class BuildServerClient {
 					socket.write(data)
 				},
 				onData: (socket, data) => {
-					console.log("Received data from server")
 					const serverMessages = this._parseServerMessages(data)
 					serverMessages.forEach((serverMessage) => {
 						const {status, message} = serverMessage
