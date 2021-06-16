@@ -23,7 +23,7 @@
 		"linkifyjs": "^3.0.0-beta.3",
 		"luxon": "1.26.0",
 		"mithril": "2.0.4",
-		"oxmsg": "github:tutao/oxmsg#c5895617bca13befcf54cf3e42a6c3ea075dcb8b",
+		"@tutao/oxmsg": "0.0.6",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.11.1",
 		"systemjs": "6.8.3"

@@ -12,6 +12,7 @@ export const dependencyMap = {
 	"luxon": path.normalize("./libs/luxon.js"),
 	"linkify": path.normalize("./libs/linkify.js"),
 	"linkify/html": path.normalize("./libs/linkify-html.js"),
+	"oxmsg": path.normalize("./node_modules/@tutao/oxmsg/dist/oxmsg.js")
 }
 
 /**
