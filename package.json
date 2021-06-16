@@ -58,7 +58,7 @@
 		"node-forge": "0.10.0",
 		"nollup": "0.15.0",
 		"node-gyp": "^8.0.0",
-		"ospec": "tutao/ospec#0472107629ede33be4c4d19e89f237a6d7b0cb11",
+		"ospec": "git+https://git@github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11",
 		"rollup": "2.47.0",
 		"rollup-plugin-terser": "7.0.2",
 		"rollup-plugin-visualizer": "4.2.0",
