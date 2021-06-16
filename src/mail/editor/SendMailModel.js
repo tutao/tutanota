@@ -65,7 +65,6 @@ import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
 import {getFromMap} from "../../api/common/utils/MapUtils"
-import {CancelledError} from "../../api/common/error/CancelledError"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
@@ -727,22 +726,18 @@ export class SendMailModel {
 			throw new UserError("noRecipients_msg")
 		}
 
-		async function confirmOrCancel(needsConfirmation, confirmationMessage, getConfirmation) {
-			if (needsConfirmation) {
-				const confirmed = await getConfirmation(confirmationMessage)
-				if (!confirmed) {
-					throw new CancelledError("user cancelled")
-				}
-			}
-		}
-
 		const numVisibleRecipients = this.toRecipients().length + this.ccRecipients().length
 
+
 		// Many recipients is a warning
-		await confirmOrCancel(numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS, "manyRecipients_msg", getConfirmation)
+		if (numVisibleRecipients >= TOO_MANY_VISIBLE_RECIPIENTS && !(await getConfirmation("manyRecipients_msg"))) {
+			return false
+		}
 
 		// Empty subject is a warning
-		await confirmOrCancel(this.getSubject().length === 0, "noSubject_msg", getConfirmation)
+		if (this.getSubject().length === 0 && !(await getConfirmation("noSubject_msg"))) {
+			return false
+		}
 
 		// The next check depends on contacts being available
 		await this._waitForResolvedRecipients()
@@ -754,8 +749,10 @@ export class SendMailModel {
 		}
 
 		// Weak password is a warning
-		await confirmOrCancel(this.isConfidentialExternal() && this.hasInsecurePasswords(),
-			"presharedPasswordNotStrongEnough_msg", getConfirmation)
+		if (this.isConfidentialExternal() && this.hasInsecurePasswords()
+			&& !(await getConfirmation("presharedPasswordNotStrongEnough_msg"))) {
+			return false
+		}
 
 		const doSend = async () => {
 			await this.saveDraft(true, mailMethod)
@@ -768,7 +765,6 @@ export class SendMailModel {
 
 		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
 			.catch(LockedError, () => { throw new UserError("operationStillActive_msg")})
-			.catch(CancelledError, () => false)
 			// catch all of the badness
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
 			.catch(RecipientsNotFoundError, (e) => {
