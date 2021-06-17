@@ -2,7 +2,7 @@
 import path from "path"
 import {promises as fs} from "fs"
 import type {MailBundle} from "../mail/export/Bundler"
-import {Attachment, Email, MessageEditorFormat} from "oxmsg"
+import {Attachment, Email, MessageEditorFormat} from "@tutao/oxmsg"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {createDataFile} from "../api/common/DataFile"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
