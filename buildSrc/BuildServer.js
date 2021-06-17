@@ -323,7 +323,7 @@ export class BuildServer {
 	}
 
 	async _removeTempDir() {
-		await fs.rmdir(this.directory, {recursive: true})
+		await fs.rm(this.directory, {recursive: true})
 	}
 
 	async _removeSocket() {

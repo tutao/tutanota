@@ -11,6 +11,8 @@ import commonjs from "@rollup/plugin-commonjs"
 import electronBuilder from "electron-builder"
 import generatePackgeJson from "./electron-package-json-template.js"
 import {create as createEnv, preludeEnvPlugin} from "./env.js"
+import cp from 'child_process'
+import util from 'util'
 
 const {babel} = pluginBabel
 
@@ -56,9 +58,12 @@ export async function buildDesktop({
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
+
+	await maybeGetKeytar(targets, content.build.electronVersion)
+
 	// prepare files
 	try {
-		await fs.promises.rmdir(path.join(distDir, "..", updateSubDir), {recursive: true})
+		await fs.promises.rm(path.join(distDir, "..", updateSubDir), {recursive: true})
 	} catch (e) {
 		if (e.code !== 'ENOENT') {
 			throw e
@@ -71,7 +76,7 @@ export async function buildDesktop({
 	// package for linux, win, mac
 	await electronBuilder.build({
 		_: ['build'],
-		win: targets.win,
+		win: targets.win32,
 		mac: targets.mac,
 		linux: targets.linux,
 		publish: 'always',
@@ -89,8 +94,8 @@ export async function buildDesktop({
 		  )
 	)
 	await Promise.all([
-		fs.promises.rmdir(path.join(distDir, '/installers/'), {recursive: true}),
-		fs.promises.rmdir(path.join(distDir, '/node_modules/'), {recursive: true}),
+		fs.promises.rm(path.join(distDir, '/installers/'), {recursive: true}),
+		fs.promises.rm(path.join(distDir, '/node_modules/'), {recursive: true}),
 		fs.promises.unlink(path.join(distDir, '/package.json')),
 		fs.promises.unlink(path.join(distDir, '/package-lock.json'),),
 	])
@@ -124,4 +129,20 @@ async function rollupDesktop(dirname, outDir, version) {
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
 	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload.js"), path.join(outDir, "preload.js"))
+}
+
+/**
+ * we can't cross-compile keytar, so we need to have the prebuilt version
+ * when building a desktop client for windows on linux
+ */
+async function maybeGetKeytar(targets, electronVersion) {
+	const trg = Object.keys(targets)
+	                  .filter(t => targets[t] != null)
+	                  .filter(t => t !== process.platform)
+	if (trg.length === 0 || process.env.JENKINS) return
+	console.log("fetching prebuilt keytar", trg, electronVersion)
+	return Promise.all(trg.map(t => util.promisify(cp.exec)(
+		`prebuild-install --platform ${t} --target ${electronVersion} --tag-prefix v --runtime electron`,
+		{cwd: './node_modules/keytar/'}
+	)))
 }
