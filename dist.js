@@ -68,7 +68,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 		options.host = host
 		options.deb = options.deb || options.publish
 		options.desktop = {
-			win: options.win ? [] : undefined,
+			win32: options.win ? [] : undefined,
 			linux: options.linux ? [] : undefined,
 			mac: options.mac ? [] : undefined
 		}
@@ -78,7 +78,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 				// no platform flags given, but build desktop for
 				// current platform if customDesktopBuild flag is set.
 				options.desktop = {
-					win: process.platform === "win32" ? [] : undefined,
+					win32: process.platform === "win32" ? [] : undefined,
 					linux: process.platform === "linux" ? [] : undefined,
 					mac: process.platform === "darwin" ? [] : undefined
 				}
@@ -442,7 +442,7 @@ async function signDesktopClients() {
 			sign('./build/desktop-test/tutanota-desktop-test-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
 		}
 	} else if (process.env.DEBUG_SIGN && options.stage === "local") {
-		if (options.desktop.win) sign('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', 'win-sig.bin', 'latest.yml')
+		if (options.desktop.win32) sign('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', 'win-sig.bin', 'latest.yml')
 		if (options.desktop.linux) sign('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
 		if (options.desktop.mac) {
 			sign('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')

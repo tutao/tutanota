@@ -18,7 +18,7 @@
 	"dependencies": {
 		"bluebird": "3.7.2",
 		"dompurify": "2.2.7",
-		"electron-builder": "22.11.1",
+		"electron-builder": "22.11.4",
 		"keytar": "7.2.0",
 		"linkifyjs": "^3.0.0-beta.3",
 		"luxon": "1.26.0",
@@ -43,7 +43,7 @@
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
 		"electron": "11.4.6",
-		"electron-builder": "^22.9.1",
+		"electron-builder": "22.11.4",
 		"electron-notarize": "1.0.0",
 		"electron-packager": "15.1.0",
 		"electron-updater": "4.3.5",
