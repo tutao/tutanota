@@ -483,7 +483,7 @@ function packageDeb(version, debs, electronVersion) {
 		}))
 	}
 
-	if (["release", "test", "prod"].includes(options.stage)) {
+	if (["release", "test", "prod"].includes(options.stage) && options.getDicts) {
 		console.log("create " + debs.dict)
 		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
 			cwd: __dirname + "/build",
