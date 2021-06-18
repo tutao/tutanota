@@ -1,5 +1,1 @@
-External image loading allow list
-Make sender field more prominent in the mail edito
-New dropdown overlay for contact suggestions in the mail editor
-Improve mail viewer performance
-Allow sorting contacts by surname
+see: https://github.com/tutao/tutanota/releases

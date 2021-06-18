@@ -43,7 +43,7 @@ switch (options.buildtype) {
 		apkPath = 'app/build/outputs/apk/release/app-release-unsigned.apk'
 }
 
-execFileSync('node', [options.webclient, `${options.host}`], {
+exec('node', [options.webclient, `${options.host}`], {
 	stdio: [null, process.stdout, process.stderr]
 })
 
@@ -54,14 +54,14 @@ execFileSync('node', [options.webclient, `${options.host}`], {
 prepareFiles(options.webclient)
 
 try {
-	execFileSync("rm", ["-r", "build/app-android"], {stdio: 'ignore'})
+	exec("rm", ["-r", "build/app-android"], {stdio: 'ignore'})
 } catch (e) {
 	// Ignoring the error if the folder is not there
 }
 
 log("Starting", options.buildtype)
 
-execFileSync('./gradlew', [`assemble${options.buildtype}`], {
+exec('./gradlew', [`assemble${options.buildtype}`], {
 	cwd: './app-android/',
 })
 
@@ -73,10 +73,14 @@ const getEnv = (name) => {
 }
 
 signAndroidApp()
+	.catch(e => {
+		console.error("Error:", e)
+		process.exit(1)
+	})
 
 async function signAndroidApp() {
 	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
-	execFileSync("mkdir", ["-p", "build/app-android"])
+	exec("mkdir", ["-p", "build/app-android"])
 	const outPath = `./build/app-android/tutanota-${version}-${options.buildtype}.apk`
 
 	if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
@@ -90,7 +94,7 @@ async function signAndroidApp() {
 		// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
 		// jarsigner must be run before zipalign
-		execFileSync('/opt/jdk1.8.0_112/bin/jarsigner', [
+		exec('/opt/jdk1.8.0_112/bin/jarsigner', [
 			'-verbose',
 			'-strict',
 			'-keystore', keyStore,
@@ -103,13 +107,25 @@ async function signAndroidApp() {
 		log("started zipalign")
 
 		// Android requires all resources to be aligned for mmap. Must be done.
-		execFileSync(`${androidHome}/build-tools/${BUILD_TOOLS_V}/zipalign`, [
+		exec(`${androidHome}/build-tools/${BUILD_TOOLS_V}/zipalign`, [
 			'4',
 			'app-android/' + apkPath,
 			outPath
 		])
 	} else {
-		execFileSync('mv', ['app-android/' + apkPath, outPath])
+		exec('mv', ['app-android/' + apkPath, outPath])
 	}
 	log(`APK was moved to\n${outPath}`)
+}
+
+function exec(...args) {
+	try {
+		return execFileSync(...args)
+	} catch (e) {
+		throw {
+			code: e.status,
+			stdout: new Buffer(e.stdout).toString(),
+			stderr: new Buffer(e.stderr).toString()
+		}
+	}
 }
