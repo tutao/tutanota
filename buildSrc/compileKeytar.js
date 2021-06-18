@@ -41,7 +41,7 @@ async function buildKeytarForElectron(opts) {
 		"--runtime=electron",
 		`--target=${electronVersion}`,
 		`--dist-url=${distUrl}`,
-		`--directory=${modulePath}`,
+		`--directory="${modulePath}"`,
 		`--arch=${arch}`
 	]
 
@@ -73,6 +73,7 @@ async function buildKeytarForElectron(opts) {
 			console.log('Compiled keytar successfully \n')
 		} else {
 			console.log('Compiling keytar failed \n')
+			process.exit(1)
 		}
 	})
 }
