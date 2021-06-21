@@ -15,6 +15,7 @@ import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {getElementId} from "../../api/common/utils/EntityUtils";
 import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -54,9 +55,9 @@ class PushServiceApp {
 				           }
 			           })
 			           .then(this._initPushNotifications)
-			           .catch(DeviceStorageUnavailableError, (e) => {
+			           .catch(ofClass(DeviceStorageUnavailableError, (e) => {
 				           console.warn("Device storage is unavailable, cannot register for push notifications", e)
-			           })
+			           }))
 		} else if (isIOSApp()) {
 			return this._loadPushIdentifierFromNative()
 			           .then(identifier => {

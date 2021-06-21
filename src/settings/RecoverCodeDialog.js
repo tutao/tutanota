@@ -12,6 +12,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 type Action = 'get' | 'create'
 
@@ -27,8 +28,8 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 			      errorMessage("")
 			      showRecoverCodeDialog(recoverCode, showMessage)
 		      })
-		      .catch(NotAuthenticatedError, () => errorMessage(lang.get("invalidPassword_msg")))
-		      .catch(AccessBlockedError, () => errorMessage(lang.get("tooManyAttempts_msg")))
+		      .catch(ofClass(NotAuthenticatedError, () => errorMessage(lang.get("invalidPassword_msg"))))
+		      .catch(ofClass(AccessBlockedError, () => errorMessage(lang.get("tooManyAttempts_msg"))))
 	      )
 }
 

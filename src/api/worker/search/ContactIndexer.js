@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {GroupDataOS, MetaDataOS} from "./Indexer";
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 export class ContactIndexer {
 	_core: IndexerCore;
@@ -80,13 +81,13 @@ export class ContactIndexer {
 			return this.suggestionFacade.store().then(() => {
 				return {contact, keyToIndexEntries}
 			})
-		}).catch(NotFoundError, () => {
+		}).catch(ofClass(NotFoundError, () => {
 			console.log("tried to index non existing contact")
 			return null
-		}).catch(NotAuthorizedError, () => {
+		})).catch(ofClass(NotAuthorizedError, () => {
 			console.log("tried to index contact without permission")
 			return null
-		})
+		}))
 	}
 
 	/**
@@ -112,10 +113,10 @@ export class ContactIndexer {
 					}
 				})
 			})
-		}).catch(NotFoundError, e => {
+		}).catch(ofClass(NotFoundError, e => {
 			// external users have no contact list.
 			return Promise.resolve()
-		})
+		}))
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {

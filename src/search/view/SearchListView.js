@@ -33,6 +33,7 @@ import {MailRow} from "../../mail/view/MailRow";
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {compareContacts} from "../../contacts/view/ContactGuiUtils";
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -142,10 +143,10 @@ export class SearchListView {
 					if (id) {
 						return load(currentResult.restriction.type, id)
 							.then(entity => new SearchResultListEntry(entity))
-							.catch(NotFoundError, (e) => {
+							.catch(ofClass(NotFoundError, (e) => {
 								// we return null if the entity does not exist
 								return null
-							})
+							}))
 					} else {
 						return Promise.resolve(null)
 					}
@@ -367,9 +368,11 @@ export class SearchListView {
 							// is needed for correct selection behavior on mobile
 							this.selectNone()
 						}
-						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
-							// ignore because the delete key shortcut may be executed again while the contact is already deleted
-						}))
+						selectedContacts
+							.forEach((c) => erase(c)
+								.catch(ofClass(NotFoundError, e => {
+									// ignore because the delete key shortcut may be executed again while the contact is already deleted
+								})))
 					}
 				})
 			}

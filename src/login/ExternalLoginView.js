@@ -37,6 +37,7 @@ import type {PasswordChannelPhoneNumber} from "../api/entities/tutanota/Password
 import type {PhoneNumber} from "../api/entities/sys/PhoneNumber"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 import {getLoginErrorMessage} from "../misc/LoginUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -185,7 +186,7 @@ export class ExternalLoginView {
 							                                              deviceConfig.delete(this._userId)
 						                                              }
 					                                              })
-					                                              .catch(NotFoundError, e => console.log("session already deleted"))
+					                                              .catch(ofClass(NotFoundError, e => console.log("session already deleted")))
 				                                 }
 			                                 })
 			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
@@ -245,16 +246,16 @@ export class ExternalLoginView {
 			             this._phoneNumbers = passwordChannels.phoneNumberChannels
 			             this._sendSmsAllowed = true
 		             })
-		             .catch(AccessExpiredError, e => {
+		             .catch(ofClass(AccessExpiredError, e => {
 			             this._errorMessageId = 'expiredLink_msg'
-		             })
-		             .catch(NotAuthenticatedError, e => {
+		             }))
+		             .catch(ofClass(NotAuthenticatedError, e => {
 			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(BadRequestError, e => {
+		             }))
+		             .catch(ofClass(BadRequestError, e => {
 			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(ConnectionError, e => {
+		             }))
+		             .catch(ofClass(ConnectionError, e => {
 			             if (client.isIE()) {
 				             // IE says it's error code 0 fore some reason
 				             this._helpText = 'loginFailed_msg'
@@ -263,7 +264,8 @@ export class ExternalLoginView {
 				             this._helpText = 'emptyString_msg'
 				             throw e;
 			             }
-		             }).finally(() => m.redraw())
+		             }))
+		             .finally(() => m.redraw())
 	}
 
 	_sendSms(phoneNumberId: Id): Promise<void> {
@@ -283,15 +285,15 @@ export class ExternalLoginView {
 				             m.redraw()
 			             }, 60000)
 		             })
-		             .catch(TooManyRequestsError, e => {
+		             .catch(ofClass(TooManyRequestsError, e => {
 			             this._helpText = "smsSentOften_msg"
-		             })
-		             .catch(AccessExpiredError, e => {
+		             }))
+		             .catch(ofClass(AccessExpiredError, e => {
 			             this._errorMessageId = "expiredLink_msg"
-		             })
-		             .catch(InternalServerError, e => {
+		             }))
+		             .catch(ofClass(InternalServerError, e => {
 			             this._helpText = "smsError_msg"
-		             })
+		             }))
 		             .finally(() => m.redraw())
 	}
 

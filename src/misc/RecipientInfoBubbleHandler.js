@@ -11,6 +11,7 @@ import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -44,14 +45,14 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 
 		// ensure match word order for email addresses mainly
 		let contacts: Array<Contact> = await this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
-		                                         .catch(DbError, async () => {
+		                                         .catch(ofClass(DbError, async () => {
 			                                         const listId = await this._contactModel.contactListId()
 			                                         if (listId) {
 				                                         return loadAll(ContactTypeRef, listId)
 			                                         } else {
 				                                         return []
 			                                         }
-		                                         })
+		                                         }))
 
 		const suggestions = contacts
 			.map(contact => {

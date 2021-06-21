@@ -8,6 +8,7 @@ import m from "mithril";
 import {findAndRemove, mapAndFilterNull} from "../api/common/utils/ArrayUtils";
 import type {Theme, ThemeId} from "./theme";
 import {themes} from "./builtinThemes";
+import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 
 assertMainOrNodeBoot()
 
@@ -52,6 +53,7 @@ export class ThemeController {
 	async _initializeTheme() {
 		// If being accessed from a custom domain, the definition of whitelabelCustomizations is added to index.js serverside upon request
 		// see RootHandler::applyWhitelabelFileModifications.
+		const whitelabelCustomizations = getWhitelabelCustomizations(window)
 		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
 			await this.updateCustomTheme(whitelabelCustomizations.theme, false)

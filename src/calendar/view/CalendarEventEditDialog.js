@@ -48,6 +48,7 @@ import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -197,11 +198,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
 					})
 					.then((shouldClose) => shouldClose && finish())
-					.catch(UserError, (e) => Dialog.error(() => e.message))
-					.catch(BusinessFeatureRequiredError, (e) => {
+					.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
+					.catch(ofClass(BusinessFeatureRequiredError, (e) => {
 						showBusinessFeatureRequiredDialog(() => e.message)
 							.then(businessFeatureOrdered => viewModel.hasBusinessFeature(businessFeatureOrdered)) //entity event updates are too slow to call updateBusinessFeature()
-					})
+					}))
 			})
 		}
 

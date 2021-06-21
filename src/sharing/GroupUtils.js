@@ -14,7 +14,7 @@ import {downcast, isCustomizationEnabledForCustomer} from "../api/common/utils/U
 import type {GroupMember} from "../api/entities/sys/GroupMember"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import type {EntityClient} from "../api/common/EntityClient"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
@@ -112,7 +112,7 @@ export function loadReceivedGroupInvitations(userController: IUserController, en
 	return entityClient.load(UserGroupRootTypeRef, userController.userGroupInfo.group)
 	                   .then(userGroupRoot => entityClient.loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
 	                   .then(invitations => invitations.filter(invitation => getInvitationGroupType(invitation) === type))
-	                   .catch(NotFoundError, () => [])
+	                   .catch(ofClass(NotFoundError, () => []))
 }
 
 // Group invitations without a type set were sent when Calendars were the only shareable kind of user group

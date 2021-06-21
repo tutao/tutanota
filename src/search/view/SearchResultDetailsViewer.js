@@ -19,6 +19,7 @@ import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -60,8 +61,8 @@ export class SearchResultDetailsViewer {
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false
 				update(mail)
-					.catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
-					.catch(LockedError, noOp)
+					.catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
+					.catch(ofClass(LockedError, noOp))
 			}
 			m.redraw()
 		}

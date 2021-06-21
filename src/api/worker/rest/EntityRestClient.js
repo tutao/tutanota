@@ -16,6 +16,7 @@ import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -111,24 +112,27 @@ export class EntityRestClient implements EntityRestInterface {
 						return p.then(() => {
 							return Promise.map(data, instance =>
 									resolveSessionKey(model, instance)
-										.catch(SessionKeyNotFoundError, e => {
+										.catch(ofClass(SessionKeyNotFoundError, e => {
 											console.log("could not resolve session key", e)
 											return null // will result in _errors being set on the instance
-										})
+										}))
 										.then(sk => decryptAndMapToInstance(model, instance, sk))
 										.then(decryptedInstance => applyMigrationsForInstance(decryptedInstance)),
 								{concurrency: 5})
 						})
 					} else {
 						return applyMigrations(typeRef, data).then(data => {
-							return resolveSessionKey(model, data).catch(SessionKeyNotFoundError, e => {
-								console.log("could not resolve session key", e)
-								return null // will result in _errors being set on the instance
-							}).then(sk => {
-								return decryptAndMapToInstance(model, data, sk)
-							}).then(instance => {
-								return applyMigrationsForInstance(instance)
-							})
+							return resolveSessionKey(model, data)
+								.catch(ofClass(SessionKeyNotFoundError, e => {
+									console.log("could not resolve session key", e)
+									return null // will result in _errors being set on the instance
+								}))
+								.then(sk => {
+									return decryptAndMapToInstance(model, data, sk)
+								})
+								.then(instance => {
+									return applyMigrationsForInstance(instance)
+								})
 						})
 					}
 				})

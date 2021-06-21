@@ -40,6 +40,7 @@ import {FileTypeRef} from "../../api/entities/tutanota/File"
 import type {AlarmScheduler} from "../date/AlarmScheduler"
 import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 
 // Complete as needed
@@ -141,11 +142,11 @@ export class CalendarModelImpl implements CalendarModel {
 					this._entityClient.load(GroupInfoTypeRef, membership.groupInfo).tap(() => progressMonitor.workDone(1)),
 					this._entityClient.load(GroupTypeRef, membership.group).tap(() => progressMonitor.workDone(1))
 				])
-				.catch(NotFoundError, () => {
+				.catch(ofClass(NotFoundError, () => {
 					notFoundMemberships.push(membership)
 					progressMonitor.workDone(3)
 					return null
-				})
+				}))
 			)
 			.then((groupInstances) => {
 				const calendarInfos: Map<Id, CalendarInfo> = new Map()
@@ -221,12 +222,17 @@ export class CalendarModelImpl implements CalendarModel {
 		           .then((dataFile: DataFile) =>
 			           import("../export/CalendarImporter.js").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 		           .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
-		           .catch((e) => e instanceof ParserError || e instanceof NotFoundError,
-			           (e) => console.warn("Error while parsing calendar update", e))
+		           .catch((e) => {
+		           	if (e instanceof ParserError || e instanceof NotFoundError) {
+			            console.warn("Error while parsing calendar update", e)
+		            } else {
+		           		throw e
+		            }
+		           })
 		           .then(() => this._entityClient.erase(update))
-		           .catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
-		           .catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
-		           .catch(LockedError, noOp)
+		           .catch(ofClass(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e)))
+		           .catch(ofClass(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e)))
+		           .catch(ofClass(LockedError, noOp))
 	}
 
 	/**
@@ -380,12 +386,12 @@ export class CalendarModelImpl implements CalendarModel {
 							           .then(calendarEvent => {
 								           return this._scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
 							           })
-							           .catch(NotFoundError, () => {
+							           .catch(ofClass(NotFoundError, () => {
 								           console.log("event not found", [listId, elementId])
-							           })
+							           }))
 						})
 						return Promise.resolve()
-					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))
+					}).catch(ofClass(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e)))
 				} else if (entityEventData.operation === OperationType.DELETE) {
 					return this._cancelUserAlarmInfo(entityEventData.instanceId)
 				}
@@ -396,9 +402,9 @@ export class CalendarModelImpl implements CalendarModel {
 				&& entityEventData.operation === OperationType.CREATE) {
 				return this._entityClient.load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
 				           .then((invite) => this._handleCalendarEventUpdate(invite))
-				           .catch(NotFoundError, (e) => {
+				           .catch(ofClass(NotFoundError, (e) => {
 					           console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
-				           })
+				           }))
 			}
 		}).return()
 	}

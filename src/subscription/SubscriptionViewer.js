@@ -70,6 +70,7 @@ import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -520,7 +521,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateBookings(): Promise<void> {
 		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-			              .catch(NotFoundError, e => console.log("could not update bookings as customer info does not exist (moved between free/premium lists)"))
+			              .catch(ofClass(NotFoundError, e => {
+			              	console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
+			              }))
 			              .then(customerInfo => {
 				              if (!customerInfo) {
 					              return
@@ -737,7 +740,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 									giftCard.message = message()
 									locator.entityClient.update(giftCard)
 									       .then(() => dialog.close())
-									       .catch(e => Dialog.error("giftCardUpdateError_msg"))
+									       .catch(() => Dialog.error("giftCardUpdateError_msg"))
 									showGiftCardToShare(giftCard)
 								},
 								okActionTextId: "save_action",

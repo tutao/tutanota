@@ -43,7 +43,7 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
@@ -152,11 +152,11 @@ export class SearchFacade {
 								           }
 								           return finalResults
 							           })
-						}).catch(NotFoundError, e => {
+						}).catch(ofClass(NotFoundError, e => {
 							return finalResults
-						}).catch(NotAuthorizedError, e => {
+						})).catch(ofClass(NotAuthorizedError, e => {
 							return finalResults
-						})
+						}))
 					}
 				}, []).then((reducedResults) => {
 					result.results = reducedResults

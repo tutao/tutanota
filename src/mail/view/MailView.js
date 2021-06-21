@@ -64,6 +64,7 @@ import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./Mail
 import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -106,7 +107,7 @@ export class MailView implements CurrentView {
 					(!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
 						? {
 							label: 'newMail_action',
-							click: () => this._showNewMailDialog().catch(PermissionError, noOp),
+							click: () => this._showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 						}
 						: null,
 				content: Array.from(this._mailboxSections.entries())
@@ -170,8 +171,8 @@ export class MailView implements CurrentView {
 							.then(([mailbox, dataFiles, {appendEmailSignature}, {newMailEditorFromTemplate}]) => {
 								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(dialog => dialog.show())
 							})
-							.catch(PermissionError, noOp)
-							.catch(UserError, showUserError)
+								.catch(ofClass(PermissionError, noOp))
+								.catch(ofClass(UserError, showUserError))
 					}
 					// prevent in any case because firefox tries to open
 					// dataTransfer as a URL otherwise.
@@ -239,7 +240,7 @@ export class MailView implements CurrentView {
 	headerRightView(): Children {
 		const openMailButtonAttrs = {
 			label: "newMail_action",
-			click: () => this._showNewMailDialog().catch(PermissionError, noOp),
+				click: () => this._showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 			type: ButtonType.Action,
 			icon: () => Icons.PencilSquare,
 			colors: ButtonColors.Header
@@ -281,7 +282,9 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this._showNewMailDialog().catch(PermissionError, noOp): any),
+				exec: () => {
+					this._showNewMailDialog().catch(ofClass(PermissionError, noOp))
+				},
 				enabled: () => !!this.selectedFolder && isNewMailActionAvailable(),
 				help: "newMail_action"
 			},
@@ -689,8 +692,8 @@ export class MailView implements CurrentView {
 		let deleteMailFolderData = createDeleteMailFolderData()
 		deleteMailFolderData.folders.push(folder._id)
 		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy": any))
-			.catch(NotFoundError, e => console.log("mail folder already deleted"))
-			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+			.catch(ofClass(NotFoundError, e => console.log("mail folder already deleted")))
+			.catch(ofClass(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
 	}
 
 	logout() {
@@ -727,9 +730,9 @@ export class MailView implements CurrentView {
 				if (mails[0].unread && !mails[0]._errors) {
 					mails[0].unread = false
 					update(mails[0])
-						.catch(NotFoundError,
-							e => console.log("could not set read flag as mail has been moved/deleted already", e))
-						.catch(LockedError, noOp)
+						.catch(ofClass(NotFoundError,
+							e => console.log("could not set read flag as mail has been moved/deleted already", e)))
+						.catch(ofClass(LockedError, noOp))
 				}
 				if (elementClicked) {
 					this.mailList.list._loading.then(() => {
@@ -758,7 +761,7 @@ export class MailView implements CurrentView {
 		deleteMailData.folder = folder._id
 		// The request will be handled async by server
 		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
-			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+			.catch(ofClass(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
 	}
 
 

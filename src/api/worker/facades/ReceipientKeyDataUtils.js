@@ -12,6 +12,7 @@ import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRe
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import type {RecipientInfo} from "../../common/RecipientInfo"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientInfo: RecipientInfo, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
 	let keyData = createPublicKeyData()
@@ -30,10 +31,10 @@ export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recip
 				})
 			}
 		})
-		.catch(NotFoundError, e => {
+		.catch(ofClass(NotFoundError, e => {
 			notFoundRecipients.push(recipientInfo.mailAddress)
-		})
-		.catch(TooManyRequestsError, e => {
+		}))
+		.catch(ofClass(TooManyRequestsError, e => {
 			throw new RecipientNotResolvedError("")
-		})
+		}))
 }

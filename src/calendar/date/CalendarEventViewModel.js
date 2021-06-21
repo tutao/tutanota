@@ -62,6 +62,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -628,7 +629,7 @@ export class CalendarEventViewModel {
 			const awaitCancellation = this._eventType === EventType.OWN && event.attendees.length > 1
 				? this._sendCancellation(event)
 				: Promise.resolve()
-			return awaitCancellation.then(() => this._calendarModel.deleteEvent(event)).catch(NotFoundError, noOp)
+			return awaitCancellation.then(() => this._calendarModel.deleteEvent(event)).catch(ofClass(NotFoundError, noOp))
 		} else {
 			return Promise.resolve()
 		}
@@ -663,9 +664,9 @@ export class CalendarEventViewModel {
 				showProgress(p)
 				return p.return(true)
 			}
-		}).catch(PayloadTooLargeError, () => {
+		}).catch(ofClass(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
-		}).finally(() => {
+		})).finally(() => {
 			this._processing = false
 		})
 	}
@@ -703,9 +704,9 @@ export class CalendarEventViewModel {
 					? this._distributor.sendCancellation(updatedEvent, this._cancelModel)
 					: Promise.resolve()
 			})
-			.catch(TooManyRequestsError, () => {
+			.catch(ofClass(TooManyRequestsError, () => {
 				throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
-			})
+			}))
 	}
 
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {

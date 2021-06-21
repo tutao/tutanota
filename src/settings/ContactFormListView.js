@@ -29,6 +29,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -74,9 +75,9 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(ContactFormTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
+					return load(ContactFormTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
-					})
+					}))
 				})
 			},
 			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),

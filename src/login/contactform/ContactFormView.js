@@ -18,6 +18,7 @@ import {header} from "../../gui/base/Header"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -125,11 +126,11 @@ class ContactFormView {
 					this._loading = false
 					m.redraw()
 				})
-			}).catch(NotFoundError, e => {
+			}).catch(ofClass(NotFoundError, e => {
 				this._loading = false
 				this._contactForm = null
 				m.redraw()
-			}))
+			})))
 		}
 	}
 }

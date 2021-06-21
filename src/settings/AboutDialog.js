@@ -13,6 +13,7 @@ import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {UserError} from "../api/main/UserError"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {createDataFile} from "../api/common/DataFile"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): Children {
@@ -101,7 +102,7 @@ export class AboutDialog implements MComponent<void> {
 			 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
 		 })
 		 .then(editor => editor.show())
-		 .catch(UserError, showUserError)
+		 .catch(ofClass(UserError, showUserError))
 	}
 }
 

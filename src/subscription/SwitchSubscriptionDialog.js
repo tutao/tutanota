@@ -44,6 +44,7 @@ import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Booking} from "../api/entities/sys/Booking"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -138,7 +139,7 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 					}
 					return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
 						.then(() => worker.switchPremiumToFreeGroup())
-						.catch(PreconditionFailedError, (e) => {
+						.catch(ofClass(PreconditionFailedError, (e) => {
 							const reason = e.data
 							if (reason == null) {
 								return Dialog.error("unknownError_msg")
@@ -172,9 +173,9 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 								}
 								return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
 							}
-						})
-						.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
-						.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
+						}))
+						.catch(ofClass(InvalidDataError, () => Dialog.error("accountSwitchTooManyActiveUsers_msg")))
+						.catch(ofClass(BadRequestError, () => Dialog.error("deactivatePremiumWithCustomDomainError_msg")))
 				})).finally(() => dialog.close())
 	})
 }

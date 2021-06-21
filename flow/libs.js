@@ -39,7 +39,7 @@ type LifecycleAttrs<T> = T & Lifecycle<T>
 type Attrs = $ReadOnly<{[?string]: any}>
 
 declare interface Router {
-	(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
+	(root: HTMLElement, defaultRoute: string, routes: {[string]: MComponent<TopLevelComponentAttrs> | RouteResolver}): void;
 
 	set(path: string, data?: ?{[string]: mixed},
 	    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;

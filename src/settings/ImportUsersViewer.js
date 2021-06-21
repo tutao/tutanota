@@ -9,6 +9,7 @@ import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 const delayTime = 900
 
@@ -128,7 +129,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 						notAvailableUsers.push(user)
 					}
 				})
-			})).catch(PreconditionFailedError, e => Dialog.error("createUserFailed_msg"))
+			})).catch(ofClass(PreconditionFailedError, e => Dialog.error("createUserFailed_msg")))
 			   .then(() => {
 				   let p = Promise.resolve()
 				   if (notAvailableUsers.length > 0) {

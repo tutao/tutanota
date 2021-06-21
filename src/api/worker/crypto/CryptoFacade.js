@@ -46,6 +46,7 @@ import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/Birth
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
 import type {TypeModel} from "../../common/EntityTypes"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -100,15 +101,15 @@ export function applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> 
 			contact.birthdayIso = birthdayToIsoDate(contact.oldBirthdayAggregate)
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = null
-			return update(contact).catch(LockedError, noOp).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
 		} else if (!contact.birthdayIso && contact.oldBirthdayDate) {
 			contact.birthdayIso = birthdayToIsoDate(oldBirthdayToBirthday(contact.oldBirthdayDate))
 			contact.oldBirthdayDate = null
-			return update(contact).catch(LockedError, noOp).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
 		} else if (contact.birthdayIso && (contact.oldBirthdayAggregate || contact.oldBirthdayDate)) {
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = null
-			return update(contact).catch(LockedError, noOp).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
 		}
 	}
 	return Promise.resolve(decryptedInstance)
@@ -235,9 +236,9 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 									              return _updateWithSymPermissionKey(typeModel, instance, permission,
 										              bucketPermission, bucketPermissionOwnerGroupKey,
 										              bucketPermissionGroupKey, sk)
-										              .catch(NotFoundError, e => {
+										              .catch(ofClass(NotFoundError, e => {
 											              console.log("w> could not find instance to update permission")
-										              })
+										              }))
 										              .then(() => sk)
 								              } else {
 									              return sk
@@ -254,10 +255,10 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 			mailBodySessionKeyCache[instance.body] = sessionKey
 		}
 		return sessionKey
-	}).catch(CryptoError, e => {
+	}).catch(ofClass(CryptoError, e => {
 		console.log("failed to resolve session key", e)
 		throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
-	})
+	}))
 }
 
 /**
@@ -324,9 +325,9 @@ function _updateOwnerEncSessionKey(typeModel: TypeModel, instance: Object, owner
 	let headers = locator.login.createAuthHeaders()
 	headers["v"] = typeModel.version
 	return locator.restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
-	              .catch(PayloadTooLargeError, (e) => {
+	              .catch(ofClass(PayloadTooLargeError, (e) => {
 		              console.log("Could not update owner enc session key - PayloadTooLargeError", e)
-	              })
+	              }))
 }
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {

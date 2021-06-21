@@ -126,6 +126,7 @@ import {getCoordsOfMouseOrTouchEvent, moreButton} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -264,7 +265,7 @@ export class MailViewer {
 		this._loadedInlineImages.then(() => {
 			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
-			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
+			    .catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
 		})
 
 		let delayIsOver = false
@@ -287,10 +288,10 @@ export class MailViewer {
 									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
-											this._tutaoBadge(),
-											getSenderOrRecipientHeading(this.mail, false)
-										]),
+											{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
+												this._tutaoBadge(),
+												getSenderOrRecipientHeading(this.mail, false)
+											]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								!this._isAnnouncement() && styles.isUsingBottomNavigation()
@@ -571,10 +572,12 @@ export class MailViewer {
 				if (success) {
 					return Dialog.error("unsubscribeSuccessful_msg")
 				}
-			}).catch(LockedError, e => {
-				return Dialog.error("operationStillActive_msg")
 			}).catch(e => {
-				return Dialog.error("unsubscribeFailed_msg")
+				if (e instanceof LockedError) {
+					return Dialog.error("operationStillActive_msg")
+				} else {
+					return Dialog.error("unsubscribeFailed_msg")
+				}
 			})
 		}
 		return Promise.resolve()
@@ -773,8 +776,8 @@ export class MailViewer {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
 				      return moveMails(this._mailModel, [this.mail], spamFolder)
 			      })
-			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
-			      .catch(NotFoundError, () => console.log("mail already moved"))
+			      .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg")))
+			      .catch(ofClass(NotFoundError, () => console.log("mail already moved")))
 			      .then(m.redraw)
 
 		}
@@ -834,8 +837,8 @@ export class MailViewer {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 					this._entityClient.update(mail)
-					    .catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
-					    .catch(NotFoundError, e => console.log("mail already moved"))
+					    .catch(ofClass(LockedError, e => console.log("could not update mail phishing status as mail is locked")))
+					    .catch(ofClass(NotFoundError, e => console.log("mail already moved")))
 					m.redraw()
 				}
 			})
@@ -932,8 +935,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+						? ContentBlockingStatus.AlwaysShow
+						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -960,10 +963,10 @@ export class MailViewer {
 					           m.redraw()
 					           return inlineImages
 				           })
-				           .catch(NotFoundError, e => {
+				           .catch(ofClass(NotFoundError, e => {
 					           console.log("could load attachments as they have been moved/deleted already", e)
 					           return new Map()
-				           })
+				           }))
 			})
 		}
 	}
@@ -1260,8 +1263,8 @@ export class MailViewer {
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
 		this._entityClient.update(this.mail)
-		    .catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
-		    .catch(NotFoundError, noOp)
+		    .catch(ofClass(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
+		    .catch(ofClass(NotFoundError, noOp))
 	}
 
 	_editDraft(): Promise<void> {
@@ -1281,8 +1284,8 @@ export class MailViewer {
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
-				              .then(editorDialog => {editorDialog.show()})
-					              .catch(UserError, showUserError)
+					              .then(editorDialog => {editorDialog.show()})
+					              .catch(ofClass(UserError, showUserError))
 				}
 
 			}
@@ -1354,8 +1357,8 @@ export class MailViewer {
 					}, this.isBlockingExternalImages(),
 					this._loadedInlineImages, mailboxDetails)
 			})
-					              .then(editor => {editor.show()})
-			              .catch(UserError, showUserError)
+			              .then(editor => {editor.show()})
+			              .catch(ofClass(UserError, showUserError))
 		}
 	}
 
@@ -1379,7 +1382,7 @@ export class MailViewer {
 							              mailboxDetails)
 					              })
 					              .then(editor => {editor.show()})
-					              .catch(UserError, showUserError)
+					              .catch(ofClass(UserError, showUserError))
 				})
 			}
 		})
@@ -1550,7 +1553,7 @@ export class MailViewer {
 						this.mailHeaderInfo = getMailHeaders(mailHeaders)
 						this.mailHeaderDialog.show()
 					}
-				).catch(NotFoundError, noOp)
+				).catch(ofClass(NotFoundError, noOp))
 			} else {
 				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
 				this.mailHeaderDialog.show()
@@ -1569,7 +1572,7 @@ export class MailViewer {
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		fileController.downloadAndOpen(file, open)
-		              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+		              .catch(ofClass(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")))
 		              .catch(e => {
 			              const msg = e || "unknown error"
 			              console.error("could not open file:", msg)
@@ -1736,12 +1739,12 @@ export class MailViewer {
 		}
 
 		if (status === ContentBlockingStatus.AlwaysShow) {
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(IndexingNotSupportedError, noOp)
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(IndexingNotSupportedError, noOp)
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else {
 			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(IndexingNotSupportedError, noOp)
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
 		}
 		this._contentBlockingStatus = status
 

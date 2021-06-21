@@ -247,7 +247,8 @@ export function createWizardDialog<T>(
 ): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs = {}
-	const child: {view: () => Children} = {view: () => null}
+	let view = () => null
+	const child: MComponent<void> = {view: () => view()}
 	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeAction ? () => closeAction().then(wizardDialog.close()) : () => Promise.resolve(wizardDialog.close()))
 
@@ -256,7 +257,7 @@ export function createWizardDialog<T>(
 	Object.keys(wizardDialogHeaderBarAttrs).forEach((key) => {
 		headerBarAttrs[key] = wizardDialogHeaderBarAttrs[key]
 	})
-	child.view = () => m(WizardDialogN, wizardDialogAttrs)
+	view = () => m(WizardDialogN, wizardDialogAttrs)
 
 	wizardDialog.addShortcut({
 		key: Keys.ESC,

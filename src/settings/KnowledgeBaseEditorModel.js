@@ -16,6 +16,7 @@ import type {KnowledgeBaseEntryKeyword} from "../api/entities/tutanota/Knowledge
 import {createKnowledgeBaseEntryKeyword} from "../api/entities/tutanota/KnowledgeBaseEntryKeyword"
 import {deduplicate} from "../api/common/utils/ArrayUtils"
 import {localeCompare} from "../api/common/utils/StringUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>
@@ -57,7 +58,7 @@ export class KnowledgeBaseEditorModel {
 		}
 		if (this.entry._id) {
 			return this._entityClient.update(this.entry)
-			           .catch(NotFoundError, noOp)
+			           .catch(ofClass(NotFoundError, noOp))
 		} else {
 			this.entry._ownerGroup = this._templateGroupRoot._id
 			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry)

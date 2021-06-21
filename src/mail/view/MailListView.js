@@ -31,7 +31,7 @@ import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {Request} from "../../api/common/WorkerProtocol"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {promiseMap, tap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap, tap} from "../../api/common/utils/PromiseUtils"
 import {AsyncResult} from "../../api/common/utils/AsyncResult"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
@@ -69,9 +69,9 @@ export class MailListView implements MComponent<void> {
 				return this._loadMailRange(start, count)
 			},
 			loadSingle: (elementId) => {
-				return locator.entityClient.load(MailTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
+				return locator.entityClient.load(MailTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 					// we return null if the entity does not exist
-				})
+				}))
 			},
 			sortCompare: sortCompareByReverseId,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),

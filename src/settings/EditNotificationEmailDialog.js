@@ -30,6 +30,7 @@ import type {IUserController} from "../api/main/UserController"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 
 export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: Stream<string>) {
@@ -202,10 +203,10 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 					.then(() => dialog.close())
 
 			}))
-				.catch(UserError, err => {
+				.catch(ofClass(UserError, err => {
 					return Dialog.error(() => err.message)
-				})
-				.catch(PayloadTooLargeError, () => {
+				}))
+				.catch(ofClass(PayloadTooLargeError, () => {
 					template.subject = oldSubject
 					template.body = oldBody
 					template.language = oldLanguage
@@ -213,7 +214,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 						templates.pop()
 					}
 					return Dialog.error("notificationMailTemplateTooLarge_msg")
-				})
+				}))
 		}
 	})
 }

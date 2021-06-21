@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore;
@@ -55,10 +56,10 @@ export class WhitelabelChildIndexer {
 				           return {whitelabelChild, keyToIndexEntries}
 			           })
 		           })
-		           .catch(NotFoundError, () => {
+		           .catch(ofClass(NotFoundError, () => {
 			           console.log("tried to index non existing whitelabel child")
 			           return null
-		           })
+		           }))
 	}
 
 	/**

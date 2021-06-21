@@ -178,7 +178,7 @@ o.spec("ContactIndexer test", () => {
 		}: any)
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		contactIndexer.processNewContact(event).catch(Error, e => {
+		contactIndexer.processNewContact(event).catch(e => {
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 			done()
 		})

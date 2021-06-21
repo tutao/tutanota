@@ -43,7 +43,7 @@ import {Request} from "../../common/WorkerProtocol"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacade} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 import {flat, flatMap, groupBy, groupByAndMapUniquely} from "../../common/utils/ArrayUtils"
 import {getFromMap} from "../../common/utils/MapUtils"
 
@@ -79,8 +79,8 @@ export class CalendarFacade {
 				event.hashedUid = hashUid(event.uid)
 				if (oldEvent) {
 					return this._entity.erase(oldEvent)
-					           .catch(NotFoundError, noOp)
-					           .catch(LockedError, noOp)
+					           .catch(ofClass(NotFoundError, noOp))
+					           .catch(ofClass(LockedError, noOp))
 				}
 			})
 			.then(() =>
@@ -303,13 +303,13 @@ export class CalendarFacade {
 						           groupRoot.index.list,
 						           uint8arrayToCustomId(hashUid(uid))
 					           ]))
-				           .catch(NotFoundError, () => null)
-				           .catch(NotAuthorizedError, () => null)
+				           .catch(ofClass(NotFoundError, () => null))
+				           .catch(ofClass(NotAuthorizedError, () => null))
 			}, null)
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)
-					           .catch(NotFoundError, () => null)
+					           .catch(ofClass(NotFoundError, () => null))
 				}
 			})
 	}

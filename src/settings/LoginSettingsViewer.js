@@ -27,6 +27,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -175,9 +176,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: thisSession ? null : {
 							label: "closeSession_action",
 							click: () => {
-								erase(session).catch(NotFoundError, () => {
+								erase(session).catch(ofClass(NotFoundError, () => {
 									console.log(`session ${JSON.stringify(session._id)} already deleted`)
-								})
+								}))
 							},
 							icon: () => Icons.Cancel
 						}

@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {worker} from "../api/main/WorkerClient"
-import {Type} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -23,8 +23,8 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -46,8 +46,7 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 
 					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 						return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-							.catch(NotAuthorizedError, e => {/* local admin */
-							})
+							.catch(ofClass(NotAuthorizedError, e => {})) // local admin
 							.then(accountingInfo => {
 								if (accountingInfo && (accountingInfo.paymentMethod == null)) {
 									return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
