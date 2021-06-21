@@ -92,7 +92,7 @@ export class ContactIndexer {
 	/**
 	 * Indexes the contact list if it is not yet indexed.
 	 */
-	indexFullContactList(userGroupId: Id): Promise<void> {
+	indexFullContactList(userGroupId: Id): Promise<*> {
 		return this._entity.loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
 			return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
 				let groupId = neverNull(contactList._ownerGroup)

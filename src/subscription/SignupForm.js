@@ -171,7 +171,7 @@ function renderTermsLabel(): Children {
 /**
  * @return Signs the user up, if no captcha is needed or it has been solved correctly
  */
-function signup(mailAddress: string, pw: string, registrationCode: string, isBusinessUse: boolean, isPaidSubscription: boolean, campaign: ?string): Promise<NewAccountData> {
+function signup(mailAddress: string, pw: string, registrationCode: string, isBusinessUse: boolean, isPaidSubscription: boolean, campaign: ?string): Promise<?NewAccountData> {
 	return showWorkerProgressDialog(worker, "createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
 		return runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(regDataId => {
 			if (regDataId) {

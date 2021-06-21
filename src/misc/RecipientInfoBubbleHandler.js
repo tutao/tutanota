@@ -44,8 +44,13 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 
 		// ensure match word order for email addresses mainly
 		let contacts: Array<Contact> = await this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
-		                                         .catch(DbError, () => {
-			                                         return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
+		                                         .catch(DbError, async () => {
+			                                         const listId = await this._contactModel.contactListId()
+			                                         if (listId) {
+				                                         return loadAll(ContactTypeRef, listId)
+			                                         } else {
+				                                         return []
+			                                         }
 		                                         })
 
 		const suggestions = contacts

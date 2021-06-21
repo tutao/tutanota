@@ -117,7 +117,7 @@ export class DesktopDownloadManager {
 			? write({canceled: false, filePath: downloadItem.savePath})
 			: this._electron.dialog.showSaveDialog(null, {defaultPath: path.join(this._electron.app.getPath('downloads'), filename)})
 			      .then(write)
-		return writePromise.then(() => downloadItem.emit('done', undefined, 'completed'))
+		return writePromise.then(() => {downloadItem.emit('done', undefined, 'completed')})
 		                   .catch(e => {downloadItem.emit('done', e, 'cancelled')})
 	}
 

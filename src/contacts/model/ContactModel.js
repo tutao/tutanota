@@ -18,19 +18,21 @@ import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
 assertMainOrNode()
 
 export interface ContactModel {
+	/**
+	 * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
+	 */
 	searchForContact(mailAddress: string): Promise<?Contact>;
 
-	contactListId(): Promise<Id>;
+	/** Id of the contact list. Is null for external users. */
+	contactListId(): Promise<?Id>;
 
 	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]>;
-
-	searchForContactByMailAddress(mailAddress: string): Promise<?Contact>;
 }
 
 export class ContactModelImpl implements ContactModel {
 	_worker: WorkerClient;
 	_entityClient: EntityClient
-	_contactListId: LazyLoaded<Id>;
+	_contactListId: LazyLoaded<?Id>;
 
 	constructor(worker: WorkerClient, entityClient: EntityClient, loginController: LoginController) {
 		this._worker = worker
@@ -38,7 +40,7 @@ export class ContactModelImpl implements ContactModel {
 		this._contactListId = lazyContactListId(loginController, this._entityClient)
 	}
 
-	contactListId(): Promise<Id> {
+	contactListId(): Promise<?Id> {
 		return this._contactListId.getAsync();
 	}
 
@@ -60,13 +62,15 @@ export class ContactModelImpl implements ContactModel {
 				                      .catch(NotAuthorizedError, () => null)
 			           })
 		           })
-		           .catch(DbError, () =>
-			           this.contactListId()
-			               .then(listId => this._entityClient.loadAll(ContactTypeRef, listId))
-			               .then(contacts => {
-				               return contacts.find(contact => contact.mailAddresses.find(a =>
-					               a.address.trim().toLowerCase() === cleanMailAddress) != null)
-			               }))
+		           .catch(DbError, async () => {
+			           const listId = await this.contactListId()
+			           if (listId) {
+				           const contacts = await this._entityClient.loadAll(ContactTypeRef, listId)
+				           return contacts.find(contact =>
+					           contact.mailAddresses.some(a => a.address.trim().toLowerCase() === cleanMailAddress)
+				           )
+			           }
+		           })
 	}
 
 	/**
@@ -85,37 +89,9 @@ export class ContactModelImpl implements ContactModel {
 		}, {concurrency: 3})
 		return flat(loadedContacts)
 	}
-
-	/**
-	 * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
-	 */
-	searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
-		let cleanMailAddress = mailAddress.trim().toLowerCase()
-		return this._worker.search("\"" + cleanMailAddress + "\"",
-			createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
-			// the result is sorted from newest to oldest, but we want to return the oldest first like before
-			result.results.sort(compareOldestFirst)
-			return asyncFindAndMap(result.results, contactId => {
-				return this._entityClient.load(ContactTypeRef, contactId).then(contact => {
-					// look for the exact match in the contacts
-					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase()
-						=== cleanMailAddress)) ? contact : null
-				}).catch(NotFoundError, e => {
-					return null
-				}).catch(NotAuthorizedError, e => {
-					return null
-				})
-			})
-		}).catch(DbError, () => {
-			return this.contactListId().then(listId => this._entityClient.loadAll(ContactTypeRef, listId)).then(contacts => {
-				return contacts.find(contact => contact.mailAddresses.find(a =>
-					a.address.trim().toLowerCase() === cleanMailAddress) != null)
-			})
-		})
-	}
 }
 
-export function lazyContactListId(logins: LoginController, entityClient: EntityClient): LazyLoaded<Id> {
+export function lazyContactListId(logins: LoginController, entityClient: EntityClient): LazyLoaded<?Id> {
 	return new LazyLoaded(() => {
 		return (entityClient)
 			.loadRoot(ContactListTypeRef, logins.getUserController().user.userGroup.group)
