@@ -1164,7 +1164,7 @@ export class MailViewer {
 		if (logins.getUserController().isInternalUser()) {
 			let contactsPromise = Promise.resolve()
 			if (createContact && !logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = this._contactModel.searchForContactByMailAddress(mailAddress.address).then(contact => {
+				contactsPromise = this._contactModel.searchForContact(mailAddress.address).then(contact => {
 					if (contact) {
 						buttons.push({
 							label: "showContact_action",
@@ -1281,7 +1281,7 @@ export class MailViewer {
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
-					              .then(editorDialog => editorDialog.show())
+				              .then(editorDialog => {editorDialog.show()})
 					              .catch(UserError, showUserError)
 				}
 
@@ -1354,7 +1354,7 @@ export class MailViewer {
 					}, this.isBlockingExternalImages(),
 					this._loadedInlineImages, mailboxDetails)
 			})
-			              .then(editor => editor.show())
+					              .then(editor => {editor.show()})
 			              .catch(UserError, showUserError)
 		}
 	}
@@ -1378,7 +1378,7 @@ export class MailViewer {
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
-					              .then(editor => editor.show())
+					              .then(editor => {editor.show()})
 					              .catch(UserError, showUserError)
 				})
 			}

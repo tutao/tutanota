@@ -271,6 +271,6 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 		      })
 
 	return showProgressDialog("loading_msg", loadDialogPromise)
-		.then(dialog => dialog && dialog.show())
+		.then(dialog => {dialog && dialog.show()})
 		.catch(UserError, showUserError)
 }

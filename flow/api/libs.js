@@ -61,9 +61,9 @@ declare class Promise<+R> {
 
 	then<U>(onFulfill?: (value: R) => Promise<U> | U, onReject?: (error: any) => Promise<U> | U): Promise<U>;
 
-	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
-	catch<U, ErrorT: Error>(err: (Class<ErrorT> | (Error) => boolean), onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
-	catch<U, ErrorT1: Error, ErrorT2: Error>(e1: Class<ErrorT1>, e2: Class<ErrorT2>, onReject: (error: (ErrorT1 | ErrorT2)) => ?Promise<U> | U): Promise<U>;
+	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U | R>;
+	catch<U, ErrorT: Error>(err: (Class<ErrorT> | (Error) => boolean), onReject: (error: ErrorT) => Promise<U> | U): Promise<U | R>;
+	catch<U, ErrorT1: Error, ErrorT2: Error>(e1: Class<ErrorT1>, e2: Class<ErrorT2>, onReject: (error: (ErrorT1 | ErrorT2)) => Promise<U> | U): Promise<U | R>;
 
 	finally<R>(onDone?: () => mixed): Promise<R>;
 

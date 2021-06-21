@@ -2771,7 +2771,7 @@ declare class AutoUpdater {
 	};
 	checkForUpdatesAndNotify(): Promise<any>;
 	checkForUpdates(): Promise<UpdateCheckResult>;
-	downloadUpdate(): Promise<Array<String>>; // paths of the dl'd assets
+	downloadUpdate(): Promise<Array<string>>; // paths of the dl'd assets
 	quitAndInstall(isSilent?: boolean, isForceRunAfter?: boolean): void;
 	autoInstallOnAppQuit: boolean;
 	allowDowngrade: boolean;

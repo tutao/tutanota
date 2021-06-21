@@ -311,7 +311,7 @@ export class ContactView implements CurrentView {
 
 	_mergeAction(): Promise<void> {
 		return showProgressDialog("pleaseWait_msg", locator.contactModel.contactListId().then(contactListId => {
-			return loadAll(ContactTypeRef, contactListId)
+			return contactListId ? loadAll(ContactTypeRef, contactListId) : []
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
 				Dialog.error("noContacts_msg")
@@ -410,13 +410,13 @@ export class ContactView implements CurrentView {
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
 			locator.contactModel.contactListId().then(contactListId => {
-				this._setUrl(`/contact/${contactListId}`)
+				contactListId && this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
 			locator.contactModel.contactListId().then(contactListId => {
 				if (args.listId !== contactListId) {
-					this._setUrl(`/contact/${contactListId}`)
+					contactListId && this._setUrl(`/contact/${contactListId}`)
 				} else {
 					this._contactList = new ContactListView(args.listId, (this: any), (a, b) => compareContacts(a, b, this._doSortByFirstName())) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
@@ -568,6 +568,8 @@ export class ContactView implements CurrentView {
 export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 	return showProgressDialog("pleaseWait_msg",
 		contactModel.contactListId().then(contactListId => {
+			if (!contactListId) return 0
+
 			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length === 0) {
 					return 0

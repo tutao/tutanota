@@ -413,7 +413,7 @@ export class Indexer {
 					           return null
 				           })
 			}) // sequentially to avoid rate limiting
-			.then((data) => data.filter(r => r != null))
+			.then((data) => data.filter(Boolean))
 	}
 
 	/**
@@ -531,7 +531,7 @@ export class Indexer {
 		})
 	}
 
-	_processEntityEvents(batch: QueuedBatch): Promise<void> {
+	_processEntityEvents(batch: QueuedBatch): Promise<*> {
 		const {events, groupId, batchId} = batch
 		return this
 			.db.initialized.then(() => {
