@@ -13,6 +13,7 @@ import {size} from "../../gui/size"
 import {locator} from "../../api/main/MainLocator"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils";
 import type {ContactComparator} from "./ContactGuiUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -46,9 +47,10 @@ export class ContactListView {
 				}
 			},
 			loadSingle: (elementId) => {
-				return load(ContactTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
+				return load(ContactTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, () => {
 					// we return null if the entity does not exist
-				})
+					return null
+				}))
 			},
 			sortCompare: contactComparator,
 

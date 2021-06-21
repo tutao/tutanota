@@ -89,6 +89,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -600,7 +601,7 @@ export class CalendarView implements CurrentView {
 						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
 							      groupRootId: calendarInfo.groupRoot._id
 						      }))
-							      .catch(NotFoundError, () => console.log("Calendar to be deleted was not found."))
+							      .catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 					      }
 				      }
 			      )
@@ -671,9 +672,9 @@ export class CalendarView implements CurrentView {
 				       p = load(CalendarEventTypeRef, event._id)
 			       }
 			       p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e))
-			        .catch(NotFoundError, () => {
+			        .catch(ofClass(NotFoundError, () => {
 				        console.log("calendar event not found when clicking on the event")
-			        })
+			        }))
 		       })
 	}
 
@@ -842,9 +843,9 @@ export class CalendarView implements CurrentView {
 								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
 								m.redraw()
 							})
-							.catch(NotFoundError, (e) => {
+							.catch(ofClass(NotFoundError, (e) => {
 								console.log("Not found event in entityEventsReceived of view", e)
-							})
+							}))
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 						m.redraw()

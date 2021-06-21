@@ -56,6 +56,7 @@ import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} from "../../knowledgebase/view/KnowledgeBaseDialog"
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
 import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
@@ -200,7 +201,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 							const inlineAttachment = model.getAttachments().find((attachment) => attachment.cid === cid)
 							if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
 								fileController.downloadAndOpen(downcast(inlineAttachment), true)
-								              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+								              .catch(ofClass(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")))
 							}
 						},
 						type: ButtonType.Dropdown
@@ -504,7 +505,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 					     dialog.close()
 				     }
 			     })
-			     .catch(UserError, (err) => Dialog.error(() => err.message))
+			     .catch(ofClass(UserError, (err) => Dialog.error(() => err.message)))
 		} catch (e) {
 			Dialog.error(() => e.message)
 		}

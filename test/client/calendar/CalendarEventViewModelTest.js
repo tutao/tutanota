@@ -57,7 +57,7 @@ import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
 import {createFeature} from "../../../src/api/entities/sys/Feature"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
-import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import {assertThrows, mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
 import {TypeRef} from "../../../src/api/common/utils/TypeRef"
 import {Request} from "../../../src/api/common/WorkerProtocol"
@@ -164,6 +164,7 @@ o.spec("CalendarEventViewModel", function () {
 			}
 			return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 		}
+
 		mockedAttributeReferences.push(mockAttribute(worker, worker.serviceRequest, serviceRequest))
 	})
 
@@ -667,11 +668,12 @@ o.spec("CalendarEventViewModel", function () {
 
 			viewModel.addGuest(newGuest)
 			askInsecurePassword = o.spy(async () => true)
-			let errorThrown = false
-			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress}).catch(BusinessFeatureRequiredError, () => {
-				errorThrown = true
-			})
-			o(errorThrown).equals(true)
+			const e = await assertThrows(BusinessFeatureRequiredError, () => viewModel.saveAndSend({
+				askForUpdates,
+				askInsecurePassword,
+				showProgress
+			}))
+			o(Object.getPrototypeOf(e)).equals(BusinessFeatureRequiredError.prototype)
 		})
 
 		o("own calendar, same guests, agree on updates", async function () {

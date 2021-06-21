@@ -38,6 +38,7 @@ import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceU
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 type GetCredentialsMethod = "login" | "signup"
 
@@ -167,9 +168,9 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					logins.logout(false)
 					      .then(() => logins.resumeSession(credentials))
 					      .then(() => this._postLogin(data, credentials))
-					      .catch(NotAuthorizedError, e => {
+					      .catch(ofClass(NotAuthorizedError, e => {
 						      Dialog.error("savedCredentialsError_msg")
-					      })
+					      }))
 				}))
 
 			}
@@ -249,7 +250,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 		              .then(() => {
 			              emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)
 		              })
-		              .catch(UserError, showUserError)
+		              .catch(ofClass(UserError, showUserError))
 	}
 }
 
@@ -283,8 +284,8 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 				}
 				redeemGiftCard(data.giftCardInfo.giftCard, data.key, data.giftCardInfo.country, Dialog.confirm)
 					.then(() => emitWizardEvent(vnode.dom, WizardEventType.CLOSEDIALOG))
-					.catch(UserError, showUserError)
-					.catch(CancelledError, noOp)
+					.catch(ofClass(UserError, showUserError))
+					.catch(ofClass(CancelledError, noOp))
 			},
 			type: ButtonType.Login
 		}

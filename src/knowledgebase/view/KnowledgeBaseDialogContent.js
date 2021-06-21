@@ -12,6 +12,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {makeListSelectionChangedScrollHandler} from "../../gui/base/GuiUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export type KnowledgebaseDialogContentAttrs = {|
 	+onTemplateSelect: (EmailTemplate,) => void,
@@ -62,7 +63,7 @@ export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseDialo
 				onTemplateSelected: (templateId) => {
 					model.loadTemplate(templateId).then((fetchedTemplate) => {
 						attrs.onTemplateSelect(fetchedTemplate)
-					}).catch(NotFoundError, () => Dialog.error("templateNotExists_msg"))
+					}).catch(ofClass(NotFoundError, () => Dialog.error("templateNotExists_msg")))
 				},
 				readonly: model.isReadOnly(selectedEntry)
 			})

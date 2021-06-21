@@ -68,6 +68,7 @@ import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../.
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
+import {ofClass} from "../../common/utils/PromiseUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
@@ -471,7 +472,7 @@ export class MailFacade {
 						})
 					})
 				})
-				.catch(NotFoundError, e => {
+				.catch(ofClass(NotFoundError, e => {
 					// it does not exist, so create it
 					let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
 					let externalUserGroupKey = aes128RandomKey()
@@ -506,7 +507,7 @@ export class MailFacade {
 					return serviceRequestVoid(TutanotaService.ExternalUserService, HttpMethod.POST, d).then(() => {
 						return {externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: externalMailGroupKey}
 					})
-				})
+				}))
 		})
 	}
 

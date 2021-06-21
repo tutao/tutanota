@@ -23,6 +23,7 @@ import {isTutanotaMailAddress} from "../../api/common/RecipientInfo"
 import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
 import {themeController} from "../../gui/theme"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
@@ -79,7 +80,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			body: makeInviteEmailBody(sender, event, message),
 			event,
 			sender
-		}).catch(RecipientsNotFoundError, e => {
+		}).catch(ofClass(RecipientsNotFoundError, e => {
 			// we want to delete the event even if the recipient is not an existing tutanota address
 			// and just exclude them from sending out updates but leave the event untouched for other recipients
 			const invalidRecipients = e.message.split("\n")
@@ -94,7 +95,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			if (hasRemovedRecipient && sendMailModel.allRecipients().length) {
 				return this.sendCancellation(event, sendMailModel)
 			}
-		})
+		}))
 	}
 
 	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: ?Mail, status: CalendarAttendeeStatusEnum

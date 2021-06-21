@@ -15,6 +15,7 @@ import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../../gui/base/Dialog"
 import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
 	try {
@@ -98,7 +99,7 @@ export function replyToEventInvitation(
 			const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-				.catch(UserError, (e) => Dialog.error(() => e.message))
+				.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
 				.then(() => {
 					if (calendar) {
 						// if the owner group is set there is an existing event already so just update

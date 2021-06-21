@@ -43,6 +43,7 @@ import type {LanguageCode} from "../misc/LanguageViewModel"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -222,7 +223,7 @@ export class ContactFormEditor {
 							if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
 								samePathFormCheck = load(ContactFormTypeRef, contactFormIdFromPath)
 									.then(cf => true)
-									.catch(NotFoundError, e => false)
+									.catch(ofClass(NotFoundError, e => false))
 							}
 							return samePathFormCheck.then(samePathForm => {
 								if (samePathForm) {

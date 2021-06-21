@@ -18,6 +18,7 @@ import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 
 assertMainOrNode()
@@ -81,7 +82,7 @@ export function show(): Promise<void> {
 								"{index}": 0,
 								"{count}": 1
 							}), p)
-								.catch(PreconditionFailedError, e => Dialog.error("createUserFailed_msg"))
+								.catch(ofClass(PreconditionFailedError, e => Dialog.error("createUserFailed_msg")))
 								.then(dialog.close())
 						}
 					})

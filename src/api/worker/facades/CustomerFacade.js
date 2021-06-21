@@ -53,6 +53,7 @@ import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServi
 import {AccountingService} from "../../entities/accounting/Services"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -187,7 +188,7 @@ export class CustomerFacade {
 			})
 			props.emailSenderList.push(newListEntry)
 			return update(props)
-				.catch(LockedError, noOp)
+				.catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -201,7 +202,7 @@ export class CustomerFacade {
 			}
 			props.emailSenderList[index] = spamRule
 			return update(props)
-				.catch(LockedError, noOp)
+				.catch(ofClass(LockedError, noOp))
 		})
 	}
 

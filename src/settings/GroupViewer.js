@@ -35,6 +35,7 @@ import {ButtonN} from "../gui/base/ButtonN"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -169,7 +170,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 									           return this._group.getAsync()
 									                      .then(group =>
 										                      worker.deactivateGroup(group, !deactivate)
-										                            .catch(PreconditionFailedError, e => {
+										                            .catch(ofClass(PreconditionFailedError, e => {
 												                            if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 													                            Dialog.error("localAdminGroupAssignedError_msg")
 												                            } else if (!deactivate) {
@@ -178,7 +179,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 													                            Dialog.error("stillReferencedFromContactForm_msg")
 												                            }
 											                            }
-										                            ))
+										                            )))
 								           }
 							           })
 					           )
@@ -322,9 +323,9 @@ export class GroupViewer implements UpdatableSettingsViewer {
 	async _updateUsedStorage(): Promise<void> {
 		if (this._isMailGroup()) {
 			const usedStorage = await worker.readUsedGroupStorage(this.groupInfo.group)
-			                                .catch(BadRequestError, e => {
+			                                .catch(ofClass(BadRequestError, e => {
 				                                // may happen if the user gets the admin flag removed
-			                                })
+			                                }))
 			if (usedStorage) this._usedStorageInBytes = usedStorage
 		} else {
 			this._usedStorageInBytes = 0
@@ -375,9 +376,9 @@ export class GroupViewer implements UpdatableSettingsViewer {
 					click: () => {
 						showProgressDialog("pleaseWait_msg", this._entityClient.load(GroupTypeRef, userGroupInfo.group)
 						                                         .then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
-							.catch(NotAuthorizedError, e => {
+							.catch(ofClass(NotAuthorizedError, e => {
 								Dialog.error("removeUserFromGroupNotAdministratedError_msg")
-							})
+							}))
 					},
 					icon: () => Icons.Cancel,
 				}

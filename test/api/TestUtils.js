@@ -140,7 +140,7 @@ export async function asResult<T>(p: Promise<T>): Promise<T | Error> {
 	return p.catch((e) => e)
 }
 
-export async function assertThrows<T: Error>(expected: Class<T>, fn: () => Promise<mixed>): Promise<?T> {
+export async function assertThrows<T: Error>(expected: Class<T>, fn: () => Promise<mixed>): Promise<T> {
 	try {
 		await fn()
 	} catch (e) {
@@ -148,8 +148,7 @@ export async function assertThrows<T: Error>(expected: Class<T>, fn: () => Promi
 			+ e.constructor)
 		return e
 	}
-	o(false).equals(true)("AssertThrows failed: Expected a " + downcast(expected) + " to be thrown, but nothing was")
-	return null
+	throw new Error("AssertThrows failed: Expected a " + downcast(expected) + " to be thrown, but nothing was")
 }
 
 export function preTest() {

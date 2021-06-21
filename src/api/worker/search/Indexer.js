@@ -50,7 +50,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
 import {deleteObjectStores} from "../utils/DbUtils"
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 import {daysToMillis, millisToDays} from "../../common/utils/DateUtils"
 
 export const Metadata = {
@@ -202,7 +202,7 @@ export class Indexer {
 				await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 				const groupIdToEventBatches = await this._loadPersistentGroupData(user)
 				await this._loadNewEntities(groupIdToEventBatches)
-				          .catch(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message))
+				          .catch(ofClass(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message)))
 			} catch (e) {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 					// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -234,7 +234,7 @@ export class Indexer {
 		return this.db.initialized.then(() => {
 			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
 				// We don't have to disable mail indexing when it's stopped now
-				this._mail.mailboxIndexingPromise.catch(CancelledError, noOp)
+				this._mail.mailboxIndexingPromise.catch(ofClass(CancelledError, noOp))
 			})
 		})
 	}
@@ -408,10 +408,10 @@ export class Indexer {
 						           }: GroupData)
 					           }
 				           })
-				           .catch(NotAuthorizedError, () => {
+				           .catch(ofClass(NotAuthorizedError, () => {
 					           console.log("could not download entity updates => lost permission on list")
 					           return null
-				           })
+				           }))
 			}) // sequentially to avoid rate limiting
 			.then((data) => data.filter(Boolean))
 	}
@@ -598,19 +598,19 @@ export class Indexer {
 					})
 				})
 			})
-			.catch(CancelledError, noOp)
-			.catch(DbError, (e) => {
+			.catch(ofClass(CancelledError, noOp))
+			.catch(ofClass(DbError, (e) => {
 				if (this._core.isStoppedProcessing()) {
 					console.log("Ignoring DBerror when indexing is disabled", e)
 				} else {
 					throw e
 				}
-			})
-			.catch(InvalidDatabaseStateError, (e) => {
+			}))
+			.catch(ofClass(InvalidDatabaseStateError, (e) => {
 				console.log("InvalidDatabaseStateError during _processEntityEvents")
 				this._core.stopProcessing()
 				return this._reCreateIndex()
-			})
+			}))
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {

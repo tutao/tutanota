@@ -47,6 +47,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {formatActivateState, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -214,9 +215,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectionChangedHandler: mailIndexEnabled => {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
-						.catch(IndexingNotSupportedError, () => {
+						.catch(ofClass(IndexingNotSupportedError, () => {
 							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-						})
+						}))
 				} else {
 					showProgressDialog("pleaseWait_msg", worker.disableMailIndexing())
 				}
@@ -296,7 +297,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
-						updateInstance: () => update(props).catch(LockedError, noOp)
+						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",

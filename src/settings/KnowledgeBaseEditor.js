@@ -26,6 +26,7 @@ import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {UserError} from "../api/main/UserError"
 import type {DropdownChildAttrs} from "../gui/base/DropdownN"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 /**
  *  Editor to edit / add a knowledgeBase entry
@@ -41,7 +42,7 @@ export function showKnowledgeBaseEditor(entry: ?KnowledgeBaseEntry, templateGrou
 	const saveAction = () => {
 		editorModel.save()
 		           .then(closeDialog)
-		           .catch(UserError, showUserError)
+		           .catch(ofClass(UserError, showUserError))
 	}
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {

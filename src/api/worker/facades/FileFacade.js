@@ -32,6 +32,8 @@ import {_TypeModel as BlobDataGetTypeModel, createBlobDataGet} from "../../entit
 import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
 import {createTypeInfo} from "../../entities/sys/TypeInfo"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {TypeRef} from "../../common/utils/TypeRef"
+import type {TypeModel} from "../../common/EntityTypes"
 
 assertWorkerOrNode()
 

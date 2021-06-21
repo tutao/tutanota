@@ -44,6 +44,7 @@ import {timestampToGeneratedId} from "../api/common/utils/Encoding"
 import type {AggregateEditorAttrs} from "./ContactAggregateEditor"
 import {ContactAggregateEditor} from "./ContactAggregateEditor"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 
 assertMainOrNode()
@@ -210,7 +211,7 @@ export class ContactEditor {
 
 		let promise
 		if (this.contact._id) {
-			promise = this.entityClient.update(this.contact).catch(NotFoundError, noOp)
+			promise = this.entityClient.update(this.contact).catch(ofClass(NotFoundError, noOp))
 		} else {
 			this.contact._area = "0" // legacy
 			this.contact.autoTransmitPassword = "" // legacy
@@ -227,9 +228,9 @@ export class ContactEditor {
 		}
 
 		promise.then(() => this._close())
-		       .catch(PayloadTooLargeError, () => {
+		       .catch(ofClass(PayloadTooLargeError, () => {
 			       Dialog.error("requestTooLarge_msg")
-		       })
+		       }))
 	}
 
 	_createMailAddressEditor(id: Id, allowCancel: boolean, mailAddress: ContactMailAddress,): AggregateEditorAttrs<*> {

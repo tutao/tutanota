@@ -18,6 +18,7 @@ import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {UserError} from "../api/main/UserError"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one
@@ -35,7 +36,7 @@ export function showTemplateEditor(template: ?EmailTemplate, templateGroupRoot: 
 		           .then(() => {
 			           dialogCloseAction()
 		           })
-		           .catch(UserError, showUserError)
+		           .catch(ofClass(UserError, showUserError))
 	}
 
 	let headerBarAttrs: DialogHeaderBarAttrs = {

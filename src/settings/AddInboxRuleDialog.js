@@ -19,6 +19,7 @@ import {neverNull, noOp} from "../api/common/utils/Utils"
 import {LockedError} from "../api/common/error/RestError"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isSameId} from "../api/common/utils/EntityUtils";
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -71,7 +72,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 					props.inboxRules = inboxRules
 					throw error
 				})
-				.catch(LockedError, noOp)
+				.catch(ofClass(LockedError, noOp))
 			dialog.close()
 		}
 

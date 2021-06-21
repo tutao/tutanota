@@ -17,6 +17,7 @@ import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {prepareCalendarDescription} from "../date/CalendarUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
@@ -164,7 +165,7 @@ export class CalendarEventPopup implements ModalComponent {
 function deleteEvent(viewModel: CalendarEventViewModel): Promise<boolean> {
 	return Dialog.confirm("deleteEventConfirmation_msg").then((confirmed) => {
 		if (confirmed) {
-			viewModel.deleteEvent().catch(UserError, (e) => Dialog.error(() => e.message))
+			viewModel.deleteEvent().catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
 		}
 		return confirmed
 	})

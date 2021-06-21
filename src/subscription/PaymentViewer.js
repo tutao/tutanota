@@ -47,6 +47,7 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -357,14 +358,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							this._postings.unshift(newPosting)
 							m.redraw()
 						})
-						.catch(LockedError, e => "operationStillActive_msg")
-						.catch(PreconditionFailedError, error => {
+						.catch(ofClass(LockedError, e => "operationStillActive_msg"))
+						.catch(ofClass(PreconditionFailedError, error => {
 							return getPreconditionFailedPaymentMsg(error.data)
-						}).catch(BadGatewayError, error => {
-							return "paymentProviderNotAvailableError_msg"
-						}).catch(TooManyRequestsError, error => {
-							return "tooManyAttempts_msg"
 						}))
+						.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg"))
+						.catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg")))
 				}
 			})
 			.then(errorId => {

@@ -9,7 +9,7 @@ import type {MailboxDetail, MailModel} from "../../../src/mail/model/MailModel"
 import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
 import type {ContactModel} from "../../../src/contacts/model/ContactModel"
-import {downcast, identity, neverNull} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
 import type {TutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS} from "../../../src/mail/editor/SendMailModel"
@@ -504,8 +504,7 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await assertThrows(() => model.send(method, getConfirmation))
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e.message).equals(lang.get("noRecipients_msg"))
 			o(getConfirmation.callCount).equals(0)
 			o(worker.sendMailDraft.callCount).equals(0)
@@ -536,8 +535,7 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await assertThrows(() => model.send(method, getConfirmation))
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e.message).equals(lang.get("noPreSharedPassword_msg"))
 			o(getConfirmation.callCount).equals(1)
 			o(worker.sendMailDraft.callCount).equals(0)

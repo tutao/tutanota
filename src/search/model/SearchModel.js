@@ -7,6 +7,7 @@ import {DbError} from "../../api/common/error/DbError"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -61,7 +62,7 @@ export class SearchModel {
 			return this._worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
-			}).catch(DbError, (e) => {
+			}).catch(ofClass(DbError, (e) => {
 				console.log("DBError while search", e)
 				if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
 					console.log("Mail indexing was disabled, ignoring DBError")
@@ -69,7 +70,7 @@ export class SearchModel {
 				} else {
 					throw e
 				}
-			})
+			}))
 		}
 	}
 

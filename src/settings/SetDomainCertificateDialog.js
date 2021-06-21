@@ -16,6 +16,7 @@ import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN} from "../gui/base/ButtonN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -25,11 +26,11 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 		      .then(() => {
 			      dialog.close()
 		      })
-		      .catch(InvalidDataError, e => {
+		      .catch(ofClass(InvalidDataError, e => {
 			      Dialog.error("certificateError_msg")
-		      })
-		      .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-		      .catch(PreconditionFailedError, e => {
+		      }))
+		      .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+		      .catch(ofClass(PreconditionFailedError, e => {
 			      switch (e.data) {
 				      case "lock.locked":
 					      Dialog.error("operationStillActive_msg")
@@ -47,7 +48,7 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 				      default:
 					      throw e;
 			      }
-		      }))
+		      })))
 }
 
 export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateInfo): void {

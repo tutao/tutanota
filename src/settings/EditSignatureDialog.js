@@ -14,6 +14,7 @@ import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {neverNull} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -70,11 +71,11 @@ export function show(props: TutanotaProperties) {
 				const updatePromise = locator.entityClient.update(props)
 				return showProgressDialog("pleaseWait_msg", updatePromise)
 					.then(() => dialog.close())
-					.catch(PayloadTooLargeError, () => {
+					.catch(ofClass(PayloadTooLargeError, () => {
 						props.emailSignatureType = oldType
 						props.customEmailSignature = oldCustomValue
 						return Dialog.error("requestTooLarge_msg")
-					})
+					}))
 			}
 
 			if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {

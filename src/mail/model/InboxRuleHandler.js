@@ -20,6 +20,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {getElementId, getListId, isSameId} from "../../api/common/utils/EntityUtils";
 import {getInboxFolder} from "./MailUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -34,12 +35,12 @@ function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 		return Promise.each(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
 			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
-		}).catch(LockedError, e => { //LockedError should no longer be thrown!?!
+		}).catch(ofClass(LockedError, e => { //LockedError should no longer be thrown!?!
 			console.log("moving mail failed", e, moveToTargetFolder)
-		}).catch(PreconditionFailedError, e => {
+		})).catch(ofClass(PreconditionFailedError, e => {
 			// move mail operation may have been locked by other process
 			console.log("moving mail failed", e, moveToTargetFolder)
-		}).finally(() => {
+		})).finally(() => {
 			return sendMoveMailRequest(worker)
 		})
 	} else {
@@ -146,10 +147,11 @@ export function _findMatchingRule(entityClient: EntityClient, mail: Mail, rules:
 						.then(mailHeaders => {
 							return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
 						})
-						.catch(NotFoundError, noOp)
 						.catch(e => {
-							// Does the outer catch already handle this case?
-							console.error("Error processing inbox rule:", e.message)
+							if (!(e instanceof NotFoundError)) {
+								// Does the outer catch already handle this case?
+								console.error("Error processing inbox rule:", e.message)
+							}
 							return null
 						})
 				}
