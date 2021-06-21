@@ -1,5 +1,5 @@
 import {spawn} from "child_process"
-import {default as path, dirname} from "path"
+import {default as path} from "path"
 import {fileURLToPath} from "url"
 
 /**
@@ -8,7 +8,7 @@ import {fileURLToPath} from "url"
  * @returns {Promise<{stop: (function(): *), disconnectStdIo: disconnectStdIo}>}
  */
 export async function createBuildServer(options) {
-	const port = options.devServerPort || 9001
+	const port = options.devServerPort
 	const builder = options.builder
 	const preserveLogs = options.preserveLogs || false
 	const detached = options.detached || false
@@ -24,9 +24,12 @@ export async function createBuildServer(options) {
 	const dirname = path.dirname(fileURLToPath(import.meta.url))
 	const args = [
 		path.join(dirname, "BuildServerStarter.js"),
-		'-p', port,
 		'-d', directory,
 	]
+
+	if (port != null) {
+		args.push('-p', port)
+	}
 
 	if (preserveLogs) {
 		args.push('--preserve-logs')

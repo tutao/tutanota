@@ -103,12 +103,6 @@ export class BuildServerClient {
 	/**
 	 * Connects to the build server (starts an instance if none is running) and triggers the build.
 	 * See @buildWithServer() for parameter descriptions.
-	 * @param builder
-	 * @param watchFolders
-	 * @param devServerPort
-	 * @param webRoot
-	 * @param spaRedirect
-	 * @param buildOpts
 	 * @returns {Promise<unknown>}
 	 * @private
 	 */

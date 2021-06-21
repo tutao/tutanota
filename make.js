@@ -26,6 +26,11 @@ options
 	})
 	.parse(process.argv)
 
+if (opts.watch) {
+	console.error("Watch mode (dev server) is currently disabled")
+	process.exit(1)
+}
+
 const flowPromise = new Promise((resolve, reject) => {
 	// It's better to set listener right away
 	spawn(flow, ["--quiet"], {stdio: "inherit"}).on("exit", resolve).on("error", reject)
@@ -38,12 +43,13 @@ function runBuild() {
 	buildServerClient.buildWithServer({
 		forceRestart: opts.clean,
 		builder: path.resolve("./buildSrc/Builder.js"),
-		watchFolders: opts.watch ? [path.resolve("src")] : null,
+		watchFolders: [path.resolve("src")],
 		buildOpts: opts,
 		webRoot: path.resolve('build'),
 		spaRedirect: true,
-		devServerPort: 9001,
-		preserveLogs: true
+		// Disabled until dev server mode is fixed
+		// devServerPort: 9001,
+		preserveLogs: true,
 	})
 	                 .then(async () => {
 		                 const dictPath = "build/dictionaries"
