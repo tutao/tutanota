@@ -49,6 +49,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -286,9 +287,9 @@ export class UserViewer {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
 								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
-									.catch(NotAuthorizedError, e => {
+									.catch(ofClass(NotAuthorizedError, e => {
 										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
-									})
+									}))
 							}, () => Icons.Cancel)
 							return new TableLine([
 								getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))
@@ -417,9 +418,9 @@ export class UserViewer {
 			return worker.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage = usedStorage
 				m.redraw()
-			}).catch(BadRequestError, e => {
+			}).catch(ofClass(BadRequestError, e => {
 				// may happen if the user gets the admin flag removed
-			})
+			}))
 		})
 	}
 
@@ -440,13 +441,13 @@ export class UserViewer {
 					})
 				}
 			})
-		).catch(PreconditionFailedError, e => {
+		).catch(ofClass(PreconditionFailedError, e => {
 			if (restore) {
 				Dialog.error("emailAddressInUse_msg")
 			} else {
 				Dialog.error("stillReferencedFromContactForm_msg")
 			}
-		})
+		}))
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

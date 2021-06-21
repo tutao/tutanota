@@ -33,7 +33,7 @@ import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMails} from "../../mail/export/Exporter"
 import {worker} from "../../api/main/WorkerClient"
 import {makeMailBundle} from "../../mail/export/Bundler"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -258,9 +258,12 @@ export class MultiSearchViewer {
 						if (confirmed) {
 							mergeContacts(keptContact, goodbyeContact)
 							return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
-								return erase(goodbyeContact).catch(NotFoundError, noOp).then(() => {//is needed for correct selection behavior on mobile
-									this._searchListView.selectNone()
-								})
+								return erase(goodbyeContact)
+									.catch(ofClass(NotFoundError, noOp))
+									.then(() => {
+										//is needed for correct selection behavior on mobile
+										this._searchListView.selectNone()
+									})
 							}))
 						}
 					})

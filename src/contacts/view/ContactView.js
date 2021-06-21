@@ -50,6 +50,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {compareContacts} from "./ContactGuiUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -360,7 +361,7 @@ export class ContactView implements CurrentView {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
 					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
-						.catch(NotFoundError, noOp)
+						.catch(ofClass(NotFoundError, noOp))
 				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -449,8 +450,8 @@ export class ContactView implements CurrentView {
 			if (confirmed) {
 				contactList.list.getSelectedEntities().forEach(contact => {
 					erase(contact)
-						.catch(NotFoundError, noOp)
-						.catch(LockedError, noOp)
+						.catch(ofClass(NotFoundError, noOp))
+						.catch(ofClass(LockedError, noOp))
 				})
 			}
 		})
@@ -473,7 +474,7 @@ export class ContactView implements CurrentView {
 						return showProgressDialog("pleaseWait_msg",
 							update(keptContact)
 								.then(() => erase(goodbyeContact)))
-							.catch(NotFoundError, noOp)
+							.catch(ofClass(NotFoundError, noOp))
 					}
 				})
 			} else {

@@ -112,3 +112,31 @@ export function tap<T>(action: T => mixed): T => T {
 		return value
 	}
 }
+
+/**
+ * Helper utility intended to be used with typed excpetions and .catch() method of promise like so:
+ *
+ * ```js
+ *  class SpecificError extends Error {}
+ *
+ *  Promise.reject(new SpecificError())
+ *      .catch(ofClass(SpecificError, (e) => console.log("some error", e)))
+ *      .catch((e) => console.log("generic error", e))
+ * ```
+ *
+ * @param cls Class which will be caught
+ * @param catcher to handle only errors of type cls
+ * @returns handler which either forwards to catcher or rethrows
+ */
+export function ofClass<E, R>(cls: Class<E>, catcher: (E) => $Promisable<R>): ((any) => Promise<R>) {
+	return async (e) => {
+		if (e instanceof cls) {
+			return catcher(e)
+		} else {
+			// It's okay to rethrow because:
+			// 1. It preserves the original stacktrace
+			// 2. Because of 1. it is not that expensive
+			throw e
+		}
+	}
+}

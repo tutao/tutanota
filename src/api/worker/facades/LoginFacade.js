@@ -88,6 +88,7 @@ import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {GroupTypeRef} from "../../entities/sys/Group"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -222,14 +223,14 @@ export class LoginFacade {
 				if (secondFactorAuthGetReturn.secondFactorPending) {
 					return this._waitUntilSecondFactorApproved(accessToken, sessionId, 0)
 				}
-			}).catch(ConnectionError, (e) => {
+			}).catch(ofClass(ConnectionError, (e) => {
 				// connection error can occur on ios when switching between apps, just retry in this case.
 				if (retryOnNetworkError < 10) {
 					return this._waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
 				} else {
 					throw e
 				}
-			})
+			}))
 	}
 
 	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
@@ -387,20 +388,20 @@ export class LoginFacade {
 
 	_initIndexer(): Promise<void> {
 		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
-		           .catch(ServiceUnavailableError, e => {
+		           .catch(ofClass(ServiceUnavailableError, e => {
 			           console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 				           console.log("_initIndexer after ServiceUnavailableError")
 				           return this._initIndexer()
 			           })
-		           })
-		           .catch(ConnectionError, e => {
+		           }))
+		           .catch(ofClass(ConnectionError, e => {
 			           console.log("Retry init indexer in 30 seconds after ConnectionError")
 			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 				           console.log("_initIndexer after ConnectionError")
 				           return this._initIndexer()
 			           })
-		           })
+		           }))
 		           .catch(e => {
 			           this._worker.sendError(e)
 		           })
@@ -427,11 +428,12 @@ export class LoginFacade {
 			"v": SessionModelType.version
 		}
 		return this._restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json)
-		           .catch(NotAuthenticatedError, () => {
+		           .catch(ofClass(NotAuthenticatedError, () => {
 			           console.log("authentication failed => session is already closed")
-		           }).catch(NotFoundError, () => {
-				console.log("authentication failed => session instance is already deleted")
-			})
+		           }))
+		           .catch(ofClass(NotFoundError, () => {
+			           console.log("authentication failed => session instance is already deleted")
+		           }))
 	}
 
 	_getSessionElementId(accessToken: Base64Url): Id {
@@ -556,13 +558,13 @@ export class LoginFacade {
 			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32))
 		})
 		return serviceRequestVoid(TutanotaService.EntropyService, HttpMethod.PUT, entropyData)
-			.catch(LockedError, noOp)
-			.catch(ConnectionError, e => {
+			.catch(ofClass(LockedError, noOp))
+			.catch(ofClass(ConnectionError, e => {
 				console.log("could not store entropy", e)
-			})
-			.catch(ServiceUnavailableError, e => {
+			}))
+			.catch(ofClass(ServiceUnavailableError, e => {
 				console.log("could not store entropy", e)
-			})
+			}))
 	}
 
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
@@ -645,7 +647,12 @@ export class LoginFacade {
 		if (user == null || user.auth == null) {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
-		const {userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier} = this.generateRecoveryCode(this.getUserGroupKey())
+		const {
+			userEncRecoverCode,
+			recoverCodeEncUserGroupKey,
+			hexCode,
+			recoveryCodeVerifier
+		} = this.generateRecoveryCode(this.getUserGroupKey())
 		const recoverPasswordEntity = createRecoverCode()
 		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
 		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey

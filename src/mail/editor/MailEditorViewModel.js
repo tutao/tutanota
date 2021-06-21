@@ -36,6 +36,7 @@ import {ConnectionError, TooManyRequestsError} from "../../api/common/error/Rest
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
@@ -44,7 +45,7 @@ export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRe
 				model.attachFiles(files)
 			}
 			return files
-		}).catch(UserError, showUserError)
+		}).catch(ofClass(UserError, showUserError))
 }
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
@@ -53,12 +54,12 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 		: fileController.showFileChooser(true, fileTypes)
 
 	return fileSelector
-		.catch(PermissionError, () => {
+		.catch(ofClass(PermissionError, () => {
 			Dialog.error("fileAccessDeniedMobile_msg")
-		})
-		.catch(FileNotFoundError, () => {
+		}))
+		.catch(ofClass(FileNotFoundError, () => {
 			Dialog.error("couldNotAttachFile_msg")
-		})
+		}))
 }
 
 export function createPasswordField(model: SendMailModel, recipient: RecipientInfo): TextFieldAttrs {
@@ -126,11 +127,14 @@ function _downloadAttachment(attachment: Attachment) {
 			promise = fileController.downloadAndOpen(((attachment: any): TutanotaFile), true)
 		}
 		promise
-			.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 			.catch(e => {
-				const msg = e || "unknown error"
-				console.error("could not open file:", msg)
-				return Dialog.error("errorDuringFileOpen_msg")
+				if (e instanceof FileOpenError) {
+					return Dialog.error("canNotOpenFileOnDevice_msg")
+				} else {
+					const msg = e || "unknown error"
+					console.error("could not open file:", msg)
+					return Dialog.error("errorDuringFileOpen_msg")
+				}
 			})
 	}
 }
@@ -240,12 +244,12 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		} else {
 			resolveRecipientInfo(this.model.worker(), recipientInfo)
 				.then(() => m.redraw())
-				.catch(ConnectionError, e => {
+				.catch(ofClass(ConnectionError, e => {
 					// we are offline but we want to show the error dialog only when we click on send.
-				})
-				.catch(TooManyRequestsError, e => {
+				}))
+				.catch(ofClass(TooManyRequestsError, e => {
 					Dialog.error("tooManyAttempts_msg")
-				})
+				}))
 		}
 
 		return bubble

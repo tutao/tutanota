@@ -27,6 +27,7 @@ import type {ContactAddress} from "../../api/entities/tutanota/ContactAddress"
 import {ButtonN} from "../../gui/base/ButtonN"
 import type {ContactPhoneNumber} from "../../api/entities/tutanota/ContactPhoneNumber"
 import {downcast, noOp} from "../../api/common/utils/Utils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -294,9 +295,9 @@ export class ContactViewer implements Lifecycle<void> {
 	delete() {
 		Dialog.confirm("deleteContact_msg").then((confirmed) => {
 			if (confirmed) {
-				locator.entityClient.erase(this.contact).catch(NotFoundError, e => {
+				locator.entityClient.erase(this.contact).catch(ofClass(NotFoundError, e => {
 					// ignore because the delete key shortcut may be executed again while the contact is already deleted
-				})
+				}))
 			}
 		})
 	}

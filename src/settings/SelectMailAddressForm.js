@@ -19,6 +19,7 @@ import {firstThrow} from "../api/common/utils/ArrayUtils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -171,13 +172,13 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 					      }
 				      }
 			      })
-			      .catch(AccessDeactivatedError, () => {
+			      .catch(ofClass(AccessDeactivatedError, () => {
 				      this._onValidationFinished(
 					      cleanMailAddress,
 					      {isValid: false, errorId: "mailAddressDelay_msg"},
 					      onValidationResult
 				      )
-			      })
+			      }))
 			      .finally(() => {
 				      this._onBusyStateChanged(false, onBusyStateChanged)
 			      })

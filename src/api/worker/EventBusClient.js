@@ -43,6 +43,7 @@ import {
 	getLetId,
 	isSameId
 } from "../common/utils/EntityUtils";
+import {ofClass} from "../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -235,13 +236,13 @@ export class EventBusClient {
 		return p.then(() => {
 			this._entityUpdateMessageQueue.resume()
 			this._eventQueue.resume()
-		}).catch(ConnectionError, e => {
+		}).catch(ofClass(ConnectionError, e => {
 			console.log("not connected in connect(), close websocket", e)
 			this.close(CloseEventBusOption.Reconnect)
-		}).catch(CancelledError, e => {
+		})).catch(ofClass(CancelledError, e => {
 			// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
 			console.log("cancelled retry process entity events after reconnect")
-		}).catch(ServiceUnavailableError, e => {
+		})).catch(ofClass(ServiceUnavailableError, e => {
 			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
 			// some EventBatches/missed events are processed already now
 			// for an existing connection we just keep the current state and continue loading missed events for the other groups
@@ -263,7 +264,7 @@ export class EventBusClient {
 			})
 			this._serviceUnavailableRetry = promise
 			return promise
-		}).catch(e => {
+		})).catch(e => {
 			this._entityUpdateMessageQueue.resume()
 			this._eventQueue.resume()
 			this._worker.sendError(e)
@@ -460,9 +461,9 @@ export class EventBusClient {
 							           }
 						           }
 					           )
-					           .catch(NotAuthorizedError, () => {
+					           .catch(ofClass(NotAuthorizedError, () => {
 						           console.log("could not download entity updates => lost permission")
-					           })
+					           }))
 				}).then(() => {
 					this._lastUpdateTime = Date.now()
 					this._eventQueue.resume()
@@ -520,7 +521,7 @@ export class EventBusClient {
 					           })
 				           }
 			           })
-		}).catch(ServiceUnavailableError, e => {
+		}).catch(ofClass(ServiceUnavailableError, e => {
 			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
 			console.log("retry processing event in 30s", e)
 			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
@@ -533,7 +534,7 @@ export class EventBusClient {
 			})
 			this._serviceUnavailableRetry = promise
 			return promise
-		})
+		}))
 	}
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {

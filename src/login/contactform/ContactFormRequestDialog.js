@@ -36,6 +36,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {InputField} from "../../api/entities/tutanota/InputField"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -362,7 +363,7 @@ export class ContactFormRequestDialog {
 				return showProgressDialog("sending_msg", sendRequest)
 					.then(result => {return showConfirmDialog(result.userEmailAddress)})
 					.then(() => this._close())
-					.catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
+					.catch(ofClass(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg")))
 			}
 		})
 	}

@@ -39,6 +39,7 @@ import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -110,13 +111,13 @@ export function handleUncaughtError(e: Error) {
 							      errorMessage("")
 							      loginDialogActive = false
 						      })
-						      .catch(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg')))
-						      .catch(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg')))
-						      .catch(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg')))
-						      .catch(ConnectionError, e => {
+						      .catch(ofClass(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg'))))
+						      .catch(ofClass(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg'))))
+						      .catch(ofClass(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg'))))
+						      .catch(ofClass(ConnectionError, e => {
 							      errorMessage(lang.get('emptyString_msg'))
 							      throw e
-						      })
+						      }))
 						      .finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				      }
 			      )

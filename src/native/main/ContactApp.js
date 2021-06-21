@@ -5,6 +5,7 @@ import {Request} from "../../api/common/WorkerProtocol"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {ContactSuggestion} from "../../misc/ContactSuggestion"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -19,6 +20,6 @@ export function findRecipients(text: string, maxNumberOfSuggestions: number, sug
 				                suggestions.push(contact)
 			                }
 		                }
-	                }).catch(PermissionError, () => {
-		}) // we do not add contacts from the native address book to the suggestions in case of a non-granted permission
+	                }).catch(ofClass(PermissionError, () => {
+		})) // we do not add contacts from the native address book to the suggestions in case of a non-granted permission
 }

@@ -14,6 +14,7 @@ import type {ContactList} from "../../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../api/entities/tutanota/ContactList"
 import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils";
 import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -58,11 +59,11 @@ export class ContactModelImpl implements ContactModel {
 						                      ? contact
 						                      : null
 				                      })
-				                      .catch(NotFoundError, () => null)
-				                      .catch(NotAuthorizedError, () => null)
+				                      .catch(ofClass(NotFoundError, () => null))
+				                      .catch(ofClass(NotAuthorizedError, () => null))
 			           })
 		           })
-		           .catch(DbError, async () => {
+		           .catch(ofClass(DbError, async () => {
 			           const listId = await this.contactListId()
 			           if (listId) {
 				           const contacts = await this._entityClient.loadAll(ContactTypeRef, listId)
@@ -70,7 +71,7 @@ export class ContactModelImpl implements ContactModel {
 					           contact.mailAddresses.some(a => a.address.trim().toLowerCase() === cleanMailAddress)
 				           )
 			           }
-		           })
+		           }))
 	}
 
 	/**
@@ -82,10 +83,10 @@ export class ContactModelImpl implements ContactModel {
 		const loadedContacts = await Promise.map(resultsByListId, ([listId, idTuples]) => {
 			// we try to load all contacts from the same list in one request
 			return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
-			           .catch(NotAuthorizedError, e => {
+			           .catch(ofClass(NotAuthorizedError, e => {
 				           console.log("tried to access contact without authorization", e)
 				           return []
-			           })
+			           }))
 		}, {concurrency: 3})
 		return flat(loadedContacts)
 	}
@@ -98,12 +99,12 @@ export function lazyContactListId(logins: LoginController, entityClient: EntityC
 			.then((contactList: ContactList) => {
 				return contactList.contacts
 			})
-			.catch(NotFoundError, e => {
+			.catch(ofClass(NotFoundError, e => {
 				if (!logins.getUserController().isInternalUser()) {
 					return null // external users have no contact list.
 				} else {
 					throw e
 				}
-			})
+			}))
 	})
 }

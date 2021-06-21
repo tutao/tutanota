@@ -24,6 +24,7 @@ import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from ".
 import type {ListElement} from "../../api/common/utils/EntityUtils"
 import type {Shortcut} from "../../misc/KeyManager"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -855,9 +856,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 						return scrollTarget
 					})
 				})
-			}).catch(BadRequestError, e => {
+			}).catch(ofClass(BadRequestError, e => {
 				console.log("invalid element id", listElementId, e)
-			})
+			}))
 		}
 	}
 

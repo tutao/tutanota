@@ -27,6 +27,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -207,8 +208,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				.then(() => {
 					return true
 				})
-				.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
-				.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false))
+				.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false)))
+				.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false)))
 				.finally((result) => updateNbrOfAliases(this.data.editAliasFormAttrs).then(() => result))
 		}
 	}

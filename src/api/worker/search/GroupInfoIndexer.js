@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;
@@ -56,10 +57,10 @@ export class GroupInfoIndexer {
 			return this.suggestionFacade.store().then(() => {
 				return {groupInfo, keyToIndexEntries}
 			})
-		}).catch(NotFoundError, () => {
+		}).catch(ofClass(NotFoundError, () => {
 			console.log("tried to index non existing group info")
 			return null
-		})
+		}))
 	}
 
 	/**

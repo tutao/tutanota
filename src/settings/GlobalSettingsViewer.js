@@ -51,6 +51,7 @@ import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/com
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {formatPrice} from "../subscription/PriceUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -227,7 +228,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.emailSenderList,
-						updateInstance: () => update(props).catch(LockedError, noOp)
+						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",
@@ -335,16 +336,16 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				.then(gi => {
 					modifiedGroupInfo(gi)
 				})
-				.catch(NotAuthorizedError, e => {
+				.catch(ofClass(NotAuthorizedError, e => {
 					// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-				}))
+				})))
 		}
 		if (entry.groupInfo) {
 			groupInfoLoadingPromises.push(load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
 				groupInfo(gi)
-			}).catch(NotAuthorizedError, e => {
+			}).catch(ofClass(NotAuthorizedError, e => {
 				// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-			}))
+			})))
 		}
 		Promise.all(groupInfoLoadingPromises).then(() => {
 			let dialog = Dialog.showActionDialog({
@@ -520,7 +521,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		      .then(confirmed => {
 			      if (confirmed) {
 				      worker.removeDomain(domainInfo.domain)
-				            .catch(PreconditionFailedError, e => {
+				            .catch(ofClass(PreconditionFailedError, e => {
 					            let registrationDomains = this._props() != null ? this._props()
 					                                                                  .whitelabelRegistrationDomains
 					                                                                  .map(domainWrapper => domainWrapper.value) : []
@@ -529,8 +530,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					            } else {
 						            Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
 					            }
-				            })
-				            .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
+				            }))
+				            .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
 			      }
 		      })
 	}

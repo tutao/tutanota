@@ -18,6 +18,7 @@ import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
 import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
 import {formatDateTime} from "../../misc/Formatter"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo,
@@ -52,14 +53,14 @@ export class WhitelabelBrandingDomainSettings implements MComponent<WhitelabelBr
 				Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 					if (ok) {
 						showProgressDialog("pleaseWait_msg", worker.deleteCertificate(whitelabelDomain))
-							.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-							.catch(PreconditionFailedError, e => {
+							.catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+							.catch(ofClass(PreconditionFailedError, e => {
 								if (e.data === "lock.locked") {
 									Dialog.error("operationStillActive_msg")
 								} else {
 									throw e;
 								}
-							})
+							}))
 					}
 				})
 			},

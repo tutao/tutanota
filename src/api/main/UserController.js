@@ -28,6 +28,7 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
+import {ofClass} from "../common/utils/PromiseUtils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
@@ -298,11 +299,11 @@ export function initUserController(
 		.all([
 			loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
 			load(UserSettingsGroupRootTypeRef, user.userGroup.group)
-				.catch(NotFoundError, () =>
+				.catch(ofClass(NotFoundError, () =>
 					setup(null, Object.assign(createUserSettingsGroupRoot(), {
 						_ownerGroup: user.userGroup.group
 					}))
-						.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group)))
+						.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group))))
 		])
 		.then(([props, userSettingsGroupRoot]) =>
 			new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot)

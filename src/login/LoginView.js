@@ -25,6 +25,7 @@ import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {themeManager} from "../gui/theme"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 import {themeController} from "../gui/theme"
 import {createAsyncDropdown} from "../gui/base/DropdownN"
 
@@ -343,8 +344,14 @@ export class LoginView {
 
 			showProgressDialog("loading_msg", showWizardPromise)
 				.then(dialog => dialog.show())
-				.catch(NotAuthorizedError, NotFoundError, () => { throw new UserError("invalidGiftCard_msg") })
-				.catch(UserError, showUserError)
+				.catch((e) => {
+					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+						throw new UserError("invalidGiftCard_msg")
+					} else {
+						throw e
+					}
+				})
+				.catch(ofClass(UserError, showUserError))
 			return
 		}
 		this._showingSignup = false

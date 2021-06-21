@@ -48,6 +48,7 @@ import {SysService} from "../../api/entities/sys/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
 import type {WorkerClient} from "../../api/main/WorkerClient"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -151,7 +152,7 @@ function getRecipientKeyData(worker: WorkerClient, mailAddress: string): Promise
 		HttpMethod.GET,
 		createPublicKeyData({mailAddress}),
 		PublicKeyReturnTypeRef
-	).catch(NotFoundError, () => null)
+	).catch(ofClass(NotFoundError, () => null))
 }
 
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean): string {
@@ -433,8 +434,8 @@ export function markMails(entityClient: EntityClient, mails: Mail[], unread: boo
 		if (mail.unread !== unread) {
 			mail.unread = unread
 			return entityClient.update(mail)
-			                   .catch(NotFoundError, noOp)
-			                   .catch(LockedError, noOp)
+			                   .catch(ofClass(NotFoundError, noOp))
+			                   .catch(ofClass(LockedError, noOp))
 		} else {
 			return Promise.resolve()
 		}

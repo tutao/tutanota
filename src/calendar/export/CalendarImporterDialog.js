@@ -21,6 +21,7 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -68,10 +69,10 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 				              })
 		              return showProgressDialog("importCalendar_label", importPromise.then(() => progress(100)), progress)
 	              })
-	              .catch(ParserError, (e) => {
+	              .catch(ofClass(ParserError, (e) => {
 		              console.log("Failed to parse file", e)
 		              Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
-	              })
+	              }))
 
 }
 

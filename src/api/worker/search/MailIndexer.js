@@ -41,6 +41,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
 import {TypeRef} from "../../common/utils/TypeRef";
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -125,14 +126,14 @@ export class MailIndexer {
 				           return {mail, keyToIndexEntries}
 			           })
 		           })
-		           .catch(NotFoundError, () => {
+		           .catch(ofClass(NotFoundError, () => {
 			           console.log("tried to index non existing mail")
 			           return null
-		           })
-		           .catch(NotAuthorizedError, () => {
+		           }))
+		           .catch(ofClass(NotAuthorizedError, () => {
 			           console.log("tried to index contact without permission")
 			           return null
-		           })
+		           }))
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
@@ -177,7 +178,7 @@ export class MailIndexer {
 							                         const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS)
 							                                                     .getTime()
 							                         this.indexMailboxes(user, oldestTimestamp)
-							                             .catch(CancelledError, (e) => {console.log("cancelled initial indexing", e)})
+							                             .catch(ofClass(CancelledError, (e) => {console.log("cancelled initial indexing", e)}))
 							                         return t2.wait()
 						                         })
 					              })
@@ -211,10 +212,10 @@ export class MailIndexer {
 		return this.mailboxIndexingPromise.then(() => {
 			if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
 				this.indexMailboxes(user, newOldestTimestamp)
-				    .catch(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)})
+				    .catch(ofClass(CancelledError, (e) => {console.log("extend mail index has been cancelled", e)}))
 				return this.mailboxIndexingPromise
 			}
-		}).catch(CancelledError, e => {console.log("extend mail index has been cancelled", e)})
+		}).catch(ofClass(CancelledError, e => {console.log("extend mail index has been cancelled", e)}))
 	}
 
 	/**
@@ -528,7 +529,7 @@ export class MailIndexer {
 						           ])
 					           }
 				           })
-				           .catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
+				           .catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) {
 					// Check that this is *not* a move event. Move events are handled separately.

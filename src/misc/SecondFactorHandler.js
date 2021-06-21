@@ -25,6 +25,7 @@ import {theme} from "../gui/theme"
 import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -103,7 +104,7 @@ export class SecondFactorHandler {
 									}, 60 * 1000)
 								}
 							})
-							.catch(NotFoundError, (e) => console.log("Failed to load session", e))
+							.catch(ofClass(NotFoundError, (e) => console.log("Failed to load session", e)))
 					} else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId
 						&& isSameId(this._otherLoginSessionId, sessionId)) {
 						return load(SessionTypeRef, sessionId)
@@ -115,7 +116,7 @@ export class SecondFactorHandler {
 									this._otherLoginDialog = null
 								}
 							})
-							.catch(NotFoundError, (e) => console.log("Failed to load session", e))
+							.catch(ofClass(NotFoundError, (e) => console.log("Failed to load session", e)))
 					} else if (update.operation === OperationType.DELETE && this._otherLoginSessionId
 						&& isSameId(this._otherLoginSessionId, sessionId)) {
 						if (this._otherLoginDialog) {
@@ -163,9 +164,9 @@ export class SecondFactorHandler {
 					.then(() => {
 						this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
 					})
-					.catch(NotAuthenticatedError, () => Dialog.error("loginFailed_msg"))
-					.catch(BadRequestError, () => Dialog.error("loginFailed_msg"))
-					.catch(AccessBlockedError, () => Dialog.error("loginFailedOften_msg"))
+					.catch(ofClass(NotAuthenticatedError, () => Dialog.error("loginFailed_msg")))
+					.catch(ofClass(BadRequestError, () => Dialog.error("loginFailed_msg")))
+					.catch(ofClass(AccessBlockedError, () => Dialog.error("loginFailedOften_msg")))
 					.finally(() => {
 						state.otpInProgress = false
 					})

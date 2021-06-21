@@ -13,6 +13,7 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -44,13 +45,13 @@ export class FileController {
 			                        .then((file) => this.open(file))
 		}
 
-		return showProgressDialog("pleaseWait_msg", downloadPromise.catch(CryptoError, e => {
+		return showProgressDialog("pleaseWait_msg", downloadPromise.catch(ofClass(CryptoError, e => {
 			console.log(e)
 			return Dialog.error("corrupted_msg")
-		}).catch(ConnectionError, e => {
+		})).catch(ofClass(ConnectionError, e => {
 			console.log(e)
 			return Dialog.error("couldNotAttachFile_msg")
-		}))
+		})))
 	}
 
 	/**
@@ -80,8 +81,8 @@ export class FileController {
 		const p = Promise
 			.map(tutanotaFiles,
 				tutanotaFile => downloadContent(tutanotaFile)
-					.catch(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name))
-					.catch(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name)),
+					.catch(ofClass(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name)))
+					.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name))),
 				concurrency)
 			.then((results) => results.filter(Boolean)) // filter out failed files
 		// in apps, p is a  Promise<FileReference[]> that have location props.

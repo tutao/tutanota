@@ -14,6 +14,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -94,7 +95,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return showErrorDialog ? Dialog.error(message).then(() => false) : false
 			}
 			return true
-		}).catch(PreconditionFailedError, e => {
+		}).catch(ofClass(PreconditionFailedError, e => {
 			if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 				// ignore promise. always return false to not switch to next page.
 				showBusinessFeatureRequiredDialog("businessFeatureRequiredMultipleDomains_msg")
@@ -102,7 +103,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				Dialog.error(() => e.toString())
 			}
 			return false
-		})
+		}))
 	}
 
 	isSkipAvailable(): boolean {return false}

@@ -21,6 +21,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -68,9 +69,9 @@ export class WhitelabelChildrenListView {
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
 					if (listId) {
-						return load(WhitelabelChildTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
+						return load(WhitelabelChildTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 							// we return null if the entity does not exist
-						})
+						}))
 					} else {
 						return null
 					}

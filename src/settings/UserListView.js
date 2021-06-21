@@ -30,6 +30,7 @@ import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -84,9 +85,9 @@ export class UserListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(GroupInfoTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
+					return load(GroupInfoTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
-					})
+					}))
 				})
 			},
 			sortCompare: compareGroupInfos,
