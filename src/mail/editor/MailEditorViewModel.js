@@ -312,6 +312,8 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		const createdContactReceiver = (contactElementId) => {
 			const mailAddress = recipient.mailAddress
 			this._contactModel.contactListId().then(contactListId => {
+				if (!contactListId) return
+
 				const id: IdTuple = [contactListId, contactElementId]
 				this.model.entity().load(ContactTypeRef, id).then(contact => {
 					if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {

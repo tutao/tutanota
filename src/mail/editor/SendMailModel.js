@@ -803,6 +803,7 @@ export class SendMailModel {
 				return checkApprovalStatus(true, ApprovalStatus.SPAM_SENDER)
 					.then(() => {
 						console.log("could not send mail (blocked access)", e)
+						return false
 					})
 			})
 			.catch(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")})
@@ -864,7 +865,7 @@ export class SendMailModel {
 	}
 
 
-	_sendApprovalMail(body: string): Promise<void> {
+	_sendApprovalMail(body: string): Promise<*> {
 		const listId = "---------c--";
 		const m = createApprovalMail({
 			_id: [listId, stringToCustomId(this._senderAddress)],

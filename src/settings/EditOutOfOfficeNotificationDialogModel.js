@@ -155,10 +155,10 @@ export class EditOutOfOfficeNotificationDialogModel {
 	}
 
 	/**
-	 * throws UserError
-	 * throw Busines
+	 * @throws UserError
+	 * @throws BusinessFeatureRequiredError
 	 */
-	saveOutOfOfficeNotification(): Promise<void> {
+	saveOutOfOfficeNotification(): Promise<*> {
 		return Promise.resolve()
 		              .then(() => this.getNotificationFromData())
 		              .then(sendableNotification => {

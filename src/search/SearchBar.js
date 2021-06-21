@@ -357,7 +357,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	_downloadResults({results, restriction}: SearchResult): Promise<Array<?Entry>> {
+	_downloadResults({results, restriction}: SearchResult): Promise<Array<Entry>> {
 		if (results.length === 0) {
 			return Promise.resolve(([]))
 		}
@@ -365,11 +365,19 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		const byList = groupBy(results, listIdPart)
 		return Promise
 			.map(byList,
-				([listId, idTuples]) => locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart)),
+				([listId, idTuples]) => {
+					return locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart))
+					              .catch(NotFoundError, () => {
+						              console.log("mail list from search index not found")
+						              return []
+					              })
+					              .catch(NotAuthorizedError, () => {
+						              console.log("no permission on instance from search index")
+						              return []
+					              })
+				},
 				{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
 			.then(flat)
-			.catch(NotFoundError, () => console.log("mail from search index not found"))
-			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index"))
 	}
 
 	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
@@ -538,8 +546,8 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	_filterResults(instances: Array<?Entry>, restriction: SearchRestriction): Entries {
-		let filteredInstances = instances.filter(Boolean) // filter not found results
+	_filterResults(instances: $ReadOnlyArray<Entry>, restriction: SearchRestriction): Entries {
+		let filteredInstances = instances.slice()
 
 		// filter group infos for local admins
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !logins.getUserController().isGlobalAdmin()) {
