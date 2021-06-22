@@ -25,7 +25,7 @@ import {theme} from "../gui/theme"
 import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -53,8 +53,8 @@ export class SecondFactorHandler {
 			return
 		}
 		this._otherLoginListenerInitialized = true
-		locator.eventController.addEntityListener((updates) => Promise
-			.each(updates, (update) => {
+		locator.eventController.addEntityListener((updates) =>
+			promiseMap(updates, (update) => {
 				let sessionId = [neverNull(update.instanceListId), update.instanceId];
 				if (isUpdateForTypeRef(SessionTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {

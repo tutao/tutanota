@@ -81,8 +81,6 @@ declare class Promise<+R> {
 	static mapSeries<T, U>(array: $Promisable<Iterable<T>>,
 	                       mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U
 	): Promise<U[]>;
-	static each<T, U>(array: Promise<Iterable<T>> | Iterable<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
-
 	static reduce<T, U>(array: $Promisable<Iterable<T>>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => (Promise<U> | U), initialValue: U): Promise<U>;
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 	static config(configuration: Object): void;

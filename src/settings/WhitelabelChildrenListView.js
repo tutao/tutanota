@@ -21,7 +21,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -130,7 +130,7 @@ export class WhitelabelChildrenListView {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && this._listId.getSync() === update.instanceListId) {
 				return this.list.entityEventReceived(update.instanceId, update.operation)
 			}

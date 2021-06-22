@@ -14,7 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;
@@ -98,7 +98,7 @@ export class GroupInfoIndexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event) => {
 			if (userIsLocalOrGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {

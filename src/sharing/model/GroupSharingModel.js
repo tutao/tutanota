@@ -28,7 +28,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {resolveRecipientInfo} from "../../mail/model/MailUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {noOp} from "../../api/common/utils/Utils"
 
 export class GroupSharingModel {
@@ -115,7 +115,7 @@ export class GroupSharingModel {
 
 	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 		const externalRecipients = []
-		return Promise.each(recipients, (recipient) => {
+		return promiseMap(recipients, (recipient) => {
 			return resolveRecipientInfo(this.worker, recipient)
 				.then(r => {
 					if (r.type !== RecipientInfoType.INTERNAL) {
@@ -156,7 +156,7 @@ export class GroupSharingModel {
 	}
 
 	entityEventsReceived: (($ReadOnlyArray<EntityUpdateData>, Id) => Promise<void>) = (updates, eventOwnerGroupId) => {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (!isSameId(eventOwnerGroupId, getEtId(this.group))) {
 				// ignore events of different group here
 				return

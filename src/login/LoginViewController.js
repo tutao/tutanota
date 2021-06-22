@@ -42,7 +42,7 @@ import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOffice
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import type {Theme} from "../gui/theme"
 import {themeController} from "../gui/theme"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -80,7 +80,7 @@ export class LoginViewController implements ILoginViewController {
 
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
-		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
+		return worker.initialized.then(() => promiseMap(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
 			             .then(userPw => {
 				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users

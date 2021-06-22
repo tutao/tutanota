@@ -27,7 +27,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -199,7 +199,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			let promise = Promise.resolve()
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				promise = this._updateSessions()

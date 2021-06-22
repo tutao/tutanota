@@ -49,7 +49,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -451,7 +451,7 @@ export class UserViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			let promise = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE

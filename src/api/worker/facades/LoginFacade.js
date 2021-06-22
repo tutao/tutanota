@@ -46,11 +46,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull, noOp} from "../../common/utils/Utils"
-import {
-	_loadEntity,
-	HttpMethod,
-	MediaType
-} from "../../common/EntityFunctions"
+import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -87,8 +83,7 @@ import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderSta
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
-import {GroupTypeRef} from "../../entities/sys/Group"
-import {delay, ofClass} from "../../common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -569,7 +564,7 @@ export class LoginFacade {
 	}
 
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		return Promise.each(data, (update) => {
+		return promiseMap(data, (update) => {
 			if (this._user && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(UserTypeRef, update.application, update.type)
 				&& isSameId(this._user._id, update.instanceId)) {

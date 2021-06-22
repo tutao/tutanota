@@ -89,7 +89,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -804,7 +804,7 @@ export class CalendarView implements CurrentView {
 			// take care of this now.
 			const aggregateShortEvents = []
 			const aggregateLongEvents = []
-			return Promise.each(calendarInfos.values(), (calendarInfo) => {
+			return promiseMap(calendarInfos.values(), (calendarInfo) => {
 				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
@@ -840,7 +840,7 @@ export class CalendarView implements CurrentView {
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		return this._calendarInfos.then((calendarEvents) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 					m.redraw()
 				}

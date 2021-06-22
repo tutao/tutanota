@@ -47,7 +47,7 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -306,7 +306,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			return this.processUpdate(update)
 		}).then(noOp)
 	}

@@ -3,6 +3,7 @@
 import type {DeferredObject} from "../common/utils/Utils"
 import {defer, noOp} from "../common/utils/Utils"
 import {WorkerImpl} from "./WorkerImpl"
+import {promiseMap} from "../common/utils/PromiseUtils"
 
 export class SuspensionHandler {
 	_isSuspended: boolean;
@@ -43,7 +44,7 @@ export class SuspensionHandler {
 				const deferredRequests = this._deferredRequests
 				this._deferredRequests = []
 				// do wee need to delay those requests?
-				Promise.each(deferredRequests, (deferredRequest) => {
+				promiseMap(deferredRequests, (deferredRequest) => {
 					deferredRequest.resolve()
 					// Ignore all errors here, any errors should be caught by whoever is handling the deferred request
 					return deferredRequest.promise.catch(noOp)

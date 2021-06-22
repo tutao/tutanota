@@ -45,6 +45,7 @@ import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmail
 import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
 import type {UpdatableSettingsViewer} from "../SettingsView"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -348,7 +349,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customer.reset()
 				return this._customer.getAsync().then(() => m.redraw())

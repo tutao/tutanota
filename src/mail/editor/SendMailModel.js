@@ -68,7 +68,7 @@ import {getFromMap} from "../../api/common/utils/MapUtils"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
@@ -200,7 +200,7 @@ export class SendMailModel {
 		this.updateAvailableNotificationTemplateLanguages()
 
 		this._entityEventReceived = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				return this._handleEntityEvent(update)
 			}).then(noOp)
 		}
