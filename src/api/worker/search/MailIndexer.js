@@ -54,6 +54,7 @@ export class MailIndexer {
 	currentIndexTimestamp: number; // The oldest timestamp that has been indexed for all mail lists
 	mailIndexingEnabled: boolean;
 	mailboxIndexingPromise: Promise<void>;
+	isIndexing: boolean = false;
 	_indexingCancelled: boolean;
 	_excludedListIds: Id[];
 
@@ -225,6 +226,7 @@ export class MailIndexer {
 		if (!this.mailIndexingEnabled) {
 			return Promise.resolve()
 		}
+		this.isIndexing = true
 		this._indexingCancelled = false
 
 		this._core.resetStats()
@@ -303,6 +305,7 @@ export class MailIndexer {
 			})
 			.finally(() => {
 				this._core.queue.resume()
+				this.isIndexing = false
 			})
 		return this.mailboxIndexingPromise.then(noOp)
 	}

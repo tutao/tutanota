@@ -68,6 +68,7 @@ interface Message {
 
 export class WorkerClient implements EntityRestInterface {
 	initialized: Promise<void>;
+	_isInitialized: boolean = false
 
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
@@ -83,6 +84,7 @@ export class WorkerClient implements EntityRestInterface {
 		this._initWorker()
 
 		this.initialized.then(() => {
+			this._isInitialized = true
 			this._initServices()
 		})
 		this._queue.setCommands({
@@ -484,7 +486,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	_postRequest(msg: Request): Promise<any> {
-		if (!this.initialized.isFulfilled()) {
+		if (!this._isInitialized) {
 			throw new Error("worker has not been initialized, request: " + msg.type)
 		}
 		return this._queue.postMessage(msg)

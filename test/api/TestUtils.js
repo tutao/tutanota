@@ -9,6 +9,7 @@ import {DbTransaction} from "../../src/api/worker/search/DbFacade"
 import {fixedIv, uint8ArrayToKey} from "../../src/api/worker/crypto/CryptoUtils"
 import {assertNotNull, downcast, neverNull} from "../../src/api/common/utils/Utils"
 import type {DeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
+import {delay} from "../../src/api/common/utils/PromiseUtils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -180,4 +181,18 @@ export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DeviceKeyProvi
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
 		}
 	}
+}
+
+export async function assertResolvedIn(ms: number, ...promises: $ReadOnlyArray<Promise<*>>): Promise<*> {
+	const allP = [delay(ms).then(() => "timeout")]
+		.concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
+	const result = await Promise.race(allP)
+	o(result).notEquals("timeout")
+}
+
+export async function assertNotResolvedIn(ms: number, ...promises: $ReadOnlyArray<Promise<*>>): Promise<*> {
+	const allP = [delay(ms).then(() => "timeout")]
+		.concat(promises.map((p, i) => p.then(() => `promise ${i} is resolved`)))
+	const result = await Promise.race(allP)
+	o(result).equals("timeout")
 }
