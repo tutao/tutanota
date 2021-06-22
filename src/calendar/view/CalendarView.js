@@ -27,7 +27,7 @@ import {
 	TimeFormat
 } from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
-import {downcast, freezeMap, memoized, neverNull} from "../../api/common/utils/Utils"
+import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
 	addDaysForEvent,
@@ -894,7 +894,7 @@ export class CalendarView implements CurrentView {
 					})
 
 				}
-			}).return()
+			}).then(noOp)
 		})
 	}
 

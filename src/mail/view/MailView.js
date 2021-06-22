@@ -229,7 +229,7 @@ export class MailView implements CurrentView {
 		locator.eventController.addEntityListener((updates) => {
 			return Promise.each(updates, update => {
 				return this.entityEventReceived(update)
-			}).return()
+			}).then(noOp)
 		})
 	}
 

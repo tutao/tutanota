@@ -52,7 +52,7 @@ export class MailModel {
 	/** Empty stream until init() is finished, exposed mostly for map()-ing, use getMailboxDetails to get a promise */
 	mailboxDetails: Stream<MailboxDetail[]>
 	mailboxCounters: Stream<MailboxCounters>
-	_initialization: ?Promise<void>
+	_initialization: ?Promise<*>
 	_notifications: Notifications
 	_eventController: EventController
 	_worker: WorkerClient;
@@ -104,7 +104,7 @@ export class MailModel {
 			})
 		).then(details => {
 			this.mailboxDetails(details)
-		}).return()
+		})
 		return this._initialization
 	}
 
@@ -178,7 +178,7 @@ export class MailModel {
 	/**
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
 	 */
-	_moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
 		let moveMails = mails.filter(m => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
 		// Do not move if target is the same as the current mailFolder
 		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
@@ -187,32 +187,29 @@ export class MailModel {
 			moveMailData.targetFolder = targetMailFolder._id
 			moveMailData.mails = mails.map(m => m._id)
 			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveMailData.mails)
-			return Promise.each(mailChunks, mailChunk => {
+			for (const mailChunk of mailChunks) {
 				moveMailData.mails = mailChunk
-				return this._worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
-			})
-			              .return()
+				await this._worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+			}
 		}
-		return Promise.resolve()
 	}
 
 	/**
 	 * Preferably use moveMails() in MailGuiUtils.js which has built-in error handling
 	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
 	 */
-	moveMails(mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
+	async moveMails(mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
-		return Promise.each(mailsPerFolder, (mapEntry) => {
-			const [listId, mails] = mapEntry
+		for (const [listId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(listId)
 			if (sourceMailFolder) {
-				return this._moveMails(mails, targetMailFolder)
+				await this._moveMails(mails, targetMailFolder)
 			} else {
 				console.log("Move mail: no mail folder for list id", listId)
 			}
-		}).return()
+		}
 	}
 
 	/**
@@ -220,60 +217,59 @@ export class MailModel {
 	 * otherwise moves them to the trash folder.
 	 * A deletion confirmation must have been show before.
 	 */
-	deleteMails(mails: $ReadOnlyArray<Mail>): Promise<void> {
+	async deleteMails(mails: $ReadOnlyArray<Mail>): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
-		return Promise.each(mailsPerFolder, (mapEntry) => {
-			const [listId, mails] = mapEntry
+		for (const [listId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(listId)
 			if (sourceMailFolder) {
-				return this.isFinalDelete(sourceMailFolder) ?
-					// finally delete mails that are in spam or trash
-					this._finallyDeleteMails(mails) :
-					// move other mails to trash folder of the mailbox
-					this.getMailboxFolders(mails[0]).then(folders => this._moveMails(mails, this.getTrashFolder(folders)))
+				if (this.isFinalDelete(sourceMailFolder)) {
+					await this._finallyDeleteMails(mails)
+				} else {
+					await this.getMailboxFolders(mails[0]).then(folders => this._moveMails(mails, this.getTrashFolder(folders)))
+				}
 			} else {
 				console.log("Delete mail: no mail folder for list id", listId)
 			}
-		}).return()
+		}
 	}
 
 	/**
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
 	 */
-	_finallyDeleteMails(mails: Mail[]): Promise<void> {
+	async _finallyDeleteMails(mails: Mail[]): Promise<void> {
 		if (!mails.length) return Promise.resolve()
 		let deleteMailData = createDeleteMailData()
 		const mailFolder = neverNull(this.getMailFolder(getListId(mails[0])))
 		deleteMailData.folder = mailFolder._id
 		const mailIds = mails.map(m => m._id)
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
-		return Promise.each(mailChunks, mailChunk => {
+		for (const mailChunk of mailChunks) {
 			deleteMailData.mails = mailChunk
-			return this._worker.serviceRequest(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
-		}).return()
+			await this._worker.serviceRequest(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+	async entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				return this._init().then(() => m.redraw())
+				await this._init()
+				m.redraw()
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
-					return this._init().then(() => m.redraw())
+					await this._init()
+					m.redraw
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
-					return this._entityClient.load(UserTypeRef, update.instanceId).then(updatedUser => {
-						let newMemberships = updatedUser.memberships
-						                                .filter(membership => membership.groupType === GroupType.Mail)
-						return this.getMailboxDetails().then(mailboxDetails => {
-							if (newMemberships.length !== mailboxDetails.length) {
-								return this._init().then(() => m.redraw())
-							}
-						})
-					})
+					const updatedUser = await this._entityClient.load(UserTypeRef, update.instanceId)
+					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType === GroupType.Mail)
+					const mailboxDetails = await this.getMailboxDetails()
+					if (newMemberships.length !== mailboxDetails.length) {
+						await this._init()
+						m.redraw()
+					}
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const folder = this.getMailFolder(update.instanceListId)
@@ -282,18 +278,17 @@ export class MailModel {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation,
 					// otherwise it's a move
 					const mailId = [update.instanceListId, update.instanceId]
-					return this._entityClient.load(MailTypeRef, mailId)
-					           .then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
-					                               .then(mailboxDetail => {
-						                               // We only apply rules on server if we are the leader in case of incoming messages
-						                               return findAndApplyMatchingRule(this._worker, this._entityClient, mailboxDetail, mail,
-							                               this._worker.isLeader())
-					                               })
-					                               .then((newId) => this._showNotification(newId || mailId)))
-					           .catch(noOp)
+					const mail = await this._entityClient.load(MailTypeRef, mailId)
+					await this.getMailboxDetailsForMailListId(update.instanceListId)
+					          .then(mailboxDetail => {
+						          // We only apply rules on server if we are the leader in case of incoming messages
+						          return findAndApplyMatchingRule(this._worker, this._entityClient, mailboxDetail, mail, this._worker.isLeader())
+					          })
+					          .then((newId) => this._showNotification(newId || mailId))
+					          .catch(noOp)
 				}
 			}
-		}).return()
+		}
 	}
 
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {

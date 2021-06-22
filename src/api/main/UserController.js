@@ -1,7 +1,7 @@
 // @flow
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot, setup} from "./Entity"
-import {downcast, neverNull} from "../common/utils/Utils"
+import {downcast, neverNull, noOp} from "../common/utils/Utils"
 import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
@@ -202,7 +202,7 @@ export class UserController implements IUserController {
 				})
 			}
 			return Promise.resolve()
-		}).return()
+		}).then(noOp)
 	}
 
 	deleteSession(sync: boolean): Promise<void> {

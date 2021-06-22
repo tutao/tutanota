@@ -49,7 +49,6 @@ import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import {formatPrice} from "../subscription/PriceUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 
@@ -546,6 +545,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				this._customerInfo.reset()
 				return this._updateDomains()
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

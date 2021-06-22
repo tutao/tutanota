@@ -207,6 +207,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return promise.then(() => {
 				return this._secondFactorsForm.entityEventReceived(update)
 			})
-		}).return()
+		}).then(noOp)
 	}
 }

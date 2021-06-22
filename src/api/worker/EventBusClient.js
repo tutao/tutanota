@@ -503,7 +503,7 @@ export class EventBusClient {
 				           return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
 				                      .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
 				                      .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents, batch.groupId)))
-				                      .return(filteredEvents)
+				                      .then(() => filteredEvents)
 			           })
 			           .then(filteredEvents => {
 				           // Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that

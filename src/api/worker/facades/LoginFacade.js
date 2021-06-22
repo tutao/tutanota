@@ -205,11 +205,12 @@ export class LoginFacade {
 		}
 		this._loggingInPromiseWrapper = defer()
 		// Wait for either login or cancel
-		return Promise.race([this._loggingInPromiseWrapper.promise, p]).return({
-			sessionId,
-			accessToken: createSessionReturn.accessToken,
-			userId: createSessionReturn.user
-		})
+		return Promise.race([this._loggingInPromiseWrapper.promise, p])
+		              .then(() => ({
+			              sessionId,
+			              accessToken: createSessionReturn.accessToken,
+			              userId: createSessionReturn.user
+		              }))
 	}
 
 	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
@@ -584,7 +585,7 @@ export class LoginFacade {
 			} else {
 				return Promise.resolve()
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	changePassword(oldPassword: string, newPassword: string): Promise<void> {
@@ -662,7 +663,7 @@ export class LoginFacade {
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
 		return setup(null, recoverPasswordEntity, {authVerifier})
-			.return(hexCode)
+			.then(() => hexCode)
 	}
 
 	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {

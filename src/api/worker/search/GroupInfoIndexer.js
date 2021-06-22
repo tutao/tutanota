@@ -3,7 +3,7 @@ import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "
 import {NotFoundError} from "../../common/error/RestError"
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
@@ -121,6 +121,6 @@ export class GroupInfoIndexer {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

@@ -337,7 +337,7 @@ export class IndexerCore {
 					transaction.put(ElementDataOS, moveInstance.encInstanceId, elementData)
 				}
 			})
-		})).return()
+		})).then(noOp)
 		return PromisableWrapper.from(promise)
 	}
 
@@ -354,7 +354,7 @@ export class IndexerCore {
 		return Promise.all(Array.from(indexUpdate.delete.searchMetaRowToEncInstanceIds)
 		                        .map(([metaRowKey, encInstanceIds]) => this._deleteSearchIndexEntries(transaction, metaRowKey, encInstanceIds)))
 		              .then(() => deleteElementDataPromise)
-		              .return()
+		              .then(noOp)
 	}
 
 	/**
@@ -446,7 +446,7 @@ export class IndexerCore {
 		}, {concurrency: 2}).value
 
 		return result instanceof Promise
-			? result.return(encWordToMetaRow)
+			? result.then(() => encWordToMetaRow)
 			: null
 	}
 

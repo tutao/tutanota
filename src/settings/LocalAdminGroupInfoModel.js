@@ -8,6 +8,7 @@ import {GroupType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {noOp} from "../api/common/utils/Utils"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;
@@ -25,7 +26,7 @@ class LocalAdminGroupInfoModel {
 		locator.eventController.addEntityListener(updates => {
 			return Promise.each(updates, update => {
 				return this.entityEventReceived(update)
-			}).return()
+			}).then(noOp)
 		})
 		return this._init()
 	}

@@ -621,7 +621,7 @@ export class Indexer {
 				})
 			}
 			return Promise.resolve()
-		})).return()
+		})).then(noOp)
 	}
 
 	async _throwIfOutOfDate(): Promise<void> {

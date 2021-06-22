@@ -88,7 +88,7 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
 		return resolveTypeReference(typeRef)
 			.then(typeModel => _updateOwnerEncSessionKey(typeModel, data, locator.login.getUserGroupKey(), aes128RandomKey()))
-			.return(data)
+			.then(() => data)
 	}
 	return Promise.resolve(data)
 }
@@ -101,15 +101,15 @@ export function applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> 
 			contact.birthdayIso = birthdayToIsoDate(contact.oldBirthdayAggregate)
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = null
-			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).then(() => decryptedInstance)
 		} else if (!contact.birthdayIso && contact.oldBirthdayDate) {
 			contact.birthdayIso = birthdayToIsoDate(oldBirthdayToBirthday(contact.oldBirthdayDate))
 			contact.oldBirthdayDate = null
-			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).then(() => decryptedInstance)
 		} else if (contact.birthdayIso && (contact.oldBirthdayAggregate || contact.oldBirthdayDate)) {
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = null
-			return update(contact).catch(ofClass(LockedError, noOp)).return(decryptedInstance)
+			return update(contact).catch(ofClass(LockedError, noOp)).then(() => decryptedInstance)
 		}
 	}
 	return Promise.resolve(decryptedInstance)

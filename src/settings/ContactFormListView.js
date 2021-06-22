@@ -12,7 +12,7 @@ import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {getWhitelabelDomain, neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -148,7 +148,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			return this.processUpdate(update)
-		}).return()
+		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {
@@ -195,12 +195,12 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			&& operation === OperationType.UPDATE) {
 			// a domain may have been added
 			this._customerInfo.reset()
-			return this._customerInfo.getAsync().return()
+			return this._customerInfo.getAsync().then(noOp)
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update) && this._customerInfo.isLoaded()
 			&& operation === OperationType.UPDATE) {
 			// the customer info may have been moved in case of premium upgrade/downgrade
 			this._customerInfo.reset()
-			return this._customerInfo.getAsync().return()
+			return this._customerInfo.getAsync().then(noOp)
 		} else {
 			return Promise.resolve()
 		}

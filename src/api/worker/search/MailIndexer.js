@@ -11,7 +11,7 @@ import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
+import {containsEventOfType, getMailBodyText, neverNull, noOp} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
 	_createNewIndexUpdate,
@@ -304,7 +304,7 @@ export class MailIndexer {
 			.finally(() => {
 				this._core.queue.resume()
 			})
-		return this.mailboxIndexingPromise.return()
+		return this.mailboxIndexingPromise.then(noOp)
 	}
 
 
@@ -433,7 +433,7 @@ export class MailIndexer {
 				              let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
 				              this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 			              })
-		              }).return(mails.length)
+		              }).then(() => mails.length)
 	}
 
 	_writeIndexUpdate(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, indexUpdate: IndexUpdate): Promise<void> {
@@ -536,7 +536,7 @@ export class MailIndexer {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 }
 

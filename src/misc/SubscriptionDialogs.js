@@ -56,7 +56,7 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 	}
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 		if (customer.canceledPremiumAccount) {
-			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
+			return Dialog.error("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
 			return Promise.resolve(true)
 		}

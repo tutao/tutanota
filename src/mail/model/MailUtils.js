@@ -439,7 +439,7 @@ export function markMails(entityClient: EntityClient, mails: Mail[], unread: boo
 		} else {
 			return Promise.resolve()
 		}
-	})).return()
+	})).then(noOp)
 }
 
 export function copyMailAddress({address, name}: EncryptedMailAddress): EncryptedMailAddress {

@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
@@ -308,7 +308,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			return this.processUpdate(update)
-		}).return()
+		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {

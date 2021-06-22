@@ -269,7 +269,7 @@ export class CustomerFacade {
 						data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
 						data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
 						return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data)
-							.return(recoverData.hexCode)
+							.then(() => recoverData.hexCode)
 					})
 			})
 	}

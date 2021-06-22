@@ -27,7 +27,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
-import {getAsLazy, mapLazily} from "../../api/common/utils/Utils"
+import {getAsLazy, mapLazily, noOp} from "../../api/common/utils/Utils"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 
@@ -274,7 +274,7 @@ export class Dialog implements ModalComponent {
 					delay: DefaultAnimationTime / 2,
 					easing: ease.linear
 				})
-			]).return()
+			]).then(noOp)
 		} else {
 			return Promise.resolve()
 		}
