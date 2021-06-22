@@ -480,14 +480,6 @@ o.spec("CalendarEventViewModel", function () {
 				sequence: "1",
 				invitedConfidentially: true,
 			})
-			const newEvent = createCalendarEvent({
-				_id: ["listid", "calendarid"],
-				_ownerGroup: calendarGroupId,
-				organizer: encMailAddress,
-				attendees: [ownAttendee, attendee],
-				sequence: "2",
-				invitedConfidentially: true,
-			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel, contactModel})
 
 			await viewModel.deleteEvent()
@@ -518,14 +510,6 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: encMailAddress,
 				attendees: [ownAttendee, attendee],
 				sequence: "1",
-				invitedConfidentially: true,
-			})
-			const newEvent = createCalendarEvent({
-				_id: ["listid", "calendarid"],
-				_ownerGroup: calendarGroupId,
-				organizer: encMailAddress,
-				attendees: [ownAttendee, attendee],
-				sequence: "2",
 				invitedConfidentially: true,
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel, contactModel})
@@ -1066,7 +1050,7 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [ownAttendee, anotherAttendee],
 			})
-			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, existingEvent})
 			const askForUpdates = o.spy(() => Promise.resolve("yes"))
 
 			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
@@ -1092,7 +1076,7 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [anotherAttendee],
 			})
-			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, existingEvent})
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
 			viewModel.addGuest(encMailAddress.address)
@@ -1120,7 +1104,7 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: wrapEncIntoMailAddress(alias),
 				attendees: [ownAttendee],
 			})
-			const viewModel = init({userController, calendars, distributor, userController, existingEvent})
+			const viewModel = init({userController, calendars, distributor, existingEvent})
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(askForUpdates.calls.length).equals(0)
 			o(askInsecurePassword.calls.length).equals(0)
@@ -1718,7 +1702,7 @@ function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Ma
 	return new Map([[id, calendarInfo]])
 }
 
-function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string, businessFeatureOrdered?: boolean = false): IUserController {
+function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string, businessFeatureOrdered: boolean = false): IUserController {
 	const bookingsRef = createBookingsRef({items: GENERATED_MAX_ID})
 	const customizations = []
 	if (businessFeatureOrdered) {
