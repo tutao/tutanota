@@ -1,5 +1,5 @@
 //@flow
-import {client} from  "./ClientDetector"
+import {client} from "./ClientDetector"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -19,7 +19,7 @@ function fallbackCopyToClipboard(text: string): Promise<void> {
 	})
 }
 
-function iosCopyToClipboard(text:string) {
+function iosCopyToClipboard(text: string) {
 	const el = document.createElement("textarea")
 	el.value = text
 	el.contentEditable = "true";
@@ -39,14 +39,15 @@ function iosCopyToClipboard(text:string) {
 	window.document.body.removeChild(el)
 }
 
-export function copyToClipboard(text: string): Promise<void> {
-	return Promise.try(()=> navigator.clipboard.writeText(text))
-		         .catch(() => {
-			         console.log('copy failed, trying fallback')
-			         if (client.isIos()) {
-			         	return iosCopyToClipboard(text)
-			         } else {
-				         return fallbackCopyToClipboard(text)
-			         }
-		         })
+export async function copyToClipboard(text: string): Promise<void> {
+	try {
+		navigator.clipboard.writeText(text)
+	} catch {
+		console.log('copy failed, trying fallback')
+		if (client.isIos()) {
+			return iosCopyToClipboard(text)
+		} else {
+			return fallbackCopyToClipboard(text)
+		}
+	}
 }

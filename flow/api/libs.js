@@ -83,7 +83,7 @@ declare class Promise<+R> {
 	static reject<T>(error?: any): Promise<T>;
 	// Deifnition from core Flow. $await is either type of the promise or type itself
 	static all<T: Iterable<mixed>>(promises: T): Promise<$TupleMap<T, typeof $await>>;
-	static try<T>(fn: () => $Promisable<T>): Promise<T>;
+	// static try<T>(fn: () => $Promisable<T>): Promise<T>;
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
 	static map<T, U>(array: $Promisable<Iterable<T>>,

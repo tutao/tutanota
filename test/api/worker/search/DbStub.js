@@ -1,11 +1,9 @@
 //@flow
 
 import type {DbKey, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
-import {
-	DbTransaction,
-	osName
-} from "../../../../src/api/worker/search/DbFacade"
+import {DbTransaction, osName} from "../../../../src/api/worker/search/DbFacade"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import type {IndexName} from "../../../../src/api/worker/search/Indexer";
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -14,7 +12,6 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex
 } from "../../../../src/api/worker/search/Indexer";
-import type {IndexName} from "../../../../src/api/worker/search/Indexer";
 
 export type Index = {[indexName: string]: string}
 
@@ -79,8 +76,8 @@ export class DbStubTransaction implements DbTransaction {
 		return Promise.resolve(entries)
 	}
 
-	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
-		return Promise.try(() => this.getSync(objectStore, key, indexName))
+	async get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
+		return this.getSync(objectStore, key, indexName)
 	}
 
 	getSync<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): T {
