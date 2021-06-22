@@ -161,11 +161,11 @@ pipeline {
 				unstash 'web_add'
 				dir('build') {
 					unstash 'linux_installer'
-					unstash 'mac_installer'
-					unstash 'win_installer'
+// 					unstash 'mac_installer'
+// 					unstash 'win_installer'
 					unstash 'linux_installer_test'
-                    unstash 'mac_installer_test'
-                    unstash 'win_installer_test'
+//                     unstash 'mac_installer_test'
+//                     unstash 'win_installer_test'
 				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''export HSM_USER_PIN=${PW};
