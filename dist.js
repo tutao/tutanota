@@ -89,6 +89,10 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 	})
 	.parse(process.argv)
 
+function doSignDesktopClients() {
+	return options.deb || options.publish || process.env.DEBUG_SIGN
+}
+
 if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
 	options.outputHelp(a => "ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n" + a)
 	process.exit(1)
@@ -441,27 +445,28 @@ async function signDesktopClients() {
 	const WIN_YML_FILE = 'latest.yml'
 	const LINUX_YML_FILE = 'latest-linux.yml'
 
-	const signIfExists = async (fileName, sigName, ymlName) => (await fileExists(fileName)) && sign(fileName, sigName, ymlName)
+	const signIfExists = async (fileName, sigName, ymlName) => {
+		if (await fileExists(fileName)) {
+			console.log("signing", fileName)
+			sign(fileName, sigName, ymlName)
+		}
+	}
 
-	try {
-
+	if (doSignDesktopClients()) {
 		await signIfExists('./build/desktop/tutanota-desktop-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
 		await signIfExists('./build/desktop/tutanota-desktop-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
 		await signIfExists('./build/desktop/tutanota-desktop-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
 		await signIfExists('./build/desktop/tutanota-desktop-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+
 		await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
 		await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
 		await signIfExists('./build/desktop-test/tutanota-desktop-test-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
 		await signIfExists('./build/desktop-test/tutanota-desktop-test-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 
-		if (process.env.DEBUG_SIGN) {
-			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
-			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
-			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
-			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
-		}
-	} catch (e) {
-		throw "Couldn't sign"
+		await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+		await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
+		await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
+		await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 	}
 }
 

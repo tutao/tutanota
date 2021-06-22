@@ -87,7 +87,7 @@ pipeline {
 									export JENKINS=TRUE;
 									export HSM_USER_PIN=${PW};
 									export WIN_CSC_FILE="/opt/etc/codesign.crt";
-									node dist -ew '''
+									node dist --existing --win '''
 								}
 								dir('build') {
 									stash includes: 'desktop-test/*', name:'win_installer_test'
@@ -114,7 +114,7 @@ pipeline {
 								export JENKINS=TRUE;
 								export APPLEID=${APPLEIDVAR};
 								export APPLEIDPASS=${APPLEIDPASSVAR};
-								node dist -em '''
+								node dist --existing --mac '''
 						}
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'mac_installer_test'
@@ -134,7 +134,7 @@ pipeline {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-						sh 'node dist -el'
+						sh 'node dist --existing --linux'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
 							stash includes: 'desktop/*', name:'linux_installer'
@@ -169,7 +169,7 @@ pipeline {
 				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''export HSM_USER_PIN=${PW};
-					node dist -edp ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
+					node dist --existing --deb --publish ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
 				}
             }
         }
