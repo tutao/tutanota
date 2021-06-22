@@ -28,6 +28,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {resolveRecipientInfo} from "../../mail/model/MailUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 export class GroupSharingModel {
 	+info: GroupInfo
@@ -147,9 +148,9 @@ export class GroupSharingModel {
 				           }
 				           return groupInvitationReturn.invitedMailAddresses
 			           })
-			           .catch(RecipientsNotFoundError, e => {
+			           .catch(ofClass(RecipientsNotFoundError, e => {
 				           throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
-			           })
+			           }))
 		})
 	}
 
@@ -167,7 +168,7 @@ export class GroupSharingModel {
 							this.sentGroupInvitations.push(instance)
 							this.onEntityUpdate()
 						}
-					}).catch(NotFoundError, e => console.log("sent invitation not found", update))
+					}).catch(ofClass(NotFoundError, e => console.log("sent invitation not found", update)))
 				}
 				if (update.operation === OperationType.DELETE) {
 					findAndRemove(this.sentGroupInvitations, (sentGroupInvitation) => isSameId(getElementId(sentGroupInvitation), update.instanceId))
@@ -185,7 +186,7 @@ export class GroupSharingModel {
 								this.onEntityUpdate()
 							})
 						}
-					}).catch(NotFoundError, e => console.log("group member not found", update))
+					}).catch(ofClass(NotFoundError, e => console.log("group member not found", update)))
 				}
 				if (update.operation === OperationType.DELETE) {
 					findAndRemove(this.memberInfos, (memberInfo) => isSameId(getElementId(memberInfo.member), update.instanceId))

@@ -25,6 +25,7 @@ import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -73,16 +74,17 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					deleteCampaign()
 					return this.close(attrs.data, vnode.dom)
 				})
-				.catch(PreconditionFailedError, e => {
+				.catch(ofClass(PreconditionFailedError, e => {
 					Dialog.error(() => lang.get(getPreconditionFailedPaymentMsg(e.data))
 						+ ((attrs.data.upgradeType === UpgradeType.Signup) ? " "
 							+ lang.get("accountWasStillCreated_msg") : ""))
-				})
-				.catch(BadGatewayError, e => {
-					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((attrs.data.upgradeType
-						=== UpgradeType.Signup) ? " "
-						+ lang.get("accountWasStillCreated_msg") : ""))
-				})
+				}))
+				.catch(ofClass(BadGatewayError, e => {
+					Dialog.error(() =>
+						lang.get("paymentProviderNotAvailableError_msg") +
+						((attrs.data.upgradeType === UpgradeType.Signup) ? " " + lang.get("accountWasStillCreated_msg") : "")
+					)
+				}))
 		}
 
 		return [

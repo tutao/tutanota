@@ -30,6 +30,7 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -186,9 +187,9 @@ function signup(mailAddress: string, pw: string, registrationCode: string, isBus
 				             })
 			}
 		})
-	})).catch(InvalidDataError, e => {
+	})).catch(ofClass(InvalidDataError, e => {
 		Dialog.error("invalidRegistrationCode_msg")
-	})
+	}))
 }
 
 /**
@@ -240,18 +241,18 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 								.then(() => {
 									callback(null, captchaReturn.token)
 								})
-								.catch(InvalidDataError, e => {
+								.catch(ofClass(InvalidDataError, e => {
 									return Dialog.error("createAccountInvalidCaptcha_msg").then(() => {
 										runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaignToken).then(regDataId => {
 											callback(null, regDataId)
 										})
 									})
-								})
-								.catch(AccessExpiredError, e => {
+								}))
+								.catch(ofClass(AccessExpiredError, e => {
 									Dialog.error("createAccountAccessDeactivated_msg").then(() => {
 										callback(null, null)
 									})
-								})
+								}))
 								.catch(e => {
 									callback(e)
 								})
@@ -288,7 +289,7 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 				return regDataId
 			}
 		})
-		.catch(AccessDeactivatedError, e => {
+		.catch(ofClass(AccessDeactivatedError, e => {
 			return Dialog.error("createAccountAccessDeactivated_msg")
-		})
+		}))
 }

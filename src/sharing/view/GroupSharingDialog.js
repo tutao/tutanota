@@ -42,6 +42,7 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 // the maximum number of BTF suggestions so the suggestions dropdown does not overflow the dialog
 const SHOW_CONTACT_SUGGESTIONS_MAX = 3
@@ -240,7 +241,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 										invitedMailAddresses.map(ma => createRecipientInfo(ma.address, null, null)),
 										texts)
 								})
-								.catch(PreconditionFailedError, e => {
+								.catch(ofClass(PreconditionFailedError, e => {
 									if (logins.getUserController().isGlobalAdmin()) {
 										getConfirmation(() => texts.sharingNotOrderedAdmin)
 											.confirmed(() =>
@@ -249,9 +250,9 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 									} else {
 										Dialog.error(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)
 									}
-								})
-								.catch(UserError, showUserError)
-								.catch(TooManyRequestsError, e => Dialog.error("tooManyAttempts_msg"))
+								}))
+								.catch(ofClass(UserError, showUserError))
+								.catch(ofClass(TooManyRequestsError, e => Dialog.error("tooManyAttempts_msg")))
 						}
 					})
 			}

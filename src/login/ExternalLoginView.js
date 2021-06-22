@@ -285,15 +285,15 @@ export class ExternalLoginView {
 				             m.redraw()
 			             }, 60000)
 		             })
-		             .catch(TooManyRequestsError, e => {
+		             .catch(ofClass(TooManyRequestsError, e => {
 			             this._helpText = "smsSentOften_msg"
-		             })
-		             .catch(AccessExpiredError, e => {
+		             }))
+		             .catch(ofClass(AccessExpiredError, e => {
 			             this._errorMessageId = "expiredLink_msg"
-		             })
-		             .catch(InternalServerError, e => {
+		             }))
+		             .catch(ofClass(InternalServerError, e => {
 			             this._helpText = "smsError_msg"
-		             })
+		             }))
 		             .finally(() => m.redraw())
 	}
 

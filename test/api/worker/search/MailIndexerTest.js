@@ -201,7 +201,7 @@ o.spec("MailIndexer test", () => {
 		entityMock.setException(["lid", "eid"], new Error("blah"))
 		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		indexer.processNewMail(event).catch(Error, e => {
+		indexer.processNewMail(event).catch(e => {
 			done()
 		})
 	})

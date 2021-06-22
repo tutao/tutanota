@@ -16,6 +16,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defer} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
@@ -64,9 +65,9 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 									       dialog.close()
 								       }
 							       })
-							       .catch(BadRequestError, e => {
+							       .catch(ofClass(BadRequestError, e => {
 								       Dialog.error("paymentMethodNotAvailable_msg")
-							       })
+							       }))
 					       })
 				}))
 			})

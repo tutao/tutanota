@@ -19,6 +19,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -366,7 +367,7 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 	})
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
 		.return(false)
-		.catch(PreconditionFailedError, error => {
+		.catch(ofClass(PreconditionFailedError, error => {
 			// error handling for cancelling a feature.
 			switch (error.data) {
 				case BookingFailureReason.BALANCE_INSUFFICIENT:
@@ -380,7 +381,7 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 				default:
 					return Dialog.error(getBookingItemErrorMsg(featureType)).return(true)
 			}
-		})
+		}))
 }
 
 export function buyAliases(amount: number): Promise<boolean> {
