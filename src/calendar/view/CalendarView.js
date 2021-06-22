@@ -295,7 +295,10 @@ export class CalendarView implements CurrentView {
 		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = locator.progressTracker.registerMonitor(totalWork)
 		let progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
-		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).tap(m.redraw)
+		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).then((it) => {
+			m.redraw()
+			return it
+		})
 
 		this.selectedDate.map((d) => {
 			const thisMonthStart = getMonth(d, getTimeZone()).start
@@ -678,16 +681,19 @@ export class CalendarView implements CurrentView {
 		       })
 	}
 
-	_loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
+	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
 		const month = getMonth(dayInMonth, getTimeZone())
 		if (!this._loadedMonths.has(month.start.getTime())) {
 			this._loadedMonths.add(month.start.getTime())
-			return this._loadEvents(month).catch((e) => {
+			try {
+				await this._loadEvents(month)
+			} catch (e) {
 				this._loadedMonths.delete(month.start.getTime())
 				throw e
-			}).tap(() => m.redraw())
+			} finally {
+				m.redraw()
+			}
 		}
-		return Promise.resolve()
 	}
 
 
@@ -725,7 +731,10 @@ export class CalendarView implements CurrentView {
 			: showProgressDialog("pleaseWait_msg",
 				worker.addCalendar("")
 				      .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
-				      .tap(infos => {this._calendarInfos = Promise.resolve(infos)})
+				      .then((infos) => {
+					      this._calendarInfos = Promise.resolve(infos)
+					      return infos
+				      })
 			)
 		Promise.all([
 			calendarInfos,
@@ -875,7 +884,7 @@ export class CalendarView implements CurrentView {
 									return this._loadMonthIfNeeded(selectedDate)
 									           .then(() => this._loadMonthIfNeeded(nextMonthDate))
 									           .then(() => this._loadMonthIfNeeded(previousMonthDate))
-								}).tap(() => m.redraw())
+								}).then(() => m.redraw())
 							}
 						})
 					}
