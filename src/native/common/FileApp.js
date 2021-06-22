@@ -126,7 +126,7 @@ function readFile(path: string): Promise<Base64> {
 }
 
 export function uriToFileRef(uri: string): Promise<FileReference> {
-	return Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => ({
+	return Promise.all([getName(uri), getMimeType(uri), getSize(uri)]).then(([name, mimeType, size]) => ({
 		_type: "FileReference",
 		name,
 		mimeType,

@@ -25,17 +25,16 @@ export class DesktopUpdateHelpLabel {
 				} else if (!this._waiting) {
 					// no update available & not currently waiting for check result -> check for update again
 					this._waiting = true
-					Promise.join(
+					Promise.all([
 						nativeApp.invokeNative(new Request('manualUpdate', [])),
 						// make sure there's at least some delay
 						// instant response tends to make users nervous
 						Promise.resolve().delay(500),
-						hasUpdate => {
-							this._waiting = false
-							updateAvailable(hasUpdate)
-							m.redraw()
-						}
-					).catch(() => this._error = true)
+					]).then(([hasUpdate]) => {
+						this._waiting = false
+						updateAvailable(hasUpdate)
+						m.redraw()
+					})
 				}
 			})
 		}
