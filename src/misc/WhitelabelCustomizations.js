@@ -1,6 +1,9 @@
 // @flow
 import type {Theme} from "../gui/theme"
 import type {BootstrapFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import {assertMainOrNodeBoot} from "../api/common/Env"
+
+assertMainOrNodeBoot()
 
 export type WhitelabelCustomizations = {
 	theme: ?Theme,

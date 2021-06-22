@@ -23,6 +23,11 @@ export class LazyLoaded<T> {
 		this._loadedObject = defaultValue
 	}
 
+	load(): this {
+		this.getAsync()
+		return this
+	}
+
 	isLoaded(): boolean {
 		return this._isLoaded
 	}

@@ -18,7 +18,8 @@ import type {
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
-	SearchRestriction, SearchResult
+	SearchRestriction,
+	SearchResult
 } from "./SearchTypes"
 import type {TypeInfo} from "./IndexUtils"
 import {
@@ -211,7 +212,7 @@ export class SearchFacade {
 		if (searchResult.moreResults.length === 0
 			&& getStartOfDay(getDayShifted(new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime()
 			> getStartOfDay(getDayShifted(new Date(), 1))
-			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
+			&& !this._mailIndexer.isIndexing) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(),
 				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime())
 		}
