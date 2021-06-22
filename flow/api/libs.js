@@ -105,8 +105,8 @@ declare class Promise<+R> {
 
 	static reduce<T, U>(array: $Promisable<Iterable<T>>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => (Promise<U> | U), initialValue: U): Promise<U>;
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
-	static delay<T>(millis: number, value: ?T | Promise<T>): Promise<T>;
-	static any<T>(array: Array<Promise<T>>): Promise<T>;
+	// static delay<T>(millis: number, value: ?T | Promise<T>): Promise<T>;
+	// static any<T>(array: Array<Promise<T>>): Promise<T>;
 	static config(configuration: Object): void;
 
 	static onPossiblyUnhandledRejection(errorHandler: Function): void;

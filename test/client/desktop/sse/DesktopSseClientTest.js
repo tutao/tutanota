@@ -21,6 +21,7 @@ import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarm
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient"
 import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError"
+import {delay} from "../../../../src/api/common/utils/PromiseUtils"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = 'identifier'
@@ -327,7 +328,7 @@ o.spec("DesktopSseClient Test", function () {
 		res.callbacks['data']("data: heartbeatTimeout:1\n")
 		res.callbacks["data"]("data: notification\n")
 
-		// await Promise.delay(1)
+		// await delay(1)
 		o(timeoutSpy.callCount).equals(3)
 		downcast(electronMock.app).callbacks['will-quit']()
 	})
@@ -419,10 +420,10 @@ o.spec("DesktopSseClient Test", function () {
 		await sseConnectRequest.callbacks['response'](sseConnectResponse)
 		sseConnectResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseConnectResponse.callbacks['data'](`data: notification\n`)
-		await Promise.delay(5)
+		await delay(5)
 		o(setVars[DesktopConfigKey.heartbeatTimeoutInSeconds]).equals(3)
 
-		await Promise.delay(1)
+		await delay(1)
 		const missedNotificationRequest = net.ClientRequest.mockedInstances[1]
 		o(missedNotificationRequest.requestParams.headers.lastProcessedNotificationId).equals(lastProcessedId)
 		const missedNotification = {
@@ -444,7 +445,7 @@ o.spec("DesktopSseClient Test", function () {
 		missedNotificationResponse.callbacks['end']()
 		sseConnectResponse.callbacks['data'](`data: notification\n`)
 
-		await Promise.delay(1)
+		await delay(1)
 		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
@@ -644,20 +645,20 @@ o.spec("DesktopSseClient Test", function () {
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.delay(8)
+		await delay(8)
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseResponse.callbacks['data'](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
-		await Promise.delay(1)
+		await delay(1)
 		let missedNotificationResponse = new net.Response(1234)
 		await net.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
 		o(net.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 		o(missedNotificationResponse.destroy.callCount).equals(1)
 
-		await Promise.delay(1)
+		await delay(1)
 		o(netMock.request.callCount).equals(2)
 		o(notifierMock.showOneShot.callCount).equals(1)
 		o(notifierMock.showOneShot.args.length).equals(1)
@@ -672,14 +673,14 @@ o.spec("DesktopSseClient Test", function () {
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.delay(8)
+		await delay(8)
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseResponse.callbacks['data'](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
-		await Promise.delay(1)
+		await delay(1)
 		let missedNotificationResponse = new net.Response(ServiceUnavailableError.CODE)
 		missedNotificationResponse.headers["suspension-time"] = 5
 
@@ -707,14 +708,14 @@ o.spec("DesktopSseClient Test", function () {
 		const sseResponse = new net.Response(200)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.delay(8)
+		await delay(8)
 
 		await net.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseResponse.callbacks['data'](`data: notification\n`)
 
 		// wait for missedNotification request to be sent...
-		await Promise.delay(1)
+		await delay(1)
 		let missedNotificationResponse = new net.Response(TooManyRequestsError.CODE)
 		missedNotificationResponse.headers["retry-after"] = 5
 
@@ -759,7 +760,7 @@ o.spec("DesktopSseClient Test", function () {
 			alarmStorageMock, langMock, timeoutSpy)
 		await sse.start()
 		timeoutMock.next()
-		await Promise.delay(10)
+		await delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
 		o(confMock.setVar.calls[0].args).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])

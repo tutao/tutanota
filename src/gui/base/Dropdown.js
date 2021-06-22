@@ -14,6 +14,7 @@ import {newMouseEvent} from "../HtmlUtils"
 import {showDropdown} from "./DropdownN"
 import type {Shortcut} from "../../misc/KeyManager"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -357,7 +358,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 			resultPromise = Promise.race([
 					buttonPromise,
 					Promise.all([
-						Promise.delay(100),
+						delay(100),
 						import("../dialogs/ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (buttonPromise.isPending()) {

@@ -62,6 +62,7 @@ import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
 import {TypeRef} from "../../../src/api/common/utils/TypeRef"
 import {Request} from "../../../src/api/common/WorkerProtocol"
 import {SysService} from "../../../src/api/entities/sys/Services"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -72,7 +73,7 @@ const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
 const userId = "12356"
 const getAddress = a => a.mailAddress
 let internalAddresses = []
-let delay = 0
+let delayMs = 0
 let mockedAttributeReferences = []
 
 o.spec("CalendarEventViewModel", function () {
@@ -156,11 +157,11 @@ o.spec("CalendarEventViewModel", function () {
 		askForUpdates = o.spy(async () => "yes")
 		askInsecurePassword = o.spy(async () => true)
 		internalAddresses = []
-		delay = 0
+		delayMs = 0
 
 		function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 			if (service === SysService.PublicKeyService) {
-				return Promise.delay(delay).then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
+				return delay(delayMs).then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
 			}
 			return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 		}
@@ -498,7 +499,7 @@ o.spec("CalendarEventViewModel", function () {
 			const attendee = makeAttendee()
 			const ownAttendee = makeAttendee(encMailAddress.address)
 			const calendarModel = makeCalendarModel()
-			delay = 100
+			delayMs = 100
 			const mailModel = downcast({}) // delay resolving
 			const contact = createContact({
 				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
