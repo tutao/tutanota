@@ -172,7 +172,7 @@ export class TemplatePopupModel {
 	}
 
 	_entityUpdate(updates: $ReadOnlyArray<EntityUpdateData>): Promise<*> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
 					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])

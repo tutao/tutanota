@@ -206,7 +206,7 @@ export class KnowledgeBaseModel {
 	}
 
 	_entityUpdate(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
 					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId])

@@ -32,6 +32,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {getPaymentWebRoot} from "../api/common/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -265,7 +266,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		  })
 
 		let entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo

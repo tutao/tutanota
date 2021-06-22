@@ -54,12 +54,12 @@ export class EventController {
 			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
 
-		return loginsUpdates.then(() => {
+		return loginsUpdates.then(async () => {
 			// sequentially to prevent parallel loading of instances
-			return Promise.each(this._entityListeners, listener => {
+			for (const listener of this._entityListeners) {
 				let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
-				return listener(entityUpdatesData, eventOwnerGroupId)
-			})
+				await listener(entityUpdatesData, eventOwnerGroupId)
+			}
 		}).then(noOp)
 	}
 

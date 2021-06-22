@@ -63,7 +63,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -199,7 +199,7 @@ export class SearchView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener((updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				return this.entityEventReceived(update)
 			}).then(noOp)
 		})

@@ -68,7 +68,7 @@ import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../.
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
@@ -300,7 +300,7 @@ export class MailFacade {
 				sendDraftData.language = language
 				sendDraftData.mail = draft._id
 
-				return Promise.each(draft.attachments, fileId => {
+				return promiseMap(draft.attachments, fileId => {
 					return load(FileTypeRef, fileId).then(file => {
 						return resolveSessionKey(FileTypeModel, file).then(fileSessionKey => {
 							let data = createAttachmentKeyData()
@@ -513,7 +513,7 @@ export class MailFacade {
 	}
 
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		return Promise.each(data, (update) => {
+		return promiseMap(data, (update) => {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(MailTypeRef, update.application, update.type)
 				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {

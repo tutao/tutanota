@@ -20,7 +20,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {getElementId, getListId, isSameId} from "../../api/common/utils/EntityUtils";
 import {getInboxFolder} from "./MailUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -32,7 +32,7 @@ function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 	if (moveMailDataPerFolder.length) {
 		const moveToTargetFolder = moveMailDataPerFolder.shift()
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
-		return Promise.each(mailChunks, mailChunk => {
+		return promiseMap(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
 			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
 		}).catch(ofClass(LockedError, e => { //LockedError should no longer be thrown!?!

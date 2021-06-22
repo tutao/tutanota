@@ -28,7 +28,7 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
-import {ofClass} from "../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../common/utils/PromiseUtils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
@@ -180,7 +180,7 @@ export class UserController implements IUserController {
 
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return Promise.each(updates, (update) => {
+		return promiseMap(updates, (update) => {
 			const {instanceListId, instanceId, operation} = update
 			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update)
 				&& isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
