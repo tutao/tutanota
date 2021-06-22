@@ -137,8 +137,7 @@ export class CalendarFacade {
 
 	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
-		return Promise
-			.map(alarmInfos, (alarmInfo) => {
+		return promiseMap(alarmInfos, (alarmInfo) => {
 				const newAlarm = createUserAlarmInfo()
 				newAlarm._ownerGroup = user.userGroup.group
 				newAlarm.alarmInfo = createAlarmInfo()
@@ -152,7 +151,7 @@ export class CalendarFacade {
 				return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
 					[userAlarmInfoListId, id], alarmNotification
 				]))
-			}, {concurrency: 1}) // sequentially to avoid rate limiting
+			}) // sequentially to avoid rate limiting
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -167,8 +166,7 @@ export class CalendarFacade {
 	                                  pushIdentifierList: Array<PushIdentifier>
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
-		return Promise
-			.map(pushIdentifierList, identifier => {
+		return promiseMap(pushIdentifierList, identifier => {
 				return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
 					if (pushIdentifierSk) {
 						const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
@@ -177,7 +175,7 @@ export class CalendarFacade {
 						return null
 					}
 				})
-			}, {concurrency: 1}) // rate limiting against blocking while resolving session keys (neccessary)
+			}) // rate limiting against blocking while resolving session keys (neccessary)
 			.then(maybeEncSessionKeys => {
 				const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
 				for (let notification of alarmNotifications) {
