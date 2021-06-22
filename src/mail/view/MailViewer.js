@@ -173,7 +173,7 @@ export class MailViewer {
 	oncreate: Function;
 	onbeforeremove: Function;
 	onremove: Function;
-	_scrollAnimation: Promise<void>;
+	_scrollAnimation: ?Promise<void>;
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
@@ -183,6 +183,7 @@ export class MailViewer {
 	_loadedInlineImages: Promise<InlineImages>;
 	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
+	_domBody: ?HTMLElement;
 	_lastBodyTouchEndTime: number = 0;
 	_lastTouchStart: {x: number, y: number, time: number};
 	_domForScrolling: ?HTMLElement
@@ -226,7 +227,6 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._suspicious = false
-		this._scrollAnimation = Promise.resolve()
 		this._isScaling = true;
 		this._lastTouchStart = {x: 0, y: 0, time: Date.now()}
 		this._warningDismissed = false
@@ -386,13 +386,15 @@ export class MailViewer {
 			return m("#mail-body.selectable.touch-callout.break-word-links", {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
+					this._domBody = vnode.dom
 					this._updateLineHeight(vnode.dom)
 					this._rescale(false)
 				},
 				onupdate: (vnode) => {
-					if (this._domBodyDeferred.promise.isPending()) {
-						this._domBodyDeferred.resolve(vnode.dom)
-					}
+					// if (this._domBodyDeferred.promise.isPending()) {
+					this._domBodyDeferred.resolve(vnode.dom)
+					// }
+					this._domBody = vnode.dom
 					// Only measure and update line height once.
 					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
 					// that it's a different vnode so oncreate might not be called.
@@ -1050,10 +1052,10 @@ export class MailViewer {
 	}
 
 	_rescale(animate: boolean) {
-		if (!client.isMobileDevice() || !this._domBodyDeferred.promise.isFulfilled()) {
+		if (!client.isMobileDevice() || !this._domBody) {
 			return
 		}
-		const child = this._domBodyDeferred.promise.value()
+		const child = this._domBody
 		const containerWidth = child.offsetWidth
 
 		if (!this._isScaling || containerWidth > child.scrollWidth) {
@@ -1126,6 +1128,7 @@ export class MailViewer {
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
 			this._domBodyDeferred = defer()
+			this._domBody = null
 		}
 		// onbeforeremove is only called if we are removed from the parent
 		// e.g. it is not called when switching to contact view
@@ -1564,8 +1567,10 @@ export class MailViewer {
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
 		if (this._domForScrolling) {
 			const dom = this._domForScrolling
-			if (this._scrollAnimation.isFulfilled()) {
-				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
+			if (!this._scrollAnimation) {
+				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut}).then(() => {
+					this._scrollAnimation = null
+				})
 			}
 		}
 	}
@@ -1751,6 +1756,7 @@ export class MailViewer {
 		// We don't check mail authentication status here because the user has manually called this
 		await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
 		this._domBodyDeferred = defer()
+		this._domBody = null
 		this._replaceInlineImages()
 	}
 

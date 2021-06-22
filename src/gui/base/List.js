@@ -6,6 +6,7 @@ import {client} from "../../misc/ClientDetector"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
+import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {debounceStart, mapLazily, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
@@ -19,11 +20,10 @@ import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
-import {isKeyPressed, keyManager} from "../../misc/KeyManager"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
-import type {ListElement} from "../../api/common/utils/EntityUtils"
 import type {Shortcut} from "../../misc/KeyManager"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
+import {isKeyPressed, keyManager} from "../../misc/KeyManager"
+import type {ListElement} from "../../api/common/utils/EntityUtils"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
@@ -48,7 +48,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
-
 	currentPosition: number;
 	lastPosition: number;
 	lastUpdateTime: number;
@@ -573,8 +572,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			                    if (newItems.length < count) this.setLoadedCompletely() // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
 		                    })
 		                    .finally(() => {
+			                    this._displayingProgress = false
 			                    if (this.ready) {
-				                    this._displayingProgress = false
 				                    this._domLoadingRow.style.display = 'none'
 				                    this._reposition()
 			                    }
@@ -601,7 +600,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	displaySpinner(delayed: boolean = true, force?: boolean) {
 		this._displayingProgress = true
 		setTimeout(() => {
-			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
+			if ((force || this._displayingProgress) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
 			// Delay a little bit more than DefaultAnimationTime to execute after the dom is likely initialized
@@ -1030,7 +1029,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		window.requestAnimationFrame(() => {
 			// Do not animate the swipe gesture more than necessary
 			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ACTION_DISTANCE) : Math.min(xDelta, ACTION_DISTANCE)
-			if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
+			if (!this.isAnimating && ve && ve.domElement && ve.entity) {
 				ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
 				this.list._domSwipeSpacerLeft.style.transform =
 					`translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
