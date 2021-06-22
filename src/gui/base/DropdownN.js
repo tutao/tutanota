@@ -19,6 +19,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
 import {DomRectReadOnlyPolyfilled} from "./Dropdown"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -300,7 +301,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?Dropd
 			buttons = Promise.race([
 					originalButtons,
 					Promise.all([
-						Promise.delay(100),
+						delay(100),
 						import("../dialogs/ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {

@@ -6,6 +6,7 @@ import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import {DesktopNotifier} from "../../../src/desktop/DesktopNotifier"
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray"
 import type {NativeImage} from "electron"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 // just a placeholder, symbol to make sure it's the same instance
 const appIcon: NativeImage = downcast(Symbol("appIcon"))
@@ -56,7 +57,7 @@ o.spec("Desktop Notifier Test", function () {
 		})
 
 
-		await Promise.delay(notificationStartDelay * 3)
+		await delay(notificationStartDelay * 3)
 		o(notificationFactory.makeNotification.calls[0].args[0]).deepEquals({
 			title: "Title1",
 			body: "Body1",
@@ -77,7 +78,7 @@ o.spec("Desktop Notifier Test", function () {
 
 		notifier.start(notificationStartDelay)
 
-		await Promise.delay(notificationStartDelay * 1.1)
+		await delay(notificationStartDelay * 1.1)
 		o(notificationFactory.makeNotification.callCount).equals(0)
 	})
 
@@ -86,7 +87,7 @@ o.spec("Desktop Notifier Test", function () {
 
 		notifier.start(notificationStartDelay)
 
-		await Promise.delay(notificationStartDelay * 1.1)
+		await delay(notificationStartDelay * 1.1)
 
 		// Notice the same "gn1". The second replaces the first and calls its "close"
 		notifier.submitGroupedNotification("Title1", "Message1", "gn1", () => {
@@ -124,7 +125,7 @@ o.spec("Desktop Notifier Test", function () {
 		o(notifier.hasNotificationForId("gn1")).equals(false)
 		o(clickHandler.callCount).equals(0)
 
-		await Promise.delay(notificationStartDelay * 2)
+		await delay(notificationStartDelay * 2)
 
 		createdNotifications[0].click()
 

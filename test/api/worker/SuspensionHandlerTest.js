@@ -3,10 +3,7 @@ import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-
-
-const REST_TEST_PATH = "/rest/test"
-const REST_OTHER_TEST_PATH = "/rest/othertest"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 o.spec("SuspensionHandler test", () => {
 
@@ -82,7 +79,7 @@ o.spec("SuspensionHandler test", () => {
 
 		suspensionHandler.activateSuspensionIfInactive(50)
 		const deferredRequest2 = suspensionHandler.deferRequest(request2)
-		await Promise.delay(50)
+		await delay(50)
 		o(suspensionHandler._deferredRequests.length).equals(2)
 		o(suspensionHandler.isSuspended()).equals(true)
 		o(deferredRequest1.isFulfilled()).equals(false)

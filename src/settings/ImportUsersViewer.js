@@ -9,7 +9,7 @@ import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {delay, ofClass} from "../api/common/utils/PromiseUtils"
 
 const delayTime = 900
 
@@ -152,11 +152,11 @@ function createUserIfMailAddressAvailable(user: UserImportDetails, index: number
 	return worker.isMailAddressAvailable(cleanMailAddress).then(available => {
 		if (available) {
 			return worker.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
-				// Promise.delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
-				return Promise.delay(delayTime).then(() => true)
+				// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
+				return delay(delayTime).then(() => true)
 			})
 		} else {
-			return Promise.delay(delayTime).then(() => false)
+			return delay(delayTime).then(() => false)
 		}
 	})
 }

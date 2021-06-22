@@ -16,6 +16,7 @@ import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSo
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 export class ContactMergeView {
 	dialog: Dialog;
@@ -274,7 +275,7 @@ export class ContactMergeView {
 
 	_close(action: ContactMergeActionEnum): void {
 		this.dialog.close()
-		Promise.delay(200).then(() => {
+		delay(200).then(() => {
 			this.resolveFunction(action)
 		})
 	}

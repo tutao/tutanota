@@ -2,7 +2,6 @@
 import o from "ospec"
 import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
-import {replaceAllMaps} from "../../TestUtils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
@@ -10,6 +9,7 @@ import {OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {defer} from "../../../../src/api/common/utils/Utils"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import {delay} from "../../../../src/api/common/utils/PromiseUtils"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
@@ -45,7 +45,7 @@ o.spec("EventQueueTest", function () {
 		}
 		queue.addBatches([batchWithOnlyDelete])
 
-		await Promise.delay(5, Promise.resolve())
+		await delay(5)
 		o(queue._eventQueue.length).equals(1)
 
 		queue.resume()
@@ -63,7 +63,7 @@ o.spec("EventQueueTest", function () {
 		}
 		queue.addBatches([batchWithOnlyDelete])
 
-		await Promise.delay(5, Promise.resolve())
+		await delay(5)
 		queue.start()
 		o(queue._eventQueue.length).equals(1)
 	})
@@ -100,7 +100,7 @@ o.spec("EventQueueTest", function () {
 		queue.addBatches([batchWithThrow, batchWithOnlyCreate])
 
 		queue.start()
-		await Promise.delay(5, Promise.resolve())
+		await delay(5)
 		o(queue._eventQueue.length).equals(2)
 		o(queue._processingBatch).equals(null)
 	})
