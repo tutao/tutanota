@@ -266,12 +266,13 @@ export class MailFacade {
 					}
 				}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.then((attachments) => attachments.filter(Boolean))
-				.tap(() => {
+				.then((it) => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
 						fileApp.clearFileData()
 						       .catch((e) => console.warn("Failed to clear files", e))
 					}
+					return it
 				})
 		} else {
 			return Promise.resolve([])

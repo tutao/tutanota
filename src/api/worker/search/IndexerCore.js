@@ -290,19 +290,22 @@ export class IndexerCore {
 		return operation.transactionFactory()
 		                .then((transaction) => {
 			                operation.transaction = transaction
-			                operation.operation(transaction).tap(() => {
-				                this._currentWriteOperation = null
-				                operation.deferred.resolve()
-			                }).catch((e) => {
-				                if (operation.isAbortedForBackgroundMode) {
-					                console.log("transaction has been aborted because of background mode")
-				                } else {
-					                if (env.mode !== "Test") {
-						                console.log("rejecting operation with error", e)
-					                }
-					                operation.deferred.reject(e)
-				                }
-			                })
+			                operation.operation(transaction)
+			                         .then((it) => {
+				                         this._currentWriteOperation = null
+				                         operation.deferred.resolve()
+				                         return it
+			                         })
+			                         .catch((e) => {
+				                         if (operation.isAbortedForBackgroundMode) {
+					                         console.log("transaction has been aborted because of background mode")
+				                         } else {
+					                         if (env.mode !== "Test") {
+						                         console.log("rejecting operation with error", e)
+					                         }
+					                         operation.deferred.reject(e)
+				                         }
+			                         })
 
 			                return operation.deferred.promise
 		                })

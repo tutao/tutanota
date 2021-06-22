@@ -138,9 +138,18 @@ export class CalendarModelImpl implements CalendarModel {
 		return Promise
 			.mapSeries(calendarMemberships, (membership) => Promise
 				.all([
-					this._entityClient.load(CalendarGroupRootTypeRef, membership.group).tap(() => progressMonitor.workDone(1)),
-					this._entityClient.load(GroupInfoTypeRef, membership.groupInfo).tap(() => progressMonitor.workDone(1)),
-					this._entityClient.load(GroupTypeRef, membership.group).tap(() => progressMonitor.workDone(1))
+					this._entityClient.load(CalendarGroupRootTypeRef, membership.group).then((it) => {
+						progressMonitor.workDone(1)
+						return it
+					}),
+					this._entityClient.load(GroupInfoTypeRef, membership.groupInfo).then((it) => {
+						progressMonitor.workDone(1)
+						return it
+					}),
+					this._entityClient.load(GroupTypeRef, membership.group).then((it) => {
+						progressMonitor.workDone(1)
+						return it
+					})
 				])
 				.catch(ofClass(NotFoundError, () => {
 					notFoundMemberships.push(membership)
@@ -223,11 +232,11 @@ export class CalendarModelImpl implements CalendarModel {
 			           import("../export/CalendarImporter.js").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 		           .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
 		           .catch((e) => {
-		           	if (e instanceof ParserError || e instanceof NotFoundError) {
-			            console.warn("Error while parsing calendar update", e)
-		            } else {
-		           		throw e
-		            }
+			           if (e instanceof ParserError || e instanceof NotFoundError) {
+				           console.warn("Error while parsing calendar update", e)
+			           } else {
+				           throw e
+			           }
 		           })
 		           .then(() => this._entityClient.erase(update))
 		           .catch(ofClass(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e)))
