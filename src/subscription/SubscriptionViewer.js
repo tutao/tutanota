@@ -584,7 +584,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						"{totalAmount}": totalAmount
 					}))
 				})
-				.return()
+				.then(noOp)
 		}
 	}
 
@@ -641,7 +641,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			return this.processUpdate(update)
-		}).return()
+		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {

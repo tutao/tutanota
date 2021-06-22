@@ -282,7 +282,7 @@ export class WorkerImpl {
 				return Promise.resolve()
 			},
 			getMoreSearchResults: (message: Request) => {
-				return locator.search.getMoreSearchResults(...message.args).return(message.args[0])
+				return locator.search.getMoreSearchResults(...message.args).then(() => message.args[0])
 			},
 			getRecoveryCode: (message: Request) => {
 				return locator.login.getRecoverCode(...message.args)

@@ -153,10 +153,10 @@ function createUserIfMailAddressAvailable(user: UserImportDetails, index: number
 		if (available) {
 			return worker.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
 				// Promise.delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
-				return Promise.delay(delayTime).return(true)
+				return Promise.delay(delayTime).then(() => true)
 			})
 		} else {
-			return Promise.delay(delayTime).return(false)
+			return Promise.delay(delayTime).then(() => false)
 		}
 	})
 }

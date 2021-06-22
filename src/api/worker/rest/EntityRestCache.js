@@ -469,7 +469,7 @@ export class EntityRestCache implements EntityRestInterface {
 				// No need to try to download something that's not there anymore
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 				           .then(entity => this._putIntoCache(entity))
-				           .return(update)
+				           .then(() => update)
 				           .catch((e) => this._handleProcessingError(e))
 			} else {
 				return update
@@ -485,7 +485,7 @@ export class EntityRestCache implements EntityRestInterface {
 			// No need to try to download something that's not there anymore
 			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 			           .then(entity => this._putIntoCache(entity))
-			           .return(update)
+			           .then(() => update)
 			           .catch((e) => this._handleProcessingError(e))
 		}
 		return update

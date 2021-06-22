@@ -37,12 +37,12 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			ApprovalStatus.DELAYED,
 			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
 		].indexOf(status) !== -1) {
-			return Dialog.error("waitingForApproval_msg").return(false)
+			return Dialog.error("waitingForApproval_msg").then(() => false)
 		} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
-				return Dialog.error("requestApproval_msg").return(true)
+				return Dialog.error("requestApproval_msg").then(() => true)
 			} else {
-				return Dialog.error("waitingForApproval_msg").return(false)
+				return Dialog.error("waitingForApproval_msg").then(() => false)
 			}
 		} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 			if (logins.getUserController().isGlobalAdmin()) {
@@ -53,13 +53,13 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 						// TODO: navigate to payment site in settings
 						//m.route.set("/settings")
 						//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-					}).return(true)
+					}).then(() => true)
 				} else {
 					return true
 				}
 			} else {
 				const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
-				return Dialog.error(errorMessage).return(false)
+				return Dialog.error(errorMessage).then(() => false)
 			}
 		} else if (status === ApprovalStatus.SPAM_SENDER) {
 			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open

@@ -4,7 +4,7 @@ import type {Contact} from "../../entities/tutanota/Contact"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import type {ContactList} from "../../entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -139,6 +139,6 @@ export class ContactIndexer {
 			} else if (event.operation === OperationType.DELETE) {
 				return this._core._processDeleted(event, indexUpdate)
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

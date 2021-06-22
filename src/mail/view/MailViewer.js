@@ -563,7 +563,7 @@ export class MailViewer {
 							headers: headers.join("\n"),
 						})
 						return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData)
-							.return(true)
+							.then(() => true)
 					})
 				} else {
 					return false

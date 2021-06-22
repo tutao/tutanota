@@ -29,6 +29,7 @@ import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFound
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {resolveRecipientInfo} from "../../mail/model/MailUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {noOp} from "../../api/common/utils/Utils"
 
 export class GroupSharingModel {
 	+info: GroupInfo
@@ -193,7 +194,7 @@ export class GroupSharingModel {
 					this.onEntityUpdate()
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 

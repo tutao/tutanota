@@ -21,7 +21,7 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {delay, ofClass} from "../../api/common/utils/PromiseUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -62,7 +62,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              assignEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
-							                           .delay(100)
+							                           .then(() => delay(100))
 						              })
 					              })
 

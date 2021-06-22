@@ -7,7 +7,7 @@ import {locator} from "../../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
-import {assertNotNull, clone, filterInt} from "../../api/common/utils/Utils"
+import {assertNotNull, clone, filterInt, noOp} from "../../api/common/utils/Utils"
 import {findPrivateCalendar, getTimeZone} from "./CalendarUtils"
 import {logins} from "../../api/main/LoginController"
 import type {Mail} from "../../api/entities/tutanota/Mail"
@@ -108,7 +108,7 @@ export function replyToEventInvitation(
 							              .then((alarms) => {
 									              const alarmInfos = alarms.map((a) => a.alarmInfo)
 									              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
-									                            .return()
+									                            .then(noOp)
 								              }
 							              )
 						} else {

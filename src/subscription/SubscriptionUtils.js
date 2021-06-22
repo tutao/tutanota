@@ -366,20 +366,20 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 		date: Const.CURRENT_DATE
 	})
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
-		.return(false)
+		.then(() => false)
 		.catch(ofClass(PreconditionFailedError, error => {
 			// error handling for cancelling a feature.
 			switch (error.data) {
 				case BookingFailureReason.BALANCE_INSUFFICIENT:
-					return Dialog.error("insufficientBalanceError_msg").return(true)
+					return Dialog.error("insufficientBalanceError_msg").then(() => true)
 				case BookingFailureReason.TOO_MANY_DOMAINS:
-					return Dialog.error("tooManyCustomDomains_msg").return(true)
+					return Dialog.error("tooManyCustomDomains_msg").then(() => true)
 				case BookingFailureReason.BUSINESS_USE:
-					return Dialog.error("featureRequiredForBusinessUse_msg").return(true)
+					return Dialog.error("featureRequiredForBusinessUse_msg").then(() => true)
 				case BookingFailureReason.HAS_TEMPLATE_GROUP:
-					return Dialog.error("deleteTemplateGroups_msg").return(true)
+					return Dialog.error("deleteTemplateGroups_msg").then(() => true)
 				default:
-					return Dialog.error(getBookingItemErrorMsg(featureType)).return(true)
+					return Dialog.error(getBookingItemErrorMsg(featureType)).then(() => true)
 			}
 		}))
 }

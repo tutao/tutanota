@@ -5,7 +5,7 @@ import {Type} from "../gui/base/TextFieldN"
 import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
@@ -101,6 +101,6 @@ export class WhitelabelChildViewer implements MComponent<void> {
 					m.redraw()
 				})
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

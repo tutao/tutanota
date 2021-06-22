@@ -201,7 +201,7 @@ export class SearchView implements CurrentView {
 		locator.eventController.addEntityListener((updates) => {
 			return Promise.each(updates, update => {
 				return this.entityEventReceived(update)
-			}).return()
+			}).then(noOp)
 		})
 	}
 

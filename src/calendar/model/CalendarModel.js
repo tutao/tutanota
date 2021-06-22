@@ -127,7 +127,7 @@ export class CalendarModelImpl implements CalendarModel {
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
 			return this._worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)
-			           .return(newEvent)
+			           .then(() => newEvent)
 		}
 	}
 
@@ -276,7 +276,7 @@ export class CalendarModelImpl implements CalendarModel {
 					return
 				}
 				dbAttendee.status = replyAttendee.status
-				return this._updateEvent(dbEvent, newEvent).return()
+				return this._updateEvent(dbEvent, newEvent).then(noOp)
 			})
 		} else if (calendarData.method === CalendarMethod.REQUEST) { // Either initial invite or update
 			return this._worker.getEventByUid(uid).then((dbEvent) => {
@@ -287,7 +287,7 @@ export class CalendarModelImpl implements CalendarModel {
 						return
 					}
 					if (filterInt(dbEvent.sequence) < filterInt(event.sequence)) {
-						return this.updateEventWithExternal(dbEvent, event).return()
+						return this.updateEventWithExternal(dbEvent, event).then(noOp)
 					}
 				}
 			})
@@ -406,7 +406,7 @@ export class CalendarModelImpl implements CalendarModel {
 					           console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
 				           }))
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	_localAlarmsEnabled(): boolean {

@@ -19,6 +19,7 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
+import {noOp} from "../api/common/utils/Utils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -52,7 +53,7 @@ export class PaymentMethodInput {
 						m.redraw()
 					})
 				}
-			}).return()
+			}).then(noOp)
 		}
 
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard

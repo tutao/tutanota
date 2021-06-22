@@ -9,7 +9,7 @@ import {size} from "../gui/size"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -211,7 +211,7 @@ export class UserListView implements UpdatableSettingsViewer {
 					this.list.redraw()
 				})
 			}
-		}).return()
+		}).then(noOp)
 	}
 }
 

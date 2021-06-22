@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
@@ -358,7 +358,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 				&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(instanceListId)) {
 				return this._updateAdministratedGroups()
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	_createMembersTableAttrs(): TableAttrs {

@@ -13,7 +13,7 @@ import {showBusinessBuyDialog} from "./BuyDialog"
 import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defer} from "../api/common/utils/Utils"
+import {defer, noOp} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import {ofClass} from "../api/common/utils/PromiseUtils"
@@ -34,7 +34,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 					              entityEventUpdateForCustomer.resolve()
 				              })
 			}
-		}).return()
+		}).then(noOp)
 	}
 	locator.eventController.addEntityListener(entityEventListener)
 

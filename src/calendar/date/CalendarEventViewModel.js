@@ -323,7 +323,7 @@ export class CalendarEventViewModel {
 		           .then(customer => {
 			           this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
 			           this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
-		           }).return()
+		           }).then(noOp)
 	}
 
 	_initAttendees(): Stream<Array<Guest>> {
@@ -662,7 +662,7 @@ export class CalendarEventViewModel {
 				// This is event in a shared calendar. We cannot send anything because it's not our event.
 				const p = this._saveEvent(newEvent, newAlarms)
 				showProgress(p)
-				return p.return(true)
+				return p.then(() => true)
 			}
 		}).catch(ofClass(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
@@ -718,7 +718,7 @@ export class CalendarEventViewModel {
 			return this._calendarModel.createEvent(newEvent, newAlarms, this._zone, groupRoot)
 		} else {
 			return this._calendarModel.updateEvent(newEvent, newAlarms, this._zone, groupRoot, this.existingEvent)
-			           .return()
+			           .then(noOp)
 		}
 	}
 
@@ -800,7 +800,7 @@ export class CalendarEventViewModel {
 		}
 		const p = sendPromise.then(() => this._saveEvent(newEvent, newAlarms))
 		showProgress(p)
-		return p.return(true)
+		return p.then(() => true)
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {
