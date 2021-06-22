@@ -127,8 +127,11 @@ async function doBuild() {
 		await buildWebapp(version)
 		if (options.desktop) {
 			await buildDesktopClient(version)
-			await signDesktopClients()
 		}
+
+		// Any existing desktop installers will be signed
+		await signDesktopClients()
+
 		if (options.getDicts) {
 			await getDictionaries(electronVersion)
 		}
@@ -428,26 +431,37 @@ async function _writeFile(targetFile, content) {
 async function signDesktopClients() {
 	// We import `sign` asynchronously because it uses node-forge, which is unavailable during the f-droid build and causes it to fail
 	const {sign} = await import("./buildSrc/installerSigner.js")
-	if (options.deb) {
-		if (options.stage === "release" || options.stage === "prod") {
-			sign('./build/desktop/tutanota-desktop-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
-			sign('./build/desktop/tutanota-desktop-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
-			sign('./build/desktop/tutanota-desktop-win.exe', 'win-sig.bin', 'latest.yml')
-			sign('./build/desktop/tutanota-desktop-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
+
+	const MAC_ZIP_SIGNATURE_FILE = 'mac-sig-zip.bin'
+	const MAC_DMG_SIGNATURE_FILE = 'mac-sig-dmg.bin'
+	const WIN_SIGNATURE_FILE = 'win-sig.bin'
+	const LINUX_SIGNATURE_FILE = 'linux-sig.bin'
+
+	const MAC_YML_FILE = 'latest-mac.yml'
+	const WIN_YML_FILE = 'latest.yml'
+	const LINUX_YML_FILE = 'latest-linux.yml'
+
+	const signIfExists = async (fileName, sigName, ymlName) => (await fileExists(fileName)) && sign(fileName, sigName, ymlName)
+
+	try {
+
+		await signIfExists('./build/desktop/tutanota-desktop-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+		await signIfExists('./build/desktop/tutanota-desktop-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
+		await signIfExists('./build/desktop/tutanota-desktop-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
+		await signIfExists('./build/desktop/tutanota-desktop-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+		await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+		await signIfExists('./build/desktop-test/tutanota-desktop-test-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
+		await signIfExists('./build/desktop-test/tutanota-desktop-test-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
+		await signIfExists('./build/desktop-test/tutanota-desktop-test-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+
+		if (process.env.DEBUG_SIGN) {
+			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
+			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
+			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
+			signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
 		}
-		if (options.stage === "release" || options.stage === "test") {
-			sign('./build/desktop-test/tutanota-desktop-test-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
-			sign('./build/desktop-test/tutanota-desktop-test-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
-			sign('./build/desktop-test/tutanota-desktop-test-win.exe', 'win-sig.bin', 'latest.yml')
-			sign('./build/desktop-test/tutanota-desktop-test-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
-		}
-	} else if (process.env.DEBUG_SIGN && options.stage === "local") {
-		if (options.desktop.win32) sign('./build/desktop-snapshot/tutanota-desktop-snapshot-win.exe', 'win-sig.bin', 'latest.yml')
-		if (options.desktop.linux) sign('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
-		if (options.desktop.mac) {
-			sign('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
-			sign('./build/desktop-snapshot/tutanota-desktop-snapshot-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
-		}
+	} catch (e) {
+		throw "Couldn't sign"
 	}
 }
 
@@ -599,4 +613,10 @@ function analyzer() {
 			await fs.writeFile("build/bundles.dot", buffer)
 		},
 	}
+}
+
+async function fileExists(filePath) {
+	return fs.stat(filePath)
+	         .then(stats => stats.isFile())
+	         .catch(() => false)
 }
