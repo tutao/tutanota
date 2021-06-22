@@ -14,6 +14,7 @@ import {TypeRef} from "./utils/TypeRef";
 import storageModelMap from "../entities/storage/storageModelMap"
 import type {TypeModel} from "./EntityTypes"
 import {noOp} from "./utils/Utils"
+import {promiseMap} from "./utils/PromiseUtils"
 
 
 export const HttpMethod = Object.freeze({
@@ -126,12 +127,12 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 	}
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
-		return Promise.map(idChunks, idChunk => {
+		return promiseMap(idChunks, idChunk => {
 			let queryParams = {
 				ids: idChunk.join(",")
 			}
 			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
-		}, {concurrency: 1}).then(instanceChunks => flat(instanceChunks))
+		}).then(instanceChunks => flat(instanceChunks))
 	})
 }
 

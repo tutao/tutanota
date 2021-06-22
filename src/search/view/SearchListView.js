@@ -33,7 +33,7 @@ import {MailRow} from "../../mail/view/MailRow";
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {compareContacts} from "../../contacts/view/ContactGuiUtils";
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -245,7 +245,7 @@ export class SearchListView {
 	                                        startIndex: number): Promise<T[]> {
 
 		const grouped = groupBy(toLoad, listIdPart)
-		return Promise.map(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)), {concurrency: 1})
+		return promiseMap(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)))
 		              .then(flat)
 		              .then((loaded) => {
 			              // Filter not found instances from the current result as well so we don’t loop trying to load them
