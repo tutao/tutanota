@@ -169,7 +169,7 @@ pipeline {
 				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''export HSM_USER_PIN=${PW};
-					node dist --existing --deb --publish ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
+					node dist --existing --deb ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
 				}
             }
         }
