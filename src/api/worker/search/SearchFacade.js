@@ -43,7 +43,7 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {ofClass, promiseMapCompat} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
@@ -273,8 +273,7 @@ export class SearchFacade {
 	 */
 	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<*> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		// Use Promise.map as promiseMap leads to "maximum stack size exceeded" in case of large address books (probably evaluated on the same event loop)
-		return Promise.map(suggestions, suggestion => {
+		return promiseMap(suggestions, suggestion => {
 			if (searchResult.results.length < minSuggestionCount) {
 				const suggestionResult: SearchResult = {
 					query: suggestion,
@@ -288,7 +287,7 @@ export class SearchFacade {
 				}
 				return this._startOrContinueSearch(suggestionResult)
 			}
-		}, {concurrency: 1})
+		})
 	}
 
 
