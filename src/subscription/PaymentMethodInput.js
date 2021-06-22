@@ -20,6 +20,7 @@ import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
 import {noOp} from "../api/common/utils/Utils"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -45,7 +46,7 @@ export class PaymentMethodInput {
 
 
 		this._entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
 						this._accountingInfo = accountingInfo

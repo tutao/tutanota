@@ -14,7 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {GroupDataOS, MetaDataOS} from "./Indexer";
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class ContactIndexer {
 	_core: IndexerCore;
@@ -120,7 +120,7 @@ export class ContactIndexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event) => {
 			if (event.operation === OperationType.CREATE) {
 				return this.processNewContact(event).then(result => {
 					if (result) {

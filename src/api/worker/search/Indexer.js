@@ -565,7 +565,7 @@ export class Indexer {
 				)
 
 				markStart("processEvent")
-				return Promise.each(groupedEvents.entries(), ([key, value]) => {
+				return promiseMap(groupedEvents.entries(), ([key, value]) => {
 					let promise = Promise.resolve()
 					if (isSameTypeRef(UserTypeRef, key)) {
 						return this._processUserEntityEvents(value)

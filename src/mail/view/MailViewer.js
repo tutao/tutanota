@@ -125,7 +125,7 @@ import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 

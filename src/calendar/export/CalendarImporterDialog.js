@@ -21,7 +21,7 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
-import {delay, ofClass} from "../../api/common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -40,8 +40,8 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 					              events.forEach((event) => {
 						              event.uid && uidToEvent.set(event.uid, event)
 					              })
-					              return Promise.each(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
-						              return Promise.each(events, ({event, alarms}) => {
+					              return promiseMap(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
+						              return promiseMap(events, ({event, alarms}) => {
 							              // Don't try to create event which we already have
 							              if (event.uid && uidToEvent.has(event.uid)) {
 								              return

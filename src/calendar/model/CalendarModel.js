@@ -40,7 +40,7 @@ import {FileTypeRef} from "../../api/entities/tutanota/File"
 import type {AlarmScheduler} from "../date/AlarmScheduler"
 import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 
 // Complete as needed
@@ -173,7 +173,7 @@ export class CalendarModelImpl implements CalendarModel {
 				})
 
 				// cleanup inconsistent memberships
-				Promise.each(notFoundMemberships, (notFoundMembership) => {
+				promiseMap(notFoundMemberships, (notFoundMembership) => {
 					const data = createMembershipRemoveData({user: user._id, group: notFoundMembership.group})
 					return this._worker.serviceRequest(SysService.MembershipService, HttpMethod.DELETE, data)
 				})
@@ -218,7 +218,7 @@ export class CalendarModelImpl implements CalendarModel {
 			if (calendarEventUpdates == null) return
 			this._entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
 			    .then((invites) => {
-				    return Promise.each(invites, (invite) => {
+				    return promiseMap(invites, (invite) => {
 					    return this._handleCalendarEventUpdate(invite)
 				    })
 			    })
@@ -374,7 +374,7 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, entityEventData => {
+		return promiseMap(updates, entityEventData => {
 			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE) {
 					const userAlarmInfoId = [entityEventData.instanceListId, entityEventData.instanceId]

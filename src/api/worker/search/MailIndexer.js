@@ -28,7 +28,7 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
-import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
+import {flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
@@ -41,7 +41,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
 import {TypeRef} from "../../common/utils/TypeRef";
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -497,12 +497,11 @@ export class MailIndexer {
 	 * @param groupId
 	 * @param batchId
 	 * @param indexUpdate which will be populated with operations
-	 * @param futureActions lookahead for actions optimizations. Actions will be removed when processed.
 	 * @returns {Promise<*>} Indication that we're done.
 	 */
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return Promise.each(events, (event) => {
+		return promiseMap(events, (event) => {
 			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// do not execute move operation if there is a delete event or another move event.

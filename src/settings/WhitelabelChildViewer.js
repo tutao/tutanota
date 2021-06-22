@@ -19,6 +19,7 @@ import {isSameId} from "../api/common/utils/EntityUtils";
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -91,7 +92,7 @@ export class WhitelabelChildViewer {
 	}
 
 	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && update.operation === OperationType.UPDATE
 				&& isSameId(this.whitelabelChild._id, [neverNull(update.instanceListId), update.instanceId])) {
 				return load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {

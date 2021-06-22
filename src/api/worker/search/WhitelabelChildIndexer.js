@@ -14,7 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore;
@@ -101,7 +101,7 @@ export class WhitelabelChildIndexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event, index) => {
 			if (userIsGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {

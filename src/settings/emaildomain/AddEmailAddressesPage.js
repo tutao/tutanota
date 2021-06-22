@@ -27,7 +27,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -38,7 +38,7 @@ export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAt
 	oncreate(vnode: Vnode<AddEmailAddressesPageAttrs>) {
 		const wizardAttrs = vnode.attrs
 		this._entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				const {instanceListId, instanceId, operation} = update
 				if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 					&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {

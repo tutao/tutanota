@@ -16,6 +16,7 @@ import {isSameId} from "../../api/common/utils/EntityUtils"
 import type {Group} from "../../api/entities/sys/Group"
 import {loadTemplateGroupInstances} from "./TemplatePopupModel"
 import {locator} from "../../api/main/MainLocator"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export type TemplateGroupInstance = {
 	group: Group,
@@ -50,7 +51,7 @@ export class TemplateGroupModel {
 
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<*> {
 		// const userController = logins.getUserController()
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
 				if (this._groupInstances.isLoaded()) {
 					const existingInstances = this.getGroupInstances().map(groupInstances => groupInstances.groupRoot._id)

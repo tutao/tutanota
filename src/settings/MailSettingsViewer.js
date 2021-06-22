@@ -47,7 +47,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {formatActivateState, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -327,7 +327,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			let p = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {

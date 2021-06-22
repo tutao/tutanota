@@ -21,6 +21,7 @@ import {Mode} from "../api/common/Env"
 import type {ThemeId} from "../gui/theme"
 import {themeController} from "../gui/theme"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -123,7 +124,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				return load(UserSettingsGroupRootTypeRef, update.instanceId)
 					.then((settings) => {

@@ -62,7 +62,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -679,25 +679,24 @@ export class CalendarEventViewModel {
 		                             .filter(a => !this._ownMailAddresses.includes(a.address.address))
 		                             .map(a => a.address)
 
-		return Promise
-			.each(cancelAddresses, (a) => {
-				const [recipientInfo, recipientInfoPromise] = this._cancelModel.addOrGetRecipient("bcc", {
-					name: a.name,
-					address: a.address,
-					contact: null
-				})
-				//We cannot send a notification to external recipients without a password, so we exclude them
-				if (this._cancelModel.isConfidential()) {
-					return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
-					              .then(() => {
-						              if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
-							              this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
-						              }
-					              })
-				} else {
-					return Promise.resolve()
-				}
+		return promiseMap(cancelAddresses, (a) => {
+			const [recipientInfo, recipientInfoPromise] = this._cancelModel.addOrGetRecipient("bcc", {
+				name: a.name,
+				address: a.address,
+				contact: null
 			})
+			//We cannot send a notification to external recipients without a password, so we exclude them
+			if (this._cancelModel.isConfidential()) {
+				return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
+				              .then(() => {
+					              if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+						              this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+					              }
+				              })
+			} else {
+				return Promise.resolve()
+			}
+		})
 			.then(() => {
 				//We check if there are any attendees left to send the cancellation to
 				return this._cancelModel.allRecipients().length

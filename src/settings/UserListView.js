@@ -30,7 +30,7 @@ import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -182,7 +182,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 				if (!logins.getUserController().isGlobalAdmin()) {

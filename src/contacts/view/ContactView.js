@@ -50,7 +50,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {compareContacts} from "./ContactGuiUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -145,7 +145,7 @@ export class ContactView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener(updates => {
-			return Promise.each(updates, update => this._processEntityUpdate(update)).then(noOp)
+			return promiseMap(updates, update => this._processEntityUpdate(update)).then(noOp)
 		})
 	}
 
@@ -295,7 +295,7 @@ export class ContactView implements CurrentView {
 						return locator
 							.contactModel
 							.contactListId()
-							.then(contactListId => Promise.each(contactList, (contact) => setup(contactListId, contact)))
+							.then(contactListId => promiseMap(contactList, (contact) => setup(contactListId, contact)))
 							.then(() => contactList.length)
 					}))
 				}

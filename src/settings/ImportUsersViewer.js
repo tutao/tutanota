@@ -9,7 +9,7 @@ import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {delay, ofClass} from "../api/common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 const delayTime = 900
 
@@ -115,13 +115,17 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let nbrOfCreatedUsers = 0
 	let notAvailableUsers = []
+	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
+	// index
+	let userNumber = 0
 	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
 		if (accepted) {
 			return showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 				"{index}": nbrOfCreatedUsers,
 				"{count}": userDetailsArray.length
-			}), Promise.each(userDetailsArray, (user, index) => {
-				return createUserIfMailAddressAvailable(user, index, userDetailsArray.length).then(created => {
+			}), promiseMap(userDetailsArray, (user) => {
+				return createUserIfMailAddressAvailable(user, userNumber, userDetailsArray.length).then(created => {
+					userNumber++
 					if (created) {
 						nbrOfCreatedUsers++
 						m.redraw()
@@ -129,17 +133,18 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 						notAvailableUsers.push(user)
 					}
 				})
-			})).catch(ofClass(PreconditionFailedError, e => Dialog.error("createUserFailed_msg")))
-			   .then(() => {
-				   let p = Promise.resolve()
-				   if (notAvailableUsers.length > 0) {
-					   p = Dialog.error(() => lang.get("addressesAlreadyInUse_msg") + " "
-						   + notAvailableUsers.map(u => u.mailAddress).join(", "))
-				   }
-				   p.then(() => {
-					   Dialog.error(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
-				   })
-			   })
+			}))
+				.catch(ofClass(PreconditionFailedError, () => Dialog.error("createUserFailed_msg")))
+				.then(() => {
+					let p = Promise.resolve()
+					if (notAvailableUsers.length > 0) {
+						p = Dialog.error(() => lang.get("addressesAlreadyInUse_msg") + " "
+							+ notAvailableUsers.map(u => u.mailAddress).join(", "))
+					}
+					p.then(() => {
+						Dialog.error(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
+					})
+				})
 		}
 	})
 }

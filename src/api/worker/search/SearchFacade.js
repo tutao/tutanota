@@ -273,7 +273,7 @@ export class SearchFacade {
 	 */
 	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<*> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		// Use Promise.map as Promise.each leads to "maximum stack size exceeded" in case of large address books (probably evaluated on the same event loop)
+		// Use Promise.map as promiseMap leads to "maximum stack size exceeded" in case of large address books (probably evaluated on the same event loop)
 		return Promise.map(suggestions, suggestion => {
 			if (searchResult.results.length < minSuggestionCount) {
 				const suggestionResult: SearchResult = {

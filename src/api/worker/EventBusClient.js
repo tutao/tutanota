@@ -43,7 +43,7 @@ import {
 	getLetId,
 	isSameId
 } from "../common/utils/EntityUtils";
-import {delay, ofClass} from "../common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -429,7 +429,7 @@ export class EventBusClient {
 	_setLatestEntityEventIds(): Promise<void> {
 		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
 		const lastIds: Map<Id, Array<Id>> = new Map()
-		return Promise.each(this._eventGroups(), groupId => {
+		return promiseMap(this._eventGroups(), groupId => {
 			return this._entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
 				lastIds.set(groupId, [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID])
 			})
@@ -446,7 +446,7 @@ export class EventBusClient {
 				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
 				return this._worker.sendError(new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more"))
 			} else {
-				return Promise.each(this._eventGroups(), (groupId) => {
+				return promiseMap(this._eventGroups(), (groupId) => {
 					return this._entity
 					           .loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
 					           .then((eventBatches) => {
