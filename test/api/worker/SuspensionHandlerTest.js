@@ -91,14 +91,11 @@ o.spec("SuspensionHandler test", () => {
 	}))
 
 	o("deferred request throws exception", async () => {
-		const callOnResolve  = o.spy()
-		const shouldntGetCalled = o.spy()
-
 		suspensionHandler.activateSuspensionIfInactive(100)
-		const d1 = suspensionHandler.deferRequest(() => Promise.resolve("noice")).tap(callOnResolve)
-		const d2 = suspensionHandler.deferRequest(() => { throw "oi" }).tap(shouldntGetCalled).catch(e => e) // no exception should be thrown anywhere
-		const d3 = suspensionHandler.deferRequest(() => Promise.resolve("'ken oath")).tap(callOnResolve)
-		const d4 = suspensionHandler.deferRequest(() => { throw "karn" }).tap(shouldntGetCalled).catch(e => e) // no exception should be thrown anywhere
+		const d1 = suspensionHandler.deferRequest(() => Promise.resolve("noice"))
+		const d2 = suspensionHandler.deferRequest(() => { throw "oi" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
+		const d3 = suspensionHandler.deferRequest(() => Promise.resolve("'ken oath"))
+		const d4 = suspensionHandler.deferRequest(() => { throw "karn" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
 
 		const returned1 = await d1
 		const caught1 = await d2
@@ -107,10 +104,8 @@ o.spec("SuspensionHandler test", () => {
 
 		o(returned1).equals("noice")
 		o(returned2).equals("'ken oath")
-		o(caught1).equals("oi")
-		o(caught2).equals("karn")
-		o(callOnResolve.callCount).equals(2)
-		o(shouldntGetCalled.callCount).equals(0)
+		o(caught1).deepEquals({exception: "oi"})
+		o(caught2).deepEquals({exception: "karn"})
 	})
 
 })
