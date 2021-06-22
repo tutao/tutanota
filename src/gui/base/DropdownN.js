@@ -21,6 +21,7 @@ import {filterNull} from "../../api/common/utils/ArrayUtils"
 import {downcast} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
 import {pureComponent} from "./PureComponent"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -314,7 +315,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?Dropd
 			buttons = Promise.race([
 					originalButtons,
 					Promise.all([
-						Promise.delay(100),
+						delay(100),
 						import("../dialogs/ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {

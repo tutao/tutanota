@@ -43,7 +43,7 @@ import {
 	getLetId,
 	isSameId
 } from "../common/utils/EntityUtils";
-import {ofClass} from "../common/utils/PromiseUtils"
+import {delay, ofClass} from "../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -253,7 +253,7 @@ export class EventBusClient {
 				this._lastUpdateTime = 0
 			}
 			console.log("retry init entity events in 30s", e)
-			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+			let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 				// if we have a websocket reconnect we have to stop retrying
 				if (this._serviceUnavailableRetry === promise) {
 					console.log("retry initializing entity events")
@@ -524,7 +524,7 @@ export class EventBusClient {
 		}).catch(ofClass(ServiceUnavailableError, e => {
 			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
 			console.log("retry processing event in 30s", e)
-			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+			let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 				// if we have a websocket reconnect we have to stop retrying
 				if (this._serviceUnavailableRetry === promise) {
 					return this._processEventBatch(batch)

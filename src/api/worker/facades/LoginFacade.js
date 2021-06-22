@@ -88,7 +88,7 @@ import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {GroupTypeRef} from "../../entities/sys/Group"
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {delay, ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -391,14 +391,14 @@ export class LoginFacade {
 		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 		           .catch(ofClass(ServiceUnavailableError, e => {
 			           console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+			           return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 				           console.log("_initIndexer after ServiceUnavailableError")
 				           return this._initIndexer()
 			           })
 		           }))
 		           .catch(ofClass(ConnectionError, e => {
 			           console.log("Retry init indexer in 30 seconds after ConnectionError")
-			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+			           return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 				           console.log("_initIndexer after ConnectionError")
 				           return this._initIndexer()
 			           })

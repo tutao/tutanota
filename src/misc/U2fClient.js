@@ -13,6 +13,7 @@ import {client} from "./ClientDetector"
 import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
 import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
+import {delay} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -59,7 +60,7 @@ export class U2fClient {
 					resolve(responseOrError['js_api_version'] != null)
 				}, 2)
 			}),
-			Promise.delay(SECOND_MS, false),
+			delay(SECOND_MS).then(() => false),
 		])
 	}
 

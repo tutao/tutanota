@@ -8,6 +8,7 @@ import {hash} from "../crypto/Sha256"
 import type {User} from "../../entities/sys/User"
 import {getEtId} from "../../common/utils/EntityUtils"
 import type {IndexName} from "./Indexer"
+import {delay} from "../../common/utils/PromiseUtils"
 
 
 export type ObjectStoreName = string
@@ -122,7 +123,7 @@ export class DbFacade {
 	deleteDatabase(): Promise<void> {
 		if (this._db.isLoaded()) {
 			if (this._activeTransactions > 0) {
-				return Promise.delay(150).then(() => this.deleteDatabase())
+				return delay(150).then(() => this.deleteDatabase())
 			} else {
 				this._db.getLoaded().close()
 				return Promise.fromCallback(cb => {
