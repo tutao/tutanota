@@ -9,7 +9,7 @@ import {size} from "../gui/size"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {logins} from "../api/main/LoginController"
@@ -164,7 +164,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			return this.processUpdate(update)
-		}).return()
+		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {

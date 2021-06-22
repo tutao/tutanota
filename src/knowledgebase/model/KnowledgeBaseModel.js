@@ -11,7 +11,7 @@ import stream from "mithril/stream/stream.js"
 import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants"
 import {EmailTemplateTypeRef} from "../../api/entities/tutanota/EmailTemplate"
 import {lang} from "../../misc/LanguageViewModel"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast, noOp} from "../../api/common/utils/Utils"
 import {getElementId, getEtId, getLetId, isSameId} from "../../api/common/utils/EntityUtils"
 import type {TemplateGroupInstance} from "../../templates/model/TemplateGroupModel"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
@@ -234,7 +234,7 @@ export class KnowledgeBaseModel {
 					this.filter(this._filterValue)
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 }
 

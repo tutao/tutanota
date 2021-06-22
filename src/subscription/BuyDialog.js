@@ -37,7 +37,7 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 	}
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
-			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
+			return Dialog.error("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
 			return worker.getPrice(featureType, count, reactivate).then(price => {
 				if (!_isPriceChange(price, featureType)) {

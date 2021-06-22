@@ -9,7 +9,7 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
@@ -47,7 +47,7 @@ export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAt
 						m.redraw()
 					})
 				}
-			}).return()
+			}).then(noOp)
 		}
 		locator.eventController.addEntityListener(this._entityEventListener)
 

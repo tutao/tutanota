@@ -72,12 +72,12 @@ declare class Promise<+R> {
 	isPending(): boolean;
 	value(): R;
 
-	return<T>(returnValue: T): Promise<T>;
-	delay<T>(millis: number): Promise<T>;
+	// return<T>(returnValue: T): Promise<T>;
+	// delay<T>(millis: number): Promise<T>;
 
 	tap(handler: (R => $Promisable<mixed>)): Promise<R>;
 
-	timeout(ms: number, message?: string): Promise<R>;
+	// timeout(ms: number, message?: string): Promise<R>;
 
 	static resolve<T>(object: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;

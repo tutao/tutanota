@@ -10,7 +10,7 @@ import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthDa
 import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import type {TranslationKey} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {U2fClient, U2fError, U2fTimeoutError, U2fWrongDeviceError} from "./U2fClient"
 import {assertMainOrNode} from "../api/common/Env"
 import {AccessBlockedError, BadRequestError, NotAuthenticatedError, NotFoundError} from "../api/common/error/RestError"
@@ -127,7 +127,7 @@ export class SecondFactorHandler {
 					}
 				}
 			})
-			.return())
+			.then(noOp))
 	}
 
 	closeWaitingForSecondFactorDialog() {

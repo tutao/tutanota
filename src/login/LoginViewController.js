@@ -95,7 +95,7 @@ export class LoginViewController implements ILoginViewController {
 				             console.log(ignored)
 				             // prevent reloading the page by ErrorHandler
 			             })
-		})).return()
+		})).then(noOp)
 	}
 
 	formLogin(): void {

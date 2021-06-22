@@ -35,7 +35,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {addressDomain, defer, neverNull} from "../../common/utils/Utils"
+import {addressDomain, defer, neverNull, noOp} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -522,7 +522,7 @@ export class MailFacade {
 					deferredPromiseWrapper.resolve(mail)
 				})
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	phishingMarkersUpdateReceived(markers: Array<PhishingMarker>) {

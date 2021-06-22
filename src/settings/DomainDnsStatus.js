@@ -9,6 +9,7 @@ import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../ap
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/common/Env"
+import {noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -88,9 +89,9 @@ export class DomainDnsStatus {
 	loadCurrentStatus(): Promise<void> {
 		if (this.status.isLoaded()) {
 			// keep the old status as long as checking again
-			return this.status.reload().return()
+			return this.status.reload().then(noOp)
 		} else {
-			return this.status.getAsync().return()
+			return this.status.getAsync().then(noOp)
 		}
 	}
 }

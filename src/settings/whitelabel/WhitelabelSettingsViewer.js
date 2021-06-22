@@ -363,6 +363,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 				return this._updateFields()
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

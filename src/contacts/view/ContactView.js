@@ -145,7 +145,7 @@ export class ContactView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener(updates => {
-			return Promise.each(updates, update => this._processEntityUpdate(update)).return()
+			return Promise.each(updates, update => this._processEntityUpdate(update)).then(noOp)
 		})
 	}
 
@@ -575,7 +575,7 @@ export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 				if (allContacts.length === 0) {
 					return 0
 				} else {
-					return exportContacts(allContacts).return(allContacts.length)
+					return exportContacts(allContacts).then(() => allContacts.length)
 				}
 			})
 		})

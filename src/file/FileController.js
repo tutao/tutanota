@@ -3,7 +3,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -58,7 +58,7 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).return(null)
+		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).then(() => null)
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
 			downloadContent = f => worker.downloadFileContentNative(f)
@@ -87,7 +87,7 @@ export class FileController {
 			.then((results) => results.filter(Boolean)) // filter out failed files
 		// in apps, p is a  Promise<FileReference[]> that have location props.
 		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
-		return save(downcast(p)).return()
+		return save(downcast(p)).then(noOp)
 	}
 
 	/**
@@ -165,7 +165,7 @@ export class FileController {
 		if (isApp() || isDesktop()) {
 			return import("../native/common/FileApp").then(({fileApp}) => fileApp.saveBlob(dataFile))
 			                                         .catch(err => Dialog.error("canNotOpenFileOnDevice_msg"))
-			                                         .return()
+			                                         .then(noOp)
 		}
 		let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 			|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob

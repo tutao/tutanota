@@ -13,6 +13,7 @@ import gossipModelMap from "../entities/gossip/gossipModelMap"
 import {TypeRef} from "./utils/TypeRef";
 import storageModelMap from "../entities/storage/storageModelMap"
 import type {TypeModel} from "./EntityTypes"
+import {noOp} from "./utils/Utils"
 
 
 export const HttpMethod = Object.freeze({
@@ -79,7 +80,7 @@ export function _updateEntity<T>(instance: T, target: EntityRestInterface): Prom
 		_verifyType(typeModel)
 		if (!(instance: any)._id) throw new Error("Id must be defined")
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).then(noOp)
 	})
 }
 
@@ -87,7 +88,7 @@ export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promi
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).then(noOp)
 	})
 }
 

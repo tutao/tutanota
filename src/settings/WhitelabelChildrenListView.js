@@ -7,7 +7,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import type {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {logins} from "../api/main/LoginController"
@@ -134,7 +134,7 @@ export class WhitelabelChildrenListView {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && this._listId.getSync() === update.instanceListId) {
 				return this.list.entityEventReceived(update.instanceId, update.operation)
 			}
-		}).return()
+		}).then(noOp)
 	}
 }
 

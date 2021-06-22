@@ -10,7 +10,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {load, update} from "../api/main/Entity"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -131,6 +131,6 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 						m.redraw()
 					})
 			}
-		}).return()
+		}).then(noOp)
 	}
 }
