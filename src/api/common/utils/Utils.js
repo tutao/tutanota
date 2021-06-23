@@ -68,30 +68,31 @@ export function defer<T>(): DeferredObject<T> {
 	return ret
 }
 
-export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<?T> {
-	return Promise.reduce(array, (foundItem, item, index, length) => {
-		if (foundItem) {
-			// the item has been found already, so skip all remaining items in the array
-			return foundItem
-		} else {
-			return finder(item, index, length).then(found => {
-				return (found) ? item : null
-			})
+export async function asyncFind<T>(
+	array: $ReadOnlyArray<T>,
+	finder: (item: T, index: number, arrayLength: number) => Promise<boolean>
+): Promise<?T> {
+	for (let i = 0; i < array.length; i++) {
+		const item = array[i]
+		if (await finder(item, i, array.length)) {
+			return item
 		}
-	}, null)
+	}
+	return null
 }
 
-export function asyncFindAndMap<T, R>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<?R>): Promise<?R> {
-	return Promise.reduce(array, (result, item, index, length) => {
-		if (result) {
-			// the item has been found already, so skip all remaining items in the array
-			return result
-		} else {
-			return finder(item, index, length).then(currentResult => {
-				return (currentResult) ? currentResult : null
-			})
+export async function asyncFindAndMap<T, R>(
+	array: $ReadOnlyArray<T>,
+	finder: (item: T, index: number, arrayLength: number) => Promise<?R>
+): Promise<?R> {
+	for (let i = 0; i < array.length; i++) {
+		const item = array[i]
+		const mapped = await finder(item, i, array.length)
+		if (mapped) {
+			return mapped
 		}
-	}, null)
+	}
+	return null
 }
 
 /**

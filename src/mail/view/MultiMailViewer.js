@@ -131,32 +131,29 @@ export class MultiMailViewer {
 
 	/**
 	 * Generate buttons that will move the selected mails to respective folders
-	 * @returns {Promise<R>|Promise<ButtonAttrs[]>}
 	 */
 	async makeMoveMailButtons(): Promise<ButtonAttrs[]> {
-		return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
-			return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
-				if (set.indexOf(mailBox) < 0) {
-					set.push(mailBox)
-				}
-				return set
-			})
-		}, ([]: MailboxDetail[])).then((sourceMailboxes) => {
-			if (sourceMailboxes.length !== 1) {
+		let selectedMailbox
+		for (const mail of this._mailView.mailList.list.getSelectedEntities()) {
+			const mailBox = await locator.mailModel.getMailboxDetailsForMail(mail)
+			// We can't move if mails are from different mailboxes
+			if (selectedMailbox != null && selectedMailbox !== mailBox) {
 				return []
-			} else {
-				return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
-					.filter(f => f !== this._mailView.selectedFolder)
-					.map(f => {
-						return {
-							label: () => getFolderName(f),
-							click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
-							icon: getFolderIcon(f),
-							type: ButtonType.Dropdown
-						}
-					})
 			}
-		})
+			selectedMailbox = mailBox
+		}
+		if (selectedMailbox == null) return []
+
+		return (getSortedSystemFolders(selectedMailbox.folders).concat(getSortedCustomFolders(selectedMailbox.folders)))
+			.filter(f => f !== this._mailView.selectedFolder)
+			.map(f => {
+				return {
+					label: () => getFolderName(f),
+					click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
+					icon: getFolderIcon(f),
+					type: ButtonType.Dropdown
+				}
+			})
 	}
 
 	/**

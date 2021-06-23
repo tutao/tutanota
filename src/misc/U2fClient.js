@@ -64,44 +64,45 @@ export class U2fClient {
 		])
 	}
 
-	register(): Promise<U2fRegisteredDevice> {
+	async register(): Promise<U2fRegisteredDevice> {
 		let random = new Uint8Array(32)
 		let c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-		return Promise.fromCallback(cb => {
+
+		const rawResponse = new Promise(resolve => {
 			(window.u2f || u2fApi).register(this.appId, [
 				{
 					version: "U2F_V2",
 					challenge: challenge,
 				}
-			], [], (r) => this._handleError(r, cb), TIMEOUT);
-		}).then(rawRegisterResponse => this._decodeRegisterResponse(rawRegisterResponse))
-		              .then(registerResponse => {
-			              let u2fDevice = createU2fRegisteredDevice()
-			              u2fDevice.keyHandle = registerResponse.keyHandle
-			              u2fDevice.appId = this.appId
-			              u2fDevice.publicKey = registerResponse.userPublicKey
-			              u2fDevice.compromised = false
-			              u2fDevice.counter = "-1"
-			              return u2fDevice
-		              })
+			], [], resolve, TIMEOUT)
+		})
+		const response = this._handleError(rawResponse)
+		const registerResponse = await this._decodeRegisterResponse(response)
+		return createU2fRegisteredDevice({
+			keyHandle: registerResponse.keyHandle,
+			appId: this.appId,
+			publicKey: registerResponse.userPublicKey,
+			compromised: false,
+			counter: "-1"
+		})
 	}
 
-	_handleError(rawResponse: Object, cb: Callback<Object>) {
+	_handleError(rawResponse: Object): Object {
 		console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
 		if (!rawResponse.errorCode) {
-			cb(null, rawResponse)
+			return rawResponse
 		} else if (rawResponse.errorCode === 4) {
-			cb(new U2fWrongDeviceError())
+			throw new U2fWrongDeviceError()
 		} else if (rawResponse.errorCode === 5) {
-			cb(new U2fTimeoutError())
+			throw new U2fTimeoutError()
 		} else {
-			cb(new U2fError("U2f error code: " + rawResponse.errorCode))
+			throw new U2fError("U2f error code: " + rawResponse.errorCode)
 		}
 	}
 
-	sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<U2fResponseData> {
+	async sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<U2fResponseData> {
 		let registeredKeys = challenge.keys.map(key => {
 			return {
 				version: "U2F_V2",
@@ -110,14 +111,14 @@ export class U2fClient {
 			}
 		})
 		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
-		return Promise.fromCallback(cb => {
-			(window.u2f || u2fApi).sign(this.appId, challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
-		}).then(rawAuthenticationResponse => {
-			let u2fSignatureResponse = createU2fResponseData()
-			u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle
-			u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData
-			u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData
-			return u2fSignatureResponse
+		const rawResponse = await new Promise(resolve => {
+			(window.u2f || u2fApi).sign(this.appId, challengeData, registeredKeys, resolve, TIMEOUT)
+		})
+		const rawAuthenticationResponse = this._handleError(rawResponse)
+		return createU2fResponseData({
+			keyHandle: rawAuthenticationResponse.keyHandle,
+			clientData: rawAuthenticationResponse.clientData,
+			signatureData: rawAuthenticationResponse.signatureData,
 		})
 	}
 

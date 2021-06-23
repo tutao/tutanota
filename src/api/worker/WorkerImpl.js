@@ -27,6 +27,7 @@ import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {User} from "../entities/sys/User"
 import {urlify} from "./Urlifier"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
+import {delay} from "../common/utils/PromiseUtils"
 
 
 assertWorkerOrNode()
@@ -425,11 +426,7 @@ export class WorkerImpl {
 	sendProgress(progressPercentage: number): Promise<void> {
 		return this._queue.postMessage(new Request("progress", [progressPercentage])).then(() => {
 			// the worker sometimes does not send the request if it does not get time
-			return Promise.fromCallback(cb => {
-				setTimeout(() => {
-					cb()
-				}, 0)
-			})
+			return delay(0)
 		})
 	}
 

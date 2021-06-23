@@ -10,10 +10,11 @@ import {PasswordIndicator} from "../PasswordIndicator"
 import stream from "mithril/stream/stream.js"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {TabIndex} from "../../api/common/TutanotaConstants"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
-export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>, progress?: Stream<number>): Promise<T> {
+export async function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>, progress?: Stream<number>): Promise<T> {
 	const progressStream = progress
 	let progressIndicator = null
 	if (progressStream) {
@@ -43,21 +44,35 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 	let start = new Date().getTime()
 
 	let minDialogVisibilityMillis = isAdminClient() ? 0 : 1000
-	return Promise.fromCallback(cb => {
-		action.then(result => {
-			let diff = new Date().getTime() - start
-			setTimeout(() => {
-				progressDialog.close()
-				setTimeout(() => cb(null, result), DefaultAnimationTime)
-			}, Math.max(minDialogVisibilityMillis - diff, 0))
-		}).catch(e => {
-			let diff = new Date().getTime() - start
-			setTimeout(() => {
-				progressDialog.close()
-				setTimeout(() => cb(e), DefaultAnimationTime)
-			}, Math.max(minDialogVisibilityMillis - diff, 0))
-		})
-	})
+
+	try {
+		const result = await action
+		const diff = Date.now() - start
+		await delay(Math.max(minDialogVisibilityMillis - diff, 0))
+		progressDialog.close()
+		await delay(DefaultAnimationTime)
+		return result
+	} catch (e) {
+		const diff = Date.now() - start
+		await delay(Math.max(minDialogVisibilityMillis - diff, 0))
+		progressDialog.close()
+		await delay(DefaultAnimationTime)
+		throw e
+	}
+	// return new Promise((resolve, reject) => {
+	// 	action.then(result => {
+	// 		setTimeout(() => {
+	// 			progressDialog.close()
+	// 			setTimeout(() => cb(null, result), DefaultAnimationTime)
+	// 		}, Math.max(minDialogVisibilityMillis - diff, 0))
+	// 	}).catch(e => {
+	// 		let diff = new Date().getTime() - start
+	// 		setTimeout(() => {
+	// 			progressDialog.close()
+	// 			setTimeout(() => cb(e), DefaultAnimationTime)
+	// 		}, Math.max(minDialogVisibilityMillis - diff, 0))
+	// 	})
+	// })
 }
 
 export function showWorkerProgressDialog<T>(worker: WorkerClient, messageIdOrMessageFunction: TranslationKey | lazy<string>,

@@ -27,7 +27,7 @@ export function showStorageCapacityOptionsDialog(storageWarningTextId: ?Translat
 		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
 			let freeStorageCapacity = Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
-			return Promise.fromCallback((resolve) => {
+			return new Promise((resolve) => {
 				const changeStorageCapacityAction = (amount: number) => {
 					dialog.close()
 					showBuyDialog(BookingItemFeatureType.Storage, amount, freeStorageCapacity, false).then(confirm => {
@@ -35,12 +35,12 @@ export function showStorageCapacityOptionsDialog(storageWarningTextId: ?Translat
 							return buyStorage(amount)
 						}
 					}).then(() => {
-						resolve(null)
+						resolve()
 					})
 				}
 				const cancelAction = () => {
 					dialog.close()
-					resolve(null)
+					resolve()
 				}
 
 				const storageBuyOptionsAttrs = [

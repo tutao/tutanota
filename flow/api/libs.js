@@ -51,10 +51,6 @@ declare function importScripts(...urls: string[]): void;
 // 	postMessage(message: Object): void;
 // }
 
-type Bluebird$ConcurrencyOption = {
-	concurrency: number,
-};
-
 declare class Promise<+R> {
 	// standard
 	constructor(callback: (resolve: (result: Promise<R> | R) => void,
@@ -70,7 +66,6 @@ declare class Promise<+R> {
 
 	// non-standard
 	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
-	static reduce<T, U>(array: $Promisable<Iterable<T>>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => (Promise<U> | U), initialValue: U): Promise<U>;
 	static config(configuration: Object): void;
 
 	static onPossiblyUnhandledRejection(errorHandler: Function): void;

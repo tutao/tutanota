@@ -370,13 +370,13 @@ export class ContactFormRequestDialog {
 }
 
 function showConfirmDialog(userEmailAddress: string): Promise<void> {
-	return Promise.fromCallback(cb => {
+	return new Promise(resolve => {
 		// This old button has type login. New buttons with this type have rounded corner but this one should probably not have because
 		// it fills the dialog in the bottom (unless we want dialogs to have rounded corners in the future.
 		// Anyway, if you decide to replace it, take care of it.
 		const confirm = new Button("contactFormSubmitConfirm_action", () => {
 			dialog.close()
-			cb()
+			resolve()
 		}).setType(ButtonType.Login)
 		const requestId = m(TextFieldN, {
 			label: "mailAddress_label",

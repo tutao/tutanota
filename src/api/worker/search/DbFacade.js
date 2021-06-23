@@ -60,7 +60,7 @@ export class DbFacade {
 			if (!this.indexingSupported) {
 				return Promise.reject(new IndexingNotSupportedError("indexedDB not supported"))
 			} else {
-				return Promise.fromCallback(callback => {
+				return new Promise((resolve, reject) => {
 					let DBOpenRequest
 					try {
 
@@ -78,9 +78,9 @@ export class DbFacade {
 
 							if (event.target && event.target.error && event.target.error.name === "QuotaExceededError") {
 								console.log("Storage Quota is exceeded")
-								callback(new QuotaExceededError(message, DBOpenRequest.error || event.target.error))
+								reject(new QuotaExceededError(message, DBOpenRequest.error || event.target.error))
 							} else {
-								callback(new IndexingNotSupportedError(message, DBOpenRequest.error || event.target.error))
+								reject(new IndexingNotSupportedError(message, DBOpenRequest.error || event.target.error))
 							}
 						}
 
@@ -89,7 +89,7 @@ export class DbFacade {
 							try {
 								onupgrade(event, event.target.result)
 							} catch (e) {
-								callback(new DbError("could not create object store for DB " + this._id, e))
+								reject(new DbError("could not create object store for DB " + this._id, e))
 							}
 						}
 
@@ -101,11 +101,11 @@ export class DbFacade {
 								this._db.reset()
 							}
 							DBOpenRequest.result.onerror = (event) => console.log("db error", event)
-							callback(null, DBOpenRequest.result)
+							resolve(DBOpenRequest.result)
 						}
 					} catch (e) {
 						this.indexingSupported = false
-						callback(new IndexingNotSupportedError(`exception when accessing indexeddb ${this._id}`, e))
+						reject(new IndexingNotSupportedError(`exception when accessing indexeddb ${this._id}`, e))
 					}
 				})
 			}
@@ -126,14 +126,14 @@ export class DbFacade {
 				return delay(150).then(() => this.deleteDatabase())
 			} else {
 				this._db.getLoaded().close()
-				return Promise.fromCallback(cb => {
+				return new Promise((resolve, reject) => {
 					let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
 					deleteRequest.onerror = (event) => {
-						cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
+						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
 					}
 					deleteRequest.onsuccess = (event) => {
 						this._db.reset()
-						cb()
+						resolve()
 					}
 				})
 			}
@@ -184,12 +184,12 @@ export class IndexedDbTransaction implements DbTransaction {
 	constructor(transaction: IDBTransaction, onUnknownError: (e: any) => mixed) {
 		this._transaction = transaction
 		this._onUnknownError = onUnknownError
-		this._promise = Promise.fromCallback((callback) => {
+		this._promise = new Promise((resolve, reject) => {
 			let done = false
 			transaction.onerror = (event) => {
 				if (!done) {
 					this._handleDbError(event, this._transaction, "transaction.onerror", (e) => {
-						callback(e)
+						reject(e)
 					})
 				} else {
 					console.log("ignore error of aborted/fulfilled transaction", event)
@@ -197,23 +197,23 @@ export class IndexedDbTransaction implements DbTransaction {
 			}
 			transaction.oncomplete = () => {
 				done = true
-				callback()
+				resolve()
 			}
 			transaction.onabort = (event) => {
 				event.stopPropagation()
 				done = true
-				callback()
+				resolve()
 			}
 		})
 	}
 
 	getAll(objectStore: ObjectStoreName): Promise<Array<DatabaseEntry>> {
-		return Promise.fromCallback((callback) => {
+		return new Promise((resolve, reject) => {
 			try {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "getAll().onError " + objectStore, callback)
+					this._handleDbError(event, request, "getAll().onError " + objectStore, reject)
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -221,17 +221,17 @@ export class IndexedDbTransaction implements DbTransaction {
 						keys.push({key: cursor.key, value: cursor.value})
 						cursor.continue() // onsuccess is called again
 					} else {
-						callback(null, keys) // cursor has reached the end
+						resolve(keys) // cursor has reached the end
 					}
 				}
 			} catch (e) {
-				this._handleDbError(e, null, "getAll().catch", callback)
+				this._handleDbError(e, null, "getAll().catch", reject)
 			}
 		})
 	}
 
 	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
-		return Promise.fromCallback((callback) => {
+		return new Promise((resolve, reject) => {
 			try {
 				const os = this._transaction.objectStore(objectStore)
 				let request
@@ -241,13 +241,13 @@ export class IndexedDbTransaction implements DbTransaction {
 					request = os.get(key)
 				}
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "get().onerror " + objectStore, callback)
+					this._handleDbError(event, request, "get().onerror " + objectStore, reject)
 				}
 				request.onsuccess = (event) => {
-					callback(null, event.target.result)
+					resolve(event.target.result)
 				}
 			} catch (e) {
-				this._handleDbError(e, null, "get().catch", callback)
+				this._handleDbError(e, null, "get().catch", reject)
 			}
 		})
 	}
@@ -258,36 +258,36 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any> {
-		return Promise.fromCallback((callback) => {
+		return new Promise((resolve, reject) => {
 			try {
 				let request = key
 					? this._transaction.objectStore(objectStore).put(value, key)
 					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "put().onerror " + objectStore, callback)
+					this._handleDbError(event, request, "put().onerror " + objectStore, reject)
 				}
 				request.onsuccess = (event) => {
-					callback(null, event.target.result)
+					resolve(event.target.result)
 				}
 			} catch (e) {
-				this._handleDbError(e, null, "put().catch", callback)
+				this._handleDbError(e, null, "put().catch", reject)
 			}
 		})
 	}
 
 
 	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
-		return Promise.fromCallback((callback) => {
+		return new Promise((resolve, reject) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "delete().onerror " + objectStore, callback)
+					this._handleDbError(event, request, "delete().onerror " + objectStore, reject)
 				}
 				request.onsuccess = (event) => {
-					callback()
+					resolve()
 				}
 			} catch (e) {
-				this._handleDbError(e, null, ".delete().catch " + objectStore, callback)
+				this._handleDbError(e, null, ".delete().catch " + objectStore, reject)
 			}
 		})
 	}

@@ -851,11 +851,12 @@ export class SendMailModel {
 				: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
 		}).then((draft) => {
 			this._draft = draft
-			return promiseMap(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
-				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
-				this.attachFiles(attachments)
-				this._mailChanged = false
-			})
+			return promiseMap(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId), {concurrency: 5})
+				.then(attachments => {
+					this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
+					this.attachFiles(attachments)
+					this._mailChanged = false
+				})
 		}).catch(ofClass(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
 		})).catch(ofClass(MailBodyTooLargeError, () => {

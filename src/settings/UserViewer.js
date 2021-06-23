@@ -295,7 +295,7 @@ export class UserViewer {
 								getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))
 							], removeButton)
 						})
-					}).then(tableLines => {
+					}, {concurrency: 5}).then(tableLines => {
 						if (this._groupsTable) {
 							this._groupsTable.updateEntries(tableLines)
 						}
