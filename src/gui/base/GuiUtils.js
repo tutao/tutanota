@@ -36,12 +36,15 @@ export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?D
 			colors: ButtonColors.Nav,
 			click: noOp,
 			icon: () => Icons.More
-		}, mapLazily(lazyChildren, children => promiseMap(children,
-		child => typeof child === "string" || child === null
-			? child
-			// If type hasn't been bound on the child it get's set to Dropdown, otherwise we use what is already there
-			: Object.assign({}, {type: ButtonType.Dropdown}, child))
-		),
+		}, mapLazily(lazyChildren, async children => {
+			const resolvedChildren = await children
+			return promiseMap(resolvedChildren,
+				child => typeof child === "string" || child === null
+					? child
+					// If type hasn't been bound on the child it get's set to Dropdown, otherwise we use what is already there
+					: Object.assign({}, {type: ButtonType.Dropdown}, child))
+		}
+	),
 		() => true,
 		dropdownWidth)
 }

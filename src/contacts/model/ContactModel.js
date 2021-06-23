@@ -14,7 +14,7 @@ import type {ContactList} from "../../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../api/entities/tutanota/ContactList"
 import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils";
 import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -80,7 +80,7 @@ export class ContactModelImpl implements ContactModel {
 	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
 		const result = await this._worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
 		const resultsByListId = groupBy(result.results, listIdPart)
-		const loadedContacts = await Promise.map(resultsByListId, ([listId, idTuples]) => {
+		const loadedContacts = await promiseMap(resultsByListId, ([listId, idTuples]) => {
 			// we try to load all contacts from the same list in one request
 			return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
 			           .catch(ofClass(NotAuthorizedError, e => {

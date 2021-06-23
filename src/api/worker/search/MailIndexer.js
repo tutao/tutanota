@@ -120,7 +120,7 @@ export class MailIndexer {
 		return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
 		           .then(mail => {
 			           return Promise.all([
-				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null)),
+				           promiseMap(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null)),
 				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null)
 			           ]).then(([files, body]) => {
 				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
@@ -167,22 +167,22 @@ export class MailIndexer {
 		return this._db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 			return t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(enabled => {
 				if (!enabled) {
-					return Promise.map(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership))
-					              .then(spamFolders => {
-						              this._excludedListIds = spamFolders.map(folder => folder.mails)
-						              this.mailIndexingEnabled = true
-						              return this._db.dbFacade.createTransaction(false, [MetaDataOS])
-						                         .then(t2 => {
-							                         t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-							                         t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
-							                         // create index in background, cancellation is handled in Indexer.enableMailIndexing
-							                         const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS)
-							                                                     .getTime()
-							                         this.indexMailboxes(user, oldestTimestamp)
-							                             .catch(ofClass(CancelledError, (e) => {console.log("cancelled initial indexing", e)}))
-							                         return t2.wait()
-						                         })
-					              })
+					return promiseMap(filterMailMemberships(user), (mailGroupMembership) => this._getSpamFolder(mailGroupMembership))
+						.then(spamFolders => {
+							this._excludedListIds = spamFolders.map(folder => folder.mails)
+							this.mailIndexingEnabled = true
+							return this._db.dbFacade.createTransaction(false, [MetaDataOS])
+							           .then(t2 => {
+								           t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+								           t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
+								           // create index in background, cancellation is handled in Indexer.enableMailIndexing
+								           const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS)
+								                                       .getTime()
+								           this.indexMailboxes(user, oldestTimestamp)
+								               .catch(ofClass(CancelledError, (e) => {console.log("cancelled initial indexing", e)}))
+								           return t2.wait()
+							           })
+						})
 				} else {
 					return t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 						this.mailIndexingEnabled = true
@@ -242,31 +242,31 @@ export class MailIndexer {
 		this._core.queue.pause()
 
 
-		this.mailboxIndexingPromise = Promise
-			.map(memberships, (mailGroupMembership) => {
-				let mailGroupId = mailGroupMembership.group
-				return this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
-				           .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
-				           .then(mbox => {
-					           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-						           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
-							           if (!groupData) {
-								           // group data is not available if group has been added. group will be indexed after login.
-								           return null
+		this.mailboxIndexingPromise = promiseMap(memberships, (mailGroupMembership) => {
+			let mailGroupId = mailGroupMembership.group
+			return this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
+			           .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+			           .then(mbox => {
+				           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
+					           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
+						           if (!groupData) {
+							           // group data is not available if group has been added. group will be indexed after login.
+							           return null
+						           } else {
+							           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+								           ? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
+								           : groupData.indexTimestamp
+							           if (newestTimestamp > oldestTimestamp) {
+								           return {mbox, newestTimestamp}
 							           } else {
-								           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-									           ? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
-									           : groupData.indexTimestamp
-								           if (newestTimestamp > oldestTimestamp) {
-									           return {mbox, newestTimestamp}
-								           } else {
-									           return null
-								           }
+								           return null
 							           }
-						           })
+						           }
 					           })
 				           })
-			}).then((mailBoxes: Array<?{mbox: MailBox, newestTimestamp: number}>) => {
+			           })
+		})
+			.then((mailBoxes: Array<?{mbox: MailBox, newestTimestamp: number}>) => {
 				const filtered = mailBoxes.filter(Boolean)
 				if (filtered.length > 0) {
 					return this._indexMailLists(filtered, oldestTimestamp)
@@ -326,7 +326,7 @@ export class MailIndexer {
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 		const indexLoader = new IndexLoader(this._entityRestClient)
 
-		return Promise.map(mailBoxes, (mBoxData => {
+		return promiseMap(mailBoxes, (mBoxData => {
 			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
 				return {
 					mailListIds,
@@ -394,22 +394,21 @@ export class MailIndexer {
 	_prepareMailDataForTimeBatch(mboxDataList: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate,
 	                             indexLoader: IndexLoader): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
-		return Promise.map(mboxDataList, mboxData => {
-			return Promise
-				.map(mboxData.mailListIds.slice(), (listId) => {
-					// We use caching here because we may load same emails twice
-					return indexLoader.loadMailsWithCache(listId, timeRange)
-					                  .then(({elements: mails, loadedCompletely}) => {
-						                  // If we loaded mail list completely, don't try to load from it anymore
-						                  if (loadedCompletely) {
-							                  mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
-						                  }
-						                  this._core._stats.mailcount += mails.length
-						                  // Remove all processed entities from cache
-						                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
-						                  return this._processIndexMails(mails, indexUpdate, indexLoader)
-					                  })
-				}, {concurrency: 2})
+		return promiseMap(mboxDataList, mboxData => {
+			return promiseMap(mboxData.mailListIds.slice(), (listId) => {
+				// We use caching here because we may load same emails twice
+				return indexLoader.loadMailsWithCache(listId, timeRange)
+				                  .then(({elements: mails, loadedCompletely}) => {
+					                  // If we loaded mail list completely, don't try to load from it anymore
+					                  if (loadedCompletely) {
+						                  mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
+					                  }
+					                  this._core._stats.mailcount += mails.length
+					                  // Remove all processed entities from cache
+					                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
+					                  return this._processIndexMails(mails, indexUpdate, indexLoader)
+				                  })
+			}, {concurrency: 2})
 		}).then(() => {
 			this._core._stats.preparingTime += (getPerformanceTimestamp() - startTimeLoad)
 		})
@@ -609,12 +608,12 @@ class IndexLoader {
 
 	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
-		return Promise.map(byChunk, (chunk) => {
+		return promiseMap(byChunk, (chunk) => {
 			return chunk.length > 0
 				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
 				: Promise.resolve([])
 		}, {concurrency: 2})
-		              .then(entityResults => flat(entityResults))
+			.then(entityResults => flat(entityResults))
 	}
 
 

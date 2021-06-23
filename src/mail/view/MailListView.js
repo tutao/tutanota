@@ -31,7 +31,7 @@ import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {Request} from "../../api/common/WorkerProtocol"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {ofClass, promiseMap, tap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseFilter, promiseMap, tap} from "../../api/common/utils/PromiseUtils"
 import {AsyncResult} from "../../api/common/utils/AsyncResult"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
@@ -372,7 +372,7 @@ export class MailListView implements MComponent<void> {
 			return locator.mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetail) => {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
-					return Promise.filter(mails, (mail) => {
+					return promiseFilter(mails, (mail) => {
 						return findAndApplyMatchingRule(worker, locator.entityClient, mailboxDetail, mail, true)
 							.then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {

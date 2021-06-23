@@ -85,7 +85,7 @@ export function exportCalendar(
 ) {
 	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
 		.then((allEvents) => {
-			return Promise.map(allEvents, event => {
+			return promiseMap(allEvents, event => {
 				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length > 0) {
 					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))

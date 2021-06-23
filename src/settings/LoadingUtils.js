@@ -9,6 +9,7 @@ import {GroupType} from "../api/common/TutanotaConstants"
 import {flat} from "../api/common/utils/ArrayUtils"
 import type {Customer} from "../api/entities/sys/Customer"
 import {getGroupInfoDisplayName, getUserGroupMemberships} from "../api/common/utils/GroupUtils";
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.
@@ -52,7 +53,7 @@ export async function loadEnabledTeamMailGroups(customer: Customer): Promise<Gro
 
 export async function loadEnabledUserMailGroups(customer: Customer): Promise<GroupData[]> {
 	const groupInfos = await loadAll(GroupInfoTypeRef, customer.userGroups)
-	return Promise.mapSeries(groupInfos.filter(g => !g.deleted), async (userGroupInfo) => {
+	return promiseMap(groupInfos.filter(g => !g.deleted), async (userGroupInfo) => {
 		const userGroup = await load(GroupTypeRef, userGroupInfo.group)
 		const user = await load(UserTypeRef, neverNull(userGroup.user))
 		return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
@@ -61,8 +62,7 @@ export async function loadEnabledUserMailGroups(customer: Customer): Promise<Gro
 
 export function loadGroupInfos(groupInfoIds: IdTuple[]): Promise<GroupInfo[]> {
 	let groupedParticipantGroupInfos = _groupByListId(groupInfoIds)
-	return Promise
-		.map(Object.keys(groupedParticipantGroupInfos), (listId) => {
+	return promiseMap(Object.keys(groupedParticipantGroupInfos), (listId) => {
 			return loadMultiple(GroupInfoTypeRef, listId, groupedParticipantGroupInfos[listId])
 		}, {concurrency: 5})
 		.then(flat)

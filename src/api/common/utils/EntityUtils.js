@@ -100,7 +100,7 @@ export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
 	return isSameId(entity1._id, entity2._id)
 }
 
-export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean {
+export function containsId(ids: $ReadOnlyArray<Id | IdTuple>, id: Id | IdTuple): boolean {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 

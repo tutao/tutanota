@@ -78,12 +78,6 @@ export class WorkerImpl {
 			createExternalSession: (message: Request) => {
 				return locator.login.createExternalSession(...message.args)
 			},
-			loadExternalPasswordChannels: (message: Request) => {
-				return locator.login.loadExternalPasswordChannels(...message.args)
-			},
-			sendExternalPasswordSms: (message: Request) => {
-				return locator.login.sendExternalPasswordSms(...message.args)
-			},
 			reset: (message: Request) => {
 				return resetLocator()
 			},
