@@ -282,7 +282,7 @@ export class UserViewer {
 		if (this._groupsTable) {
 			return this._user.getAsync().then(user => {
 				return this._customer.getAsync().then(customer => {
-					return Promise.map(this._getTeamMemberships(user, customer), m => {
+					return promiseMap(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {

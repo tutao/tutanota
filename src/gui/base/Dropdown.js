@@ -138,7 +138,7 @@ export class Dropdown {
 					oncreate: (vnode) => {
 						this.show(vnode.dom)
 						window.requestAnimationFrame(() => {
-														if (document.activeElement && typeof document.activeElement.blur === "function") {
+							if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
 							}
 						})
@@ -351,25 +351,26 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 		if (!mainButton.isActive) {
 			return
 		}
-		let buttonPromise = lazyButtons()
-		let resultPromise = buttonPromise
-		// If the promise is pending and does not resolve in 100ms, show progress dialog
-		if (buttonPromise.isPending()) {
-			resultPromise = Promise.race([
-					buttonPromise,
-					Promise.all([
-						delay(100),
-						import("../dialogs/ProgressDialog.js")
-					]).then(([_, module]) => {
-						if (buttonPromise.isPending()) {
-							return module.showProgressDialog("loading_msg", buttonPromise)
-						} else {
-							return buttonPromise
-						}
-					})
-				]
-			)
-		}
+		const buttonPromise = lazyButtons()
+		let buttonsResolved = false
+		buttonPromise.then(() => {
+			buttonsResolved = true
+		})
+		// If the promise does not resolve in 100ms, show progress dialog
+		const resultPromise = Promise.race([
+				buttonPromise,
+				Promise.all([
+					delay(100),
+					import("../dialogs/ProgressDialog.js")
+				]).then(([_, module]) => {
+					if (!buttonsResolved) {
+						return module.showProgressDialog("loading_msg", buttonPromise)
+					} else {
+						return buttonPromise
+					}
+				})
+			]
+		)
 		const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 		resultPromise.then(buttons => {
 			if (buttons.length === 0) {

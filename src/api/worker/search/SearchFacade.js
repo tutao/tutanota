@@ -562,7 +562,7 @@ export class SearchFacade {
 				// BUT! we have to look at all of them! Otherwise we may return them in the wrong order. We cannot return elements 10, 15, 20 if we didn't
 				// return element 5 first, no one will ask for it later.
 				// The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
-				Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
+				promiseMap(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
 					return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
 					                  .then((elementData: ?ElementDataDbRow) => {
 						                  // mark result index id as processed to not query result in next load more operation

@@ -16,7 +16,7 @@ import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -107,10 +107,10 @@ export class EntityRestClient implements EntityRestInterface {
 						// PushIdentifier was changed in the system model v43 to encrypt the name.
 						// We check here to check the type only once per array and not for each element.
 						if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
-							p = Promise.map(data, instance => applyMigrations(typeRef, instance))
+							p = promiseMap(data, instance => applyMigrations(typeRef, instance), {concurrency: 5})
 						}
 						return p.then(() => {
-							return Promise.map(data, instance =>
+							return promiseMap(data, instance =>
 									resolveSessionKey(model, instance)
 										.catch(ofClass(SessionKeyNotFoundError, e => {
 											console.log("could not resolve session key", e)

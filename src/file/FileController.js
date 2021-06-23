@@ -13,7 +13,7 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -78,12 +78,11 @@ export class FileController {
 		// We're returning dialogs here so they don't overlap each other
 		// We're returning null to say that this file is not present.
 		// (it's void by default and doesn't satisfy type checker)
-		const p = Promise
-			.map(tutanotaFiles,
-				tutanotaFile => downloadContent(tutanotaFile)
-					.catch(ofClass(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name)))
-					.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name))),
-				concurrency)
+		const p = promiseMap(tutanotaFiles,
+			tutanotaFile => downloadContent(tutanotaFile)
+				.catch(ofClass(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name)))
+				.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name))),
+			concurrency)
 			.then((results) => results.filter(Boolean)) // filter out failed files
 		// in apps, p is a  Promise<FileReference[]> that have location props.
 		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
@@ -141,7 +140,7 @@ export class FileController {
 		for (let i = 0; i < fileList.length; i++) {
 			nativeFiles.push(fileList[i])
 		}
-		return Promise.map(nativeFiles, nativeFile => {
+		return promiseMap(nativeFiles, nativeFile => {
 			return Promise.fromCallback(cb => {
 				let reader = new FileReader()
 				reader.onloadend = function (evt: ProgressEvent) {
@@ -154,7 +153,7 @@ export class FileController {
 				}
 				reader.readAsArrayBuffer(nativeFile)
 			})
-		})
+		}, {concurrency: 5})
 	}
 
 	openFileReference(file: FileReference): Promise<void> {

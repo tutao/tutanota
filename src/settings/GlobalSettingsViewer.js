@@ -409,7 +409,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					delete this._domainDnsStatus[domain]
 				}
 			})
-			return Promise.map(customDomainInfos, domainInfo => {
+			return promiseMap(customDomainInfos, domainInfo => {
 				// create dns status instances for all new domains
 				if (!this._domainDnsStatus[domainInfo.domain]) {
 					this._domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain)

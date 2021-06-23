@@ -135,8 +135,7 @@ export class CalendarModelImpl implements CalendarModel {
 		const user = this._logins.getUserController().user
 		const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
 		const notFoundMemberships = []
-		return Promise
-			.mapSeries(calendarMemberships, (membership) => Promise
+		return promiseMap(calendarMemberships, (membership) => Promise
 				.all([
 					this._entityClient.load(CalendarGroupRootTypeRef, membership.group).then((it) => {
 						progressMonitor.workDone(1)

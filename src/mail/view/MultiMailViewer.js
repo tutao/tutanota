@@ -22,6 +22,7 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
+import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -132,7 +133,7 @@ export class MultiMailViewer {
 	 * Generate buttons that will move the selected mails to respective folders
 	 * @returns {Promise<R>|Promise<ButtonAttrs[]>}
 	 */
-	makeMoveMailButtons(): Promise<ButtonAttrs[]> {
+	async makeMoveMailButtons(): Promise<ButtonAttrs[]> {
 		return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
 			return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
 				if (set.indexOf(mailBox) < 0) {
