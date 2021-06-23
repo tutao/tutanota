@@ -5,7 +5,7 @@ import {Button} from "../../gui/base/Button"
 import {TextFieldN, Type} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
-import {ConversationType, InputFieldType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
+import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
 import {animations, height} from "../../gui/animation/Animations"
 import {assertMainOrNode} from "../../api/common/Env"
 import {fileController} from "../../file/FileController"
@@ -22,7 +22,6 @@ import {logins} from "../../api/main/LoginController"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
-import {getDefaultContactFormLanguage} from "../../contacts/ContactFormUtils"
 import stream from "mithril/stream/stream.js"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "../LoginView"
@@ -32,11 +31,10 @@ import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import type {InputField} from "../../api/entities/tutanota/InputField"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
 import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -48,7 +46,6 @@ export class ContactFormRequestDialog {
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
 	_loadingAttachments: boolean;
 	_contactForm: ContactForm;
-	_statisticFields: Map<string, string>
 	_notificationEmailAddress: string;
 	_passwordForm: PasswordForm;
 	_privacyPolicyAccepted: Stream<boolean>;
@@ -63,7 +60,6 @@ export class ContactFormRequestDialog {
 		this._attachments = []
 		this._attachmentButtons = []
 		this._loadingAttachments = false
-		this._statisticFields = new Map()
 		this._subject = ""
 		this._notificationEmailAddress = ""
 		this._windowCloseUnsubscribe = noOp
@@ -100,8 +96,6 @@ export class ContactFormRequestDialog {
 	}
 
 	view: Function = () => {
-		const statisticFields = getDefaultContactFormLanguage(this._contactForm.languages).statisticsFields
-
 		const attachFilesButton = m(ButtonN, {
 			label: "attachFiles_action",
 			click: () => {this._showFileChooserForAttachments()},
@@ -124,13 +118,6 @@ export class ContactFormRequestDialog {
 				this._notificationEmailAddress = value.trim()
 			},
 			type: Type.Area
-		})
-
-		const statisticFieldHeader = m(TextFieldN, {
-			label: () => '',
-			value: stream(lang.get("optionalValues_label")),
-			helpLabel: () => lang.get("contactFormStatisticFieldsInfo_msg"),
-			disabled: true
 		})
 
 		return m("#mail-editor.text.pb", {
@@ -168,8 +155,6 @@ export class ContactFormRequestDialog {
 			m(this._passwordForm),
 			m(".pt-l.text", m(this._editor)),
 			notificationEmailAddress,
-			statisticFields.length > 0 ? statisticFieldHeader : null,
-			statisticFields.map((field) => this._renderStatisticsField(field)),
 			(getPrivacyStatementLink()) ? m(CheckboxN, {
 				label: () => this._getPrivacyPolicyCheckboxContent(),
 				checked: this._privacyPolicyAccepted
@@ -184,32 +169,6 @@ export class ContactFormRequestDialog {
 			m("span", m(`a[href=${neverNull(getPrivacyStatementLink())}][target=_blank]`, lang.get("privacyLink_label"))),
 			m("span", parts[1]),
 		])
-	}
-
-	_renderStatisticsField(field: InputField): Child {
-		if (field.type === InputFieldType.ENUM) {
-			let items = field.enumValues.map(t => {
-				return {name: t.name, value: t.name}
-			})
-			items.splice(0, 0, {name: "", value: null})
-			return m(DropDownSelectorN, {
-				label: () => field.name,
-				items: items,
-				selectedValue: stream(this._statisticFields.get(field.name) || ""),
-				selectionChangedHandler: (value) => this._statisticFields.set(field.name, value || ""),
-				dropdownWidth: 250,
-			})
-		} else {
-			return m(TextFieldN, {
-				label: () => field.name,
-				value: stream(this._statisticFields.get(field.name) || ""),
-				oninput: (value) => this._statisticFields.set(field.name, value)
-			})
-		}
-	}
-
-	_conversationTypeToTitleTextId(): string {
-		return "newMail_action"
 	}
 
 	animate(domElement: HTMLElement, fadein: boolean): Promise<void> {
@@ -293,85 +252,65 @@ export class ContactFormRequestDialog {
 			return
 		}
 
-		const confirmSend = !this._passwordForm.isPasswordUnsecure() || await Dialog.confirm("contactFormPasswordNotSecure_msg")
-		if (confirmSend) {
+		const passwordOk = !this._passwordForm.isPasswordUnsecure() || await Dialog.confirm("contactFormPasswordNotSecure_msg")
 
+		if (passwordOk) {
 			const cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress);
 			if (this._notificationEmailAddress !== "" && !cleanedNotificationMailAddress) {
 				return Dialog.error("mailAddressInvalid_msg")
 			}
 			const password = this._passwordForm.getNewPassword()
-
-			let statisticsFields: Array<{name: string, value: string}> = []
-			for (const [name, value] of this._statisticFields.entries()) {
-				if (value) {
-					statisticsFields.push({name, value})
-				}
-			}
+			const doSend = async () => {
+				const contactFormResult = await worker.createContactFormUser(password, this._contactForm._id)
+				const userEmailAddress = contactFormResult.responseMailAddress
+				await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
 
 			try {
-				const result = await showProgressDialog("sending_msg",
-					this.sendRequest(password, statisticsFields, cleanedNotificationMailAddress ?? ""))
-				await showConfirmDialog(result)
-				this._close()
-			} catch (e) {
-				if (e instanceof AccessDeactivatedError) {
-					await Dialog.error("contactFormSubmitError_msg")
-				} else {
-					throw e
+
+					if (cleanedNotificationMailAddress) {
+						let pushIdentifier = createPushIdentifier()
+						pushIdentifier.displayName = client.getIdentifier()
+						pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
+						pushIdentifier.language = lang.code
+						pushIdentifier.pushServiceType = PushServiceType.EMAIL
+						pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
+						pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
+						pushIdentifier._area = "0" // legacy
+						await worker.entityRequest(PushIdentifierTypeRef,
+							HttpMethodEnum.POST,
+							neverNull(logins.getUserController().user.pushIdentifierList).list,
+							null, pushIdentifier);
+					}
+
+				const name = ""
+				const mailAddress = contactFormResult.requestMailAddress
+					const draft = await worker.createMailDraft(
+						this._subject, this._editor.getValue(),
+						userEmailAddress,
+						"",
+						[createDraftRecipient({name, mailAddress})],
+						[],
+						[],
+						ConversationType.NEW,
+						null,
+						this._attachments,
+						true,
+						[],
+						MailMethod.NONE
+					)
+					await worker.sendMailDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
+
+				} finally {
+					await logins.logout(false)
 				}
+				return {userEmailAddress}
 			}
+
+			return showProgressDialog("sending_msg", doSend())
+				.then(result => {return showConfirmDialog(result.userEmailAddress)})
+				.then(() => this._close())
+				.catch(ofClass(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg")))
 		}
-	}
-
-	async sendRequest(password: string, statisticsFields: Array<{name: string, value: string}>,
-	                  cleanedNotificationMailAddress: string
-	): Promise<string> {
-		const contactFormResult = await worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
-
-		let userEmailAddress = contactFormResult.responseMailAddress
-		await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
-		if (cleanedNotificationMailAddress) {
-			let pushIdentifier = createPushIdentifier({
-				displayName: client.getIdentifier(),
-				identifier: cleanedNotificationMailAddress,
-				language: lang.code,
-				pushServiceType: PushServiceType.EMAIL,
-				_ownerGroup: logins.getUserController().userGroupInfo.group,
-				_owner: logins.getUserController().userGroupInfo.group, // legacy
-				_area: "0", // legacy
-			})
-			await worker.entityRequest(PushIdentifierTypeRef,
-				HttpMethodEnum.POST,
-				neverNull(logins.getUserController().user.pushIdentifierList).list,
-				null, pushIdentifier);
-		}
-
-		const name = ""
-		const mailAddress = contactFormResult.requestMailAddress
-
-		try {
-			const draft = await worker.createMailDraft(
-				this._subject,
-				this._editor.getValue(),
-				userEmailAddress,
-				"",
-				[createDraftRecipient({name, mailAddress})],
-				[],
-				[],
-				ConversationType.NEW,
-				null,
-				this._attachments,
-				true,
-				[],
-				MailMethod.NONE
-			)
-			await worker.sendMailDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
-		} finally {
-			await logins.logout(false)
-		}
-
-		return userEmailAddress
 	}
 }
 
