@@ -17,7 +17,7 @@ import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {errorToString, neverNull} from "../api/common/utils/Utils"
+import {errorToString, neverNull, noOp} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/model/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
@@ -326,7 +326,7 @@ export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 
 export function loggingOut() {
 	isLoggingOut = true
-	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
+	showProgressDialog("loggingOut_msg", new Promise(noOp))
 }
 
 function showErrorDialogNotLoggedIn(e) {

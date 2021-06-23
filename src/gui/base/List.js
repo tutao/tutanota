@@ -6,8 +6,8 @@ import {client} from "../../misc/ClientDetector"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
-import {debounceStart, mapLazily, neverNull} from "../../api/common/utils/Utils"
+import type {DeferredObject, MaybeLazy} from "../../api/common/utils/Utils"
+import {debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
@@ -44,7 +44,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 	_domListContainer: HTMLElement;
 	_domList: HTMLElement;
-	_domInitialized: {resolve: () => void, promise: Promise<void>};
+	_domInitialized: DeferredObject<void>;
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
@@ -84,14 +84,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
 		this._loadedEntities = []
-
-		function createPromise() {
-			let wrapper = {}
-			wrapper.promise = Promise.fromCallback(cb => {
-				wrapper.resolve = cb
-			})
-			return wrapper
-		}
 
 		this._scrollListener = () => {
 			this.currentPosition = this._domListContainer.scrollTop
@@ -140,7 +132,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			if (this._domListContainer) {
 				this._domListContainer.removeEventListener('scroll', this._scrollListener)
 			}
-			this._domInitialized = createPromise()
+			this._domInitialized = defer()
 
 			this.ready = false
 			this._virtualList = []

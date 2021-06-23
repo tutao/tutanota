@@ -5,7 +5,7 @@ import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../../misc/FormatValidator"
 import {HttpMethod} from "../../api/common/EntityFunctions"
-import {debounce, getMailHeaders, noOp} from "../../api/common/utils/Utils"
+import {asyncFind, debounce, getMailHeaders, noOp} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
@@ -118,58 +118,52 @@ export function findAndApplyMatchingRule(worker: WorkerClient, entityClient: Ent
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export function _findMatchingRule(entityClient: EntityClient, mail: Mail): Promise<?InboxRule> {
-	return Promise.reduce(logins.getUserController().props.inboxRules, (resultInboxRule, inboxRule) => {
-
-		if (resultInboxRule) {
-			//console.log("rule matches", resultInboxRule)
-			return resultInboxRule
-		}
-		// console.log("find matching rule", inboxRule.value)
-		let ruleType = inboxRule.type;
-		try {
-			if (ruleType === InboxRuleType.FROM_EQUALS) {
-				return _checkEmailAddresses([mail.sender], inboxRule)
-			} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
-				return _checkEmailAddresses(mail.toRecipients, inboxRule)
-			} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
-				return _checkEmailAddresses(mail.ccRecipients, inboxRule)
-			} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-				return _checkEmailAddresses(mail.bccRecipients, inboxRule)
-			} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
-				return _checkContainsRule(mail.subject, inboxRule)
-			} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
-				if (mail.headers) {
-					return entityClient.load(MailHeadersTypeRef, mail.headers)
-						.then(mailHeaders => {
-							return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
-						})
-						.catch(e => {
-							if (!(e instanceof NotFoundError)) {
-								// Does the outer catch already handle this case?
-								console.error("Error processing inbox rule:", e.message)
-							}
-							return null
-						})
-				}
-			}
-		} catch (e) {
-			console.error("Error processing inbox rule:", e.message)
-		}
-
-		return null
-	}, null)
+export async function _findMatchingRule(entityClient: EntityClient, mail: Mail): Promise<?InboxRule> {
+	return asyncFind(logins.getUserController().props.inboxRules, (rule) => checkInboxRule(entityClient, mail, rule))
 }
 
-
-function _checkContainsRule(value: string, inboxRule: InboxRule): ?InboxRule {
-	if (isRegularExpression(inboxRule.value) && _matchesRegularExpression(value, inboxRule)) {
-		return inboxRule
-	} else if (value.indexOf(inboxRule.value) >= 0) {
-		return inboxRule
-	} else {
-		return null
+async function checkInboxRule(entityClient: EntityClient, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
+	const ruleType = inboxRule.type;
+	try {
+		if (ruleType === InboxRuleType.FROM_EQUALS) {
+			return _checkEmailAddresses([mail.sender], inboxRule)
+		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
+			return _checkEmailAddresses(mail.toRecipients, inboxRule)
+		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
+			return _checkEmailAddresses(mail.ccRecipients, inboxRule)
+		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
+			return _checkEmailAddresses(mail.bccRecipients, inboxRule)
+		} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
+			return _checkContainsRule(mail.subject, inboxRule)
+		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
+			if (mail.headers) {
+				return entityClient.load(MailHeadersTypeRef, mail.headers)
+				                   .then(mailHeaders => {
+					                   return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
+				                   })
+				                   .catch(e => {
+					                   if (!(e instanceof NotFoundError)) {
+						                   // Does the outer catch already handle this case?
+						                   console.error("Error processing inbox rule:", e.message)
+					                   }
+					                   return false
+				                   })
+			} else {
+				return false
+			}
+		} else {
+			console.warn("Unknown rule type: ", inboxRule.type)
+			return false
+		}
+	} catch (e) {
+		console.error("Error processing inbox rule:", e.message)
+		return false
 	}
+}
+
+function _checkContainsRule(value: string, inboxRule: InboxRule): boolean {
+	return (isRegularExpression(inboxRule.value) && _matchesRegularExpression(value, inboxRule))
+		|| value.includes(inboxRule.value)
 }
 
 /** export for test. */
@@ -183,8 +177,8 @@ export function _matchesRegularExpression(value: string, inboxRule: InboxRule): 
 	return false
 }
 
-function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule): ?InboxRule {
-	let mailAddress = mailAddresses.find(mailAddress => {
+function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule): boolean {
+	const mailAddress = mailAddresses.find(mailAddress => {
 		let cleanMailAddress = mailAddress.address.toLowerCase().trim();
 		if (isRegularExpression(inboxRule.value)) {
 			return _matchesRegularExpression(cleanMailAddress, inboxRule)
@@ -195,11 +189,7 @@ function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule
 			return cleanMailAddress === inboxRule.value
 		}
 	})
-	if (mailAddress) {
-		return inboxRule
-	} else {
-		return null
-	}
+	return mailAddress != null
 }
 
 export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {

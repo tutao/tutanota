@@ -135,34 +135,46 @@ export class SearchFacade {
 		})
 	}
 
-	_loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
+	async _loadAndReduce(
+		restriction: SearchRestriction,
+		result: SearchResult,
+		suggestionToken: string,
+		minSuggestionCount: number
+	): Promise<void> {
 		if (result.results.length > 0) {
-			return resolveTypeReference(restriction.type).then(model => {
-				// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
-				// for other cases we only check that an attribute contains a word that starts with suggestion word
-				const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
-				return Promise.reduce(result.results, (finalResults, id) => {
-					if (finalResults.length >= minSuggestionCount) {
-						return finalResults
-					} else {
-						return load(restriction.type, id).then(entity => {
-							return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionQuery, result.matchWordOrder)
-							           .then(found => {
-								           if (found) {
-									           finalResults.push(id)
-								           }
-								           return finalResults
-							           })
-						}).catch(ofClass(NotFoundError, e => {
-							return finalResults
-						})).catch(ofClass(NotAuthorizedError, e => {
-							return finalResults
-						}))
+			const model = await resolveTypeReference(restriction.type)
+
+			// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
+			// for other cases we only check that an attribute contains a word that starts with suggestion word
+			const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
+			const finalResults = []
+			for (const id of result.results) {
+				if (finalResults.length >= minSuggestionCount) {
+					break
+				} else {
+					let entity
+					try {
+						entity = await load(restriction.type, id)
+					} catch (e) {
+						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+							continue
+						} else {
+							throw e
+						}
 					}
-				}, []).then((reducedResults) => {
-					result.results = reducedResults
-				})
-			})
+					const found = await this._containsSuggestionToken(
+						entity,
+						model,
+						restriction.attributeIds,
+						suggestionQuery,
+						result.matchWordOrder
+					)
+					if (found) {
+						finalResults.push(id)
+					}
+				}
+			}
+			result.results = finalResults
 		} else {
 			return Promise.resolve()
 		}

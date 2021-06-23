@@ -409,7 +409,7 @@ export class MailIndexer {
 					                  return this._processIndexMails(mails, indexUpdate, indexLoader)
 				                  })
 			}, {concurrency: 2})
-		}).then(() => {
+		}, {concurrency: 5}).then(() => {
 			this._core._stats.preparingTime += (getPerformanceTimestamp() - startTimeLoad)
 		})
 	}

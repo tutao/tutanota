@@ -85,13 +85,13 @@ function signWithArgs(commandArguments, file_to_sign, unsignedFileName) {
 		stdio: ['ignore', 'inherit', 'inherit'],
 	})
 
-	return Promise.fromCallback(cb => {
+	return new Promise((resolve, reject) => {
 		child.on('close', (exitCode) => {
 			if (exitCode !== 0) {
-				cb(exitCode)
+				reject(exitCoe)
 			} else {
 				fs.removeSync(unsignedFileName)
-				cb(null, file_to_sign)
+				resolve(file_to_sign)
 			}
 		})
 	})

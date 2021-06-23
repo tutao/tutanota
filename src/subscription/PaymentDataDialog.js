@@ -65,7 +65,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 	})
 
 
-	return Promise.fromCallback(cb => {
+	return new Promise(resolve => {
 		const didLinkPaypal = () => selectedPaymentMethod() === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
@@ -75,7 +75,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 				const finish = success => {
 					if (success) {
 						dialog.close()
-						cb(null, true)
+						resolve(true)
 					}
 				}
 				// updatePaymentData gets done when the big paypal button is clicked
@@ -108,7 +108,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 			// if they've just gone through the process of linking a paypal account, don't offer a cancel button
 			allowCancel: () => !didLinkPaypal(),
 			okActionTextId: () => didLinkPaypal() ? "close_alt" : "save_action",
-			cancelAction: () => cb(null, false)
+			cancelAction: () => resolve(false)
 		})
 	})
 }
