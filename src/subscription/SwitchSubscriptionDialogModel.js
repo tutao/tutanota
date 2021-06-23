@@ -27,6 +27,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {Booking} from "../api/entities/sys/Booking"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 
 type PlanPriceCalc = {
@@ -156,23 +157,23 @@ export class SwitchSubscriptionDialogModel {
 				count: 1
 			},
 		]
-		return Promise.mapSeries(getPriceFeatureList, getPriceFeature => this._worker.getPrice(getPriceFeature.type, getPriceFeature.count, false))
-		              .then(([addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice]) => {
-			              return {
-				              addUserPrice: addUserPrice,
-				              upgrade20AliasesPrice: upgrade20AliasesPrice,
-				              downgrade5AliasesPrice: downgrade5AliasesPrice,
-				              upgrade10GbStoragePrice: upgrade10GbStoragePrice,
-				              downgrade1GbStoragePrice: downgrade1GbStoragePrice,
-				              upgradeSharingPrice: upgradeSharingPrice,
-				              downgradeSharingPrice: downgradeSharingPrice,
-				              upgradeBusinessPrice: upgradeBusinessPrice,
-				              downgradeBusinessPrice: downgradeBusinessPrice,
-				              upgradeWhitelabelPrice: upgradeWhitelabelPrice,
-				              downgradeWhitelabelPrice: downgradeWhitelabelPrice,
-				              contactFormPrice: contactFormPrice,
-			              }
-		              })
+		return promiseMap(getPriceFeatureList, getPriceFeature => this._worker.getPrice(getPriceFeature.type, getPriceFeature.count, false))
+			.then(([addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice]) => {
+				return {
+					addUserPrice: addUserPrice,
+					upgrade20AliasesPrice: upgrade20AliasesPrice,
+					downgrade5AliasesPrice: downgrade5AliasesPrice,
+					upgrade10GbStoragePrice: upgrade10GbStoragePrice,
+					downgrade1GbStoragePrice: downgrade1GbStoragePrice,
+					upgradeSharingPrice: upgradeSharingPrice,
+					downgradeSharingPrice: downgradeSharingPrice,
+					upgradeBusinessPrice: upgradeBusinessPrice,
+					downgradeBusinessPrice: downgradeBusinessPrice,
+					upgradeWhitelabelPrice: upgradeWhitelabelPrice,
+					downgradeWhitelabelPrice: downgradeWhitelabelPrice,
+					contactFormPrice: contactFormPrice,
+				}
+			})
 	}
 
 	loadSwitchSubscriptionPrices(): Promise<SubscriptionPlanPrices> {

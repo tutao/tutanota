@@ -31,6 +31,8 @@ import {
 } from "../../common/utils/EntityUtils";
 import type {ListElement} from "../../common/utils/EntityUtils"
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
+import {promiseMap} from "../../common/utils/PromiseUtils"
+import {ProgrammingError} from "../../common/error/ProgrammingError"
 
 
 assertWorkerOrNode()
@@ -422,28 +424,29 @@ export class EntityRestCache implements EntityRestInterface {
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
 	entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
-		return Promise
-			.mapSeries(batch, (update) => {
-				const {instanceListId, instanceId, operation, type, application} = update
-				if (application === "monitor") return null
+		return promiseMap(batch, (update) => {
+			const {instanceListId, instanceId, operation, type, application} = update
+			if (application === "monitor") return null
 
-				const typeRef = new TypeRef(application, type)
-				switch (operation) {
-					case OperationType.UPDATE:
-						return this._processUpdateEvent(typeRef, update)
+			const typeRef = new TypeRef(application, type)
+			switch (operation) {
+				case OperationType.UPDATE:
+					return this._processUpdateEvent(typeRef, update)
 
-					case OperationType.DELETE:
-						if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
-							// move for mail is handled in create event.
-						} else {
-							this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
-						}
-						return update
+				case OperationType.DELETE:
+					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
+						// move for mail is handled in create event.
+					} else {
+						this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
+					}
+					return update
 
-					case OperationType.CREATE:
-						return this._processCreateEvent(typeRef, update, batch)
-				}
-			})
+				case OperationType.CREATE:
+					return this._processCreateEvent(typeRef, update, batch)
+				default:
+					throw new ProgrammingError("Unknown operation type: " + operation)
+			}
+		})
 			.then((result) => result.filter(Boolean))
 	}
 

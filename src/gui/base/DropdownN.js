@@ -308,25 +308,27 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropdownChildAtt
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<?DropdownChildAttrs>>, width: number = 200): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
-		let originalButtons = lazyButtons()
+		const originalButtons = lazyButtons()
+		let buttonsResolved = false
+		originalButtons.then(() => {
+			buttonsResolved = true
+		})
 		let buttons = originalButtons
 		// If the promise is pending and does not resolve in 100ms, show progress dialog
-		if (originalButtons.isPending()) {
-			buttons = Promise.race([
-					originalButtons,
-					Promise.all([
-						delay(100),
-						import("../dialogs/ProgressDialog.js")
-					]).then(([_, module]) => {
-						if (originalButtons.isPending()) {
-							return module.showProgressDialog("loading_msg", originalButtons)
-						} else {
-							return originalButtons
-						}
-					})
-				]
-			)
-		}
+		buttons = Promise.race([
+				originalButtons,
+				Promise.all([
+					delay(100),
+					import("../dialogs/ProgressDialog.js")
+				]).then(([_, module]) => {
+					if (!buttonsResolved) {
+						return module.showProgressDialog("loading_msg", originalButtons)
+					} else {
+						return originalButtons
+					}
+				})
+			]
+		)
 		buttons.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)
 			dropdown.setOrigin(dom.getBoundingClientRect())

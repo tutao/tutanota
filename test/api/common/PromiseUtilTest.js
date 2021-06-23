@@ -1,7 +1,13 @@
 //@flow
 
 import o from "ospec"
-import {mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseMap} from "../../../src/api/common/utils/PromiseUtils"
+import {
+	delay,
+	mapInCallContext,
+	PromisableWrapper as PromiseableWrapper,
+	promiseFilter,
+	promiseMap
+} from "../../../src/api/common/utils/PromiseUtils"
 import {defer} from "../../../src/api/common/utils/Utils"
 import {assertThrows} from "../TestUtils"
 
@@ -66,13 +72,13 @@ o.spec("PromiseUtils", function () {
 		o.spec("toPromise", function () {
 			o("from value", async function () {
 				const promise = new PromiseableWrapper("tuta").toPromise()
-								o(typeof promise.then).equals("function")
+				o(typeof promise.then).equals("function")
 				o(await promise.then()).equals("tuta")
 			})
 
 			o("from promise", async function () {
 				const promise = new PromiseableWrapper(Promise.resolve("tuta")).toPromise()
-								o(typeof promise.then).equals("function")
+				o(typeof promise.then).equals("function")
 				o(await promise.then()).equals("tuta")
 			})
 		})
@@ -96,7 +102,7 @@ o.spec("PromiseUtils", function () {
 			await Promise.resolve()
 			o(mapper.callCount).equals(1)
 			defer1.resolve(1)
-			await Promise.resolve()
+			await delay(1)
 			o(mapper.callCount).equals(2)
 			defer2.resolve(2)
 			await Promise.resolve()
@@ -134,26 +140,34 @@ o.spec("PromiseUtils", function () {
 		})
 
 		o("async in order", async function () {
+		o("parallel", async function () {
 			const defer1 = defer()
 			const defer2 = defer()
+			const defer3 = defer()
 			const mapper = o.spy((n) => n.promise)
-			const resultPromise = promiseMap(Promise.resolve([defer1, defer2]), mapper)
+			const resultPromise = promiseMap([defer1, defer2, defer3], mapper, {concurrency: 2})
 
-			await Promise.resolve()
-			o(mapper.callCount).equals(1)
-			defer1.resolve(1)
-			await Promise.resolve()
+			await delay(1)
 			o(mapper.callCount).equals(2)
-			defer2.resolve(2)
-			await Promise.resolve()
-			o(await resultPromise).deepEquals([1, 2])
+
+			defer1.resolve()
+			await delay(1)
+			o(mapper.callCount).equals(3)
+
+			defer2.resolve()
+			await delay(1)
+			o(mapper.callCount).equals(3)
+
+			defer3.resolve()
+			await delay(1)
+			o(mapper.callCount).equals(3)
 		})
 
 		o("stops on rejection", async function () {
 			const defer1 = defer()
 			const defer2 = defer()
 			const mapper = o.spy((n) => n.promise)
-			const resultPromise = promiseMap(Promise.resolve([defer1, defer2]), mapper)
+			const resultPromise = promiseMap([defer1, defer2], mapper)
 			await Promise.resolve()
 			o(mapper.callCount).equals(1)
 			defer1.reject(new Error("test"))
@@ -165,8 +179,57 @@ o.spec("PromiseUtils", function () {
 			const mapper = o.spy(() => {
 				throw new Error("test")
 			})
-			await assertThrows(Error, () => promiseMap(Promise.resolve([1, 2]), mapper))
+			await assertThrows(Error, () => promiseMap([1, 2], mapper))
 			o(mapper.callCount).equals(1)
+		})
+	})
+
+	o.spec("promiseFilter", function () {
+		function isEven(n) { return n % 2 === 0 }
+
+		o("sync", async function () {
+			const arr = [1, 2, 3, 4]
+			const result = await promiseFilter(arr, isEven)
+			o(result).deepEquals([2, 4])
+		})
+
+		o("async", async function () {
+			const arr = [1, 2, 3, 4]
+			const result = await promiseFilter(arr, (n) => Promise.resolve(isEven(n)))
+			o(result).deepEquals([2, 4])
+		})
+
+		o("index", async function () {
+			const arr = [1, 2, 3, 4]
+			const result = await promiseFilter(arr, (_, i) => Promise.resolve(isEven(i)))
+			o(result).deepEquals([1, 3])
+		})
+
+		o("no concurrency", async function () {
+			// One deferred per each item we want to check
+			const arr = [1, 2, 3, 4]
+			const deferred = [defer(), defer(), defer(), defer()]
+			const mapper = o.spy((_, i) => deferred[i].promise)
+			const resultP = promiseFilter(arr, mapper)
+			o(mapper.callCount).equals(1)
+
+			deferred[0].resolve(true)
+			await delay(1)
+			o(mapper.callCount).equals(2)
+
+			deferred[1].resolve(false)
+			await delay(1)
+			o(mapper.callCount).equals(3)
+
+			deferred[2].resolve(false)
+			await delay(1)
+			o(mapper.callCount).equals(4)
+
+			deferred[3].resolve(true)
+			await delay(1)
+			o(mapper.callCount).equals(4)
+
+			o(await resultP).deepEquals([1, 4])
 		})
 	})
 })

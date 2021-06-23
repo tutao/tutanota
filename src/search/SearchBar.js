@@ -45,7 +45,7 @@ import type {ListElement} from "../api/common/utils/EntityUtils";
 import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
 import {compareContacts} from "../contacts/view/ContactGuiUtils";
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import {LayerType} from "../RootView"
 
 assertMainOrNode()
@@ -364,20 +364,18 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		}
 
 		const byList = groupBy(results, listIdPart)
-		return Promise
-			.map(byList,
-				([listId, idTuples]) => {
-					return locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart))
-					              .catch(ofClass(NotFoundError, () => {
-						              console.log("mail list from search index not found")
-						              return []
-					              }))
-					              .catch(ofClass(NotAuthorizedError, () => {
-						              console.log("no permission on instance from search index")
-						              return []
-					              }))
-				},
-				{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
+		return promiseMap(byList, ([listId, idTuples]) => {
+				return locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart))
+				              .catch(ofClass(NotFoundError, () => {
+					              console.log("mail list from search index not found")
+					              return []
+				              }))
+				              .catch(ofClass(NotAuthorizedError, () => {
+					              console.log("no permission on instance from search index")
+					              return []
+				              }))
+			},
+			{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
 			.then(flat)
 	}
 

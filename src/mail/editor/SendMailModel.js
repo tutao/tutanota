@@ -851,7 +851,7 @@ export class SendMailModel {
 				: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
 		}).then((draft) => {
 			this._draft = draft
-			return Promise.map(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
+			return promiseMap(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
 				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
 				this.attachFiles(attachments)
 				this._mailChanged = false

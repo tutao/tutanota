@@ -35,7 +35,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {addressDomain, defer, neverNull, noOp} from "../../common/utils/Utils"
+import {addressDomain, defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -68,7 +68,7 @@ import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../.
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
-import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseFilter, promiseMap} from "../../common/utils/PromiseUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
@@ -235,28 +235,31 @@ export class MailFacade {
 	/**
 	 * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files) and returns all DraftAttachments
 	 */
-	_createAddedAttachments(providedFiles: ?Attachments, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
+	_createAddedAttachments(
+		providedFiles: ?Attachments,
+		existingFileIds: $ReadOnlyArray<IdTuple>,
+		mailGroupKey: Aes128Key
+	): Promise<DraftAttachment[]> {
 		if (providedFiles) {
-			return Promise
-				.mapSeries((providedFiles: any), providedFile => {
+			return promiseMap(providedFiles, providedFile => {
 					// check if this is a new attachment or an existing one
 					if (providedFile._type === "DataFile") {
 						// user added attachment
-						let fileSessionKey = aes128RandomKey()
-						let dataFile = ((providedFile: any): DataFile)
+						const fileSessionKey = aes128RandomKey()
+						const dataFile = downcast<DataFile>(providedFile)
 						return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
 						})
 					} else if (providedFile._type === "FileReference") {
-						let fileSessionKey = aes128RandomKey()
-						let fileRef = ((providedFile: any): FileReference)
+						const fileSessionKey = aes128RandomKey()
+						const fileRef = downcast<FileReference>(providedFile)
 						return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
 						})
-					} else if (!containsId((existingFileIds: any), getLetId(providedFile))) {
+					} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 						// forwarded attachment which was not in the draft before
 						return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
-							let attachment = createDraftAttachment();
+							const attachment = createDraftAttachment();
 							attachment.existingFile = getLetId(providedFile)
 							attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
 							return attachment
@@ -542,7 +545,7 @@ export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: stri
 }
 
 function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
-	return Promise.filter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
+	return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
 		return load(GroupTypeRef, groupMembership.group).then(mailGroup => {
 			if (mailGroup.user == null) {
 				return load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {

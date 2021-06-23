@@ -8,6 +8,7 @@ import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLan
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {getElementId} from "../api/common/utils/EntityUtils"
 import {flat} from "../api/common/utils/ArrayUtils"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
 	let language = supportedLanguages.find(l => l.code === lang.code || l.code + '_sie' === lang.code)
@@ -25,9 +26,9 @@ export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLan
 }
 
 export async function getAdministratedGroupIds(): Promise<Id[]> {
-	const localAdminGroups = await Promise.mapSeries(logins.getUserController()
+	const localAdminGroups = await promiseMap(logins.getUserController()
 	                                                       .getLocalAdminGroupMemberships(), (gm) => load(GroupTypeRef, gm.group))
-	const administratedGroupIds = await Promise.mapSeries(localAdminGroups, async (localAdminGroup) => {
+	const administratedGroupIds = await promiseMap(localAdminGroups, async (localAdminGroup) => {
 		if (localAdminGroup.administratedGroups) {
 			const administratedGroups = await loadAll(AdministratedGroupTypeRef, localAdminGroup.administratedGroups.items)
 			return administratedGroups.map(getElementId)

@@ -465,9 +465,9 @@ export class SettingsView implements CurrentView {
 		])
 	}
 
-	_makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
+	async _makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
 		const templateMemberships = logins.getUserController() && logins.getUserController().getTemplateMemberships() || []
-		return promiseMap(loadTemplateGroupInstances(templateMemberships, locator.entityClient),
+		return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
 			groupInstance =>
 				new SettingsFolder(() => getSharedGroupName(groupInstance.groupInfo, true),
 					() => Icons.ListAlt,
@@ -477,22 +477,20 @@ export class SettingsView implements CurrentView {
 	}
 
 
-	_makeKnowledgeBaseFolders(): Promise<Array<SettingsFolder<void>>> {
-		return logins.getUserController().loadCustomer()
-		             .then(customer => {
-			             if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
-				             const templateMemberships = logins.getUserController() && logins.getUserController().getTemplateMemberships()
-					             || []
-				             return promiseMap(loadTemplateGroupInstances(templateMemberships, locator.entityClient),
-					             groupInstance =>
-						             new SettingsFolder(() => getSharedGroupName(groupInstance.groupInfo, true),
-							             () => Icons.Book,
-							             {folder: "knowledgebase", id: getEtId(groupInstance.group)},
-							             () => new KnowledgeBaseListView(this, locator.entityClient, logins, groupInstance.groupRoot, groupInstance.group)))
-			             } else {
-				             return []
-			             }
-		             })
+	async _makeKnowledgeBaseFolders(): Promise<Array<SettingsFolder<void>>> {
+		const customer = await logins.getUserController().loadCustomer()
+		if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
+			const templateMemberships = logins.getUserController() && logins.getUserController().getTemplateMemberships()
+				|| []
+			return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient),
+				groupInstance =>
+					new SettingsFolder(() => getSharedGroupName(groupInstance.groupInfo, true),
+						() => Icons.Book,
+						{folder: "knowledgebase", id: getEtId(groupInstance.group)},
+						() => new KnowledgeBaseListView(this, locator.entityClient, logins, groupInstance.groupRoot, groupInstance.group)))
+		} else {
+			return []
+		}
 	}
 }
 

@@ -69,20 +69,8 @@ declare class Promise<+R> {
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 
 	// non-standard
-	// isFulfilled(): boolean;
-	isRejected(): boolean;
-	isPending(): boolean;
-	value(): R;
-
 	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
-	static map<T, U>(array: $Promisable<Iterable<T>>,
-	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
-	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;
-	static mapSeries<T, U>(array: $Promisable<Iterable<T>>,
-	                       mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U
-	): Promise<U[]>;
 	static reduce<T, U>(array: $Promisable<Iterable<T>>, mapper: (accumulator: U, item: T, index: number, arrayLength: number) => (Promise<U> | U), initialValue: U): Promise<U>;
-	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 	static config(configuration: Object): void;
 
 	static onPossiblyUnhandledRejection(errorHandler: Function): void;

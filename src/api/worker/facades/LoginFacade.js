@@ -229,32 +229,6 @@ export class LoginFacade {
 			}))
 	}
 
-	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
-		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
-		return serviceRequest(TutanotaService.PasswordChannelResource, HttpMethod.GET, null, PasswordChannelReturnTypeRef, null, null, headers)
-	}
-
-	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
-		let headers = {userId, authToken: base64ToBase64Url(uint8ArrayToBase64(hash(salt)))}
-		// reuse the transmission password to allow receiving the key if the SMS was requested a second time, but the SMS link of the first SMS was clicked
-		if (!symKeyForPasswordTransmission) {
-			symKeyForPasswordTransmission = aes128RandomKey()
-		}
-
-		var data = createPasswordMessagingData()
-		data.language = languageCode
-		data.numberId = phoneNumberId
-		data.symKeyForPasswordTransmission = keyToUint8Array(symKeyForPasswordTransmission)
-
-		return serviceRequest(TutanotaService.PasswordMessagingService, HttpMethod.POST, data, PasswordMessagingReturnTypeRef, null, null, headers)
-			.then(result => {
-				return {
-					symKeyForPasswordTransmission: neverNull(symKeyForPasswordTransmission),
-					autoAuthenticationId: result.autoAuthenticationId
-				}
-			})
-	}
-
 	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
 	): Promise<NewSessionData> {
 		if (this._user) {

@@ -64,7 +64,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 			const group = await this._group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups
 			const groupMembers = await this._entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-			return Promise.mapSeries(groupMembers, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
+			return promiseMap(groupMembers, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 		this._updateMembers()
 
@@ -74,7 +74,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 					// load only up to 200 members to avoid too long loading, like for account groups
 					return this._entityClient.loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
 					           .then((administratedGroups) => {
-						           return Promise.mapSeries(administratedGroups, (administratedGroup) => {
+						           return promiseMap(administratedGroups, (administratedGroup) => {
 							           return this._entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo)
 						           })
 					           })

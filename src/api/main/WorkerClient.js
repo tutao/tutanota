@@ -211,14 +211,6 @@ export class WorkerClient implements EntityRestInterface {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
-	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
-		return this.initialized.then(() => this._postRequest(new Request('loadExternalPasswordChannels', arguments)))
-	}
-
-	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
-		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
-	}
-
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
 	): Promise<NewSessionData> {
 		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments)))

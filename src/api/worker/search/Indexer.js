@@ -335,7 +335,7 @@ export class Indexer {
 
 	async _updateIndexedGroups(): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		const indexedGroupIds = await promiseMap(t.getAll(GroupDataOS),
+		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS),
 			(groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
 		if (indexedGroupIds.length === 0) {
 			// tried to index twice, this is probably not our fault
@@ -394,8 +394,7 @@ export class Indexer {
 		if (restrictTo) {
 			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
-		return Promise
-			.mapSeries(memberships, (membership: GroupMembership) => {
+		return promiseMap(memberships, (membership: GroupMembership) => {
 				// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
 				return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
 				           .then(eventBatches => {

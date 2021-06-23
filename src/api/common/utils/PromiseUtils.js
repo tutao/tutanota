@@ -1,6 +1,6 @@
 //@flow
-
-import {downcast} from "./Utils"
+import type {Options as PromiseMapOptions} from "./PromiseMap"
+import {pMap as promiseMap} from "./PromiseMap"
 
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
 
@@ -31,12 +31,17 @@ function _mapInCallContext<T, U>(values: T[], callback: PromiseMapCallback<T, U>
 	}
 }
 
+export {pMap as promiseMap} from "./PromiseMap"
 
-export type PromiseMapFn = <T, U>(values: T[], callback: PromiseMapCallback<T, U>, concurrency?: Bluebird$ConcurrencyOption) => PromisableWrapper<U[]>
+export type PromiseMapFn = <T, U>(values: T[], callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) => PromisableWrapper<U[]>
 
-export const promiseMapCompat = (useMapInCallContext: boolean): PromiseMapFn => useMapInCallContext
-	? mapInCallContext
-	: <T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, concurrency) => PromisableWrapper.from(Promise.map(values, callback, concurrency))
+function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) {
+	return PromisableWrapper.from(promiseMap(values, callback, options))
+}
+
+export function promiseMapCompat(useMapInCallContext: boolean): PromiseMapFn {
+	return useMapInCallContext ? mapInCallContext : mapNoFallback
+}
 
 function flatWrapper<T>(value: PromisableWrapper<T> | T): $Promisable<T> {
 	return value instanceof PromisableWrapper ? value.value : value
@@ -81,27 +86,6 @@ export function delay(ms: number): Promise<void> {
 	})
 }
 
-export function promiseMap<T, R>(_iterable: $Promisable<Iterable<T>>, mapper: (T) => $Promisable<R>): Promise<Array<R>> {
-	return Promise.resolve(_iterable).then(iterable => {
-		const iterator: Iterator<T> = downcast(iterable)[Symbol.iterator]()
-		const result = []
-
-		function iterate() {
-			const item = iterator.next()
-			if (item.done === true) {
-				return Promise.resolve()
-			} else {
-				return Promise.resolve(mapper(item.value)).then((newItem) => {
-					result.push(newItem)
-					return iterate()
-				})
-			}
-		}
-
-		return iterate().then(() => result)
-	})
-}
-
 /**
  * Pass to Promise.then to perform an action while forwarding on the result
  * @param action
@@ -139,4 +123,19 @@ export function ofClass<E, R>(cls: Class<E>, catcher: (E) => $Promisable<R>): ((
 			throw e
 		}
 	}
+}
+
+/**
+ * Filter iterable. Just like Array.prototype.filter but callback can return promises
+ */
+export async function promiseFilter<T>(iterable: Iterable<T>, filter: (item: T, index: number) => $Promisable<boolean>): Promise<Array<T>> {
+	let index = 0
+	const result = []
+	for (let item of iterable) {
+		if (await filter(item, index)) {
+			result.push(item)
+		}
+		index++
+	}
+	return result
 }

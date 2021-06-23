@@ -185,21 +185,23 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._transaction = transaction
 		this._onUnknownError = onUnknownError
 		this._promise = Promise.fromCallback((callback) => {
-
+			let done = false
 			transaction.onerror = (event) => {
-				if (this._promise.isPending()) {
+				if (!done) {
 					this._handleDbError(event, this._transaction, "transaction.onerror", (e) => {
 						callback(e)
 					})
 				} else {
-					console.log("ignore error of aborted/fullfilled transaction", event)
+					console.log("ignore error of aborted/fulfilled transaction", event)
 				}
 			}
-			transaction.oncomplete = (event) => {
+			transaction.oncomplete = () => {
+				done = true
 				callback()
 			}
 			transaction.onabort = (event) => {
 				event.stopPropagation()
+				done = true
 				callback()
 			}
 		})

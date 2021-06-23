@@ -31,6 +31,7 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import {groupBy, splitInChunks} from "../../api/common/utils/ArrayUtils"
 import {EntityClient} from "../../api/common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -111,9 +112,10 @@ export class MailModel {
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
 		return this._entityClient.loadAll(MailFolderTypeRef, folderListId).then(folders => {
 			if (loadSubFolders) {
-				return Promise.map(folders, folder => this._loadFolders(folder.subFolders, false)).then(subfolders => {
-					return folders.concat(...subfolders)
-				})
+				return promiseMap(folders, folder => this._loadFolders(folder.subFolders, false), {concurrency: 5})
+					.then(subfolders => {
+						return folders.concat(...subfolders)
+					})
 			} else {
 				return folders
 			}

@@ -728,7 +728,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_loadMoreIfNecessary() {
 		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight)
 			- this._visibleElementsHeight * 2
-		if (lastBunchVisible && !this._loading.isPending() && !this._loadedCompletely) {
+		if (lastBunchVisible && !this._displayingProgress && !this._loadedCompletely) {
 			this._loadMore().then(() => {
 				this._domList.style.height = this._calculateListHeight()
 			})
