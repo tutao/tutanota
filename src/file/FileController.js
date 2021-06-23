@@ -114,14 +114,14 @@ export class FileController {
 		}
 		newFileInput.style.display = "none"
 
-		let promise = Promise.fromCallback(cb => {
+		let promise = new Promise((resolve) => {
 			newFileInput.addEventListener("change", (e: Event) => {
 				this.readLocalFiles((e.target: any).files).then(dataFiles => {
-					cb(null, dataFiles)
+					resolve(dataFiles)
 				}).catch(e => {
 					console.log(e)
 					return Dialog.error("couldNotAttachFile_msg").then(() => {
-						cb(null, [])
+						resolve([])
 					})
 				})
 			})
@@ -141,14 +141,14 @@ export class FileController {
 			nativeFiles.push(fileList[i])
 		}
 		return promiseMap(nativeFiles, nativeFile => {
-			return Promise.fromCallback(cb => {
+			return new Promise((resolve, reject) => {
 				let reader = new FileReader()
 				reader.onloadend = function (evt: ProgressEvent) {
 					const target: any = evt.target
 					if (target.readyState === reader.DONE && target.result) { // DONE == 2
-						cb(null, convertToDataFile(nativeFile, new Uint8Array(target.result)))
+						resolve(convertToDataFile(nativeFile, new Uint8Array(target.result)))
 					} else {
-						cb(new Error("could not load file"))
+						reject(new Error("could not load file"))
 					}
 				}
 				reader.readAsArrayBuffer(nativeFile)

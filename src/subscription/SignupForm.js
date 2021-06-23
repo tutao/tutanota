@@ -224,11 +224,11 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 		.then(captchaReturn => {
 			let regDataId = captchaReturn.token
 			if (captchaReturn.challenge) {
-				return Promise.fromCallback(callback => {
+				return new Promise((resolve, reject) => {
 					let dialog: Dialog
 					const cancelAction = () => {
 						dialog.close()
-						callback(null)
+						resolve(null)
 					}
 					const okAction = () => {
 						let parsedInput = parseCaptchaInput(captchaInput)
@@ -239,22 +239,22 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 							dialog.close()
 							serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data)
 								.then(() => {
-									callback(null, captchaReturn.token)
+									resolve(captchaReturn.token)
 								})
 								.catch(ofClass(InvalidDataError, e => {
 									return Dialog.error("createAccountInvalidCaptcha_msg").then(() => {
 										runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaignToken).then(regDataId => {
-											callback(null, regDataId)
+											resolve(regDataId)
 										})
 									})
 								}))
 								.catch(ofClass(AccessExpiredError, e => {
 									Dialog.error("createAccountAccessDeactivated_msg").then(() => {
-										callback(null, null)
+										resolve(null)
 									})
 								}))
 								.catch(e => {
-									callback(e)
+									reject(e)
 								})
 						} else {
 							Dialog.error("captchaEnter_msg")

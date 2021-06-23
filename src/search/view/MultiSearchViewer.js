@@ -210,8 +210,7 @@ export class MultiSearchViewer {
 		]
 	}
 
-	createMoveMailButtons(): Promise<ButtonAttrs[]> {
-
+	async createMoveMailButtons(): Promise<ButtonAttrs[]> {
 		let selected = this._searchListView.getSelectedEntities()
 		let selectedMails = []
 		if (selected.length > 0 && isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
@@ -219,31 +218,32 @@ export class MultiSearchViewer {
 				selectedMails.push(((m.entry: any): Mail))
 			})
 		}
-		return Promise.reduce(selectedMails, (set, mail) => {
-			return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
-				if (set.indexOf(mailBox) < 0) {
-					set.push(mailBox)
-				}
-				return set
-			})
-		}, ([]: MailboxDetail[])).then((sourceMailboxes) =>
-			sourceMailboxes.length !== 1
-				? []
-				: (getSortedSystemFolders(sourceMailboxes[0].folders)
-					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
-					.map(f => ({
-						label: () => getFolderName(f),
-						click: () => {
-							//is needed for correct selection behavior on mobile
-							this._searchListView.selectNone()
-							// move all groups one by one because the mail list cannot be modified in parallel
-							return moveMails(locator.mailModel, selectedMails, f)
 
-						},
-						icon: getFolderIcon(f),
-						type: ButtonType.Dropdown
-					}))
-		)
+		let selectedMailbox
+		for (const mail of selectedMails) {
+			const mailbox = await locator.mailModel.getMailboxDetailsForMail(mail)
+			// We can't move mails from different mailboxes
+			if (selectedMailbox != null && selectedMailbox !== mailbox) {
+				return []
+			}
+			selectedMailbox = mailbox
+		}
+		if (selectedMailbox == null) return []
+
+		return (getSortedSystemFolders(selectedMailbox.folders)
+			.concat(getSortedCustomFolders(selectedMailbox.folders)))
+			.map(f => ({
+				label: () => getFolderName(f),
+				click: () => {
+					//is needed for correct selection behavior on mobile
+					this._searchListView.selectNone()
+					// move all groups one by one because the mail list cannot be modified in parallel
+					return moveMails(locator.mailModel, selectedMails, f)
+
+				},
+				icon: getFolderIcon(f),
+				type: ButtonType.Dropdown
+			}))
 	}
 
 	mergeSelected(): Promise<void> {

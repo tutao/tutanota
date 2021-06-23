@@ -47,13 +47,14 @@ export class RequestError {
 	}
 }
 
+type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 
 export class Queue {
 	/**
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
-	_queue: {[key: string]: Callback<any>};
+	_queue: {[key: string]: QueuedMessageCallbacks};
 	_commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command};
 	_transport: Worker | DedicatedWorkerGlobalScope;
 
@@ -67,8 +68,8 @@ export class Queue {
 	}
 
 	postMessage(msg: Request): Promise<any> {
-		return Promise.fromCallback(cb => {
-			this._queue[msg.id] = cb
+		return new Promise((resolve, reject) => {
+			this._queue[msg.id] = {resolve, reject}
 			try {
 				this._transport.postMessage(msg)
 			} catch (e) {
@@ -80,10 +81,10 @@ export class Queue {
 
 	_handleMessage(message: Response | Request | RequestError) {
 		if (message.type === 'response') {
-			this._queue[message.id](null, message.value)
+			this._queue[message.id].resolve(message.value)
 			delete this._queue[message.id]
 		} else if (message.type === 'requestError') {
-			this._queue[message.id](objToError(downcast(message).error), null)
+			this._queue[message.id].reject(objToError(downcast(message).error))
 			delete this._queue[message.id]
 		} else {
 			let command = this._commands[message.type]

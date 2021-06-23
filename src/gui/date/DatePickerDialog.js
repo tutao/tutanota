@@ -29,7 +29,7 @@ export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Da
 			]
 		)
 	}
-	return Promise.fromCallback(cb => {
+	return new Promise((resolve) => {
 		let dialog = Dialog.showActionDialog({
 			title: lang.get("selectPeriodOfTime_label"),
 			child: form,
@@ -41,7 +41,7 @@ export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Da
 					Dialog.error("startAfterEnd_label")
 				} else {
 					dialog.close()
-					cb(null, {start, end})
+					resolve({start, end})
 				}
 			}),
 			type: DialogType.EditMedium
