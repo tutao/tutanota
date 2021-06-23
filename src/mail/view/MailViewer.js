@@ -145,7 +145,7 @@ export class MailViewer {
 	mail: Mail;
 	_mailBody: ?MailBody;
 	_contrastFixNeeded: boolean;
-	_sanitizedMailBody: ?Vnode<void>; // always sanitized in this.setSanitizedMailBodyFromMail
+	_sanitizedMailBody: ?string; // always sanitized in this.setSanitizedMailBodyFromMail
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
@@ -365,7 +365,7 @@ export class MailViewer {
 	}
 
 	renderMailBodySection(): Children {
-		if (this._sanitizedMailBody && !this._didErrorsOccur()) {
+		if (this._sanitizedMailBody != null && !this._didErrorsOccur()) {
 
 			return m("#mail-body.selectable.touch-callout.break-word-links", {
 				oncreate: vnode => {
@@ -390,7 +390,7 @@ export class MailViewer {
 					'line-height': this._bodyLineHeight ? this._bodyLineHeight.toString() : size.line_height,
 					'transform-origin': 'top left'
 				},
-			}, this._sanitizedMailBody)
+			}, m.trust(this._sanitizedMailBody))
 		} else if (!this._didErrorsOccur()) {
 			return m(".progress-panel.flex-v-center.items-center", {
 				style: {
@@ -1690,7 +1690,9 @@ export class MailViewer {
 			     .some(s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"))
 			|| html.querySelectorAll('font[color]').length > 0
 
-		this._sanitizedMailBody = m.trust(await worker.urlify(stringifyFragment(html)))
+		this._sanitizedMailBody = await worker.urlify(stringifyFragment(html))
+
+		m.redraw()
 
 		return {inlineImageCids, links, externalContent}
 	}
