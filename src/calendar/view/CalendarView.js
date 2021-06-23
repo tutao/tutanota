@@ -294,10 +294,10 @@ export class CalendarView implements CurrentView {
 		const monitorHandle = locator.progressTracker.registerMonitor(totalWork)
 		let progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
 		this._calendarInfos = new LazyLoaded(() => locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).then((it) => {
-			m.redraw()
-			return it
-		}).load()
-	)
+				m.redraw()
+				return it
+			})
+		).load()
 		this.selectedDate.map((d) => {
 			const thisMonthStart = getMonth(d, getTimeZone()).start
 
@@ -735,7 +735,7 @@ export class CalendarView implements CurrentView {
 				worker.addCalendar("")
 				      .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
 				      .then((infos) => {
-					      this._calendarInfos = new LazyLoaded(() => infos).load()
+					      this._calendarInfos = new LazyLoaded(() => Promise.resolve(infos)).load()
 					      return infos
 				      })
 			)

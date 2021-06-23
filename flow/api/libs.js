@@ -62,7 +62,7 @@ declare class Promise<+R> {
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 
 	// non-standard
-	isFulfilled(): boolean;
+	// isFulfilled(): boolean;
 	isRejected(): boolean;
 	isPending(): boolean;
 	value(): R;

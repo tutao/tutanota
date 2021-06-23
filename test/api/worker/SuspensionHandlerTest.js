@@ -1,9 +1,10 @@
 //@flow
 import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
-import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "../../../src/api/common/utils/Utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {assertNotResolvedIn, assertResolvedIn} from "../TestUtils"
 
 o.spec("SuspensionHandler test", () => {
 
@@ -29,7 +30,8 @@ o.spec("SuspensionHandler test", () => {
 		const beforeTime1 = Date.now()
 		suspensionHandler.activateSuspensionIfInactive(100)
 		const deferredRequest1 = suspensionHandler.deferRequest(restRequest)
-		o(deferredRequest1.isFulfilled()).equals(false)
+
+		await assertNotResolvedIn(10, deferredRequest1)
 
 		o(suspensionHandler.isSuspended()).equals(true)
 		o(suspensionHandler._deferredRequests.length).equals(1)
@@ -41,7 +43,8 @@ o.spec("SuspensionHandler test", () => {
 		const beforeTime2 = Date.now()
 		suspensionHandler.activateSuspensionIfInactive(50)
 		const deferredRequest2 = suspensionHandler.deferRequest(restRequest)
-		o(deferredRequest2.isFulfilled()).equals(false)
+
+		await assertNotResolvedIn(10, deferredRequest2)
 
 		o(suspensionHandler.isSuspended()).equals(true)
 		o(suspensionHandler._deferredRequests.length).equals(1)
@@ -55,22 +58,22 @@ o.spec("SuspensionHandler test", () => {
 	o("handle defer suspension not active", node(async function () {
 		const deferredRequest = suspensionHandler.deferRequest(restRequest)
 		o(suspensionHandler.isSuspended()).equals(false)
-		o(deferredRequest.isFulfilled()).equals(true)
+		await assertResolvedIn(10, deferredRequest)
 	}))
 
 	o("handle multiple suspensions", node(async function () {
-		const deferred1 = defer()
-		const deferred2 = defer()
+		let firstCalled = false
+		let secondCalled = false
 		const request1 = () => {
-			o(deferred2.promise.isFulfilled()).equals(false)
-			deferred1.resolve()
-			return deferred1.promise
+			firstCalled = true
+			o(secondCalled).equals(false)("Second request was resolved before the first one")
+			return Promise.resolve()
 		}
 
 		const request2 = () => {
-			o(deferred1.promise.isFulfilled()).equals(true)
-			deferred1.resolve()
-			return deferred1.promise
+			secondCalled = true
+			o(firstCalled).equals(true)("First request was not resolved before the second one")
+			return Promise.resolve()
 		}
 
 		const beforeTime = Date.now()
@@ -82,8 +85,7 @@ o.spec("SuspensionHandler test", () => {
 		await delay(50)
 		o(suspensionHandler._deferredRequests.length).equals(2)
 		o(suspensionHandler.isSuspended()).equals(true)
-		o(deferredRequest1.isFulfilled()).equals(false)
-		o(deferredRequest2.isFulfilled()).equals(false)
+		await assertNotResolvedIn(10, deferredRequest1, deferredRequest2)
 		await deferredRequest2
 		checkSuspensionTime(beforeTime, 100)
 		o(suspensionHandler.isSuspended()).equals(false)

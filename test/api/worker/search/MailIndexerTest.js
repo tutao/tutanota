@@ -708,12 +708,12 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	})
 
 	const indexPromise = indexer.indexMailboxes(user, endIndexTimstamp)
-	o(indexer.mailboxIndexingPromise.isPending()).equals(true)
+	o(indexer.isIndexing).equals(true)
 	await indexPromise
 
 	o(indexer._core.queue.pause.invocations.length).equals(1)
 	o(indexer._core.queue.resume.invocations.length).equals(1)
-	o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
+	o(indexer.isIndexing).equals(false)
 	if (indexMailList) {
 		o(indexer._indexMailLists.callCount).equals(1)
 		const [mailData, oldestTimestamp] = indexer._indexMailLists.args
