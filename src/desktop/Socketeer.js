@@ -5,6 +5,7 @@ import type {WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
 import {log} from "./DesktopLog";
+import type {TimeoutSetter} from "../api/common/utils/Utils"
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
 
@@ -16,10 +17,10 @@ type net = $Exports<"net">
 export class Socketeer {
 	_server: ?net$Server;
 	_connection: ?net$Socket;
-	_delayHandler: typeof setTimeout
+	_delayHandler: TimeoutSetter
 	_net: net
 
-	constructor(net: net, app: App, delayHandler: typeof setTimeout = setTimeout) {
+	constructor(net: net, app: App, delayHandler: TimeoutSetter = setTimeout) {
 		this._net = net
 		this._delayHandler = delayHandler
 

@@ -1,9 +1,3 @@
-import {Request} from "../../src/api/common/WorkerProtocol"
-import {AssociationType, Cardinality, Type, ValueType} from "../../src/api/common/EntityConstants"
-import type {BootstrapFeatureTypeEnum, PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
-import type {Theme} from "../../src/gui/theme"
-import {Country} from "../../src/api/common/CountryList"
-import type {MoreResultsIndexEntry, SearchRestriction} from "../../src/api/worker/search/SearchTypes"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -247,50 +241,6 @@ type JsRequestType = 'createMailEditor'
 	| 'showSpellcheckDropdown'
 
 type Callback<T> = (err: ?Error, data?: T) => void
-type Command = (msg: Request) => Promise<any>
-
-
-// EntityConstants
-type TypeEnum = $Keys<typeof Type>;
-type AssociationTypeEnum = $Keys<typeof AssociationType>;
-type CardinalityEnum = $Keys<typeof Cardinality>;
-type ValueTypeEnum = $Keys<typeof ValueType>;
-
-type TypeModel = {
-	id: number,
-	app: string,
-	version: string,
-	name: string,
-	type: TypeEnum,
-	versioned: boolean,
-	encrypted: boolean,
-	rootId: string,
-	values: {[key: string]: ModelValue},
-	associations: {[key: string]: ModelAssociation}
-}
-
-type ModelValue = {
-	id: number,
-	type: ValueTypeEnum,
-	cardinality: CardinalityEnum,
-	final: boolean,
-	encrypted: boolean,
-}
-
-/**
- * Metamodel Representation of the association (reference/aggregate).
- */
-type ModelAssociation = {
-	id: number,
-	type: AssociationTypeEnum,
-	cardinality: CardinalityEnum,
-	refType: string,
-	/**
-	 * From which model we import this association from. Currently the field only exists for aggregates because they are only ones
-	 * which can be imported across models.
-	 */
-	dependency?: ?string,
-}
 
 type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 
@@ -305,17 +255,6 @@ type EnvType = {
 }
 
 declare var env: EnvType
-
-type WhitelabelCustomizations = {
-	theme: ?Theme,
-	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
-	germanLanguageCode: string,
-	registrationDomains: ?string[],
-	imprintUrl: ?string,
-	privacyStatementUrl: ?string,
-}
-
-declare var whitelabelCustomizations: ?WhitelabelCustomizations
 
 type Credentials = {
 	mailAddress: string,
@@ -351,44 +290,6 @@ type FileReference = {
 type KeyListener = {
 	modifier: number,
 	callback: Function
-}
-
-type SearchResult = {
-	query: string,
-	restriction: SearchRestriction,
-	results: IdTuple[];
-	currentIndexTimestamp: number;
-	moreResults: Array<MoreResultsIndexEntry>,
-	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
-	matchWordOrder: boolean;
-}
-
-type SearchIndexStateInfo = {
-	initializing: boolean;
-	mailIndexEnabled: boolean;
-	progress: number;
-	currentMailIndexTimestamp: number;
-	indexedMailCount: number;
-	failedIndexingUpTo: ?number;
-}
-
-type CreditCardData = {
-	number: string,
-	cvv: string,
-	expirationDate: string
-}
-
-type PayPalData = {
-	account: string
-}
-type InvoiceData = {
-	invoiceAddress: string;
-	country: ?Country;
-	vatNumber: string; // only for EU countries otherwise empty
-}
-type PaymentData = {
-	paymentMethod: PaymentMethodTypeEnum;
-	creditCardData: ?CreditCard;
 }
 
 type WsConnectionState = "connecting" | "connected" | "terminated"

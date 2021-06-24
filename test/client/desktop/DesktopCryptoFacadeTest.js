@@ -7,6 +7,7 @@ import {keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/
 import {arrayEquals} from "../../../src/api/common/utils/ArrayUtils"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import type {CryptoFunctions} from "../../../src/desktop/CryptoFns"
+import type {TypeModel} from "../../../src/api/common/EntityTypes"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = "uint8_somedata"

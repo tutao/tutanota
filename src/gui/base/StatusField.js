@@ -2,6 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -17,4 +18,9 @@ export class StatusField implements MComponent<StatusFieldAttrs> {
 
 		return m("", lang.get(status.text))
 	}
+}
+
+export type Status = {
+	type: StatusTypeEnum,
+	text: TranslationKey
 }

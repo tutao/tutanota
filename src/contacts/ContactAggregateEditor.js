@@ -84,17 +84,18 @@ export class ContactAggregateEditor implements MComponent<AggregateEditorAttrs<*
 		return m(ButtonN, moreButtonAttrs)
 	}
 
-	animate(domElement: HTMLElement, fadein: boolean): Promise<Array<AnimationPromise>> {
+	animate(domElement: HTMLElement, fadein: boolean): Promise<*> {
 		let childHeight = domElement.offsetHeight
 		if (fadein) {
 			domElement.style.opacity = "0"
 		}
 
-		return Promise.all([
-			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
-			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).tap(() => {
-				domElement.style.height = ''
-			})
-		])
+		const opacityP = animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true))
+		const heightP = animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
+
+		heightP.then(() => {
+			domElement.style.height = ''
+		})
+		return Promise.all([opacityP, heightP])
 	}
 }

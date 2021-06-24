@@ -19,6 +19,7 @@ import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {ProgressTracker} from "../../api/main/ProgressTracker"
+import type {ViewSlider} from "./ViewSlider"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")
@@ -30,7 +31,7 @@ assertMainOrNode()
 export interface CurrentView extends MComponent<void> {
 	+headerView?: () => Children;
 	+headerRightView?: () => Children;
-	+getViewSlider?: () => ?IViewSlider;
+	+getViewSlider?: () => ?ViewSlider;
 	/** @return true if view handled press itself */
 	+handleBackButton?: () => boolean;
 	/** @return true if "back/up" icon should be shown, false if menu icon */
@@ -295,7 +296,7 @@ class Header {
 		this._currentView = currentView
 	}
 
-	_getViewSlider(): ?IViewSlider {
+	_getViewSlider(): ?ViewSlider {
 		if (this._currentView && this._currentView.getViewSlider) {
 			return this._currentView.getViewSlider()
 		} else {

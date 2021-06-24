@@ -16,6 +16,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
+import type {Status} from "../gui/base/StatusField"
 
 assertMainOrNode()
 

@@ -27,6 +27,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 type IdentifierRowAttrs = {|
 	name: string,
@@ -218,7 +219,7 @@ export class IdentifierListViewer {
 		}
 	}
 
-	_validateAddNotificationEmailAddressInput(emailAddress: string): ?string {
+	_validateAddNotificationEmailAddressInput(emailAddress: string): ?TranslationKey {
 		return getCleanedMailAddress(emailAddress) == null
 			? "mailAddressInvalid_msg"
 			: null // TODO check if it is a Tutanota mail address

@@ -263,7 +263,7 @@ o.spec("ElectronUpdater Test", function () {
 				return Promise.resolve()
 			}
 		}
-		const scheduler: typeof setInterval = (fn) => setInterval(fn, 10)
+		const scheduler = (fn, time, args) => setInterval(fn, 10)
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()
@@ -283,7 +283,7 @@ o.spec("ElectronUpdater Test", function () {
 			autoUpdater.emit('error', {message: "this is an autoUpdater error"})
 			return Promise.resolve()
 		}
-		const scheduler: typeof setInterval = (fn) => setInterval(fn, 5)
+		const scheduler = (fn) => setInterval(fn, 5)
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()

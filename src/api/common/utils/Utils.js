@@ -133,9 +133,9 @@ export function downcast<R>(object: *): R {
 
 export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
-		return instance.slice()
+		return downcast<T>(instance.slice())
 	} else if (instance instanceof Array) {
-		return instance.map(i => clone(i))
+		return downcast<T>(instance.map(i => clone(i)))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
 	} else if (instance instanceof TypeRef) {
@@ -438,7 +438,19 @@ export function filterInt(value: string): number {
 	}
 }
 
-export function insideRect(point: {x: number, y: number}, rect: {top: number, left: number, bottom: number, right: number}): boolean {
+interface Positioned {
+	x: number,
+	y: number,
+}
+
+interface Sized {
+	top: number,
+	left: number,
+	bottom: number,
+	right: number,
+}
+
+export function insideRect(point: Positioned, rect: Sized): boolean {
 	return point.x >= rect.left && point.x < rect.right
 		&& point.y >= rect.top && point.y < rect.bottom
 }
@@ -522,3 +534,6 @@ export function mapNullable<T, U>(val: ?T, action: T => U): U | null {
 export function isSecurityError(e: any): boolean {
 	return e instanceof DOMException && (e.name === "SecurityError" || e.code === e.SECURITY_ERR)
 }
+
+/** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
+export type TimeoutSetter = (fn: () => mixed, number) => TimeoutID

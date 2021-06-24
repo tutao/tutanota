@@ -45,6 +45,7 @@ import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import type {TypeModel} from "../../common/EntityTypes"
 
 assertWorkerOrNode()
 

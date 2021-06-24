@@ -2,7 +2,7 @@
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
-import {noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import path from "path"
 import fs from "fs"
 import {app} from "electron"
@@ -29,25 +29,31 @@ export class UpdaterWrapperImpl implements UpdaterWrapper {
 
 	electronUpdater: Promise<AutoUpdater> = env.dist
 		? import("electron-updater").then((m) => m.autoUpdater)
-		: Promise.resolve(fakeAutoUpdater)
+		: Promise.resolve(downcast<AutoUpdater>(fakeAutoUpdater))
 }
 
-const fakeAutoUpdater: $Shape<AutoUpdater> = {
-	on() {
+
+const fakeAutoUpdater = new class {
+	on(): this {
 		return this
-	},
-	once() {
+	}
+
+	once(): this {
 		return this
-	},
-	removeListener() {
+	}
+
+	removeListener(): this {
 		return this
-	},
+	}
+
 	downloadUpdate() {
 		return Promise.resolve([])
-	},
-	quitAndInstall() {},
+	}
+
+	quitAndInstall() {}
+
 	checkForUpdates() {
 		// Never resolved, return type is too complex
 		return new Promise(noOp)
-	},
+	}
 }

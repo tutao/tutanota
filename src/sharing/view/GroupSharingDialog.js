@@ -184,7 +184,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 				}
 			})
 			return buttonAttrs
-		}
+		},
 	}, locator.contactModel, SHOW_CONTACT_SUGGESTIONS_MAX)
 	const invitePeopleValueTextField = new BubbleTextField<RecipientInfo>("shareWithEmailRecipient_label", bubbleHandler)
 	const capability: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)

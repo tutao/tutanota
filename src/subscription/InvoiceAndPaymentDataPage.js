@@ -6,7 +6,7 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream/stream.js"
-import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
+import type {InvoiceData, PaymentData, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -162,8 +162,10 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 }
 
-export function updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean, price: string, accountingInfo: AccountingInfo): Promise<boolean> {
-
+export function updatePaymentData(
+	paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country,
+	isSignup: boolean, price: string, accountingInfo: AccountingInfo
+): Promise<boolean> {
 	return worker.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
 	             .then(paymentResult => {
 		             const statusCode = paymentResult.result

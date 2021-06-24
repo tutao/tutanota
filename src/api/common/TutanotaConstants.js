@@ -10,13 +10,15 @@ import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 import {isAdminClient, isApp, isDesktop} from "./Env"
+import type {Country} from "./CountryList"
+import type {CreditCard} from "../entities/sys/CreditCard"
 
 
-export const reverse: <K, V>({ [K]: V }) => { [V]: K } = (objectMap) => Object.keys(objectMap)
-																			  .reduce((r, k) => {
-																				  const v = objectMap[downcast(k)]
-																				  return Object.assign(r, {[v]: k})
-																			  }, {})
+export const reverse = <K, V>(objectMap: {[K]: V}): {[V]: K} => Object.keys(objectMap)
+                                                                      .reduce((r, k) => {
+	                                                                      const v = objectMap[downcast(k)]
+	                                                                      return Object.assign(r, {[v]: k})
+                                                                      }, {})
 // Also used in other projects
 export type $Reversed<T> = $Call<typeof reverse, T>
 
@@ -753,7 +755,7 @@ const icalToMailMethodMapping = Object.freeze({
 	DECLINECOUNTER: MailMethod.ICAL_COUNTER
 })
 
-const mailMethodToIcalMapping: { [$ElementType<typeof icalToMailMethodMapping, $Keys<typeof icalToMailMethodMapping>>]: $Keys<typeof icalToMailMethodMapping> } = reverse(icalToMailMethodMapping)
+const mailMethodToIcalMapping: {[$ElementType<typeof icalToMailMethodMapping, $Keys<typeof icalToMailMethodMapping>>]: $Keys<typeof icalToMailMethodMapping>} = reverse(icalToMailMethodMapping)
 
 export function mailMethodToCalendarMethod(mailMethod: MailMethodEnum): CalendarMethodEnum {
 	const calendarMethod = mailMethodToIcalMapping[mailMethod]
@@ -779,7 +781,7 @@ export function calendarMethodToMailMethod(calendarMethod: CalendarMethodEnum): 
 
 export type MailMethodEnum = $Values<typeof MailMethod>
 
-export function getAsEnumValue<K, V>(enumValues: { [K]: V }, value: string): ?V {
+export function getAsEnumValue<K, V>(enumValues: {[K]: V}, value: string): ?V {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		const enumValue = enumValues[key]
 		if (enumValue === value) {
@@ -789,7 +791,7 @@ export function getAsEnumValue<K, V>(enumValues: { [K]: V }, value: string): ?V 
 	return null
 }
 
-export function assertEnumValue<K, V>(enumValues: { [K]: V }, value: string): V {
+export function assertEnumValue<K, V>(enumValues: {[K]: V}, value: string): V {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		const enumValue = enumValues[key]
 		if (enumValue === value) {
@@ -799,7 +801,7 @@ export function assertEnumValue<K, V>(enumValues: { [K]: V }, value: string): V 
 	throw new Error(`Invalid enum value ${value} for ${JSON.stringify(enumValues)}`)
 }
 
-export function assertEnumKey<K: string, V>(obj: { [K]: V }, key: string): K {
+export function assertEnumKey<K: string, V>(obj: {[K]: V}, key: string): K {
 	if (key in obj) {
 		return downcast(key)
 	} else {
@@ -828,3 +830,24 @@ export const ExternalImageRule = Object.freeze({
 	Block: "2"
 })
 export type ExternalImageRuleEnum = $Values<typeof ExternalImageRule>
+
+export type CreditCardData = {
+	number: string,
+	cvv: string,
+	expirationDate: string
+}
+
+export type PayPalData = {
+	account: string
+}
+
+export type InvoiceData = {
+	invoiceAddress: string;
+	country: ?Country;
+	vatNumber: string; // only for EU countries otherwise empty
+}
+
+export type PaymentData = {
+	paymentMethod: PaymentMethodTypeEnum;
+	creditCardData: ?CreditCard;
+}

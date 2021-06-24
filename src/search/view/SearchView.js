@@ -212,7 +212,7 @@ export class SearchView implements CurrentView {
 		].map(row => m(".folder-row.plr-l.content-fg", row))
 	}
 
-	getViewSlider(): ?IViewSlider {
+	getViewSlider(): ?ViewSlider {
 		return this.viewSlider
 	}
 

@@ -2,6 +2,7 @@
 
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
+import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CalendarEventAttendee} from "./CalendarEventAttendee"
 import type {EncryptedMailAddress} from "./EncryptedMailAddress"

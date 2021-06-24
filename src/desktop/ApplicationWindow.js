@@ -52,6 +52,8 @@ export class ApplicationWindow {
 
 	+_startFileURL: URL
 	_browserWindow: BrowserWindow;
+
+	/** User logged in in this window. Reset from WindowManager. */
 	_userInfo: ?UserInfo;
 	_setBoundsTimeout: TimeoutID;
 	_findingInPage: boolean = false;
@@ -190,7 +192,9 @@ export class ApplicationWindow {
 		this.id = this._browserWindow.id
 		this._ipc.addWindow(this.id)
 
-		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
+		this._browserWindow.webContents.session.setPermissionRequestHandler(
+			(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) => callback(false)
+		)
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
 
 
@@ -409,10 +413,6 @@ export class ApplicationWindow {
 			return
 		}
 		this._findingInPage = state
-	}
-
-	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void): void {
-		return callback(false)
 	}
 
 	_toggleDevTools(): void {

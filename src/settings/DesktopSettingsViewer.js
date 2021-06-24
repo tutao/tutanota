@@ -22,6 +22,7 @@ import type {NativeWrapper} from "../native/common/NativeWrapper"
 import type {DesktopConfigKeyEnum} from "../desktop/config/ConfigKeys"
 import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

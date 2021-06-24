@@ -3,6 +3,7 @@ import type {DbFacade} from "./DbFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
 import {TypeRef} from "../../common/utils/TypeRef";
+import type {ModelAssociation, ModelValue} from "../../common/EntityTypes"
 
 
 // db types
@@ -135,4 +136,23 @@ export type SearchRestriction = {
 	field: ?string; // must be kept in sync with attributeIds
 	attributeIds: ?number[]; // must be kept in sync with field
 	listId: ?Id;
+}
+
+export type SearchResult = {
+	query: string,
+	restriction: SearchRestriction,
+	results: IdTuple[];
+	currentIndexTimestamp: number;
+	moreResults: Array<MoreResultsIndexEntry>,
+	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	matchWordOrder: boolean;
+}
+
+export type SearchIndexStateInfo = {
+	initializing: boolean;
+	mailIndexEnabled: boolean;
+	progress: number;
+	currentMailIndexTimestamp: number;
+	indexedMailCount: number;
+	failedIndexingUpTo: ?number;
 }

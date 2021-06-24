@@ -1,7 +1,6 @@
 // @flow
-// $FlowIgnore[untyped-import]
 import {Type, ValueType} from "./EntityConstants"
-import {last} from "./utils/ArrayUtils"
+import {flat, last} from "./utils/ArrayUtils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
@@ -13,6 +12,7 @@ import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
 import {TypeRef} from "./utils/TypeRef";
 import storageModelMap from "../entities/storage/storageModelMap"
+import type {TypeModel} from "./EntityTypes"
 
 
 export const HttpMethod = Object.freeze({
@@ -130,9 +130,7 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 				ids: idChunk.join(",")
 			}
 			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
-		}, {concurrency: 1}).then(instanceChunks => {
-			return Array.prototype.concat.apply([], instanceChunks);
-		})
+		}, {concurrency: 1}).then(instanceChunks => flat(instanceChunks))
 	})
 }
 

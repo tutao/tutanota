@@ -46,6 +46,8 @@ export const DialogType = Object.freeze({
 })
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
+type validator = () => ?TranslationKey | Promise<?TranslationKey>;
+
 type ActionDialogProps = {|
 	title: lazy<string> | string,
 	child: MComponent<void> | lazy<Children>,
@@ -73,7 +75,7 @@ export class Dialog implements ModalComponent {
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<void>) {
 		this.visible = false
-		this._focusOnLoadFunction = this._defaultFocusOnLoad
+		this._focusOnLoadFunction = () => this._defaultFocusOnLoad()
 		this._wasFocusOnLoadCalled = false
 		this._shortcuts = [
 			{
@@ -733,5 +735,7 @@ export class Dialog implements ModalComponent {
 		m.redraw()
 	}
 }
+
+export type stringValidator = (string) => ?TranslationKey | Promise<?TranslationKey>;
 
 windowFacade.addKeyboardSizeListener(Dialog._onKeyboardSizeChanged)

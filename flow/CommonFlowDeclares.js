@@ -1,11 +1,4 @@
-import type {EntityUpdateData} from "../src/api/main/EventController"
-import type {TranslationKey} from "../src/misc/LanguageViewModel"
-
 declare type finder<T> = (T) => boolean
-
-declare type stringValidator = (string) => ?TranslationKey | Promise<?TranslationKey>;
-
-declare type validator = () => ?TranslationKey | Promise<?TranslationKey>;
 
 declare type progressUpdater = (number) => mixed;
 
@@ -23,13 +16,6 @@ declare type mapper<T, R> = (T) => ?R;
 declare type clickHandler = (event: MouseEvent, dom: HTMLElement) => mixed;
 
 declare type dropHandler = (dragData: string) => void;
-
-
-declare interface UpdatableSettingsViewer {
-	view(): Children;
-
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<*>;
-}
 
 declare interface MithrilEvent {
 	redraw: boolean;
@@ -145,10 +131,5 @@ type SanitizeResult = {
 }
 
 type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'
-
-type Status = {
-	type: StatusTypeEnum,
-	text: TranslationKey
-}
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}

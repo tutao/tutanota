@@ -30,6 +30,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 
