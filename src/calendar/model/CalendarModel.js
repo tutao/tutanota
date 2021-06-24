@@ -11,7 +11,7 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
-import {isApp} from "../../api/common/Env"
+import {isApp, isDesktop} from "../../api/common/Env"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
 import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
@@ -404,7 +404,11 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	_localAlarmsEnabled(): boolean {
-		return !isApp() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+		return !isApp()
+			&& !isDesktop()
+			&& logins.isInternalUserLoggedIn()
+			&& !logins.isEnabled(FeatureType.DisableCalendar)
+			&& client.calendarSupported()
 	}
 
 
