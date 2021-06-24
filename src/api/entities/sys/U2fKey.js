@@ -2,6 +2,7 @@
 
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
+import type {TypeModel} from "../../common/EntityTypes"
 
 
 export const U2fKeyTypeRef: TypeRef<U2fKey> = new TypeRef("sys", "U2fKey")

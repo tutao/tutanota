@@ -232,7 +232,7 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	getViewSlider(): ?IViewSlider {
+	getViewSlider(): ?ViewSlider {
 		return this.viewSlider
 	}
 

@@ -1,6 +1,6 @@
 // @flow
 import {load, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
-import type {AccountTypeEnum, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
+import type {AccountTypeEnum, InvoiceData, PaymentData, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"

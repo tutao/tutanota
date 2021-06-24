@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {ModalComponent} from "./Modal"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -27,9 +28,8 @@ import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {getAsLazy, mapLazily} from "../../api/common/utils/Utils"
-import type {ModalComponent} from "./Modal"
-import {DialogInjectionRight} from "./DialogInjectionRight"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
+import {DialogInjectionRight} from "./DialogInjectionRight"
 
 assertMainOrNode()
 
@@ -45,6 +45,8 @@ export const DialogType = Object.freeze({
 	EditLarge: "EditLarge"
 })
 export type DialogTypeEnum = $Values<typeof DialogType>;
+
+type validator = () => ?TranslationKey | Promise<?TranslationKey>;
 
 type ActionDialogProps = {|
 	title: lazy<string> | string,
@@ -73,7 +75,7 @@ export class Dialog implements ModalComponent {
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
-		this._focusOnLoadFunction = this._defaultFocusOnLoad
+		this._focusOnLoadFunction = () => this._defaultFocusOnLoad()
 		this._wasFocusOnLoadCalled = false
 		this._shortcuts = [
 			{
@@ -737,5 +739,7 @@ export class Dialog implements ModalComponent {
 		m.redraw()
 	}
 }
+
+export type stringValidator = (string) => ?TranslationKey | Promise<?TranslationKey>;
 
 windowFacade.addKeyboardSizeListener(Dialog._onKeyboardSizeChanged)

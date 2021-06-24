@@ -2,6 +2,7 @@
 
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
+import type {TypeModel} from "../../common/EntityTypes"
 
 
 export const CreateFileDataTypeRef: TypeRef<CreateFileData> = new TypeRef("tutanota", "CreateFileData")

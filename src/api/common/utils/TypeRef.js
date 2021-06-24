@@ -6,7 +6,7 @@
  * reference T. See https://github.com/facebook/flow/issues/3348
  * T should be bound to entities but we have no type to define them yet.
  */
-export class TypeRef<T> {
+export class TypeRef<+T> {
 	+app: string;
 	+type: string;
 

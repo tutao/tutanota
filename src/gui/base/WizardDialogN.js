@@ -232,7 +232,7 @@ export function createWizardDialog<T>(data: T, pages: $ReadOnlyArray<WizardPageW
 
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs = {}
-	const child = {view: () => null}
+	const child: {view: () => Children} = {view: () => null}
 	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeAction ? () => closeAction().then(wizardDialog.close()) : () => Promise.resolve(wizardDialog.close()))
 

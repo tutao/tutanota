@@ -7,7 +7,6 @@ import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {ApplicationWindow} from "./ApplicationWindow"
-import {EventEmitter} from 'events'
 import {log} from "./DesktopLog";
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
@@ -44,7 +43,7 @@ export class DesktopDownloadManager {
 		       .on('will-download', (ev, item) => this._handleDownloadItem(item))
 	}
 
-	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
+	async downloadNative(sourceUrl: string, fileName: string, headers: {|v: string, accessToken: string|}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise(async (resolve, reject) => {
 			const downloadDirectory = await this.getTutanotaTempDirectory("download")
 			const encryptedFileUri = path.join(downloadDirectory, fileName)
@@ -110,8 +109,8 @@ export class DesktopDownloadManager {
 			return Promise.reject('canceled')
 		}
 
-		const downloadItem: DownloadItem = new EventEmitter()
-		downloadItem.getFilename = () => filename
+		const downloadItem: DownloadItem = new this._electron.DownloadItem()
+		downcast(downloadItem).getFilename = () => filename
 
 		await this._handleDownloadItem(downloadItem)
 		const writePromise = downloadItem.savePath

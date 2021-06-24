@@ -53,7 +53,7 @@ export type TableLineAttrs = {
  */
 export class TableN implements MComponent<TableAttrs> {
 
-	view(vnode: Vnode<LifecycleAttrs<TableAttrs>>): VirtualElement {
+	view(vnode: Vnode<TableAttrs>): VirtualElement {
 		const a = vnode.attrs
 		const loading = !(a.lines)
 		const alignments = a.columnAlignments || []

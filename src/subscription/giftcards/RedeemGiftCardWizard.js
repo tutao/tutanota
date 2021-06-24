@@ -182,12 +182,12 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 		}
 
 		return [
-			m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l",
-				m(LoginForm, loginFormAttrs),
-				credentials.length > 0
-					? m(CredentialsSelector, credentialsSelectorAttrs)
-					: null
-				)
+			m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", [
+					m(LoginForm, loginFormAttrs),
+					credentials.length > 0
+						? m(CredentialsSelector, credentialsSelectorAttrs)
+						: null
+				])
 			)
 		]
 	}

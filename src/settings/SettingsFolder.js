@@ -3,6 +3,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import type {lazyIcon} from "../gui/base/Icon"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {isSelectedPrefix} from "../gui/base/NavButtonN"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

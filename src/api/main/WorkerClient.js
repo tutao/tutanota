@@ -9,7 +9,9 @@ import type {
 	CloseEventBusOptionEnum,
 	ConversationTypeEnum,
 	EntropySrcEnum,
+	InvoiceData,
 	MailMethodEnum,
+	PaymentData,
 	ShareCapabilityEnum,
 	SpamRuleFieldTypeEnum,
 	SpamRuleTypeEnum
@@ -48,16 +50,17 @@ import type {RecipientInfo} from "../common/RecipientInfo"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
-import type {SearchRestriction} from "../worker/search/SearchTypes"
+import type {SearchRestriction, SearchResult} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {TypeRef} from "../common/utils/TypeRef"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
+import type {TypeModel} from "../common/EntityTypes"
 
 assertMainOrNode()
 
-type Message = {
+interface Message {
 	id: string,
-	type: string,
+	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType,
 	args: mixed[]
 }
 

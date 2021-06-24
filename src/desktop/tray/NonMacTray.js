@@ -4,7 +4,6 @@ import {app, Menu, MenuItem, Tray} from "electron"
 import type {WindowManager} from "../DesktopWindowManager"
 import {lang} from "../../misc/LanguageViewModel"
 import type {PlatformTray} from './DesktopTray'
-import path from "path"
 import {getResourcePath} from "../resources"
 
 /**
@@ -26,7 +25,7 @@ export class NonMacTray implements PlatformTray {
 			new MenuItem({
 				label: lang.get("quit_action"),
 				accelerator: "CmdOrCtrl+Q",
-				click: app.quit
+				click: () => app.quit()
 			})
 		]
 	}
@@ -44,7 +43,6 @@ export class NonMacTray implements PlatformTray {
 		})
 		return tray
 	}
-
 
 
 	setBadge() {}

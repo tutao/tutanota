@@ -8,6 +8,9 @@ import {EntropySrc} from "../../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
+/**
+ * This Interface provides an abstraction of the random number generator implementation.
+ */
 class Randomizer {
 	random: any;
 
@@ -15,6 +18,11 @@ class Randomizer {
 		this.random = new sjcl.prng(6)
 	}
 
+	/**
+	 * Adds entropy to the random number generator algorithm
+	 * @param entropyCache with: number Any number value, entropy The amount of entropy in the number in bit,
+	 * source The source of the number.
+	 */
 	addEntropy(entropyCache: Array<{source: EntropySrcEnum, entropy: number, data: number | Array<number>}>): Promise<void> {
 		entropyCache.forEach(entry => {
 			this.random.addEntropy(entry.data, entry.entropy, entry.source)
@@ -35,6 +43,12 @@ class Randomizer {
 		return this.random.isReady() !== 0
 	}
 
+	/**
+	 * Generates random data. The function initRandomDataGenerator must have been called prior to the first call to this function.
+	 * @param nbrOfBytes The number of bytes the random data shall have.
+	 * @return A hex coded string of random data.
+	 * @throws {CryptoError} if the randomizer is not seeded (isReady == false)
+	 */
 	generateRandomData(nbrOfBytes: number): Uint8Array {
 		try {
 			// read the minimal number of words to get nbrOfBytes

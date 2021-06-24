@@ -1,32 +1,32 @@
 //@flow
 
 // straight from the flowlib/bom.js, flow just didn't pick it up for some reason
-declare class Request {
-	constructor(input: RequestInfo, init?: RequestOptions): void;
-	clone(): Request;
-
-	url: string;
-
-	cache: CacheType;
-	credentials: CredentialsType;
-	headers: Headers;
-	integrity: string;
-	method: string;
-	mode: ModeType;
-	redirect: RedirectType;
-	referrer: string;
-	referrerPolicy: ReferrerPolicyType;
-	+signal: AbortSignal;
-
-	// Body methods and attributes
-	bodyUsed: boolean;
-
-	arrayBuffer(): Promise<ArrayBuffer>;
-	blob(): Promise<Blob>;
-	formData(): Promise<FormData>;
-	json(): Promise<any>;
-	text(): Promise<string>;
-}
+// declare class Request {
+// 	constructor(input: RequestInfo, init?: RequestOptions): void;
+// 	clone(): Request;
+//
+// 	url: string;
+//
+// 	cache: CacheType;
+// 	credentials: CredentialsType;
+// 	headers: Headers;
+// 	integrity: string;
+// 	method: string;
+// 	mode: ModeType;
+// 	redirect: RedirectType;
+// 	referrer: string;
+// 	referrerPolicy: ReferrerPolicyType;
+// 	+signal: AbortSignal;
+//
+// 	// Body methods and attributes
+// 	bodyUsed: boolean;
+//
+// 	arrayBuffer(): Promise<ArrayBuffer>;
+// 	blob(): Promise<Blob>;
+// 	formData(): Promise<FormData>;
+// 	json(): Promise<any>;
+// 	text(): Promise<string>;
+// }
 
 // set by the build script
 import {getPathBases} from "../ApplicationPaths"

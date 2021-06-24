@@ -12,7 +12,6 @@ import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from ".
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../common/Env"
-// $FlowIgnore[untyped-import]
 import {ValueType} from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
@@ -471,7 +470,7 @@ export class EntityRestCache implements EntityRestInterface {
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 				           .then(entity => this._putIntoCache(entity))
 				           .return(update)
-				           .catch(this._handleProcessingError)
+				           .catch((e) => this._handleProcessingError(e))
 			} else {
 				return update
 			}
@@ -487,7 +486,7 @@ export class EntityRestCache implements EntityRestInterface {
 			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 			           .then(entity => this._putIntoCache(entity))
 			           .return(update)
-			           .catch(this._handleProcessingError)
+			           .catch((e) => this._handleProcessingError(e))
 		}
 		return update
 	}

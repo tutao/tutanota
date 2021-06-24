@@ -91,7 +91,7 @@ let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
 	origin += "/client/build/index"
 }
-if (!isDesktop() && navigator.registerProtocolHandler) {
+if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 	try {
 		navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
 	} catch (e) {

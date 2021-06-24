@@ -46,6 +46,7 @@ import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOffi
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {formatActivateState, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

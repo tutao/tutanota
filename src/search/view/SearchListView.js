@@ -32,6 +32,7 @@ import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../../mai
 import {MailRow} from "../../mail/view/MailRow";
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
 import {compareContacts} from "../../contacts/view/ContactGuiUtils";
+import type {SearchResult} from "../../api/worker/search/SearchTypes"
 
 assertMainOrNode()
 

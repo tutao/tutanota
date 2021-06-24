@@ -66,13 +66,13 @@ o.spec("PromiseUtils", function () {
 		o.spec("toPromise", function () {
 			o("from value", async function () {
 				const promise = new PromiseableWrapper("tuta").toPromise()
-				o(typeof promise.then).equals("function")
+								o(typeof promise.then).equals("function")
 				o(await promise.then()).equals("tuta")
 			})
 
 			o("from promise", async function () {
 				const promise = new PromiseableWrapper(Promise.resolve("tuta")).toPromise()
-				o(typeof promise.then).equals("function")
+								o(typeof promise.then).equals("function")
 				o(await promise.then()).equals("tuta")
 			})
 		})

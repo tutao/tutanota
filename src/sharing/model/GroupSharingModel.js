@@ -64,7 +64,7 @@ export class GroupSharingModel {
 
 		this.onEntityUpdate = stream()
 
-		this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.addEntityListener(this.entityEventsReceived)
 	}
 
 	static newAsync(info: GroupInfo, eventController: EventController, entityClient: EntityClient, logins: LoginController, worker: WorkerClient): Promise<GroupSharingModel> {
@@ -75,7 +75,7 @@ export class GroupSharingModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.removeEntityListener(this.entityEventsReceived)
 	}
 
 	/**
@@ -153,7 +153,7 @@ export class GroupSharingModel {
 		})
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	entityEventsReceived: (($ReadOnlyArray<EntityUpdateData>, Id) => Promise<void>) = (updates, eventOwnerGroupId) => {
 		return Promise.each(updates, update => {
 			if (!isSameId(eventOwnerGroupId, getEtId(this.group))) {
 				// ignore events of different group here

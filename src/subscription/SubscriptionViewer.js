@@ -69,6 +69,7 @@ import {SettingsExpander} from "../settings/SettingsExpander"
 import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
+import type {UpdatableSettingsViewer} from "../settings/SettingsView"
 
 assertMainOrNode()
 

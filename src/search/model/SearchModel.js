@@ -5,7 +5,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../../api/common/TutanotaConstants"
 import {DbError} from "../../api/common/error/DbError"
 import type {WorkerClient} from "../../api/main/WorkerClient"
-import type {SearchRestriction} from "../../api/worker/search/SearchTypes"
+import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 
 assertMainOrNode()

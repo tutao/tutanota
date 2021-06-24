@@ -31,13 +31,13 @@ export class ReceivedGroupInvitationsModel {
 	}
 
 	init() {
-		this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
+				this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
 		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType)
 			.then(invitations => this.invitations(invitations.filter(invitation => this.hasCorrectGroupType(invitation))))
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
+				this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<*> {

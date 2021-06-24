@@ -203,7 +203,7 @@ export function contains(theArray: Array<any>, elementToCheck: any): boolean {
 }
 
 export function addAll(array: Array<any>, elements: Array<any>) {
-	array.push.apply(array, elements)
+	array.push(...elements)
 }
 
 export function removeAll(array: Array<any>, elements: Array<any>) {

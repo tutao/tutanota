@@ -15,6 +15,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defer} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
+import type {InvoiceData} from "../api/common/TutanotaConstants"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data

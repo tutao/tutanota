@@ -112,12 +112,17 @@ export function makeCore(args?: {
 	return core
 }
 
-export type TimeoutMock = typeof setTimeout & {next: () => void}
+export interface TimeoutMock {
+	(fn: () => mixed, time: number): TimeoutID,
+
+	next(): void
+
+}
 
 export function makeTimeoutMock(): TimeoutMock {
 	let timeoutId = 1
 	let scheduledFn
-	const timeoutMock = function (fn: () => any): TimeoutID {
+	const timeoutMock = function (fn: () => mixed) {
 		scheduledFn = fn
 		timeoutId++
 		return downcast(timeoutId)

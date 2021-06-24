@@ -71,8 +71,7 @@ export function sanitizeFilename(filename: string): string {
 /**
  * Uniqueify all the names in fileNames, case-insensitively
  * @param filenames
- * @param taken: file names that are taken but won't be included in the output
- * @returns {*[]}
+ * @param _taken: file names that are taken but won't be included in the output
  */
 export function deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnlySet<string> = new Set()): {[string]: Array<string>} {
 	// make taken lowercase aswell for case insensitivity
@@ -80,9 +79,10 @@ export function deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnly
 
 	// Check first if we need to do a deduplication
 	const deduplicatedNames = new Set(filenames.map(toLowerCase))
+	// TODO: this path can never be hit because union.size 0 is only the case when both are empty
 	if (deduplicatedNames.size === filenames.length && union(deduplicatedNames, taken).size === 0) {
 		// if all file names are good then just return an identity map
-		return filenames.reduce((map, name) => ({...map, name: [name]}), {}) // convert into map oldname -> [newname]
+		return Object.fromEntries(filenames.map(f => [f, [f]]))  // convert into map oldname -> [newname]
 	}
 
 	const suffix = (name, number) => {

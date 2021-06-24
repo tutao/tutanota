@@ -137,7 +137,7 @@ export class Dropdown {
 					oncreate: (vnode) => {
 						this.show(vnode.dom)
 						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur === "function") {
+														if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
 							}
 						})

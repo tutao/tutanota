@@ -48,7 +48,7 @@ export class Button {
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
 		this.getLabel = typeof labelTextIdOrTextFunction === "function"
-			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+						? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
 
