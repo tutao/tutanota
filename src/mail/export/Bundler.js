@@ -53,9 +53,9 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 		                                    }).text
 	                                    )
 
-	const attachmentsPromise = promiseMap(mail.attachments,
-		fileId => entityClient.load(FileTypeRef, fileId)
-		                      .then(worker.downloadFileContent.bind(worker)))
+	const attachmentsPromise: Promise<Array<DataFile>> =
+		promiseMap(mail.attachments, fileId => entityClient.load(FileTypeRef, fileId)
+		                                                   .then((tutanotaFile) => worker.downloadFileContent(tutanotaFile)))
 
 	const headersPromise = mail.headers
 		? entityClient.load(MailHeadersTypeRef, mail.headers)

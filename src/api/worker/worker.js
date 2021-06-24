@@ -1,4 +1,3 @@
-// bluebird must be imported here by the build script
 import {WorkerImpl} from "./WorkerImpl"
 import {Logger, replaceNativeLogger} from "../common/Logger"
 

@@ -43,32 +43,4 @@ declare var System: SystemType
 
 declare function importScripts(...urls: string[]): void;
 
-
-// // see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
-// declare class DedicatedWorkerGlobalScope {
-// 	onmessage: Function;
-// 	navigator: Navigator;
-// 	postMessage(message: Object): void;
-// }
-
-declare class Promise<+R> {
-	// standard
-	constructor(callback: (resolve: (result: Promise<R> | R) => void,
-	                       reject: (error: any) => void) => mixed): void;
-	then<U>(onFulfill?: (value: R) => Promise<U> | U, onReject?: (error: any) => Promise<U> | U): Promise<U>;
-	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U | R>;
-	finally<R>(onDone?: () => mixed): Promise<R>;
-
-	static resolve<T>(object: Promise<T> | T): Promise<T>;
-	static reject<T>(error?: any): Promise<T>;
-	static all<T: Iterable<mixed>>(promises: T): Promise<$TupleMap<T, typeof $await>>;
-	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
-
-	// non-standard
-	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
-	static config(configuration: Object): void;
-
-	static onPossiblyUnhandledRejection(errorHandler: Function): void;
-}
-
 declare type $Promisable<+T> = Promise<T> | T;

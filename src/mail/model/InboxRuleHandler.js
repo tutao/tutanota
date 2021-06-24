@@ -35,14 +35,18 @@ function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 		return promiseMap(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
 			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
-		}).catch(ofClass(LockedError, e => { //LockedError should no longer be thrown!?!
-			console.log("moving mail failed", e, moveToTargetFolder)
-		})).catch(ofClass(PreconditionFailedError, e => {
-			// move mail operation may have been locked by other process
-			console.log("moving mail failed", e, moveToTargetFolder)
-		})).finally(() => {
-			return sendMoveMailRequest(worker)
 		})
+			.then(noOp)
+			.catch(ofClass(LockedError, e => { //LockedError should no longer be thrown!?!
+				console.log("moving mail failed", e, moveToTargetFolder)
+			}))
+			.catch(ofClass(PreconditionFailedError, e => {
+				// move mail operation may have been locked by other process
+				console.log("moving mail failed", e, moveToTargetFolder)
+			}))
+			.finally(() => {
+				return sendMoveMailRequest(worker)
+			})
 	} else {
 		//We are done and unlock for future requests
 		return Promise.resolve()
