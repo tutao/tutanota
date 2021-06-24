@@ -8,10 +8,6 @@ Linkify - https://github.com/Soapbox/linkifyjs
 License: MIT
 Reference: https://github.com/Soapbox/linkifyjs/blob/master/LICENSE
 
-Bluebird - https://github.com/petkaantonov/bluebird
-License: MIT
-Reference: https://github.com/petkaantonov/bluebird/blob/master/LICENSE
-
 DOMPurify - https://github.com/cure53/DOMPurify
 License: Apache 2
 Reference: https://github.com/cure53/DOMPurify/blob/master/LICENSE

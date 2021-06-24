@@ -11,7 +11,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const clientDependencies = [
 	"../node_modules/systemjs/dist/s.js",
-	"../node_modules/bluebird/js/browser/bluebird.js",
 	"../node_modules/mithril/mithril.js",
 	"../node_modules/mithril/stream/stream.js",
 	"../node_modules/squire-rte/build/squire-raw.js",

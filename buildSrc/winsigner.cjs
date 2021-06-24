@@ -1,6 +1,5 @@
-const Promise = require('bluebird')
 const path = require('path')
-const fs = Promise.promisifyAll(require("fs-extra"))
+const fs = require("fs-extra")
 const spawn = require('child_process').spawn
 
 function signer(args) {

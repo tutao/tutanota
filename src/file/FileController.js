@@ -45,13 +45,14 @@ export class FileController {
 			                        .then((file) => this.open(file))
 		}
 
-		return showProgressDialog("pleaseWait_msg", downloadPromise.catch(ofClass(CryptoError, e => {
-			console.log(e)
-			return Dialog.error("corrupted_msg")
-		})).catch(ofClass(ConnectionError, e => {
-			console.log(e)
-			return Dialog.error("couldNotAttachFile_msg")
-		})))
+		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
+			.catch(ofClass(CryptoError, e => {
+				console.log(e)
+				return Dialog.error("corrupted_msg")
+			})).catch(ofClass(ConnectionError, e => {
+				console.log(e)
+				return Dialog.error("couldNotAttachFile_msg")
+			}))
 	}
 
 	/**

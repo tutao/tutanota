@@ -128,8 +128,10 @@ export class IPC {
 	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
 		switch (method) {
 			case 'init':
-				this._initialized[windowId].resolve()
-				return Promise.resolve(process.platform)
+				// Mark ourselves as initialized *after* we answer.
+				// This simplifies some cases e.g. testing.
+				Promise.resolve().then(() => this._initialized[windowId].resolve())
+				return process.platform
 			case 'findInPage':
 				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)

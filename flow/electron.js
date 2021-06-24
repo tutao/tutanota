@@ -2996,10 +2996,6 @@ export type AutoUpdaterEvent
 export type TrayEvent
 	= 'click'
 
-declare module 'bluebird' {
-	declare export default any;
-}
-
 declare module 'request' {
 	declare export default any;
 }

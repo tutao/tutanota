@@ -10,7 +10,6 @@
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
 import options from "commander"
-import Promise from "bluebird"
 import fs from "fs-extra"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
@@ -185,8 +184,6 @@ async function buildWebapp(version) {
 				resolveId(id) {
 					if (id === "systemjs") {
 						return path.resolve("libs/s.js")
-					} else if (id === "bluebird") {
-						return path.resolve("libs/bluebird.js")
 					}
 				},
 			},

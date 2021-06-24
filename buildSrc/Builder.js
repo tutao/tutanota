@@ -35,12 +35,7 @@ async function createHtml(env) {
 
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
-Promise.config({
-    longStackTraces: false,
-    warnings: false
-})
 import('./app.js')`
-
 	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${htmlFileName}`, html)
@@ -69,8 +64,8 @@ async function prepareAssets(stage, host, version) {
 		restUrl = host
 	}
 
-	await fs.copyFile("libs/bluebird.js", "build/polyfill.js")
-
+	// write empty file
+	await fs.writeFile("build/polyfill.js", "")
 
 	return Promise.all([
 		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser")),
