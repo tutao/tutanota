@@ -18,7 +18,7 @@ import type {
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
-	SearchRestriction
+	SearchRestriction, SearchResult
 } from "./SearchTypes"
 import type {TypeInfo} from "./IndexUtils"
 import {
@@ -38,7 +38,6 @@ import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
-// $FlowIgnore[untyped-import]
 import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
@@ -49,6 +48,7 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
+import type {TypeModel} from "../../common/EntityTypes"
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

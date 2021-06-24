@@ -32,7 +32,7 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 	runIntegration(wm: WindowManager): Promise<void> {
 		// We need menu on macOS, otherwise there are no shortcuts defined even for things like copy/paste or hiding window
 		// this needs to be registered here because it's called after the app ready event
-		let template: MenuItemConstructorOptions[] = [
+		const template: $ReadOnlyArray<MenuItemConstructorOptions> = [
 			{
 				// Skip individual definitions because appMenu can do it automatically
 				role: "appMenu"

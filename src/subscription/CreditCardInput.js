@@ -2,8 +2,8 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
-import {createCreditCard} from "../api/entities/sys/CreditCard"
 import type {CreditCard} from "../api/entities/sys/CreditCard"
+import {createCreditCard} from "../api/entities/sys/CreditCard"
 import {TextFieldN} from "../gui/base/TextFieldN"
 
 export class CreditCardAttrs {
@@ -47,7 +47,7 @@ export class CreditCardAttrs {
 	}
 }
 
-export class CreditCardInput {
+export class CreditCardInput implements MComponent<CreditCardAttrs> {
 
 	view(vnode: Vnode<CreditCardAttrs>): Children {
 		let attrs = vnode.attrs

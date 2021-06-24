@@ -44,6 +44,7 @@ import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
 import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
+import type {UpdatableSettingsViewer} from "../SettingsView"
 
 assertMainOrNode()
 

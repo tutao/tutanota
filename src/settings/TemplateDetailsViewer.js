@@ -19,6 +19,7 @@ import {EntityClient} from "../api/common/EntityClient"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 export class TemplateDetailsViewer implements UpdatableSettingsViewer {
 	isReadOnly: lazy<boolean>

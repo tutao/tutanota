@@ -38,6 +38,23 @@ type LifecycleAttrs<T> = T & Lifecycle<T>
 
 type Attrs = $ReadOnly<{[?string]: any}>
 
+declare interface Router {
+	(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
+
+	set(path: string, data?: ?{[string]: mixed},
+	    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
+
+	get(): string;
+
+	param(): Object;
+
+	param(key: string): string;
+
+	prefix: string;
+
+	Link: MComponent<any>;
+}
+
 declare interface Mithril {
 	// We would like to write a definition which allows omitting Attrs if all keys are optional
 	(component: string | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
@@ -50,7 +67,7 @@ declare interface Mithril {
 
 	route: Router;
 
-	redraw(): void;
+	redraw: () => void;
 
 	fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
 

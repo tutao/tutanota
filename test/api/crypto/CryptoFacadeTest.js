@@ -22,7 +22,6 @@ import {
 	resolveSessionKey
 } from "../../../src/api/worker/crypto/CryptoFacade"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
-// $FlowIgnore[untyped-import]
 import {Cardinality, ValueType} from "../../../src/api/common/EntityConstants"
 import {BucketPermissionType, PermissionType} from "../../../src/api/common/TutanotaConstants"
 import {hexToPrivateKey, hexToPublicKey, rsaEncrypt} from "../../../src/api/worker/crypto/Rsa"
@@ -55,6 +54,7 @@ import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 import {isSameTypeRef} from "../../../src/api/common/utils/TypeRef";
+import type {ModelValue} from "../../../src/api/common/EntityTypes"
 
 
 o.spec("crypto facade", function () {

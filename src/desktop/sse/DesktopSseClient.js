@@ -26,6 +26,8 @@ import {
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
+import type {DesktopClientRequest} from "../DesktopNetworkClient"
+import type {TimeoutSetter} from "../../api/common/utils/Utils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -43,12 +45,12 @@ export class DesktopSseClient {
 	_alarmScheduler: DesktopAlarmScheduler;
 	_net: DesktopNetworkClient;
 	_alarmStorage: DesktopAlarmStorage
-	_delayHandler: typeof setTimeout
+	_delayHandler: TimeoutSetter
 	_lang: LanguageViewModelType
 	_crypto: DesktopCryptoFacade;
 
 	_connectedSseInfo: ?SseInfo;
-	_connection: ?ClientRequest;
+	_connection: ?http$ClientRequest<*>;
 	_readTimeoutInSeconds: number;
 	_nextReconnect: ?TimeoutID;
 	_tryToReconnect: boolean;
@@ -61,7 +63,7 @@ export class DesktopSseClient {
 
 	constructor(app: App, conf: DesktopConfig, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
 	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage,
-	            lang: LanguageViewModelType, delayHandler: typeof setTimeout = setTimeout) {
+	            lang: LanguageViewModelType, delayHandler: TimeoutSetter = setTimeout) {
 		this._app = app
 		this._conf = conf
 		this._wm = wm
@@ -348,7 +350,7 @@ export class DesktopSseClient {
 
 	_downloadMissedNotification(userId: string): Promise<any> {
 		return new Promise(async (resolve, reject) => {
-			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?TutanotaError) => {
+			const fail = (req: DesktopClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?TutanotaError) => {
 				if (res) {
 					res.destroy()
 				}

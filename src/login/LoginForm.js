@@ -8,6 +8,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {client} from "../misc/ClientDetector"
+import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => void,
@@ -55,6 +56,11 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 		this.passwordTextField.domInput.value = ""
 	}
 
+	_passwordDisabled(): boolean {
+		const customizations = getWhitelabelCustomizations(window)
+		return Boolean(customizations && customizations.bootstrapCustomizations.includes(BootstrapFeatureType.DisableSavePassword))
+	}
+
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 
@@ -91,8 +97,7 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 					this.passwordTextField = vnode.children[0].state
 				}
 			}, m(TextFieldN, passwordFieldAttrs)),
-			(a.savePassword && (!whitelabelCustomizations ||
-				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1))
+			(a.savePassword && !this._passwordDisabled())
 				? m(CheckboxN, {
 					label: () => lang.get("storePassword_action"),
 					checked: a.savePassword,

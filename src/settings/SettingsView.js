@@ -69,6 +69,12 @@ import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow
 assertMainOrNode()
 
 
+export interface UpdatableSettingsViewer {
+	view(): Children;
+
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<*>;
+}
+
 export class SettingsView implements CurrentView {
 
 	view: Function;
@@ -426,7 +432,7 @@ export class SettingsView implements CurrentView {
 		})
 	}
 
-	getViewSlider(): ? IViewSlider {
+	getViewSlider(): ? ViewSlider {
 		return this.viewSlider
 	}
 

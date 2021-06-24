@@ -26,6 +26,7 @@ import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

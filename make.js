@@ -33,7 +33,7 @@ if (opts.watch) {
 
 const flowPromise = new Promise((resolve, reject) => {
 	// It's better to set listener right away
-	spawn(flow, ["--quiet"], {stdio: "inherit"})
+	spawn(flow, {stdio: "inherit"})
 		.on("exit", resolve)
 		.on("error", reject)
 		.unref()

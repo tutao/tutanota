@@ -9,7 +9,8 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {load, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
-import {Const, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
+import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
+import {Const, getPaymentMethodType, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
@@ -119,7 +120,7 @@ export function showUpgradeWizard(): void {
 							vatNumber: accountingInfo.invoiceVatIdNo // only for EU countries otherwise empty
 						},
 						paymentData: {
-							paymentMethod: accountingInfo.paymentMethod || PaymentMethod.CreditCard,
+							paymentMethod: getPaymentMethodType(accountingInfo) || PaymentMethod.CreditCard,
 							creditCardData: null,
 						},
 						price: "",

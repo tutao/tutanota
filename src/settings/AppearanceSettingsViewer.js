@@ -20,6 +20,7 @@ import {getHourCycle} from "../misc/Formatter"
 import {Mode} from "../api/common/Env"
 import type {ThemeId} from "../gui/theme"
 import {themeController} from "../gui/theme"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {

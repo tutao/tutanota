@@ -13,6 +13,7 @@ import type {LocationServiceGetReturn} from "../api/entities/sys/LocationService
 import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
 import {createCountryDropdown} from "../gui/base/GuiUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {InvoiceData} from "../api/common/TutanotaConstants"
 
 
 export class InvoiceDataInput {

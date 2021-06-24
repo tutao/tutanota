@@ -40,7 +40,7 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
-import type {SearchRestriction} from "../api/worker/search/SearchTypes"
+import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../api/worker/search/SearchTypes"
 import type {ListElement} from "../api/common/utils/EntityUtils";
 import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
@@ -376,7 +376,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		const {query} = this._state()
 		if (result != null) {
 			this._domInput.blur()
-			let type: ?TypeRef<*> = result._type !== undefined ? result._type : null
+			let type: ?TypeRef<*> = result._type != null ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
 					this._updateSearchUrl(query)

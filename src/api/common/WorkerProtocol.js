@@ -9,7 +9,7 @@
 import {isWorker} from "./Env"
 import {downcast, objToError} from "./utils/Utils"
 
-//assertMainOrNode()
+type Command = (msg: Request) => Promise<any>
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
