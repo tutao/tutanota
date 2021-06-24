@@ -5,7 +5,6 @@ export const dependencyMap = {
 	"mithril": path.normalize("./libs/mithril.js"),
 	"mithril/stream/stream.js": path.normalize("./libs/stream.js"),
 	"squire-rte": path.normalize("./libs/squire-raw.js"),
-	"bluebird": path.normalize("./libs/bluebird.js"),
 	"dompurify": path.normalize("./libs/purify.js"),
 	"qrcode": path.normalize("./libs/qrcode.js"),
 	"jszip": path.normalize("./libs/jszip.js"),
@@ -216,9 +215,6 @@ export const babelPlugins = [
 	"@babel/plugin-transform-flow-strip-types",
 	"@babel/plugin-proposal-class-properties",
 	"@babel/plugin-syntax-dynamic-import",
-	// We technically don't need to have this as we expect async to just work but we rely on bluebird in many places and native async
-	// doesn't care about us redefining global Promise.
-	"@babel/plugin-transform-async-to-generator",
 	"@babel/plugin-proposal-optional-chaining",
 	"@babel/plugin-proposal-nullish-coalescing-operator",
 ]

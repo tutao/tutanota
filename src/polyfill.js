@@ -1,18 +1,10 @@
 import "systemjs"
-import BluebirdPromise from "bluebird"
 
 const globalContext = (typeof window !== "undefined")
 	? window
 	: (typeof global !== "undefined")
 		? global
 		: self
-
-// bluebird does not replace globals inside IIFE becaues it's UMD
-globalContext.Promise = BluebirdPromise
-Promise.config({
-	longStackTraces: false,
-	warnings: false
-})
 
 const noOp = function () {}
 

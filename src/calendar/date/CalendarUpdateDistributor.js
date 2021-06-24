@@ -122,7 +122,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			              })
 			              .then(model => {
 				              model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
-				              return model.send(MailMethod.ICAL_REPLY)
+				              return model.send(MailMethod.ICAL_REPLY).then(noOp)
 			              })
 			              .finally(() => this._sendEnd())
 		} else {
@@ -145,6 +145,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		sendMailModel.setBody(body)
 		this._sendStart()
 		return sendMailModel.send(method)
+		                    .then(noOp)
 		                    .finally(() => this._sendEnd())
 	}
 

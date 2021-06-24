@@ -46,7 +46,7 @@ o.spec("LanguageViewModelTests", function () {
 	})
 
 	o("_getSubstitutedLanguageCodeWhitelabelCustomizations", function () {
-		const globalSelf = typeof global == "undefined" ? window : global
+		const globalSelf = typeof window == "undefined" ? global : window
 		globalSelf.whitelabelCustomizations = {germanLanguageCode: "de_sie"}
 		o(_getSubstitutedLanguageCode("de")).equals("de_sie")
 		globalSelf.whitelabelCustomizations = undefined

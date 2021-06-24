@@ -25,11 +25,6 @@ replaceNativeLogger(window, new Logger())
 // TODO: define type definition for top-level views. Maybe it's CurrentView?
 type View = Object
 
-window.Promise = Promise.config({
-	longStackTraces: false,
-	warnings: false
-})
-
 let currentView: ?MComponent<mixed> = null
 
 window.tutao = {
@@ -255,7 +250,6 @@ function forceLogin(args: {[string]: QueryValue}, requestedPath: string) {
 }
 
 function setupExceptionHandling() {
-	Promise.onPossiblyUnhandledRejection(handleUncaughtError);
 	window.addEventListener('error', function (evt) {
 		// evt.error is not always set, e.g. not for "content.js:1963 Uncaught DOMException: Failed to read the 'selectionStart' property from 'HTMLInputElement': The input element's type ('email') does not support selection."
 		if (evt.error) {

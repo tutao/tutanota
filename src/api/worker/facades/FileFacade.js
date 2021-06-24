@@ -5,7 +5,7 @@ import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto
 import {aes128Decrypt} from "../crypto/Aes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
-import {neverNull} from "../../common/utils/Utils"
+import {filterInt, neverNull} from "../../common/utils/Utils"
 import type {LoginFacade} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
@@ -100,12 +100,13 @@ export class FileFacade {
 					let response;
 					if (statusCode === 200 && encryptedFileUri != null) {
 						response = aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
+							const mimeType = file.mimeType == null ? MediaType.Binary : file.mimeType
 							return {
 								_type: 'FileReference',
 								name: file.name,
-								mimeType: file.mimeType,
+								mimeType,
 								location: decryptedFileUrl,
-								size: file.size
+								size: filterInt(file.size)
 							}
 						})
 					} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {

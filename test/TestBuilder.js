@@ -64,8 +64,6 @@ function resolveTestLibsPlugin() {
 					return path.resolve("../node_modules/mithril/test-utils/browserMock.js")
 				case "ospec":
 					return ("../node_modules/ospec/ospec.js")
-				case "bluebird":
-					return "../node_modules/bluebird/js/browser/bluebird.js"
 				case "crypto":
 				case "xhr2":
 				case "express":
