@@ -41,12 +41,12 @@ type SearchBarOverlayAttrs = {
 export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 	view({attrs}: Vnode<SearchBarOverlayAttrs>): Children {
 		const {state} = attrs
-		return [
+		return m(".dropdown-shadow", [
 			this._renderIndexingStatus(state, attrs),
 			state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isExpanded && attrs.isFocused
 				? this.renderResults(state, attrs)
 				: null,
-		]
+		])
 	}
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {

@@ -23,7 +23,7 @@ let currentAnimationTimeout: ?TimeoutID = null
 class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 
 	view(vnode: Vnode<NotificationOverlayAttrs>) {
-		return m(".notification-overlay-content.flex.flex-column.flex-space-between", [
+		return m(".notification-overlay-content.flex.flex-column.flex-space-between.dropdown-shadow", [
 			m(vnode.attrs.message),
 			m(".flex.justify-end.flex-wrap",
 				vnode.attrs.buttons.map((b) => m(ButtonN, b)))

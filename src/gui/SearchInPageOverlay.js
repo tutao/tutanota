@@ -163,7 +163,7 @@ export class SearchInPageOverlay {
 
 		return {
 			view: (vnode: Object) => {
-				return m(".flex.flex-space-between",
+				return m(".flex.flex-space-between.dropdown-shadow",
 					{
 						oncreate: () => window.addEventListener('mouseup', handleMouseUp),
 						onremove: () => window.removeEventListener('mouseup', handleMouseUp)

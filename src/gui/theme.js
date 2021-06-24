@@ -51,7 +51,8 @@ export type Theme = {
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
 	navigation_menu_bg?: string,
-	navigation_menu_icon?: string
+	navigation_menu_icon?: string,
+	snackbar_bg: string
 }
 
 /**
@@ -142,7 +143,8 @@ export const themes: Themes = {
 		navigation_button_selected: red,
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
-		navigation_menu_icon: grey
+		navigation_menu_icon: grey,
+		snackbar_bg: light_grey
 	}),
 
 	dark: Object.freeze({
@@ -188,6 +190,7 @@ export const themes: Themes = {
 		navigation_button_icon_selected: light_lighter_0,
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
+		snackbar_bg: light_grey
 	}),
 
 	blue: Object.freeze({
@@ -229,7 +232,8 @@ export const themes: Themes = {
 		navigation_button_selected: blue,
 		navigation_button_icon_selected: light_white,
 		navigation_menu_bg: grey_lighter_3,
-		navigation_menu_icon: grey
+		navigation_menu_icon: grey,
+		snackbar_bg: light_grey
 	})
 }
 
