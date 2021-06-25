@@ -6,27 +6,27 @@ import {isNavButtonSelected, NavButtonN} from "../../gui/base/NavButtonN"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {animations, opacity} from "../../gui/animation/Animations"
+import {CounterBadge} from "../../gui/base/CounterBadge"
+import {getNavButtonIconBackground, theme} from "../../gui/theme"
+import {px} from "../../gui/size"
 
 export type MailFolderRowAttrs = {count: number, button: NavButtonAttrs, rightButton: ?ButtonAttrs}
 
 export class MailFolderRow implements MComponent<MailFolderRowAttrs> {
-	_hovered: boolean = false;
 
 	view(vnode: Vnode<MailFolderRowAttrs>): ?Children {
 		const {count, button, rightButton} = vnode.attrs
 
 		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [
-			count > 0
-				?
-				m(".folder-counter.z2", {
-					onmouseenter: () => {
-						this._hovered = true
-					},
-					onmouseleave: () => {
-						this._hovered = false
-					}
-				}, count < 99 || this._hovered ? count : "99+")
-				: null,
+			m(CounterBadge, {
+				count,
+				position: {
+					top: px(0),
+					left: px(3),
+				},
+				color: theme.navigation_button_icon,
+				background: getNavButtonIconBackground()
+			}),
 			m(NavButtonN, button),
 			rightButton
 				? m(ButtonN, Object.assign({}, rightButton, {

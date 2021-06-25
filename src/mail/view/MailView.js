@@ -63,7 +63,6 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
 import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
-import {listSelectionKeyboardShortcuts} from "../../gui/base/List"
 import {SidebarSection} from "../../gui/SidebarSection"
 
 assertMainOrNode()
@@ -152,37 +151,34 @@ export class MailView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 
-
 		this.view = (): VirtualElement => {
 			return m("#mail.main-view", {
-					ondragover: (ev) => {
-						// do not check the datatransfer here because it is not always filled, e.g. in Safari
-						ev.stopPropagation()
-						ev.preventDefault()
-					},
-					ondrop: (ev) => {
-						if (isNewMailActionAvailable() && ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
-							Promise
-								.all([
-									this._getMailboxDetails(),
-									fileController.readLocalFiles(ev.dataTransfer.files),
-									import("../signature/Signature"),
-									import("../editor/MailEditor"),
-								])
-								.then(([mailbox, dataFiles, {appendEmailSignature}, {newMailEditorFromTemplate}]) => {
-									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(dialog => dialog.show())
-								})
-								.catch(PermissionError, noOp)
-								.catch(UserError, showUserError)
-						}
-						// prevent in any case because firefox tries to open
-						// dataTransfer as a URL otherwise.
-						ev.stopPropagation()
-						ev.preventDefault()
-					}
+				ondragover: (ev) => {
+					// do not check the datatransfer here because it is not always filled, e.g. in Safari
+					ev.stopPropagation()
+					ev.preventDefault()
 				},
-				m(this.viewSlider)
-			)
+				ondrop: (ev) => {
+					if (isNewMailActionAvailable() && ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
+						Promise
+							.all([
+								this._getMailboxDetails(),
+								fileController.readLocalFiles(ev.dataTransfer.files),
+								import("../signature/Signature"),
+								import("../editor/MailEditor"),
+							])
+							.then(([mailbox, dataFiles, {appendEmailSignature}, {newMailEditorFromTemplate}]) => {
+								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(dialog => dialog.show())
+							})
+							.catch(PermissionError, noOp)
+							.catch(UserError, showUserError)
+					}
+					// prevent in any case because firefox tries to open
+					// dataTransfer as a URL otherwise.
+					ev.stopPropagation()
+					ev.preventDefault()
+				}
+			}, m(this.viewSlider))
 		}
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
@@ -241,15 +237,16 @@ export class MailView implements CurrentView {
 	}
 
 	headerRightView(): Children {
+		const openMailButtonAttrs = {
+			label: "newMail_action",
+			click: () => this._showNewMailDialog().catch(PermissionError, noOp),
+			type: ButtonType.Action,
+			icon: () => Icons.PencilSquare,
+			colors: ButtonColors.Header
+		}
+
 		return isNewMailActionAvailable()
-			? m(ButtonN, {
-				label: "newMail_action",
-				click: () => this._showNewMailDialog().catch(PermissionError, noOp),
-				type: ButtonType.Action,
-				icon: () => Icons.PencilSquare,
-				colors: ButtonColors.Header,
-			})
-			: null
+			? m(ButtonN, openMailButtonAttrs)			: null
 	}
 
 	async _getShortcuts(): Promise<Array<Shortcut>> {
@@ -807,5 +804,6 @@ export class MailView implements CurrentView {
 			})
 			: null
 	}
+
 }
 

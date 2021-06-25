@@ -109,6 +109,14 @@ export type ResponseMailParameters = {
 }
 
 /**
+ * Simple blocking wait handler implementation which just ignores messages and can be used to silently save a draft without showing progress.
+ */
+export function noopBlockingWaitHandler<T>(messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>): Promise<T> {
+	return action
+}
+
+
+/**
  * Model which allows sending mails interactively - including resolving of recipients and handling of drafts.
  */
 export class SendMailModel {
@@ -755,7 +763,7 @@ export class SendMailModel {
 		}
 
 		const doSend = async () => {
-			await this.saveDraft(true, mailMethod)
+			await this.saveDraft(true, mailMethod, noopBlockingWaitHandler)
 			await this._updateContacts(this.allRecipients())
 			await this._worker.sendMailDraft(neverNull(this._draft), this.allRecipients(), this._selectedNotificationLanguage)
 			await this._updatePreviousMail()
@@ -812,7 +820,7 @@ export class SendMailModel {
 	saveDraft(
 		saveAttachments: boolean,
 		mailMethod: MailMethodEnum,
-		blockingWaitHandler: (TranslationKey | lazy<string>, Promise<any>) => Promise<any> = (_, p) => p): Promise<void> {
+		blockingWaitHandler: (TranslationKey | lazy<string>, Promise<any>) => Promise<any>): Promise<void> {
 		const attachments = (saveAttachments) ? this._attachments : null
 		const {_draft} = this
 
@@ -823,10 +831,11 @@ export class SendMailModel {
 			      .then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft))) != null)
 			: Promise.resolve(true)
 
-		const savePromise = doCreateNewDraft.then(createNewDraft => createNewDraft
-			? this._createDraft(this.getBody(), attachments, mailMethod)
-			: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
-		).then((draft) => {
+		const savePromise = doCreateNewDraft.then(createNewDraft => {
+			return createNewDraft
+				? this._createDraft(this.getBody(), attachments, mailMethod)
+				: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
+		}).then((draft) => {
 			this._draft = draft
 			return Promise.map(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
 				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them

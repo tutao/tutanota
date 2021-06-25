@@ -6,8 +6,9 @@ import {assertMainOrNodeBoot} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
-import {last, remove} from "../../api/common/utils/ArrayUtils"
+import {remove} from "../../api/common/utils/ArrayUtils"
 import {downcast, insideRect} from "../../api/common/utils/Utils"
+import {LayerType} from "../../RootView"
 
 assertMainOrNodeBoot()
 
@@ -43,7 +44,7 @@ class Modal {
 					// }
 				},
 				style: {
-					'z-index': 99,
+					'z-index': LayerType.Modal,
 					display: this.visible ? "" : 'none' // display: null not working for IE11
 				}
 			}, this.components.map((wrapper, i, array) => {

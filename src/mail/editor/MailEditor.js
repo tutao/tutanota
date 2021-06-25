@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 
 import {Editor} from "../../gui/editor/Editor"
 import type {Attachment, Recipients, ResponseMailParameters} from "./SendMailModel"
-import {defaultSendMailModel, mailAddressToRecipient, SendMailModel} from "./SendMailModel"
+import {defaultSendMailModel, mailAddressToRecipient, noopBlockingWaitHandler, SendMailModel} from "./SendMailModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
@@ -37,7 +37,6 @@ import {
 	MailEditorRecipientField,
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {newMouseEvent} from "../../gui/HtmlUtils"
 import {windowFacade} from "../../misc/WindowFacade"
 import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -58,6 +57,9 @@ import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} from "../../knowledgebase/view/KnowledgeBaseDialog"
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
+import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
+import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
+import {newMouseEvent} from "../../gui/HtmlUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -106,7 +108,6 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 	openKnowledgeBaseButtonAttrs: ?ButtonAttrs
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
-
 		this.objectUrls = []
 		this.inlineImageElements = []
 		this.mentionedInlineImages = []
@@ -397,9 +398,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 
 		return m("#mail-editor.full-height.text.touch-callout", {
 			onremove: vnode => {
-				model.dispose()
 				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
-				if (this.templateModel) this.templateModel.dispose()
 			},
 			onclick: (e) => {
 				if (e.target === this.editor.getDOM()) {
@@ -407,7 +406,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 				}
 			},
 			ondragover: (ev) => {
-				// do not check the datatransfer here because it is not always filled, e.g. in Safari
+				// do not check the data transfer here because it is not always filled, e.g. in Safari
 				ev.stopPropagation()
 				ev.preventDefault()
 			},
@@ -505,19 +504,22 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	let mailEditorAttrs: MailEditorAttrs
 	let domCloseButton: HTMLElement
 
-	const save = () => {
-		return model.saveDraft(true, MailMethod.NONE, showProgressDialog)
-		            .catch(UserError, err => Dialog.error(() => err.message))
-		            .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
-		            .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
+	const save = (showProgress: boolean = true) => {
+		return model.saveDraft(true, MailMethod.NONE, showProgress ? showProgressDialog : noopBlockingWaitHandler)
 	}
+
 	const send = () => {
 		try {
 			model.send(
 				MailMethod.NONE,
 				Dialog.confirm,
 				showProgressDialog)
-			     .then(success => {if (success) dialog.close() })
+			     .then(success => {
+				     if (success) {
+					     dispose()
+					     dialog.close()
+				     }
+			     })
 			     .catch(UserError, (err) => Dialog.error(() => err.message))
 		} catch (e) {
 			Dialog.error(() => e.message)
@@ -525,25 +527,28 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	}
 
-	const closeButtonAttrs = attachDropdown({
-			label: "close_alt",
-			click: () => dialog.close(),
-			type: ButtonType.Secondary,
-			oncreate: vnode => domCloseButton = vnode.dom
-		},
-		() => [
-			{
-				label: "discardChanges_action",
-				click: () => dialog.close(),
-				type: ButtonType.Dropdown,
-			},
-			{
-				label: "saveDraft_action",
-				click: () => { save().then(() => dialog.close()) },
-				type: ButtonType.Dropdown,
-			}
-		], () => model.hasMailChanged(), 250
-	)
+	const dispose = () => {
+		model.dispose()
+		if (templatePopupModel) templatePopupModel.dispose()
+	}
+
+	const minimize = () => {
+		const saveStatus = stream(SaveStatus.Saving)
+		save(false)
+			.then(() => saveStatus(SaveStatus.Saved))
+			.catch((e) => {
+				saveStatus(SaveStatus.NotSaved)
+				handleSaveError(e)
+			})
+		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
+	}
+
+	const closeButtonAttrs = {
+		label: "close_alt",
+		click: (event, dom) => minimize(),
+		type: ButtonType.Secondary,
+		oncreate: vnode => domCloseButton = vnode.dom
+	}
 
 	let windowCloseUnsubscribe = () => {}
 	const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -552,7 +557,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 			{
 				label: "send_action",
 				click: send,
-				type: ButtonType.Primary
+				type: ButtonType.Primary,
 			}
 		],
 		middle: () => conversationTypeString(model.getConversationType()),
@@ -611,8 +616,8 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	)
 
 	const shortcuts = [
-		{key: Keys.ESC, exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) }, help: "close_alt"},
-		{key: Keys.S, ctrl: true, exec: () => { save() }, help: "save_action"},
+		{key: Keys.ESC, exec: minimize, help: "close_alt"},
+		{key: Keys.S, ctrl: true, exec: () => { save().catch(handleSaveError) }, help: "save_action"},
 		{key: Keys.S, ctrl: true, shift: true, exec: send, help: "send_action"},
 		{key: Keys.RETURN, ctrl: true, exec: send, help: "send_action"}
 	]
@@ -625,7 +630,6 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	return dialog
 }
-
 
 /**
  * open a MailEditor
@@ -779,3 +783,15 @@ function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
 		: locator.mailModel.getUserMailboxDetails()
 }
 
+
+function handleSaveError(e: Error) {
+	if (e instanceof UserError) {
+		Dialog.error(() => e.message)
+	} else if (e instanceof FileNotFoundError) {
+		Dialog.error("couldNotAttachFile_msg")
+	} else if (e instanceof PreconditionFailedError) {
+		Dialog.error("operationStillActive_msg")
+	} else {
+		throw e
+	}
+}

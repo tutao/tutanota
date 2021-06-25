@@ -3,6 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
+import {LayerType} from "../../RootView"
 
 assertMainOrNode()
 
@@ -51,10 +52,10 @@ export class ViewColumn {
 		this.visible = false
 
 		this.view = (vnode: Vnode<Attrs>) => {
-			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
+			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? (LayerType.ForegroundMenu + 1) : ""
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
 			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : ""
-			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border + landmark, {
+			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + border + landmark, {
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
@@ -65,6 +66,7 @@ export class ViewColumn {
 						}
 					},
 					style: {
+						zIndex,
 						width: this.width + 'px',
 						left: this.offset + 'px',
 					},
