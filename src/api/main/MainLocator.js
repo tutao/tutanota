@@ -14,6 +14,7 @@ import type {CalendarModel} from "../../calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
 import {defer} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
+import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../../misc/Scheduler"
 
 assertMainOrNode()
@@ -24,6 +25,7 @@ export type MainLocatorType = {|
 	search: SearchModel,
 	mailModel: MailModel;
 	calendarModel: CalendarModel;
+	minimizedMailModel: MinimizedMailEditorViewModel;
 	init: (WorkerClient) => void;
 	contactModel: ContactModel;
 	entityClient: EntityClient;
@@ -60,6 +62,7 @@ export const locator: MainLocatorType = ({
 			this.mailModel
 		)
 		this.contactModel = new ContactModelImpl(worker, this.entityClient, logins)
+		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		workerDeferred.resolve(worker)
 	}
 }: any)

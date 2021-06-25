@@ -7,7 +7,7 @@ import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/common/Env"
 import {theme} from "./theme.js"
 import {BrowserType} from "../misc/ClientConstants"
-import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuBg} from "./theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg} from "./theme"
 
 assertMainOrNodeBoot()
 
@@ -271,7 +271,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
-		'.min-width-0': {'min-width': 0},
+		'.min-width-0': {'min-width': 0}, // used to enable text ellipsis in flex child elements see https://css-tricks.com/flexbox-truncated-text/
 		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.break-word-links a': {'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
@@ -703,12 +703,8 @@ styles.registerStyle('main', () => {
 			'align-items': 'center',
 			position: "relative"
 		},
-		'.folder-counter': {
+		'.counter-badge': {
 			position: 'absolute',
-			top: px(0),
-			left: px(3),
-			color: theme.navigation_button_icon,
-			background: getNavButtonIconBackground(),
 			"padding-left": px(4),
 			"padding-right": px(4),
 			"border-radius": px(8),
@@ -822,6 +818,11 @@ styles.registerStyle('main', () => {
 		'.dropdown-content > *': {width: '100%'},
 		'.dropdown-shadow': {
 			'box-shadow': boxShadow
+		},
+
+		".minimized-shadow": {
+			// shadow params: 1.offset-x 2.offset-y 3.blur 4.spread 5.color
+			'box-shadow': `0px 0px 4px 2px ${theme.header_box_shadow_bg}`, // similar to header bar shadow
 		},
 
 		//dropdown filter bar

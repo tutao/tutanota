@@ -13,6 +13,7 @@ import {header} from "./Header"
 import {styles} from "../styles"
 import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks} from "../AriaUtils"
+import {LayerType} from "../../RootView"
 
 assertMainOrNode()
 
@@ -131,7 +132,10 @@ export class ViewSlider implements IViewSlider {
 	_createModalBackground(): Children {
 		if (this._isModalBackgroundVisible) {
 			return [
-				m(".fill-absolute.z3.will-change-alpha", {
+				m(".fill-absolute.will-change-alpha", {
+					style: {
+						zIndex: LayerType.ForegroundMenu
+					},
 					oncreate: (vnode) => {
 						this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
 					},

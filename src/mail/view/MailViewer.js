@@ -1222,17 +1222,24 @@ export class MailViewer {
 	_editDraft(): Promise<void> {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return Promise.all([this._mailModel.getMailboxDetailsForMail(this.mail), import("../editor/MailEditor")])
-				              .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
-					              return newMailEditorFromDraft(this.mail,
-						              this._attachments,
-						              this._getMailBody(),
-						              this._contentBlockingStatus === ContentBlockingStatus.Block,
-						              this._inlineImages,
-						              mailboxDetails)
-				              })
-				              .then(editorDialog => editorDialog.show())
-				              .catch(UserError, showUserError)
+				// check if to be opened draft has already been minimized, iff that is the case, re-open it
+				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.mail)
+				if (minimizedEditor) {
+					locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+				} else {
+					return Promise.all([this._mailModel.getMailboxDetailsForMail(this.mail), import("../editor/MailEditor")])
+					              .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
+						              return newMailEditorFromDraft(this.mail,
+							              this._attachments,
+							              this._getMailBody(),
+							              this._contentBlockingStatus === ContentBlockingStatus.Block,
+							              this._inlineImages,
+							              mailboxDetails)
+					              })
+					              .then(editorDialog => editorDialog.show())
+					              .catch(UserError, showUserError)
+				}
+
 			}
 		})
 	}

@@ -1388,6 +1388,8 @@ export default {
 		"languageArmenian_label": "Armenian",
 		"languageNorwegianBokmal_label": "Norwegian Bokmål",
 		"languageTajik_label": "Tajik",
-		"languageSerboCroatian_label": "Serbo-Croatian"
+		"languageSerboCroatian_label": "Serbo-Croatian",
+		"draftSaved_msg": "Draft saved.",
+		"draftNotSaved_msg": "Draft not saved."
 	}
 }

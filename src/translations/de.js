@@ -1392,6 +1392,7 @@ export default {
 		"languageArmenian_label": "Armenisch",
 		"languageNorwegianBokmal_label": "Norwegisches Bokmål",
 		"languageTajik_label": "Tadschikisch",
-		"languageSerboCroatian_label": "Serbokroatisch"
+		"languageSerboCroatian_label": "Serbokroatisch",
+		"draftSaved_msg": "Entwurf gespeichert."
 	}
 }

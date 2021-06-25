@@ -41,10 +41,11 @@ import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
 import type {SearchRestriction} from "../api/worker/search/SearchTypes"
-import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import type {ListElement} from "../api/common/utils/EntityUtils";
+import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
 import {compareContacts} from "../contacts/view/ContactGuiUtils";
+import {LayerType} from "../RootView"
 
 assertMainOrNode()
 
@@ -91,7 +92,7 @@ export class SearchBar implements Component {
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: Stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
-	_closeOverlayFunction: ?(() => void);
+	_closeOverlayFunction: ?(() => Promise<void>);
 	_overlayContentComponent: {view: () => ?Children};
 	_returnListener: () => void;
 	_confirmDialogShown: boolean;
@@ -296,7 +297,7 @@ export class SearchBar implements Component {
 	 */
 	_showOverlay() {
 		if (this._closeOverlayFunction == null) {
-			this._closeOverlayFunction = displayOverlay(this._makeOverlayRect(), this._overlayContentComponent)
+			this._closeOverlayFunction = displayOverlay(() => this._makeOverlayRect(), this._overlayContentComponent)
 		} else {
 			m.redraw()
 		}
@@ -316,19 +317,22 @@ export class SearchBar implements Component {
 			overlayRect = {
 				top: px(domRect.bottom + 5),
 				right: px(window.innerWidth - domRect.right),
-				width: px(350)
+				width: px(350),
+				zIndex: LayerType.LowPriorityOverlay
 			}
 		} else if (window.innerWidth < 500) {
 			overlayRect = {
 				top: px(size.navbar_height_mobile + 6),
 				left: px(16),
 				right: px(16),
+				zIndex: LayerType.LowPriorityOverlay
 			}
 		} else {
 			overlayRect = {
 				top: px(size.navbar_height_mobile + 6),
 				left: px(domRect.left),
 				right: px(window.innerWidth - domRect.right),
+				zIndex: LayerType.LowPriorityOverlay
 			}
 		}
 		return overlayRect

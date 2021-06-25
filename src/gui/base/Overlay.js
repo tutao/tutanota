@@ -5,6 +5,9 @@ import {animations} from "../animation/Animations"
 import {requiresStatusBarHack} from "../main-styles"
 import {ease} from "../animation/Easing"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
+import type {LayerTypeEnum} from "../../RootView"
+import {LayerType} from "../../RootView"
+import {remove} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNodeBoot()
 
@@ -15,42 +18,45 @@ export type PositionRect = {
 	width?: ?string,
 	bottom?: ?string,
 	height?: ?string,
+	zIndex?: LayerTypeEnum
 }
 
 type AnimationProvider = (dom: HTMLElement) => DomMutation
 
 type OverlayAttrs = {
-	component: Component;
-	position: PositionRect;
-	createAnimation?: AnimationProvider;
-	closeAnimation?: AnimationProvider;
+	component: Component,
+	position: lazy<PositionRect>,
+	createAnimation?: AnimationProvider,
+	closeAnimation?: AnimationProvider,
+	shadowClass: string
 }
 
 const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
 let key = 0
 
-export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimationProvider,
-                               closeAnimation?: AnimationProvider): () => void {
+export function displayOverlay(position: lazy<PositionRect>, component: Component, createAnimation?: AnimationProvider,
+                               closeAnimation?: AnimationProvider, shadowClass: string = "dropdown-shadow"): () => Promise<void> {
 	const newAttrs = {
 		position,
 		component,
 		createAnimation,
-		closeAnimation
+		closeAnimation,
+		shadowClass
 	}
 	const pair = [newAttrs, null, key++]
 	overlays.push(pair)
-	return () => {
+	return async () => {
 		const dom = pair[1];
-		(newAttrs.closeAnimation && dom
+		const animation = newAttrs.closeAnimation && dom
 			? animations.add(dom, newAttrs.closeAnimation(dom), {
 				duration: 100,
 				easing: ease.in
 			})
-			: Promise.resolve())
-			.then(() => {
-				overlays.splice(overlays.indexOf(pair), 1)
-				m.redraw()
-			})
+			: Promise.resolve()
+		await animation
+		if (remove(overlays, pair)) {
+			m.redraw()
+		}
 	}
 }
 
@@ -62,16 +68,18 @@ export const overlay = {
 		"aria-hidden": overlays.length === 0
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
-		return m(".abs.elevated-bg.dropdown-shadow", {
+		const position = attrs.position()
+
+		return m(".abs.elevated-bg." + attrs.shadowClass, {
 			key,
 			style: {
-				width: attrs.position.width,
-				top: attrs.position.top,
-				bottom: attrs.position.bottom,
-				right: attrs.position.right,
-				left: attrs.position.left,
-				height: attrs.position.height,
-				'z-index': 200,
+				width: position.width,
+				top: position.top,
+				bottom: position.bottom,
+				right: position.right,
+				left: position.left,
+				height: position.height,
+				'z-index': position.zIndex ? position.zIndex : LayerType.Overlay,
 				'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X
 			},
 			oncreate: (vnode: Vnode<any>) => {
