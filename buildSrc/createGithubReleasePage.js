@@ -8,9 +8,9 @@ const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
 
 if (wasRunFromCli) {
 	options
-		.option('--name <name>', "Name of the release")
-		.option('--milestone <milestone>', "Milestone to reference")
-		.option('--tag <tag>', "The commit tag to reference")
+		.requiredOption('--name <name>', "Name of the release")
+		.requiredOption('--milestone <milestone>', "Milestone to reference")
+		.requiredOption('--tag <tag>', "The commit tag to reference")
 		.option('--platform <platform>', 'Which platform to build', /android|all/, "all")
 		.option('--uploadFile <filePath>', "Path to a file to upload")
 		.option('--apkChecksum <checksum>', "Checksum for the APK")

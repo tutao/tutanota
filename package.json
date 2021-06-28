@@ -16,7 +16,6 @@
 		"postinstall": "node ./buildSrc/compileKeytar"
 	},
 	"dependencies": {
-		"@octokit/auth-token": "^2.4.5",
 		"@tutao/oxmsg": "0.0.6",
 		"bluebird": "3.7.2",
 		"dompurify": "2.2.7",
@@ -25,7 +24,6 @@
 		"linkifyjs": "^3.0.0-beta.3",
 		"luxon": "1.26.0",
 		"mithril": "2.0.4",
-		"octokit": "^1.1.0",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.11.1",
 		"systemjs": "6.8.3"
@@ -67,6 +65,8 @@
 		"rollup-plugin-terser": "7.0.2",
 		"rollup-plugin-visualizer": "4.2.0",
 		"winreg": "1.2.4",
-		"xhr2": "0.2.0"
+		"xhr2": "0.2.0",
+		"octokit": "^1.1.0",
+		"@octokit/auth-token": "^2.4.5"
 	}
 }
