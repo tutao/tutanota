@@ -41,7 +41,7 @@ async function buildKeytarForElectron(opts) {
 		"--runtime=electron",
 		`--target=${electronVersion}`,
 		`--dist-url=${distUrl}`,
-		`--directory="${modulePath}"`,
+		`--directory='${modulePath}'`,
 		`--arch=${arch}`
 	]
 

@@ -3,7 +3,6 @@ pipeline {
 		NODE_PATH="/opt/node-v16.3.0-linux-x64/bin"
 		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
-		APK_SIGN_STORE_PASS = credentials('apk-sign-store-pass')
 		PATH="${env.NODE_PATH}:${env.PATH}"
 		ANDROID_SDK_ROOT="/opt/android-sdk-linux"
 		ANDROID_HOME="/opt/android-sdk-linux"
@@ -34,7 +33,6 @@ pipeline {
 		stage('Build android app: production') {
 			environment {
 				APK_SIGN_ALIAS = "tutao.de"
-				APK_SIGN_KEY_PASS = credentials('apk-sign-key-pass')
 			}
 			when {
 				expression { params.PROD }
@@ -42,7 +40,12 @@ pipeline {
 			steps {
 				echo "Building ${VERSION}"
 				sh 'npm ci'
-				sh 'node android.js -b release prod'
+				withCredentials([
+					string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
+					string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
+				]) {
+					sh 'node android.js -b release prod'
+				}
 				stash includes: "build/app-android/tutanota-${VERSION}-release.apk", name: 'apk'
 			}
 		}
@@ -50,7 +53,6 @@ pipeline {
 		stage('Build android app: staging') {
 			environment {
 				APK_SIGN_ALIAS = "test.tutao.de"
-				APK_SIGN_KEY_PASS = credentials('apk-sign-key-pass')
 			}
 			when {
 				not { expression { params.PROD } }
@@ -60,7 +62,12 @@ pipeline {
 			}
 			steps {
 				sh 'npm ci'
-				sh 'node android.js -b releaseTest test'
+				withCredentials([
+					string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
+					string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
+				]) {
+					sh 'node android.js -b releaseTest test'
+				}
 				stash includes: "build/app-android/tutanota-${VERSION}-releaseTest.apk", name: 'apk'
 			}
 		}
@@ -92,16 +99,15 @@ pipeline {
 					sh "git tag ${tag}"
 					sh "git push --tags"
 
+					def checksum = sh(returnStdout: true, script: "sha256sum ${WORKSPACE}/${filePath}")
+
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						def checksum = sh(returnStdout: true, script: "sha256sum ${WORKSPACE}/${filePath}")
-						def releaseNotes = sh(
-							"""node buildSrc/createGithubReleasePage.js --name '${VERSION} (Android)' \
-																	 --milestone '${VERSION}' \
-																	 --tag '${tag}' \
-																	 --uploadFile '${WORKSPACE}/${filePath}' \
-																	 --platform android \
-																	 --apkChecksum ${checksum}"""
-						)
+						sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Android)' \
+																	   --milestone '${VERSION}' \
+																	   --tag '${tag}' \
+																	   --uploadFile '${WORKSPACE}/${filePath}' \
+																	   --platform android \
+							 										   --apkChecksum ${checksum}"""
 					}
 				}
 			}
@@ -137,6 +143,7 @@ def publishToNexus(Map params) {
 	withCredentials([usernamePassword(credentialsId: 'nexus-publish', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
 		sh  "curl --silent --show-error --fail " +
 			"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
+			// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
 			"-X POST 'http://[fd:aa::70]:8081/nexus/service/rest/v1/components?repository=releases' " +
 			"-F maven2.groupId=${params.groupId} " +
 			"-F maven2.artifactId=${params.artifactId} " +
