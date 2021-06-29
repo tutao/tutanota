@@ -12,6 +12,21 @@ import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
 import {EntropySrc} from "../api/common/TutanotaConstants"
 import {random} from "../api/worker/crypto/Randomizer"
 
+{
+	// the prng throws if it doesn't have enough entropy
+	// it may be called very early, so we need to seed it
+	// we do it here because it's the first place in the dep. chain that knows it's
+	// in node but the last one that knows the prng implementation
+	const entropy = crypto.randomBytes(128)
+	random.addEntropy([
+		{
+			source: EntropySrc.random,
+			entropy: 128 * 8,
+			data: Array.from(entropy)
+		}
+	]).then()
+}
+
 export interface CryptoFunctions {
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
 

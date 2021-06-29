@@ -32,11 +32,11 @@ import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
 import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
+import type {DeviceKeyProvider} from "./DeviceKeyProviderImpl"
 import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
-import type {DeviceKeyProvider} from "./DeviceKeyProviderImpl"
 
 mp()
 
@@ -75,12 +75,18 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	//register as mailto handler, then quit
 	DesktopUtils.registerAsMailtoHandler(false)
 	            .then(() => app.exit(0))
-	            .catch(() => app.exit(1))
+	            .catch(e => {
+		            log.error("there was a problem with registering as default mail app:", e)
+		            app.exit(1)
+	            })
 } else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
 	DesktopUtils.unregisterAsMailtoHandler(false)
 	            .then(() => app.exit(0))
-	            .catch(() => app.exit(1))
+	            .catch(e => {
+		            log.error("there was a problem with unregistering as default mail app:", e)
+		            app.exit(1)
+	            })
 } else {
 	createComponents().then(startupInstance)
 }

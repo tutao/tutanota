@@ -25,7 +25,6 @@ import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {User} from "../entities/sys/User"
-import linkifyHtml from "linkify/html"
 import {urlify} from "./Urlifier"
 
 
@@ -402,7 +401,7 @@ export class WorkerImpl {
 	 * @param entropy
 	 * @returns {Promise.<void>}
 	 */
-	addEntropy(entropy: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {
+	addEntropy(entropy: {source: EntropySrcEnum, entropy: number, data: number | Array<number>}[]): Promise<void> {
 		try {
 			return random.addEntropy(entropy)
 		} finally {
