@@ -85,11 +85,14 @@ pipeline {
 				script {
 					def filePath = "build/app-android/tutanota-${VERSION}-release.apk"
 					def tag = "tutanota-android-release-${VERSION}"
+					def util = load "jenkins-lib/util.groovy"
 
-					publishToNexus(groupId: "app",
+					util.publishToNexus(groupId: "app",
 								   artifactId: "android",
 								   version: "${VERSION}",
-								   assetFilePath: "${WORKSPACE}/${filePath}")
+								   assetFilePath: "${WORKSPACE}/${filePath}",
+								   fileExtension: 'apk'
+				   )
 
 					androidApkUpload(googleCredentialsId: 'android-app-publisher-credentials',
 									 apkFilesPattern: "${filePath}",
@@ -119,37 +122,28 @@ pipeline {
 				expression { params.PUBLISH }
 			}
 			steps {
-				unstash 'apk'
+				script {
+					def util = load "jenkins-lib/util.groovy"
 
-				publishToNexus(groupId: "app",
-						artifactId: "android-test",
-						version: "${VERSION}",
-						assetFilePath: "${WORKSPACE}/build/app-android/tutanota-${VERSION}-releaseTest.apk")
+					unstash 'apk'
 
-				// This doesn't publish to the main app on play store,
-				// instead it get's published to the hidden "tutanota-test" app
-				// this happens because the AppId is set to de.tutao.tutanota.test by the android build
-				// and play store knows which app to publish just based on the id
-				androidApkUpload(googleCredentialsId: 'android-app-publisher-credentials',
-						apkFilesPattern: "build/app-android/tutanota-${VERSION}-releaseTest.apk",
-						trackName: 'internal',
-						rolloutPercentage: '100%')
+					util.publishToNexus(groupId: "app",
+							artifactId: "android-test",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/app-android/tutanota-${VERSION}-releaseTest.apk",
+							fileExtension: 'apk'
+					)
+
+					// This doesn't publish to the main app on play store,
+					// instead it get's published to the hidden "tutanota-test" app
+					// this happens because the AppId is set to de.tutao.tutanota.test by the android build
+					// and play store knows which app to publish just based on the id
+					androidApkUpload(googleCredentialsId: 'android-app-publisher-credentials',
+							apkFilesPattern: "build/app-android/tutanota-${VERSION}-releaseTest.apk",
+							trackName: 'internal',
+							rolloutPercentage: '100%')
+				}
 			}
 		}
-	}
-}
-
-def publishToNexus(Map params) {
-	withCredentials([usernamePassword(credentialsId: 'nexus-publish', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-		sh  "curl --silent --show-error --fail " +
-			"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
-			// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
-			"-X POST 'http://[fd:aa::70]:8081/nexus/service/rest/v1/components?repository=releases' " +
-			"-F maven2.groupId=${params.groupId} " +
-			"-F maven2.artifactId=${params.artifactId} " +
-			"-F maven2.version=${params.version} " +
-			"-F maven2.generate-pom=true " +
-			"-F maven2.asset1=@${params.assetFilePath} " +
-			"-F maven2.asset1.extension=apk "
 	}
 }
