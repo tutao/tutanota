@@ -4,7 +4,7 @@ import {err} from './DesktopErrorHandler.js'
 import {DesktopConfig} from './config/DesktopConfig'
 import * as electron from 'electron'
 import {app} from 'electron'
-import DesktopUtils from './DesktopUtils.js'
+import {DesktopUtils} from './DesktopUtils.js'
 import {IPC} from './IPC.js'
 import {WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
@@ -24,7 +24,6 @@ import {log} from "./DesktopLog";
 import {UpdaterWrapperImpl} from "./UpdaterWrapper"
 import {ElectronNotificationFactory} from "./NotificatonFactory"
 import {KeytarSecretStorage} from "./sse/SecretStorage"
-import desktopUtils from "./DesktopUtils"
 import fs from "fs"
 import {DesktopIntegrator, getDesktopIntegratorForPlatform} from "./integration/DesktopIntegrator"
 import net from "net"
@@ -54,6 +53,9 @@ type Components = {
 	+tray: DesktopTray,
 }
 
+const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
+const desktopUtils = new DesktopUtils(fs, desktopCrypto)
+
 const opts = {
 	registerAsMailHandler: process.argv.some(arg => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some(arg => arg === "-u"),
@@ -62,7 +64,6 @@ const opts = {
 		? process.argv.some(arg => arg === "-a")
 		: app.getLoginItemSettings().wasOpenedAtLogin
 }
-
 
 // In windows we require elevated permissions in order to be able to register/deregister as a mailto handler, since it requires registry
 // modifications. If we don't have admin rights, apparently the easiest way to get them is just to spin up a new instance of the app
@@ -73,7 +74,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	app.exit(1)
 } else if (opts.registerAsMailHandler) {
 	//register as mailto handler, then quit
-	DesktopUtils.registerAsMailtoHandler(false)
+	desktopUtils.registerAsMailtoHandler(false)
 	            .then(() => app.exit(0))
 	            .catch(e => {
 		            log.error("there was a problem with registering as default mail app:", e)
@@ -81,7 +82,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	            })
 } else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
-	DesktopUtils.unregisterAsMailtoHandler(false)
+	desktopUtils.unregisterAsMailtoHandler(false)
 	            .then(() => app.exit(0))
 	            .catch(e => {
 		            log.error("there was a problem with unregistering as default mail app:", e)
@@ -94,7 +95,6 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	lang.init(en)
 	const secretStorage = new KeytarSecretStorage()
-	const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
 	const deviceKeyProvider = new DeviceKeyProviderImpl(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, deviceKeyProvider, electron)
 	const conf = new DesktopConfig(app, configMigrator, deviceKeyProvider, desktopCrypto)
@@ -148,12 +148,12 @@ async function startupInstance(components: Components) {
 	// Delete the temp directory on startup, because we may not always be able to do it on shutdown
 	dl.deleteTutanotaTempDirectory()
 
-	if (!await DesktopUtils.makeSingleInstance()) return
+	if (!await desktopUtils.makeSingleInstance()) return
 
 	sse.start().catch(e => log.warn("unable to start sse client", e))
 
 	app.on('second-instance', async (ev, args) => {
-		if (await DesktopUtils.singleInstanceLockOverridden()) {
+		if (await desktopUtils.singleInstanceLockOverridden()) {
 			app.quit()
 		} else {
 			if (wm.getAll().length === 0) {
@@ -167,14 +167,14 @@ async function startupInstance(components: Components) {
 		// MacOS mailto handling
 		e.preventDefault()
 		if (url.startsWith('mailto:')) {
-			DesktopUtils.callWhenReady(() => handleMailto(url, components))
+			desktopUtils.callWhenReady(() => handleMailto(url, components))
 		}
 	}).on('will-quit', (e) => {
 		dl.deleteTutanotaTempDirectory()
 	})
 	// it takes a short while to get here,
 	// the event may already have fired
-	DesktopUtils.callWhenReady(() => onAppReady(components))
+	desktopUtils.callWhenReady(() => onAppReady(components))
 }
 
 async function onAppReady(components: Components) {

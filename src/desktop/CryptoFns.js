@@ -17,14 +17,18 @@ import {random} from "../api/worker/crypto/Randomizer"
 	// it may be called very early, so we need to seed it
 	// we do it here because it's the first place in the dep. chain that knows it's
 	// in node but the last one that knows the prng implementation
-	const entropy = crypto.randomBytes(128)
-	random.addEntropy([
-		{
-			source: EntropySrc.random,
-			entropy: 128 * 8,
-			data: Array.from(entropy)
-		}
-	]).then()
+	const seed = () => {
+		const entropy = crypto.randomBytes(128)
+		random.addEntropy([
+			{
+				source: EntropySrc.random,
+				entropy: 128 * 8,
+				data: Array.from(entropy)
+			}
+		]).then()
+	}
+	seed()
+	// TODO: add entropy periodically
 }
 
 export interface CryptoFunctions {

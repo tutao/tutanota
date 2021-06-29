@@ -2,19 +2,25 @@
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync} from "fs"
+import type {Rectangle} from "electron"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {noOp} from "../api/common/utils/Utils"
 import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
-import {cryptoFns} from "./CryptoFns"
-import type {Rectangle} from "electron"
-
-
 import {delay} from "../api/common/utils/PromiseUtils"
+import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 
 export class DesktopUtils {
+
+	+_fs: $Exports<"fs">
+	+_desktopCrypto: DesktopCryptoFacade
+
+	constructor(fs: $Exports<"fs">, desktopCrypto: DesktopCryptoFacade) {
+		this._fs = fs
+		this._desktopCrypto = desktopCrypto
+	}
+
 	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
 	}
@@ -24,7 +30,7 @@ export class DesktopUtils {
 	 * @param path: the file to touch
 	 */
 	touch(path: string): void {
-		closeSync(openSync(path, 'a'))
+		this._fs.closeSync(this._fs.openSync(path, 'a'))
 	}
 
 	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
@@ -38,7 +44,7 @@ export class DesktopUtils {
 							// and then call this method again at startup of the elevated app
 							return _elevateWin(process.execPath, ["-r"])
 						} else if (isAdmin) {
-							return _registerOnWin()
+							return this._registerOnWin()
 						}
 					})
 			case "darwin":
@@ -63,7 +69,7 @@ export class DesktopUtils {
 						if (!isAdmin && tryToElevate) {
 							return _elevateWin(process.execPath, ["-u"])
 						} else if (isAdmin) {
-							return _unregisterOnWin()
+							return this._unregisterOnWin()
 						}
 					})
 			case "darwin":
@@ -85,12 +91,12 @@ export class DesktopUtils {
 	 */
 	singleInstanceLockOverridden(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
-		return fs.readFile(lockfilePath, 'utf8')
-		         .then(version => {
-			         return fs.writeFile(lockfilePath, app.getVersion(), 'utf8')
-			                  .then(() => version !== app.getVersion())
-		         })
-		         .catch(() => false)
+		return this._fs.promises.readFile(lockfilePath, 'utf8')
+		           .then(version => {
+			           return this._fs.promises.writeFile(lockfilePath, app.getVersion(), 'utf8')
+			                      .then(() => version !== app.getVersion())
+		           })
+		           .catch(() => false)
 	}
 
 	/**
@@ -109,25 +115,25 @@ export class DesktopUtils {
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
 		// errors are ignored and we fall back to a version agnostic single instance lock.
-		return fs.writeFile(lockfilePath, app.getVersion(), 'utf8').catch(noOp)
-		         .then(() => {
-			         // try to get the lock, if there's already an instance running,
-			         // give the other instance time to see if it wants to release the lock.
-			         // if it changes the version back, it was a different version and
-			         // will terminate itself.
-			         return app.requestSingleInstanceLock()
-				         ? Promise.resolve(true)
-				         : delay(1500)
-					         .then(() => this.singleInstanceLockOverridden())
-					         .then(canStay => {
-						         if (canStay) {
-							         app.requestSingleInstanceLock()
-						         } else {
-							         app.quit()
-						         }
-						         return canStay
-					         })
-		         })
+		return this._fs.promises.writeFile(lockfilePath, app.getVersion(), 'utf8').catch(noOp)
+		           .then(() => {
+			           // try to get the lock, if there's already an instance running,
+			           // give the other instance time to see if it wants to release the lock.
+			           // if it changes the version back, it was a different version and
+			           // will terminate itself.
+			           return app.requestSingleInstanceLock()
+				           ? Promise.resolve(true)
+				           : delay(1500)
+					           .then(() => this.singleInstanceLockOverridden())
+					           .then(canStay => {
+						           if (canStay) {
+							           app.requestSingleInstanceLock()
+						           } else {
+							           app.quit()
+						           }
+						           return canStay
+					           })
+		           })
 	}
 
 	/**
@@ -144,10 +150,60 @@ export class DesktopUtils {
 
 
 	}
-}
 
-const singleton: DesktopUtils = new DesktopUtils()
-export default singleton
+	/**
+	 * this will silently fail if we're not admin.
+	 * @param script: source of the registry script
+	 * @private
+	 */
+	_executeRegistryScript(script: string): Promise<void> {
+		const deferred = defer()
+		const file = this._writeToDisk(script)
+		spawn('reg.exe', ['import', file], {
+			stdio: ['ignore', 'inherit', 'inherit'],
+			detached: false
+		}).on('exit', (code, signal) => {
+			this._fs.unlinkSync(file)
+			if (code === 0) {
+				deferred.resolve()
+			} else {
+				deferred.reject(new Error("couldn't execute registry script"))
+			}
+		})
+		return deferred.promise
+	}
+
+	/**
+	 * Writes contents with a random file name into the directory of the executable
+	 * @param contents
+	 * @returns {string} path  to the written file
+	 * @private
+	 */
+	_writeToDisk(contents: string): string {
+		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
+		const filePath = path.join(path.dirname(process.execPath), filename)
+		this._fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
+		return filePath
+	}
+
+	readJSONSync(absolutePath: string): {[string]: mixed} {
+		return JSON.parse(this._fs.readFileSync(absolutePath, {encoding: "utf8"}))
+	}
+
+	async _registerOnWin(): Promise<void> {
+		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(process.execPath)
+		return this._executeRegistryScript(tmpRegScript)
+		           .then(() => {
+			           app.setAsDefaultProtocolClient('mailto')
+		           })
+	}
+
+	async _unregisterOnWin(): Promise<void> {
+		app.removeAsDefaultProtocolClient('mailto')
+		const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
+		return this._executeRegistryScript(tmpRegScript)
+	}
+}
 
 /**
  * Checks if the user has admin privileges
@@ -167,23 +223,6 @@ function getLockFilePath() {
 	// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
 	// we want to put the lockfile in root tmp so it persists
 	return path.join(app.getPath('temp'), 'tutanota_desktop_lockfile')
-}
-
-/**
- * Writes contents with a random file name into the directory of the executable
- * @param contents
- * @returns {*} path  to the written file
- * @private
- */
-function _writeToDisk(contents: string): string {
-	const filename = randomHexString(12)
-	const filePath = path.join(path.dirname(process.execPath), filename)
-	writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
-	return filePath
-}
-
-export function randomHexString(byteLength: number): string {
-	return uint8ArrayToHex(cryptoFns.randomBytes(byteLength))
 }
 
 /**
@@ -208,47 +247,6 @@ function _elevateWin(command: string, args: Array<string>) {
 		}
 	})
 	return deferred.promise
-}
-
-/**
- * this will silently fail if we're not admin.
- * @param script: path to registry script
- * @private
- */
-function _executeRegistryScript(script: string): Promise<void> {
-	const deferred = defer()
-	const file = _writeToDisk(script)
-	spawn('reg.exe', ['import', file], {
-		stdio: ['ignore', 'inherit', 'inherit'],
-		detached: false
-	}).on('exit', (code, signal) => {
-		unlinkSync(file)
-		if (code === 0) {
-			deferred.resolve()
-		} else {
-			deferred.reject(new Error("couldn't execute registry script"))
-		}
-	})
-	return deferred.promise
-}
-
-
-async function _registerOnWin() {
-	const tmpRegScript = (await import('./reg-templater.js')).registerKeys(process.execPath)
-	return _executeRegistryScript(tmpRegScript)
-		.then(() => {
-			app.setAsDefaultProtocolClient('mailto')
-		})
-}
-
-async function _unregisterOnWin() {
-	app.removeAsDefaultProtocolClient('mailto')
-	const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
-	return _executeRegistryScript(tmpRegScript)
-}
-
-export function readJSONSync(absolutePath: string): {[string]: mixed} {
-	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
 }
 
 export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
