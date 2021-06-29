@@ -3,26 +3,26 @@
 ![Overview](Overview.svg)
 
 ## Basic structure
- * `src`: Common part and the desktop client code
- * `app-android`: Android specific parts
- * `app-ios`: iOS specific parts
- * `flow`: contains *implicitly* imported [Flow](https://flow.org/) typing definitions. Avoid putting something there,
+ * [`src/`](../src): Common part and the desktop client code
+ * [`app-android/`](../app-android): Android specific parts
+ * [`app-ios/`](../app-ios): iOS specific parts
+ * [`flow/`](../flow): contains *implicitly* imported [Flow](https://flow.org/) typing definitions. Avoid putting something there,
  it is buggy.
- * `libs`: "vendor" directory containing our dependencies in non-minified and minified form. May be improved. We take
+ * [`libs/`](../libs): "vendor" directory containing our dependencies in non-minified and minified form. May be improved. We take
  security seriously so we review diff between each version.
- * `resources`: some resources (mostly images) which are used in the project. Most of the are embedded to the code.
- * `test`: test code
- * `android.js`: script for building Android app
- * `make.js`: script for building dev version
- * `dist.js`: script for building release versions of the web & desktop clients
- * `fdroid-fix-deps`: script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
- * `fdroid-metadata-workaround`: is a link inside app-android so that F-Droid can find our metadata because our Android
+ * [`resources/`](../resources): some resources (mostly images) which are used in the project. Most of the are embedded to the code.
+ * [`test/`](../test): test code
+ * [`android.js`](../android.js): script for building Android app
+ * [`make.js`](../make.js): script for building dev version
+ * [`dist.js`](../dist.js): script for building release versions of the web & desktop clients
+ * [`fdroid-fix-deps`](../fdroid-fix-deps): script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
+ * [`fdroid-metadata-workaround`](../fdroid-metadata-workaround): is a link inside app-android so that F-Droid can find our metadata because our Android
  project is not in the root. Can be removed once it's fixed in F-Droid.
- * `tutao-pub.pem`: public key which is used to verify desktop clients
+ * [`tutao-pub.pem`](../tutao-pub.pem): public key which is used to verify desktop clients
  
 ## Code structure
 Web part of the app is split in three parts: client, worker and common.
-All code in the `src` except for the `api` directory is intended for GUI and system interaction. Code in the `api`
+All code in the `src/` except for the `api/` directory is intended for GUI and system interaction. Code in the `api`
 contains most of the logic for server communication, encryption, indexing etc.
 
 ### Glossary
