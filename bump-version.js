@@ -120,5 +120,5 @@ async function updateDependency({version, dependency, directory}) {
 		packageJson.devDependencies[dependency] = version
 	}
 
-	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, 4), {encoding: "utf8"})
+	await fs.promises.writeFile(path.join(directory, "package.json"), JSON.stringify(packageJson, null, "\t"), {encoding: "utf8"})
 }
