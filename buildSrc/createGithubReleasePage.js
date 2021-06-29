@@ -11,7 +11,7 @@ if (wasRunFromCli) {
 		.requiredOption('--name <name>', "Name of the release")
 		.requiredOption('--milestone <milestone>', "Milestone to reference")
 		.requiredOption('--tag <tag>', "The commit tag to reference")
-		.option('--platform <platform>', 'Which platform to build', /android|all/, "all")
+		.option('--platform <platform>', 'Which platform to build', /android|ios|all/, "all")
 		.option('--uploadFile <filePath>', "Path to a file to upload")
 		.option('--apkChecksum <checksum>', "Checksum for the APK")
 		.parse(process.argv)
@@ -93,6 +93,10 @@ function filterIssues(issues, platform) {
 		return issues.filter(issue =>
 			issue.labels.some(label => label.name === "android") ||
 			!issue.labels.some(label => label.name === "desktop" || label.name === "ios"))
+	} else if (platform === "ios") {
+		return issues.filter(issue =>
+			issue.labels.some(label => label.name === "ios") ||
+			!issue.labels.some(label => label.name === "desktop" || label.name === "android"))
 	} else {
 		throw new Error(`Invalid value "${platform}" for "platform"`)
 	}
