@@ -16,7 +16,7 @@ if (wasRunFromCli) {
 		.option('--apkChecksum <checksum>', "Checksum for the APK")
 		.parse(process.argv)
 
-	const {name, milestone, tag, platform, uploadFile} = options
+	const {name, milestone, tag, platform, uploadFile, apkChecksum} = options
 
 	const releaseToken = process.env.GITHUB_TOKEN
 
@@ -134,7 +134,7 @@ ${bugsListRendered}
 # Milestone
 ${milestoneUrlObject.toString()}
 
-` + (apkChecksum ? `# APK Checksum\n${apkChecksum}` : "")
+` + (apkChecksum ? `# APK Checksum\nSHA256: ${apkChecksum}` : "")
 }
 
 async function createReleaseDraft(octokit, name, tag, body) {
