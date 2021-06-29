@@ -15,7 +15,7 @@
  * [`android.js`](../android.js): script for building Android app
  * [`make.js`](../make.js): script for building dev version
  * [`dist.js`](../dist.js): script for building release versions of the web & desktop clients
- * [`fdroid-fix-deps`](../fdroid-fix-deps): script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
+ * [`fdroid-fix-deps.js`](../fdroid-fix-deps.js): script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
  * [`fdroid-metadata-workaround`](../fdroid-metadata-workaround): is a link inside app-android so that F-Droid can find our metadata because our Android
  project is not in the root. Can be removed once it's fixed in F-Droid.
  * [`tutao-pub.pem`](../tutao-pub.pem): public key which is used to verify desktop clients
@@ -97,7 +97,9 @@ operation which happened to the entity. Updates are grouped into `EntityEventBat
 client tries tp stay up-to-date with the server (for caching and indexing).
 
 ## Workflow
-`node make -w prod`
+```bash
+node make -w prod
+```
 
 This will start the dev server in hot reloading mode.
 
@@ -105,7 +107,9 @@ Point browser of your choice to the `localhost:9001` and you should be good to g
 
 To run tests:
 
-`cd test`
+```bash
+cd test
+```
  
 and
 
