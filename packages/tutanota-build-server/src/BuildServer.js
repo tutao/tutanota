@@ -92,6 +92,10 @@ export class BuildServer {
 		await this._initLog()
 
 		this.builder = await import(this.builderPath)
+		if (await fs.exists(this.socketPath)) {
+			this.log("Socket already exists, removing", this.socketPath)
+			await fs.remove(this.socketPath)
+		}
 		this.socketServer = createServer(this._connectionListener.bind(this))
 			.listen(this.socketPath)
 			.on("connection", (socket) => {
