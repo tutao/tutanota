@@ -41,7 +41,6 @@ async function buildKeytarForElectron(opts) {
 		"--runtime=electron",
 		`--target=${electronVersion}`,
 		`--dist-url=${distUrl}`,
-		`--directory='${modulePath}'`,
 		`--arch=${arch}`
 	]
 
@@ -58,12 +57,16 @@ async function buildKeytarForElectron(opts) {
 	}
 
 	// need "shell: true" to build on windows ...
-	const spawnOptions = {stdio: "inherit", shell: true}
+	const spawnOptions = {stdio: "inherit", shell: true, cwd: modulePath}
+	const invocation = ["node-gyp", gypCommand, ...gypOpts]
+
+	console.log("running ", "\"" + invocation.join(" ") + "\"", "in", modulePath)
+
 	const gyp = spawn(
-		'node-gyp',
+		"npm exec",
 		[
-			gypCommand,
-			...gypOpts
+			"--",
+			...invocation
 		],
 		spawnOptions
 	)
@@ -100,7 +103,7 @@ function findKeytarModuleDir() {
 	const nodeModulesPathFragments = pathFragments.slice(0, pathFragments.lastIndexOf("node_modules") + 1)
 	let keytarModuleDir
 	// on unixoids prepend '/' to path, on windows don't
-	if (process.platform == 'win32') {
+	if (process.platform === 'win32') {
 		keytarModuleDir = path.join(...nodeModulesPathFragments, "keytar")
 	} else {
 		keytarModuleDir = path.join('/', ...nodeModulesPathFragments, "keytar")
