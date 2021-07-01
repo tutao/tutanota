@@ -8,7 +8,11 @@ pipeline {
 	}
 
 	parameters {
-        booleanParam(name: 'RELEASE', defaultValue: false, description: '')
+        booleanParam(
+			name: 'RELEASE',
+			defaultValue: false,
+			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
+		)
         booleanParam(
         	name: 'UPDATE_DICTIONARIES',
         	defaultValue: false,
@@ -187,7 +191,7 @@ pipeline {
 
 			steps {
 				withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-					sh "echo //registry.npmjs.org/:_authToken=${NPM_TOKEN} >> .npmrc"
+					sh "echo -e '\n//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> .npmrc"
 				}
 				sh "npm --workspace=@tutao/tutanota-build-server publish"
 				sh "rm .npmrc"
