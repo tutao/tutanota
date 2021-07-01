@@ -12,24 +12,21 @@ import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
 import {EntropySrc} from "../api/common/TutanotaConstants"
 import {random} from "../api/worker/crypto/Randomizer"
 
-{
-	// the prng throws if it doesn't have enough entropy
-	// it may be called very early, so we need to seed it
-	// we do it here because it's the first place in the dep. chain that knows it's
-	// in node but the last one that knows the prng implementation
-	const seed = () => {
-		const entropy = crypto.randomBytes(128)
-		random.addEntropy([
-			{
-				source: EntropySrc.random,
-				entropy: 128 * 8,
-				data: Array.from(entropy)
-			}
-		]).then()
-	}
-	seed()
-	// TODO: add entropy periodically
+// the prng throws if it doesn't have enough entropy
+// it may be called very early, so we need to seed it
+// we do it here because it's the first place in the dep. chain that knows it's
+// in node but the last one that knows the prng implementation
+const seed = () => {
+	const entropy = crypto.randomBytes(128)
+	random.addEntropy([
+		{
+			source: EntropySrc.random,
+			entropy: 128 * 8,
+			data: Array.from(entropy)
+		}
+	]).then()
 }
+seed()
 
 export interface CryptoFunctions {
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
@@ -44,7 +41,7 @@ export interface CryptoFunctions {
 
 	publicKeyFromPem(pem: string): {verify: (string, string) => boolean};
 
-	randomBytes(bytes: number): Uint8Array;
+	randomBytes(nbrOfBytes: number): Uint8Array;
 
 	aes256RandomKey(): Aes256Key;
 
@@ -76,8 +73,14 @@ export const cryptoFns: CryptoFunctions = {
 		return forge.pki.publicKeyFromPem(pem)
 	},
 
-	randomBytes(bytes: number): Uint8Array {
-		return random.generateRandomData(bytes)
+	randomBytes(nbrOfBytes: number): Uint8Array {
+		try {
+			// may fail if the entropy pools are exhausted
+			return random.generateRandomData(nbrOfBytes)
+		} catch (e) {
+			seed()
+			return random.generateRandomData(nbrOfBytes)
+		}
 	},
 
 	aes256RandomKey(): Aes256Key {
