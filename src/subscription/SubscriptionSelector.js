@@ -16,7 +16,7 @@ import {
 } from "./SubscriptionUtils"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import {formatPrice, getFormattedSubscriptionPrice} from "./PriceUtils"
+import {formatMonthlyPrice, formatPrice, getSubscriptionPrice, isYearlyPayment} from "./PriceUtils"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{name: lang.get("pricing.privateUse_label"), value: false},
@@ -89,9 +89,9 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 
 	_getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): ?string {
 		if (selectorAttrs.options.businessUse() && selectorAttrs.currentSubscriptionType && !selectorAttrs.currentlyBusinessOrdered) {
-			const price = getFormattedSubscriptionPrice(selectorAttrs, selectorAttrs.currentSubscriptionType, UpgradePriceType.PlanActualPrice)
+			const price = getSubscriptionPrice(selectorAttrs, selectorAttrs.currentSubscriptionType, UpgradePriceType.PlanActualPrice)
 			return lang.get("businessCustomerNeedsBusinessFeaturePlan_msg", {
-					"{price}": price,
+					"{price}": formatMonthlyPrice(price, selectorAttrs.options.paymentInterval()),
 					"{plan}": selectorAttrs.currentSubscriptionType
 				})
 				+ " " + lang.get("businessCustomerAutoBusinessFeature_msg")
@@ -106,7 +106,6 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.actionButtons.Free,
 			price: formatPrice(0, true),
-			originalPrice: formatPrice(0, true),
 			helpLabel: "pricing.upgradeLater_msg",
 			features: () => [
 				lang.get("pricing.comparisonUsersFree_msg"),
@@ -132,9 +131,11 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			showAdditionallyBookedFeatures = !isDowngrade(targetSubscription, selectorAttrs.currentSubscriptionType)
 		}
 		const targetSubscriptionConfig = subscriptions[targetSubscription]
-
+		const additionalUserPrice = getSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.AdditionalUserPrice)
 		const premiumFeatures = [
-			lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.AdditionalUserPrice)}),
+			lang.get("pricing.comparisonAddUser_msg", {
+				"{1}": formatMonthlyPrice(additionalUserPrice, selectorAttrs.options.paymentInterval())
+			}),
 			lang.get("pricing.comparisonStorage_msg", {"{amount}": planPrices.includedStorage}),
 			lang.get(targetSubscriptionConfig.business || (selectorAttrs.currentlyBusinessOrdered && showAdditionallyBookedFeatures)
 				? "pricing.comparisonDomainBusiness_msg"
@@ -150,12 +151,15 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 		const sharingFeature = [lang.get("pricing.comparisonSharingCalendar_msg")]
 		const businessFeatures = [
 			lang.get("pricing.comparisonOutOfOffice_msg"),
-			lang.get("pricing.comparisonEventInvites_msg")
+			lang.get("pricing.comparisonEventInvites_msg"),
+			lang.get("pricing.businessTemplates_msg")
 		]
+
+		const contactFormPrice = getSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.ContactFormPrice)
 		const whitelabelFeatures = [
 			lang.get("pricing.comparisonLoginPro_msg"),
 			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.ContactFormPrice)})
+			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": formatMonthlyPrice(contactFormPrice, selectorAttrs.options.paymentInterval())})
 		]
 		const featuresToBeOrdered = premiumFeatures
 			.concat(targetSubscriptionConfig.business || (showAdditionallyBookedFeatures
@@ -170,13 +174,15 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			&& !selectorAttrs.options.businessUse()
 			&& (!selectorAttrs.currentSubscriptionType || selectorAttrs.currentSubscriptionType === SubscriptionType.Free)
 
+		const subscriptionPrice = getSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.PlanActualPrice)
+		const formattedMonthlyPrice = formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval())
 		return {
 			heading: getDisplayNameOfSubscriptionType(targetSubscription),
 			actionButton: selectorAttrs.currentSubscriptionType === targetSubscription
 				? getActiveSubscriptionActionButtonReplacement()
 				: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
-			price: getFormattedSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, targetSubscription, UpgradePriceType.PlanReferencePrice),
+			price: formattedMonthlyPrice,
+			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval()),
 			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
 			features: () => featuresToBeOrdered,
 			width: selectorAttrs.boxWidth,
@@ -185,5 +191,13 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			highlighted: highlightPremium,
 			showReferenceDiscount: selectorAttrs.isInitialUpgrade
 		}
+	}
+}
+
+function getPriceHint(subscriptionPrice: number, paymentInterval: number): TranslationKey {
+	if (subscriptionPrice > 0) {
+		return isYearlyPayment(paymentInterval) ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+	} else {
+		return "emptyString_msg"
 	}
 }

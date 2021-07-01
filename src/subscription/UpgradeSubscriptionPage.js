@@ -55,7 +55,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 					options: data.options,
 					campaignInfoTextId: data.campaignInfoTextId,
 					boxWidth: 230,
-					boxHeight: 250,
+					boxHeight: 270,
 					planPrices: data.planPrices,
 					isInitialUpgrade: data.upgradeType !== UpgradeType.Switch,
 					currentSubscriptionType: data.currentSubscription,

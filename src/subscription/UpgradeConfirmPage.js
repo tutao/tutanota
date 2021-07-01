@@ -3,7 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {formatPrice, getPaymentMethodName} from "./PriceUtils"
+import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
 import type {PaidSubscriptionTypeEnum} from "../api/common/TutanotaConstants"
@@ -18,7 +18,7 @@ import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
-import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
@@ -29,6 +29,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const attrs = vnode.attrs
+		const isYearly = isYearlyPayment(attrs.data.options.paymentInterval())
 		const newAccountData = attrs.data.newAccountData
 
 		const orderFieldAttrs = {
@@ -37,27 +38,19 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			disabled: true,
 		}
 
-		const subscription =
-			(attrs.data.options.paymentInterval() === 12)
-				? lang.get("pricing.yearly_label")
-				: lang.get("pricing.monthly_label") + ", " + lang.get("automaticRenewal_label")
+		const subscription = (isYearly
+			? lang.get("pricing.yearly_label")
+			: lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label")
 		const subscriptionFieldAttrs = {
 			label: "subscriptionPeriod_label",
 			value: stream(subscription),
 			disabled: true,
 		}
 
-		const netOrGross = attrs.data.options.businessUse()
-			? lang.get("net_label")
-			: lang.get("gross_label")
-
-		const price = formatPrice(Number(attrs.data.price), true) + " " + (attrs.data.options.paymentInterval() === 12
-			? lang.get("pricing.perYear_label")
-			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
 		const priceFieldAttrs = {
-			label: "priceFirstYear_label",
-			value: stream(price),
-			disabeld: true,
+			label: isYearly ? "priceFirstYear_label" : "price_label",
+			value: stream(buildPriceString(attrs.data.price, attrs.data.options)),
+			disabled: true,
 		}
 
 		const paymentMethodFieldAttrs = {
@@ -118,7 +111,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 							m(TextFieldN, orderFieldAttrs),
 							m(TextFieldN, subscriptionFieldAttrs),
 							m(TextFieldN, priceFieldAttrs),
-							attrs.data.priceNextYear ? m(TextFieldN, this._createPriceNextYearFieldAttrs(netOrGross, attrs.data)) : null,
+							attrs.data.priceNextYear ? m(TextFieldN, this._createPriceNextYearFieldAttrs(attrs.data.priceNextYear, attrs.data.options)) : null,
 							m(TextFieldN, paymentMethodFieldAttrs),
 						]),
 						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
@@ -159,17 +152,17 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		})
 	}
 
-	_createPriceNextYearFieldAttrs(netOrGross: string, data: UpgradeSubscriptionData): TextFieldAttrs {
-		const priceNextyear = formatPrice(Number(data.priceNextYear), true) + " " + (data.options.paymentInterval() === 12
-			? lang.get("pricing.perYear_label")
-			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")"
-
+	_createPriceNextYearFieldAttrs(price: NumberString, options: SubscriptionOptions): TextFieldAttrs {
 		return {
 			label: "priceForNextYear_label",
-			value: stream(priceNextyear),
+			value: stream(buildPriceString(price, options)),
 			disabled: true,
 		}
 	}
+}
+
+function buildPriceString(price: NumberString, options: SubscriptionOptions): string {
+	return formatPriceWithInfo(Number(price), options.paymentInterval(), !options.businessUse())
 }
 
 export class UpgradeConfirmPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {

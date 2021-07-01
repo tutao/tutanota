@@ -4,12 +4,11 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, Keys} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
-import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
+import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
 import {load} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
-import {formatPrice, getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {buyStorage} from "../subscription/SubscriptionUtils"
+import {buyStorage} from "./SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -84,7 +83,6 @@ function createStorageCapacityBoxAttr(amount: number, freeAmount: number, buyAct
 			}
 		},
 		price: lang.get("emptyString_msg"),
-		originalPrice: lang.get("emptyString_msg"),
 		helpLabel: "emptyString_msg",
 		features: () => [],
 		width: 230,
@@ -92,18 +90,7 @@ function createStorageCapacityBoxAttr(amount: number, freeAmount: number, buyAct
 		paymentInterval: null,
 		showReferenceDiscount: false
 	}
-
-	worker.getPrice(BookingItemFeatureType.Storage, amount, false).then(newPrice => {
-		if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Storage)) {
-			attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
-		}
-		let price = formatPrice(getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Storage), true)
-		attrs.price = price
-		attrs.originalPrice = price
-		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-			=== "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
-		m.redraw()
-	})
+	updateBuyOptionBoxPriceInformation(worker, BookingItemFeatureType.Storage, amount, attrs)
 	return {amount, buyOptionBoxAttr: attrs}
 }
 

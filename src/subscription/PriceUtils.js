@@ -55,6 +55,9 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	}
 }
 
+/**
+ * Return actual price for given subscription data. In case of yearly subscription, the yearly value is returned, and monthly otherwise.
+ */
 export function getSubscriptionPrice(data: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
 	const prices = getPlanPrices(data.planPrices, subscription)
 	if (prices) {
@@ -84,14 +87,30 @@ export function getSubscriptionPrice(data: SubscriptionData, subscription: Subsc
 	}
 }
 
-export function getFormattedSubscriptionPrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
-	return formatPrice(getSubscriptionPrice(attrs, subscription, type), true)
+/**
+ * Formats the monthly price of the subscription (even for yearly subscriptions).
+ */
+export function formatMonthlyPrice(subscriptionPrice: number, paymentInterval: number): string {
+	const monthlyPrice = isYearlyPayment(paymentInterval) ? subscriptionPrice / 12 : subscriptionPrice
+	return formatPrice(monthlyPrice, true)
+}
+
+export function isYearlyPayment(periods: number): boolean {
+	return periods === 12
 }
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
-	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	const yearlyOrMonthly = paymentInterval === 12 ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
-	return formatPrice(price, true) + " " + yearlyOrMonthly + " (" + netOrGross + ")"
+	const netOrGross = taxIncluded
+		? lang.get("gross_label")
+		: lang.get("net_label")
+
+	const yearlyOrMonthly = isYearlyPayment(paymentInterval)
+		? lang.get("pricing.perYear_label")
+		: lang.get("pricing.perMonth_label")
+
+	const formattedPrice = formatPrice(price, true)
+
+	return `${formattedPrice} ${yearlyOrMonthly} (${netOrGross})`
 }
 
 /**
