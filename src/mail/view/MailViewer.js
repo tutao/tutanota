@@ -1651,7 +1651,7 @@ export class MailViewer {
 						text: "showBlockedContent_action",
 						click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
 					},
-					locator.search.indexingSupported
+					locator.search.indexingSupported && this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 						? {
 							text: "allowExternalContentSender_action",
 							click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
