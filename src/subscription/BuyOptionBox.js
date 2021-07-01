@@ -10,6 +10,9 @@ import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
+import type {WorkerClient} from "../api/main/WorkerClient"
+import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
 
 const PaymentIntervalItems: SegmentControlItem<number>[] = [
 	{name: lang.get("pricing.yearly_label"), value: 12},
@@ -23,7 +26,7 @@ export type BuyOptionBoxAttr = {|
 	// that doesn't occur when you pass in the attrs
 	actionButton: ?(Component | lazy<ButtonAttrs>),
 	price?: string,
-	originalPrice: string,
+	priceHint?: TranslationKey | lazy<string>,
 	helpLabel: TranslationKey | lazy<string>,
 	features: () => string[],
 	width: number,
@@ -64,7 +67,7 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 					'border-radius': '3px'
 				}
 			}, [
-				(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
+				(vnode.attrs.paymentInterval ? isYearlyPayment(vnode.attrs.paymentInterval()) : null)
 					? m(".ribbon-vertical", m(".text-center.b.h4", {style: {'padding-top': px(22)}}, "%"))
 					: null,
 				m(".h4.text-center.dialog-header.dialog-header-line-height.flex.col.center-horizontally", {
@@ -77,20 +80,8 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 				}, vnode.attrs.heading),
 				m(".text-center.pt.flex.center-vertically.center-horizontally", [
 					vnode.attrs.price ? m("span.h1", vnode.attrs.price) : null,
-					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
-						? [
-							// This element is for the screen reader because they tend to not announce strikethrough.
-							m("span", {
-								style: {
-									opacity: "0",
-									width: "0",
-									height: "0",
-								},
-							}, lang.get("originalPrice_label") + ": "),
-							m("s.pl", "(" + vnode.attrs.originalPrice + ")"),
-						]
-						: null
 				]),
+				m(".small.text-center", vnode.attrs.priceHint ? lang.getMaybeLazy(vnode.attrs.priceHint) : lang.get("emptyString_msg")),
 				m(".small.text-center.pb-s", lang.getMaybeLazy(vnode.attrs.helpLabel)),
 				(vnode.attrs.paymentInterval) ? m(SegmentControl, {
 					selectedValue: vnode.attrs.paymentInterval,
@@ -127,3 +118,20 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 	}
 }
 
+/**
+ * Loads the price information for the given feature type/amount and updates the price information on the BuyOptionBox.
+ */
+export async function updateBuyOptionBoxPriceInformation(worker: WorkerClient, featureType: BookingItemFeatureTypeEnum, amount: number, attrs: BuyOptionBoxAttr): Promise<void> {
+	const newPrice = await worker.getPrice(featureType, amount, false)
+	if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, featureType)) {
+		attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
+	}
+	const futurePrice = newPrice.futurePriceNextPeriod
+	if (futurePrice) {
+		const paymentInterval = Number(futurePrice.paymentInterval)
+		const price = getPriceFromPriceData(futurePrice, featureType)
+		attrs.price = formatMonthlyPrice(price, paymentInterval)
+		attrs.helpLabel = isYearlyPayment(paymentInterval) ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+		m.redraw()
+	}
+}

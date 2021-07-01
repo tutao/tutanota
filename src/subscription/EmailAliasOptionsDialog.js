@@ -3,10 +3,9 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
-import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
+import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
 import {load} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
-import {formatPrice, getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -65,7 +64,6 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 			}
 		},
 		price: lang.get("emptyString_msg"),
-		originalPrice: lang.get("emptyString_msg"),
 		helpLabel: "emptyString_msg",
 		features: () => [],
 		width: 230,
@@ -74,16 +72,6 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 		showReferenceDiscount: false
 	}
 
-	worker.getPrice(BookingItemFeatureType.Alias, amount, false).then(newPrice => {
-		if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, BookingItemFeatureType.Alias)) {
-			attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
-		}
-		let price = formatPrice(getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias), true)
-		attrs.price = price
-		attrs.originalPrice = price
-		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval
-			=== "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
-		m.redraw()
-	})
+	updateBuyOptionBoxPriceInformation(worker, BookingItemFeatureType.Alias, amount, attrs)
 	return {amount, buyOptionBoxAttr: attrs}
 }
