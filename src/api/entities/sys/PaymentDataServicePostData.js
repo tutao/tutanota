@@ -29,11 +29,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Braintree3ds2Response"
+			"refType": "Braintree3ds2Response",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createPaymentDataServicePostData(values?: $Shape<$Exact<PaymentDataServicePostData>>): PaymentDataServicePostData {

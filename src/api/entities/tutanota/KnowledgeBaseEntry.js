@@ -71,7 +71,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "KnowledgeBaseEntryKeyword"
+			"refType": "KnowledgeBaseEntryKeyword",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

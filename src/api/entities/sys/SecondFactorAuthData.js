@@ -43,7 +43,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "U2fResponseData"
+			"refType": "U2fResponseData",
+			"dependency": null
 		},
 		"session": {
 			"id": 1232,
@@ -54,7 +55,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createSecondFactorAuthData(values?: $Shape<$Exact<SecondFactorAuthData>>): SecondFactorAuthData {

@@ -79,18 +79,20 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "AlarmNotification"
+			"refType": "AlarmNotification",
+			"dependency": null
 		},
 		"notificationInfos": {
 			"id": 1702,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "NotificationInfo"
+			"refType": "NotificationInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createMissedNotification(values?: $Shape<$Exact<MissedNotification>>): MissedNotification {

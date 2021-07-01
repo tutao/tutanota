@@ -51,14 +51,16 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "CalendarEventUpdateList"
+			"refType": "CalendarEventUpdateList",
+			"dependency": null
 		},
 		"outOfOfficeNotificationRecipientList": {
 			"id": 1151,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "OutOfOfficeNotificationRecipientList"
+			"refType": "OutOfOfficeNotificationRecipientList",
+			"dependency": null
 		},
 		"contactFormUserContactForm": {
 			"id": 748,

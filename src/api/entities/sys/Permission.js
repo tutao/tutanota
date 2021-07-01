@@ -99,7 +99,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "Bucket"
+			"refType": "Bucket",
+			"dependency": null
 		},
 		"group": {
 			"id": 141,
@@ -110,7 +111,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {

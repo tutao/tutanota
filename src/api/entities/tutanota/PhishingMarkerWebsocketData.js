@@ -36,7 +36,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "PhishingMarker"
+			"refType": "PhishingMarker",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

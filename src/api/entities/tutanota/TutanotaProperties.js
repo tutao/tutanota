@@ -121,14 +121,16 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ImapSyncConfiguration"
+			"refType": "ImapSyncConfiguration",
+			"dependency": null
 		},
 		"inboxRules": {
 			"id": 578,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "InboxRule"
+			"refType": "InboxRule",
+			"dependency": null
 		},
 		"lastPushedMail": {
 			"id": 221,

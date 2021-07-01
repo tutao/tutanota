@@ -71,11 +71,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "CreateGroupData"
+			"refType": "CreateGroupData",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createUserData(values?: $Shape<$Exact<UserData>>): UserData {

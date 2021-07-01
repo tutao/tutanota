@@ -99,7 +99,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "Subfiles"
+			"refType": "Subfiles",
+			"dependency": null
 		},
 		"data": {
 			"id": 24,

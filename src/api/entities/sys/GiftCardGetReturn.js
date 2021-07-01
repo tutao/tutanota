@@ -43,11 +43,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "GiftCardOption"
+			"refType": "GiftCardOption",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createGiftCardGetReturn(values?: $Shape<$Exact<GiftCardGetReturn>>): GiftCardGetReturn {

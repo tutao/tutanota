@@ -36,7 +36,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "NewDraftAttachment"
+			"refType": "NewDraftAttachment",
+			"dependency": null
 		},
 		"existingFile": {
 			"id": 495,

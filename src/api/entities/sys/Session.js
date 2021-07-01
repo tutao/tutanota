@@ -99,7 +99,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "Challenge"
+			"refType": "Challenge",
+			"dependency": null
 		},
 		"user": {
 			"id": 1205,
@@ -110,7 +111,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createSession(values?: $Shape<$Exact<Session>>): Session {

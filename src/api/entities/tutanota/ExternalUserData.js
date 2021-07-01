@@ -99,7 +99,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "CreateExternalUserGroupData"
+			"refType": "CreateExternalUserGroupData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

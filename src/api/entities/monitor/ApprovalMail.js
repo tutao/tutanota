@@ -74,7 +74,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "monitor",
-	"version": "15"
+	"version": "16"
 }
 
 export function createApprovalMail(values?: $Shape<$Exact<ApprovalMail>>): ApprovalMail {

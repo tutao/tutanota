@@ -50,7 +50,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserAreaGroups"
+			"refType": "UserAreaGroups",
+			"dependency": null
 		},
 		"externalGroupInfos": {
 			"id": 116,
@@ -68,7 +69,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createGroupRoot(values?: $Shape<$Exact<GroupRoot>>): GroupRoot {

@@ -73,21 +73,24 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "AttachmentKeyData"
+			"refType": "AttachmentKeyData",
+			"dependency": null
 		},
 		"internalRecipientKeyData": {
 			"id": 553,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "InternalRecipientKeyData"
+			"refType": "InternalRecipientKeyData",
+			"dependency": null
 		},
 		"secureExternalRecipientKeyData": {
 			"id": 554,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "SecureExternalRecipientKeyData"
+			"refType": "SecureExternalRecipientKeyData",
+			"dependency": null
 		},
 		"mail": {
 			"id": 556,

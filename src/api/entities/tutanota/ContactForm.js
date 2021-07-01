@@ -59,21 +59,24 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactFormLanguage"
+			"refType": "ContactFormLanguage",
+			"dependency": null
 		},
 		"statisticsFields_removed": {
 			"id": 745,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "InputField"
+			"refType": "InputField",
+			"dependency": null
 		},
 		"statisticsLog": {
 			"id": 878,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "StatisticLogRef"
+			"refType": "StatisticLogRef",
+			"dependency": null
 		},
 		"delegationGroups_removed": {
 			"id": 747,

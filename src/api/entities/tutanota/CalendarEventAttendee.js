@@ -36,7 +36,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "EncryptedMailAddress"
+			"refType": "EncryptedMailAddress",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

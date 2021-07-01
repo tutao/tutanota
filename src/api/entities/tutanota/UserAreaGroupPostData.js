@@ -29,7 +29,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "UserAreaGroupData"
+			"refType": "UserAreaGroupData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

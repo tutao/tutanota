@@ -57,11 +57,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "AlarmInfo"
+			"refType": "AlarmInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createUserAlarmInfo(values?: $Shape<$Exact<UserAlarmInfo>>): UserAlarmInfo {

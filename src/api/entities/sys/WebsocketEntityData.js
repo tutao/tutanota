@@ -43,11 +43,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "EntityUpdate"
+			"refType": "EntityUpdate",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createWebsocketEntityData(values?: $Shape<$Exact<WebsocketEntityData>>): WebsocketEntityData {

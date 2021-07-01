@@ -122,21 +122,24 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "CalendarEventAttendee"
+			"refType": "CalendarEventAttendee",
+			"dependency": null
 		},
 		"organizer": {
 			"id": 1092,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "EncryptedMailAddress"
+			"refType": "EncryptedMailAddress",
+			"dependency": null
 		},
 		"repeatRule": {
 			"id": 945,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "CalendarRepeatRule"
+			"refType": "CalendarRepeatRule",
+			"dependency": null
 		},
 		"alarmInfos": {
 			"id": 946,

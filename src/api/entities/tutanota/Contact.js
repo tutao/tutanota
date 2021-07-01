@@ -152,35 +152,40 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactAddress"
+			"refType": "ContactAddress",
+			"dependency": null
 		},
 		"mailAddresses": {
 			"id": 80,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactMailAddress"
+			"refType": "ContactMailAddress",
+			"dependency": null
 		},
 		"oldBirthdayAggregate": {
 			"id": 851,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "Birthday"
+			"refType": "Birthday",
+			"dependency": null
 		},
 		"phoneNumbers": {
 			"id": 81,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactPhoneNumber"
+			"refType": "ContactPhoneNumber",
+			"dependency": null
 		},
 		"socialIds": {
 			"id": 83,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactSocialId"
+			"refType": "ContactSocialId",
+			"dependency": null
 		},
 		"photo": {
 			"id": 852,

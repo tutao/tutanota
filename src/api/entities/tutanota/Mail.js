@@ -171,42 +171,48 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"ccRecipients": {
 			"id": 113,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"replyTos": {
 			"id": 616,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "EncryptedMailAddress"
+			"refType": "EncryptedMailAddress",
+			"dependency": null
 		},
 		"restrictions": {
 			"id": 723,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "MailRestriction"
+			"refType": "MailRestriction",
+			"dependency": null
 		},
 		"sender": {
 			"id": 111,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"toRecipients": {
 			"id": 112,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"attachments": {
 			"id": 115,

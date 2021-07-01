@@ -90,56 +90,64 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "AuditLogRef"
+			"refType": "AuditLogRef",
+			"dependency": null
 		},
 		"contactFormUserAreaGroups": {
 			"id": 1160,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserAreaGroups"
+			"refType": "UserAreaGroups",
+			"dependency": null
 		},
 		"contactFormUserGroups": {
 			"id": 1159,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserAreaGroups"
+			"refType": "UserAreaGroups",
+			"dependency": null
 		},
 		"customizations": {
 			"id": 1256,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "Feature"
+			"refType": "Feature",
+			"dependency": null
 		},
 		"rejectedSenders": {
 			"id": 1750,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "RejectedSendersRef"
+			"refType": "RejectedSendersRef",
+			"dependency": null
 		},
 		"userAreaGroups": {
 			"id": 992,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserAreaGroups"
+			"refType": "UserAreaGroups",
+			"dependency": null
 		},
 		"whitelabelChildren": {
 			"id": 1277,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "WhitelabelChildrenRef"
+			"refType": "WhitelabelChildrenRef",
+			"dependency": null
 		},
 		"whitelabelParent": {
 			"id": 1276,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "WhitelabelParent"
+			"refType": "WhitelabelParent",
+			"dependency": null
 		},
 		"adminGroup": {
 			"id": 37,
@@ -213,7 +221,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {

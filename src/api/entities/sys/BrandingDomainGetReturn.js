@@ -29,11 +29,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "CertificateInfo"
+			"refType": "CertificateInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createBrandingDomainGetReturn(values?: $Shape<$Exact<BrandingDomainGetReturn>>): BrandingDomainGetReturn {

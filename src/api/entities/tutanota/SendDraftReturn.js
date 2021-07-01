@@ -43,7 +43,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "NotificationMail"
+			"refType": "NotificationMail",
+			"dependency": null
 		},
 		"sentMail": {
 			"id": 562,

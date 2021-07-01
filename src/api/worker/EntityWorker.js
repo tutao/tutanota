@@ -47,7 +47,7 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }
 
-export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
+export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | StorageServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
 	return _service(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 

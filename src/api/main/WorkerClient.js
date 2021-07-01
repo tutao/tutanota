@@ -267,6 +267,14 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('downloadFileContentNative', arguments))
 	}
 
+	uploadBlob(instance: Object, blobData: Uint8Array, ownerGroupId: Id): Promise<Uint8Array> {
+		return this._postRequest(new Request('uploadBlob', arguments))
+	}
+
+	downloadBlob(archiveId: Id, blobId: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
+		return this._postRequest(new Request("downloadBlob", arguments))
+	}
+
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
 		return this._postRequest(new Request('changeUserPassword', arguments))
 	}
@@ -464,7 +472,7 @@ export class WorkerClient implements EntityRestInterface {
 		throw new Error("must not be used")
 	}
 
-	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
+	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum | StorageServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}
 
@@ -632,6 +640,8 @@ export class WorkerClient implements EntityRestInterface {
 	urlify(html: string): Promise<string> {
 		return this._postRequest(new Request('urlify', arguments))
 	}
+
+
 }
 
 export const worker: WorkerClient = new WorkerClient()

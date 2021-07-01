@@ -12,6 +12,7 @@ import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
 import {TypeRef} from "./utils/TypeRef";
+import storageModelMap from "../entities/storage/storageModelMap"
 
 
 export const HttpMethod = Object.freeze({
@@ -40,7 +41,8 @@ const modelMaps = {
 	tutanota: tutanotaModelMap,
 	monitor: monitorModelMap,
 	accounting: accountingModelMap,
-	gossip: gossipModelMap
+	gossip: gossipModelMap,
+	storage: storageModelMap
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {

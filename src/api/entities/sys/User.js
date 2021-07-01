@@ -98,56 +98,64 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "UserAlarmInfoListType"
+			"refType": "UserAlarmInfoListType",
+			"dependency": null
 		},
 		"auth": {
 			"id": 1210,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserAuthentication"
+			"refType": "UserAuthentication",
+			"dependency": null
 		},
 		"authenticatedDevices": {
 			"id": 97,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "AuthenticatedDevice"
+			"refType": "AuthenticatedDevice",
+			"dependency": null
 		},
 		"externalAuthInfo": {
 			"id": 98,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UserExternalAuthInfo"
+			"refType": "UserExternalAuthInfo",
+			"dependency": null
 		},
 		"memberships": {
 			"id": 96,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "GroupMembership"
+			"refType": "GroupMembership",
+			"dependency": null
 		},
 		"phoneNumbers": {
 			"id": 94,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "PhoneNumber"
+			"refType": "PhoneNumber",
+			"dependency": null
 		},
 		"pushIdentifierList": {
 			"id": 638,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "PushIdentifierList"
+			"refType": "PushIdentifierList",
+			"dependency": null
 		},
 		"userGroup": {
 			"id": 95,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "GroupMembership"
+			"refType": "GroupMembership",
+			"dependency": null
 		},
 		"customer": {
 			"id": 99,
@@ -179,7 +187,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createUser(values?: $Shape<$Exact<User>>): User {

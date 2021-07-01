@@ -36,11 +36,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "StringWrapper"
+			"refType": "StringWrapper",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createCustomDomainReturn(values?: $Shape<$Exact<CustomDomainReturn>>): CustomDomainReturn {
