@@ -37,14 +37,16 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "UserAccountUserData"
+			"refType": "UserAccountUserData",
+			"dependency": null
 		},
 		"userGroupData": {
 			"id": 667,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "InternalGroupData"
+			"refType": "InternalGroupData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

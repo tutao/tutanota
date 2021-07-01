@@ -36,11 +36,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "U2fKey"
+			"refType": "U2fKey",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {

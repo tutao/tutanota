@@ -71,11 +71,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "U2fRegisteredDevice"
+			"refType": "U2fRegisteredDevice",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {

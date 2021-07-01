@@ -50,7 +50,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ImapFolder"
+			"refType": "ImapFolder",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

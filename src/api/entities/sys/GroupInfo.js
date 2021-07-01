@@ -99,7 +99,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "MailAddressAlias"
+			"refType": "MailAddressAlias",
+			"dependency": null
 		},
 		"group": {
 			"id": 20,
@@ -117,7 +118,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createGroupInfo(values?: $Shape<$Exact<GroupInfo>>): GroupInfo {

@@ -149,6 +149,8 @@ type WorkerRequestType = 'setup'
 	| 'getGiftCardInfo'
 	| 'createTemplateGroup'
 	| 'urlify'
+	| 'uploadBlob'
+	| 'downloadBlob'
 
 /** Requests from worker web thread to main web thread */
 type MainRequestType = 'execNative'
@@ -272,14 +274,22 @@ type ModelValue = {
 	type: ValueTypeEnum,
 	cardinality: CardinalityEnum,
 	final: boolean,
-	encrypted: boolean
+	encrypted: boolean,
 }
 
+/**
+ * Metamodel Representation of the association (reference/aggregate).
+ */
 type ModelAssociation = {
 	id: number,
 	type: AssociationTypeEnum,
 	cardinality: CardinalityEnum,
-	refType: string
+	refType: string,
+	/**
+	 * From which model we import this association from. Currently the field only exists for aggregates because they are only ones
+	 * which can be imported across models.
+	 */
+	dependency?: ?string,
 }
 
 type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
@@ -291,7 +301,7 @@ type EnvType = {
 	dist: boolean,
 	versionNumber: string,
 	timeout: number,
-	systemConfig: any
+	systemConfig: any,
 }
 
 declare var env: EnvType

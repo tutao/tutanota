@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "15"
+	"version": "16"
 }
 
 export function createReadCounterData(values?: $Shape<$Exact<ReadCounterData>>): ReadCounterData {

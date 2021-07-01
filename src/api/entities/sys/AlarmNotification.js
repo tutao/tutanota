@@ -59,21 +59,24 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "AlarmInfo"
+			"refType": "AlarmInfo",
+			"dependency": null
 		},
 		"notificationSessionKeys": {
 			"id": 1572,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "NotificationSessionKey"
+			"refType": "NotificationSessionKey",
+			"dependency": null
 		},
 		"repeatRule": {
 			"id": 1571,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "RepeatRule"
+			"refType": "RepeatRule",
+			"dependency": null
 		},
 		"user": {
 			"id": 1573,
@@ -84,7 +87,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createAlarmNotification(values?: $Shape<$Exact<AlarmNotification>>): AlarmNotification {

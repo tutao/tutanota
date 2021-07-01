@@ -12,6 +12,7 @@ import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
+import {typedEntries} from "../../common/utils/Utils"
 import {assertNotNull} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
@@ -29,10 +30,10 @@ export class RestClient {
 		this._suspensionHandler = suspensionHandler
 	}
 
-	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
+	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener, baseUrl?: string): Promise<any> {
 		this._checkRequestSizeLimit(path, method, body)
 		if (this._suspensionHandler.isSuspended()) {
-			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener))
+			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener, baseUrl))
 		} else {
 			return new Promise((resolve, reject) => {
 				this.id++
@@ -40,11 +41,11 @@ export class RestClient {
 					if (!queryParams) {
 						queryParams = {}
 					}
-					queryParams['_body'] = encodeURIComponent(body) // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+					queryParams['_body'] = body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
 				}
-				let url = addParamsToUrl(this.url + path, queryParams)
+				let url = addParamsToUrl(new URL((baseUrl ? baseUrl : this.url) + path), queryParams)
 				var xhr = new XMLHttpRequest()
-				xhr.open(method, url)
+				xhr.open(method, url.toString())
 				this._setHeaders(xhr, headers, body, responseType);
 				xhr.responseType = (responseType === MediaType.Json || responseType === MediaType.Text) ? "text" : 'arraybuffer'
 
@@ -83,7 +84,7 @@ export class RestClient {
 						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 						if (isSuspensionResponse(xhr.status, suspensionTime)) {
 							this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
-							resolve(this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener)))
+							resolve(this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener, baseUrl)))
 						} else {
 							console.log("failed request", method, url, xhr.status, xhr.statusText, headers, body)
 							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
@@ -207,13 +208,11 @@ export class RestClient {
 }
 
 
-export function addParamsToUrl(url: string, urlParams: Params): string {
+export function addParamsToUrl(url: URL, urlParams: Params): URL {
 	if (urlParams) {
-		url += "?"
-		for (var key in urlParams) {
-			url += key + "=" + urlParams[key] + "&"
+		for (const [key, value] of typedEntries(urlParams)) {
+			url.searchParams.set(key, value)
 		}
-		url = url.substring(0, url.length - 1)
 	}
 	return url
 }

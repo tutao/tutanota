@@ -36,11 +36,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "WebsocketCounterValue"
+			"refType": "WebsocketCounterValue",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createWebsocketCounterData(values?: $Shape<$Exact<WebsocketCounterData>>): WebsocketCounterData {

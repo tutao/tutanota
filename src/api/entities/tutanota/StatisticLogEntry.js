@@ -64,7 +64,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "ContactFormEncryptedStatisticsField"
+			"refType": "ContactFormEncryptedStatisticsField",
+			"dependency": null
 		},
 		"contactForm": {
 			"id": 782,

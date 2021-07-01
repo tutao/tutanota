@@ -29,21 +29,24 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"invalidMailAddresses": {
 			"id": 1009,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		},
 		"invitedMailAddresses": {
 			"id": 1010,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "MailAddress"
+			"refType": "MailAddress",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

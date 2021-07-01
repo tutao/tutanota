@@ -64,7 +64,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "InputField"
+			"refType": "InputField",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

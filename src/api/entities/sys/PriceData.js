@@ -50,11 +50,12 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "PriceItemData"
+			"refType": "PriceItemData",
+			"dependency": null
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createPriceData(values?: $Shape<$Exact<PriceData>>): PriceData {

@@ -71,7 +71,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "MailFolderRef"
+			"refType": "MailFolderRef",
+			"dependency": null
 		},
 		"mails": {
 			"id": 132,

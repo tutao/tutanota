@@ -30,14 +30,16 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "InternalRecipientKeyData"
+			"refType": "InternalRecipientKeyData",
+			"dependency": null
 		},
 		"sharedGroupData": {
 			"id": 1004,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "SharedGroupData"
+			"refType": "SharedGroupData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

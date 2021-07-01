@@ -85,7 +85,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "PasswordChannelPhoneNumber"
+			"refType": "PasswordChannelPhoneNumber",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

@@ -57,7 +57,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "PhotosRef"
+			"refType": "PhotosRef",
+			"dependency": null
 		},
 		"contacts": {
 			"id": 160,

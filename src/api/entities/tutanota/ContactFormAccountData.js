@@ -32,28 +32,32 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactFormStatisticField"
+			"refType": "ContactFormStatisticField",
+			"dependency": null
 		},
 		"statistics": {
 			"id": 831,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "ContactFormStatisticEntry"
+			"refType": "ContactFormStatisticEntry",
+			"dependency": null
 		},
 		"userData": {
 			"id": 793,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "ContactFormUserData"
+			"refType": "ContactFormUserData",
+			"dependency": null
 		},
 		"userGroupData": {
 			"id": 794,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "InternalGroupData"
+			"refType": "InternalGroupData",
+			"dependency": null
 		},
 		"contactForm": {
 			"id": 796,

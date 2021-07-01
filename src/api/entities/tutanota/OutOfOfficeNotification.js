@@ -71,7 +71,8 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "OutOfOfficeNotificationMessage"
+			"refType": "OutOfOfficeNotificationMessage",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

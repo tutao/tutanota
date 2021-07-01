@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createBraintree3ds2Response(values?: $Shape<$Exact<Braintree3ds2Response>>): Braintree3ds2Response {

@@ -80,35 +80,40 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "DraftAttachment"
+			"refType": "DraftAttachment",
+			"dependency": null
 		},
 		"bccRecipients": {
 			"id": 505,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "DraftRecipient"
+			"refType": "DraftRecipient",
+			"dependency": null
 		},
 		"ccRecipients": {
 			"id": 504,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "DraftRecipient"
+			"refType": "DraftRecipient",
+			"dependency": null
 		},
 		"replyTos": {
 			"id": 819,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "EncryptedMailAddress"
+			"refType": "EncryptedMailAddress",
+			"dependency": null
 		},
 		"toRecipients": {
 			"id": 503,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "DraftRecipient"
+			"refType": "DraftRecipient",
+			"dependency": null
 		},
 		"removedAttachments": {
 			"id": 507,

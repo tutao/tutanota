@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "68"
+	"version": "69"
 }
 
 export function createBucket(values?: $Shape<$Exact<Bucket>>): Bucket {

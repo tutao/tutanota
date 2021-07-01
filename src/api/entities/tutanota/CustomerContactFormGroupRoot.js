@@ -51,14 +51,16 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "DeleteContactFormConversationIndex"
+			"refType": "DeleteContactFormConversationIndex",
+			"dependency": null
 		},
 		"statisticsLog": {
 			"id": 890,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "UnencryptedStatisticLogRef"
+			"refType": "UnencryptedStatisticLogRef",
+			"dependency": null
 		},
 		"contactForms": {
 			"id": 789,

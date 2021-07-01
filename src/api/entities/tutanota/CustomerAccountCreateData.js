@@ -93,28 +93,32 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "InternalGroupData"
+			"refType": "InternalGroupData",
+			"dependency": null
 		},
 		"customerGroupData": {
 			"id": 658,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "InternalGroupData"
+			"refType": "InternalGroupData",
+			"dependency": null
 		},
 		"userData": {
 			"id": 653,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "UserAccountUserData"
+			"refType": "UserAccountUserData",
+			"dependency": null
 		},
 		"userGroupData": {
 			"id": 656,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "InternalGroupData"
+			"refType": "InternalGroupData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",
