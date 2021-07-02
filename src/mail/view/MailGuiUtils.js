@@ -11,7 +11,9 @@ import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer";
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File";
 import {isApp, isDesktop} from "../../api/common/Env";
-import {downcast} from "../../api/common/utils/Utils"
+import type {WorkerClient} from "../../api/main/WorkerClient"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {neverNull} from "../../api/common/utils/Utils"
 
 export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
@@ -103,7 +105,7 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 }
 
 export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,
-                                            onContext: (TutanotaFile | DataFile, (MouseEvent | TouchEvent), HTMLElement) => mixed): Array<HTMLElement> {
+                                            onContext: (cid: string, (MouseEvent | TouchEvent), HTMLElement) => mixed): Array<HTMLElement> {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	const elementsWithCid = []
@@ -113,7 +115,7 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 			const inlineImage = inlineImages.get(cid)
 			if (inlineImage) {
 				elementsWithCid.push(imageElement)
-				imageElement.setAttribute("src", inlineImage.url)
+				imageElement.setAttribute("src", inlineImage.objectUrl)
 				imageElement.classList.remove("tutanota-placeholder")
 
 				if (isApp()) { // Add long press action for apps
@@ -124,7 +126,7 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 						if (!touch) return
 						startCoords = {x: touch.clientX, y: touch.clientY}
 						timeoutId = setTimeout(() => {
-							onContext(inlineImage.file, e, imageElement)
+							onContext(inlineImage.cid, e, imageElement)
 						}, 800)
 					})
 					imageElement.addEventListener("touchmove", (e: TouchEvent) => {
@@ -142,7 +144,7 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 
 				if (isDesktop()) { // add right click action for desktop apps
 					imageElement.addEventListener("contextmenu", (e: MouseEvent) => {
-						onContext(inlineImage.file, e, imageElement)
+						onContext(inlineImage.cid, e, imageElement)
 						e.preventDefault()
 					})
 				}
@@ -164,19 +166,49 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 export type InlineImageReference = {
-	cid: string;
-	objectUrl: string;
+	cid: string,
+	objectUrl: string,
+	blob: Blob
 }
 
-export function createInlineImage(file: FileReference | DataFile): InlineImageReference {
-	// Let'S assume it's DataFile for now... Editor bar is available for apps but image button is not
-	const dataFile: DataFile = downcast(file)
+export function createInlineImage(file: DataFile): InlineImageReference {
 	const cid = Math.random().toString(30).substring(2)
 	file.cid = cid
-	const blob = new Blob([dataFile.data], {type: file.mimeType})
+	return createInlineImageReference(file, cid)
+}
+
+function createInlineImageReference(file: DataFile, cid: string): InlineImageReference {
+	const blob = new Blob([file.data], {type: file.mimeType})
 	const objectUrl = URL.createObjectURL(blob)
 	return {
-		cid: cid,
-		objectUrl: objectUrl
+		cid,
+		objectUrl,
+		blob
 	}
+}
+
+export function cloneInlineImages(inlineImages: InlineImages): InlineImages {
+	const newMap = new Map()
+	inlineImages.forEach((v, k) => {
+		const blob = new Blob([v.blob])
+		const objectUrl = URL.createObjectURL(blob)
+		newMap.set(k, {cid: v.cid, objectUrl, blob})
+	})
+	return newMap
+}
+
+export function revokeInlineImages(inlineImages: InlineImages): void {
+	inlineImages.forEach((v, k) => {
+		URL.revokeObjectURL(v.objectUrl)
+	})
+}
+
+export async function loadInlineImages(worker: WorkerClient, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {
+	const filesToLoad = attachments.filter(file => referencedCids.filter(rcid => file.cid === rcid))
+	const inlineImages = new Map()
+	return promiseMap(filesToLoad, async (file) => {
+		const dataFile = await worker.downloadFileContent(file)
+		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
+		inlineImages.set(inlineImageReference.cid, inlineImageReference)
+	}).then(() => inlineImages)
 }

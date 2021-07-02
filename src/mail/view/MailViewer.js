@@ -105,7 +105,8 @@ import type {ResponseMailParameters} from "../editor/SendMailModel"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {EntityClient} from "../../api/common/EntityClient"
-import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
+import type {InlineImageReference} from "./MailGuiUtils"
+import {loadInlineImages, moveMails, promptAndDeleteMails, replaceCidsWithInlineImages, revokeInlineImages} from "./MailGuiUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
@@ -120,7 +121,8 @@ import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSuppo
 
 assertMainOrNode()
 
-export type InlineImages = Map<string, {file: TutanotaFile | DataFile, url: string}>
+// map of inline image cid to InlineImageReference
+export type InlineImages = Map<string, InlineImageReference>
 
 // synthetic events are fired in code to distinguish between double and single click events
 type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
@@ -164,7 +166,7 @@ export class MailViewer {
 	_isScaling: boolean;
 	_filesExpanded: Stream<boolean>;
 	_inlineFileIds: Promise<Array<string>>
-	_inlineImages: Promise<InlineImages>;
+	_loadedInlineImages: Promise<InlineImages>;
 	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime: number = 0;
@@ -243,10 +245,10 @@ export class MailViewer {
 			style: expanderButtonStyle
 		}
 
-		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
+		// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
 		this._inlineFileIds = this._loadMailBody(mail)
-		this._inlineImages = this._loadAttachments(mail)
-		this._inlineImages.then(() => {
+		this._loadedInlineImages = this._loadAttachments(mail)
+		this._loadedInlineImages.then(() => {
 			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
 			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
@@ -828,20 +830,21 @@ export class MailViewer {
 	}
 
 	_replaceInlineImages() {
-		this._inlineImages.then((loadedInlineImages) => {
+		this._loadedInlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
-					if (file._type !== "DataFile") {
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
+					const inlineAttachment = this._attachments.find(attachment => attachment.cid === cid)
+					if (inlineAttachment) {
 						const coords = getCoordsOfMouseOrTouchEvent(event)
 						showDropdownAtPosition([
 							{
 								label: "download_action",
-								click: () => this._downloadAndOpenAttachment(file, false),
+								click: () => this._downloadAndOpenAttachment(inlineAttachment, false),
 								type: ButtonType.Dropdown
 							},
 							{
 								label: "open_action",
-								click: () => this._downloadAndOpenAttachment(file, true),
+								click: () => this._downloadAndOpenAttachment(inlineAttachment, true),
 								type: ButtonType.Dropdown
 							},
 						], coords.x, coords.y)
@@ -903,46 +906,44 @@ export class MailViewer {
 				const attachmentsListId = listIdPart(mail.attachments[0])
 				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
 				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attachmentElementIds)
-				           .then(files => {
-					           const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
-					           if (calendarFile
-						           && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
-						           && mail.state === MailState.RECEIVED
-					           ) {
-						           Promise.all([
-							           import("../../calendar/date/CalendarInvites")
-								           .then(({getEventFromFile}) => getEventFromFile(calendarFile)),
-							           this._getSenderOfResponseMail()
-						           ]).then(([event, recipient]) => {
-							           this._calendarEventAttachment = event && {
-								           event,
-								           method: mailMethodToCalendarMethod(downcast(mail.method)),
-								           recipient,
-							           }
-							           m.redraw()
-						           })
-					           }
+				           .then(async (files) => {
+					           this._handleCalendarFile(files, mail)
 					           this._attachments = files
 					           this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
 					           this._loadingAttachments = false
+					           const inlineImages = await loadInlineImages(worker, files, inlineCids)
 					           m.redraw()
-					           const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
-					           const inlineImages: InlineImages = new Map()
-					           return Promise
-						           .each(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-							           const blob = new Blob([dataFile.data], {
-								           type: dataFile.mimeType
-							           })
-							           inlineImages.set(neverNull(file.cid), {
-								           file,
-								           url: URL.createObjectURL(blob)
-							           })
-						           })).return(inlineImages)
+					           return inlineImages
 				           })
 				           .catch(NotFoundError, e => {
 					           console.log("could load attachments as they have been moved/deleted already", e)
 					           return new Map()
 				           })
+			})
+		}
+	}
+
+	/**
+	 * Check if the list of files contain an iCal file which we can then load and display details for. An calendar notification
+	 * should contain only one iCal attachment so we only process the first matching one.
+	 */
+	_handleCalendarFile(files: Array<TutanotaFile>, mail: Mail): void {
+		const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
+		if (calendarFile
+			&& (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
+			&& mail.state === MailState.RECEIVED
+		) {
+			Promise.all([
+				import("../../calendar/date/CalendarInvites")
+					.then(({getEventFromFile}) => getEventFromFile(calendarFile)),
+				this._getSenderOfResponseMail()
+			]).then(([event, recipient]) => {
+				this._calendarEventAttachment = event && {
+					event,
+					method: mailMethodToCalendarMethod(downcast(mail.method)),
+					recipient,
+				}
+				m.redraw()
 			})
 		}
 	}
@@ -1080,12 +1081,9 @@ export class MailViewer {
 		}
 		// onbeforeremove is only called if we are removed from the parent
 		// e.g. it is not called when switching to contact view
-		this.onbeforeremove = () => {
-			this._inlineImages.then((inlineImages) => {
-				for (let img of inlineImages.values()) {
-					URL.revokeObjectURL(img.url)
-				}
-			})
+		this.onbeforeremove = async () => {
+			const inlineImages = await this._loadedInlineImages
+			revokeInlineImages(inlineImages)
 		}
 	}
 
@@ -1233,7 +1231,7 @@ export class MailViewer {
 							              this._attachments,
 							              this._getMailBody(),
 							              this._contentBlockingStatus === ContentBlockingStatus.Block,
-							              this._inlineImages,
+							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
 					              .then(editorDialog => editorDialog.show())
@@ -1301,7 +1299,8 @@ export class MailViewer {
 							              subject,
 							              bodyText: prependEmailSignature(body, logins),
 							              replyTos: [],
-						              }, this._contentBlockingStatus === ContentBlockingStatus.Block, this._inlineImages, mailboxDetails)
+						              }, this._contentBlockingStatus === ContentBlockingStatus.Block,
+							              this._loadedInlineImages, mailboxDetails)
 					              })
 					              .then(editor => editor.show())
 					              .catch(UserError, showUserError)
@@ -1327,7 +1326,7 @@ export class MailViewer {
 					              .then(([mailboxDetails, {newMailEditorAsResponse}]) => {
 						              return newMailEditorAsResponse(args,
 							              this._contentBlockingStatus === ContentBlockingStatus.Block,
-							              this._inlineImages,
+							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
 					              .then(editor => editor.show())
@@ -1409,7 +1408,7 @@ export class MailViewer {
 			return Promise.all([
 				this._getMailboxDetails(), import("../editor/SendMailModel")
 			]).then(([mailboxDetails, {defaultSendMailModel}]) => {
-				return defaultSendMailModel(mailboxDetails).initAsResponse(args).then(model => model.send(MailMethod.NONE))
+				return defaultSendMailModel(mailboxDetails).initAsResponse(args, this._loadedInlineImages).then(model => model.send(MailMethod.NONE))
 			})
 		}).then(() => this._mailModel.getMailboxFolders(this.mail)).then((folders) => {
 			return moveMails(this._mailModel, [this.mail], getArchiveFolder(folders))

@@ -47,7 +47,6 @@ import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import {downcast, isCustomizationEnabledForCustomer, noOp} from "../../api/common/utils/Utils"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils";
 import {client} from "../../misc/ClientDetector"
 import {appendEmailSignature} from "../signature/Signature"
@@ -60,6 +59,7 @@ import {styles} from "../../gui/styles"
 import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
 import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
+import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -70,7 +70,6 @@ export type MailEditorAttrs = {
 	onclose?: Function,
 	areDetailsExpanded: Stream<boolean>,
 	selectedNotificationLanguage: Stream<string>,
-	inlineImages?: Promise<InlineImages>,
 	dialog: lazy<Dialog>,
 	templateModel: ?TemplatePopupModel,
 	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<?ButtonAttrs>,
@@ -78,7 +77,7 @@ export type MailEditorAttrs = {
 
 export function createMailEditorAttrs(model: SendMailModel,
                                       doBlockExternalContent: boolean,
-                                      doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>,
+                                      doFocusEditorOnLoad: boolean,
                                       dialog: lazy<Dialog>,
                                       templateModel: ?TemplatePopupModel,
                                       createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<?ButtonAttrs>): MailEditorAttrs {
@@ -89,7 +88,6 @@ export function createMailEditorAttrs(model: SendMailModel,
 		doShowToolbar: stream(false),
 		areDetailsExpanded: stream(false),
 		selectedNotificationLanguage: stream(""),
-		inlineImages: inlineImages,
 		dialog,
 		templateModel,
 		createKnowledgeBaseButtonAttrs: createKnowledgeBaseButtonAttrs
@@ -101,14 +99,12 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 	editor: Editor;
 	toolbar: RichTextToolbar;
 	recipientFields: {to: MailEditorRecipientField, cc: MailEditorRecipientField, bcc: MailEditorRecipientField}
-	objectUrls: Array<string>
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
 	templateModel: ?TemplatePopupModel
 	openKnowledgeBaseButtonAttrs: ?ButtonAttrs
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
-		this.objectUrls = []
 		this.inlineImageElements = []
 		this.mentionedInlineImages = []
 
@@ -153,9 +149,12 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			: event => chooseAndAttachFile(model, (event.target: any).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS)
 				.then(files => {
 					files && files.forEach(file => {
-						const img = createInlineImage(file)
-						this.objectUrls.push(img.objectUrl)
-						this.inlineImageElements.push(this.editor.insertImage(img.objectUrl, {cid: img.cid, style: 'max-width: 100%'}))
+						// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
+						if (isDataFile(file)) {
+							const img = createInlineImage(file)
+							model.loadedInlineImages.set(img.cid, img)
+							this.inlineImageElements.push(this.editor.insertImage(img.objectUrl, {cid: img.cid, style: 'max-width: 100%'}))
+						}
 					})
 					m.redraw()
 				})
@@ -192,39 +191,25 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			bcc: new MailEditorRecipientField(model, "bcc", locator.contactModel),
 		}
 
-		if (a.inlineImages) {
-			a.inlineImages.then((loadedInlineImages) => {
-				try {
-					for (let file of loadedInlineImages.values()) {
-						if (!model.getAttachments().includes(file.file)) {
-							model.attachFiles([file.file])
-						}
-					}
-				} catch (e) {
-					if (e instanceof UserError) {
-						showUserError(downcast(e))
-					} else {
-						throw e
-					}
-				}
-				m.redraw()
-
-				this.editor.initialized.promise.then(() => {
-					this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), loadedInlineImages, (file, event, dom) => {
-						createDropdown(() => [
-							{
-								label: "download_action",
-								click: () => file._type !== "DataFile" // it's a TutanotaFile
-									? fileController.downloadAndOpen(downcast(file), true)
-									                .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-									: noOp,
-								type: ButtonType.Dropdown
+		this.editor.initialized.promise.then(() => {
+			this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), model.loadedInlineImages, (cid, event, dom) => {
+				const downloadClickHandler = createDropdown(() => [
+					{
+						label: "download_action",
+						click: () => {
+							const inlineAttachment = model.getAttachments().find((attachment) => attachment.cid === cid)
+							if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
+								fileController.downloadAndOpen(downcast(inlineAttachment), true)
+								              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 							}
-						])(downcast(event), dom)
-					})
-				})
+						},
+						type: ButtonType.Dropdown
+					}
+				])
+				downloadClickHandler(downcast(event), dom)
 			})
-		}
+		})
+
 
 		model.onMailChanged.map(didChange => {
 			if (didChange) m.redraw()
@@ -290,7 +275,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			icon: () => Icons.Attachment,
 			noRecipientInfoBubble: true
 		}
-		
+
 		const plaintextFormatting = logins.getUserController().props.sendPlaintextOnly
 		this.editor.setCreatesLists(!plaintextFormatting)
 		const toolbarButton = () => (!plaintextFormatting)
@@ -399,9 +384,6 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		}
 
 		return m("#mail-editor.full-height.text.touch-callout", {
-			onremove: vnode => {
-				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
-			},
 			onclick: (e) => {
 				if (e.target === this.editor.getDOM()) {
 					this.editor.focus()
@@ -501,7 +483,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
  * @returns {Dialog}
  * @private
  */
-function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false, inlineImages?: Promise<InlineImages>): Dialog {
+function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false): Dialog {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 	let domCloseButton: HTMLElement
@@ -611,7 +593,6 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	mailEditorAttrs = createMailEditorAttrs(model,
 		blockExternalContent,
 		model.toRecipients().length !== 0,
-		inlineImages,
 		() => dialog,
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs
@@ -651,18 +632,18 @@ export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 	})
 }
 
-export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 	return _mailboxPromise(mailboxDetails)
 		.then(defaultSendMailModel)
-		.then(model => model.initAsResponse(args))
-		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
+		.then(model => model.initAsResponse(args, inlineImages))
+		.then(model => createMailEditorDialog(model, blockExternalContent))
 }
 
-export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaFile>, bodyText: string, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaFile>, bodyText: string, blockExternalContent: boolean, inlineImages: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 	return _mailboxPromise(mailboxDetails)
 		.then(defaultSendMailModel)
-		.then(model => model.initWithDraft(draft, attachments, bodyText))
-		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
+		.then(model => model.initWithDraft(draft, attachments, bodyText, inlineImages))
+		.then(model => createMailEditorDialog(model, blockExternalContent))
 }
 
 export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
@@ -757,6 +738,7 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
 			.then(dialog => dialog.show())
 	})
 }
+
 
 /**
  * Create and show a new mail editor with an invite message

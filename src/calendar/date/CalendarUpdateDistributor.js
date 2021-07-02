@@ -2,7 +2,13 @@
 import {lang} from "../../misc/LanguageViewModel"
 import {makeInvitationCalendarFile} from "../export/CalendarImporter"
 import type {CalendarAttendeeStatusEnum, MailMethodEnum} from "../../api/common/TutanotaConstants"
-import {CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod} from "../../api/common/TutanotaConstants"
+import {
+	CalendarMethod,
+	ConversationType,
+	getAttendeeStatus,
+	MailMethod,
+	mailMethodToCalendarMethod
+} from "../../api/common/TutanotaConstants"
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
@@ -111,7 +117,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 					              bodyText: body,
 					              subject: message,
 					              replyTos: [],
-				              })
+				              }, Promise.resolve(new Map()))
 			              })
 			              .then(model => {
 				              model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])

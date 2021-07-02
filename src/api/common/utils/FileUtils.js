@@ -2,6 +2,10 @@
 
 import {union} from "./ArrayUtils"
 import {toLowerCase} from "./StringUtils"
+import {isSameTypeRef} from "./TypeRef"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
+import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/File"
+import {downcast} from "./Utils"
 
 type StringPredicate = string => boolean
 const _false: StringPredicate = () => false
@@ -124,4 +128,20 @@ export function isReservedFilename(filename: string): boolean {
 	const reservedRe = /^\.{1,2}$/
 
 	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
+}
+
+
+export function isTutanotaFile(file: TutanotaFile | DataFile | FileReference): boolean {
+	return file._type
+		&& file._type.hasOwnProperty("app")
+		&& file._type.hasOwnProperty("name")
+		&& isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+}
+
+export function isDataFile(file: TutanotaFile | DataFile | FileReference): boolean %checks {
+	return file._type === "DataFile"
+}
+
+export function isFileReference(file: TutanotaFile | DataFile | FileReference): boolean {
+	return file._type === "FileReference"
 }

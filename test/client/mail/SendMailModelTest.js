@@ -356,7 +356,7 @@ o.spec("SendMailModel", function () {
 				subject: "",
 				replyTos: []
 			})
-			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1)
+			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, Promise.resolve(new Map()))
 			unmockAttribute(loadMock)
 
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
@@ -387,7 +387,7 @@ o.spec("SendMailModel", function () {
 				subject: SUBJECT_LINE_1,
 				replyTos: []
 			})
-			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1)
+			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, Promise.resolve(new Map()))
 			unmockAttribute(loadMock)
 
 			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)

@@ -68,6 +68,8 @@ import {getFromMap} from "../../api/common/utils/MapUtils"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
+import type {InlineImages} from "../view/MailViewer"
+import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 
 assertMainOrNode()
 
@@ -154,6 +156,8 @@ export class SendMailModel {
 
 	onBeforeSend: () => mixed
 
+	loadedInlineImages: InlineImages
+
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -208,6 +212,8 @@ export class SendMailModel {
 		this.onRecipientDeleted = stream(null)
 
 		this.onBeforeSend = noOp
+
+		this.loadedInlineImages = new Map()
 	}
 
 	/**
@@ -360,7 +366,7 @@ export class SendMailModel {
 		})
 	}
 
-	initAsResponse(args: ResponseMailParameters): Promise<SendMailModel> {
+	async initAsResponse(args: ResponseMailParameters, inlineImages: Promise<InlineImages>): Promise<SendMailModel> {
 		const {
 			previousMail,
 			conversationType,
@@ -381,35 +387,36 @@ export class SendMailModel {
 		}
 
 		let previousMessageId: ?string = null
-		return this._entity.load(ConversationEntryTypeRef, previousMail.conversationEntry)
-		           .then(ce => {
-			           previousMessageId = ce.messageId
-		           })
-		           .catch(NotFoundError, e => {
-			           console.log("could not load conversation entry", e);
-		           })
-		           .then(() => {
-			           return this._init({
-				           conversationType,
-				           subject,
-				           bodyText,
-				           recipients,
-				           senderMailAddress,
-				           confidential: previousMail.confidential,
-				           attachments,
-				           replyTos,
-				           previousMail,
-				           previousMessageId
-			           })
-		           })
+		await this._entity.load(ConversationEntryTypeRef, previousMail.conversationEntry)
+		          .then(ce => {
+			          previousMessageId = ce.messageId
+		          })
+		          .catch(NotFoundError, e => {
+			          console.log("could not load conversation entry", e);
+		          })
+		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
+		// that reference, because it will be revoked
+		this.loadedInlineImages = cloneInlineImages(await inlineImages)
+		return this._init({
+			conversationType,
+			subject,
+			bodyText,
+			recipients,
+			senderMailAddress,
+			confidential: previousMail.confidential,
+			attachments,
+			replyTos,
+			previousMail,
+			previousMessageId
+		})
 	}
 
-	initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string,): Promise<SendMailModel> {
+	async initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string, inlineImages: Promise<InlineImages>): Promise<SendMailModel> {
 		let conversationType: ConversationTypeEnum = ConversationType.NEW
 		let previousMessageId: ?string = null
 		let previousMail: ?Mail = null
 
-		return this._entity.load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
+		await this._entity.load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
 			conversationType = downcast(ce.conversationType)
 			if (ce.previous) {
 				return this._entity.load(ConversationEntryTypeRef, ce.previous).then(previousCe => {
@@ -423,26 +430,29 @@ export class SendMailModel {
 					// ignore
 				})
 			}
-		}).then(() => {
-			const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draft
-			const recipients: Recipients = {
-				to: toRecipients.map(mailAddressToRecipient),
-				cc: ccRecipients.map(mailAddressToRecipient),
-				bcc: bccRecipients.map(mailAddressToRecipient),
-			}
-			return this._init({
-				conversationType: conversationType,
-				subject,
-				bodyText,
-				recipients,
-				draft,
-				senderMailAddress: sender.address,
-				confidential,
-				attachments,
-				replyTos,
-				previousMail,
-				previousMessageId
-			})
+		})
+		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
+		// that reference, because it will be revoked
+		this.loadedInlineImages = cloneInlineImages(await inlineImages)
+
+		const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draft
+		const recipients: Recipients = {
+			to: toRecipients.map(mailAddressToRecipient),
+			cc: ccRecipients.map(mailAddressToRecipient),
+			bcc: bccRecipients.map(mailAddressToRecipient),
+		}
+		return this._init({
+			conversationType: conversationType,
+			subject,
+			bodyText,
+			recipients,
+			draft,
+			senderMailAddress: sender.address,
+			confidential,
+			attachments,
+			replyTos,
+			previousMail,
+			previousMessageId
 		})
 	}
 
@@ -616,6 +626,7 @@ export class SendMailModel {
 
 	dispose() {
 		this._eventController.removeEntityListener(this._entityEventReceived)
+		revokeInlineImages(this.loadedInlineImages)
 	}
 
 	/**
