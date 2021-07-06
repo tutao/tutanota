@@ -1088,9 +1088,10 @@ export class MailViewer {
 		}
 		// onbeforeremove is only called if we are removed from the parent
 		// e.g. it is not called when switching to contact view
-		this.onbeforeremove = async () => {
-			const inlineImages = await this._loadedInlineImages
-			revokeInlineImages(inlineImages)
+		this.onbeforeremove = () => {
+			this._loadedInlineImages.then(inlineImages => {
+				revokeInlineImages(inlineImages)
+			})
 		}
 	}
 
