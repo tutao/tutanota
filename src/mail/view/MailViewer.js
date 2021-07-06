@@ -106,7 +106,14 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {InlineImageReference} from "./MailGuiUtils"
-import {loadInlineImages, moveMails, promptAndDeleteMails, replaceCidsWithInlineImages, revokeInlineImages} from "./MailGuiUtils"
+import {
+	getReferencedAttachments,
+	loadInlineImages,
+	moveMails,
+	promptAndDeleteMails,
+	replaceCidsWithInlineImages,
+	revokeInlineImages
+} from "./MailGuiUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
@@ -165,7 +172,7 @@ export class MailViewer {
 	mailHeaderInfo: string;
 	_isScaling: boolean;
 	_filesExpanded: Stream<boolean>;
-	_inlineFileIds: Promise<Array<string>>
+	_referencedCids: Promise<Array<string>>
 	_loadedInlineImages: Promise<InlineImages>;
 	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
@@ -246,7 +253,7 @@ export class MailViewer {
 		}
 
 		// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-		this._inlineFileIds = this._loadMailBody(mail)
+		this._referencedCids = this._loadMailBody(mail)
 		this._loadedInlineImages = this._loadAttachments(mail)
 		this._loadedInlineImages.then(() => {
 			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
@@ -901,7 +908,7 @@ export class MailViewer {
 			return Promise.resolve(new Map())
 		} else {
 			//We wait for _inlineFileIds to resolve in order to make the server requests sequentially
-			return this._inlineFileIds.then((inlineCids) => {
+			return this._referencedCids.then((inlineCids) => {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
 				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
@@ -1242,72 +1249,74 @@ export class MailViewer {
 		})
 	}
 
-	_reply(replyAll: boolean): Promise<void> {
+	async _reply(replyAll: boolean): Promise<void> {
 		if (this._isAnnouncement()) {
 			return Promise.resolve()
 		}
-		return checkApprovalStatus(false).then(sendAllowed => {
-			if (sendAllowed) {
-				return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
-					let prefix = "Re: "
-					const mailSubject = this.mail.subject
-					let subject = mailSubject
-						? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()))
-							? mailSubject
-							: prefix + mailSubject
-						: ""
-					let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
-						+ this.mail.sender.address + ":";
-					let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
+		const sendAllowed = await checkApprovalStatus(false)
+		if (sendAllowed) {
+			const mailboxDetails = await this._mailModel.getMailboxDetailsForMail(this.mail)
+			let prefix = "Re: "
+			const mailSubject = this.mail.subject
+			let subject = mailSubject
+				? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()))
+					? mailSubject
+					: prefix + mailSubject
+				: ""
+			let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
+				+ this.mail.sender.address + ":";
+			let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
-					let toRecipients = []
-					let ccRecipients = []
-					let bccRecipients = []
-					if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
-						toRecipients.push(this.mail.sender)
-					} else if (this.mail.state === MailState.RECEIVED) {
-						if (this.mail.replyTos.filter(address => !downcast(address)._errors).length > 0) {
-							addAll(toRecipients, this.mail.replyTos)
-						} else {
-							toRecipients.push(this.mail.sender)
-						}
-						if (replyAll) {
-							let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
-							addAll(ccRecipients, this.mail.toRecipients.filter(recipient =>
-								!contains(myMailAddresses, recipient.address.toLowerCase())))
-							addAll(ccRecipients, this.mail.ccRecipients.filter(recipient =>
-								!contains(myMailAddresses, recipient.address.toLowerCase())))
-						}
-					} else {
-						// this is a sent email, so use the to recipients as new recipients
-						addAll(toRecipients, this.mail.toRecipients)
-						if (replyAll) {
-							addAll(ccRecipients, this.mail.ccRecipients)
-							addAll(bccRecipients, this.mail.bccRecipients)
-						}
-					}
-					return Promise.all([this._getSenderOfResponseMail(), import("../signature/Signature"), import("../editor/MailEditor")])
-					              .then(([senderMailAddress, {prependEmailSignature}, {newMailEditorAsResponse}]) => {
-						              return newMailEditorAsResponse({
-							              previousMail: this.mail,
-							              conversationType: ConversationType.REPLY,
-							              senderMailAddress,
-							              toRecipients,
-							              ccRecipients,
-							              bccRecipients,
-							              attachments: [],
-							              subject,
-							              bodyText: prependEmailSignature(body, logins),
-							              replyTos: [],
-						              }, this._contentBlockingStatus === ContentBlockingStatus.Block,
-							              this._loadedInlineImages, mailboxDetails)
-					              })
-					              .then(editor => editor.show())
-					              .catch(UserError, showUserError)
-
-				})
+			let toRecipients = []
+			let ccRecipients = []
+			let bccRecipients = []
+			if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
+				toRecipients.push(this.mail.sender)
+			} else if (this.mail.state === MailState.RECEIVED) {
+				if (this.mail.replyTos.filter(address => !downcast(address)._errors).length > 0) {
+					addAll(toRecipients, this.mail.replyTos)
+				} else {
+					toRecipients.push(this.mail.sender)
+				}
+				if (replyAll) {
+					let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
+					addAll(ccRecipients, this.mail.toRecipients.filter(recipient =>
+						!contains(myMailAddresses, recipient.address.toLowerCase())))
+					addAll(ccRecipients, this.mail.ccRecipients.filter(recipient =>
+						!contains(myMailAddresses, recipient.address.toLowerCase())))
+				}
+			} else {
+				// this is a sent email, so use the to recipients as new recipients
+				addAll(toRecipients, this.mail.toRecipients)
+				if (replyAll) {
+					addAll(ccRecipients, this.mail.ccRecipients)
+					addAll(bccRecipients, this.mail.bccRecipients)
+				}
 			}
-		})
+			return Promise.all([
+				this._getSenderOfResponseMail(),
+				import("../signature/Signature"),
+				import("../editor/MailEditor"),
+				this._referencedCids
+			]).then(([senderMailAddress, {prependEmailSignature}, {newMailEditorAsResponse}, referencedCids]) => {
+				const attachmentsForReply = getReferencedAttachments(this._attachments, referencedCids)
+				return newMailEditorAsResponse({
+						previousMail: this.mail,
+						conversationType: ConversationType.REPLY,
+						senderMailAddress,
+						toRecipients,
+						ccRecipients,
+						bccRecipients,
+						attachments: attachmentsForReply,
+						subject,
+						bodyText: prependEmailSignature(body, logins),
+						replyTos: [],
+					}, this._contentBlockingStatus === ContentBlockingStatus.Block,
+					this._loadedInlineImages, mailboxDetails)
+			})
+			              .then(editor => editor.show())
+			              .catch(UserError, showUserError)
+		}
 	}
 
 	_getMailBody(): string {
@@ -1560,7 +1569,7 @@ export class MailViewer {
 	}
 
 	_downloadAll() {
-		this._inlineFileIds
+		this._referencedCids
 		    .then(inlineFileIds => this._attachments.filter(a => !inlineFileIds.includes(a.cid)))
 		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", fileController.downloadAll(nonInlineFiles)))
 	}

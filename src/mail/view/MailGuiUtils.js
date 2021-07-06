@@ -204,11 +204,15 @@ export function revokeInlineImages(inlineImages: InlineImages): void {
 }
 
 export async function loadInlineImages(worker: WorkerClient, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {
-	const filesToLoad = attachments.filter(file => referencedCids.filter(rcid => file.cid === rcid))
+	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
 		const dataFile = await worker.downloadFileContent(file)
 		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
 		inlineImages.set(inlineImageReference.cid, inlineImageReference)
 	}).then(() => inlineImages)
+}
+
+export function getReferencedAttachments(attachments: Array<TutanotaFile>, referencedCids: Array<string>): Array<TutanotaFile> {
+	return attachments.filter(file => referencedCids.filter(rcid => file.cid === rcid))
 }
