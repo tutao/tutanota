@@ -214,5 +214,5 @@ export async function loadInlineImages(worker: WorkerClient, attachments: Array<
 }
 
 export function getReferencedAttachments(attachments: Array<TutanotaFile>, referencedCids: Array<string>): Array<TutanotaFile> {
-	return attachments.filter(file => referencedCids.filter(rcid => file.cid === rcid))
+	return attachments.filter(file => referencedCids.find(rcid => file.cid === rcid))
 }
