@@ -13,6 +13,7 @@ import type {SendMailModel} from "../editor/SendMailModel"
 import type {MinimizedEditor, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
 import {MinimizedEditorOverlay} from "./MinimizedEditorOverlay"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -30,9 +31,13 @@ export function showMinimizedMailEditor(dialog: Dialog, sendMailModel: SendMailM
 }
 
 function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, minimizedEditor: MinimizedEditor, eventController: EventController): () => Promise<void> {
-	const finalVerticalPosition = (styles.isUsingBottomNavigation() // use size.hpad values to keep bottom and right space even
-		? (size.bottom_nav_bar + size.hpad)
-		: size.hpad_medium)
+	let overlayDom = null
+	const resizeListener = () => {
+		if (overlayDom) {
+			overlayDom.style.transform = `translateY(${px(-getVerticalOverlayPosition())})`
+		}
+	}
+	windowFacade.addResizeListener(resizeListener)
 	return displayOverlay(() => getOverlayPosition(), {
 			view: () => m(MinimizedEditorOverlay, {
 				viewModel,
@@ -40,10 +45,22 @@ function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, min
 				eventController
 			})
 		},
-		(dom) => transform(transform.type.translateY, 0, -(MINIMIZED_EDITOR_HEIGHT + finalVerticalPosition)),
-		(dom) => transform(transform.type.translateY, -(MINIMIZED_EDITOR_HEIGHT + finalVerticalPosition), 0),
+		(dom) => {
+			overlayDom = dom
+			return transform(transform.type.translateY, 0, -(getVerticalOverlayPosition()))
+		},
+		(dom) => {
+			windowFacade.removeResizeListener(resizeListener)
+			return transform(transform.type.translateY, -(getVerticalOverlayPosition()), 0)
+		},
 		"minimized-shadow"
 	)
+}
+
+function getVerticalOverlayPosition(): number {
+	return MINIMIZED_EDITOR_HEIGHT + (styles.isUsingBottomNavigation() // use size.hpad values to keep bottom and right space even
+		? (size.bottom_nav_bar + size.hpad)
+		: size.hpad_medium)
 }
 
 
