@@ -72,7 +72,7 @@ class Modal {
 							}
 						},
 						style: {
-							zIndex: 100 + i,
+							zIndex: LayerType.Modal + 1 + i,
 						},
 						onbeforeremove: vnode => {
 							if (wrapper.needsBg) {

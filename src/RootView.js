@@ -8,10 +8,10 @@ import {styles} from "./gui/styles"
 assertMainOrNodeBoot()
 export const LayerType = Object.freeze({
 	View: 0,
-	LowPriorityOverlay: 50, // Minimized editors, SearchBarOverlay
-	Modal: 99, // Editors, Dialogs
-	Overlay: 200, // Error message dialogs, Notifications
-	ForegroundMenu: 300, // Foreground menu
+	LowPriorityOverlay: 100, // Minimized editors, SearchBarOverlay
+	ForegroundMenu: 200, // Foreground menu in mobile layout
+	Modal: 300, // Editors, Dialogs
+	Overlay: 400, // Error message dialogs, Notifications
 })
 export type LayerTypeEnum = $Values<typeof LayerType>;
 
