@@ -44,7 +44,7 @@
 		"chokidar": "3.5.1",
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
-		"electron": "11.4.6",
+		"electron": "11.4.10",
 		"electron-builder": "22.11.4",
 		"electron-notarize": "1.0.0",
 		"electron-packager": "15.1.0",
