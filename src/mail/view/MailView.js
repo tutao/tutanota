@@ -21,7 +21,7 @@ import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMail
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {defer, isCustomizationEnabledForCustomer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import {defer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -216,13 +216,13 @@ export class MailView implements CurrentView {
 
 		const shortcuts = this._getShortcuts()
 
-		this.oncreate = async () => {
+		this.oncreate = () => {
 			this._countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
-			keyManager.registerShortcuts(await shortcuts)
+			keyManager.registerShortcuts(shortcuts)
 		}
-		this.onremove = async () => {
+		this.onremove = () => {
 			this._countersStream.end(true)
-			keyManager.unregisterShortcuts(await shortcuts)
+			keyManager.unregisterShortcuts(shortcuts)
 		}
 
 		locator.eventController.addEntityListener((updates) => {
@@ -246,11 +246,10 @@ export class MailView implements CurrentView {
 		}
 
 		return isNewMailActionAvailable()
-			? m(ButtonN, openMailButtonAttrs)			: null
+			? m(ButtonN, openMailButtonAttrs) : null
 	}
 
-	async _getShortcuts(): Promise<Array<Shortcut>> {
-		const customer = await logins.getUserController().loadCustomer()
+	_getShortcuts(): Array<Shortcut> {
 		return [
 			{
 				key: Keys.PAGE_UP,
@@ -384,7 +383,7 @@ export class MailView implements CurrentView {
 					return true
 				},
 				help: "emptyString_msg",
-				enabled: () => isCustomizationEnabledForCustomer(customer, FeatureType.Newsletter)
+				enabled: () => logins.isEnabled(FeatureType.Newsletter)
 			}
 		]
 	}
