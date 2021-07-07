@@ -98,7 +98,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 		const pageTitleFieldAttrs = {
 			label: "pageTitle_label",
 			value: stream(language.pageTitle),
-			disables: true
+			disabled: true
 		}
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
 		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
