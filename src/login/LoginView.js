@@ -24,6 +24,7 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {themeManager} from "../gui/theme"
+import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -75,11 +76,8 @@ export class LoginView {
 			.then(module => new module.LoginViewController(this))
 
 		if (window.location.href.includes('signup')) {
-			if (window.location.hash.includes('theme=blue')) {
-				themeManager.setThemeId('blue')
-			}
 			this.permitAutoLogin = false
-			this._signup()
+			this.goToSignupWithPreselection(window.location.hash)
 		} else if (window.location.href.endsWith('recover')) {
 			this.permitAutoLogin = false
 			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
@@ -308,21 +306,20 @@ export class LoginView {
 		m.redraw()
 	}
 
-	_signup() {
+	_signup(parameters: ?SubscriptionParameters) {
 		if (!this._showingSignup) {
 			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard())).then(dialog => dialog.show())
+			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard(parameters))).then(dialog => dialog.show())
 		}
 	}
 
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
-			this._signup()
+			this.goToSignupWithPreselection(window.location.hash)
 			return
 		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
 			return
 		} else if (requestedPath.startsWith("/giftcard")) {
-
 			const showWizardPromise =
 				import("../subscription/giftcards/GiftCardUtils")
 					.then(({getTokenFromUrl}) => getTokenFromUrl(location.hash))
@@ -445,6 +442,14 @@ export class LoginView {
 
 	openUrl(url: string) {
 		window.open(url, '_blank')
+	}
+
+	goToSignupWithPreselection(location: string): void {
+		if (location) { // parameter is always given, but can be empty string
+			this._signup(m.parseQueryString(location.substring(1))) // remove #
+		} else {
+			this._signup()
+		}
 	}
 
 	_switchDeleteCredentialsState(): void {

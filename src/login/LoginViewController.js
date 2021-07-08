@@ -41,6 +41,7 @@ import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import {themeManager} from "../gui/theme"
+import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -53,7 +54,7 @@ export interface ILoginViewController {
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
 
-	loadSignupWizard(): Promise<{+show: Function}>;
+	loadSignupWizard(parameters: ?SubscriptionParameters): Promise<{+show: Function}>;
 }
 
 export class LoginViewController implements ILoginViewController {
@@ -331,9 +332,9 @@ export class LoginViewController implements ILoginViewController {
 		})
 	}
 
-	loadSignupWizard(): Promise<{+show: () => any}> {
+	loadSignupWizard(subscriptionParameters: ?SubscriptionParameters): Promise<{+show: () => any}> {
 		return worker.initialized
 		             .then(() => import("../subscription/UpgradeSubscriptionWizard")
-			             .then((wizard) => wizard.loadSignupWizard()))
+			             .then((wizard) => wizard.loadSignupWizard(subscriptionParameters)))
 	}
 }

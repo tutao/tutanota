@@ -35,6 +35,20 @@ assertMainOrNode()
 
 const CAMPAIGN_KEY = "campaign"
 
+export type SubscriptionParameters = {
+	subscription: string,
+	type: string,
+	interval: string, // typed as string because m.parseQueryString returns an object with strings
+}
+
+/** Subscription type passed from the website */
+export const SubscriptionTypeParameter = Object.freeze({
+	FREE: "free",
+	PREMIUM: "premium",
+	TEAMS: "teams",
+	PRO: "pro",
+}
+)
 export type NewAccountData = {
 	mailAddress: string,
 	recoverCode: Hex,
@@ -56,6 +70,7 @@ export type UpgradeSubscriptionData = {
 	upgradeType: UpgradeTypeEnum,
 	planPrices: SubscriptionPlanPrices,
 	currentSubscription: ?SubscriptionTypeEnum,
+	subscriptionParameters: ?SubscriptionParameters
 }
 
 const TOKEN_PARAM_NAME = "#token="
@@ -132,7 +147,8 @@ export function showUpgradeWizard(): void {
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
 						planPrices: planPrices,
-						currentSubscription: SubscriptionType.Free
+						currentSubscription: SubscriptionType.Free,
+						subscriptionParameters: null
 					}
 					const wizardPages = [
 						{
@@ -155,7 +171,7 @@ export function showUpgradeWizard(): void {
 		)
 }
 
-export function loadSignupWizard(): Promise<Dialog> {
+export function loadSignupWizard(subscriptionParameters: ?SubscriptionParameters): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 		const planPrices: SubscriptionPlanPrices = {
 			Premium: prices.premiumPrices,
@@ -188,7 +204,8 @@ export function loadSignupWizard(): Promise<Dialog> {
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			upgradeType: UpgradeType.Signup,
 			planPrices: planPrices,
-			currentSubscription: null
+			currentSubscription: null,
+			subscriptionParameters: subscriptionParameters
 		}
 		const wizardPages = [
 			{
