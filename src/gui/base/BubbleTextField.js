@@ -85,7 +85,7 @@ export class BubbleTextField<T> {
 	suggestionAnimation: Promise<void>;
 	bubbleHandler: BubbleHandler<T, Suggestion>;
 	view: (Vnode<T>) => Children;
-	oncreate: (VnodeDOM<T>) => mixed;
+	oncreate: (VnodeDOM<T>) => void;
 
 	_textField: TextField;
 	_domSuggestions: HTMLElement;
