@@ -443,7 +443,7 @@ export class EventBusClient {
 		if (this._login.isLoggedIn()) {
 			if (Date.now() > this._lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
 				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
-				return this._worker.sendError(new OutOfSyncError())
+				return this._worker.sendError(new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more"))
 			} else {
 				return Promise.each(this._eventGroups(), (groupId) => {
 					return this._entity

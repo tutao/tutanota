@@ -69,8 +69,8 @@ export class AboutDialog implements MComponent<void> {
 		}
 
 	p = p.then(() => import("../misc/IndexerDebugLogger"))
-	     .then(({getSearchIndexDeletedLogs}) => {
-		     const logs = getSearchIndexDeletedLogs()
+	     .then(({getSearchIndexDebugLogs}) => {
+		     const logs = getSearchIndexDebugLogs()
 		     if (logs) {
 		        attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
 		     }

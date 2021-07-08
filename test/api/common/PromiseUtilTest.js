@@ -111,7 +111,7 @@ o.spec("PromiseUtils", function () {
 			await Promise.resolve()
 			o(mapper.callCount).equals(1)
 			defer1.reject(new Error("test"))
-			await assertThrows(() => resultPromise)
+			await assertThrows(Error, () => resultPromise)
 			o(mapper.callCount).equals(1)
 		})
 
@@ -119,7 +119,7 @@ o.spec("PromiseUtils", function () {
 			const mapper = o.spy(() => {
 				throw new Error("test")
 			})
-			await assertThrows(() => promiseMap([1, 2], mapper))
+			await assertThrows(Error, () => promiseMap([1, 2], mapper))
 			o(mapper.callCount).equals(1)
 		})
 	})
@@ -157,7 +157,7 @@ o.spec("PromiseUtils", function () {
 			await Promise.resolve()
 			o(mapper.callCount).equals(1)
 			defer1.reject(new Error("test"))
-			await assertThrows(() => resultPromise)
+			await assertThrows(Error, () => resultPromise)
 			o(mapper.callCount).equals(1)
 		})
 
@@ -165,7 +165,7 @@ o.spec("PromiseUtils", function () {
 			const mapper = o.spy(() => {
 				throw new Error("test")
 			})
-			await assertThrows(() => promiseMap(Promise.resolve([1, 2]), mapper))
+			await assertThrows(Error, () => promiseMap(Promise.resolve([1, 2]), mapper))
 			o(mapper.callCount).equals(1)
 		})
 	})

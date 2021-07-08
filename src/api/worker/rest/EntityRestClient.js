@@ -146,4 +146,8 @@ export class EntityRestClient implements EntityRestInterface {
 	entityEventsReceived(batch: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
 		return Promise.resolve(batch)
 	}
+
+	getRestClient(): RestClient {
+		return this._restClient
+	}
 }

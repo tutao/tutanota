@@ -381,7 +381,7 @@ export type BootstrapFeatureTypeEnum = $Values<typeof BootstrapFeatureType>;
 
 export const FULL_INDEXED_TIMESTAMP: number = 0
 export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
-
+export const ENTITY_EVENT_BATCH_TTL_DAYS: number = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
 
 export const PaymentDataResultType = Object.freeze({
 	OK: "0",

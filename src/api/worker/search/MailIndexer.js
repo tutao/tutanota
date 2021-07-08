@@ -383,25 +383,6 @@ export class MailIndexer {
 		})
 	}
 
-	_updateIndexTimeStamp(mailGroupId: Id, indexTimestamp: number): Promise<void> {
-		return this._db.dbFacade
-		           .createTransaction(false, [GroupDataOS])
-		           .then(t2 => {
-			           return t2.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
-				           if (groupData) {
-					           groupData.indexTimestamp = indexTimestamp
-					           t2.put(GroupDataOS, mailGroupId, groupData)
-					           return t2.wait()
-				           } else {
-					           throw new InvalidDatabaseStateError("no group data for mail group " + mailGroupId)
-				           }
-			           })
-		           })
-		           .then(() => {
-			           this.currentIndexTimestamp = indexTimestamp
-		           })
-	}
-
 	/**
 	 * @return Number of processed emails?
 	 * @private
