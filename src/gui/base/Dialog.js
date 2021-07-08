@@ -48,7 +48,7 @@ export type DialogTypeEnum = $Values<typeof DialogType>;
 
 type ActionDialogProps = {|
 	title: lazy<string> | string,
-	child: Component | lazy<Children>,
+	child: MComponent<mixed> | lazy<Children>,
 	validator?: ?validator,
 	okAction: null | (Dialog) => mixed,
 	allowCancel?: MaybeLazy<boolean>,
@@ -71,7 +71,7 @@ export class Dialog implements ModalComponent {
 	_focusedBeforeShown: ?HTMLElement
 	_injectionRightAttrs: ?DialogInjectionRightAttrs<*>
 
-	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
+	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<mixed>) {
 		this.visible = false
 		this._focusOnLoadFunction = this._defaultFocusOnLoad
 		this._wasFocusOnLoadCalled = false
@@ -431,7 +431,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	// used in admin client
-	static save(title: lazy<string>, saveAction: action, child: Component): Promise<void> {
+	static save(title: lazy<string>, saveAction: action, child: MComponent<mixed>): Promise<void> {
 		return new Promise(resolve => {
 			let saveDialog: Dialog
 			const closeAction = () => {
@@ -669,7 +669,7 @@ export class Dialog implements ModalComponent {
 	/**
 	 * @deprecated useLargeDialogN instead
 	 */
-	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: (Component | Class<MComponent<void>>)): Dialog {
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: MComponent<mixed>): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [

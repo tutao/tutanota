@@ -24,7 +24,7 @@ export type BuyOptionBoxAttr = {|
 	// lazy<ButtonAttrs> because you can't do actionButton instanceof ButtonAttrs since ButtonAttrs doesn't exist in the javascript side
 	// there is a strange interaction between the HTMLEditor in HTML mode and the ButtonN when you pass the ButtonN in via a component
 	// that doesn't occur when you pass in the attrs
-	actionButton: ?(Component | lazy<ButtonAttrs>),
+	actionButton: ?(MComponent<mixed> | lazy<ButtonAttrs>),
 	price?: string,
 	priceHint?: TranslationKey | lazy<string>,
 	helpLabel: TranslationKey | lazy<string>,

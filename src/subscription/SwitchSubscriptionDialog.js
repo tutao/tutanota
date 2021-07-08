@@ -107,7 +107,7 @@ export function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo,
 		})
 }
 
-function createSubscriptionPlanButton(dialog: Dialog, targetSubscription: SubscriptionTypeEnum, currentSubscriptionInfo: CurrentSubscriptionInfo): Component {
+function createSubscriptionPlanButton(dialog: Dialog, targetSubscription: SubscriptionTypeEnum, currentSubscriptionInfo: CurrentSubscriptionInfo): MComponent<void> {
 	return {
 		view: () => {
 			return m(ButtonN, {

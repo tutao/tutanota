@@ -41,7 +41,7 @@ assertMainOrNode()
 
 const className = "mail-list"
 
-export class MailListView implements Component {
+export class MailListView implements MComponent<void> {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;

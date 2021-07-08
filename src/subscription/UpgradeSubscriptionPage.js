@@ -71,7 +71,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 }
 
 
-function createUpgradeButton(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): Component {
+function createUpgradeButton(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): MComponent<void> {
 	return {
 		view: () => {
 			return m(ButtonN, {
