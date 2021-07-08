@@ -3,7 +3,12 @@ import o from "ospec"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
-import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
+import {
+	ENTITY_EVENT_BATCH_TTL_DAYS,
+	GroupType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
@@ -16,8 +21,7 @@ import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/Cr
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
-import {defer, downcast} from "../../../../src/api/common/utils/Utils"
-import {browserDataStub, mock, spy} from "../../TestUtils"
+import {assertThrows, browserDataStub, mock, spy} from "../../TestUtils"
 import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
@@ -26,17 +30,30 @@ import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/utils/EntityUtils";
 import {TypeRef} from "../../../../src/api/common/utils/TypeRef";
 import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
+import {daysToMillis} from "../../../../src/api/common/utils/DateUtils"
+import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 
-const restClientMock: EntityRestClient = downcast({})
+const SERVER_TIME = new Date("08.06.1994")
+const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - (1000 * 60 * 60 * 24)
+const restClientMock: EntityRestClient = downcast({
+	getRestClient() {
+		return {
+			getServerTimestampMs() {
+				return SERVER_TIME
+			}
+		}
+	}
+})
 
 o.spec("Indexer test", () => {
 
 	o("init new db", function (done) {
 		let metadata = {}
+		const expectedKeys = [ Metadata.userEncDbKey, Metadata.lastEventIndexTimeMs ]
 		let transaction = {
 			get: (os, key) => {
 				o(os).equals(MetaDataOS)
-				o(key).equals(Metadata.userEncDbKey)
+				o(key).equals(expectedKeys.shift())
 				return Promise.resolve(null)
 			},
 			getAll: (os) => {
@@ -67,7 +84,7 @@ o.spec("Indexer test", () => {
 			mock._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin = o.spy(() => Promise.resolve())
 
 			mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = o.spy()
+			mock._loadNewEntities = o.spy(async () => {})
 		})
 
 		let user = createUser()
@@ -133,7 +150,7 @@ o.spec("Indexer test", () => {
 			mock.indexAllWhitelabelChildrenForAdmin = o.spy(() => Promise.resolve())
 
 			mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = o.spy()
+			mock._loadNewEntities = o.spy(async () => {})
 		})
 
 		let user = createUser()
@@ -155,17 +172,73 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("init existing db out of sync", function (done) {
+	o("init existing db out of sync", async () => {
 		let userGroupKey = aes128RandomKey()
 		let dbKey = aes256RandomKey()
 		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
 		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true, false)
 		let transaction = {
-			get: (os, key) => {
-				if (os == MetaDataOS && key == Metadata.userEncDbKey) return Promise.resolve(userEncDbKey)
-				if (os == MetaDataOS && key == Metadata.mailIndexingEnabled) return Promise.resolve(true)
-				if (os == MetaDataOS && key == Metadata.excludedListIds) return Promise.resolve(["excluded-list-id"])
-				if (os == MetaDataOS && key == Metadata.encDbIv) return Promise.resolve(encDbIv)
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.userEncDbKey) return userEncDbKey
+				if (os == MetaDataOS && key == Metadata.mailIndexingEnabled) return true
+				if (os == MetaDataOS && key == Metadata.excludedListIds) return ["excluded-list-id"]
+				if (os == MetaDataOS && key == Metadata.encDbIv) return encDbIv
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			wait: () => Promise.resolve(),
+			// So that we don't run into "no group ids' check
+			getAll: () => Promise.resolve([{key: "key", value: "value"}])
+		}
+
+		let groupDiff = [{groupDiff: "dummy"}]
+		let persistentGroupData = [{persistentGroupData: "dummy"}]
+		const indexer = mock(new Indexer(restClientMock, ({sendIndexState: () => Promise.resolve()}: any), browserDataStub, restClientMock), (mock) => {
+			mock.db.initialized = Promise.resolve()
+			mock.db.dbFacade = {
+				open: o.spy(() => Promise.resolve()),
+				createTransaction: () => Promise.resolve(transaction),
+			}
+			mock._loadGroupDiff = o.spy(() => Promise.resolve(groupDiff))
+			mock._updateGroups = o.spy(() => Promise.resolve())
+			mock._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
+
+			mock._contact.indexFullContactList = o.spy(() => Promise.resolve())
+			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
+
+			mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
+			mock._loadNewEntities = o.spy(() => Promise.reject(new OutOfSyncError("is out of sync ;-)")))
+			mock.disableMailIndexing = o.spy()
+		})
+
+		let user = createUser()
+		user.userGroup = createGroupMembership()
+		user.userGroup.group = "user-group-id"
+		await indexer.init(user, userGroupKey)
+		o(indexer.db.key).deepEquals(dbKey)
+
+		o(indexer._loadGroupDiff.args).deepEquals([user])
+		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
+
+		o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
+		o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
+		o(indexer._loadPersistentGroupData.args).deepEquals([user])
+		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
+
+	})
+
+	o("init existing db out of date", async function () {
+		let userGroupKey = aes128RandomKey()
+		let dbKey = aes256RandomKey()
+		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
+		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true, false)
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.userEncDbKey) return userEncDbKey
+				if (os == MetaDataOS && key == Metadata.mailIndexingEnabled) return true
+				if (os == MetaDataOS && key == Metadata.excludedListIds) return ["excluded-list-id"]
+				if (os == MetaDataOS && key == Metadata.encDbIv) return encDbIv
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return OUT_OF_DATE_SERVER_TIME
 				return Promise.resolve(null)
 			},
 			wait: () => Promise.resolve(),
@@ -189,25 +262,15 @@ o.spec("Indexer test", () => {
 			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
 
 			mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = o.spy(() => Promise.reject(new OutOfSyncError()))
 			mock.disableMailIndexing = o.spy()
 		})
 
 		let user = createUser()
 		user.userGroup = createGroupMembership()
 		user.userGroup.group = "user-group-id"
-		indexer.init(user, userGroupKey).then(() => {
-			o(indexer.db.key).deepEquals(dbKey)
 
-			o(indexer._loadGroupDiff.args).deepEquals([user])
-			o(indexer._updateGroups.args).deepEquals([user, groupDiff])
-
-			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
-			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
-			o(indexer._loadPersistentGroupData.args).deepEquals([user])
-			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
-			done()
-		})
+		await indexer.init(user, userGroupKey)
+		o(indexer.disableMailIndexing.callCount).equals(1)
 	})
 
 	o("_loadGroupDiff", function (done) {
@@ -476,7 +539,20 @@ o.spec("Indexer test", () => {
 		batches[1]._id = ["group-mail", oldestBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
-		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+		}
+
+		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
+			mock.db.initialized = Promise.resolve()
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+		})
 		indexer._entity = ({
 			loadAll: (type, groupIdA, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
@@ -497,6 +573,7 @@ o.spec("Indexer test", () => {
 		o(queue.addBatches.invocations[0]).deepEquals(
 			[[{groupId, batchId: getElementId(batches[0]), events: batches[0].events}]]
 		)
+		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 	})
 
 	o("load events and then receive latest again", async function () {
@@ -517,7 +594,20 @@ o.spec("Indexer test", () => {
 		batches[1]._id = ["group-mail", oldestBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
-		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+		}
+
+		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
+			mock.db.initialized = Promise.resolve()
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+		})
 		indexer._entity = ({
 			loadAll: (type, groupIdA, startId) => Promise.resolve(batches)
 		}: any)
@@ -533,7 +623,7 @@ o.spec("Indexer test", () => {
 		o(queue.addBatches.invocations[0]).deepEquals(
 			[[{groupId, batchId: getElementId(batches[0]), events: batches[0].events}]]
 		)
-
+		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 		// say we received the same batch via ws
 		const realtimeEvents = [createEntityUpdate()]
 		indexer.addBatchesToQueue([{groupId, events: realtimeEvents, batchId: loadedNewBatchId}])
@@ -559,7 +649,20 @@ o.spec("Indexer test", () => {
 		batches[1]._id = ["group-mail", oldestBatchId]
 		batches[1].events = [createEntityUpdate(), createEntityUpdate()]
 
-		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+		}
+
+		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
+			mock.db.initialized = Promise.resolve()
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+		})
 		indexer._entity = ({
 			loadAll: (type, groupIdA, startId) => Promise.resolve(batches)
 		}: any)
@@ -575,6 +678,7 @@ o.spec("Indexer test", () => {
 		o(queue.addBatches.invocations[0]).deepEquals(
 			[[{groupId, batchId: getElementId(batches[0]), events: batches[0].events}]]
 		)
+		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 
 		// say we received the older batch via ws
 		indexer.addBatchesToQueue([{groupId, events: [], batchId: newestBatchId}])
@@ -604,7 +708,21 @@ o.spec("Indexer test", () => {
 			})
 		]
 
-		let indexer = new Indexer(restClientMock, (null: any), browserDataStub, restClientMock)
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+
+		}
+
+		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
+			mock.db.initialized = Promise.resolve()
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+		})
 
 		const loadCompleted = defer()
 		indexer._entity = ({
@@ -633,9 +751,12 @@ o.spec("Indexer test", () => {
 				{groupId, batchId: realtimeBatchId, events: realtimeUpdates}
 			]
 		])
+
+		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
+
 	})
 
-	o("_loadNewEntities batch already processed", function (done) {
+	o("_loadNewEntities batch already processed", async function () {
 		const newestBatchId = "L0JcCmx----0"
 		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
@@ -649,6 +770,14 @@ o.spec("Indexer test", () => {
 		batches[0]._id = ["group-mail", oldestBatchId]
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
+		let transaction = {
+			get: async (os, key) => {
+				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+		}
+
 		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
 			mock._entity = {
 				loadAll: (type, groupId, startId) => {
@@ -660,15 +789,18 @@ o.spec("Indexer test", () => {
 				}
 			}
 			mock._processEntityEvents = o.spy()
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+			mock.db.initialized = Promise.resolve()
 		})
 
-		indexer._loadNewEntities(groupIdToEventBatches).then(() => {
-			o(indexer._processEntityEvents.callCount).equals(0)
-			done()
-		})
+		await indexer._loadNewEntities(groupIdToEventBatches)
+		o(indexer._processEntityEvents.callCount).equals(0)
+		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 	})
 
-	o("_loadNewEntities out of sync", function (done) {
+	o("_loadNewEntities out of sync", async function () {
 		const newestBatchId = "L0JcCmx----0"
 		const oldestBatchId = "L0JcCmw----0"
 		let groupIdToEventBatches = [
@@ -682,6 +814,12 @@ o.spec("Indexer test", () => {
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
 
+		let transaction = {
+			get: async (os, key) => {
+				return null
+			},
+			put: o.spy(async (os, key, value) => {})
+		}
 		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
 			mock._entity = {
 				loadAll: (type, groupId, startId) => {
@@ -692,13 +830,51 @@ o.spec("Indexer test", () => {
 					return Promise.resolve(batches)
 				}
 			}
-			mock._processEntityEvents = o.spy()
+			mock._processEntityEvents = o.spy(() => Promise.resolve())
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+			mock.db.initialized = Promise.resolve()
 		})
 
-		indexer._loadNewEntities(groupIdToEventBatches).catch(OutOfSyncError, e => {
-			o(indexer._processEntityEvents.callCount).equals(0)
-			done()
+		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
+		o(indexer._processEntityEvents.callCount).equals(0)
+		o(transaction.put.callCount).equals(0)
+
+	})
+
+	o("_loadNewEntities out of date", async function () {
+		const newestBatchId = "L0JcCmx----0"
+		const oldestBatchId = "L0JcCmw----0"
+		let groupIdToEventBatches = [
+			{
+				groupId: "group-mail",
+				eventBatchIds: [newestBatchId, oldestBatchId],
+			}
+		]
+
+		let batches = [createEntityEventBatch()]
+		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
+		batches[0].events = [createEntityUpdate(), createEntityUpdate()]
+
+		let transaction = {
+			get: async (os, key) => {
+				if (os === MetaDataOS && key === Metadata.lastEventIndexTimeMs) return OUT_OF_DATE_SERVER_TIME
+				return null
+			},
+			put: o.spy(async () => {})
+		}
+		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
+			mock._processEntityEvents = o.spy(() => Promise.resolve())
+			mock.db.dbFacade = {
+				createTransaction: () => Promise.resolve(transaction),
+			}
+			mock.db.initialized = Promise.resolve()
 		})
+
+		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
+		o(indexer._processEntityEvents.callCount).equals(0)
+		o(transaction.put.callCount).equals(0)
 	})
 
 	o("_loadPersistentGroupData", function (done) {

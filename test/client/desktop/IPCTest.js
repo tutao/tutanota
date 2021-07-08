@@ -266,8 +266,8 @@ o.spec("IPC tests", function () {
 			error: {message: "err msg"},
 			id: request.id
 		})
-		const e = await assertThrows(() => requestPromise)
-		o(e.message).equals("err msg")
+		const e = await assertThrows(Error, () => requestPromise)
+		o(e?.message).equals("err msg")
 	})
 
 	o("findInPage, setSearchOverlayState & stopFindInPage", function (done) {

@@ -113,9 +113,9 @@ export function neverNull<T>(object: ?T): T {
 	return (object: any)
 }
 
-export function assertNotNull<T>(object: ?T): T {
+export function assertNotNull<T>(object: ?T, message: string = "null"): T {
 	if (object == null) {
-		throw new Error("Assertion failed: null")
+		throw new Error("AssertNotNull failed : " + message)
 	}
 	return object
 }

@@ -6,6 +6,8 @@ import {ResourceError} from "../../../src/api/common/error/RestError"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {downcast} from "../../../src/api/common/utils/Utils"
 
+const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
+const SERVER_TIMESTAMP = 1626095919000
 
 o.spec("rest client", function () {
 	env.staticUrl = "http://localhost:3000"
@@ -40,7 +42,6 @@ o.spec("rest client", function () {
 				o(req.method).equals('GET')
 				o(req.headers['content-type']).equals(undefined)
 				o(req.headers['accept']).equals('application/json')
-				//console.log("!", req.method, req.originalUrl, req.path, req.query, req.headers)
 
 				res.send(responseText)
 			})
@@ -71,7 +72,6 @@ o.spec("rest client", function () {
 				o(req.method).equals('GET')
 				o(req.headers['content-type']).equals(undefined)
 				o(req.headers['accept']).equals('application/octet-stream')
-				//console.log("!", req.method, req.originalUrl, req.path, req.query, req.headers)
 
 				res.send(response)
 			})
@@ -91,7 +91,6 @@ o.spec("rest client", function () {
 				o.timeout(200)
 				let requestText = '{"msg":"Dear Server"}'
 				let responseText = '{"msg":"Hello Client"}'
-				let before = new Date().getTime()
 				let url = "/" + method + "/json";
 
 				app.use(global.bodyParser.json())
@@ -124,7 +123,6 @@ o.spec("rest client", function () {
 				o.timeout(200)
 				let request = new Buffer([8, 5, 2, 183])
 				let response = new Buffer([1, 50, 83, 250])
-				let before = new Date().getTime()
 				let url = "/" + method + "/binary";
 
 				app.use(global.bodyParser.raw())
@@ -134,7 +132,6 @@ o.spec("rest client", function () {
 					o(req.headers['content-type']).equals('application/octet-stream')
 					o(req.headers['accept']).equals('application/octet-stream')
 					o(Array.from(req.body)).deepEquals(Array.from(request))
-					//console.log("!", req.method, req.originalUrl, req.path, req.query, req.headers)
 
 					o(req.query['_']).equals(undefined) // timestamp should be defined only for GET requests
 
@@ -154,21 +151,21 @@ o.spec("rest client", function () {
 		o("DELETE empty body", testEmptyBody('DELETE'))
 
 		function testEmptyBody(method) {
-			return function (done) {
+			return function () {
 				o.timeout(200)
-				let before = new Date().getTime()
-				let url = "/" + method + "/empty-body";
+				return new Promise(resolve => {
+					let url = "/" + method + "/empty-body";
 
-				app[method.toLowerCase()](url, (req, res) => {
-					o(req.headers['content-type']).equals(undefined)
-					o(req.headers['accept']).equals(undefined)
-					//console.log("!", req.method, req.originalUrl, req.path, req.query, req.headers)
-
-					res.send()
-				})
-				rc.request(url, method, {}, {}, null, null).then(res => {
-					o(res).equals(undefined)
-					done()
+					app[method.toLowerCase()](url, (req, res) => {
+						o(req.headers['content-type']).equals(undefined)
+						o(req.headers['accept']).equals(undefined)
+						res.set("Date", SERVER_TIME_IN_HEADER)
+						res.send()
+					})
+					rc.request(url, method, {}, {}, null, null).then(res => {
+						o(res).equals(undefined)
+						resolve()
+					})
 				})
 			}
 		}
@@ -179,22 +176,39 @@ o.spec("rest client", function () {
 		o("DELETE empty body error", testError('DELETE'))
 
 		function testError(method) {
-			return function (done) {
-				o.timeout(200)
-				let before = new Date().getTime()
-				let url = "/" + method + "/error";
+			return function () {
+				return new Promise((resolve, reject) => {
+					let url = "/" + method + "/error";
 
-				app[method.toLowerCase()](url, (req, res) => {
-					res.status(205).send() // every status code !== 200 is currently handled as error
-				})
-				rc.request(url, method, {}, {}, null, null).catch(e => {
-					o(e instanceof ResourceError).equals(true)
-					done()
+					app[method.toLowerCase()](url, (req, res) => {
+						res.set("Date", SERVER_TIME_IN_HEADER)
+						res.status(205).send() // every status code !== 200 is currently handled as error
+					})
+					rc.request(url, method, {}, {}, null, null)
+					  .then(reject)
+					  .catch(e => {
+						  o(e instanceof ResourceError).equals(true)
+						  resolve()
+					  })
 				})
 			}
 		}
 
+		o("get time successful request", async () => {
+			const test = testEmptyBody("GET")
+			await test()
+			const timestamp = rc.getServerTimestampMs()
+			// Adjust for possible variance in date times
+			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
+		})
 
+		o("get time error request", async () => {
+			const test = testError("GET")
+			await test()
+			const timestamp = rc.getServerTimestampMs()
+			// Adjust for possible variance in date times
+			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
+		})
 	}))
 
 	o("isSuspensionResponse", node(() => {
@@ -205,5 +219,4 @@ o.spec("rest client", function () {
 		o(isSuspensionResponse(503, null)).equals(false)
 		o(isSuspensionResponse(503, undefined)).equals(false)
 	}))
-
 })

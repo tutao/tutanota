@@ -1,9 +1,15 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
-import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
+import {
+	ENTITY_EVENT_BATCH_TTL_DAYS,
+	getMembershipGroupType,
+	GroupType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import type {DbKey, DbTransaction, DatabaseEntry, ObjectStoreName} from "./DbFacade"
+import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
 import type {DeferredObject} from "../../common/utils/Utils"
 import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
@@ -45,12 +51,15 @@ import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from ".
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
 import {deleteObjectStores} from "../utils/DbUtils"
 import {promiseMap} from "../../common/utils/PromiseUtils"
+import {daysToMillis, millisToDays} from "../../common/utils/DateUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
 	mailIndexingEnabled: "mailIndexingEnabled",
 	excludedListIds: "excludedListIds", // stored in the database, so the mailbox does not need to be loaded when starting to index mails except spam folder after login
-	encDbIv: "encDbIv"
+	encDbIv: "encDbIv",
+	// server timestamp of the last time we indexed on this client, in millis
+	lastEventIndexTimeMs: "lastEventIndexTimeMs"
 }
 
 export type InitParams = {
@@ -119,6 +128,7 @@ export class Indexer {
 
 	_core: IndexerCore;
 	_entity: EntityClient;
+	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
@@ -133,6 +143,7 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(true, (batch) => this._processEntityEvents(batch)),
 			browserData)
+		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
@@ -154,26 +165,28 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true): Promise<void> {
+	async init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true): Promise<void> {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,
 		}
-		return this.db.dbFacade.open(b64UserIdHash(user)).then(() => {
-			let dbInit = (): Promise<void> => {
-				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
-					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
-						if (!userEncDbKey) {
-							// database was opened for the first time - create new tables
-							return this._createIndexTables(user, userGroupKey)
-						} else {
-							return this._loadIndexTables(t, user, userGroupKey, userEncDbKey)
-						}
-					}).then(() => t.wait())
-				})
+
+		try {
+			await this.db.dbFacade.open(b64UserIdHash(user))
+
+			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
+			const userEncDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
+			if (!userEncDbKey) {
+				// database was opened for the first time - create new tables
+				await this._createIndexTables(user, userGroupKey)
+			} else {
+				await this._loadIndexTables(transaction, user, userGroupKey, userEncDbKey)
 			}
-			return dbInit().then(() => {
-				this._worker.sendIndexState({
+
+			await transaction.wait()
+
+			try {
+				await this._worker.sendIndexState({
 					initializing: false,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
@@ -182,17 +195,15 @@ export class Indexer {
 					failedIndexingUpTo: null
 				})
 				this._core.startProcessing()
-				return this._contact.indexFullContactList(user.userGroup.group)
-				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
-				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
-				           .then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)))
-				           .then(() => this._loadPersistentGroupData(user)
-				                           .then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
-				           .catch(OutOfSyncError, e => {
-					           console.log("out of sync - delete database and disable mail indexing")
-					           return this.disableMailIndexing("found to be out of sync when loading new entities")
-				           })
-			}).catch(e => {
+				await this._contact.indexFullContactList(user.userGroup.group)
+				await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
+				await this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user)
+				await this._mail.mailboxIndexingPromise
+				await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
+				const groupIdToEventBatches = await this._loadPersistentGroupData(user)
+				await this._loadNewEntities(groupIdToEventBatches)
+				          .catch(OutOfSyncError, e => this.disableMailIndexing("found to be out of sync when loading new entities"))
+			} catch (e) {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 					// in case of MembershipRemovedError mail or contact group has been removed from user.
 					// in case of InvalidDatabaseError no group id has been stored to the database.
@@ -204,9 +215,9 @@ export class Indexer {
 				} else {
 					throw e
 				}
-			})
-		}).catch(e => {
-			this._worker.sendIndexState({
+			}
+		} catch (e) {
+			await this._worker.sendIndexState({
 				initializing: false,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
@@ -216,7 +227,7 @@ export class Indexer {
 			})
 			this._dbInitializedDeferredObject.reject(e)
 			throw e
-		})
+		}
 	}
 
 	enableMailIndexing(): Promise<void> {
@@ -232,15 +243,14 @@ export class Indexer {
 	 * @param reason: To pass to the debug logger for find the reason that this is happening at updates
 	 * @returns {Promise<R>|Promise<void>}
 	 */
-	disableMailIndexing(reason: string): Promise<void> {
-		return this.db.initialized
-		           .then(() => {
-			           if (!this._core.isStoppedProcessing()) {
-				           this._core.stopProcessing()
-				           this._worker.writeIndexerDebugLog(reason, this._initParams.user)
-				           return this._mail.disableMailIndexing().then(() => this.init(this._initParams.user, this._initParams.groupKey))
-			           }
-		           })
+	async disableMailIndexing(reason: string): Promise<void> {
+		await this.db.initialized
+		if (!this._core.isStoppedProcessing()) {
+			this._core.stopProcessing()
+			this._worker.writeIndexerDebugLog("Disabling mail indexing: " + reason, this._initParams.user)
+			await this._mail.disableMailIndexing()
+			await this.init(this._initParams.user, this._initParams.groupKey)
+		}
 	}
 
 
@@ -276,53 +286,50 @@ export class Indexer {
 		})
 	}
 
-	_createIndexTables(user: User, userGroupKey: Aes128Key): Promise<void> {
-		return this._loadGroupData(user)
-		           .then((groupBatches: {groupId: Id, groupData: GroupData}[]) => {
-			           return this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
-			                      .then(t2 => {
-				                      this.db.key = aes256RandomKey()
-				                      this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
-				                      t2.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
-				                      t2.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
-				                      t2.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
-				                      t2.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(this.db.key, this.db.iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
-				                      return this._initGroupData(groupBatches, t2)
-			                      })
-		           })
-		           .then(() => this._updateIndexedGroups())
-		           .then(() => {
-			           this._dbInitializedDeferredObject.resolve()
-		           })
+	async _createIndexTables(user: User, userGroupKey: Aes128Key): Promise<void> {
+		this.db.key = aes256RandomKey()
+		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
+
+		const groupBatches = await this._loadGroupData(user)
+		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
+		await transaction.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, this.db.key))
+		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)
+		await transaction.put(MetaDataOS, Metadata.excludedListIds, this._mail._excludedListIds)
+		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(this.db.key, this.db.iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
+		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs());
+		await this._initGroupData(groupBatches, transaction)
+		await this._updateIndexedGroups()
+		await this._dbInitializedDeferredObject.resolve()
 	}
 
 
-	_loadIndexTables(t: DbTransaction, user: User, userGroupKey: Aes128Key, userEncDbKey: Uint8Array): Promise<void> {
+	async _loadIndexTables(transaction: DbTransaction, user: User, userGroupKey: Aes128Key, userEncDbKey: Uint8Array): Promise<void> {
 		this.db.key = decrypt256Key(userGroupKey, userEncDbKey)
-		return t.get(MetaDataOS, Metadata.encDbIv).then(encDbIv => {
-			this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true, false)
-		}).then(() => Promise.all([
-			t.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
+
+
+		const encDbIv = await transaction.get(MetaDataOS, Metadata.encDbIv)
+		this.db.iv = aes256Decrypt(this.db.key, neverNull(encDbIv), true, false)
+
+		await Promise.all([
+			transaction.get(MetaDataOS, Metadata.mailIndexingEnabled).then(mailIndexingEnabled => {
 				this._mail.mailIndexingEnabled = neverNull(mailIndexingEnabled)
 			}),
-			t.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
+			transaction.get(MetaDataOS, Metadata.excludedListIds).then(excludedListIds => {
 				this._mail._excludedListIds = neverNull(excludedListIds)
 			}),
-
 			this._loadGroupDiff(user)
 			    .then(groupDiff => this._updateGroups(user, groupDiff))
 			    .then(() => this._mail.updateCurrentIndexTimestamp(user))
-		]).then(() => {
-			return this._updateIndexedGroups()
-		}).then(() => {
-			this._dbInitializedDeferredObject.resolve()
-		}).then(() => {
-			return Promise.all([
-				this._contact.suggestionFacade.load(),
-				this._groupInfo.suggestionFacade.load(),
-				this._whitelabelChildIndexer.suggestionFacade.load()
-			])
-		})).return()
+		])
+
+		await this._updateIndexedGroups()
+		this._dbInitializedDeferredObject.resolve()
+
+		await Promise.all([
+			this._contact.suggestionFacade.load(),
+			this._groupInfo.suggestionFacade.load(),
+			this._whitelabelChildIndexer.suggestionFacade.load()
+		])
 	}
 
 
@@ -419,61 +426,78 @@ export class Indexer {
 		return t2.wait()
 	}
 
-	_loadNewEntities(groupIdToEventBatches: {groupId: Id, eventBatchIds: Id[]}[]): Promise<void> {
+	async _loadNewEntities(groupIdToEventBatches: {groupId: Id, eventBatchIds: Id[]}[]): Promise<void> {
 		const batchesOfAllGroups: QueuedBatch[] = []
 		const lastLoadedBatchIdInGroup = new Map<Id, Id>()
-		return Promise
-			.each(groupIdToEventBatches, (groupIdToEventBatch) => {
+
+		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
+		const lastIndexTimeMs: ?number = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
+
+		if (await this._throwIfOutOfDate()) {
+			const daysSinceIndex = millisToDays(neverNull(lastIndexTimeMs)) - ENTITY_EVENT_BATCH_TTL_DAYS
+			throw new OutOfSyncError(
+				`we haven't updated the index in ${daysSinceIndex} days. last update was ${new Date(neverNull(lastIndexTimeMs)).toString()}`)
+		}
+
+		try {
+			for (let groupIdToEventBatch of groupIdToEventBatches) {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
 					let startId = this._getStartIdForLoadingMissedEventBatches(groupIdToEventBatch.eventBatchIds)
-					return this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
-					           .then(eventBatchesOnServer => {
-						           const batchesToQueue: QueuedBatch[] = []
-						           for (let batch of eventBatchesOnServer) {
-							           const batchId = getElementId(batch)
-							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1
-								           && firstBiggerThanSecond(batchId, startId)) {
-								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
-								           const lastBatch = lastLoadedBatchIdInGroup.get(groupIdToEventBatch.groupId)
-								           if (lastBatch == null || firstBiggerThanSecond(batchId, lastBatch)) {
-									           lastLoadedBatchIdInGroup.set(groupIdToEventBatch.groupId, batchId)
-								           }
-							           }
-						           }
-						           // Good scenario: we know when we stopped, we can process events we did not process yet and catch up the server
-						           //
-						           //
-						           // [4, 3, 2, 1]                          - processed events, lastBatchId =1
-						           // load from lowest id 1 -1
-						           // [0.9, 1, 2, 3, 4, 5, 6, 7, 8]         - last X events from server
-						           // => [5, 6, 7, 8]                       - batches to queue
-						           //
-						           // Bad scenario: we don' know where we stopped, server doesn't have events to fill the gap anymore, we cannot fix the index.
-						           // [4, 3, 2, 1] - processed events, lastBatchId = 1
-						           // [7, 5, 9, 10] - last events from server
-						           // => [7, 5, 9, 10] - batches to queue - nothing has been processed before so we are out of sync
 
-						           if (eventBatchesOnServer.length === batchesToQueue.length) {
-							           // Bad scenario happened.
-							           // None of the events we want to process were processed before, we're too far away, stop the process and delete
-							           // the index.
-							           throw new OutOfSyncError()
-						           }
-						           batchesOfAllGroups.push(...batchesToQueue)
-					           })
-					           .catch(NotAuthorizedError, () => {
-						           console.log("could not download entity updates => lost permission on list")
-					           })
+					let eventBatchesOnServer = []
+					eventBatchesOnServer = await this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
+
+					const batchesToQueue: QueuedBatch[] = []
+					for (let batch of eventBatchesOnServer) {
+						const batchId = getElementId(batch)
+						if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1
+							&& firstBiggerThanSecond(batchId, startId)) {
+							batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
+							const lastBatch = lastLoadedBatchIdInGroup.get(groupIdToEventBatch.groupId)
+							if (lastBatch == null || firstBiggerThanSecond(batchId, lastBatch)) {
+								lastLoadedBatchIdInGroup.set(groupIdToEventBatch.groupId, batchId)
+							}
+						}
+					}
+					// Good scenario: we know when we stopped, we can process events we did not process yet and catch up the server
+					//
+					//
+					// [4, 3, 2, 1]                          - processed events, lastBatchId =1
+					// load from lowest id 1 -1
+					// [0.9, 1, 2, 3, 4, 5, 6, 7, 8]         - last X events from server
+					// => [5, 6, 7, 8]                       - batches to queue
+					//
+					// Bad scenario: we don' know where we stopped, server doesn't have events to fill the gap anymore, we cannot fix the index.
+					// [4, 3, 2, 1] - processed events, lastBatchId = 1
+					// [7, 5, 9, 10] - last events from server
+					// => [7, 5, 9, 10] - batches to queue - nothing has been processed before so we are out of sync
+
+					// We only want to do this check for clients that haven't yet saved the index time
+					// This can be removed in the future
+					if (lastIndexTimeMs == null && eventBatchesOnServer.length === batchesToQueue.length) {
+						// Bad scenario happened.
+						// None of the events we want to process were processed before, we're too far away, stop the process and delete
+						// the index.
+						throw new OutOfSyncError(`We lost entity events for group ${groupIdToEventBatch.groupId}. start id was ${startId}`)
+					}
+					batchesOfAllGroups.push(...batchesToQueue)
 				}
-			})
-			.then(() => {
-				// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
-				// Add them directly to the core so that they are added before the realtime batches
-				this._core.addBatchesToQueue(batchesOfAllGroups)
-				this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
-				this._realtimeEventQueue.resume()
-				this.startProcessing()
-			})
+			}
+		} catch (e) {
+			if (e instanceof NotAuthorizedError) {
+				console.log("could not download entity updates => lost permission on list")
+				return
+			}
+			throw e
+		}
+
+		// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
+		// Add them directly to the core so that they are added before the realtime batches
+		this._core.addBatchesToQueue(batchesOfAllGroups)
+		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
+		this._realtimeEventQueue.resume()
+		this.startProcessing()
+		await this._writeServerTimestamp()
 	}
 
 	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds: Id[]): Id {
@@ -526,20 +550,23 @@ export class Indexer {
 					return Promise.resolve()
 				}
 				markStart("processEntityEvents")
-				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
-					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
-						getFromMap(all, MailTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
-						getFromMap(all, ContactTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
-						getFromMap(all, GroupInfoTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
-						getFromMap(all, UserTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
-						getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
-					}
-					return all
-				}, new Map())
+				const groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = new Map() // define map first because Webstorm has problems with type annotations
+				events.reduce((all, update) => {
+						if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
+							getFromMap(all, MailTypeRef, () => []).push(update)
+						} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
+							getFromMap(all, ContactTypeRef, () => []).push(update)
+						} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
+							getFromMap(all, GroupInfoTypeRef, () => []).push(update)
+						} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
+							getFromMap(all, UserTypeRef, () => []).push(update)
+						} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
+							getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
+						}
+						return all
+					},
+					groupedEvents
+				)
 
 				markStart("processEvent")
 				return Promise.each(groupedEvents.entries(), ([key, value]) => {
@@ -599,6 +626,24 @@ export class Indexer {
 			}
 			return Promise.resolve()
 		})).return()
+	}
+
+	async _throwIfOutOfDate(): Promise<void> {
+		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
+		const lastIndexTimeMs = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
+		if (lastIndexTimeMs != null) {
+			const now = this._entityRestClient.getRestClient().getServerTimestampMs()
+			const timeSinceLastIndex = now - lastIndexTimeMs
+			if (timeSinceLastIndex >= daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS)) {
+				throw new OutOfSyncError(`we haven't updated the index in ${millisToDays(timeSinceLastIndex)} days. last update was ${new Date(neverNull(lastIndexTimeMs)).toString()}`)
+			}
+		}
+	}
+
+	async _writeServerTimestamp() {
+		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS])
+		const now = this._entityRestClient.getRestClient().getServerTimestampMs()
+		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, now)
 	}
 }
 

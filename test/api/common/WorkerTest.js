@@ -32,24 +32,21 @@ o.spec("WorkerTest request / response", node(function () {
 	})
 
 	o("programming error handling", async function () {
-		const e = await assertThrows(() => worker._postRequest(new Request('testError', [{errorType: 'ProgrammingError'}])))
-		o(e instanceof ProgrammingError).equals(true)("Is ProgrammingError")
-		o(e.name).equals("ProgrammingError")
-		o(e.message).equals("wtf: ProgrammingError")
+		const e = await assertThrows(ProgrammingError, () => worker._postRequest(new Request('testError', [{errorType: 'ProgrammingError'}])))
+		o(e?.name).equals("ProgrammingError")
+		o(e?.message).equals("wtf: ProgrammingError")
 	})
 
 	o("crypto error handling", async function () {
-		const e = await assertThrows(() => worker._postRequest(new Request('testError', [{errorType: 'CryptoError'}])))
-		o(e instanceof CryptoError).equals(true)("Is CryptoError")
-		o(e.name).equals("CryptoError")
-		o(e.message).equals("wtf: CryptoError")
+		const e = await assertThrows(CryptoError, () => worker._postRequest(new Request('testError', [{errorType: 'CryptoError'}])))
+		o(e?.name).equals("CryptoError")
+		o(e?.message).equals("wtf: CryptoError")
 	})
 
 	o("rest error handling", async function () {
-		const e = await assertThrows(() => worker._postRequest(new Request('testError', [{errorType: 'NotAuthenticatedError'}])))
-		o(e instanceof NotAuthenticatedError).equals(true)("Is NotAuthenticatedError")
-		o(e.name).equals("NotAuthenticatedError")
-		o(e.message).equals("wtf: NotAuthenticatedError")
+		const e = await assertThrows(NotAuthenticatedError, () => worker._postRequest(new Request('testError', [{errorType: 'NotAuthenticatedError'}])))
+		o(e?.name).equals("NotAuthenticatedError")
+		o(e?.message).equals("wtf: NotAuthenticatedError")
 	})
 }))
 

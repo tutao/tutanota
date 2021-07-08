@@ -4,7 +4,7 @@ import o from "ospec"
 import {client} from "../../../src/misc/ClientDetector"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import {createUser} from "../../../src/api/entities/sys/User"
-import {addSearchIndexDeletedLogEntry, getSearchIndexDeletedLogs} from "../../../src/misc/IndexerDebugLogger"
+import {addSearchIndexDebugEntry, getSearchIndexDebugLogs} from "../../../src/misc/IndexerDebugLogger"
 
 node(() => {
 	o.spec("IndexerDebugLoggerTest", function () {
@@ -20,11 +20,10 @@ node(() => {
 		})
 
 		o("write log", function () {
-			const now = new Date()
 			const reason = "it was mean to me"
 			const user = createUser({_id: "id"})
 
-			addSearchIndexDeletedLogEntry(now, reason, user)
+			addSearchIndexDebugEntry(reason, user)
 
 			o(window.localStorage.getItem.callCount).equals(1)
 			o(window.localStorage.setItem.callCount).equals(1)
@@ -33,7 +32,7 @@ node(() => {
 		o("read logs", function () {
 
 			localStorageStub = "this is the log\nthe whole log"
-			const logs = getSearchIndexDeletedLogs()
+			const logs = getSearchIndexDebugLogs()
 
 			o(logs).equals(localStorageStub)
 		})

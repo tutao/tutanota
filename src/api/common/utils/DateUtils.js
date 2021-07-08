@@ -113,3 +113,14 @@ export function sortableTimestamp(): string {
 export function isValidDate(date: Date): boolean {
 	return !isNaN(date.getTime())
 }
+
+/**
+ * not interested in any fancy calendar edge cases, only use this where approximation is ok
+ */
+export function millisToDays(millis: number): number {
+	return millis / DAY_IN_MILLIS
+}
+
+export function daysToMillis(days: number): number {
+	return days * DAY_IN_MILLIS
+}

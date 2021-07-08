@@ -51,7 +51,7 @@ import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {TypeRef} from "../common/utils/TypeRef"
-import {addSearchIndexDeletedLogEntry} from "../../misc/IndexerDebugLogger"
+import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 
 assertMainOrNode()
 
@@ -133,7 +133,7 @@ export class WorkerClient implements EntityRestInterface {
 			writeIndexerDebugLog: (message: Message) => {
 				const reason = downcast(message.args[0])
 				const user = downcast(message.args[1])
-				addSearchIndexDeletedLogEntry(new Date(), reason, user)
+				addSearchIndexDebugEntry(reason, user)
 				return Promise.resolve()
 			}
 		})
