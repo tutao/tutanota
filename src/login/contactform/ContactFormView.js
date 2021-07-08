@@ -71,11 +71,11 @@ class ContactFormView {
 			}, progressIcon())
 		} else if (this._contactForm) {
 			let language = getDefaultContactFormLanguage(this._contactForm.languages)
-			return m("", {
+			return m(".mt", {
 				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
 			}, [
-				(language.pageTitle) ? m("h1.center", language.pageTitle) : null,
-				m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
+				(language.pageTitle) ? m("h1.center.pt", language.pageTitle) : null,
+				m(".center", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
 				m(".flex.justify-center", [
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(ButtonN, {
@@ -97,7 +97,7 @@ class ContactFormView {
 							: null,
 					])
 				]),
-				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
+				m(".pt-l.center", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
 				renderPrivacyAndImprintLinks()
 			])
 		} else {
