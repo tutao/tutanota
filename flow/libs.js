@@ -1,10 +1,5 @@
-// Declared at the top level to not import it in all places
-declare interface Component {
-	view(vnode: Vnode<any>): VirtualElement | VirtualElement[];
-}
-
 declare type RouteResolverMatch = {
-	onmatch(args: {[string]: string}, requestedPath: string): ?(Component | Promise<?Component>);
+	onmatch(args: {[string]: string}, requestedPath: string): ?(MComponent<mixed> | Promise<?MComponent<mixed>>);
 }
 
 declare type RouteResolverRender = {
@@ -13,21 +8,25 @@ declare type RouteResolverRender = {
 
 declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
 
+/**
+ * mithril component lifecycle methods: https://mithril.js.org/lifecycle-methods.html
+ */
 interface Lifecycle<Attrs> {
 	// The oninit hook is called before a vnode is touched by the virtual DOM engine.
-	+oninit?: (vnode: Vnode<Attrs>) => any;
+	+oninit?: (vnode: Vnode<Attrs>) => void;
 	// The oncreate hook is called after a DOM element is created and attached to the document.
-	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onbeforeupdate hook is called before a vnode is diffed in a update. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
-	// Change to the correct return type after updating to Flow 0.85 or newer
-	// see https://github.com/facebook/flow/issues/6284
-	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onremove hook is called before a DOM element is removed from the document.
-	+onremove?: (vnode: VnodeDOM<Attrs>) => any;
+	+oncreate?: (vnode: VnodeDOM<Attrs>) => void;
 	// The onbeforeremove hook is called before a DOM element is detached from the document.
+	// If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
+	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => void | Promise<void>;
+	// The onremove hook is called before a DOM element is removed from the document.
+	+onremove?: (vnode: VnodeDOM<Attrs>) => void;
+	// The onbeforeupdate hook is called before a vnode is diffed in a update.
+	// if it returns false, Mithril prevents a diff from happening to the vnode,
+	// and consequently to the vnode's children.
 	+onbeforeupdate?: (vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
 	// The onupdate hook is called after a DOM element is updated, while attached to the document.
-	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
+	+onupdate?: (vnode: VnodeDOM<Attrs>) => void;
 }
 
 type LifecycleAttrs<T> = T & Lifecycle<T>
@@ -36,10 +35,10 @@ type Attrs = $ReadOnly<{[?string]: any}>
 
 declare interface Mithril {
 	// We would like to write a definition which allows omitting Attrs if all keys are optional
-	(component: string | Component | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
+	(component: string | MComponent<any> | Class<MComponent<any>>, children?: Children): Vnode<any>;
 
 	<AttrsT: Attrs>(
-		component: string | Component | Class<MComponent<AttrsT>> | MComponent<AttrsT>,
+		component: string | Class<MComponent<AttrsT>> | MComponent<AttrsT>,
 		attributes: AttrsT,
 		children?: Children
 	): Vnode<any>;
@@ -63,7 +62,7 @@ declare interface Mithril {
 
 declare module 'mithril' {
 	declare interface Router {
-		(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
+		(root: HTMLElement, defaultRoute: string, routes: {[string]: MComponent<mixed> | RouteResolver}): void;
 
 		set(path: string, data?: ?{[string]: mixed},
 		    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
@@ -76,7 +75,7 @@ declare module 'mithril' {
 
 		prefix: string;
 
-		Link: MComponent<any>;
+		Link: MComponent<mixed>;
 	}
 
 	declare export default Mithril;
@@ -269,6 +268,7 @@ interface Attributes {
 
 type $Attrs<+T> = $ReadOnly<T>
 
+// Declared at the top level to not import it in all places
 interface MComponent<+Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */
 	view(vnode: Vnode<Attrs>): ?Children;

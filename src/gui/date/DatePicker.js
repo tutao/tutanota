@@ -3,11 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "../base/icons/Icons"
 import {client} from "../../misc/ClientDetector"
-import {
-	formatDate,
-	formatDateWithWeekdayAndYear,
-	formatMonthWithFullYear
-} from "../../misc/Formatter"
+import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
@@ -20,8 +16,8 @@ import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
 import {TextFieldN} from "../base/TextFieldN"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
+import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
 
 /**
@@ -33,7 +29,7 @@ import {parseDate} from "../../misc/DateParser"
  * That is why we only use the picker on mobile devices. They provide native picker components
  * and allow opening the picker by forwarding the click event to the input.
  */
-export class DatePicker implements Component {
+export class DatePicker implements MComponent<void> {
 	invalidDate: boolean;
 	date: Stream<?Date>;
 	_dateString: Stream<string>;

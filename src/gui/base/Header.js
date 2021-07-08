@@ -29,7 +29,7 @@ export const LogoutUrl: string = location.hash.startsWith("#mail")
 
 assertMainOrNode()
 
-export interface CurrentView extends Component {
+export interface CurrentView extends MComponent<void> {
 	+headerView?: () => Children;
 	+headerRightView?: () => Children;
 	+getViewSlider?: () => ?IViewSlider;

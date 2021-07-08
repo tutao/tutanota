@@ -68,7 +68,7 @@ export function showSupportDialog() {
 		value: searchValue
 	}
 
-	const child: Component = {
+	const child: MComponent<void> = {
 		view: () => {
 			return [
 				m(".pt"),

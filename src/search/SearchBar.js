@@ -79,7 +79,7 @@ export type SearchBarState = {
 	selected: ?Entry
 }
 
-export class SearchBar implements Component {
+export class SearchBar implements MComponent<SearchBarAttrs> {
 	view: Function;
 	_domInput: HTMLInputElement;
 	_domWrapper: HTMLElement;

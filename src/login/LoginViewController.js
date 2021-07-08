@@ -261,7 +261,7 @@ export class LoginViewController implements ILoginViewController {
 	_remindActiveOutOfOfficeNotification(): Promise<void> {
 		return loadOutOfOfficeNotification().then((notification) => {
 			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
-				const notificationMessage: Component = {
+				const notificationMessage: MComponent<void> = {
 					view: () => {
 						return m("", lang.get("outOfOfficeReminder_label"))
 					}

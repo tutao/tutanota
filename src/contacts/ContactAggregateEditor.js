@@ -32,8 +32,8 @@ export class ContactAggregateEditor implements MComponent<AggregateEditorAttrs<*
 		if (animate) this.animate(vnode.dom, true)
 	}
 
-	onbeforeremove(vnode: Vnode<AggregateEditorAttrs<*>>): Promise<*> {
-		return this.animate(vnode.dom, false)
+	async onbeforeremove(vnode: Vnode<AggregateEditorAttrs<*>>): Promise<void> {
+		await this.animate(vnode.dom, false)
 	}
 
 	view(vnode: Vnode<AggregateEditorAttrs<*>>): Children {

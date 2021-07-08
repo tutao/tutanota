@@ -314,7 +314,7 @@ export class SettingsView implements CurrentView {
 				))
 	}
 
-	_getCurrentViewer(): Component {
+	_getCurrentViewer(): MComponent<void> {
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()

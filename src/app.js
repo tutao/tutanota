@@ -31,7 +31,7 @@ window.Promise = Promise.config({
 	warnings: false
 })
 
-let currentView: ?Component = null
+let currentView: ?MComponent<mixed> = null
 
 window.tutao = {
 	client,
@@ -198,7 +198,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 
 	// append catch all at the end because mithril will stop at the first match
 	resolvers["/:path"] = {
-		onmatch: (args: {[string]: string}, requestedPath: string): Promise<Component> => {
+		onmatch: (args: {[string]: string}, requestedPath: string): Promise<MComponent<void>> => {
 			return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")])
 			              .then(([{InfoView}, {ButtonType, ButtonN}]) => {
 				              return {

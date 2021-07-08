@@ -297,7 +297,7 @@ export const ColumnType = {
 }
 
 export class ViewColumnN {
-	component: Component | Class<MComponent<void>>;
+	component: Class<MComponent<void>>;
 	columnType: ColumnTypeEnum;
 	minWidth: number;
 	maxWidth: number;
@@ -315,7 +315,7 @@ export class ViewColumnN {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param title A function that returns the translated title text for a column.
 	 */
-	constructor(component: Component | Class<MComponent<void>>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>) {
+	constructor(component: Class<MComponent<void>>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth

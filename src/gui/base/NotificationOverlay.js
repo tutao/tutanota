@@ -11,7 +11,7 @@ import {ButtonN, ButtonType} from "./ButtonN"
 assertMainOrNode()
 
 type NotificationOverlayAttrs = {|
-	message: Component,
+	message: MComponent<mixed>,
 	buttons: Array<ButtonAttrs>
 |}
 
@@ -32,7 +32,7 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 /**
  * @param buttons The postpone button is automatically added and does not have to be passed from outside
  */
-export function show(message: Component, closeButtonAttrs: $Shape<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
+export function show(message: MComponent<mixed>, closeButtonAttrs: $Shape<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
 	notificationQueue.push({message, buttons, closeButtonAttrs})
 	if (notificationQueue.length > 1) {
 		// another notification is already visible. Next notification will be shown when closing current notification

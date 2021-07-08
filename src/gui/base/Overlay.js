@@ -24,7 +24,7 @@ export type PositionRect = {
 type AnimationProvider = (dom: HTMLElement) => DomMutation
 
 type OverlayAttrs = {
-	component: Component,
+	component: MComponent<mixed>,
 	position: lazy<PositionRect>,
 	createAnimation?: AnimationProvider,
 	closeAnimation?: AnimationProvider,
@@ -34,7 +34,7 @@ type OverlayAttrs = {
 const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
 let key = 0
 
-export function displayOverlay(position: lazy<PositionRect>, component: Component, createAnimation?: AnimationProvider,
+export function displayOverlay(position: lazy<PositionRect>, component: MComponent<mixed>, createAnimation?: AnimationProvider,
                                closeAnimation?: AnimationProvider, shadowClass: string = "dropdown-shadow"): () => Promise<void> {
 	const newAttrs = {
 		position,
@@ -60,7 +60,7 @@ export function displayOverlay(position: lazy<PositionRect>, component: Componen
 	}
 }
 
-export const overlay = {
+export const overlay: MComponent<OverlayAttrs> = {
 	view: (): Children => m("#overlay", {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
@@ -82,7 +82,7 @@ export const overlay = {
 				'z-index': position.zIndex ? position.zIndex : LayerType.Overlay,
 				'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X
 			},
-			oncreate: (vnode: Vnode<any>) => {
+			oncreate: (vnode: Vnode<OverlayAttrs>) => {
 				overlayAttrs[1] = vnode.dom
 				if (attrs.createAnimation) {
 					animations.add(vnode.dom, attrs.createAnimation(vnode.dom))

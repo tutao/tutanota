@@ -9,7 +9,7 @@ import {isSecurityError, objToError} from "../api/common/utils/Utils";
 assertMainOrNodeBoot()
 
 function showUpdateOverlay(onUpdate: () => void) {
-	const notificationMessage: Component = {
+	const notificationMessage: MComponent<void> = {
 		view: () => {
 			return m("span", [
 				lang.get("updateFound_label"),
