@@ -19,7 +19,7 @@ Tutanota is the [secure email](https://tutanota.com) service with built-in end-t
 •
 <a href="https://itunes.apple.com/us/app/tutanota/id922429609">iOS App Store</a>
 •
-<a href="https://tutanota.com/blog/posts/desktop-clients">Desktop Client (Beta)</a>
+<a href="https://tutanota.com/#download">Desktop Client</a>
 
 ### Building
 
