@@ -3,7 +3,6 @@
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
-import type {InputField} from "./InputField"
 
 export const ContactFormLanguageTypeRef: TypeRef<ContactFormLanguage> = new TypeRef("tutanota", "ContactFormLanguage")
 export const _TypeModel: TypeModel = {
@@ -58,17 +57,9 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		}
 	},
-	"associations": {
-		"statisticsFields": {
-			"id": 864,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "InputField"
-		}
-	},
+	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createContactFormLanguage(values?: $Shape<$Exact<ContactFormLanguage>>): ContactFormLanguage {
@@ -84,6 +75,4 @@ export type ContactFormLanguage = {
 	headerHtml: string;
 	helpHtml: string;
 	pageTitle: string;
-
-	statisticsFields: InputField[];
 }

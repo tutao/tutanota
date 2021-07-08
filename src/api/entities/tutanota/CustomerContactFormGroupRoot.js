@@ -4,7 +4,6 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
-import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef"
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -53,30 +52,16 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "DeleteContactFormConversationIndex"
 		},
-		"statisticsLog": {
-			"id": 890,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "UnencryptedStatisticLogRef"
-		},
 		"contactForms": {
 			"id": 789,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
 			"refType": "ContactForm"
-		},
-		"statisticsLog_encrypted_removed": {
-			"id": 790,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "StatisticLogEntry"
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createCustomerContactFormGroupRoot(values?: $Shape<$Exact<CustomerContactFormGroupRoot>>): CustomerContactFormGroupRoot {
@@ -92,7 +77,5 @@ export type CustomerContactFormGroupRoot = {
 	_permissions: Id;
 
 	contactFormConversations: ?DeleteContactFormConversationIndex;
-	statisticsLog: ?UnencryptedStatisticLogRef;
 	contactForms: Id;
-	statisticsLog_encrypted_removed: Id;
 }

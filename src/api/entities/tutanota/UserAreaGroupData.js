@@ -67,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createUserAreaGroupData(values?: $Shape<$Exact<UserAreaGroupData>>): UserAreaGroupData {

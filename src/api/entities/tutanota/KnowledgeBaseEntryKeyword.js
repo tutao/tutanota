@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createKnowledgeBaseEntryKeyword(values?: $Shape<$Exact<KnowledgeBaseEntryKeyword>>): KnowledgeBaseEntryKeyword {

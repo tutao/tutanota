@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createPhishingMarker(values?: $Shape<$Exact<PhishingMarker>>): PhishingMarker {

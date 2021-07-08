@@ -7,11 +7,13 @@ import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {bookingFacade} from "./BookingFacade"
 import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod} from "../../common/EntityFunctions"
+import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
 import {hash} from "../crypto/Sha256"
+import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
-import {getWhitelabelDomain, neverNull, noOp} from "../../common/utils/Utils"
+import {downcast, getWhitelabelDomain, neverNull, noOp} from "../../common/utils/Utils"
 import {aes128RandomKey} from "../crypto/Aes"
 import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
@@ -19,6 +21,7 @@ import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/Cr
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {generateRsaKey, hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {SysService} from "../../entities/sys/Services"
+import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {createCustomerAccountCreateData} from "../../entities/tutanota/CustomerAccountCreateData"
 import {createContactFormAccountData} from "../../entities/tutanota/ContactFormAccountData"
@@ -26,13 +29,12 @@ import {TutanotaService} from "../../entities/tutanota/Services"
 import type {UserManagementFacade} from "./UserManagementFacade"
 import type {GroupManagementFacade} from "./GroupManagementFacade"
 import {createCustomDomainData} from "../../entities/sys/CustomDomainData"
+import type {CustomDomainReturn} from "../../entities/sys/CustomDomainReturn"
 import {CustomDomainReturnTypeRef} from "../../entities/sys/CustomDomainReturn"
+import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactFormAccountReturn"
 import {ContactFormAccountReturnTypeRef} from "../../entities/tutanota/ContactFormAccountReturn"
 import {createBrandingDomainDeleteData} from "../../entities/sys/BrandingDomainDeleteData"
 import {createBrandingDomainData} from "../../entities/sys/BrandingDomainData"
-import {createContactFormStatisticEntry} from "../../entities/tutanota/ContactFormStatisticEntry"
-import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
-import {createContactFormStatisticField} from "../../entities/tutanota/ContactFormStatisticField"
 import type {LoginFacade} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
@@ -40,18 +42,13 @@ import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataServicePutData"
 import type {Country} from "../../common/CountryList"
+import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
 import {PaymentDataServicePutReturnTypeRef} from "../../entities/sys/PaymentDataServicePutReturn"
 import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
 import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
 import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServiceReturn"
 import {AccountingService} from "../../entities/accounting/Services"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
-import type {CustomDomainReturn} from "../../entities/sys/CustomDomainReturn"
-import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
-import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
-import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactFormAccountReturn"
-import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
-import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
 import {LockedError} from "../../common/error/RestError"
 
 assertWorkerOrNode()
@@ -100,7 +97,7 @@ export class CustomerFacade {
 
 	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo) .then(customerInfo => {
+			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 					.then(keyData => {
@@ -284,54 +281,30 @@ export class CustomerFacade {
 		return Promise.resolve()
 	}
 
+	async _getContactFormUserGroupData(): Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}> {
+		if (this.contactFormUserGroupData) {
+			return this.contactFormUserGroupData
+		} else {
+			await this.createContactFormUserGroupData()
+			return downcast(this.contactFormUserGroupData)
+		}
+	}
+
 	/**
 	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
 	 */
-	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
-		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-		// if an error occurs during sending the contact form mail, the user group data might have been deleted already, so create it again
-		if (!this.contactFormUserGroupData) {
-			this.createContactFormUserGroupData()
-		}
-		return neverNull(this.contactFormUserGroupData).then(contactFormUserGroupData => {
-			let {userGroupKey, userGroupData} = contactFormUserGroupData
-			return this._worker.sendProgress(35).then(() => {
-				let data = createContactFormAccountData()
-				data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
-				return this._worker.sendProgress(95).then(() => {
-					return serviceRequest(SysService.CustomerPublicKeyService, HttpMethod.GET, null, PublicKeyReturnTypeRef)
-						.then(publicKeyData => {
-							let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
-
-							let sessionKey = aes128RandomKey()
-							let bucketKey = aes128RandomKey()
-							return rsaEncrypt(publicKey, bitArrayToUint8Array(bucketKey))
-								.then(customerPubEncBucketKey => {
-									let stats = createContactFormStatisticEntry()
-									stats.customerPubEncBucketKey = customerPubEncBucketKey
-									stats.bucketEncSessionKey = encryptKey(bucketKey, sessionKey)
-									stats.customerPubKeyVersion = publicKeyData.pubKeyVersion
-
-									stats.statisticFields = statisticFields.map(sf => {
-										let esf = createContactFormStatisticField()
-										esf.encryptedName = encryptString(sessionKey, sf.name)
-										esf.encryptedValue = encryptString(sessionKey, sf.value)
-										return esf
-									})
-
-									data.userGroupData = userGroupData
-									data.contactForm = contactFormId
-									data.statistics = stats
-									return serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
-								})
-
-						})
-				})
-			})
-		}).then((result) => {
-			this.contactFormUserGroupData = null
-			return result
-		})
+	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
+		const contactFormUserGroupData = await this._getContactFormUserGroupData()
+		let {userGroupKey, userGroupData} = contactFormUserGroupData
+		await this._worker.sendProgress(35)
+		let data = createContactFormAccountData()
+		data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
+		await this._worker.sendProgress(95)
+		data.userGroupData = userGroupData
+		data.contactForm = contactFormId
+		const result = serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+		this.contactFormUserGroupData = null
+		return result
 	}
 
 	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountTypeEnum): Aes128Key {

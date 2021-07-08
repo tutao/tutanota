@@ -4,8 +4,6 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 import type {ContactFormLanguage} from "./ContactFormLanguage"
-import type {InputField} from "./InputField"
-import type {StatisticLogRef} from "./StatisticLogRef"
 
 export const ContactFormTypeRef: TypeRef<ContactForm> = new TypeRef("tutanota", "ContactForm")
 export const _TypeModel: TypeModel = {
@@ -61,20 +59,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "ContactFormLanguage"
 		},
-		"statisticsFields_removed": {
-			"id": 745,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "InputField"
-		},
-		"statisticsLog": {
-			"id": 878,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "StatisticLogRef"
-		},
 		"delegationGroups_removed": {
 			"id": 747,
 			"type": "ELEMENT_ASSOCIATION",
@@ -105,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createContactForm(values?: $Shape<$Exact<ContactForm>>): ContactForm {
@@ -122,8 +106,6 @@ export type ContactForm = {
 	path: string;
 
 	languages: ContactFormLanguage[];
-	statisticsFields_removed: InputField[];
-	statisticsLog: ?StatisticLogRef;
 	delegationGroups_removed: Id[];
 	participantGroupInfos: IdTuple[];
 	targetGroup: Id;

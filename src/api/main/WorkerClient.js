@@ -196,7 +196,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUserGroupData', arguments)))
 	}
 
-	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
+	createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 

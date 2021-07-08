@@ -3,8 +3,6 @@
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
-import type {ContactFormStatisticField} from "./ContactFormStatisticField"
-import type {ContactFormStatisticEntry} from "./ContactFormStatisticEntry"
 import type {ContactFormUserData} from "./ContactFormUserData"
 import type {InternalGroupData} from "./InternalGroupData"
 
@@ -27,20 +25,6 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"statisticFields": {
-			"id": 795,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "ContactFormStatisticField"
-		},
-		"statistics": {
-			"id": 831,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "ContactFormStatisticEntry"
-		},
 		"userData": {
 			"id": 793,
 			"type": "AGGREGATION",
@@ -64,7 +48,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createContactFormAccountData(values?: $Shape<$Exact<ContactFormAccountData>>): ContactFormAccountData {
@@ -76,8 +60,6 @@ export type ContactFormAccountData = {
 
 	_format: NumberString;
 
-	statisticFields: ContactFormStatisticField[];
-	statistics: ?ContactFormStatisticEntry;
 	userData: ContactFormUserData;
 	userGroupData: InternalGroupData;
 	contactForm: IdTuple;

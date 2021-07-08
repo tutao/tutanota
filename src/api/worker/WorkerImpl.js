@@ -69,7 +69,8 @@ export class WorkerImpl {
 				return locator.customer.createContactFormUserGroupData.apply(locator.customer, message.args)
 			},
 			createContactFormUser: (message: Request): Promise<ContactFormAccountReturn> => {
-				return locator.customer.createContactFormUser.apply(locator.customer, message.args)
+				const [password, contactFormId] = message.args
+				return locator.customer.createContactFormUser(password, contactFormId)
 			},
 			createSession: (message: Request) => {
 				return locator.login.createSession.apply(locator.login, message.args)
