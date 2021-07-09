@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-07-07T13:05:37Z",
+	"updated_at": "2021-07-09T13:04:44Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -352,7 +352,7 @@ export default {
 		"decline_action": "Decline",
 		"defaultColor_label": "Default color: {1}",
 		"defaultDownloadPath_label": "Default download path",
-		"defaultEmailSignature_msg": "--\n<br>\nSent with Tutanota, the secure & ad-free mailbox:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSent with Tutanota, the secure & ad-free mailbox.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or not confidential (not end-to-end encrypted).",
 		"defaultExternalDelivery_label": "Default delivery",
 		"defaultGiftCardMessage_msg": "I hope you enjoy the security & privacy you get with Tutanota!",

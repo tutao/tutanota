@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2021-07-08T07:22:50Z",
+	"updated_at": "2021-07-09T13:05:13Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -356,7 +356,7 @@ export default {
 		"decline_action": "Ablehnen",
 		"defaultColor_label": "Standardfarbe: {1}",
 		"defaultDownloadPath_label": "Zielordner für Downloads",
-		"defaultEmailSignature_msg": "--\n<br>\nGesendet mit Tutanota, der sicheren & werbefreien Mailbox:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nGesendet mit Tutanota, der sicheren & werbefreien Mailbox.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Die Voreinstellung für neue E-Mails an externe Empfänger: Vertraulich (Ende-zu-Ende verschlüsselt) oder nicht vertraulich (nicht Ende-zu-Ende verschlüsselt).",
 		"defaultExternalDelivery_label": "Standard-Übertragung",
 		"defaultGiftCardMessage_msg": "Ich hoffe Ihnen gefällt die Sicherheit und Privatsphäre bei Tutanota!",

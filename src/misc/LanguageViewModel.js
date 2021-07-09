@@ -146,7 +146,7 @@ export const LanguageNames = Object.freeze({
 	ru: 'languageRussian_label',
 	sk: 'languageSlovak_label',
 	sl: 'languageSlovenian_label',
-	sr: 'languageSerbian_label',
+	sr_cyrl: 'languageSerbian_label',
 	sv: 'languageSwedish_label',
 	tr: 'languageTurkish_label',
 	uk: 'languageUkrainian_label',

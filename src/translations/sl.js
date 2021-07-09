@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2021-07-02T06:26:20Z",
+	"updated_at": "2021-07-09T13:04:45Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
