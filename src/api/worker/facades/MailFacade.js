@@ -15,6 +15,7 @@ import {
 } from "../../common/TutanotaConstants"
 import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
 import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
+import type {DraftData} from "../../entities/tutanota/DraftData"
 import {createDraftData} from "../../entities/tutanota/DraftData"
 import {DraftCreateReturnTypeRef} from "../../entities/tutanota/DraftCreateReturn"
 import type {Mail} from "../../entities/tutanota/Mail"
@@ -35,7 +36,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {addressDomain, defer, neverNull} from "../../common/utils/Utils"
+import {addressDomain, defer, downcast, neverNull} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -55,6 +56,7 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
+import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
@@ -67,8 +69,29 @@ import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../.
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
+import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
+import {byteLength} from "../../common/utils/StringUtils"
+import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
 
 assertWorkerOrNode()
+
+type Attachments = Array<TutanotaFile | DataFile | FileReference>
+
+interface _makeDraftDataParams {
+	subject: string;
+	senderMailAddress: string;
+	senderName: string;
+	confidential: boolean;
+	body: string;
+	method: MailMethodEnum;
+	toRecipients: Array<RecipientInfo>;
+	ccRecipients: Array<RecipientInfo>;
+	bccRecipients: Array<RecipientInfo>;
+	replyTos: Array<EncryptedMailAddress>;
+	changedAttachments?: ?Attachments;
+	existingAttachmentIds?: ?Array<IdTuple>;
+	mailGroupKey: Aes128Key;
+}
 
 export class MailFacade {
 	_login: LoginFacade;
@@ -104,47 +127,39 @@ export class MailFacade {
 	 * @param attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
 	 */
-	createDraft(subject: string, body: string, senderAddress: string, senderName: string,
-	            toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
-	            conversationType: ConversationTypeEnum, previousMessageId: ?Id,
-	            attachments: ?Array<TutanotaFile | DataFile | FileReference>,
-	            confidential: boolean, replyTos: RecipientInfo[], mailMethod: MailMethodEnum): Promise<Mail> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
-			let userGroupKey = this._login.getUserGroupKey()
-			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
-			let sk = aes128RandomKey()
-			let service = createDraftCreateData()
-			service.previousMessageId = previousMessageId
-			service.conversationType = conversationType
-			service.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
-			service.symEncSessionKey = encryptKey(userGroupKey, sk) // legacy
+	async createDraft(subject: string, body: string, senderMailAddress: string, senderName: string,
+	                  toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
+	                  conversationType: ConversationTypeEnum, previousMessageId: ?Id,
+	                  attachments: ?Attachments,
+	                  confidential: boolean, replyTos: RecipientInfo[], method: MailMethodEnum): Promise<Mail> {
+		const senderMailGroupId = await getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderMailAddress)
+		const userGroupKey = this._login.getUserGroupKey()
+		const mailGroupKey = this._login.getGroupKey(senderMailGroupId)
+		const sk = aes128RandomKey()
 
-			let draftData = createDraftData()
-			draftData.subject = subject
-			draftData.bodyText = body
-			draftData.senderMailAddress = senderAddress
-			draftData.senderName = senderName
-			draftData.confidential = confidential
-			draftData.method = mailMethod
+		const service = createDraftCreateData()
+		service.previousMessageId = previousMessageId
+		service.conversationType = conversationType
+		service.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
+		service.symEncSessionKey = encryptKey(userGroupKey, sk) // legacy
 
-			draftData.toRecipients = this._recipientInfoToDraftRecipient(toRecipients)
-			draftData.ccRecipients = this._recipientInfoToDraftRecipient(ccRecipients)
-			draftData.bccRecipients = this._recipientInfoToDraftRecipient(bccRecipients)
-			draftData.replyTos = replyTos.map(recipient => {
-				const ema = createEncryptedMailAddress()
-				ema.address = recipient.mailAddress
-				ema.name = recipient.name
-				return ema
-			})
-
-
-			return this._createAddedAttachments(attachments, [], mailGroupKey).then(addedAttachments => {
-				draftData.addedAttachments = addedAttachments
-				service.draftData = draftData
-				return serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, null, sk)
-					.then(createDraftReturn => load(MailTypeRef, createDraftReturn.draft))
-			})
+		service.draftData = await this._makeDraftData({
+			subject, senderMailAddress, senderName, confidential, body, method,
+			toRecipients: toRecipients,
+			ccRecipients: ccRecipients,
+			bccRecipients: bccRecipients,
+			replyTos: replyTos.map(({mailAddress, name}) => {
+				return createEncryptedMailAddress({
+					address: mailAddress,
+					name: name
+				})
+			}),
+			changedAttachments: attachments,
+			mailGroupKey
 		})
+
+		const createDraftReturn = await serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, null, sk)
+		return this._entity.load(MailTypeRef, createDraftReturn.draft)
 	}
 
 	_recipientInfoToDraftRecipient(toRecipients: RecipientInfo[]): DraftRecipient[] {
@@ -160,7 +175,7 @@ export class MailFacade {
 	 * Updates a draft mail.
 	 * @param subject The subject of the mail.
 	 * @param body The body text of the mail.
-	 * @param senderAddress The senders mail address.
+	 * @param senderMailAddress The senders mail address.
 	 * @param senderName The name of the sender that is sent together with the mail address of the sender.
 	 * @param toRecipients The recipients the mail shall be sent to.
 	 * @param ccRecipients The recipients the mail shall be sent to in cc.
@@ -170,50 +185,74 @@ export class MailFacade {
 	 * @param draft The draft to update.
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
-	updateDraft(subject: string, body: string, senderAddress: string, senderName: string,
-	            toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
-	            attachments: ?Array<TutanotaFile | DataFile | FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderAddress).then(senderMailGroupId => {
-			let mailGroupKey = this._login.getGroupKey(senderMailGroupId)
-			let sk = decryptKey(mailGroupKey, (draft._ownerEncSessionKey: any))
+	async updateDraft(subject: string, body: string, senderMailAddress: string, senderName: string,
+	                  toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
+	                  attachments: ?Attachments, confidential: boolean, draft: Mail): Promise<Mail> {
+		const senderMailGroupId = await getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderMailAddress)
+		const mailGroupKey = this._login.getGroupKey(senderMailGroupId)
+		const sk = decryptKey(mailGroupKey, (draft._ownerEncSessionKey: any))
 
-			let service = createDraftUpdateData()
-			service.draft = draft._id
-
-			let draftData = createDraftData()
-			draftData.subject = subject
-			draftData.bodyText = body
-			draftData.senderMailAddress = senderAddress
-			draftData.senderName = senderName
-			draftData.confidential = confidential
-			draftData.method = draft.method
-
-			draftData.toRecipients = this._recipientInfoToDraftRecipient(toRecipients)
-			draftData.ccRecipients = this._recipientInfoToDraftRecipient(ccRecipients)
-			draftData.bccRecipients = this._recipientInfoToDraftRecipient(bccRecipients)
-			draftData.replyTos = draft.replyTos
-
-			draftData.removedAttachments = this._getRemovedAttachments(attachments, draft.attachments)
-			return this._createAddedAttachments(attachments, draft.attachments, mailGroupKey).then(addedAttachments => {
-				draftData.addedAttachments = addedAttachments
-				service.draftData = draftData
-				this._deferredDraftId = draft._id
-				// we have to wait for the updated mail because sendMail() might be called right after this update
-				this._deferredDraftUpdate = defer()
-				// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
-				let deferredUpdatePromiseWrapper = this._deferredDraftUpdate
-				return serviceRequest(TutanotaService.DraftService, HttpMethod.PUT, service, DraftUpdateReturnTypeRef, null, sk)
-					.then(() => {
-						return deferredUpdatePromiseWrapper.promise
-					})
-			})
+		const draftData = await this._makeDraftData({
+			subject, senderMailAddress, senderName, confidential,
+			body,
+			method: downcast(draft.method),
+			toRecipients: toRecipients,
+			ccRecipients: ccRecipients,
+			bccRecipients: bccRecipients,
+			replyTos: draft.replyTos,
+			changedAttachments: attachments,
+			existingAttachments: draft.attachments,
+			mailGroupKey
 		})
+
+		const service = createDraftUpdateData({
+			draft: draft._id,
+			draftData: draftData
+		})
+
+		this._deferredDraftId = draft._id
+
+		// we have to wait for the updated mail because sendMail() might be called right after this update
+		this._deferredDraftUpdate = defer()
+
+		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
+		const deferredUpdatePromiseWrapper = this._deferredDraftUpdate
+		await serviceRequest(TutanotaService.DraftService, HttpMethod.PUT, service, DraftUpdateReturnTypeRef, null, sk)
+		return deferredUpdatePromiseWrapper.promise
+	}
+
+	async _makeDraftData({
+		                     subject, senderMailAddress, senderName, confidential,
+		                     body, method, toRecipients, ccRecipients, bccRecipients,
+		                     replyTos, changedAttachments, existingAttachmentIds, mailGroupKey
+	                     }: _makeDraftDataParams): Promise<DraftData> {
+
+		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
+			throw new MailBodyTooLargeError(`Can't make draft data, mail body too large (${byteLength(body)})`)
+		}
+
+		return createDraftData({
+			subject,
+			senderMailAddress,
+			senderName,
+			confidential,
+			method,
+			replyTos,
+			bodyText: "",
+			compressedBodyText: body,
+			toRecipients: this._recipientInfoToDraftRecipient(toRecipients),
+			ccRecipients: this._recipientInfoToDraftRecipient(ccRecipients),
+			bccRecipients: this._recipientInfoToDraftRecipient(bccRecipients),
+			removedAttachments: this._getRemovedAttachments(changedAttachments, existingAttachmentIds || []),
+			addedAttachments: await this._createAddedAttachments(changedAttachments, existingAttachmentIds || [], mailGroupKey)
+		})
+
 	}
 
 	/**
 	 * Returns all ids of the files that have been removed, i.e. that are contained in the existingFileIds but not in the provided files
 	 */
-	_getRemovedAttachments(providedFiles: ?Array<TutanotaFile | DataFile | FileReference>, existingFileIds: IdTuple[]): IdTuple[] {
+	_getRemovedAttachments(providedFiles: ?Attachments, existingFileIds: IdTuple[]): IdTuple[] {
 		let removedAttachmentIds = [];
 		if (providedFiles) {
 			let attachments = neverNull(providedFiles)
@@ -231,7 +270,7 @@ export class MailFacade {
 	/**
 	 * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files) and returns all DraftAttachments
 	 */
-	_createAddedAttachments(providedFiles: ?Array<TutanotaFile | DataFile | FileReference>, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
+	_createAddedAttachments(providedFiles: ?Attachments, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
 		if (providedFiles) {
 			return Promise
 				.mapSeries((providedFiles: any), providedFile => {

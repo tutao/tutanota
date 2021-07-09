@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createCreateMailFolderReturn(values?: $Shape<$Exact<CreateMailFolderReturn>>): CreateMailFolderReturn {

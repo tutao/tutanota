@@ -2,7 +2,6 @@
 import o from "ospec"
 import {
 	_createNewIndexUpdate,
-	byteLength,
 	decryptMetaData,
 	decryptSearchIndexEntry,
 	encryptIndexKeyBase64,
@@ -29,6 +28,7 @@ import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConst
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import {byteLength} from "../../../../src/api/common/utils/StringUtils";
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

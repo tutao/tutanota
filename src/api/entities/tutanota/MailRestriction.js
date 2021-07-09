@@ -39,7 +39,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createMailRestriction(values?: $Shape<$Exact<MailRestriction>>): MailRestriction {

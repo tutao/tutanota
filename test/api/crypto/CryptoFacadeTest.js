@@ -52,7 +52,7 @@ import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 import {isSameTypeRef} from "../../../src/api/common/utils/TypeRef";
 
@@ -300,7 +300,7 @@ o.spec("crypto facade", function () {
 			var valueType = createValueType(ValueType.String, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = encryptValue("test", valueType, value, sk)
+			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).deepEquals(expected)
@@ -312,7 +312,7 @@ o.spec("crypto facade", function () {
 			let sk = aes128RandomKey()
 
 			let value = false
-			let encryptedValue = encryptValue("test", valueType, value, sk)
+			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
@@ -320,7 +320,7 @@ o.spec("crypto facade", function () {
 
 
 			value = true
-			encryptedValue = encryptValue("test", valueType, value, sk)
+			encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value ? "1" : "0"), base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
@@ -332,7 +332,7 @@ o.spec("crypto facade", function () {
 			let sk = aes128RandomKey()
 			let value = new Date()
 
-			let encryptedValue = encryptValue("test", valueType, value, sk)
+			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value.getTime()
 			                                                                                .toString()), base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
@@ -344,7 +344,7 @@ o.spec("crypto facade", function () {
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
 
-			let encryptedValue = encryptValue("test", valueType, value, sk)
+			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(aes128Encrypt(sk, value, base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(encryptedValue).equals(expected)
