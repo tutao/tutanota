@@ -6,12 +6,16 @@ import {assertMainOrNodeBoot, isApp, isDesktop, isTest} from "../api/common/Env"
 import {downcast, typedValues} from "../api/common/utils/Utils"
 import m from "mithril"
 import typeof {Request} from "../api/common/WorkerProtocol"
-import {filterMap, findAndRemove} from "../api/common/utils/ArrayUtils"
+import {findAndRemove, mapAndFilterNull} from "../api/common/utils/ArrayUtils"
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
 
 assertMainOrNodeBoot()
 
-// TODO: comment
+/**
+ * Unique identifier for a theme.
+ * There are few built-in ones and there are whitelabel ones.
+ * Whitelabel themes use domain name as an ID.
+ */
 export type ThemeId = 'light' | 'dark' | 'blue' | string
 
 export type Theme = {
@@ -403,7 +407,7 @@ export class ThemeManager {
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
-		return filterMap(await this._themeStorage.getThemes(), (theme) => {
+		return mapAndFilterNull(await this._themeStorage.getThemes(), (theme) => {
 			return !(theme.themeId in themes) ? theme.themeId : null
 		})
 	}

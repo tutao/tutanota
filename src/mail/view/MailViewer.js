@@ -294,7 +294,6 @@ export class MailViewer {
 							m(".mb-m", m(ExpanderPanelN, {
 								expanded: detailsExpanded
 							}, details)),
-							m("", "TEST"),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
 									m(".subject.text-break.selectable", {

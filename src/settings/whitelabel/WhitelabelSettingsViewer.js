@@ -143,7 +143,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			update(neverNull(this._whitelabelConfig))
 			theme.themeId = assertNotNull(this._whitelabelDomainInfo).domain
 			// Make sure to not apply it always with realtime color change later
-			themeManager.updateCustomTheme(theme, true)
+			themeManager.updateCustomTheme(theme, false)
 		}
 
 		const whitelabelThemeSettingsAttrs = {

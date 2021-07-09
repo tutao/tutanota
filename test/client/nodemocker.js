@@ -59,10 +59,6 @@ export function spyify<T>(obj: T): T {
 							(newObj: any)[key] = spyify((obj: any)[key])
 						}
 					}
-					// (Object.keys(anyObj).reduce((newObj, key) => {
-					// 	(newObj: any)[key] = spyify((obj: any)[key])
-					// 	return newObj
-					// }, ({}: any)): T)
 					return downcast<T>(newObj)
 				}
 			}

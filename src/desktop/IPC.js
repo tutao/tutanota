@@ -304,7 +304,7 @@ export class IPC {
 				return
 			}
 			case 'reload': {
-				// TODO: response to this message will come to the web but it doesn't have a handler for it.
+				// Response to this message will come to the web but it won't have a handler for it. We accept it for now.
 				this.removeWindow(windowId)
 				const window = this._wm.get(windowId)
 				if (window) {

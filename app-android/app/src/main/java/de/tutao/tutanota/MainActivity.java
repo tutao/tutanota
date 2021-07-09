@@ -63,7 +63,6 @@ import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
-import static de.tutao.tutanota.Utils.isColorDark;
 import static de.tutao.tutanota.Utils.parseColor;
 
 public class MainActivity extends ComponentActivity {
@@ -247,9 +246,11 @@ public class MainActivity extends ComponentActivity {
 		int backgroundColor = parseColor(Objects.requireNonNull(theme.get("content_bg")));
 		getWindow().setBackgroundDrawable(new ColorDrawable(backgroundColor));
 		View decorView = getWindow().getDecorView();
+
+		String headerBg = Objects.requireNonNull(theme.get("header_bg"));
 		@ColorInt
-		int statusBarColor = parseColor(Objects.requireNonNull(theme.get("header_bg")));
-		boolean statusBarDark = isColorDark(statusBarColor);
+		int statusBarColor = parseColor(headerBg);
+		boolean statusBarDark = Utils.isColorLight(headerBg);
 
 		if (Utils.atLeastOreo()) {
 			getWindow().setNavigationBarColor(statusBarColor);

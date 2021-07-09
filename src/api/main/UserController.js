@@ -29,7 +29,7 @@ import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
-import {filterMap, first} from "../common/utils/ArrayUtils"
+import {filterMap, first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 
 assertMainOrNode()
@@ -270,7 +270,7 @@ export class UserController implements IUserController {
 		// therefore the result of the filtering all domainInfos with no whitelabelConfig
 		// can only be an array of length 0 or 1
 		const customerInfo = await this.loadCustomerInfo()
-		const domainInfoAndConfig = first(filterMap(customerInfo.domainInfos, (domainInfo => domainInfo.whitelabelConfig && {
+		const domainInfoAndConfig = first(mapAndFilterNull(customerInfo.domainInfos, (domainInfo => domainInfo.whitelabelConfig && {
 			domainInfo,
 			whitelabelConfig: domainInfo.whitelabelConfig
 		})))

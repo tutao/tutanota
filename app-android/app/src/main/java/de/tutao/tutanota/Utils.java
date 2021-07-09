@@ -144,18 +144,11 @@ public class Utils {
 		return map;
 	}
 
-	// TODO: rewrite like in web
-	static boolean isColorDark(int backgroundColor) {
-		float[] hsv = new float[3];
-		Color.colorToHSV(backgroundColor, hsv);
-		return hsv[2] < 0.5;
-	}
-
 	static boolean isColorLight(String c) {
-		if (c.charAt(0) == '#' || c.length() != 6) {
+		if (c.charAt(0) != '#' || c.length() != 6) {
 			throw new IllegalArgumentException("Invalid color format: " + c);
 		}
-		int rgb = Integer.parseInt(c, 16);   // convert rrggbb to decimal
+		int rgb = Integer.parseInt(c.substring(1), 16);   // convert rrggbb to decimal
 		int r = (rgb >> 16) & 0xff;  // extract red
 		int g = (rgb >> 8) & 0xff;   // extract green
 		int b = (rgb >> 0) & 0xff;   // extract blue

@@ -163,7 +163,7 @@ o.spec("IPC tests", function () {
 			utilsMock: n.mock("../api/common/utils/Utils", utils).set(),
 			autoUpdaterMock: n.mock("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock("__alarmScheduler", alarmScheduler).set(),
-			themeManagerMock: n.mock("__themeManagre", themeManager).set(),
+			themeManagerMock: n.mock("__themeManager", themeManager).set(),
 		}
 	}
 
