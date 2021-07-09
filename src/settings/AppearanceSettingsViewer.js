@@ -19,14 +19,14 @@ import {incrementDate} from "../api/common/utils/DateUtils"
 import {getHourCycle} from "../misc/Formatter"
 import {Mode} from "../api/common/Env"
 import type {ThemeId} from "../gui/theme"
-import {themeManager} from "../gui/theme"
+import {themeController} from "../gui/theme"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	_customThemes: ?Array<ThemeId>
 
 	oncreate() {
-		themeManager.getCustomThemes().then(themes => {
+		themeController.getCustomThemes().then(themes => {
 			this._customThemes = themes
 			m.redraw()
 		})
@@ -101,7 +101,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderThemeSelector(): Children {
-		if (!themeManager.shouldAllowChangingTheme() || this._customThemes == null) {
+		if (!themeController.shouldAllowChangingTheme() || this._customThemes == null) {
 			return null
 		}
 		const customOptions = this._customThemes.map(themeId => {
@@ -114,8 +114,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				{name: lang.get("dark_label"), value: "dark"},
 				{name: lang.get("blue_label"), value: "blue"},
 			].concat(customOptions),
-			selectedValue: stream(themeManager.themeId),
-			selectionChangedHandler: (value) => themeManager.setThemeId(value),
+			selectedValue: stream(themeController.themeId),
+			selectionChangedHandler: (value) => themeController.setThemeId(value),
 			dropdownWidth: 300,
 		}
 		return m(DropDownSelectorN, themeDropDownAttrs)

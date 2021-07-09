@@ -16,7 +16,6 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
-import {themeManager} from "./gui/theme"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -40,7 +39,6 @@ window.tutao = {
 	root,
 	logins,
 	currentView,
-	themeManager,
 	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }

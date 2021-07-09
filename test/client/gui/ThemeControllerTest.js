@@ -1,12 +1,12 @@
 // @flow
-
 import o from "ospec"
-import type {Theme, ThemeId, ThemeStorage} from "../../../src/gui/theme"
-import {ThemeManager} from "../../../src/gui/theme"
+import type {Theme, ThemeId} from "../../../src/gui/theme"
 import n from "../nodemocker"
+import {ThemeController} from "../../../src/gui/ThemeController"
+import type {ThemeStorage} from "../../../src/gui/ThemeController"
 
-o.spec("Theme Manager", function () {
-	let themeManager: ThemeManager
+o.spec("Theme Controller", function () {
+	let themeManager: ThemeController
 	let themeStorageMock
 	let htmlSanitizerMock
 	o.beforeEach(function () {
@@ -34,7 +34,7 @@ o.spec("Theme Manager", function () {
 				}
 			}
 		}).set()
-		themeManager = new ThemeManager(themeStorageMock, () => Promise.resolve(htmlSanitizerMock))
+		themeManager = new ThemeController(themeStorageMock, () => Promise.resolve(htmlSanitizerMock))
 	})
 
 	o("updateCustomTheme", async function () {

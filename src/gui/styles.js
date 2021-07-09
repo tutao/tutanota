@@ -3,7 +3,7 @@ import {Cat, log, timer} from "../misc/Log"
 import {size} from "./size"
 import {assertMainOrNodeBoot, isAdminClient, isTest} from "../api/common/Env"
 import {windowFacade} from "../misc/WindowFacade"
-import {theme, themeManager} from "./theme"
+import {theme, themeController} from "./theme"
 import {neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
 
@@ -27,7 +27,7 @@ class Styles {
 			this.bodyWidth = width
 			this.bodyHeight = height
 		})
-		themeManager.themeIdChangedStream.map(() => {
+		themeController.themeIdChangedStream.map(() => {
 			this._updateDomStyles()
 		})
 	}

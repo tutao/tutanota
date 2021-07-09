@@ -23,7 +23,7 @@ import {UserError} from "../api/main/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
-import {themeManager} from "../gui/theme"
+import {themeController} from "../gui/theme"
 import {createAsyncDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
@@ -77,7 +77,7 @@ export class LoginView {
 
 		if (window.location.href.includes('signup')) {
 			if (window.location.hash.includes('theme=blue')) {
-				themeManager.setThemeId('blue')
+				themeController.setThemeId('blue')
 			}
 			this.permitAutoLogin = false
 			this._signup()
@@ -190,12 +190,12 @@ export class LoginView {
 	themeSwitchListener(): clickHandler {
 		return createAsyncDropdown(async () => {
 			const defaultButtons = [
-				{label: "light_label", type: ButtonType.Dropdown, click: () => themeManager.setThemeId("light")},
-				{label: "dark_label", type: ButtonType.Dropdown, click: () => themeManager.setThemeId("dark")},
-				{label: "blue_label", type: ButtonType.Dropdown, click: () => themeManager.setThemeId("blue")},
+				{label: "light_label", type: ButtonType.Dropdown, click: () => themeController.setThemeId("light")},
+				{label: "dark_label", type: ButtonType.Dropdown, click: () => themeController.setThemeId("dark")},
+				{label: "blue_label", type: ButtonType.Dropdown, click: () => themeController.setThemeId("blue")},
 			]
-			const customButtons = (await themeManager.getCustomThemes()).map((themeId) => {
-				return {label: () => themeId, type: ButtonType.Dropdown, click: () => themeManager.setThemeId(themeId)}
+			const customButtons = (await themeController.getCustomThemes()).map((themeId) => {
+				return {label: () => themeId, type: ButtonType.Dropdown, click: () => themeController.setThemeId(themeId)}
 			})
 			return defaultButtons.concat(customButtons)
 		}, 300)
@@ -218,7 +218,7 @@ export class LoginView {
 	}
 
 	_switchThemeLinkVisible(): boolean {
-		return themeManager.shouldAllowChangingTheme()
+		return themeController.shouldAllowChangingTheme()
 	}
 
 	_recoverLoginVisible(): boolean {

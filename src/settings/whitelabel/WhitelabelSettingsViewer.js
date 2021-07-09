@@ -15,7 +15,7 @@ import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import {WhitelabelConfigTypeRef} from "../../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../../gui/theme"
-import {themeManager} from "../../gui/theme"
+import {themeController} from "../../gui/theme"
 import {progressIcon} from "../../gui/base/Icon"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {Booking} from "../../api/entities/sys/Booking"
@@ -143,7 +143,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			update(neverNull(this._whitelabelConfig))
 			theme.themeId = assertNotNull(this._whitelabelDomainInfo).domain
 			// Make sure to not apply it always with realtime color change later
-			themeManager.updateCustomTheme(theme, false)
+			themeController.updateCustomTheme(theme, false)
 		}
 
 		const whitelabelThemeSettingsAttrs = {

@@ -41,7 +41,7 @@ import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import type {Theme} from "../gui/theme"
-import {themeManager} from "../gui/theme"
+import {themeController} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -336,8 +336,8 @@ export class LoginViewController implements ILoginViewController {
 			const newTheme: Theme = JSON.parse(domainInfoAndConfig.whitelabelConfig.jsonTheme)
 			newTheme.themeId = domainInfoAndConfig.domainInfo.domain
 
-			const oldThemes = await themeManager.getCustomThemes()
-			await themeManager.updateSavedThemeDefinition(newTheme)
+			const oldThemes = await themeController.getCustomThemes()
+			await themeController.updateSavedThemeDefinition(newTheme)
 
 			const oldTheme = oldThemes.includes(domainInfoAndConfig.domainInfo.domain)
 			if (!oldTheme) {
@@ -346,12 +346,12 @@ export class LoginViewController implements ILoginViewController {
 					() => "Whitelabel theming has been detected. Do you want to apply it now?"
 				).then(answer => {
 					if (answer) {
-						themeManager.setThemeId(newTheme.themeId)
+						themeController.setThemeId(newTheme.themeId)
 					}
 				})
 			}
 		} else {
-			await themeManager.removeCustomThemes()
+			await themeController.removeCustomThemes()
 		}
 	}
 }

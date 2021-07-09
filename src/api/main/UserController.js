@@ -29,7 +29,7 @@ import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
-import {filterMap, first, mapAndFilterNull} from "../common/utils/ArrayUtils"
+import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 
 assertMainOrNode()
