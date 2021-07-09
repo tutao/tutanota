@@ -8,8 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface TUTContactsSource : NSObject
 
 -(void)searchForContactsUsingQuery:(NSString *)query
-						completion:(void(^ _Nonnull) (NSArray<NSDictionary *> * _Nullable contacts, NSError * _Nullable error))completion;
+						completion:(void(^) (NSArray<NSDictionary *> * _Nullable contacts, NSError * _Nullable error))completion;
 @end
+
+NS_ASSUME_NONNULL_END

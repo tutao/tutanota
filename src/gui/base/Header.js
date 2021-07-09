@@ -23,9 +23,7 @@ import type {ProgressTracker} from "../../api/main/ProgressTracker"
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")
 	? "/ext?noAutoLogin=true" + location.hash
-	: isDesktop()
-		? '?r=' + encodeURIComponent(LogoutPath)
-		: LogoutPath
+	: LogoutPath
 
 assertMainOrNode()
 

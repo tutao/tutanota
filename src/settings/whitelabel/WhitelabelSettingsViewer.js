@@ -5,7 +5,7 @@ import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {load, loadRange, serviceRequest, update} from "../../api/main/Entity"
-import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, getCustomMailDomains, getWhitelabelDomain, neverNull} from "../../api/common/utils/Utils"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {logins} from "../../api/main/LoginController"
@@ -15,7 +15,7 @@ import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import {WhitelabelConfigTypeRef} from "../../api/entities/sys/WhitelabelConfig"
 import type {Theme} from "../../gui/theme"
-import {themeManager} from "../../gui/theme"
+import {themeController} from "../../gui/theme"
 import {progressIcon} from "../../gui/base/Icon"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {Booking} from "../../api/entities/sys/Booking"
@@ -141,7 +141,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const onThemeChanged = (theme) => {
 			neverNull(this._whitelabelConfig).jsonTheme = JSON.stringify(theme)
 			update(neverNull(this._whitelabelConfig))
-			themeManager.updateCustomTheme(theme, false)
+			theme.themeId = assertNotNull(this._whitelabelDomainInfo).domain
+			// Make sure to not apply it always with realtime color change later
+			themeController.updateCustomTheme(theme, false)
 		}
 
 		const whitelabelThemeSettingsAttrs = {

@@ -68,11 +68,11 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
     [self putSseInfo:sseInfo];
 }
 
--(void)putSseInfo:(TUTSseInfo *)sseInfo {
+- (void)putSseInfo:(TUTSseInfo *)sseInfo {
     [NSUserDefaults.standardUserDefaults setObject:sseInfo.toDict forKey:SSE_INFO_KEY];
 }
 
--(void)storeAlarms:(NSArray<TUTAlarmNotification *> *)alarmNotifications {
+- (void)storeAlarms:(NSArray<TUTAlarmNotification *> *)alarmNotifications {
     NSMutableArray<NSDictionary *> *notificationsJson = [NSMutableArray new];
     foreach(notification, alarmNotifications) {
         [notificationsJson addObject:notification.jsonDict];
@@ -81,7 +81,7 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
     [NSUserDefaults.standardUserDefaults setObject:jsonData forKey:ALARMS_KEY];
 }
 
--(NSMutableArray<TUTAlarmNotification *> *)alarms {
+- (NSMutableArray<TUTAlarmNotification *> *)alarms {
     let defaults = NSUserDefaults.standardUserDefaults;
     NSData *notificationsJsonData = [defaults objectForKey:ALARMS_KEY];
     NSMutableArray<TUTAlarmNotification *> * notifications = [NSMutableArray new];
@@ -95,17 +95,17 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
     return notifications;
 }
 
--(NSString *)lastProcessedNotificationId {
+- (NSString *)lastProcessedNotificationId {
     return [NSUserDefaults.standardUserDefaults stringForKey:LAST_PROCESSED_NOTIFICAION_ID_KEY];
 }
 
--(void)setLastProcessedNotificationId:(NSString *)lastProcessedNotificationId {
+- (void)setLastProcessedNotificationId:(NSString *)lastProcessedNotificationId {
     return [NSUserDefaults.standardUserDefaults setValue:lastProcessedNotificationId
                                                   forKey:LAST_PROCESSED_NOTIFICAION_ID_KEY
             ];
 }
 
--(NSDate *_Nullable)lastMissedNotificationCheckTime {
+- (NSDate *_Nullable)lastMissedNotificationCheckTime {
     return [NSUserDefaults.standardUserDefaults objectForKey:LAST_MISSED_NOTIFICATION_CHECK_TIME];
 }
 

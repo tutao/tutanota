@@ -144,6 +144,7 @@ o.spec("IPC tests", function () {
 			sendErrorReport: () => Promise.resolve(),
 		}
 		const alarmScheduler = {}
+		const themeManager = {}
 		return {
 			electronMock: n.mock("electron", electron).set(),
 			confMock: n.mock("__conf", conf).set(),
@@ -162,6 +163,7 @@ o.spec("IPC tests", function () {
 			utilsMock: n.mock("../api/common/utils/Utils", utils).set(),
 			autoUpdaterMock: n.mock("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock("__alarmScheduler", alarmScheduler).set(),
+			themeManagerMock: n.mock("__themeManager", themeManager).set(),
 		}
 	}
 
@@ -181,11 +183,12 @@ o.spec("IPC tests", function () {
 			errMock,
 			desktopUtilsMock,
 			desktopIntegratorMock,
-			alarmSchedulerMock
+			alarmSchedulerMock,
+			themeManagerMock,
 		} = sm
 
 		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock, cryptoMock, dlMock, autoUpdaterMock,
-			electronMock, desktopUtilsMock, errMock, desktopIntegratorMock, alarmSchedulerMock)
+			electronMock, desktopUtilsMock, errMock, desktopIntegratorMock, alarmSchedulerMock, themeManagerMock)
 		o(electronMock.ipcMain.on.callCount).equals(0)
 		ipc.addWindow(WINDOW_ID)
 		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {

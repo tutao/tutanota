@@ -5,11 +5,9 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import type {Theme} from "../gui/theme"
-import {theme, themeManager} from "../gui/theme"
+import {themeController} from "../gui/theme"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {update} from "../api/main/Entity"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
@@ -20,12 +18,12 @@ assertMainOrNode()
 let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
-	const colorFieldsAttrs = Object.keys(themeManager.getDefaultTheme())
-	                               .filter(name => name !== "logo")
+	const colorFieldsAttrs = Object.keys(themeController.getDefaultTheme())
+	                               .filter(name => name !== "logo" && name !== "themeId")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
-	                               	       // value is closed over by injectionsRight,
-		                                   // so the color swatch will always be up to date with the contents of the text field
+			                               // value is closed over by injectionsRight,
+			                               // so the color swatch will always be up to date with the contents of the text field
 			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,
@@ -117,13 +115,13 @@ function _getDefaultColorLine(field: TextFieldAttrs): Child {
 	if (!field.value().trim() || colorValue) {
 		let colorName = (field: any).label()
 		return m(".small.flex-space-between", [
-			m("", lang.get("defaultColor_label", {"{1}": themeManager.getDefaultTheme()[colorName]})),
+			m("", lang.get("defaultColor_label", {"{1}": themeController.getDefaultTheme()[colorName]})),
 			m("", {
 				style: {
 					width: '100px',
 					height: '10px',
 					"margin-top": "2px",
-					"background-color": themeManager.getDefaultTheme()[colorName]
+					"background-color": themeController.getDefaultTheme()[colorName]
 				}
 			})
 		])

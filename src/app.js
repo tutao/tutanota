@@ -16,7 +16,6 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
-import {themeManager} from "./gui/theme"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -40,7 +39,6 @@ window.tutao = {
 	root,
 	logins,
 	currentView,
-	themeManager,
 	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
@@ -198,7 +196,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 
 	// append catch all at the end because mithril will stop at the first match
 	resolvers["/:path"] = {
-		onmatch: (args: {[string]: string}, requestedPath: string): Promise<Component> => {
+		onmatch: (args: {[string]: QueryValue}, requestedPath: string): Promise<Component> => {
 			return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")])
 			              .then(([{InfoView}, {ButtonType, ButtonN}]) => {
 				              return {
@@ -230,7 +228,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 	initSW()
 })
 
-function forceLogin(args: {[string]: string}, requestedPath: string) {
+function forceLogin(args: {[string]: QueryValue}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
 		m.route.set(`/ext${location.hash}`)
 	} else if (requestedPath.startsWith("/#")) {

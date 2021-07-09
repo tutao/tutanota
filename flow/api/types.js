@@ -49,6 +49,7 @@ type PublicKey = {
 	publicExponent: number,
 }
 
+/** Requests from main web thread to worker */
 type WorkerRequestType = 'setup'
 	| 'generateSignupKeys'
 	| 'signup'
@@ -150,6 +151,7 @@ type WorkerRequestType = 'setup'
 	| 'createTemplateGroup'
 	| 'urlify'
 
+/** Requests from worker web thread to main web thread */
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -163,6 +165,7 @@ type MainRequestType = 'execNative'
 	| 'progressWorkDone'
 	| 'writeIndexerDebugLog'
 
+/** Requests from web to native */
 type NativeRequestType = 'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -187,7 +190,6 @@ type NativeRequestType = 'init'
 	| 'storePushIdentifierLocally'
 	| 'closePushNotifications'
 	| 'readFile'
-	| 'changeTheme'
 	| 'saveBlob'
 	| 'putFileIntoDownloads'
 	| 'findInPage'
@@ -219,7 +221,12 @@ type NativeRequestType = 'init'
 	| 'getConfigValue'
 	| 'getIntegrationInfo'
 	| 'getSpellcheckLanguages'
+	| 'getSelectedTheme'
+	| 'setSelectedTheme'
+	| 'getThemes'
+	| 'setThemes'
 
+/** Requests from native to web */
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
 	| 'showAlertDialog'

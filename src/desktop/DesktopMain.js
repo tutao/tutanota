@@ -36,6 +36,7 @@ import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
+import {ThemeManager} from "./ThemeManager"
 
 mp()
 
@@ -51,6 +52,7 @@ type Components = {
 	+updater: ElectronUpdater,
 	+integrator: DesktopIntegrator,
 	+tray: DesktopTray,
+	+themeManager: ThemeManager,
 }
 
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
@@ -111,7 +113,8 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, deviceKeyProvider)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
+	const themeManager = new ThemeManager(conf)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
 	const dateProvider = new DateProviderImpl()
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -121,7 +124,7 @@ async function createComponents(): Promise<Components> {
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
-	const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, desktopAlarmScheduler)
+	const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, desktopAlarmScheduler, themeManager)
 	wm.setIPC(ipc)
 
 	conf.getConst("appUserModelId")
@@ -140,6 +143,7 @@ async function createComponents(): Promise<Components> {
 		updater,
 		integrator,
 		tray,
+		themeManager,
 	}
 }
 

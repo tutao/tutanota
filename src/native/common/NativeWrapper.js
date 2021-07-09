@@ -4,6 +4,7 @@ import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, neverNull} from "../../api/common/utils/Utils"
 import {isMainOrNode, Mode} from "../../api/common/Env"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 /**
  * Invokes native functions of an app.
@@ -69,7 +70,10 @@ export class NativeWrapper {
 			// worker queue is only set in worker scope
 			return this._workerQueue.postMessage(new Request("execNative", [msg.type, msg.args]))
 		} else {
-			return neverNull(this._nativeQueue).postMessage(msg)
+			if (this._nativeQueue == null) {
+				throw new ProgrammingError(`No queue, tried to send ${msg.type}`)
+			}
+			return this._nativeQueue.postMessage(msg)
 		}
 	}
 

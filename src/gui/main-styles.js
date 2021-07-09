@@ -111,7 +111,8 @@ styles.registerStyle('main', () => {
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
 		'body': {
 			position: 'fixed',  // Fix body for iOS & Safari
-			'background-color': theme.content_bg,
+			// It is inlined to "transparent" in HTML so we have to overwrite it.
+			'background-color': `${theme.content_bg} !important`,
 		},
 		'button, textarea': {
 			padding: 0,

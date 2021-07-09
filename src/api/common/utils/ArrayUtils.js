@@ -132,20 +132,18 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 	}
 }
 
-export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>): R[] {
-	let resultList = []
-	theArray.forEach(item => {
-		let resultItem = mapper(item)
-		if (resultItem) {
+/**
+ * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
+ */
+export function mapAndFilterNull<T, R>(array: $ReadOnlyArray<T>, mapper: (T) => ?R): Array<R> {
+	const resultList = []
+	for (const item of array) {
+		const resultItem = mapper(item)
+		if (resultItem != null) {
 			resultList.push(resultItem)
 		}
-	})
+	}
 	return resultList
-}
-
-// TODO get rid of these downcasts
-export function mapAndFilterNullAsync<T, R>(array: Array<T>, mapper: mapper<T, $Promisable<?R>>): Promise<R[]> {
-	return Promise.all(array.map(mapper)).then(downcast(filterNull))
 }
 
 export function filterNull<T>(array: $ReadOnlyArray<?T>): Array<T> {
@@ -177,6 +175,10 @@ export function firstThrow<T>(array: $ReadOnlyArray<T>): T {
 		throw new RangeError("Array is empty")
 	}
 	return array[0]
+}
+
+export function first<T>(array: $ReadOnlyArray<T>): T | null {
+	return array[0] || null
 }
 
 export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {

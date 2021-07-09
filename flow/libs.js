@@ -3,8 +3,10 @@ declare interface Component {
 	view(vnode: Vnode<any>): VirtualElement | VirtualElement[];
 }
 
+declare type QueryValue = string | boolean | Array<QueryValue>
+
 declare type RouteResolverMatch = {
-	onmatch(args: {[string]: string}, requestedPath: string): ?(Component | Promise<?Component>);
+	onmatch(args: {[string]: QueryValue}, requestedPath: string): ?(Component | Promise<?Component>);
 }
 
 declare type RouteResolverRender = {

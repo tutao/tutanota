@@ -19,12 +19,8 @@ export function shareTextNative(text: string, title: string): Promise<boolean> {
 	return nativeApp.invokeNative(new Request("shareText", [text, title]))
 }
 
-export function reloadNative(queryParameters: string): Promise<void> {
-	return nativeApp.invokeNative(new Request('reload', [queryParameters]))
-}
-
-export function changeColorTheme(theme: string): Promise<void> {
-	return nativeApp.invokeNative(new Request('changeTheme', [theme]))
+export function reloadNative(queryParams: {[string]: string}): Promise<void> {
+	return nativeApp.invokeNative(new Request('reload', [queryParams]))
 }
 
 export function changeSystemLanguage(language: {code: LanguageCode, languageTag: string}): Promise<void> {

@@ -40,7 +40,8 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../api/main/OutOfOfficeNotificationUtils"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
-import {themeManager} from "../gui/theme"
+import type {Theme} from "../gui/theme"
+import {themeController} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -63,15 +64,6 @@ export class LoginViewController implements ILoginViewController {
 	constructor(view: LoginView) {
 		this.view = view;
 		this._loginPromise = Promise.resolve()
-
-		if (isApp()) {
-			worker.initialized.then(() => {
-
-				themeManager.themeIdChangedStream.map((theme) => {
-					import("../native/main/SystemApp").then(({changeColorTheme}) => changeColorTheme(theme))
-				})
-			})
-		}
 	}
 
 	autologin(credentials: Credentials): void {
@@ -227,6 +219,7 @@ export class LoginViewController implements ILoginViewController {
 				import("../native/common/FileApp")
 					.then(({fileApp}) => fileApp.clearFileData())
 					.catch((e) => console.log("Failed to clean file data", e))
+				return this._maybeSetCustomTheme()
 			}
 		})
 			.then(() => {
@@ -335,5 +328,30 @@ export class LoginViewController implements ILoginViewController {
 		return worker.initialized
 		             .then(() => import("../subscription/UpgradeSubscriptionWizard")
 			             .then((wizard) => wizard.loadSignupWizard()))
+	}
+
+	async _maybeSetCustomTheme(): Promise<*> {
+		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
+		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
+			const newTheme: Theme = JSON.parse(domainInfoAndConfig.whitelabelConfig.jsonTheme)
+			newTheme.themeId = domainInfoAndConfig.domainInfo.domain
+
+			const oldThemes = await themeController.getCustomThemes()
+			await themeController.updateSavedThemeDefinition(newTheme)
+
+			const oldTheme = oldThemes.includes(domainInfoAndConfig.domainInfo.domain)
+			if (!oldTheme) {
+				// TODO: translate
+				Dialog.confirm(
+					() => "Whitelabel theming has been detected. Do you want to apply it now?"
+				).then(answer => {
+					if (answer) {
+						themeController.setThemeId(newTheme.themeId)
+					}
+				})
+			}
+		} else {
+			await themeController.removeCustomThemes()
+		}
 	}
 }

@@ -2,12 +2,9 @@ package de.tutao.tutanota;
 
 import android.app.NotificationManager;
 import android.content.ClipData;
-import android.content.ContentProvider;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
@@ -54,6 +51,7 @@ public final class Native {
 	private final Map<String, DeferredObject<Object, Exception, Void>> queue = new HashMap<>();
 	private final MainActivity activity;
 	private final AlarmNotificationsManager alarmNotificationsManager;
+	public final ThemeManager themeManager;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
 
 
@@ -64,6 +62,7 @@ public final class Native {
 		files = new FileUtil(activity, new LocalNotificationsFacade(activity));
 		this.alarmNotificationsManager = alarmNotificationsManager;
 		this.sseStorage = sseStorage;
+		this.themeManager = new ThemeManager(activity);
 	}
 
 	public void setup() {
@@ -173,7 +172,8 @@ public final class Native {
 					break;
 				case "reload":
 					webAppInitialized = new DeferredObject<>();
-					activity.loadMainPage(args.getString(0));
+					activity.reload(Utils.jsonObjectToMap(args.getJSONObject(0)));
+					promise.resolve(null);
 					break;
 				case "initPushNotifications":
 					return initPushNotifications();
@@ -266,9 +266,28 @@ public final class Native {
 					promise.resolve(true);
 					break;
 				}
-				case "changeTheme":
-					activity.changeTheme(args.getString(0));
+				case "getSelectedTheme": {
+					promise.resolve(this.themeManager.getSelectedThemeId());
 					break;
+				}
+				case "setSelectedTheme": {
+					String themeId = args.getString(0);
+					this.themeManager.setSelectedThemeId(themeId);
+					activity.applyTheme();
+					promise.resolve(null);
+					break;
+				}
+				case "getThemes": {
+					List<Map<String,String>> themesList = this.themeManager.getThemes();
+					promise.resolve(new JSONArray(themesList));
+					break;
+				}
+				case "setThemes": {
+					JSONArray jsonThemes = args.getJSONArray(0);
+					this.themeManager.setThemes(jsonThemes);
+					promise.resolve(null);
+					break;
+				}
 				case "saveBlob":
 					return files.saveBlob(args.getString(0), args.getString(1));
 				case "putFileIntoDownloads":
@@ -281,6 +300,7 @@ public final class Native {
 					break;
 				case "scheduleAlarms":
 					scheduleAlarms(args.getJSONArray(0));
+					promise.resolve(null);
 					break;
 				default:
 					throw new Exception("unsupported method: " + method);
@@ -315,16 +335,6 @@ public final class Native {
 		}
 		return resolved;
 	}
-
-	private Uri getUriFromResource(int resourceId) {
-		return new Uri.Builder()
-				.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-				.authority(activity.getResources().getResourcePackageName(resourceId))
-				.appendPath(activity.getResources().getResourceTypeName(resourceId))
-				.appendPath(activity.getResources().getResourceEntryName(resourceId))
-				.build();
-	}
-
 
 	private boolean shareText(String string, @Nullable String title) {
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);

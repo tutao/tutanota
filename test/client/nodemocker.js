@@ -13,6 +13,20 @@ function mock<T>(old: string, replacer: T): MockBuilder<T> {
 	return new MockBuilder(old, replacer)
 }
 
+function getAllPropertyNames(obj) {
+	const props = [];
+
+	do {
+		for (const prop of Object.getOwnPropertyNames(obj)) {
+			if (props.indexOf(prop) === -1) {
+				props.push(prop);
+			}
+		}
+	} while (obj = Object.getPrototypeOf(obj));
+
+	return props;
+}
+
 export function spyify<T>(obj: T): T {
 	const anyObj: any = obj
 	switch (typeof obj) {
@@ -32,12 +46,21 @@ export function spyify<T>(obj: T): T {
 				// TODO: use proxy to sync spyified array?
 				return anyObj
 			} else {
-				return anyObj == null
-					? anyObj
-					: (Object.keys(anyObj).reduce((newObj, key) => {
-						(newObj: any)[key] = spyify((obj: any)[key])
-						return newObj
-					}, ({}: any)): T)
+				if (anyObj == null) {
+					return anyObj
+				} else {
+					const newObj = {}
+					// iterate over everything, not only own props
+					for (let key of getAllPropertyNames(anyObj)) {
+						// if it's a proto, don't deeply copy it, just assign a new one
+						if (key === "__proto__") {
+							(newObj: any)[key] = (obj: any)[key]
+						} else {
+							(newObj: any)[key] = spyify((obj: any)[key])
+						}
+					}
+					return downcast<T>(newObj)
+				}
 			}
 		default:
 			return obj

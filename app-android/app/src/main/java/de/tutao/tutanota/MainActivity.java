@@ -14,15 +14,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.MailTo;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.View;
@@ -32,9 +31,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import androidx.annotation.ColorRes;
+import androidx.annotation.ColorInt;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ComponentActivity;
@@ -47,12 +46,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -63,10 +63,12 @@ import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
+import static de.tutao.tutanota.Utils.parseColor;
+
 public class MainActivity extends ComponentActivity {
 
 	private static final String TAG = "MainActivity";
-	public static final String THEME_PREF = "theme";
+	public static final String THEME_OBJECT_PREF = "themeObject";
 	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
 	private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
 	private static int requestId = 0;
@@ -86,9 +88,6 @@ public class MainActivity extends ComponentActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.d(TAG, "App started");
-		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
-				.getString(THEME_PREF, "light"));
-
 		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
 		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false),
 				keyStoreFacade);
@@ -96,14 +95,15 @@ public class MainActivity extends ComponentActivity {
 				new Crypto(this), new SystemAlarmFacade(this), new LocalNotificationsFacade(this));
 		nativeImpl = new Native(this, sseStorage, alarmNotificationsManager);
 
+		doApplyTheme(this.nativeImpl.themeManager.getCurrentThemeWithFallback());
+
 		super.onCreate(savedInstanceState);
 
 		this.setupPushNotifications();
 
 		webView = new WebView(this);
-		webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+		webView.setBackgroundColor(Color.TRANSPARENT);
 		setContentView(webView);
-		final String appUrl = getUrl();
 		if (BuildConfig.DEBUG) {
 			WebView.setWebContentsDebuggingEnabled(true);
 		}
@@ -136,12 +136,6 @@ public class MainActivity extends ComponentActivity {
 		this.webView.setWebViewClient(new WebViewClient() {
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				if (url.startsWith(appUrl)) {
-					// Set JS interface on page reload
-					nativeImpl.setup();
-					return false;
-				}
-
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 				try {
 					startActivity(intent);
@@ -157,43 +151,15 @@ public class MainActivity extends ComponentActivity {
 		// Handle long click on links in the WebView
 		this.registerForContextMenu(this.webView);
 
-		List<String> queryParameters = new ArrayList<>();
-
+		Map<String, String> queryParameters = new HashMap<>();
 		// If opened from notifications, tell Web app to not login automatically, we will pass
 		// mailbox later when loaded (in handleIntent())
 		if (getIntent() != null
 				&& (OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction()) || OPEN_CALENDAR_ACTION.equals(getIntent().getAction()))) {
-			queryParameters.add("noAutoLogin=true");
+			queryParameters.put("noAutoLogin", "true");
 		}
 
-		// If the old credentials are present in the file system, pass them as an URL parameter
-		final File oldCredentialsFile = new File(getFilesDir(), "config/tutanota.json");
-		if (oldCredentialsFile.exists()) {
-			new AsyncTask<Void, Void, String>() {
-				@Override
-				@Nullable
-				protected String doInBackground(Void... voids) {
-					try {
-						String result = Utils.base64ToBase64Url(
-								Utils.bytesToBase64(Utils.readFile(oldCredentialsFile)));
-						oldCredentialsFile.delete();
-						return result;
-					} catch (IOException e) {
-						return null;
-					}
-				}
-
-				@Override
-				protected void onPostExecute(@Nullable String s) {
-					if (s != null) {
-						queryParameters.add("migrateCredentials=" + s);
-					}
-					startWebApp(queryParameters);
-				}
-			}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-		} else {
-			startWebApp(queryParameters);
-		}
+		startWebApp(queryParameters);
 
 		IntentFilter filter = new IntentFilter(INVALIDATE_SSE_ACTION);
 		this.registerReceiver(new BroadcastReceiver() {
@@ -222,9 +188,9 @@ public class MainActivity extends ComponentActivity {
 		super.onStop();
 	}
 
-	private void startWebApp(List<String> queryParams) {
-		webView.loadUrl(getUrl() +
-				(queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
+	@MainThread
+	private void startWebApp(Map<String, String> parameters) {
+		webView.loadUrl(getInitialUrl(parameters));
 		nativeImpl.setup();
 	}
 
@@ -268,20 +234,27 @@ public class MainActivity extends ComponentActivity {
 		webView.saveState(outState);
 	}
 
-	public void changeTheme(String themeName) {
-		runOnUiThread(() -> doChangeTheme(themeName));
+	public void applyTheme() {
+		Map<String, String> theme = nativeImpl.themeManager.getCurrentThemeWithFallback();
+		runOnUiThread(() -> doApplyTheme(theme));
 	}
 
-	private void doChangeTheme(String themeName) {
-		boolean isDark = "dark".equals(themeName);
-		@ColorRes int backgroundRes = isDark ? R.color.darkDarkest : R.color.white;
-		getWindow().setBackgroundDrawableResource(backgroundRes);
+	private void doApplyTheme(@NonNull Map<String, String> theme) {
+		Log.d(TAG, "changeTheme: " + theme.get("themeId"));
+
+		@ColorInt
+		int backgroundColor = parseColor(Objects.requireNonNull(theme.get("content_bg")));
+		getWindow().setBackgroundDrawable(new ColorDrawable(backgroundColor));
 		View decorView = getWindow().getDecorView();
 
+		String headerBg = Objects.requireNonNull(theme.get("header_bg"));
+		@ColorInt
+		int statusBarColor = parseColor(headerBg);
+		boolean statusBarDark = Utils.isColorLight(headerBg);
+
 		if (Utils.atLeastOreo()) {
-			int navbarColor = ContextCompat.getColor(this, isDark ? R.color.darkLighter : R.color.white);
-			getWindow().setNavigationBarColor(navbarColor);
-			decorView.setSystemUiVisibility(isDark ? 0 : View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+			getWindow().setNavigationBarColor(statusBarColor);
+			decorView.setSystemUiVisibility(statusBarDark ? 0 : View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
 		}
 
 		// Changing status bar color
@@ -290,17 +263,11 @@ public class MainActivity extends ComponentActivity {
 		// should be white. So we cannot use white status bar color.
 		// So for Android M and above we alternate between white and dark status bar colors and
 		// we change lightStatusBar flag accordingly.
-		int statusBarColorInt;
-		int uiFlags = isDark
+		int uiFlags = statusBarDark
 				? decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
 				: decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
 		decorView.setSystemUiVisibility(uiFlags);
-		statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.white, null);
-		getWindow().setStatusBarColor(statusBarColorInt);
-		PreferenceManager.getDefaultSharedPreferences(this)
-				.edit()
-				.putString(THEME_PREF, themeName)
-				.apply();
+		getWindow().setStatusBarColor(statusBarColor);
 	}
 
 	public void askBatteryOptinmizationsIfNeeded() {
@@ -322,7 +289,34 @@ public class MainActivity extends ComponentActivity {
 		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
 	}
 
-	private String getUrl() {
+	private String getInitialUrl(Map<String, String> parameters) {
+		Map<String, String> theme = this.nativeImpl.themeManager.getCurrentTheme();
+		if (theme != null) {
+			parameters.put("theme", Objects.requireNonNull(JSONObject.wrap(theme)).toString());
+		}
+
+		StringBuilder queryBuilder = new StringBuilder();
+		for (Map.Entry<String, String> entry : parameters.entrySet()) {
+			try {
+				String escapedValue = URLEncoder.encode(entry.getValue(), "UTF-8");
+				if (queryBuilder.length() == 0) {
+					queryBuilder.append("?");
+				} else {
+					queryBuilder.append("&");
+				}
+				queryBuilder.append(entry.getKey());
+				queryBuilder.append('=');
+				queryBuilder.append(escapedValue);
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		// additional path information like app.html/login are not handled properly by the webview
+		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+		return getBaseUrl() + queryBuilder.toString();
+	}
+
+	private String getBaseUrl() {
 		return BuildConfig.RES_ADDRESS;
 	}
 
@@ -545,10 +539,8 @@ public class MainActivity extends ComponentActivity {
 		moveTaskToBack(false);
 	}
 
-	public void loadMainPage(String parameters) {
-		// additional path information like app.html/login are not handled properly by the webview
-		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
-		runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+	public void reload(Map<String, String> parameters) {
+		runOnUiThread(() -> startWebApp(parameters));
 	}
 
 	@Override
@@ -562,7 +554,7 @@ public class MainActivity extends ComponentActivity {
 				if (link == null) {
 					return;
 				}
-				if (link.startsWith(getUrl())) {
+				if (link.startsWith(getBaseUrl())) {
 					return;
 				}
 				menu.setHeaderTitle(link);

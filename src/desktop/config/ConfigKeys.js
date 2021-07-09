@@ -14,7 +14,9 @@ export const DesktopConfigKey = Object.freeze({
 	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
 	desktopConfigVersion: "desktopConfigVersion",
 	mailExportMode: "mailExportMode",
-	spellcheck: "spellcheck"
+	spellcheck: "spellcheck",
+	selectedTheme: "selectedTheme",
+	themes: "themes",
 })
 export const DesktopConfigKeyValues: $ReadOnlySet<DesktopConfigKeyEnum> = new Set(typedValues(DesktopConfigKey))
 export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>

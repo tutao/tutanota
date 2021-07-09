@@ -1,5 +1,6 @@
 //@flow
 import m from "mithril"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 import {getLanguage, lang, languageCodeToTag, languages} from "../misc/LanguageViewModel"
 import {styles} from "../gui/styles"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
@@ -17,12 +18,20 @@ import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSetting
 import {incrementDate} from "../api/common/utils/DateUtils"
 import {getHourCycle} from "../misc/Formatter"
 import {Mode} from "../api/common/Env"
-import type {LanguageCode} from "../misc/LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
-import {themeManager} from "../gui/theme"
+import {themeController} from "../gui/theme"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
+	_customThemes: ?Array<ThemeId>
+
+	oncreate() {
+		themeController.getCustomThemes().then(themes => {
+			this._customThemes = themes
+			m.redraw()
+		})
+	}
+
 	view(): Children {
 		const languageDropDownAttrs: DropDownSelectorAttrs<?LanguageCode> = {
 			label: "language_label",
@@ -45,16 +54,6 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				    .then(() => styles.updateStyle("main"))
 				    .then(m.redraw)
 			}
-		}
-
-		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
-			label: "switchColorTheme_action",
-			items: [
-				{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"},
-				{name: lang.get("blue_label"), value: "blue"}
-			],
-			selectedValue: stream(themeManager.themeId),
-			selectionChangedHandler: (value) => themeManager.setThemeId(value)
 		}
 
 		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
@@ -94,11 +93,32 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".h4.mt-l", lang.get('settingsForDevice_label')),
 			m(DropDownSelectorN, languageDropDownAttrs),
-			(themeManager.themeId === 'custom') ? null : m(DropDownSelectorN, themeDropDownAttrs),
+			this._renderThemeSelector(),
 			m(".h4.mt-l", lang.get('userSettings_label')),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
 		])
+	}
+
+	_renderThemeSelector(): Children {
+		if (!themeController.shouldAllowChangingTheme() || this._customThemes == null) {
+			return null
+		}
+		const customOptions = this._customThemes.map(themeId => {
+			return {name: themeId, value: themeId}
+		})
+		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
+			label: "switchColorTheme_action",
+			items: [
+				{name: lang.get("light_label"), value: "light"},
+				{name: lang.get("dark_label"), value: "dark"},
+				{name: lang.get("blue_label"), value: "blue"},
+			].concat(customOptions),
+			selectedValue: stream(themeController.themeId),
+			selectionChangedHandler: (value) => themeController.setThemeId(value),
+			dropdownWidth: 300,
+		}
+		return m(DropDownSelectorN, themeDropDownAttrs)
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

@@ -21,7 +21,7 @@ import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEv
 import {createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import {isTutanotaMailAddress} from "../../api/common/RecipientInfo"
 import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
-import {themeManager} from "../../gui/theme"
+import {themeController} from "../../gui/theme"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 
 export interface CalendarUpdateDistributor {
@@ -213,7 +213,7 @@ function makeInviteEmailBody(sender: string, event: CalendarEvent, message: stri
 	const logo = isTutanotaMailAddress(sender)
 		? `
   <img style="width: 200px; max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
-  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(themeManager.getDefaultTheme().logo))}"
+  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(themeController.getDefaultTheme().logo))}"
   alt="logo"/>
 `
 		: ""

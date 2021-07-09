@@ -22,12 +22,15 @@ import {createCloseSessionServicePost} from "../entities/sys/CloseSessionService
 import {worker} from "./WorkerClient"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
+import type {CustomerInfo} from "../entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../entities/sys/CustomerInfo"
+import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
-import type {AccountingInfo} from "../entities/sys/AccountingInfo"
-import type {CustomerInfo} from "../entities/sys/CustomerInfo"
 import {isSameId} from "../common/utils/EntityUtils";
+import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
+import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
+import type {DomainInfo} from "../entities/sys/DomainInfo"
 
 assertMainOrNode()
 
@@ -70,6 +73,8 @@ export interface IUserController {
 	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
 	deleteSession(sync: boolean): Promise<void>;
+
+	loadWhitelabelConfig(): Promise<?{whitelabelConfig: WhitelabelConfig, domainInfo: DomainInfo}>;
 }
 
 export class UserController implements IUserController {
@@ -256,6 +261,27 @@ export class UserController implements IUserController {
 				xhr.send()
 			}
 		})
+	}
+
+	async loadWhitelabelConfig(): Promise<?{whitelabelConfig: WhitelabelConfig, domainInfo: DomainInfo}> {
+
+		// The model allows for multiple domainInfos to have whitelabel configs
+		// but in reality on the server only a single custom configuration is allowed
+		// therefore the result of the filtering all domainInfos with no whitelabelConfig
+		// can only be an array of length 0 or 1
+		const customerInfo = await this.loadCustomerInfo()
+		const domainInfoAndConfig = first(mapAndFilterNull(customerInfo.domainInfos, (domainInfo => domainInfo.whitelabelConfig && {
+			domainInfo,
+			whitelabelConfig: domainInfo.whitelabelConfig
+		})))
+		if (domainInfoAndConfig) {
+			const {WhitelabelConfigTypeRef} = await import("./../entities/sys/WhitelabelConfig")
+			const whitelabelConfig = await locator.entityClient.load(WhitelabelConfigTypeRef, domainInfoAndConfig.whitelabelConfig)
+			return {
+				domainInfo: domainInfoAndConfig.domainInfo,
+				whitelabelConfig,
+			}
+		}
 	}
 }
 
