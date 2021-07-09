@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-05-28T17:38:13Z",
+	"updated_at": "2021-07-02T06:26:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -736,7 +736,7 @@ export default {
 		"mailAddressNeutral_msg": "Adja meg az e-mail címet.",
 		"mailAddress_label": "E-mail cím",
 		"mailAuthFailed_label": "A levél hitelesítése sikertelen.",
-		"mailAuthFailed_msg": "Lehet, hogy az üzenet hamis. Ne bízzon az üzenet tartalmában, mert a feladó címe vagy az e-mail tartalma hamis lehet!",
+		"mailAuthFailed_msg": "Legyen óvatos, amikor megbízna ebben az üzenetben! A feladó vagy a tartalom hitelesítése sikertelen volt, így ez az üzenet lehet hamisítvány!",
 		"mailAuthMissingWithTechnicalSender_msg": "Nem tudtuk bizonyítani, hogy ennek az üzenetnek a tartalma vagy feladója érvényes. A technikai feladó: {sender}.\n",
 		"mailAuthMissing_label": "Nem sikerült bebizonyítani hogy az üzenet tartalma vagy a feladója hiteles.",
 		"mailBody_label": "Email-törzs",
@@ -960,6 +960,7 @@ export default {
 		"price_label": "Ár",
 		"pricing.basePriceExcludesTaxes_msg": "Alapár. Adót nem tartalmaz.",
 		"pricing.basePriceIncludesTaxes_msg": "Alapár. Az adót tartalmazza.",
+		"pricing.businessTemplates_msg": "Adjon hozzá email sablonokat!",
 		"pricing.businessUse_label": "Vállalati",
 		"pricing.comparisonAddUser_msg": "Felhasználó hozzáadása ({1})",
 		"pricing.comparisonContactFormPro_msg": "Kapcsolatfelvételi űrlapok ({price})",
@@ -983,6 +984,7 @@ export default {
 		"pricing.currentPlan_label": "Jelenlegi előfizetés",
 		"pricing.mailAddressAliasesShort_label": "{amount} álnevek",
 		"pricing.monthly_label": "Havi",
+		"pricing.perMonthPaidYearly_label": "havonta - évente fizetve",
 		"pricing.perMonth_label": "havonta",
 		"pricing.perYear_label": "évente",
 		"pricing.privateUse_label": "Magánszemély",

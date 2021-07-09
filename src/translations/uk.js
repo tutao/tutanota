@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2021-05-29T14:18:52Z",
+	"updated_at": "2021-07-02T06:26:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -737,7 +737,7 @@ export default {
 		"mailAddressNeutral_msg": "Введіть поштову адресу, будь ласка.",
 		"mailAddress_label": "Адреса е-пошти",
 		"mailAuthFailed_label": "Помилка аутентифікації пошти",
-		"mailAuthFailed_msg": "Повідомлення може бути підробленим. Не довіряйте вмісту цього повідомлення, оскільки адреса відправника чи вміст пошти можуть бути підробленими!",
+		"mailAuthFailed_msg": "Будьте обережні, довіряючи цьому повідомленню! Не вдалося перевірити відправника або його вміст, тому це повідомлення може бути підроблено!",
 		"mailAuthMissingWithTechnicalSender_msg": "Не вдалося довести, що вміст або відправник цього повідомлення дійсні. Технічний відправник: {sender}.",
 		"mailAuthMissing_label": "Ми не змогли довести, що вміст або відправник цього повідомлення є дійсним. ",
 		"mailBody_label": "Тіло електронного листа",
@@ -961,6 +961,7 @@ export default {
 		"price_label": "Ціна",
 		"pricing.basePriceExcludesTaxes_msg": "Базова ціна. Не включає податки.",
 		"pricing.basePriceIncludesTaxes_msg": "Базова ціна. З врахуванням податків.",
+		"pricing.businessTemplates_msg": "Додати шаблони електронної пошти",
 		"pricing.businessUse_label": "Бізнес",
 		"pricing.comparisonAddUser_msg": "Додати користувача ({1})\n\n\n",
 		"pricing.comparisonContactFormPro_msg": "Форми контактів ({price})\n\n",
@@ -984,6 +985,7 @@ export default {
 		"pricing.currentPlan_label": "Поточна підписка",
 		"pricing.mailAddressAliasesShort_label": "{amount} псевдонімів\n\n\n",
 		"pricing.monthly_label": "Щомісячно",
+		"pricing.perMonthPaidYearly_label": "на місяць - виплачується щороку",
 		"pricing.perMonth_label": "щомісячно",
 		"pricing.perYear_label": "щорічно",
 		"pricing.privateUse_label": "Приватне",

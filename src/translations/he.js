@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2021-03-17T14:41:23Z",
+	"updated_at": "2021-07-02T06:26:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "אודות",
@@ -144,9 +144,6 @@ export default {
 		"calendarRepeatStopConditionNever_label": "אף פעם",
 		"calendarRepeatStopConditionOccurrences_label": "לאחר מופעים",
 		"calendarRepeatStopCondition_label": "מסתיים",
-		"groupCapabilityInvite_label": "כתבו ונהלו את השיתוף",
-		"groupCapabilityWrite_label": "לקריאה בלבד",
-		"groupCapabilityWrite_label": "קרא וכתוב",
 		"calendarView_action": "עבור לתצוגת לוח שנה",
 		"calendar_label": "לוח שנה",
 		"callNumber_alt": "התקשר למספר הזה",
@@ -496,6 +493,9 @@ export default {
 		"globalSettings_label": "הגדרות גלובליות",
 		"goPremium_msg": "כמשתמש Premuim הינך יכול להתאים את מסנני החיפוש שלך בתפריט משמאל.",
 		"gross_label": "כולל מס",
+		"groupCapabilityInvite_label": "כתבו ונהלו את השיתוף",
+		"groupCapabilityRead_label": "לקריאה בלבד",
+		"groupCapabilityWrite_label": "קרא וכתוב",
 		"groupMembers_label": "חברי קבוצה",
 		"groupNotEmpty_msg": "לא ניתן לבטל קבוצות לא ריקות.",
 		"groups_label": "קבוצות",

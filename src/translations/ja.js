@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2021-05-28T07:26:15Z",
+	"updated_at": "2021-07-02T06:26:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -889,6 +889,7 @@ export default {
 		"pricing.currentPlan_label": "現在の契約",
 		"pricing.mailAddressAliasesShort_label": "{amount} エイリアス",
 		"pricing.monthly_label": "月額",
+		"pricing.perMonthPaidYearly_label": "月払い \b− 年払い",
 		"pricing.perMonth_label": "月額",
 		"pricing.perYear_label": "年間で",
 		"pricing.privateUse_label": "プライベート",
