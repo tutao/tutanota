@@ -25,7 +25,7 @@ import {StorageService} from "../../entities/storage/Services"
 import {uint8ArrayToBitArray, uint8ArrayToKey} from "../crypto/CryptoUtils"
 import {hash} from "../crypto/Sha256"
 import {_TypeModel as BlobServiceGetDataTypeModel, createBlobServiceGetData} from "../../entities/storage/BlobServiceGetData"
-import {createBlobHash} from "../../entities/storage/BlobHash"
+import {createBlobId} from "../../entities/sys/BlobId"
 
 assertWorkerOrNode()
 
@@ -170,10 +170,10 @@ export class FileFacade {
 			})
 	}
 
-	async encryptAndHash(data: Uint8Array, sessionKey: Uint8Array): Promise<{encryptedData: Uint8Array, hash: Uint8Array}> {
+	async encryptAndHash(data: Uint8Array, sessionKey: Uint8Array): Promise<{encryptedData: Uint8Array, blobId: Uint8Array}> {
 		const encryptedData = encryptBytes(uint8ArrayToBitArray(sessionKey), data)
 		const hashed = hash(encryptedData)
-		return {encryptedData, hash: hashed}
+		return {encryptedData, blobId: hashed.slice(0,6)}
 	}
 
 	uploadBlob(encryptedData: Uint8Array, hash: Uint8Array, storageAuthToken: string): Promise<void> {
@@ -183,7 +183,7 @@ export class FileFacade {
 		return this._restClient.request(STORAGE_REST_PATH, HttpMethod.PUT,
 			{
 				storageAuthToken,
-				hash: uint8ArrayToBase64(hash)
+				blobId: uint8ArrayToBase64(hash)
 			}, headers, encryptedData, MediaType.Binary)
 	}
 
@@ -191,7 +191,7 @@ export class FileFacade {
 		const headers = this._login.createAuthHeaders()
 		const getData = createBlobServiceGetData({
 			archiveId,
-			blobs: blobIds.map((hash) => createBlobHash({hash}))
+			blobIds: blobIds.map((blobId) => createBlobId({blobId}))
 		})
 		const literalGetData = await encryptAndMapToLiteral(BlobServiceGetDataTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)

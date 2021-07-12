@@ -192,6 +192,7 @@ const map: {[string]: () => mixed} = {
     PaymentDataServicePostData: () => import('./PaymentDataServicePostData'),
     PaymentDataServiceGetData: () => import('./PaymentDataServiceGetData'),
     ArchiveRef: () => import('./ArchiveRef'),
-    ArchiveType: () => import('./ArchiveType')
+    ArchiveType: () => import('./ArchiveType'),
+    BlobId: () => import('./BlobId')
 }
 export default map

@@ -266,7 +266,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	// only for admin client
-	encryptAndHash(data: Uint8Array, sessionKey: Uint8Array): Promise<{encryptedData: Uint8Array, hash: Uint8Array}> {
+	encryptAndHash(data: Uint8Array, sessionKey: Uint8Array): Promise<{encryptedData: Uint8Array, blobId: Uint8Array}> {
 		return this._postRequest(new Request('encryptAndHash', arguments))
 	}
 

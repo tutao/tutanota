@@ -3,27 +3,27 @@
 import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
-import type {BlobHash} from "./BlobHash"
+import type {BlobId} from "../sys/BlobId"
 
 export const BlobServiceGetDataTypeRef: TypeRef<BlobServiceGetData> = new TypeRef("storage", "BlobServiceGetData")
 export const _TypeModel: TypeModel = {
 	"name": "BlobServiceGetData",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 44,
-	"rootId": "B3N0b3JhZ2UALA",
+	"id": 43,
+	"rootId": "B3N0b3JhZ2UAKw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 45,
+			"id": 44,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"archiveId": {
-			"id": 46,
+			"id": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -31,12 +31,13 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"blobs": {
-			"id": 47,
+		"blobIds": {
+			"id": 46,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"final": false,
-			"refType": "BlobHash"
+			"final": true,
+			"refType": "BlobId",
+			"dependency": "sys"
 		}
 	},
 	"app": "storage",
@@ -53,5 +54,5 @@ export type BlobServiceGetData = {
 	_format: NumberString;
 	archiveId: Id;
 
-	blobs: BlobHash[];
+	blobIds: BlobId[];
 }

@@ -4,25 +4,25 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 
 
-export const BlobHashTypeRef: TypeRef<BlobHash> = new TypeRef("storage", "BlobHash")
+export const BlobIdTypeRef: TypeRef<BlobId> = new TypeRef("sys", "BlobId")
 export const _TypeModel: TypeModel = {
-	"name": "BlobHash",
-	"since": 1,
+	"name": "BlobId",
+	"since": 69,
 	"type": "AGGREGATED_TYPE",
-	"id": 41,
-	"rootId": "B3N0b3JhZ2UAKQ",
+	"id": 1883,
+	"rootId": "A3N5cwAHWw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 42,
+			"id": 1884,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"hash": {
-			"id": 43,
+		"blobId": {
+			"id": 1885,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -30,17 +30,17 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {},
-	"app": "storage",
-	"version": "1"
+	"app": "sys",
+	"version": "69"
 }
 
-export function createBlobHash(values?: $Shape<$Exact<BlobHash>>): BlobHash {
-	return Object.assign(create(_TypeModel, BlobHashTypeRef), values)
+export function createBlobId(values?: $Shape<$Exact<BlobId>>): BlobId {
+	return Object.assign(create(_TypeModel, BlobIdTypeRef), values)
 }
 
-export type BlobHash = {
-	_type: TypeRef<BlobHash>;
+export type BlobId = {
+	_type: TypeRef<BlobId>;
 
 	_id: Id;
-	hash: Uint8Array;
+	blobId: Uint8Array;
 }
