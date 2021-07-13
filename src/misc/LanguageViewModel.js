@@ -173,22 +173,24 @@ export const languages: $ReadOnlyArray<{code: LanguageCode, textId: TranslationK
 const infoLinks = Object.freeze({
 	"homePage_link": "https://tutanota.com",
 	"about_link": "https://tutanota.com/imprint",
+
 	//terms
 	"terms_link": "https://tutanota.com/terms",
 	"privacy_link": "https://tutanota.com/privacy",
-	//howto
-	"recoverCode_link": "https://tutanota.com/howto/#reset",
-	"2FA_link": "https://tutanota.com/howto#2fa",
-	"spamRules_link": "https://tutanota.com/howto#spam",
-	"domainInfo_link": "https://tutanota.com/howto#custom-domain",
-	"whitelabel_link": "https://tutanota.com/howto#whitelabel",
-	"webview_link": "https://tutanota.com/de/howto/#webview",
+
 	//faq
+	"recoverCode_link": "https://tutanota.com/faq#reset",
+	"2FA_link": "https://tutanota.com/faq#2fa",
+	"spamRules_link": "https://tutanota.com/faq#spam",
+	"domainInfo_link": "https://tutanota.com/faq#custom-domain",
+	"whitelabel_link": "https://tutanota.com/faq#whitelabel",
+	"webview_link": "https://tutanota.com/faq#webview",
 	"phishing_link": "https://tutanota.com/faq#phishing",
 	"mailAuth_link": "https://tutanota.com/faq#mail-auth",
-	"runInBackground_link": "https://tutanota.com/faq#tray",
+	"runInBackground_link": "https://tutanota.com/faq#tray-desktop",
 	"loadImages_link": "https://tutanota.com/faq#load-images",
 	"giftCardsTerms_link": "https://tutanota.com/faq#gift-cards-terms",
+
 	//blog
 	"premiumProBusiness_link": "https://tutanota.com/blog/posts/premium-pro-business"
 })
