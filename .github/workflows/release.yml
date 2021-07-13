@@ -20,7 +20,7 @@ jobs:
       - name: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "node buildSrc/createGithubReleaseDraft --tag tutanota-release-${{ github.event.inputs.tag }}
+        run: "node buildSrc/createGithubReleasePage --tag tutanota-release-${{ github.event.inputs.tag }}
                                                      --name ${{ github.event.inputs.tag }}
                                                      --milestone ${{ github.event.inputs.tag }}
                                                      --platform all"
