@@ -113,7 +113,13 @@ pipeline {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
-					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]) {
+					   	withCredentials(
+					   		[
+					   			usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
+								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
+					   		]
+						) {
+							sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
 							sh '''
 								export JENKINS=TRUE;
 								export APPLEID=${APPLEIDVAR};
