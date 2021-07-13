@@ -433,11 +433,7 @@ export class Indexer {
 		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
 		const lastIndexTimeMs: ?number = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
 
-		if (await this._throwIfOutOfDate()) {
-			const daysSinceIndex = millisToDays(neverNull(lastIndexTimeMs)) - ENTITY_EVENT_BATCH_TTL_DAYS
-			throw new OutOfSyncError(
-				`we haven't updated the index in ${daysSinceIndex} days. last update was ${new Date(neverNull(lastIndexTimeMs)).toString()}`)
-		}
+		await this._throwIfOutOfDate()
 
 		try {
 			for (let groupIdToEventBatch of groupIdToEventBatches) {
