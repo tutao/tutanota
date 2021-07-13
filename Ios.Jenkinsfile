@@ -105,7 +105,7 @@ pipeline {
 			steps {
 				script {
 					def util = load "jenkins-lib/util.groovy"
-					def ipaFileName = "tutanota-${VERSION}.ipa"
+					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
 					def artifactId = params.RELEASE ? "ios" : "ios-test"
 
 					unstash 'ipa'
