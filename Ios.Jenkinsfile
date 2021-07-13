@@ -122,6 +122,9 @@ pipeline {
 	}
 }
 
+/**
+ * Prepares the fastlane Appfile which defines the required ids for the ios application build.
+ */
 def createAppfile() {
 	script {
 		def app_identifier = 'de.tutao.tutanota'
