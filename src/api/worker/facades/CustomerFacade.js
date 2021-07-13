@@ -98,16 +98,19 @@ export class CustomerFacade {
 		return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.PUT, data)
 	}
 
-	orderWhitelabelCertificate(domainName: string): Promise<void> {
-		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
-				let data = createBrandingDomainData()
-				data.domain = domainName
-				return serviceRequestVoid(SysService.BrandingDomainService,
-					(existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)
-			})
-		})
+	async orderWhitelabelCertificate(domainName: string): Promise<void> {
+		const customer = await load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
+		const customerInfo = await load(CustomerInfoTypeRef, customer.customerInfo)
+		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
+		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+		let sessionKey = aes128RandomKey()
+		const systemAdminPubEncAccountingInfoSessionKey = await rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+		let data = createBrandingDomainData()
+		data.domain = domainName
+		data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
+		return serviceRequestVoid(SysService.BrandingDomainService,
+			(existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)
 	}
 
 	deleteCertificate(domainName: string): Promise<void> {
