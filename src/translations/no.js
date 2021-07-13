@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-12T07:19:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -317,7 +317,7 @@ export default {
 		"decline_action": "Avvis",
 		"defaultColor_label": "Standard farge: {1}",
 		"defaultDownloadPath_label": "Standard nedlastningsmappe",
-		"defaultEmailSignature_msg": "--\n<br>\nSendt med Tutanota - den sikre og reklamefrie e-posttjenesten:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSendt med Tutanota - den sikre og reklamefrie e-posttjenesten.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Ved sending av nye e-postmeldinger til eksterne mottakere kan du velge om meldingene skal være konfidensielle (ende-til-ende krypterte) eller ikke-konfidensielle (ikke ende-til-ende krypterte) som standard.",
 		"defaultExternalDelivery_label": "Standard levering",
 		"defaultGiftCardMessage_msg": "Jeg håper du nyter sikkerheten og personvernet du får med Tutanota!",

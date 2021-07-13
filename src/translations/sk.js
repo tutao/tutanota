@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-12T09:31:41Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -351,7 +351,7 @@ export default {
 		"decline_action": "Odmietnuť",
 		"defaultColor_label": "Predvolená farba: {1}",
 		"defaultDownloadPath_label": "Predvolený adresár sťahovania",
-		"defaultEmailSignature_msg": "--\n<br>\nOdoslané z Tutanoty, bezpečnej poštovej schránky bez reklám:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nOdoslané z Tutanoty, bezpečnej poštovej schránky bez reklám.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Predvolené nastavenie odosielania nového e-mailu externému príjemcovi: dôverné (end-to-end šifrované) alebo nedôverné (end-to-end nešifrované).",
 		"defaultExternalDelivery_label": "Predvolené dodanie",
 		"defaultGiftCardMessage_msg": "Dúfam, že sa Ti bude páčiť zabezpečenie a súkromie od Tutanoty!",
@@ -748,7 +748,7 @@ export default {
 		"mailAuthFailed_msg": "Pokiaľ ide o dôveryhodnosť tejto správy, buď opatrný/á! Overenie odosielateľa alebo obsahu zlyhalo, takže táto správa môže byť falošná!",
 		"mailAuthMissingWithTechnicalSender_msg": "Nepodarilo sa nám overiť platnosť obsahu ani odosielateľa tejto správy. Skutočný odosielateľ je: {sender}.",
 		"mailAuthMissing_label": "Nepodarilo sa nám overiť platnosť obsahu ani odosielateľa tejto správy.",
-		"mailBodyTooLarge_msg": "Mail sa nepodarilo odoslať, pretože presahuje limit maximálnej veľkosti.",
+		"mailBodyTooLarge_msg": "Ľutujeme, e-mail sa nepodarilo odoslať, pretože presahuje limit maximálnej veľkosti 1 MB.",
 		"mailBody_label": "Telo e-mailu",
 		"mailbox_label": "Poštová schránka",
 		"mailExportModeHelp_msg": "E-mailový formát súboru pre export alebo funkciu drag & drop",

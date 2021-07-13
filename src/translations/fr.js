@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2021-07-02T06:26:18Z",
+	"updated_at": "2021-07-12T07:18:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -308,7 +308,7 @@ export default {
 		"decline_action": "Refuser",
 		"defaultColor_label": "Couleur par défaut : {1}",
 		"defaultDownloadPath_label": "Chemin de téléchargement par défaut",
-		"defaultEmailSignature_msg": "--\n<br>\nEnvoi sécurisé avec Tutanota. Obtenez votre propre adresse email chiffrée :\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnvoi sécurisé avec Tutanota. Obtenez votre propre adresse email chiffrée.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Le paramètre par défaut pour envoyer un nouveau message à un destinataire externe : confidentiel (chiffré de bout en bout) ou non-confidentiel (non chiffré de bout en bout)",
 		"defaultExternalDelivery_label": "Envoi par défaut",
 		"defaultMailHandler_label": "Gestionnaire d'e-mail par défaut",

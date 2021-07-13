@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-12T08:10:22Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -355,7 +355,7 @@ export default {
 		"decline_action": "Rexeitar",
 		"defaultColor_label": "Cor por omisión: {1}",
 		"defaultDownloadPath_label": "Ruta por omisión para descargas",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviado con Tutanota, o email seguro e sen publicidade: \n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviado con Tutanota, o email seguro e sen publicidade.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "A configuración por omisión para enviar un novo correo a unha correspondente externa: confidencial (cifrado de extremo a extremo) ou non confidencial (non cifrado).",
 		"defaultExternalDelivery_label": "Envío por omisión",
 		"defaultGiftCardMessage_msg": "Espero que desfrutes da seguridade e privacidade que terás con Tutanota!",

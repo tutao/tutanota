@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-09T18:33:22Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -352,7 +352,7 @@ export default {
 		"decline_action": "Avböj",
 		"defaultColor_label": "Förvald färg: {1}",
 		"defaultDownloadPath_label": "Förvald nedladdningsväg",
-		"defaultEmailSignature_msg": "--\n<br>\nSkickad med Tutanota, den säkra reklamfria e-posttjänsten:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSkickad med Tutanota, den säkra reklamfria e-posttjänsten.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Standardinställningen för att skicka ett nytt meddelande till en extern mottagare: konfidentiell (end-to-end krypterad) eller inte konfidentiell (ej end-to-end krypterad).",
 		"defaultExternalDelivery_label": "Förvald leverans",
 		"defaultGiftCardMessage_msg": "Jag hoppas du uppskattar den säkerhet och integritet du får med Tutanota!",
@@ -749,7 +749,7 @@ export default {
 		"mailAuthFailed_msg": "Var försiktig att lita på det här meddelandet! Verifieringen av avsändaren eller innehållet har misslyckats. Det här meddelandet kan vara förfalskat!",
 		"mailAuthMissingWithTechnicalSender_msg": "Vi kunde inte visa att innehållet eller avsändaren av detta meddelande är giltig. Den tekniska avsändaren är: {sender}.",
 		"mailAuthMissing_label": "Vi kunde inte bevisa att innehållet eller avsändaren av detta meddelande är giltigt.",
-		"mailBodyTooLarge_msg": "Meddelandet kunde inte skickas eftersom det överskrider maximalt tillåtna storlek.",
+		"mailBodyTooLarge_msg": "Meddelandet kunde inte skickas eftersom det överskrider den maximalt tillåtna storleken 1 MB.",
 		"mailBody_label": "E-postmeddelande",
 		"mailbox_label": "Brevlåda",
 		"mailExportModeHelp_msg": "Filformat för e-post som ska användas vid export eller dra och släpp",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-11T18:24:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -355,7 +355,7 @@ export default {
 		"decline_action": "Refuză",
 		"defaultColor_label": "Culoare prestabilită: {1}",
 		"defaultDownloadPath_label": " Locul pentru descărcare",
-		"defaultEmailSignature_msg": "--\n<br>\nExpediază cu Tutanota, cutia poștală sigură și gratuită:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nExpediază cu Tutanota, cutia poștală sigură și gratuită:\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Opțiunile prestabilite pentru trimiterea unui nou e-mail către un destinatar extern: confidențial (cifrat de la trimitere până la primire) sau neconfidențial (necifrat).",
 		"defaultExternalDelivery_label": "Expediere prestabilită",
 		"defaultGiftCardMessage_msg": "Sper să te bucuri de protecția și intimitatea oferite de Tutanota!",
@@ -752,7 +752,7 @@ export default {
 		"mailAuthFailed_msg": "Nu te încrede în conținutul acestui mesaj! Verificarea expeditorului sau a conținutului a eșuat, deci acest mesaj poate fi un fals!",
 		"mailAuthMissingWithTechnicalSender_msg": "N-am putut dovedi autenticitatea expeditorul și a conținutul acestui mesaj. Expeditorul tehnic este: {sender}.",
 		"mailAuthMissing_label": "N-am putut dovedi autenticitatea expeditorul și a conținutul acestui mesaj.",
-		"mailBodyTooLarge_msg": "E-mailul nu a putut fi trimis pentru că depășește mărimea maximă admisă.",
+		"mailBodyTooLarge_msg": "E-mailul nu a putut fi trimis pentru că depășește mărimea maximă admisă de 1MB.",
 		"mailBody_label": "Corp e-mail",
 		"mailbox_label": "Cutia Poștală",
 		"mailExportModeHelp_msg": "Formatul fișierului de e-mail pentru exportare și cînd e tras și așezat",

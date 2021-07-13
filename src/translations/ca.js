@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2021-07-09T13:04:45Z",
+	"updated_at": "2021-07-12T08:07:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -301,7 +301,7 @@ export default {
 		"decline_action": "Declinar",
 		"defaultColor_label": "El color per defecte: {1}",
 		"defaultDownloadPath_label": "Directori de descarrega per defecte",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviat amb Tutanota, la bústia segura i lliure d'anuncis:\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviat amb Tutanota, la bústia segura i lliure d'anuncis.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "L'opció per defecte per a l'enviament d'un nou correu electrònic a un destinatari extern: confidencial (d'extrem a extrem xifrat)  o no confidencial (no d'extrem a extrem xifrat).",
 		"defaultExternalDelivery_label": "Entrega estàndard",
 		"defaultMailHandler_label": "Gestor de correu electrònic per defecte",

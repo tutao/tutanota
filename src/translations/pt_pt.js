@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2021-07-09T13:04:44Z",
+	"updated_at": "2021-07-12T07:17:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -331,7 +331,7 @@ export default {
 		"decline_action": "Rejeitar",
 		"defaultColor_label": "Cor por omissão: {1}",
 		"defaultDownloadPath_label": "Pasta predefinida para transferências",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviado de forma segura com Tutanota. Obtenha a sua caixa de correio encriptada, sem publicidade: \n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviado de forma segura com Tutanota. Obtenha a sua caixa de correio encriptada, sem publicidade.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "Definição padrão para o envio de novos emails para destinatários externos: confidencial (encriptado ponta a ponta) ou não-confidencial (não encriptado ponta a ponta).",
 		"defaultExternalDelivery_label": "Entrega padrão",
 		"defaultMailHandler_label": "Aplicação de email predefinida",
