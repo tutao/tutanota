@@ -9,7 +9,7 @@ import {
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
-import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
+import {GroupDataOS, Indexer, Metadata, MetaDataOS} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
@@ -29,11 +29,10 @@ import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/Whitelabe
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/utils/EntityUtils";
 import {TypeRef} from "../../../../src/api/common/utils/TypeRef";
-import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
 import {daysToMillis} from "../../../../src/api/common/utils/DateUtils"
 import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 
-const SERVER_TIME = new Date("08.06.1994")
+const SERVER_TIME = new Date("1994-06-08").getTime()
 const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - (1000 * 60 * 60 * 24)
 const restClientMock: EntityRestClient = downcast({
 	getRestClient() {
@@ -49,7 +48,7 @@ o.spec("Indexer test", () => {
 
 	o("init new db", function (done) {
 		let metadata = {}
-		const expectedKeys = [ Metadata.userEncDbKey, Metadata.lastEventIndexTimeMs ]
+		const expectedKeys = [Metadata.userEncDbKey, Metadata.lastEventIndexTimeMs]
 		let transaction = {
 			get: (os, key) => {
 				o(os).equals(MetaDataOS)
@@ -225,52 +224,6 @@ o.spec("Indexer test", () => {
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 
-	})
-
-	o("init existing db out of date", async function () {
-		let userGroupKey = aes128RandomKey()
-		let dbKey = aes256RandomKey()
-		let userEncDbKey = encrypt256Key(userGroupKey, dbKey)
-		let encDbIv = aes256Encrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true, false)
-		let transaction = {
-			get: async (os, key) => {
-				if (os == MetaDataOS && key == Metadata.userEncDbKey) return userEncDbKey
-				if (os == MetaDataOS && key == Metadata.mailIndexingEnabled) return true
-				if (os == MetaDataOS && key == Metadata.excludedListIds) return ["excluded-list-id"]
-				if (os == MetaDataOS && key == Metadata.encDbIv) return encDbIv
-				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return OUT_OF_DATE_SERVER_TIME
-				return Promise.resolve(null)
-			},
-			wait: () => Promise.resolve(),
-			// So that we don't run into "no group ids' check
-			getAll: () => Promise.resolve([{key: "key", value: "value"}])
-		}
-
-		let groupDiff = [{groupDiff: "dummy"}]
-		let persistentGroupData = [{persistentGroupData: "dummy"}]
-		const indexer = mock(new Indexer(restClientMock, ({sendIndexState: () => Promise.resolve()}: any), browserDataStub, restClientMock), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				open: o.spy(() => Promise.resolve()),
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock._loadGroupDiff = o.spy(() => Promise.resolve(groupDiff))
-			mock._updateGroups = o.spy(() => Promise.resolve())
-			mock._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
-
-			mock._contact.indexFullContactList = o.spy(() => Promise.resolve())
-			mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
-
-			mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
-			mock.disableMailIndexing = o.spy()
-		})
-
-		let user = createUser()
-		user.userGroup = createGroupMembership()
-		user.userGroup.group = "user-group-id"
-
-		await indexer.init(user, userGroupKey)
-		o(indexer.disableMailIndexing.callCount).equals(1)
 	})
 
 	o("_loadGroupDiff", function (done) {
@@ -1038,7 +991,6 @@ o.spec("Indexer test", () => {
 				_processNext()
 			})
 		})
-
 
 
 		const events1 = [
