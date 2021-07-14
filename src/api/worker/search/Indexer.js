@@ -202,7 +202,7 @@ export class Indexer {
 				await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
 				const groupIdToEventBatches = await this._loadPersistentGroupData(user)
 				await this._loadNewEntities(groupIdToEventBatches)
-				          .catch(OutOfSyncError, e => this.disableMailIndexing("found to be out of sync when loading new entities"))
+				          .catch(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message))
 			} catch (e) {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 					// in case of MembershipRemovedError mail or contact group has been removed from user.
