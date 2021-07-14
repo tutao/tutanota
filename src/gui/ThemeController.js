@@ -66,7 +66,7 @@ export class ThemeController {
 				// We also don't need to save anything in this case
 				await this.updateCustomTheme(parsedTheme, false)
 			} else {
-				await this._applySavedTheme()
+				await this.reloadTheme()
 			}
 		}
 	}
@@ -83,7 +83,7 @@ export class ThemeController {
 		}
 	}
 
-	async _applySavedTheme() {
+	async reloadTheme() {
 		const themeId = await this._themeStorage.getSelectedTheme()
 		if (!themeId) return
 		await this.setThemeId(themeId, false)

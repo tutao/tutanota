@@ -341,6 +341,9 @@ export class LoginViewController implements ILoginViewController {
 				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 				if (!isExistingTheme && await Dialog.confirm("whitelabelThemeDetected_msg")) {
 					await themeController.setThemeId(newTheme.themeId)
+				} else {
+					// If the theme has changed we want to reload it, otherwise this is no-op
+					await themeController.reloadTheme()
 				}
 			}
 		}
