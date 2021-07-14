@@ -36,6 +36,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
+import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
@@ -64,7 +65,6 @@ export class EditSecondFactorsForm {
 	}
 
 	view(): Children {
-		const lnk = lang.getInfoLink('2FA_link')
 		const secondFactorTableAttrs: TableAttrs = {
 			columnHeading: ["name_label", "type_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
@@ -83,7 +83,7 @@ export class EditSecondFactorsForm {
 			isTutanotaDomain()
 				? [
 					m("span.small", lang.get("moreInfo_msg") + " "),
-					m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
+					ifAllowedTutanotaLinks("2FA_link", link => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)]))
 				]
 				: null
 		]

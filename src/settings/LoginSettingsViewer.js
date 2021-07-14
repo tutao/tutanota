@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode, isTutanotaDomain} from "../api/common/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {lang} from "../misc/LanguageViewModel"
@@ -26,6 +26,7 @@ import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
@@ -96,16 +97,10 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				if (isTutanotaDomain()) {
-					const lnk = lang.getInfoLink("recoverCode_link")
-					return [
-						m("span", lang.get("moreInfo_msg") + " "),
-						m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
-					]
-				} else {
-					return ""
-				}
-
+				return ifAllowedTutanotaLinks("recoverCode_link", link => [
+					m("span", lang.get("moreInfo_msg") + " "),
+					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)])
+				])
 			},
 			value: this._stars,
 			disabled: true,

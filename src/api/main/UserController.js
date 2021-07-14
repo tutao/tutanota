@@ -9,7 +9,7 @@ import {UserTypeRef} from "../entities/sys/User"
 import {MediaType} from "../common/EntityFunctions"
 import type {GroupInfo} from "../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
-import {assertMainOrNode, getHttpOrigin} from "../common/Env"
+import {assertMainOrNode, getHttpOrigin, isDesktop} from "../common/Env"
 import type {TutanotaProperties} from "../entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {_TypeModel as SessionModelType} from "../entities/sys/Session"
@@ -32,6 +32,7 @@ import {ofClass, promiseMap} from "../common/utils/PromiseUtils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
+import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 
 assertMainOrNode()
 
@@ -76,6 +77,8 @@ export interface IUserController {
 	deleteSession(sync: boolean): Promise<void>;
 
 	loadWhitelabelConfig(): Promise<?{whitelabelConfig: WhitelabelConfig, domainInfo: DomainInfo}>;
+
+	isWhitelabelAccount(): Promise<boolean>;
 }
 
 export class UserController implements IUserController {
@@ -262,6 +265,17 @@ export class UserController implements IUserController {
 				xhr.send()
 			}
 		})
+	}
+
+	async isWhitelabelAccount(): Promise<boolean> {
+
+		// isTutanotaDomain always returns true on desktop
+		if (!isDesktop()) {
+			return !!getWhitelabelCustomizations(window)
+		}
+
+		const customerInfo = await this.loadCustomerInfo()
+		return customerInfo.domainInfos.some(domainInfo => domainInfo.whitelabelConfig)
 	}
 
 	async loadWhitelabelConfig(): Promise<?{whitelabelConfig: WhitelabelConfig, domainInfo: DomainInfo}> {

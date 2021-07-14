@@ -22,6 +22,7 @@ import type {NativeWrapper} from "../native/common/NativeWrapper"
 import type {DesktopConfigKeyEnum} from "../desktop/config/ConfigKeys"
 import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
+import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
@@ -85,12 +86,11 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "runInBackground_action",
 			helpLabel: () => {
-				const lnk = lang.getInfoLink("runInBackground_link")
-				return [
+				return ifAllowedTutanotaLinks("runInBackground_link", link => [
 					m("span", lang.get("runInBackground_msg") + " "),
 					m("span", lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
-				]
+					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)])
+				])
 			},
 			items: [
 				{name: lang.get("yes_label"), value: true},

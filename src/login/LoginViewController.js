@@ -223,12 +223,15 @@ export class LoginViewController implements ILoginViewController {
 					return locator.mailModel.init()
 				}
 			})
-			.then(() => logins.loginComplete()).then(() => {
+			.then(() => logins.loginComplete()).then(async () => {
 			if (isApp() || isDesktop()) {
 				// don't wait for it, just invoke
 				import("../native/common/FileApp")
 					.then(({fileApp}) => fileApp.clearFileData())
 					.catch((e) => console.log("Failed to clean file data", e))
+
+				await logins.determineIfWhitelabel()
+
 				return this._maybeSetCustomTheme()
 			}
 		})
