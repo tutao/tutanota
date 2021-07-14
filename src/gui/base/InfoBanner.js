@@ -11,6 +11,7 @@ import {ButtonN, ButtonType} from "./ButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {mapNullable} from "../../api/common/utils/Utils"
 import {Icons} from "./icons/Icons"
+import {ifAllowedTutanotaLinks} from "./GuiUtils"
 
 const WARNING_RED = "#ca0606"
 
@@ -82,16 +83,17 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 		}))
 	}
 
-	renderHelpLink(helpLink: InfoLink): Children {
-		return m(".button-content",
-			{style: {marginRight: "-10px"}},
-			m(NavButtonN, {
-				icon: () => Icons.QuestionMark,
-				href: lang.getInfoLink(helpLink),
-				small: true,
-				hideLabel: true,
-				centred: true,
-				label: "help_label"
-			}))
+	renderHelpLink(helpLink: InfoLink): ?Children {
+		return ifAllowedTutanotaLinks(helpLink, link => {
+			return m(".button-content",
+				{style: {marginRight: "-10px"}},
+				m(NavButtonN, {
+					icon: () => Icons.QuestionMark,
+					href: link,
+					small: true,
+					hideLabel: true,
+					centred: true,
+				label: "help_label"}))
+		})
 	}
 }

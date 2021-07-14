@@ -2,7 +2,7 @@
 import type {Country} from "../../api/common/CountryList"
 import {Countries} from "../../api/common/CountryList"
 import {DropDownSelector} from "./DropDownSelector"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType} from "./ButtonN"
@@ -12,6 +12,7 @@ import {attachDropdown} from "./DropdownN"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "./Dialog"
+import {logins} from "../../api/main/LoginController"
 import type {AllIconsEnum} from "./Icon"
 
 // TODO Use DropDownSelectorN
@@ -142,4 +143,16 @@ export function makeListSelectionChangedScrollHandler(scrollDom: HTMLElement, en
 			scrollDom.scrollTop = selectedBottom - scrollWindowHeight
 		}
 	}
+}
+
+/**
+ * Executes the passed function if the user is allowed to see `tutanota.com` links.
+ * @param render receives the resolved link
+ * @returns {Children|null}
+ */
+export function ifAllowedTutanotaLinks(linkId: InfoLink, render: (string) => Children): Children | null {
+	if (logins.getUserController().isGlobalAdmin() || !logins.isWhitelabel()) {
+		return render(lang.getInfoLink(linkId))
+	}
+	return null
 }

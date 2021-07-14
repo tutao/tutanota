@@ -4,6 +4,7 @@ import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import type {WorkerClient} from "./WorkerClient"
+import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 
 assertMainOrNodeBoot()
 
@@ -40,6 +41,10 @@ export interface LoginController {
 
 	loadCustomizations(): Promise<void>;
 
+	determineIfWhitelabel(): Promise<void>;
+
+	isWhitelabel(): boolean;
+
 	logout(sync: boolean): Promise<void>;
 }
 
@@ -47,6 +52,7 @@ export class LoginControllerImpl implements LoginController {
 	_userController: ?IUserController
 	customizations: ?NumberString[]
 	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
+	_isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 
 	_getWorker(): Promise<WorkerClient> {
 		return import("./MainLocator")
@@ -181,6 +187,14 @@ export class LoginControllerImpl implements LoginController {
 			console.log("No session to delete")
 			return Promise.resolve()
 		}
+	}
+
+	async determineIfWhitelabel(): Promise<void> {
+		this._isWhitelabel = await this.getUserController().isWhitelabelAccount()
+	}
+
+	isWhitelabel(): boolean {
+		return this._isWhitelabel
 	}
 
 }

@@ -526,10 +526,14 @@ export function isCustomizationEnabledForCustomer(customer: Customer, feature: F
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-export function mapNullable<T, U>(val: ?T, action: T => U): U | null {
-	return val != null
-		? action(val)
-		: null
+export function mapNullable<T, U>(val: ?T, action: T => ?U): U | null  {
+	if (val != null) {
+		const result = action(val)
+		if (result != null) {
+			return result
+		}
+	}
+	return null
 }
 
 export function isSecurityError(e: any): boolean {
