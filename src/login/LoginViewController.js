@@ -340,18 +340,9 @@ export class LoginViewController implements ILoginViewController {
 			await themeController.updateSavedThemeDefinition(newTheme)
 
 			const oldTheme = oldThemes.includes(domainInfoAndConfig.domainInfo.domain)
-			if (!oldTheme) {
-				// TODO: translate
-				Dialog.confirm(
-					() => "Whitelabel theming has been detected. Do you want to apply it now?"
-				).then(answer => {
-					if (answer) {
-						themeController.setThemeId(newTheme.themeId)
-					}
-				})
+			if (!oldTheme && await Dialog.confirm("whitelabelThemeDetected_msg")) {
+				await themeController.setThemeId(newTheme.themeId)
 			}
-		} else {
-			await themeController.removeCustomThemes()
 		}
 	}
 }
