@@ -238,12 +238,7 @@ async function buildWebapp(version) {
 			return getChunkName(id, {getModuleInfo})
 		},
 		chunkFileNames: (chunkInfo) => {
-			// I would love to test chunkInfo.name but it will be just "en", not "translation-en" for some reason
-			if (chunkInfo.facadeModuleId && chunkInfo.facadeModuleId.includes("src/translations/")) {
-				return "translation-[name]-[hash].js"
-			} else {
 				return "[name]-[hash].js"
-			}
 		}
 	})
 	const chunks = output.output.map(c => c.fileName)
