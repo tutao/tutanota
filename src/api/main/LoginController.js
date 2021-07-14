@@ -40,6 +40,10 @@ export interface LoginController {
 
 	loadCustomizations(): Promise<void>;
 
+	determineIfWhitelabel(): Promise<void>;
+
+	isWhitelabel(): boolean;
+
 	logout(sync: boolean): Promise<void>;
 }
 
@@ -47,6 +51,7 @@ export class LoginControllerImpl implements LoginController {
 	_userController: ?IUserController
 	customizations: ?NumberString[]
 	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
+	_isWhitelabel: boolean = !!whitelabelCustomizations
 
 	_getWorker(): Promise<WorkerClient> {
 		return import("./MainLocator")
@@ -164,6 +169,14 @@ export class LoginControllerImpl implements LoginController {
 			console.log("No session to delete")
 			return Promise.resolve()
 		}
+	}
+
+	async determineIfWhitelabel(): Promise<void> {
+		this._isWhitelabel = await this.getUserController().isWhitelabelAccount()
+	}
+
+	isWhitelabel(): boolean {
+		return this._isWhitelabel
 	}
 
 }
