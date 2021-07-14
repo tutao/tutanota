@@ -145,7 +145,7 @@ public class Utils {
 	}
 
 	static boolean isColorLight(String c) {
-		if (c.charAt(0) != '#' || c.length() != 6) {
+		if (c.charAt(0) != '#' || c.length() != 7) {
 			throw new IllegalArgumentException("Invalid color format: " + c);
 		}
 		int rgb = Integer.parseInt(c.substring(1), 16);   // convert rrggbb to decimal
