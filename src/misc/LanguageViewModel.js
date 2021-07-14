@@ -86,7 +86,7 @@ const translationImportMap = {
 	// $FlowFixMe[untyped-import]
 	'sl': () => import("../translations/sl.js"),
 	// $FlowFixMe[untyped-import]
-	'sr': () => import("../translations/sr.js"),
+	'sr_cyrl': () => import("../translations/sr_cyrl.js"),
 	// $FlowFixMe[untyped-import]
 	'sv': () => import("../translations/sv.js"),
 	// $FlowFixMe[untyped-import]
