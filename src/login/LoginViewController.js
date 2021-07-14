@@ -334,14 +334,14 @@ export class LoginViewController implements ILoginViewController {
 		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
 			const newTheme: Theme = JSON.parse(domainInfoAndConfig.whitelabelConfig.jsonTheme)
-			newTheme.themeId = domainInfoAndConfig.domainInfo.domain
-
-			const oldThemes = await themeController.getCustomThemes()
-			await themeController.updateSavedThemeDefinition(newTheme)
-
-			const oldTheme = oldThemes.includes(domainInfoAndConfig.domainInfo.domain)
-			if (!oldTheme && await Dialog.confirm("whitelabelThemeDetected_msg")) {
-				await themeController.setThemeId(newTheme.themeId)
+			if (Object.keys(newTheme).length > 0) {
+				newTheme.themeId = domainInfoAndConfig.domainInfo.domain
+				const previouslySavedThemes = await themeController.getCustomThemes()
+				await themeController.updateSavedThemeDefinition(newTheme)
+				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
+				if (!isExistingTheme && await Dialog.confirm("whitelabelThemeDetected_msg")) {
+					await themeController.setThemeId(newTheme.themeId)
+				}
 			}
 		}
 	}
