@@ -7,16 +7,15 @@ import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const root = path.dirname(__dirname)
+const root = dirname(fileURLToPath(import.meta.url))
 
 export async function build(buildOptions, serverOptions, log) {
-	log("Build")
+	log("Building tests")
 
-	const pjPath = path.join(root, "./package.json")
-	await fs.mkdir(path.join(root, "build/test"), {recursive: true})
+	const pjPath = path.join(root, "..", "package.json")
+	await fs.mkdir(buildDir(), {recursive: true})
 	const {version} = JSON.parse(await fs.readFile(pjPath, "utf8"))
-	await fs.copyFile(pjPath, path.join(root, "build/test/package.json"))
+	await fs.copyFile(pjPath, buildDir("package.json"))
 	const localEnv = env.create("http://localhost:9000", version, "Test")
 
 	log("Bundling...")
@@ -40,11 +39,11 @@ export async function build(buildOptions, serverOptions, log) {
 
 				const start = Date.now()
 				log("Generating...")
-				const result = await bundle.generate({sourcemap: false, dir: "../build/test", format: "esm", chunkFileNames: "[name].js"})
+				const result = await bundle.generate({sourcemap: false, dir: buildDir(), format: "esm", chunkFileNames: "[name].js"})
 				log("Generated in", Date.now() - start)
 
 				const writingStart = Date.now()
-				await writeNollupBundle(result, log, "../build/test")
+				await writeNollupBundle(result, log, buildDir())
 				log("Wrote in ", Date.now() - writingStart)
 			},
 		}
@@ -115,9 +114,9 @@ async function createUnitTestHtml(watch, project, localEnv, log) {
 
 
 	const template = `import('./bootstrapTests-${project}.js')`
-	const targetFile = `../build/test/test-${project}.html`
+	const targetFile = buildDir(`test-${project}.html`)
 	log(`Generating browser tests for ${project} at "${targetFile}"`)
-	await _writeFile(`../build/test/test-${project}.js`, [
+	await _writeFile(buildDir(`test-${project}.js`), [
 		`window.whitelabelCustomizations = null`,
 		`window.env = ${JSON.stringify(localEnv, null, 2)}`,
 		watch ? "new WebSocket('ws://localhost:8080').addEventListener('message', (e) => window.hotReload())" : "",
@@ -129,4 +128,8 @@ async function createUnitTestHtml(watch, project, localEnv, log) {
 
 function _writeFile(targetFile, content) {
 	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+}
+
+function buildDir(...files) {
+	return path.join(root, "build", ...files)
 }

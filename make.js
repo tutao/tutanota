@@ -39,7 +39,7 @@ const flowPromise = new Promise((resolve, reject) => {
 runBuild()
 
 function runBuild() {
-	const buildServerClient = new BuildServerClient()
+	const buildServerClient = new BuildServerClient("make")
 	buildServerClient.buildWithServer({
 		forceRestart: opts.clean,
 		builder: path.resolve("./buildSrc/Builder.js"),

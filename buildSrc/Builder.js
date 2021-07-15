@@ -101,6 +101,8 @@ function debugModels() {
 }
 
 export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
+	log("Building app")
+
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 	await prepareAssets(stage, host, version)
 	const start = Date.now()
