@@ -14,7 +14,6 @@ import type {MailboxDetail} from "./MailModel"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {InboxRule} from "../../api/entities/tutanota/InboxRule"
-import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {splitInChunks} from "../../api/common/utils/ArrayUtils"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -86,7 +85,7 @@ export function findAndApplyMatchingRule(worker: WorkerClient, entityClient: Ent
 		|| !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(null)
 	}
-	return _findMatchingRule(entityClient, mail).then(inboxRule => {
+	return _findMatchingRule(entityClient, mail, logins.getUserController().props.inboxRules).then(inboxRule => {
 		if (inboxRule) {
 			let targetFolder = mailboxDetail.folders.filter(folder => folder !== getInboxFolder(mailboxDetail.folders))
 			                                .find(folder => isSameId(folder._id, inboxRule.targetFolder))
@@ -117,8 +116,8 @@ export function findAndApplyMatchingRule(worker: WorkerClient, entityClient: Ent
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export function _findMatchingRule(entityClient: EntityClient, mail: Mail): Promise<?InboxRule> {
-	return Promise.reduce(logins.getUserController().props.inboxRules, (resultInboxRule, inboxRule) => {
+export function _findMatchingRule(entityClient: EntityClient, mail: Mail, rules: InboxRule []): Promise<?InboxRule> {
+	return Promise.reduce(rules, (resultInboxRule, inboxRule) => {
 
 		if (resultInboxRule) {
 			//console.log("rule matches", resultInboxRule)
@@ -128,13 +127,17 @@ export function _findMatchingRule(entityClient: EntityClient, mail: Mail): Promi
 		let ruleType = inboxRule.type;
 		try {
 			if (ruleType === InboxRuleType.FROM_EQUALS) {
-				return _checkEmailAddresses([mail.sender], inboxRule)
+				let mailAddresses = [mail.sender.address]
+				if (mail.differentEnvelopeSender) {
+					mailAddresses.push(mail.differentEnvelopeSender)
+				}
+				return _checkEmailAddresses(mailAddresses, inboxRule)
 			} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
-				return _checkEmailAddresses(mail.toRecipients, inboxRule)
+				return _checkEmailAddresses(mail.toRecipients.map(m => m.address), inboxRule)
 			} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
-				return _checkEmailAddresses(mail.ccRecipients, inboxRule)
+				return _checkEmailAddresses(mail.ccRecipients.map(m => m.address), inboxRule)
 			} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-				return _checkEmailAddresses(mail.bccRecipients, inboxRule)
+				return _checkEmailAddresses(mail.bccRecipients.map(m => m.address), inboxRule)
 			} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
 				return _checkContainsRule(mail.subject, inboxRule)
 			} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
@@ -181,9 +184,9 @@ export function _matchesRegularExpression(value: string, inboxRule: InboxRule): 
 	return false
 }
 
-function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule): ?InboxRule {
+function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): ?InboxRule {
 	let mailAddress = mailAddresses.find(mailAddress => {
-		let cleanMailAddress = mailAddress.address.toLowerCase().trim();
+		let cleanMailAddress = mailAddress.toLowerCase().trim();
 		if (isRegularExpression(inboxRule.value)) {
 			return _matchesRegularExpression(cleanMailAddress, inboxRule)
 		} else if (isDomainName(inboxRule.value)) {
