@@ -15,10 +15,10 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import type {PosRect} from "./Dropdown"
+import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
-import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 
 assertMainOrNode()
 
@@ -102,8 +102,13 @@ export class DropdownN {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
 						this._domContents = vnode.dom
-						this._buttonsHeight = this._visibleChildren()
-						                          .reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
+
+						const visibleChildren = this._visibleChildren()
+						const buttons = visibleChildren.filter(b => (typeof b !== "string"))
+						const strings = visibleChildren.filter(b => (typeof b === "string"))
+						this._buttonsHeight = buttons.reduce((sum, current) => sum + size.button_height, 0) +
+							strings.reduce((sum, current) => sum + size.dropdown_text_height, 0) +
+							size.vpad_small * 2
 
 						const maxHeight = this._buttonsHeight + this._getFilterHeight()
 						if (this.origin) {
@@ -142,7 +147,10 @@ export class DropdownN {
 				},
 				(this._visibleChildren().map(child => {
 					if (typeof child === "string") {
-						return m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", child)
+						if (child === lang.get("envelopeSenderInfo_msg")) {
+							return m(".flex-v-center.dropdown-text-height.text-break.doNotClose.selectable", child)
+						}
+						return m(".flex-v-center.center.dropdown-text-height.b.text-break.doNotClose.selectable", child)
 					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
 					} else {
