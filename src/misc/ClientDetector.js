@@ -95,6 +95,7 @@ class ClientDetector {
 			typeof Array.prototype.includes === "function" &&
 			typeof Object.entries === "function" &&
 			typeof Object.values === "function" &&
+			typeof Object.fromEntries === "function" &&
 			typeof Symbol !== "undefined" &&
 			typeof Uint8Array !== "undefined" &&
 			typeof Proxy !== "undefined" &&
