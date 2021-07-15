@@ -6,6 +6,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {DatePicker} from "./DatePicker"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
+import {formatDateWithWeekdayAndYear} from "../../misc/Formatter"
 
 assertMainOrNode()
 
@@ -13,15 +14,16 @@ assertMainOrNode()
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.
  */
 export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Date, end: ?Date): Promise<{start: ?Date, end: ?Date}> {
-	let dateStart = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "unlimited_label")
+	const helpLabel = (date) => date != null ? () => formatDateWithWeekdayAndYear(date) : "unlimited_label"
+	const dateStart = new DatePicker(startOfTheWeekOffset, "dateFrom_label", helpLabel(start))
 	if (start) {
 		dateStart.setDate(start)
 	}
-	let dateEnd = new DatePicker(startOfTheWeekOffset, "dateTo_label", "unlimited_label")
+	const dateEnd = new DatePicker(startOfTheWeekOffset, "dateTo_label", helpLabel(end))
 	if (end) {
 		dateEnd.setDate(end)
 	}
-	let form = {
+	const form = {
 		view: () => m(".flex-space-between",
 			client.isDesktopDevice() ? {style: {height: px(305)}} : {}, [
 				m(".pr-s.flex-grow.max-width-200.flex-space-between.flex-column", m(dateStart)),

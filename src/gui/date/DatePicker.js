@@ -3,12 +3,8 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "../base/icons/Icons"
 import {client} from "../../misc/ClientDetector"
-import {
-	formatDate,
-	formatDateWithWeekdayAndYear,
-	formatMonthWithFullYear
-} from "../../misc/Formatter"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
+import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
@@ -20,8 +16,8 @@ import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
 import {TextFieldN} from "../base/TextFieldN"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
+import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
 
 /**
@@ -41,10 +37,10 @@ export class DatePicker implements Component {
 	_showingDropdown: boolean;
 	_disabled: boolean;
 	_label: TranslationKey | lazy<string>
-	_nullSelectionHelpLabel: TranslationKey
+	_nullSelectionHelpLabel: TranslationText
 	_domInput: ?HTMLElement
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationText = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
 		this.date = dateStream ? dateStream : stream(null)
 		const initDate = this.date()
 		this._dateString = stream(initDate ? formatDate(initDate) : "")
@@ -83,7 +79,7 @@ export class DatePicker implements Component {
 			} else if (this.date() != null) {
 				return formatDateWithWeekdayAndYear(neverNull(this.date()))
 			} else {
-				return lang.get(this._nullSelectionHelpLabel)
+				return lang.getMaybeLazy(this._nullSelectionHelpLabel)
 			}
 		}
 
