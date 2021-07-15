@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createCreateGroupPostReturn(values?: $Shape<$Exact<CreateGroupPostReturn>>): CreateGroupPostReturn {
