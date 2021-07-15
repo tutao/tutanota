@@ -2,10 +2,8 @@ import {createConnection} from "net"
 import os from "os"
 import path from "path"
 import {createBuildServer} from "./BuildServerFactory.js"
-import {BuildServerStatus, BuildServerCommand, BuildServerConfiguration} from "./BuildServer.js"
+import {BuildServerCommand, BuildServerConfiguration, BuildServerStatus} from "./BuildServer.js"
 
-const directory = getBuildServerDirectory()
-const socketPath = path.join(directory, BuildServerConfiguration.SOCKET)
 const waitTimeinMs = 600
 const STATE_SERVER_START_PENDING = "SERVER_START_PENDING"
 const STATE_CONNECTED = "CONNECTED"
@@ -16,7 +14,7 @@ const STATE_DISCONNECTED = "DISCONNECTED"
  * as the current user. This prevents collisions and permission issues when building with multiple users on one system.
  * @returns {string} Absolute path to build server directory
  */
-function getBuildServerDirectory() {
+function getBuildServerRootDirectory() {
 	const tempDir = os.tmpdir()
 	const buildServerBaseDir = path.join(tempDir, 'tutanota-build-server')
 	const userName = os.userInfo().username
@@ -29,9 +27,10 @@ function getBuildServerDirectory() {
  * See @buildWithServer method for details.
  */
 export class BuildServerClient {
-	constructor() {
+	constructor(buildId) {
 		this.state = STATE_DISCONNECTED
 		this.buildServerHandle = null
+		this.buildId = buildId
 	}
 
 	/**
@@ -61,7 +60,7 @@ export class BuildServerClient {
 						devServerPort,
 						webRoot,
 						spaRedirect,
-						buildOpts
+						buildOpts,
 					}
 				)
 				lastError = null
@@ -204,7 +203,7 @@ export class BuildServerClient {
 								watchFolders,
 								devServerPort,
 								webRoot,
-								spaRedirect
+								spaRedirect,
 							}
 						)
 						this.state = STATE_SERVER_START_PENDING
@@ -223,7 +222,7 @@ export class BuildServerClient {
 	 * @private
 	 */
 	_connect({onConnect, onData, onError}) {
-		const clientSocket = createConnection(socketPath)
+		const clientSocket = createConnection(path.join(this.getBuildServerDirectory(), BuildServerConfiguration.SOCKET))
 			.on("connect", () => onConnect(clientSocket))
 			.on("error", (data) => onError(clientSocket, data))
 			.on("data", (data) => onData(clientSocket, data))
@@ -242,11 +241,16 @@ export class BuildServerClient {
 		this.buildServerHandle = await createBuildServer({
 			builder,
 			watchFolders,
-			directory,
+			directory: this.getBuildServerDirectory(),
 			detached: true,
 			devServerPort,
 			webRoot,
 			spaRedirect,
 		})
+	}
+
+
+	getBuildServerDirectory() {
+		return path.join(getBuildServerRootDirectory(), this.buildId)
 	}
 }

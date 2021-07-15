@@ -62,7 +62,7 @@ export class BuildServer {
 	 * @param devServerPort if set, a dev server will be listening on this port
 	 * @param builderPath absolute path to the builder which will be used by the server
 	 * @param preserveLogs boolean, logs will not be deleted on server shutdown if set to true
-	 * @param directory absolute path to directory in which the build server will create its log file and socket
+	 * @param directory absolute path to directory in which the build server will create its log file and socket. This will identify a given build server
 	 * @param watchFolders directories to watch for file changes that re-trigger the last build
 	 * @param webRoot absolute path to directory to be used as webRoot by devServer
 	 * @param spaRedirect boolean, if true the devServer will redirect any requests to '/?r=<requestedURL>'
@@ -71,7 +71,7 @@ export class BuildServer {
 		this.devServerPort = devServerPort
 		this.builderPath = builderPath
 		this.preserveLogs = preserveLogs || false
-		this.directory = directory || path.join(os.tempdir, 'tutanota-build-server')
+		this.directory = directory
 		this.watchFolders = watchFolders
 		this.webRoot = webRoot
 		this.spaRedirect = spaRedirect || true
