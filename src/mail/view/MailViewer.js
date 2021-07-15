@@ -185,6 +185,7 @@ export class MailViewer {
 	_mailModel: MailModel;
 	_contactModel: ContactModel;
 	_delayBodyRenderingUntil: Promise<*>
+	_delayProgressSpinner: boolean
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
 	            delayBodyRenderingUntil: Promise<*>) {
@@ -267,6 +268,13 @@ export class MailViewer {
 				delayIsOver = true
 				m.redraw()
 			})
+
+		// Delay the display of the progress spinner in main body view for a short time to suppress it when just sanitizing
+		this._delayProgressSpinner = true
+		setTimeout(() => {
+			this._delayProgressSpinner = false
+			m.redraw()
+		}, 50)
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -401,14 +409,16 @@ export class MailViewer {
 				},
 			}, m.trust(this._sanitizedMailBody))
 		} else if (!this._didErrorsOccur()) {
-			return m(".progress-panel.flex-v-center.items-center", {
-				style: {
-					height: '200px'
-				}
-			}, [
-				progressIcon(),
-				m("small", lang.get("loading_msg"))
-			])
+			return this._delayProgressSpinner
+				? m(".flex-v-center.items-center")
+				: m(".progress-panel.flex-v-center.items-center", {
+					style: {
+						height: '200px'
+					}
+				}, [
+					progressIcon(),
+					m("small", lang.get("loading_msg"))
+				])
 		} else {
 			return m(ColumnEmptyMessageBox, {
 				message: "corrupted_msg",
