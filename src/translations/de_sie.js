@@ -1394,6 +1394,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für dieses Konto erkannt. Möchten Sie es jetzt anwenden?",
 	}
 }

@@ -334,6 +334,9 @@ export class LoginViewController implements ILoginViewController {
 		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
 			const newTheme: Theme = JSON.parse(domainInfoAndConfig.whitelabelConfig.jsonTheme)
+
+			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
+			// so we can't just check `!whitelabelConfig.jsonTheme` or something like this
 			if (Object.keys(newTheme).length > 0) {
 				newTheme.themeId = domainInfoAndConfig.domainInfo.domain
 				const previouslySavedThemes = await themeController.getCustomThemes()
