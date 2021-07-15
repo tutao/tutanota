@@ -20,6 +20,7 @@ import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonType} from "../../gui/base/ButtonN"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
+import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
@@ -260,12 +261,53 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		}
 	}
 
+	_createEditContactButton(recipient: RecipientInfo): ButtonAttrs {
+		return {
+			label: () => lang.get("editContact_label"),
+			type: ButtonType.Secondary,
+			click: () => {
+				import("../../contacts/ContactEditor")
+					.then(({ContactEditor}) => new ContactEditor(this.model.entity(), recipient.contact).show())
+			}
+		}
+	}
 
-	_createBubbleContextButtons(bubble: RecipientInfoBubble): Array<ButtonAttrs | string> {
+	_createRemoveButton(bubble: RecipientInfoBubble): ButtonAttrs {
+		return {
+			label: "remove_action",
+			type: ButtonType.Secondary,
+			click: () => {
+				// On removal of a bubble, we only want to remove a recipientInfo from the model if it was the last bubble to reference the given recipient
+				if (remove(this.component.bubbles, bubble)) {
+					this.bubbleDeleted(bubble)
+				}
+			}
+		}
+	}
+
+	_createCreateContactButton(recipient: RecipientInfo, createdContactReceiver: (contactElementId: Id) => void): ButtonAttrs {
+		return {
+			label: () => lang.get("createContact_action"),
+			type: ButtonType.Secondary,
+			click: () => {
+				// contact list
+				this._contactModel.contactListId()
+				    .then(contactListId => {
+					    const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
+					    import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+						    new ContactEditor(this.model.entity(), newContact, contactListId, createdContactReceiver).show()
+					    })
+				    })
+			}
+		}
+	}
+
+	_createBubbleContextButtons(bubble: RecipientInfoBubble): Array<ButtonAttrs | DropdownInfoAttrs> {
 		const recipient = bubble.entity
 		const canEditBubbleRecipient = this.model.user().isInternalUser() && !this.model.logins().isEnabled(FeatureType.DisableContacts)
 		const previousMail = this.model.getPreviousMail()
-		const canRemoveBubble = !previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0
+		const canRemoveBubble = this.model.user().isInternalUser()
+			&& (!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
 
 		const createdContactReceiver = (contactElementId) => {
 			const mailAddress = recipient.mailAddress
@@ -284,46 +326,27 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 			})
 		}
 
-		return [
-			recipient.mailAddress,
-			canEditBubbleRecipient
-				? recipient.contact && recipient.contact._id
-				? {
-					label: () => lang.get("editContact_label"),
-					type: ButtonType.Secondary,
-					click: () => {
-						import("../../contacts/ContactEditor")
-							.then(({ContactEditor}) => new ContactEditor(this.model.entity(), recipient.contact).show())
-					}
-				}
-				: {
-					label: () => lang.get("createContact_action"),
-					type: ButtonType.Secondary,
-					click: () => {
-						// contact list
-						this._contactModel.contactListId()
-						    .then(contactListId => {
-							    const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
-							    import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-								    new ContactEditor(this.model.entity(), newContact, contactListId, createdContactReceiver).show()
-							    })
-						    })
-					}
-				}
-				: "",
-			canRemoveBubble
-				? {
-					label: "remove_action",
-					type: ButtonType.Secondary,
-					click: () => {
-						// On removal of a bubble, we only want to remove a recipientInfo from the model if it was the last bubble to reference the given recipient
-						if (remove(this.component.bubbles, bubble)) {
-							this.bubbleDeleted(bubble)
-						}
-					}
-				}
-				: ""
-		]
+
+		const contextButtons: Array<ButtonAttrs | DropdownInfoAttrs> = []
+		// email address as info text
+		contextButtons.push({
+			info: recipient.mailAddress,
+			center: true,
+			bold: true
+		})
+		if (canEditBubbleRecipient) {
+			if (recipient.contact && recipient.contact._id) {
+				contextButtons.push(this._createEditContactButton(recipient))
+			} else {
+				contextButtons.push(this._createCreateContactButton(recipient, createdContactReceiver))
+			}
+
+		}
+		if (canRemoveBubble) {
+			contextButtons.push(this._createRemoveButton(bubble))
+		}
+
+		return contextButtons
 	}
 
 	_modelRecipients(): Array<RecipientInfo> {

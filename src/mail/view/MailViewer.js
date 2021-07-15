@@ -145,6 +145,10 @@ export const ContentBlockingStatus = Object.freeze({
 	NoExternalContent: "3"
 })
 export type ExternalContentBlockingStatusEnum = $Values<typeof ContentBlockingStatus>;
+type MailAddressAndName = {
+	name: string,
+	address: string
+}
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -446,8 +450,25 @@ export class MailViewer {
 					m(".small", lang.get("sender_label")),
 					m(RecipientButton, {
 						label: getDisplayText("", envelopeSender, false),
-						click: () => this._showEnvelopeSenderDialog(envelopeSender),
-					})
+						click: createAsyncDropdown(async () => {
+							const childElements = [
+								{
+									info: lang.get("envelopeSenderInfo_msg"),
+									center: false,
+									bold: false
+								},
+								{
+									info: envelopeSender,
+									center: true,
+									bold: true
+								}
+							]
+							const contextButtons = await this._createBubbleContextButtons(
+								{address: envelopeSender, name: ""},
+								InboxRuleType.FROM_EQUALS, false)
+							return childElements.concat(contextButtons)
+						}, bubbleMenuWidth)
+					}),
 				]
 				: null,
 			mail.toRecipients.length
@@ -1114,18 +1135,19 @@ export class MailViewer {
 		}
 	}
 
-	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?InboxRuleTypeEnum): Promise<Array<ButtonAttrs>> {
-		const buttons = [
+	_createBubbleContextButtons(mailAddress: MailAddressAndName, defaultInboxRuleField: ?InboxRuleTypeEnum, createContact: boolean = true): Promise<Array<ButtonAttrs>> {
+		const buttons = []
+		buttons.push(
 			{
 				label: "copy_action",
 				type: ButtonType.Secondary,
-				click: () => copyToClipboard(address.address),
+				click: () => copyToClipboard(mailAddress.address),
 			}
-		]
+		)
 		if (logins.getUserController().isInternalUser()) {
 			let contactsPromise = Promise.resolve()
-			if (!logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = this._contactModel.searchForContactByMailAddress(address.address).then(contact => {
+			if (createContact && !logins.isEnabled(FeatureType.DisableContacts)) {
+				contactsPromise = this._contactModel.searchForContactByMailAddress(mailAddress.address).then(contact => {
 					if (contact) {
 						buttons.push({
 							label: "showContact_action",
@@ -1141,7 +1163,7 @@ export class MailViewer {
 							click: () => {
 								this._contactModel.contactListId().then(contactListId => {
 									import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-										const contact = createNewContact(logins.getUserController().user, address.address, address.name)
+										const contact = createNewContact(logins.getUserController().user, mailAddress.address, mailAddress.name)
 										new ContactEditor(this._entityClient, contact, contactListId).show()
 									})
 								})
@@ -1156,14 +1178,14 @@ export class MailViewer {
 					if (defaultInboxRuleField
 						&& !logins.getUserController().isOutlookAccount()
 						&& !logins.isEnabled(FeatureType.InternalCommunication)) {
-						let rule = getExistingRuleForType(logins.getUserController().props, address.address.trim().toLowerCase(), defaultInboxRuleField)
+						let rule = getExistingRuleForType(logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
 						let actionLabel = rule ? "editInboxRule_action" : "addInboxRule_action"
 						buttons.push({
 							label: actionLabel,
 							click: () => {
 								import("../../settings/AddInboxRuleDialog").then(({show, createInboxRuleTemplate}) => {
 									const newRule =
-										rule || createInboxRuleTemplate(defaultInboxRuleField, address.address.trim().toLowerCase())
+										rule || createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
 									show(mailboxDetails, newRule)
 								})
 							},
@@ -1173,7 +1195,7 @@ export class MailViewer {
 					if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
 						buttons.push({
 							label: "addSpamRule_action",
-							click: () => this._addSpamRule(defaultInboxRuleField, address.address),
+							click: () => this._addSpamRule(defaultInboxRuleField, mailAddress.address),
 							type: ButtonType.Secondary,
 						})
 					}

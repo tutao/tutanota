@@ -21,6 +21,7 @@ import {getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
+import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
 import type {AllIconsEnum} from "../../gui/base/Icon"
 import {Icon} from "../../gui/base/Icon"
@@ -496,8 +497,8 @@ function createEndTypeValues() {
 }
 
 function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<RecipientInfo> {
-	function createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | string> {
-		let buttonAttrs = [mailAddress]
+	function createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | DropdownInfoAttrs> {
+		let buttonAttrs = [{info: mailAddress, center: true, bold: true}]
 		buttonAttrs.push({
 			label: "remove_action",
 			click: () => {

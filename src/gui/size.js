@@ -33,7 +33,7 @@ export const size = {
 	font_size_base: 16,
 	font_size_smaller: 14,
 	font_size_small: 12,
-
+	
 	button_height: 44,
 	button_height_accent: 40,
 	button_height_bubble: 30,
