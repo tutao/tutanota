@@ -396,6 +396,10 @@ styles.registerStyle('main', () => {
 			"border-radius": "4px",
 		},
 		'.center': {'text-align': 'center'}, //TODO: migrate to .text-center
+		'.dropdown-info': {
+			"padding-bottom": "5px",
+			"padding-top": "5px"
+		},
 		'.text-center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
 		'.left': {'text-align': 'left'},

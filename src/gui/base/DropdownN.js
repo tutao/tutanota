@@ -6,7 +6,6 @@ import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
-import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
@@ -15,45 +14,62 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import type {PosRect} from "./Dropdown"
+import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
-import {DomRectReadOnlyPolyfilled} from "./Dropdown"
+import type {DeferredObject} from "../../api/common/utils/Utils"
+import {defer, downcast} from "../../api/common/utils/Utils"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
-export type DropdownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
+export type DropdownInfoAttrs = {
+	info: string,
+	center: boolean,
+	bold: boolean
+}
 
+
+class DropdownInfo implements MComponent<DropdownInfoAttrs> {
+	view(vnode: Vnode<DropdownInfoAttrs>): Children {
+		return m(".dropdown-info.text-break.doNotClose.selectable" + (vnode.attrs.center ? ".center" : "") + (vnode.attrs.bold ? ".b" : "")
+			, vnode.attrs.info)
+	}
+}
+
+export type DropdownChildAttrs = DropdownInfoAttrs | NavButtonAttrs | ButtonAttrs;
+
+function isDropDownInfo(dropdownChild: DropdownChildAttrs): boolean {
+	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
+}
 
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN {
 	children: $ReadOnlyArray<DropdownChildAttrs>;
 	_domDropdown: HTMLElement;
 	origin: ?PosRect;
-	maxHeight: number;
 	oninit: Function;
 	view: Function;
 	_width: number;
 	shortcuts: Function;
-	_buttonsHeight: number;
 	_filterString: Stream<string>;
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
 	_isFilterable: boolean;
+	_maxHeightDefer: DeferredObject<number>;
 
 
 	constructor(lazyChildren: lazy<$ReadOnlyArray<?DropdownChildAttrs>>, width: number) {
 		this.children = []
-		this.maxHeight = 0
 		this._width = width
-		this._buttonsHeight = 0
 		this._filterString = stream("")
-
+		this._maxHeightDefer = defer()
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
 			this._isFilterable = this.children.length > 10
 			this.children.map(child => {
-				if (typeof child === 'string') {
+				if (isDropDownInfo(child)) {
 					return child
 				}
 				child = ((child: any): ButtonAttrs | NavButtonAttrs)
@@ -100,28 +116,35 @@ export class DropdownN {
 		const _contents = () => {
 			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
-						this.setContentHeight(vnode.dom)
 						this._domContents = vnode.dom
-						this._buttonsHeight = this._visibleChildren()
-						                          .reduce((sum, current) => sum + size.button_height, 0) + size.vpad_small * 2
-
-						const maxHeight = this._buttonsHeight + this._getFilterHeight()
-						if (this.origin) {
-							showDropdown(this.origin, this._domDropdown, maxHeight, this._width).then(() => {
-									if (this._domInput && !client.isMobileDevice()) {
-										this._domInput.focus()
-									} else {
-										const button = vnode.dom.querySelector("button")
-										button && button.focus()
+						const origin = this.origin
+						if (origin) {
+							// The dropdown-content element is added to the dom has a hidden element first.
+							// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely show the dropdown.
+							this._maxHeightDefer.promise.then(maxHeight => {
+								showDropdown(origin, this._domDropdown, maxHeight, this._width).then(() => {
+										if (this._domInput && !client.isMobileDevice()) {
+											this._domInput.focus()
+										} else {
+											const button = vnode.dom.querySelector("button")
+											button && button.focus()
+										}
 									}
-								}
-							)
+								)
+							})
 						}
 						window.requestAnimationFrame(() => {
 							if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
 							}
 						})
+					},
+					onupdate: (vnode) => {
+						const children = Array.from(vnode.dom.children)
+						const maxHeightOfChildren = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + 16
+						if (!this._maxHeightDefer.promise.isFulfilled()) {
+							this._maxHeightDefer.resolve(maxHeightOfChildren)
+						}
 					},
 					onscroll: (ev) => {
 						// needed here to prevent flickering on ios
@@ -141,8 +164,8 @@ export class DropdownN {
 					// the elements in the dropdown move during animation
 				},
 				(this._visibleChildren().map(child => {
-					if (typeof child === "string") {
-						return m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", child)
+					if (isDropDownInfo(child)) {
+						return m(DropdownInfo, downcast(child))
 					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
 					} else {
@@ -245,7 +268,7 @@ export class DropdownN {
 
 	chooseMatch: (() => boolean) = () => {
 		const filterString = this._filterString().toLowerCase()
-		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
+		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
 		let matchingButton = visibleElements.length === 1
 			? visibleElements[0]
 			: visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
@@ -259,13 +282,6 @@ export class DropdownN {
 		return true
 	}
 
-	setContentHeight(domElement: HTMLElement) {
-		if (this._buttonsHeight > 0) {
-			// in ie the height of dropdown-content is too big because of the line-height. to prevent this set the height here.
-			domElement.style.height = this._buttonsHeight + "px"
-		}
-	}
-
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
 	 */
@@ -273,11 +289,16 @@ export class DropdownN {
 		return Promise.resolve()
 	}
 
+
 	_visibleChildren(): Array<DropdownChildAttrs> {
 		return this.children.filter(b => {
-			return (typeof b === "string")
-				? b.includes(this._filterString().toLowerCase())
-				: isVisible(b)
+			if (isDropDownInfo(b)) {
+				return downcast(b).info.includes(this._filterString().toLowerCase())
+			} else if (b.hasOwnProperty("isVisible")) {
+				return isVisible(downcast(b))
+			} else {
+				return true
+			}
 		})
 	}
 
