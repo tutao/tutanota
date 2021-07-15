@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-07-12T22:03:41Z",
+	"updated_at": "2021-07-15T13:28:07Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1383,6 +1383,7 @@ export default {
 		"whitelabelFeature_label": "Etiqueta branca",
 		"whitelabelRegistrationCode_label": "Código de registro",
 		"whitelabelRegistrationEmailDomain_label": "Domínio de email de registro",
+		"whitelabelThemeDetected_msg": "Um esquema de cores personalizado foi detectado para esta conta. Gostaria de aplicá-lo agora?",
 		"whitelabel_label": "Etiqueta branca",
 		"whitelistProtectionInfo_label": "Esta opção move todos os emails de remetentes externos para o Spam por padrão. Os remetentes recebem um email de confirmação com um link para validar o domínio do remetente. Domínios permitidos não irão mais para a pasta Spam dos seus usuários.",
 		"whitelistProtection_label": "Endereços permitidos",

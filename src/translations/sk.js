@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-07-12T09:31:41Z",
+	"updated_at": "2021-07-15T13:28:08Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -134,7 +134,7 @@ export default {
 		"businessFeatureRequiredGeneral_msg": "Pre používanie tejto funkcie si musíš objednať firemnú funkciu.",
 		"businessFeatureRequiredInvite_msg": "Na odosielanie pozvánok si musíte objednať firemnú funkciu.",
 		"businessFeatureRequiredMultipleDomains_msg": "Pre pridanie viacerých vlastných e-mailových domén si musíš objednať firemnú funkciu.",
-		"businessFeatureRequiredTemplates_msg": "Pre používanie šablón si najskôr objednaj Firemnú funkciu.",
+		"businessFeatureRequiredTemplates_msg": "Pre používanie šablón sa vyžaduje Firemná funkcia.",
 		"businessFeature_label": "Firemná funkcia",
 		"businessIncluded_msg": "Obsahuje firemnú funkciu.",
 		"businessOrPrivateUsage_label": "Použitie",
@@ -1379,6 +1379,7 @@ export default {
 		"whitelabelFeature_label": "Funkcia whitelabel",
 		"whitelabelRegistrationCode_label": "Registračný kód",
 		"whitelabelRegistrationEmailDomain_label": "Doména registračného e-mailu",
+		"whitelabelThemeDetected_msg": "Pri tomto účte sa zistil vlastný motív. Chceš ho použiť teraz?",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "Táto možnosť presúva predvolene všetky e-maily prijaté od externých odosielateľov do priečinku Spam. Odosielatelia obdržia e-mailové oznámenie s odkazom, ktorý im umožní pridať svoju doménu na biely zoznam. \nPo pridaní na biely zoznam e-maily z tejto domény viac nebudú chodiť do priečinka Spam, ale do priečinka Doručené.",
 		"whitelistProtection_label": "Ochrana bieleho zoznamu",

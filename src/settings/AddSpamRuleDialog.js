@@ -123,7 +123,7 @@ function _isInvalidRule(type: NumberString, value: string, customDomains: string
 
 export function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
 	return {
-		[SpamRuleFieldType.FROM]: lang.get("from_label"),
+		[SpamRuleFieldType.FROM]: lang.get("inboxRuleSenderEquals_action"),
 		[SpamRuleFieldType.TO]: lang.get("to_label"),
 		[SpamRuleFieldType.CC]: "CC",
 		[SpamRuleFieldType.BCC]: "BCC",
