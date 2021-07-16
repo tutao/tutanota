@@ -119,7 +119,7 @@ export async function build({desktop, stage, host}, {devServerPort, watchFolders
 			format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js"
 		})
 
-		// Here we include polyfill first, then configure promise (so that rest is not slow) and then import worker
+		// Here we include polyfill first and then import worker
 		// as output is esm simply importing file is enough to execute it
 		await fs.promises.writeFile("build/worker-bootstrap.js", `importScripts("./polyfill.js")
 importScripts("./worker.js")
