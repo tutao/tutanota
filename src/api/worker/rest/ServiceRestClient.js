@@ -9,7 +9,7 @@ import {TypeRef} from "../../common/utils/TypeRef";
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum,
+export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum | StorageServiceEnum,
                             method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {

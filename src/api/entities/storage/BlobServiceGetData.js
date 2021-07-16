@@ -10,20 +10,20 @@ export const _TypeModel: TypeModel = {
 	"name": "BlobServiceGetData",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 43,
-	"rootId": "B3N0b3JhZ2UAKw",
+	"id": 50,
+	"rootId": "B3N0b3JhZ2UAMg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 44,
+			"id": 51,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"archiveId": {
-			"id": 45,
+			"id": 52,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"blobIds": {
-			"id": 46,
+			"id": 53,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
