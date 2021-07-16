@@ -177,8 +177,7 @@ async function buildWebapp(version) {
 				babelHelpers: "bundled",
 			}),
 			MINIFY && terser(),
-			// append-libs must be before nodeResolve so that we can resolve bluebird correctly.
-			// nodeResolve is only for core-js.
+			// nodeResolve is only for core-js and oxmsg.
 			{
 				name: "append-libs",
 				resolveId(id) {
@@ -241,8 +240,7 @@ async function buildWebapp(version) {
 	const chunks = output.output.map(c => c.fileName)
 
 	// we have to use System.import here because bootstrap is not executed until we actually import()
-	// unlike nollup+es format where it just runs on being loaded like you expect,
-	// Configure promise before running so that it's not too slow.
+	// unlike nollup+es format where it just runs on being loaded like you expect
 	await fs.promises.writeFile("build/dist/worker-bootstrap.js", `importScripts("./polyfill.js")
 const importPromise = System.import("./worker.js")
 self.onmessage = function (msg) {
