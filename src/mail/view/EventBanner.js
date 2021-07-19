@@ -5,8 +5,8 @@ import {px, size} from "../../gui/size"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
 import {CalendarAttendeeStatus, CalendarMethod, ReplyType} from "../../api/common/TutanotaConstants"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {BannerButton} from "../../gui/base/Banner"
 import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
@@ -52,6 +52,29 @@ export class EventBanner implements MComponent<Attrs> {
 				})),
 			],
 		)
+	}
+}
+
+export type BannerButtonAttrs = {
+	borderColor: string,
+	color: string,
+	click: () => mixed,
+	text: TranslationKey | lazy<string>
+}
+
+export class BannerButton implements MComponent<BannerButtonAttrs> {
+	view({attrs}: Vnode<BannerButtonAttrs>): Children {
+		return m("button.border-radius.mr-s.center", {
+			style: {
+				border: `2px solid ${attrs.borderColor}`,
+				background: "transparent",
+				color: attrs.color,
+				width: "min-content",
+				padding: px(size.hpad_button),
+				minWidth: "60px",
+			},
+			onclick: attrs.click,
+		}, lang.getMaybeLazy(attrs.text))
 	}
 }
 

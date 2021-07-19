@@ -122,7 +122,7 @@ import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
+import {getCoordsOfMouseOrTouchEvent, moreButton} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
@@ -1274,7 +1274,7 @@ export class MailViewer {
 						              return newMailEditorFromDraft(this.mail,
 							              this._attachments,
 							              this._getMailBody(),
-						              this.isBlockingExternalImages(),
+							              this.isBlockingExternalImages(),
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
@@ -1682,30 +1682,44 @@ export class MailViewer {
 	}
 
 	_renderExternalContentBanner(): ?Children {
-		return this._contentBlockingStatus === ContentBlockingStatus.Block
-			? m(InfoBanner, {
-				message: "contentBlocked_msg",
-				icon: Icons.Picture,
-				helpLink: "loadImages_link",
-				buttons: [
-					{
-						text: "showBlockedContent_action",
-						click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
-					},
-					locator.search.indexingSupported && this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-						? {
-							text: "allowExternalContentSender_action",
-							click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
-						} : null,
-					locator.search.indexingSupported
-						? {
-							text: "blockExternalContentSender_action",
-							click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock)
-						}
-						: null
-				]
-			})
-			: null
+		if (this._contentBlockingStatus !== ContentBlockingStatus.Block) {
+			return null
+		}
+
+		const showButton = {
+			label: "showBlockedContent_action",
+			click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
+		}
+
+		const alwaysOrNeverAllowButtons = locator.search.indexingSupported
+			? [
+				this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+					? {
+						label: "allowExternalContentSender_action",
+						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+					}
+					: null,
+				{
+					label: "blockExternalContentSender_action",
+					click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock)
+				}
+			].filter(Boolean)
+			: []
+
+		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
+		const maybeDropdownButtons = styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
+			? [ moreButton(alwaysOrNeverAllowButtons, 216) ]
+			: alwaysOrNeverAllowButtons
+
+		return m(InfoBanner, {
+			message: "contentBlocked_msg",
+			icon: Icons.Picture,
+			helpLink: "loadImages_link",
+			buttons: [
+				showButton,
+				...maybeDropdownButtons
+			]
+		})
 	}
 
 	async _setContentBlockingStatus(status: ExternalContentBlockingStatusEnum): Promise<void> {
