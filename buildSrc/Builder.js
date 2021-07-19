@@ -39,7 +39,7 @@ Promise.config({
     longStackTraces: false,
     warnings: false
 })
-${indexTemplate}`
+import('./app.js')`
 
 	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
