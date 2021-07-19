@@ -238,7 +238,7 @@ async function buildWebapp(version) {
 			return getChunkName(id, {getModuleInfo})
 		},
 		chunkFileNames: (chunkInfo) => {
-				return "[name]-[hash].js"
+			return "[name]-[hash].js"
 		}
 	})
 	const chunks = output.output.map(c => c.fileName)
