@@ -30,14 +30,17 @@ async function createHtml(env) {
 			htmlFileName = "index-desktop.html"
 	}
 	const imports = [{src: 'polyfill.js'}, {src: jsFileName}]
+
+	const indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
+
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 Promise.config({
     longStackTraces: false,
     warnings: false
 })
-import('./app.js')
-	`
+${indexTemplate}`
+
 	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${htmlFileName}`, html)

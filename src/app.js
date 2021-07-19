@@ -42,9 +42,18 @@ window.tutao = {
 	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
-setupExceptionHandling()
 
 client.init(navigator.userAgent, navigator.platform)
+
+if (!client.isSupported()) {
+	throw new Error("Unsupported")
+}
+
+// Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
+// and then the "Update WebView" message will never be show
+// we still want to do this ASAP so we can handle other errors
+setupExceptionHandling()
+
 // this needs to stay after client.init
 windowFacade.init()
 
@@ -93,9 +102,7 @@ if (!isDesktop() && navigator.registerProtocolHandler) {
 
 //$FlowFixMe[untyped-import]
 import("./translations/en").then((en) => lang.init(en.default)).then(() => {
-	if (!client.isSupported()) {
-		throw new Error("Unsupported")
-	}
+
 
 	// do this after lang initialized
 	if (client.isIE()) {
