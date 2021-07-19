@@ -254,7 +254,7 @@ public class MainActivity extends ComponentActivity {
 
 		if (Utils.atLeastOreo()) {
 			getWindow().setNavigationBarColor(statusBarColor);
-			decorView.setSystemUiVisibility(statusBarDark ? 0 : View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+			decorView.setSystemUiVisibility(statusBarDark ? View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR : 0);
 		}
 
 		// Changing status bar color
@@ -264,8 +264,9 @@ public class MainActivity extends ComponentActivity {
 		// So for Android M and above we alternate between white and dark status bar colors and
 		// we change lightStatusBar flag accordingly.
 		int uiFlags = statusBarDark
-				? decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-				: decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+				? decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+				: decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+
 		decorView.setSystemUiVisibility(uiFlags);
 		getWindow().setStatusBarColor(statusBarColor);
 	}
