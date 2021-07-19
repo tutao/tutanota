@@ -51,6 +51,9 @@ pipeline {
 					 ]) {
 						dir('app-ios') {
 							sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
+
+							// Set git ssh command to avoid ssh prompting to confirm an unknown host
+							// (since we don't have console access we can't confirm and it gets stuck)
 							sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane} ${fastlaneOpts}"
 						}
 					}
