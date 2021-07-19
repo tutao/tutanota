@@ -541,7 +541,6 @@ export class CalendarView implements CurrentView {
 					label: "edit_action",
 					icon: () => Icons.Edit,
 					click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
-					type: ButtonType.Dropdown,
 				},
 				{
 					label: "sharing_label",
@@ -553,7 +552,6 @@ export class CalendarView implements CurrentView {
 							showGroupSharingDialog(groupInfo, sharedCalendar)
 						}
 					},
-					type: ButtonType.Dropdown,
 				},
 				isApp()
 					? null
@@ -563,7 +561,6 @@ export class CalendarView implements CurrentView {
 						click: () => showCalendarImportDialog(groupRoot),
 						isVisible: () => group.type === GroupType.Calendar
 							&& hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Write),
-						type: ButtonType.Dropdown,
 					},
 				isApp()
 					? null
@@ -577,14 +574,12 @@ export class CalendarView implements CurrentView {
 						},
 						isVisible: () => group.type === GroupType.Calendar
 							&& hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
-						type: ButtonType.Dropdown,
 					},
 				{
 					label: "delete_action",
 					icon: () => Icons.Trash,
 					click: () => this._confirmDeleteCalendar(calendarInfo),
 					isVisible: () => !sharedCalendar,
-					type: ButtonType.Dropdown,
 				},
 			].filter(Boolean)
 		))
