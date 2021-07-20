@@ -184,10 +184,10 @@ export class FileFacade {
 			{
 				storageAuthToken,
 				blobId: uint8ArrayToBase64(hash)
-			}, headers, encryptedData, MediaType.Binary)
+			}, headers, encryptedData, MediaType.Binary, baseUrl)
 	}
 
-	async downloadBlobs(archiveId: Id, blobIds: $ReadOnlyArray<Uint8Array>, key: Uint8Array): Promise<Uint8Array> {
+	async downloadBlobs(archiveId: Id, blobIds: $ReadOnlyArray<Uint8Array>, key: Uint8Array, baseUrl: String): Promise<Uint8Array> {
 		const headers = this._login.createAuthHeaders()
 		const getData = createBlobServiceGetData({
 			archiveId,
@@ -195,7 +195,12 @@ export class FileFacade {
 		})
 		const literalGetData = await encryptAndMapToLiteral(BlobServiceGetDataTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
-		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {}, headers, body, MediaType.Binary)
+		const {storageAuthToken, targetServer} = await this.getToken(archiveId)
+		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {storageAuthToken}, headers, body, MediaType.Binary, null, targetServer)
 		return aes128Decrypt(uint8ArrayToKey(key), data)
+	}
+
+	async getToken(archiveId): Promise<{storageAuthToken: string, targetServer: string}> {
+		// FIXME
 	}
 }
