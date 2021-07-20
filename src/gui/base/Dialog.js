@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {ModalComponent} from "./Modal"
 import {modal} from "./Modal"
 import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -27,9 +28,8 @@ import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {getAsLazy, mapLazily} from "../../api/common/utils/Utils"
-import type {ModalComponent} from "./Modal"
-import {DialogInjectionRight} from "./DialogInjectionRight"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
+import {DialogInjectionRight} from "./DialogInjectionRight"
 
 assertMainOrNode()
 
@@ -365,7 +365,7 @@ export class Dialog implements ModalComponent {
 	 * Simpler version of {@link Dialog#confirmMultiple} with just two options: no and yes (or another confirmation).
 	 * @return Promise, which is resolved with user selection - true for confirm, false for cancel.
 	 */
-	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action"): Promise<boolean> {
+	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action", enableConfirmShortcut: boolean = true): Promise<boolean> {
 		return new Promise(resolve => {
 			const closeAction = conf => {
 				dialog.close()
@@ -375,7 +375,7 @@ export class Dialog implements ModalComponent {
 				{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
 				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary},
 			]
-			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve)
+			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve, enableConfirmShortcut)
 		})
 	}
 
@@ -385,11 +385,12 @@ export class Dialog implements ModalComponent {
 	 * @param messageIdOrMessageFunction which displayed in the body
 	 * @param buttons which are displayed below
 	 * @param onclose which is called on shortcut or when dialog is closed any other way (e.g. back navigation). Not called when pressing
+	 * @param enableConfirmShortcut whether or not the enter key should be a shortcut to trigger confirmation, otherwise it will count as a
+	 *                              click on whichever button is selected
 	 * one of the buttons.
 	 */
 	static confirmMultiple(messageIdOrMessageFunction: TranslationKey | lazy<string>, buttons: $ReadOnlyArray<ButtonAttrs>,
-	                       onclose?: (positive: boolean) => mixed
-	): Dialog {
+	                       onclose?: (positive: boolean) => mixed, enableConfirmShortcut?: boolean): Dialog {
 		let dialog: Dialog
 		const closeAction = (positive) => {
 			dialog.close()
@@ -409,13 +410,16 @@ export class Dialog implements ModalComponent {
 			  exec: () => closeAction(false),
 			  help: "cancel_action"
 		  })
-		  .addShortcut({
-			  key: Keys.RETURN,
-			  shift: false,
-			  exec: () => closeAction(true),
-			  help: "ok_action",
-		  })
-		  .show()
+		if (enableConfirmShortcut) {
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: () => closeAction(true),
+				help: "ok_action",
+			})
+		}
+
+		dialog.show()
 		return dialog
 	}
 
