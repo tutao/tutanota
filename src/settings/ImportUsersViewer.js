@@ -117,15 +117,13 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let notAvailableUsers = []
 	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
 	// index
-	let userNumber = 0
 	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
 		if (accepted) {
 			return showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 				"{index}": nbrOfCreatedUsers,
 				"{count}": userDetailsArray.length
-			}), promiseMap(userDetailsArray, (user) => {
-				return createUserIfMailAddressAvailable(user, userNumber, userDetailsArray.length).then(created => {
-					userNumber++
+			}), promiseMap(userDetailsArray, (user, userIndex) => {
+				return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then(created => {
 					if (created) {
 						nbrOfCreatedUsers++
 						m.redraw()
