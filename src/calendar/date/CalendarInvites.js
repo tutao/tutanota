@@ -7,7 +7,7 @@ import {locator} from "../../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
-import {assertNotNull, clone, filterInt} from "../../api/common/utils/Utils"
+import {assertNotNull, clone, filterInt, noOp} from "../../api/common/utils/Utils"
 import {findPrivateCalendar, getTimeZone} from "./CalendarUtils"
 import {logins} from "../../api/main/LoginController"
 import type {Mail} from "../../api/entities/tutanota/Mail"
@@ -15,6 +15,7 @@ import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../../gui/base/Dialog"
 import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
 	try {
@@ -98,7 +99,7 @@ export function replyToEventInvitation(
 			const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-				.catch(UserError, (e) => Dialog.error(() => e.message))
+				.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
 				.then(() => {
 					if (calendar) {
 						// if the owner group is set there is an existing event already so just update
@@ -107,7 +108,7 @@ export function replyToEventInvitation(
 							              .then((alarms) => {
 									              const alarmInfos = alarms.map((a) => a.alarmInfo)
 									              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
-									                            .return()
+									                            .then(noOp)
 								              }
 							              )
 						} else {

@@ -94,7 +94,7 @@ const addShortcuts = (msg: any): Promise<void> => {
 
 function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 	return Promise.all(filesUris.map(uri =>
-		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
+		Promise.all([getName(uri), getMimeType(uri), getSize(uri)]).then(([name, mimeType, size]) => {
 			return {
 				_type: "FileReference",
 				name,
@@ -105,13 +105,15 @@ function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 		})));
 }
 
-function reportError(msg: Request): Promise<void> {
-	return Promise.join(
-		import('../../misc/ErrorHandlerImpl.js'),
-		import('../../api/main/LoginController.js'),
-		({promptForFeedbackAndSend}, {logins}) => {
+function reportError(msg: Request): Promise<*> {
+	return Promise.all(
+		[
+			import('../../misc/ErrorHandlerImpl.js'),
+			import('../../api/main/LoginController.js')
+		]
+	).then(([{promptForFeedbackAndSend}, {logins}]) => {
 			return logins.waitForUserLogin()
-			             .then(() => promptForFeedbackAndSend(msg.args[0], false))
+			             .then(() => promptForFeedbackAndSend(msg.args[0]))
 		}
 	)
 }

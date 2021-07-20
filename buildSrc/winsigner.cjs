@@ -1,6 +1,5 @@
-const Promise = require('bluebird')
 const path = require('path')
-const fs = Promise.promisifyAll(require("fs-extra"))
+const fs = require("fs-extra")
 const spawn = require('child_process').spawn
 
 function signer(args) {
@@ -85,13 +84,13 @@ function signWithArgs(commandArguments, file_to_sign, unsignedFileName) {
 		stdio: ['ignore', 'inherit', 'inherit'],
 	})
 
-	return Promise.fromCallback(cb => {
+	return new Promise((resolve, reject) => {
 		child.on('close', (exitCode) => {
 			if (exitCode !== 0) {
-				cb(exitCode)
+				reject(exitCode)
 			} else {
 				fs.removeSync(unsignedFileName)
-				cb(null, file_to_sign)
+				resolve(file_to_sign)
 			}
 		})
 	})

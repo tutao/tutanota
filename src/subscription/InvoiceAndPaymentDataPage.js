@@ -6,7 +6,7 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream/stream.js"
-import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
+import type {InvoiceData, PaymentData, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -16,7 +16,7 @@ import {client} from "../misc/ClientDetector"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {load, update} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
@@ -32,6 +32,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {getPaymentWebRoot} from "../api/common/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -162,8 +163,10 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 }
 
-export function updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean, price: string, accountingInfo: AccountingInfo): Promise<boolean> {
-
+export function updatePaymentData(
+	paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country,
+	isSignup: boolean, price: string, accountingInfo: AccountingInfo
+): Promise<boolean> {
 	return worker.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
 	             .then(paymentResult => {
 		             const statusCode = paymentResult.result
@@ -263,7 +266,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		  })
 
 		let entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
@@ -282,7 +285,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 						m.redraw()
 					})
 				}
-			}).return()
+			}).then(noOp)
 		}
 		locator.eventController.addEntityListener(entityEventListener)
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`

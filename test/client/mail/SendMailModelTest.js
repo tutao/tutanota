@@ -22,7 +22,7 @@ import {ConversationType, GroupType, MailMethod, OperationType} from "../../../s
 import {lang} from "../../../src/misc/LanguageViewModel"
 import type {Customer} from "../../../src/api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
-import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import {assertThrows, mockAttribute, unmockAttribute} from "../../api/TestUtils"
 import type {User} from "../../../src/api/entities/sys/User"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/User"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
@@ -504,9 +504,8 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await model.send(method, getConfirmation).catch(identity)
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
-			o(e.message).equals(lang.get("noRecipients_msg"))
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
+			o(e?.message).equals(lang.get("noRecipients_msg"))
 			o(getConfirmation.callCount).equals(0)
 			o(worker.sendMailDraft.callCount).equals(0)
 			o(worker.createMailDraft.callCount).equals(0)
@@ -536,9 +535,8 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await model.send(method, getConfirmation).catch(identity)
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
-			o(e.message).equals(lang.get("noPreSharedPassword_msg"))
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
+			o(e?.message).equals(lang.get("noPreSharedPassword_msg"))
 			o(getConfirmation.callCount).equals(1)
 			o(worker.sendMailDraft.callCount).equals(0)
 			o(worker.createMailDraft.callCount).equals(0)

@@ -1,6 +1,6 @@
 // @flow
 import {load, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
-import type {AccountTypeEnum, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
+import type {AccountTypeEnum, InvoiceData, PaymentData, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
@@ -53,6 +53,7 @@ import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactForm
 import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
 import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
 import {LockedError} from "../../common/error/RestError"
+import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -199,7 +200,7 @@ export class CustomerFacade {
 			})
 			props.emailSenderList.push(newListEntry)
 			return update(props)
-				.catch(LockedError, noOp)
+				.catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -213,7 +214,7 @@ export class CustomerFacade {
 			}
 			props.emailSenderList[index] = spamRule
 			return update(props)
-				.catch(LockedError, noOp)
+				.catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -268,7 +269,7 @@ export class CustomerFacade {
 						data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
 						data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
 						return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data)
-							.return(recoverData.hexCode)
+							.then(() => recoverData.hexCode)
 					})
 			})
 	}

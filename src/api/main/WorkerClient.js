@@ -9,7 +9,9 @@ import type {
 	CloseEventBusOptionEnum,
 	ConversationTypeEnum,
 	EntropySrcEnum,
+	InvoiceData,
 	MailMethodEnum,
+	PaymentData,
 	ShareCapabilityEnum,
 	SpamRuleFieldTypeEnum,
 	SpamRuleTypeEnum
@@ -48,21 +50,23 @@ import type {RecipientInfo} from "../common/RecipientInfo"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
-import type {SearchRestriction} from "../worker/search/SearchTypes"
+import type {SearchRestriction, SearchResult} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {TypeRef} from "../common/utils/TypeRef"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
+import type {TypeModel} from "../common/EntityTypes"
 
 assertMainOrNode()
 
-type Message = {
+interface Message {
 	id: string,
-	type: string,
+	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType,
 	args: mixed[]
 }
 
 export class WorkerClient implements EntityRestInterface {
 	initialized: Promise<void>;
+	_isInitialized: boolean = false
 
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
@@ -78,6 +82,7 @@ export class WorkerClient implements EntityRestInterface {
 		this._initWorker()
 
 		this.initialized.then(() => {
+			this._isInitialized = true
 			this._initServices()
 		})
 		this._queue.setCommands({
@@ -202,14 +207,6 @@ export class WorkerClient implements EntityRestInterface {
 
 	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
-	}
-
-	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
-		return this.initialized.then(() => this._postRequest(new Request('loadExternalPasswordChannels', arguments)))
-	}
-
-	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
-		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
 	}
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
@@ -471,7 +468,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	_postRequest(msg: Request): Promise<any> {
-		if (!this.initialized.isFulfilled()) {
+		if (!this._isInitialized) {
 			throw new Error("worker has not been initialized, request: " + msg.type)
 		}
 		return this._queue.postMessage(msg)

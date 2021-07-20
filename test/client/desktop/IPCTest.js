@@ -202,8 +202,7 @@ o.spec("IPC tests", function () {
 
 	o("addWindow & init & removeWindow", function (done) {
 		n.setPlatform('minix') // init sends platform
-		const {ipc, electronMock} = setUpWithWindowAndInit()
-		o(ipc.initialized(WINDOW_ID).isFulfilled()).equals(true)
+		const {ipc} = setUpWithWindowAndInit()
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(1)
@@ -227,6 +226,7 @@ o.spec("IPC tests", function () {
 		o(windowMock.sendMessageToWebContents.callCount).equals(0)
 
 		await ipc.initialized(WINDOW_ID)
+		o(windowMock.sendMessageToWebContents.callCount).equals(1)
 
 		const requestPromise = ipc.sendRequest(WINDOW_ID, "print", ["nothing", "useful"])
 

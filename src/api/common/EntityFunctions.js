@@ -1,7 +1,6 @@
 // @flow
-// $FlowIgnore[untyped-import]
 import {Type, ValueType} from "./EntityConstants"
-import {last} from "./utils/ArrayUtils"
+import {flat, last} from "./utils/ArrayUtils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
@@ -12,6 +11,9 @@ import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
 import {TypeRef} from "./utils/TypeRef";
+import type {TypeModel} from "./EntityTypes"
+import {noOp} from "./utils/Utils"
+import {promiseMap} from "./utils/PromiseUtils"
 
 
 export const HttpMethod = Object.freeze({
@@ -49,8 +51,7 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 	if (modelMap[typeRef.type] == null) {
 		return Promise.reject(new Error("Cannot find TypeRef: " + JSON.stringify(typeRef)))
 	} else {
-		// Wrap in Bluebird promise
-		return Promise.resolve(modelMap[typeRef.type]())
+		return modelMap[typeRef.type]()
 		              .then(module => {
 			              return module._TypeModel
 		              })
@@ -77,7 +78,7 @@ export function _updateEntity<T>(instance: T, target: EntityRestInterface): Prom
 		_verifyType(typeModel)
 		if (!(instance: any)._id) throw new Error("Id must be defined")
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).then(noOp)
 	})
 }
 
@@ -85,7 +86,7 @@ export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promi
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).return()
+		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).then(noOp)
 	})
 }
 
@@ -123,14 +124,12 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 	}
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
-		return Promise.map(idChunks, idChunk => {
+		return promiseMap(idChunks, idChunk => {
 			let queryParams = {
 				ids: idChunk.join(",")
 			}
 			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
-		}, {concurrency: 1}).then(instanceChunks => {
-			return Array.prototype.concat.apply([], instanceChunks);
-		})
+		}).then(instanceChunks => flat(instanceChunks))
 	})
 }
 

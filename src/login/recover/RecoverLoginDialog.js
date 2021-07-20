@@ -20,6 +20,7 @@ import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {worker} from "../../api/main/WorkerClient"
 import {client} from "../../misc/ClientDetector"
 import {CancelledError} from "../../api/common/error/CancelledError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -146,22 +147,16 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 }
 
 function handleError(e: Error) {
-	return Promise
-		.reject(e)
-		.catch(NotAuthenticatedError, () => {
-			Dialog.error("loginFailed_msg")
-		})
-		.catch(AccessBlockedError, () => {
-			Dialog.error("loginFailedOften_msg")
-		})
-		.catch(CancelledError, () => {
-			// Thrown when second factor dialog is cancelled
-			m.redraw()
-		})
-		.catch(AccessDeactivatedError, e => {
-			Dialog.error('loginFailed_msg')
-		})
-		.catch(TooManyRequestsError, e => {
-			Dialog.error('tooManyAttempts_msg')
-		})
+	if (e instanceof NotAuthenticatedError) {
+		Dialog.error("loginFailed_msg")
+	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
+		Dialog.error("loginFailedOften_msg")
+	} else if (e instanceof CancelledError) {
+		// Thrown when second factor dialog is cancelled
+		m.redraw()
+	} else if (e instanceof TooManyRequestsError) {
+		Dialog.error('tooManyAttempts_msg')
+	} else {
+		throw e
+	}
 }

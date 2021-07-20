@@ -16,6 +16,8 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
+import type {Status} from "../gui/base/StatusField"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -141,9 +143,9 @@ export class PasswordForm {
 						Dialog.error("pwChangeValid_msg")
 						dialog.close()
 					})
-					.catch(NotAuthenticatedError, e => {
+					.catch(ofClass(NotAuthenticatedError, e => {
 						Dialog.error("oldPasswordInvalid_msg")
-					})
+					}))
 					.catch(e => {
 						Dialog.error("passwordResetFailed_msg")
 					})

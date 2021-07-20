@@ -36,7 +36,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {addressDomain, defer, downcast, neverNull} from "../../common/utils/Utils"
+import {addressDomain, defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -69,6 +69,7 @@ import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../.
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
+import {ofClass, promiseFilter, promiseMap} from "../../common/utils/PromiseUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
@@ -270,28 +271,31 @@ export class MailFacade {
 	/**
 	 * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files) and returns all DraftAttachments
 	 */
-	_createAddedAttachments(providedFiles: ?Attachments, existingFileIds: IdTuple[], mailGroupKey: Aes128Key): Promise<DraftAttachment[]> {
+	_createAddedAttachments(
+		providedFiles: ?Attachments,
+		existingFileIds: $ReadOnlyArray<IdTuple>,
+		mailGroupKey: Aes128Key
+	): Promise<DraftAttachment[]> {
 		if (providedFiles) {
-			return Promise
-				.mapSeries((providedFiles: any), providedFile => {
+			return promiseMap(providedFiles, providedFile => {
 					// check if this is a new attachment or an existing one
 					if (providedFile._type === "DataFile") {
 						// user added attachment
-						let fileSessionKey = aes128RandomKey()
-						let dataFile = ((providedFile: any): DataFile)
+						const fileSessionKey = aes128RandomKey()
+						const dataFile = downcast<DataFile>(providedFile)
 						return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
 						})
 					} else if (providedFile._type === "FileReference") {
-						let fileSessionKey = aes128RandomKey()
-						let fileRef = ((providedFile: any): FileReference)
+						const fileSessionKey = aes128RandomKey()
+						const fileRef = downcast<FileReference>(providedFile)
 						return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
 						})
-					} else if (!containsId((existingFileIds: any), getLetId(providedFile))) {
+					} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 						// forwarded attachment which was not in the draft before
 						return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
-							let attachment = createDraftAttachment();
+							const attachment = createDraftAttachment();
 							attachment.existingFile = getLetId(providedFile)
 							attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
 							return attachment
@@ -301,12 +305,13 @@ export class MailFacade {
 					}
 				}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.then((attachments) => attachments.filter(Boolean))
-				.tap(() => {
+				.then((it) => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
 						fileApp.clearFileData()
 						       .catch((e) => console.warn("Failed to clear files", e))
 					}
+					return it
 				})
 		} else {
 			return Promise.resolve([])
@@ -334,7 +339,7 @@ export class MailFacade {
 				sendDraftData.language = language
 				sendDraftData.mail = draft._id
 
-				return Promise.each(draft.attachments, fileId => {
+				return promiseMap(draft.attachments, fileId => {
 					return load(FileTypeRef, fileId).then(file => {
 						return resolveSessionKey(FileTypeModel, file).then(fileSessionKey => {
 							let data = createAttachmentKeyData()
@@ -507,7 +512,7 @@ export class MailFacade {
 						})
 					})
 				})
-				.catch(NotFoundError, e => {
+				.catch(ofClass(NotFoundError, e => {
 					// it does not exist, so create it
 					let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
 					let externalUserGroupKey = aes128RandomKey()
@@ -542,12 +547,12 @@ export class MailFacade {
 					return serviceRequestVoid(TutanotaService.ExternalUserService, HttpMethod.POST, d).then(() => {
 						return {externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: externalMailGroupKey}
 					})
-				})
+				}))
 		})
 	}
 
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		return Promise.each(data, (update) => {
+		return promiseMap(data, (update) => {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(MailTypeRef, update.application, update.type)
 				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {
@@ -557,7 +562,7 @@ export class MailFacade {
 					deferredPromiseWrapper.resolve(mail)
 				})
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	phishingMarkersUpdateReceived(markers: Array<PhishingMarker>) {
@@ -576,7 +581,7 @@ export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: stri
 }
 
 function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
-	return Promise.filter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
+	return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
 		return load(GroupTypeRef, groupMembership.group).then(mailGroup => {
 			if (mailGroup.user == null) {
 				return load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {

@@ -3,16 +3,17 @@ import m from "mithril"
 import {ContactView} from "./ContactView"
 import {List} from "../../gui/base/List"
 import {load, loadAll} from "../../api/main/Entity"
+import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {getContactListName} from "../model/ContactUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
-import type {Contact} from "../../api/entities/tutanota/Contact"
 import {locator} from "../../api/main/MainLocator"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils";
 import type {ContactComparator} from "./ContactGuiUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -33,6 +34,7 @@ export class ContactListView {
 			fetch: (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
 					return locator.contactModel.contactListId().then(contactListId => {
+						if (!contactListId) return []
 						// we have to load all contacts in order to sort them by name
 						return loadAll(ContactTypeRef, contactListId).then(allContacts => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new received contacts are inserted into the list, even at the end
@@ -45,9 +47,10 @@ export class ContactListView {
 				}
 			},
 			loadSingle: (elementId) => {
-				return load(ContactTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
+				return load(ContactTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, () => {
 					// we return null if the entity does not exist
-				})
+					return null
+				}))
 			},
 			sortCompare: contactComparator,
 

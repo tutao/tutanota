@@ -1,12 +1,10 @@
 //@flow
 import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
-import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "../../../src/api/common/utils/Utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-
-
-const REST_TEST_PATH = "/rest/test"
-const REST_OTHER_TEST_PATH = "/rest/othertest"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {assertNotResolvedIn, assertResolvedIn} from "../TestUtils"
 
 o.spec("SuspensionHandler test", () => {
 
@@ -32,7 +30,8 @@ o.spec("SuspensionHandler test", () => {
 		const beforeTime1 = Date.now()
 		suspensionHandler.activateSuspensionIfInactive(100)
 		const deferredRequest1 = suspensionHandler.deferRequest(restRequest)
-		o(deferredRequest1.isFulfilled()).equals(false)
+
+		await assertNotResolvedIn(10, deferredRequest1)
 
 		o(suspensionHandler.isSuspended()).equals(true)
 		o(suspensionHandler._deferredRequests.length).equals(1)
@@ -44,7 +43,8 @@ o.spec("SuspensionHandler test", () => {
 		const beforeTime2 = Date.now()
 		suspensionHandler.activateSuspensionIfInactive(50)
 		const deferredRequest2 = suspensionHandler.deferRequest(restRequest)
-		o(deferredRequest2.isFulfilled()).equals(false)
+
+		await assertNotResolvedIn(10, deferredRequest2)
 
 		o(suspensionHandler.isSuspended()).equals(true)
 		o(suspensionHandler._deferredRequests.length).equals(1)
@@ -58,22 +58,22 @@ o.spec("SuspensionHandler test", () => {
 	o("handle defer suspension not active", node(async function () {
 		const deferredRequest = suspensionHandler.deferRequest(restRequest)
 		o(suspensionHandler.isSuspended()).equals(false)
-		o(deferredRequest.isFulfilled()).equals(true)
+		await assertResolvedIn(10, deferredRequest)
 	}))
 
 	o("handle multiple suspensions", node(async function () {
-		const deferred1 = defer()
-		const deferred2 = defer()
+		let firstCalled = false
+		let secondCalled = false
 		const request1 = () => {
-			o(deferred2.promise.isFulfilled()).equals(false)
-			deferred1.resolve()
-			return deferred1.promise
+			firstCalled = true
+			o(secondCalled).equals(false)("Second request was resolved before the first one")
+			return Promise.resolve()
 		}
 
 		const request2 = () => {
-			o(deferred1.promise.isFulfilled()).equals(true)
-			deferred1.resolve()
-			return deferred1.promise
+			secondCalled = true
+			o(firstCalled).equals(true)("First request was not resolved before the second one")
+			return Promise.resolve()
 		}
 
 		const beforeTime = Date.now()
@@ -82,11 +82,10 @@ o.spec("SuspensionHandler test", () => {
 
 		suspensionHandler.activateSuspensionIfInactive(50)
 		const deferredRequest2 = suspensionHandler.deferRequest(request2)
-		await Promise.delay(50)
+		await delay(50)
 		o(suspensionHandler._deferredRequests.length).equals(2)
 		o(suspensionHandler.isSuspended()).equals(true)
-		o(deferredRequest1.isFulfilled()).equals(false)
-		o(deferredRequest2.isFulfilled()).equals(false)
+		await assertNotResolvedIn(10, deferredRequest1, deferredRequest2)
 		await deferredRequest2
 		checkSuspensionTime(beforeTime, 100)
 		o(suspensionHandler.isSuspended()).equals(false)
@@ -94,14 +93,11 @@ o.spec("SuspensionHandler test", () => {
 	}))
 
 	o("deferred request throws exception", async () => {
-		const callOnResolve  = o.spy()
-		const shouldntGetCalled = o.spy()
-
 		suspensionHandler.activateSuspensionIfInactive(100)
-		const d1 = suspensionHandler.deferRequest(() => Promise.resolve("noice")).tap(callOnResolve)
-		const d2 = suspensionHandler.deferRequest(() => { throw "oi" }).tap(shouldntGetCalled).catch(e => e) // no exception should be thrown anywhere
-		const d3 = suspensionHandler.deferRequest(() => Promise.resolve("'ken oath")).tap(callOnResolve)
-		const d4 = suspensionHandler.deferRequest(() => { throw "karn" }).tap(shouldntGetCalled).catch(e => e) // no exception should be thrown anywhere
+		const d1 = suspensionHandler.deferRequest(() => Promise.resolve("noice"))
+		const d2 = suspensionHandler.deferRequest(() => { throw "oi" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
+		const d3 = suspensionHandler.deferRequest(() => Promise.resolve("'ken oath"))
+		const d4 = suspensionHandler.deferRequest(() => { throw "karn" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
 
 		const returned1 = await d1
 		const caught1 = await d2
@@ -110,10 +106,8 @@ o.spec("SuspensionHandler test", () => {
 
 		o(returned1).equals("noice")
 		o(returned2).equals("'ken oath")
-		o(caught1).equals("oi")
-		o(caught2).equals("karn")
-		o(callOnResolve.callCount).equals(2)
-		o(shouldntGetCalled.callCount).equals(0)
+		o(caught1).deepEquals({exception: "oi"})
+		o(caught2).deepEquals({exception: "karn"})
 	})
 
 })

@@ -4,7 +4,7 @@ import type {Contact} from "../../entities/tutanota/Contact"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import type {ContactList} from "../../entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {GroupDataOS, MetaDataOS} from "./Indexer";
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class ContactIndexer {
 	_core: IndexerCore;
@@ -80,19 +81,19 @@ export class ContactIndexer {
 			return this.suggestionFacade.store().then(() => {
 				return {contact, keyToIndexEntries}
 			})
-		}).catch(NotFoundError, () => {
+		}).catch(ofClass(NotFoundError, () => {
 			console.log("tried to index non existing contact")
 			return null
-		}).catch(NotAuthorizedError, () => {
+		})).catch(ofClass(NotAuthorizedError, () => {
 			console.log("tried to index contact without permission")
 			return null
-		})
+		}))
 	}
 
 	/**
 	 * Indexes the contact list if it is not yet indexed.
 	 */
-	indexFullContactList(userGroupId: Id): Promise<void> {
+	indexFullContactList(userGroupId: Id): Promise<*> {
 		return this._entity.loadRoot(ContactListTypeRef, userGroupId).then((contactList: ContactList) => {
 			return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
 				let groupId = neverNull(contactList._ownerGroup)
@@ -112,14 +113,14 @@ export class ContactIndexer {
 					}
 				})
 			})
-		}).catch(NotFoundError, e => {
+		}).catch(ofClass(NotFoundError, e => {
 			// external users have no contact list.
 			return Promise.resolve()
-		})
+		}))
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event) => {
 			if (event.operation === OperationType.CREATE) {
 				return this.processNewContact(event).then(result => {
 					if (result) {
@@ -138,6 +139,6 @@ export class ContactIndexer {
 			} else if (event.operation === OperationType.DELETE) {
 				return this._core._processDeleted(event, indexUpdate)
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

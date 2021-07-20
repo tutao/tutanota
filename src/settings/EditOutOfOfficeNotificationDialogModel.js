@@ -13,6 +13,7 @@ import type {LanguageViewModel} from "../misc/LanguageViewModel"
 import type {IUserController} from "../api/main/UserController"
 import {appendEmailSignature} from "../mail/signature/Signature"
 import {UserError} from "../api/main/UserError"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export const RecipientMessageType = Object.freeze({
 	EXTERNAL_TO_EVERYONE: 0,
@@ -155,10 +156,10 @@ export class EditOutOfOfficeNotificationDialogModel {
 	}
 
 	/**
-	 * throws UserError
-	 * throw Busines
+	 * @throws UserError
+	 * @throws BusinessFeatureRequiredError
 	 */
-	saveOutOfOfficeNotification(): Promise<void> {
+	saveOutOfOfficeNotification(): Promise<*> {
 		return Promise.resolve()
 		              .then(() => this.getNotificationFromData())
 		              .then(sendableNotification => {
@@ -168,16 +169,16 @@ export class EditOutOfOfficeNotificationDialogModel {
 				              ? this._entityClient.setup(null, sendableNotification)
 				              : this._entityClient.update(sendableNotification)
 		              })
-		              .catch(InvalidDataError, e => {
+		              .catch(ofClass(InvalidDataError, e => {
 			              throw new UserError("outOfOfficeMessageInvalid_msg")
-		              })
-		              .catch(PreconditionFailedError, e => {
+		              }))
+		              .catch(ofClass(PreconditionFailedError, e => {
 			              if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
 				              throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
 			              } else {
 				              throw new UserError(() => e.toString())
 			              }
-		              })
+		              }))
 	}
 
 	_isNewNotification(): boolean {

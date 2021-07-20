@@ -3,7 +3,7 @@ import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "
 import {NotFoundError} from "../../common/error/RestError"
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;
@@ -56,10 +57,10 @@ export class GroupInfoIndexer {
 			return this.suggestionFacade.store().then(() => {
 				return {groupInfo, keyToIndexEntries}
 			})
-		}).catch(NotFoundError, () => {
+		}).catch(ofClass(NotFoundError, () => {
 			console.log("tried to index non existing group info")
 			return null
-		})
+		}))
 	}
 
 	/**
@@ -97,7 +98,7 @@ export class GroupInfoIndexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event) => {
 			if (userIsLocalOrGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewGroupInfo(event).then(result => {
@@ -120,6 +121,6 @@ export class GroupInfoIndexer {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

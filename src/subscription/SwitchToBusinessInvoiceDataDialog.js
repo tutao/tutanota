@@ -13,8 +13,10 @@ import {showBusinessBuyDialog} from "./BuyDialog"
 import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defer} from "../api/common/utils/Utils"
+import {defer, noOp} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
+import type {InvoiceData} from "../api/common/TutanotaConstants"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
@@ -24,7 +26,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 	const invoiceDataInput = new InvoiceDataInput(true, invoiceData)
 	const entityEventUpdateForCustomer = defer() // required if business is booked because the customer is then changed
 	const entityEventListener = (updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				return locator.entityClient.load(CustomerTypeRef, customer._id)
 				              .then(updatedCustomer => {
@@ -32,7 +34,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 					              entityEventUpdateForCustomer.resolve()
 				              })
 			}
-		}).return()
+		}).then(noOp)
 	}
 	locator.eventController.addEntityListener(entityEventListener)
 
@@ -63,9 +65,9 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 									       dialog.close()
 								       }
 							       })
-							       .catch(BadRequestError, e => {
+							       .catch(ofClass(BadRequestError, e => {
 								       Dialog.error("paymentMethodNotAvailable_msg")
-							       })
+							       }))
 					       })
 				}))
 			})

@@ -68,6 +68,7 @@ import {getFromMap} from "../../api/common/utils/MapUtils"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
@@ -199,9 +200,9 @@ export class SendMailModel {
 		this.updateAvailableNotificationTemplateLanguages()
 
 		this._entityEventReceived = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				return this._handleEntityEvent(update)
-			}).return()
+			}).then(noOp)
 		}
 		this._eventController.addEntityListener(this._entityEventReceived)
 
@@ -392,9 +393,9 @@ export class SendMailModel {
 		          .then(ce => {
 			          previousMessageId = ce.messageId
 		          })
-		          .catch(NotFoundError, e => {
+		           .catch(ofClass(NotFoundError, e => {
 			          console.log("could not load conversation entry", e);
-		          })
+		          }))
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(await inlineImages)
@@ -427,9 +428,9 @@ export class SendMailModel {
 							previousMail = mail
 						})
 					}
-				}).catch(NotFoundError, e => {
+				}).catch(ofClass(NotFoundError, e => {
 					// ignore
-				})
+				}))
 			}
 		})
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
@@ -677,14 +678,14 @@ export class SendMailModel {
 		return this._worker
 		           .updateMailDraft(this.getSubject(), body, this._senderAddress, this.getSenderName(), this.toRecipients(),
 			           this.ccRecipients(), this.bccRecipients(), attachments, this.isConfidential(), draft)
-		           .catch(LockedError, (e) => {
+		           .catch(ofClass(LockedError, (e) => {
 			           console.log("updateDraft: operation is still active", e)
 			           throw new UserError("operationStillActive_msg")
-		           })
-		           .catch(NotFoundError, () => {
+		           }))
+		           .catch(ofClass(NotFoundError, () => {
 			           console.log("draft has been deleted, creating new one")
 			           return this._createDraft(body, attachments, downcast(draft.method))
-		           })
+		           }))
 	}
 
 	_createDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, mailMethod: MailMethodEnum): Promise<Mail> {
@@ -784,10 +785,10 @@ export class SendMailModel {
 		}
 
 		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
-			.catch(LockedError, () => { throw new UserError("operationStillActive_msg")})
+			.catch(ofClass(LockedError, () => { throw new UserError("operationStillActive_msg")}))
 			// catch all of the badness
-			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
-			.catch(RecipientsNotFoundError, (e) => {
+			.catch(ofClass(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")}))
+			.catch(ofClass(RecipientsNotFoundError, (e) => {
 				if (mailMethod === MailMethod.ICAL_CANCEL) {
 					//in case of calendar event cancellation we willremove invalid recipients and then delete the event without sending updates
 					throw e
@@ -796,18 +797,20 @@ export class SendMailModel {
 					throw new UserError(() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
 						+ invalidRecipients)
 				}
-			})
-			.catch(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)})
-			.catch(AccessBlockedError, e => {
+			}))
+			.catch(ofClass(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)}))
+			.catch(ofClass(AccessBlockedError, e => {
 				// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
 				return checkApprovalStatus(true, ApprovalStatus.SPAM_SENDER)
 					.then(() => {
 						console.log("could not send mail (blocked access)", e)
+						return false
 					})
-			})
-			.catch(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")})
-			.catch(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")})
-			.catch(MailBodyTooLargeError, () => {throw new UserError("mailBodyTooLarge_msg")})
+			}))
+			.catch(ofClass(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")}))
+			.catch(ofClass(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")}))
+			.catch(ofClass(MailBodyTooLargeError, () => {throw new UserError("mailBodyTooLarge_msg")}))
+
 	}
 
 	/**
@@ -850,20 +853,21 @@ export class SendMailModel {
 				: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
 		}).then((draft) => {
 			this._draft = draft
-			return Promise.map(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
-				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
-				this.attachFiles(attachments)
-				this._mailChanged = false
-			})
-		}).catch(PayloadTooLargeError, () => {
+			return promiseMap(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId), {concurrency: 5})
+				.then(attachments => {
+					this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
+					this.attachFiles(attachments)
+					this._mailChanged = false
+				})
+		}).catch(ofClass(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
-		})
+		}))
 
 		return blockingWaitHandler("save_msg", savePromise)
 	}
 
 
-	_sendApprovalMail(body: string): Promise<void> {
+	_sendApprovalMail(body: string): Promise<*> {
 		const listId = "---------c--";
 		const m = createApprovalMail({
 			_id: [listId, stringToCustomId(this._senderAddress)],
@@ -871,7 +875,7 @@ export class SendMailModel {
 			text: `Subject: ${this.getSubject()}<br>${body}`,
 		})
 		return this._entity.setup(listId, m)
-		           .catch(NotAuthorizedError, e => console.log("not authorized for approval message"))
+		           .catch(ofClass(NotAuthorizedError, e => console.log("not authorized for approval message")))
 	}
 
 	getAvailableNotificationTemplateLanguages(): Array<Language> {
@@ -911,9 +915,9 @@ export class SendMailModel {
 			} else {
 				return Promise.resolve()
 			}
-			return this._entity.update(this._previousMail).catch(NotFoundError, e => {
+			return this._entity.update(this._previousMail).catch(ofClass(NotFoundError, e => {
 				// ignore
-			})
+			}))
 		} else {
 			return Promise.resolve();
 		}
@@ -958,14 +962,14 @@ export class SendMailModel {
 		return Promise.all(this.allRecipients().map(recipientInfo => {
 			return resolveRecipientInfo(this._worker, recipientInfo).then(recipientInfo => {
 				if (recipientInfo.resolveContactPromise) {
-					return recipientInfo.resolveContactPromise.return(recipientInfo)
+					return recipientInfo.resolveContactPromise.then(() => recipientInfo)
 				} else {
 					return recipientInfo
 				}
 			})
-		})).catch(TooManyRequestsError, () => {
+		})).catch(ofClass(TooManyRequestsError, () => {
 			throw new RecipientNotResolvedError("")
-		})
+		}))
 	}
 
 	_handleEntityEvent(update: EntityUpdateData): Promise<void> {

@@ -50,6 +50,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {compareContacts} from "./ContactGuiUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -144,7 +145,7 @@ export class ContactView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener(updates => {
-			return Promise.each(updates, update => this._processEntityUpdate(update)).return()
+			return promiseMap(updates, update => this._processEntityUpdate(update)).then(noOp)
 		})
 	}
 
@@ -294,7 +295,7 @@ export class ContactView implements CurrentView {
 						return locator
 							.contactModel
 							.contactListId()
-							.then(contactListId => Promise.each(contactList, (contact) => setup(contactListId, contact)))
+							.then(contactListId => promiseMap(contactList, (contact) => setup(contactListId, contact)))
 							.then(() => contactList.length)
 					}))
 				}
@@ -311,7 +312,7 @@ export class ContactView implements CurrentView {
 
 	_mergeAction(): Promise<void> {
 		return showProgressDialog("pleaseWait_msg", locator.contactModel.contactListId().then(contactListId => {
-			return loadAll(ContactTypeRef, contactListId)
+			return contactListId ? loadAll(ContactTypeRef, contactListId) : []
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
 				Dialog.error("noContacts_msg")
@@ -360,7 +361,7 @@ export class ContactView implements CurrentView {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
 					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
-						.catch(NotFoundError, noOp)
+						.catch(ofClass(NotFoundError, noOp))
 				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
 					return erase(contact1)
@@ -410,13 +411,13 @@ export class ContactView implements CurrentView {
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
 			locator.contactModel.contactListId().then(contactListId => {
-				this._setUrl(`/contact/${contactListId}`)
+				contactListId && this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
 			locator.contactModel.contactListId().then(contactListId => {
 				if (args.listId !== contactListId) {
-					this._setUrl(`/contact/${contactListId}`)
+					contactListId && this._setUrl(`/contact/${contactListId}`)
 				} else {
 					this._contactList = new ContactListView(args.listId, (this: any), (a, b) => compareContacts(a, b, this._doSortByFirstName())) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
@@ -449,8 +450,8 @@ export class ContactView implements CurrentView {
 			if (confirmed) {
 				contactList.list.getSelectedEntities().forEach(contact => {
 					erase(contact)
-						.catch(NotFoundError, noOp)
-						.catch(LockedError, noOp)
+						.catch(ofClass(NotFoundError, noOp))
+						.catch(ofClass(LockedError, noOp))
 				})
 			}
 		})
@@ -473,7 +474,7 @@ export class ContactView implements CurrentView {
 						return showProgressDialog("pleaseWait_msg",
 							update(keptContact)
 								.then(() => erase(goodbyeContact)))
-							.catch(NotFoundError, noOp)
+							.catch(ofClass(NotFoundError, noOp))
 					}
 				})
 			} else {
@@ -516,7 +517,7 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	getViewSlider(): ?IViewSlider {
+	getViewSlider(): ?ViewSlider {
 		return this.viewSlider
 	}
 
@@ -568,11 +569,13 @@ export class ContactView implements CurrentView {
 export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 	return showProgressDialog("pleaseWait_msg",
 		contactModel.contactListId().then(contactListId => {
+			if (!contactListId) return 0
+
 			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length === 0) {
 					return 0
 				} else {
-					return exportContacts(allContacts).return(allContacts.length)
+					return exportContacts(allContacts).then(() => allContacts.length)
 				}
 			})
 		})

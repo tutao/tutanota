@@ -4,7 +4,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Country} from "../api/common/CountryList"
 import {CountryType} from "../api/common/CountryList"
-import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
+import type {PaymentData, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardAttrs, CreditCardInput} from "./CreditCardInput"
 import {PayPalLogo} from "../gui/base/icons/Icons"
@@ -19,6 +19,8 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
+import {noOp} from "../api/common/utils/Utils"
+import {promiseMap} from "../api/common/utils/PromiseUtils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -44,7 +46,7 @@ export class PaymentMethodInput {
 
 
 		this._entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
 						this._accountingInfo = accountingInfo
@@ -52,7 +54,7 @@ export class PaymentMethodInput {
 						m.redraw()
 					})
 				}
-			}).return()
+			}).then(noOp)
 		}
 
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard

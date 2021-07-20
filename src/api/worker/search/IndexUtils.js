@@ -28,6 +28,7 @@ import {isTest} from "../../common/Env"
 import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import {TypeRef} from "../../common/utils/TypeRef";
+import type {TypeModel} from "../../common/EntityTypes"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

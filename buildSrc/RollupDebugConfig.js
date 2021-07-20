@@ -1,7 +1,6 @@
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
-import Promise from "bluebird"
 import fs from "fs-extra"
 import {babelPlugins, dependencyMap} from "./RollupConfig.js";
 
@@ -42,11 +41,12 @@ export function rollupDebugPlugins(baseDir, pluginsForBabel = babelPlugins) {
 
 export async function writeNollupBundle(generatedBundle, log, dir = "build") {
 	await fs.mkdirp(dir)
-	return Promise.map(generatedBundle.output, async (o) => {
+
+	return Promise.all(generatedBundle.output.map((o) => {
 		const filePath = path.join(dir, o.fileName)
 		// log("Writing", filePath)
 		return fs.writeFile(filePath, o.code || o.source)
-	})
+	}))
 }
 
 /**

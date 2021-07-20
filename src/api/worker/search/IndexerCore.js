@@ -56,6 +56,7 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/utils/EntityUtils";
 import {TypeRef} from "../../common/utils/TypeRef";
 import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
+import type {TypeModel} from "../../common/EntityTypes"
 import {byteLength} from "../../common/utils/StringUtils";
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
@@ -289,19 +290,22 @@ export class IndexerCore {
 		return operation.transactionFactory()
 		                .then((transaction) => {
 			                operation.transaction = transaction
-			                operation.operation(transaction).tap(() => {
-				                this._currentWriteOperation = null
-				                operation.deferred.resolve()
-			                }).catch((e) => {
-				                if (operation.isAbortedForBackgroundMode) {
-					                console.log("transaction has been aborted because of background mode")
-				                } else {
-					                if (env.mode !== "Test") {
-						                console.log("rejecting operation with error", e)
-					                }
-					                operation.deferred.reject(e)
-				                }
-			                })
+			                operation.operation(transaction)
+			                         .then((it) => {
+				                         this._currentWriteOperation = null
+				                         operation.deferred.resolve()
+				                         return it
+			                         })
+			                         .catch((e) => {
+				                         if (operation.isAbortedForBackgroundMode) {
+					                         console.log("transaction has been aborted because of background mode")
+				                         } else {
+					                         if (env.mode !== "Test") {
+						                         console.log("rejecting operation with error", e)
+					                         }
+					                         operation.deferred.reject(e)
+				                         }
+			                         })
 
 			                return operation.deferred.promise
 		                })
@@ -336,7 +340,7 @@ export class IndexerCore {
 					transaction.put(ElementDataOS, moveInstance.encInstanceId, elementData)
 				}
 			})
-		})).return()
+		})).then(noOp)
 		return PromisableWrapper.from(promise)
 	}
 
@@ -353,7 +357,7 @@ export class IndexerCore {
 		return Promise.all(Array.from(indexUpdate.delete.searchMetaRowToEncInstanceIds)
 		                        .map(([metaRowKey, encInstanceIds]) => this._deleteSearchIndexEntries(transaction, metaRowKey, encInstanceIds)))
 		              .then(() => deleteElementDataPromise)
-		              .return()
+		              .then(noOp)
 	}
 
 	/**
@@ -445,7 +449,7 @@ export class IndexerCore {
 		}, {concurrency: 2}).value
 
 		return result instanceof Promise
-			? result.return(encWordToMetaRow)
+			? result.then(() => encWordToMetaRow)
 			: null
 	}
 

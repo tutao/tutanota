@@ -27,6 +27,8 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import type {TranslationKey} from "../misc/LanguageViewModel"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 type IdentifierRowAttrs = {|
 	name: string,
@@ -123,7 +125,7 @@ export class IdentifierListViewer {
 						disabled: identifier.disabled,
 						identifier: identifier.identifier,
 						current: isCurrentDevice,
-						removeClicked: () => {erase(identifier).catch(NotFoundError, noOp)},
+						removeClicked: () => {erase(identifier).catch(ofClass(NotFoundError, noOp))},
 						formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 						disableClicked: () => this._disableIdentifier(identifier)
 					})
@@ -218,7 +220,7 @@ export class IdentifierListViewer {
 		}
 	}
 
-	_validateAddNotificationEmailAddressInput(emailAddress: string): ?string {
+	_validateAddNotificationEmailAddressInput(emailAddress: string): ?TranslationKey {
 		return getCleanedMailAddress(emailAddress) == null
 			? "mailAddressInvalid_msg"
 			: null // TODO check if it is a Tutanota mail address

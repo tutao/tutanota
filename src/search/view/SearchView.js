@@ -63,6 +63,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {SidebarSection} from "../../gui/SidebarSection"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -198,9 +199,9 @@ export class SearchView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener((updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				return this.entityEventReceived(update)
-			}).return()
+			}).then(noOp)
 		})
 	}
 
@@ -212,7 +213,7 @@ export class SearchView implements CurrentView {
 		].map(row => m(".folder-row.plr-l.content-fg", row))
 	}
 
-	getViewSlider(): ?IViewSlider {
+	getViewSlider(): ?ViewSlider {
 		return this.viewSlider
 	}
 
@@ -222,7 +223,7 @@ export class SearchView implements CurrentView {
 			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(ButtonN, {
 					click: () => {
-						newMailEditor().then(editor => editor.show()).catch(PermissionError, noOp)
+						newMailEditor().then(editor => editor.show()).catch(ofClass(PermissionError, noOp))
 					},
 					label: "newMail_action",
 					type: ButtonType.Action,
@@ -409,7 +410,7 @@ export class SearchView implements CurrentView {
 				exec: () => {
 					const restriction = getRestriction(m.route.get()).type
 					if (isSameTypeRef(restriction, MailTypeRef)) {
-						newMailEditor().then(editor => editor.show()).catch(PermissionError, noOp)
+						newMailEditor().then(editor => editor.show()).catch(ofClass(PermissionError, noOp))
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
 						locator.contactModel.contactListId().then(contactListId => {
 							new ContactEditor(locator.entityClient, null, contactListId, null).show()
@@ -556,7 +557,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
-					newMailEditor().then(editor => editor.show()).catch(PermissionError, noOp)
+					newMailEditor().then(editor => editor.show()).catch(ofClass(PermissionError, noOp))
 				},
 				label: "newMail_action",
 			}

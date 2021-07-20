@@ -7,10 +7,10 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
 } from "./Encoding"
-// $FlowIgnore[untyped-import]
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import {TypeRef} from "./TypeRef"
 import type {SomeEntity} from "../../main/Entity"
+import type {ModelValue, TypeModel} from "../EntityTypes"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -100,7 +100,7 @@ export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
 	return isSameId(entity1._id, entity2._id)
 }
 
-export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean {
+export function containsId(ids: $ReadOnlyArray<Id | IdTuple>, id: Id | IdTuple): boolean {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 

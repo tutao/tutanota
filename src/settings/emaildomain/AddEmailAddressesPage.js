@@ -9,7 +9,7 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
@@ -27,6 +27,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -37,7 +38,7 @@ export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAt
 	oncreate(vnode: Vnode<AddEmailAddressesPageAttrs>) {
 		const wizardAttrs = vnode.attrs
 		this._entityEventListener = (updates) => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				const {instanceListId, instanceId, operation} = update
 				if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 					&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
@@ -46,7 +47,7 @@ export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAt
 						m.redraw()
 					})
 				}
-			}).return()
+			}).then(noOp)
 		}
 		locator.eventController.addEntityListener(this._entityEventListener)
 
@@ -207,8 +208,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				.then(() => {
 					return true
 				})
-				.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
-				.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false))
+				.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false)))
+				.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false)))
 				.finally((result) => updateNbrOfAliases(this.data.editAliasFormAttrs).then(() => result))
 		}
 	}

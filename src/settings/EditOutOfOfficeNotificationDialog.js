@@ -24,6 +24,7 @@ import {EditOutOfOfficeNotificationDialogModel, RecipientMessageType} from "./Ed
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {UserError} from "../api/main/UserError"
 import {DatePicker} from "../gui/date/DatePicker"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: ?OutOfOfficeNotification) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, logins.getUserController(), lang)
@@ -42,8 +43,8 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: ?
 		dialogModel.defaultMessage(defaultMessageEditor.getValue())
 		dialogModel.saveOutOfOfficeNotification()
 		           .then(() => cancel())
-		           .catch(UserError, e => showUserError(e))
-		           .catch(BusinessFeatureRequiredError, (e) => showBusinessFeatureRequiredDialog(() => e.message))
+		           .catch(ofClass(UserError, e => showUserError(e)))
+		           .catch(ofClass(BusinessFeatureRequiredError, (e) => showBusinessFeatureRequiredDialog(() => e.message)))
 	}
 
 	function cancel() {

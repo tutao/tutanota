@@ -128,7 +128,7 @@ o.spec("GroupInfoIndexer test", function () {
 		}: any)
 		const indexer = new GroupInfoIndexer(core, dbMock, entity, suggestionFacadeMock)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		indexer.processNewGroupInfo(event).catch(Error, e => {
+		indexer.processNewGroupInfo(event).catch(e => {
 			done()
 		})
 	})

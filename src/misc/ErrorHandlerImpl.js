@@ -17,7 +17,7 @@ import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {errorToString, neverNull} from "../api/common/utils/Utils"
+import {errorToString, neverNull, noOp} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/model/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
@@ -39,6 +39,7 @@ import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -110,13 +111,13 @@ export function handleUncaughtError(e: Error) {
 							      errorMessage("")
 							      loginDialogActive = false
 						      })
-						      .catch(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg')))
-						      .catch(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg')))
-						      .catch(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg')))
-						      .catch(ConnectionError, e => {
+						      .catch(ofClass(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg'))))
+						      .catch(ofClass(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg'))))
+						      .catch(ofClass(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg'))))
+						      .catch(ofClass(ConnectionError, e => {
 							      errorMessage(lang.get('emptyString_msg'))
 							      throw e
-						      })
+						      }))
 						      .finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
 				      }
 			      )
@@ -325,7 +326,7 @@ export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 
 export function loggingOut() {
 	isLoggingOut = true
-	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
+	showProgressDialog("loggingOut_msg", new Promise(noOp))
 }
 
 function showErrorDialogNotLoggedIn(e) {

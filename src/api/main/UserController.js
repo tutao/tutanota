@@ -1,7 +1,7 @@
 // @flow
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot, setup} from "./Entity"
-import {downcast, neverNull} from "../common/utils/Utils"
+import {downcast, neverNull, noOp} from "../common/utils/Utils"
 import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
@@ -28,6 +28,7 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
+import {ofClass, promiseMap} from "../common/utils/PromiseUtils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
@@ -179,7 +180,7 @@ export class UserController implements IUserController {
 
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return Promise.each(updates, (update) => {
+		return promiseMap(updates, (update) => {
 			const {instanceListId, instanceId, operation} = update
 			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update)
 				&& isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
@@ -201,7 +202,7 @@ export class UserController implements IUserController {
 				})
 			}
 			return Promise.resolve()
-		}).return()
+		}).then(noOp)
 	}
 
 	deleteSession(sync: boolean): Promise<void> {
@@ -298,11 +299,11 @@ export function initUserController(
 		.all([
 			loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
 			load(UserSettingsGroupRootTypeRef, user.userGroup.group)
-				.catch(NotFoundError, () =>
+				.catch(ofClass(NotFoundError, () =>
 					setup(null, Object.assign(createUserSettingsGroupRoot(), {
 						_ownerGroup: user.userGroup.group
 					}))
-						.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group)))
+						.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group))))
 		])
 		.then(([props, userSettingsGroupRoot]) =>
 			new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot)

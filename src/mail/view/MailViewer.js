@@ -125,6 +125,7 @@ import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -166,7 +167,7 @@ export class MailViewer {
 	oncreate: Function;
 	onbeforeremove: Function;
 	onremove: Function;
-	_scrollAnimation: Promise<void>;
+	_scrollAnimation: ?Promise<void>;
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
@@ -176,6 +177,7 @@ export class MailViewer {
 	_loadedInlineImages: Promise<InlineImages>;
 	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
+	_domBody: ?HTMLElement;
 	_lastBodyTouchEndTime: number = 0;
 	_lastTouchStart: {x: number, y: number, time: number};
 	_domForScrolling: ?HTMLElement
@@ -219,7 +221,6 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._suspicious = false
-		this._scrollAnimation = Promise.resolve()
 		this._isScaling = true;
 		this._lastTouchStart = {x: 0, y: 0, time: Date.now()}
 		this._warningDismissed = false
@@ -258,7 +259,7 @@ export class MailViewer {
 		this._loadedInlineImages.then(() => {
 			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
-			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
+			    .catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
 		})
 
 		let delayIsOver = false
@@ -379,13 +380,15 @@ export class MailViewer {
 			return m("#mail-body.selectable.touch-callout.break-word-links", {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
+					this._domBody = vnode.dom
 					this._updateLineHeight(vnode.dom)
 					this._rescale(false)
 				},
 				onupdate: (vnode) => {
-					if (this._domBodyDeferred.promise.isPending()) {
-						this._domBodyDeferred.resolve(vnode.dom)
-					}
+					// if (this._domBodyDeferred.promise.isPending()) {
+					this._domBodyDeferred.resolve(vnode.dom)
+					// }
+					this._domBody = vnode.dom
 					// Only measure and update line height once.
 					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
 					// that it's a different vnode so oncreate might not be called.
@@ -539,7 +542,7 @@ export class MailViewer {
 							headers: headers.join("\n"),
 						})
 						return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData)
-							.return(true)
+							.then(() => true)
 					})
 				} else {
 					return false
@@ -548,10 +551,12 @@ export class MailViewer {
 				if (success) {
 					return Dialog.error("unsubscribeSuccessful_msg")
 				}
-			}).catch(LockedError, e => {
-				return Dialog.error("operationStillActive_msg")
 			}).catch(e => {
-				return Dialog.error("unsubscribeFailed_msg")
+				if (e instanceof LockedError) {
+					return Dialog.error("operationStillActive_msg")
+				} else {
+					return Dialog.error("unsubscribeFailed_msg")
+				}
 			})
 		}
 		return Promise.resolve()
@@ -740,8 +745,8 @@ export class MailViewer {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
 				      return moveMails(this._mailModel, [this.mail], spamFolder)
 			      })
-			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
-			      .catch(NotFoundError, () => console.log("mail already moved"))
+			      .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg")))
+			      .catch(ofClass(NotFoundError, () => console.log("mail already moved")))
 			      .then(m.redraw)
 
 		}
@@ -801,8 +806,8 @@ export class MailViewer {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 					this._entityClient.update(mail)
-					    .catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
-					    .catch(NotFoundError, e => console.log("mail already moved"))
+					    .catch(ofClass(LockedError, e => console.log("could not update mail phishing status as mail is locked")))
+					    .catch(ofClass(NotFoundError, e => console.log("mail already moved")))
 					m.redraw()
 				}
 			})
@@ -922,10 +927,10 @@ export class MailViewer {
 					           m.redraw()
 					           return inlineImages
 				           })
-				           .catch(NotFoundError, e => {
+				           .catch(ofClass(NotFoundError, e => {
 					           console.log("could load attachments as they have been moved/deleted already", e)
 					           return new Map()
-				           })
+				           }))
 			})
 		}
 	}
@@ -1009,10 +1014,10 @@ export class MailViewer {
 	}
 
 	_rescale(animate: boolean) {
-		if (!client.isMobileDevice() || !this._domBodyDeferred.promise.isFulfilled()) {
+		if (!client.isMobileDevice() || !this._domBody) {
 			return
 		}
-		const child = this._domBodyDeferred.promise.value()
+		const child = this._domBody
 		const containerWidth = child.offsetWidth
 
 		if (!this._isScaling || containerWidth > child.scrollWidth) {
@@ -1085,6 +1090,7 @@ export class MailViewer {
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
 			this._domBodyDeferred = defer()
+			this._domBody = null
 		}
 		// onbeforeremove is only called if we are removed from the parent
 		// e.g. it is not called when switching to contact view
@@ -1125,7 +1131,7 @@ export class MailViewer {
 		if (logins.getUserController().isInternalUser()) {
 			let contactsPromise = Promise.resolve()
 			if (!logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = this._contactModel.searchForContactByMailAddress(address.address).then(contact => {
+				contactsPromise = this._contactModel.searchForContact(address.address).then(contact => {
 					if (contact) {
 						buttons.push({
 							label: "showContact_action",
@@ -1221,8 +1227,8 @@ export class MailViewer {
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
 		this._entityClient.update(this.mail)
-		    .catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
-		    .catch(NotFoundError, noOp)
+		    .catch(ofClass(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
+		    .catch(ofClass(NotFoundError, noOp))
 	}
 
 	_editDraft(): Promise<void> {
@@ -1242,8 +1248,8 @@ export class MailViewer {
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
-					              .then(editorDialog => editorDialog.show())
-					              .catch(UserError, showUserError)
+				              .then(editorDialog => {editorDialog.show()})
+				              .catch(ofClass(UserError, showUserError))
 				}
 
 			}
@@ -1315,8 +1321,8 @@ export class MailViewer {
 					}, this._contentBlockingStatus === ContentBlockingStatus.Block,
 					this._loadedInlineImages, mailboxDetails)
 			})
-			              .then(editor => editor.show())
-			              .catch(UserError, showUserError)
+					              .then(editor => {editor.show()})
+			              .catch(ofClass(UserError, showUserError))
 		}
 	}
 
@@ -1339,8 +1345,8 @@ export class MailViewer {
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
-					              .then(editor => editor.show())
-					              .catch(UserError, showUserError)
+					              .then(editor => {editor.show()})
+					              .catch(ofClass(UserError, showUserError))
 				})
 			}
 		})
@@ -1506,7 +1512,7 @@ export class MailViewer {
 						this.mailHeaderInfo = getMailHeaders(mailHeaders)
 						this.mailHeaderDialog.show()
 					}
-				).catch(NotFoundError, noOp)
+				).catch(ofClass(NotFoundError, noOp))
 			} else {
 				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
 				this.mailHeaderDialog.show()
@@ -1517,15 +1523,17 @@ export class MailViewer {
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
 		if (this._domForScrolling) {
 			const dom = this._domForScrolling
-			if (this._scrollAnimation.isFulfilled()) {
-				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
+			if (!this._scrollAnimation) {
+				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut}).then(() => {
+					this._scrollAnimation = null
+				})
 			}
 		}
 	}
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		fileController.downloadAndOpen(file, open)
-		              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+		              .catch(ofClass(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")))
 		              .catch(e => {
 			              const msg = e || "unknown error"
 			              console.error("could not open file:", msg)
@@ -1675,15 +1683,16 @@ export class MailViewer {
 		this._contentBlockingStatus = status
 
 		if (this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
-			worker.addAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
+			worker.addAllowedExternalSender(this.mail.sender.address).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else if (previousContentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
 			// if we're going from allow to something else it means we're revoking the whitelisting of the given sender
-			worker.removeAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
+			worker.removeAllowedExternalSender(this.mail.sender.address).catch(ofClass(IndexingNotSupportedError, noOp))
 		}
 
 		// We don't check mail authentication status here because the user has manually called this
 		await this.setSanitizedMailBodyFromMail(this.mail, status === ContentBlockingStatus.Block)
 		this._domBodyDeferred = defer()
+		this._domBody = null
 		this._replaceInlineImages()
 	}
 

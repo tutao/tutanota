@@ -49,6 +49,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -281,20 +282,20 @@ export class UserViewer {
 		if (this._groupsTable) {
 			return this._user.getAsync().then(user => {
 				return this._customer.getAsync().then(customer => {
-					return Promise.map(this._getTeamMemberships(user, customer), m => {
+					return promiseMap(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
 								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
-									.catch(NotAuthorizedError, e => {
+									.catch(ofClass(NotAuthorizedError, e => {
 										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
-									})
+									}))
 							}, () => Icons.Cancel)
 							return new TableLine([
 								getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))
 							], removeButton)
 						})
-					}).then(tableLines => {
+					}, {concurrency: 5}).then(tableLines => {
 						if (this._groupsTable) {
 							this._groupsTable.updateEntries(tableLines)
 						}
@@ -417,9 +418,9 @@ export class UserViewer {
 			return worker.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage = usedStorage
 				m.redraw()
-			}).catch(BadRequestError, e => {
+			}).catch(ofClass(BadRequestError, e => {
 				// may happen if the user gets the admin flag removed
-			})
+			}))
 		})
 	}
 
@@ -440,17 +441,17 @@ export class UserViewer {
 					})
 				}
 			})
-		).catch(PreconditionFailedError, e => {
+		).catch(ofClass(PreconditionFailedError, e => {
 			if (restore) {
 				Dialog.error("emailAddressInUse_msg")
 			} else {
 				Dialog.error("stillReferencedFromContactForm_msg")
 			}
-		})
+		}))
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			let promise = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE

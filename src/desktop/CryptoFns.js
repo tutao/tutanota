@@ -11,6 +11,7 @@ import crypto from "crypto"
 import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
 import {EntropySrc} from "../api/common/TutanotaConstants"
 import {random} from "../api/worker/crypto/Randomizer"
+import type {TypeModel} from "../api/common/EntityTypes"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it

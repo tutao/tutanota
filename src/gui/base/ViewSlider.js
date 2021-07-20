@@ -36,7 +36,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
  * resolution on any type of device.
  */
-export class ViewSlider implements IViewSlider {
+export class ViewSlider {
 	columns: ViewColumn[];
 	_mainColumn: ViewColumn;
 	focusedColumn: ViewColumn;
@@ -382,7 +382,9 @@ export class ViewSlider implements IViewSlider {
 		let directionLock: 0 | 1 | 2 = 0
 
 		const gestureEnd = (event: any) => {
-			if (lastGestureInfo && oldGestureInfo && !this.allColumnsVisible()) {
+			const safeLastGestureInfo = lastGestureInfo
+			const safeOldGestureInfo = oldGestureInfo
+			if (safeLastGestureInfo && safeOldGestureInfo && !this.allColumnsVisible()) {
 				const touch = event.changedTouches[0]
 				const mainCol = this._mainColumn._domColumn
 				const sideCol = this._getSideColDom()
@@ -392,7 +394,7 @@ export class ViewSlider implements IViewSlider {
 
 				const mainColRect = mainCol.getBoundingClientRect()
 
-				const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
+				const velocity = (safeLastGestureInfo.x - safeOldGestureInfo.x) / (safeLastGestureInfo.time - safeOldGestureInfo.time)
 
 				const show = () => {
 					this.focusedColumn = this.columns[0]
@@ -424,7 +426,7 @@ export class ViewSlider implements IViewSlider {
 					}
 				} else {
 					// Gesture for sliding other columns
-					if ((lastGestureInfo.x > window.innerWidth / 3 || velocity > 0.8) && directionLock !== VERTICAL) {
+					if ((safeLastGestureInfo.x > window.innerWidth / 3 || velocity > 0.8) && directionLock !== VERTICAL) {
 						this.focusPreviousColumn()
 					} else {
 						const colRect = this._domSlidingPart.getBoundingClientRect()
@@ -438,7 +440,7 @@ export class ViewSlider implements IViewSlider {
 			}
 
 			// If this is the first touch and not another one
-			if (lastGestureInfo && lastGestureInfo.identifier === event.changedTouches[0].identifier) {
+			if (safeLastGestureInfo && safeLastGestureInfo.identifier === event.changedTouches[0].identifier) {
 				lastGestureInfo = null
 				oldGestureInfo = null
 				initialGestureInfo = null
@@ -479,10 +481,11 @@ export class ViewSlider implements IViewSlider {
 					const newTouchPos = touch.pageX
 					const sideColRect = sideCol.getBoundingClientRect()
 					oldGestureInfo = lastGestureInfo
-					lastGestureInfo = gestureInfoFromTouch(touch)
+					const safeLastInfo = lastGestureInfo = gestureInfoFromTouch(touch)
 					// If we have horizonal lock or we don't have vertical lock but would like to acquire horizontal one, the lock horizontally
-					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x)
-						> 30) {
+					if (directionLock === HORIZONTAL ||
+						directionLock !== VERTICAL && Math.abs(safeLastInfo.x - safeLastInfo.x) > 30
+					) {
 						directionLock = HORIZONTAL
 						// Gesture for side column
 						if (this.getBackgroundColumns()[0].visible || this.focusedColumn.isInForeground) {
@@ -497,7 +500,7 @@ export class ViewSlider implements IViewSlider {
 						// Scroll events are not cancellable and browsees complain a lot
 						if (event.cancelable !== false) event.preventDefault()
 						// If we don't have a vertical lock but we would like to acquire one, get it
-					} else if (directionLock !== VERTICAL && Math.abs(lastGestureInfo.y - initialGestureInfo.y) > 30) {
+					} else if (directionLock !== VERTICAL && Math.abs(safeLastInfo.y - safeLastInfo.y) > 30) {
 						directionLock = VERTICAL
 					}
 					event.stopPropagation()

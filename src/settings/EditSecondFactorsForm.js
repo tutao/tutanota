@@ -36,6 +36,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -108,7 +109,7 @@ export class EditSecondFactorsForm {
 					           click: () => Dialog
 						           .confirm("confirmDeleteSecondFactor_msg")
 						           .then(res => res ? showProgressDialog("pleaseWait_msg", erase(f)) : Promise.resolve())
-						           .catch(NotFoundError, e => console.log("could not delete second factor (already deleted)", e)),
+						           .catch(ofClass(NotFoundError, e => console.log("could not delete second factor (already deleted)", e))),
 					           icon: () => Icons.Cancel
 				           }
 				           const domainInfo = (isU2F && differentDomainAppIds.length > 1)

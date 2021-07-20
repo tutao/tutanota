@@ -10,7 +10,6 @@
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
 import options from "commander"
-import Promise from "bluebird"
 import fs from "fs-extra"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
@@ -178,15 +177,12 @@ async function buildWebapp(version) {
 				babelHelpers: "bundled",
 			}),
 			MINIFY && terser(),
-			// append-libs must be before nodeResolve so that we can resolve bluebird correctly.
-			// nodeResolve is only for core-js.
+			// nodeResolve is only for core-js and oxmsg.
 			{
 				name: "append-libs",
 				resolveId(id) {
 					if (id === "systemjs") {
 						return path.resolve("libs/s.js")
-					} else if (id === "bluebird") {
-						return path.resolve("libs/bluebird.js")
 					}
 				},
 			},
@@ -244,8 +240,7 @@ async function buildWebapp(version) {
 	const chunks = output.output.map(c => c.fileName)
 
 	// we have to use System.import here because bootstrap is not executed until we actually import()
-	// unlike nollup+es format where it just runs on being loaded like you expect,
-	// Configure promise before running so that it's not too slow.
+	// unlike nollup+es format where it just runs on being loaded like you expect
 	await fs.promises.writeFile("build/dist/worker-bootstrap.js", `importScripts("./polyfill.js")
 const importPromise = System.import("./worker.js")
 self.onmessage = function (msg) {

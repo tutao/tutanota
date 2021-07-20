@@ -6,7 +6,8 @@ import {client} from "../../misc/ClientDetector"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
-import {debounceStart, mapLazily, neverNull} from "../../api/common/utils/Utils"
+import type {DeferredObject, MaybeLazy} from "../../api/common/utils/Utils"
+import {debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
@@ -19,11 +20,11 @@ import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
-import {isKeyPressed, keyManager} from "../../misc/KeyManager"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
-import type {ListElement} from "../../api/common/utils/EntityUtils"
 import type {Shortcut} from "../../misc/KeyManager"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
+import {isKeyPressed, keyManager} from "../../misc/KeyManager"
+import type {ListElement} from "../../api/common/utils/EntityUtils"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -43,11 +44,10 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_virtualList: R[]; // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 	_domListContainer: HTMLElement;
 	_domList: HTMLElement;
-	_domInitialized: {resolve: () => void, promise: Promise<void>};
+	_domInitialized: DeferredObject<void>;
 	_width: number;
 	_loadedCompletely: boolean;
 	_loading: Promise<void>;
-
 	currentPosition: number;
 	lastPosition: number;
 	lastUpdateTime: number;
@@ -84,14 +84,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
 		this._loadedEntities = []
-
-		function createPromise() {
-			let wrapper = {}
-			wrapper.promise = Promise.fromCallback(cb => {
-				wrapper.resolve = cb
-			})
-			return wrapper
-		}
 
 		this._scrollListener = () => {
 			this.currentPosition = this._domListContainer.scrollTop
@@ -140,7 +132,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			if (this._domListContainer) {
 				this._domListContainer.removeEventListener('scroll', this._scrollListener)
 			}
-			this._domInitialized = createPromise()
+			this._domInitialized = defer()
 
 			this.ready = false
 			this._virtualList = []
@@ -572,8 +564,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			                    if (newItems.length < count) this.setLoadedCompletely() // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
 		                    })
 		                    .finally(() => {
+			                    this._displayingProgress = false
 			                    if (this.ready) {
-				                    this._displayingProgress = false
 				                    this._domLoadingRow.style.display = 'none'
 				                    this._reposition()
 			                    }
@@ -600,7 +592,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	displaySpinner(delayed: boolean = true, force?: boolean) {
 		this._displayingProgress = true
 		setTimeout(() => {
-			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
+			if ((force || this._displayingProgress) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
 			}
 			// Delay a little bit more than DefaultAnimationTime to execute after the dom is likely initialized
@@ -728,7 +720,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_loadMoreIfNecessary() {
 		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight)
 			- this._visibleElementsHeight * 2
-		if (lastBunchVisible && !this._loading.isPending() && !this._loadedCompletely) {
+		if (lastBunchVisible && !this._displayingProgress && !this._loadedCompletely) {
 			this._loadMore().then(() => {
 				this._domList.style.height = this._calculateListHeight()
 			})
@@ -855,9 +847,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 						return scrollTarget
 					})
 				})
-			}).catch(BadRequestError, e => {
+			}).catch(ofClass(BadRequestError, e => {
 				console.log("invalid element id", listElementId, e)
-			})
+			}))
 		}
 	}
 
@@ -1029,7 +1021,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		window.requestAnimationFrame(() => {
 			// Do not animate the swipe gesture more than necessary
 			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ACTION_DISTANCE) : Math.min(xDelta, ACTION_DISTANCE)
-			if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
+			if (!this.isAnimating && ve && ve.domElement && ve.entity) {
 				ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
 				this.list._domSwipeSpacerLeft.style.transform =
 					`translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`

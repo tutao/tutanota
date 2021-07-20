@@ -1,26 +1,27 @@
-// We cannot use Flow here because it's used during build
+//@flow
+// We cannot use Flow types here because it's used during build
 
-export const Type = {
+export const Type = Object.freeze({
 	Element: "ELEMENT_TYPE",
 	ListElement: "LIST_ELEMENT_TYPE",
 	DataTransfer: "DATA_TRANSFER_TYPE",
 	Aggregated: "AGGREGATED_TYPE"
-}
+})
 
-export const Cardinality = {
+export const Cardinality = Object.freeze({
 	ZeroOrOne: "ZeroOrOne",
 	Any: "Any",
 	One: "One"
-}
+})
 
-export const AssociationType = {
+export const AssociationType = Object.freeze({
 	ElementAssociation: "ELEMENT_ASSOCIATION",
 	ListAssociation: "LIST_ASSOCIATION",
 	ListElementAssociation: "LIST_ELEMENT_ASSOCIATION",
 	Aggregation: "AGGREGATION",
-}
+})
 
-export const ValueType = {
+export const ValueType = Object.freeze({
 	String: "String",
 	Number: "Number",
 	Bytes: "Bytes",
@@ -29,14 +30,14 @@ export const ValueType = {
 	GeneratedId: "GeneratedId",
 	CustomId: "CustomId",
 	CompressedString: "CompressedString",
-}
+})
 
-export const ResourceType = {
+export const ResourceType = Object.freeze({
 	Persistence: "Persistence",
 	Service: "Service"
-}
+})
 
-export const ValueToFlowTypes = {
+export const ValueToFlowTypes = Object.freeze({
 	String: "string",
 	Number: "NumberString",
 	Bytes: "Uint8Array",
@@ -45,4 +46,4 @@ export const ValueToFlowTypes = {
 	GeneratedId: "Id",
 	CustomId: "Id",
 	CompressedString: "string",
-}
+})

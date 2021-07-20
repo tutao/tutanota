@@ -26,6 +26,8 @@ import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
+import type {UpdatableSettingsViewer} from "./SettingsView"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -174,9 +176,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: thisSession ? null : {
 							label: "closeSession_action",
 							click: () => {
-								erase(session).catch(NotFoundError, () => {
+								erase(session).catch(ofClass(NotFoundError, () => {
 									console.log(`session ${JSON.stringify(session._id)} already deleted`)
-								})
+								}))
 							},
 							icon: () => Icons.Cancel
 						}
@@ -197,7 +199,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			let promise = Promise.resolve()
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				promise = this._updateSessions()
@@ -205,6 +207,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return promise.then(() => {
 				return this._secondFactorsForm.entityEventReceived(update)
 			})
-		}).return()
+		}).then(noOp)
 	}
 }

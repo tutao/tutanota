@@ -203,7 +203,7 @@ export function contains(theArray: Array<any>, elementToCheck: any): boolean {
 }
 
 export function addAll(array: Array<any>, elements: Array<any>) {
-	array.push.apply(array, elements)
+	array.push(...elements)
 }
 
 export function removeAll(array: Array<any>, elements: Array<any>) {
@@ -361,6 +361,9 @@ export function lastIndex<T>(array: $ReadOnlyArray<T>): number {
 	}
 }
 
+/**
+ * All of the elements in all of the arguments combined, and deduplicated
+ */
 export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 	return new Set(...iterables.map(iterable => Array.from(iterable)))
 }

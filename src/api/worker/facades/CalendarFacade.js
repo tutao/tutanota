@@ -5,7 +5,7 @@ import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
-import {downcast, neverNull, noOp} from "../../common/utils/Utils"
+import {asyncFindAndMap, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
@@ -43,7 +43,7 @@ import {Request} from "../../common/WorkerProtocol"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacade} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 import {flat, flatMap, groupBy, groupByAndMapUniquely} from "../../common/utils/ArrayUtils"
 import {getFromMap} from "../../common/utils/MapUtils"
 
@@ -79,8 +79,8 @@ export class CalendarFacade {
 				event.hashedUid = hashUid(event.uid)
 				if (oldEvent) {
 					return this._entity.erase(oldEvent)
-					           .catch(NotFoundError, noOp)
-					           .catch(LockedError, noOp)
+					           .catch(ofClass(NotFoundError, noOp))
+					           .catch(ofClass(LockedError, noOp))
 				}
 			})
 			.then(() =>
@@ -137,8 +137,7 @@ export class CalendarFacade {
 
 	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
-		return Promise
-			.map(alarmInfos, (alarmInfo) => {
+		return promiseMap(alarmInfos, (alarmInfo) => {
 				const newAlarm = createUserAlarmInfo()
 				newAlarm._ownerGroup = user.userGroup.group
 				newAlarm.alarmInfo = createAlarmInfo()
@@ -152,7 +151,7 @@ export class CalendarFacade {
 				return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
 					[userAlarmInfoListId, id], alarmNotification
 				]))
-			}, {concurrency: 1}) // sequentially to avoid rate limiting
+			}) // sequentially to avoid rate limiting
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -167,8 +166,7 @@ export class CalendarFacade {
 	                                  pushIdentifierList: Array<PushIdentifier>
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
-		return Promise
-			.map(pushIdentifierList, identifier => {
+		return promiseMap(pushIdentifierList, identifier => {
 				return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
 					if (pushIdentifierSk) {
 						const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
@@ -177,7 +175,7 @@ export class CalendarFacade {
 						return null
 					}
 				})
-			}, {concurrency: 1}) // rate limiting against blocking while resolving session keys (neccessary)
+			}) // rate limiting against blocking while resolving session keys (neccessary)
 			.then(maybeEncSessionKeys => {
 				const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
 				for (let notification of alarmNotifications) {
@@ -291,25 +289,20 @@ export class CalendarFacade {
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
 		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships
 		                                .filter(m => m.groupType === GroupType.Calendar && m.capability == null)
-		return Promise
-			.reduce(calendarMemberships, (acc, membership) => {
-				// short-circuit if we've already found the event
-				if (acc) {
-					return acc
-				}
+		return asyncFindAndMap(calendarMemberships, ( membership) => {
 				return this._entity.load(CalendarGroupRootTypeRef, membership.group)
 				           .then((groupRoot) =>
 					           groupRoot.index && this._entity.load(CalendarEventUidIndexTypeRef, [
 						           groupRoot.index.list,
 						           uint8arrayToCustomId(hashUid(uid))
 					           ]))
-				           .catch(NotFoundError, () => null)
-				           .catch(NotAuthorizedError, () => null)
-			}, null)
+				           .catch(ofClass(NotFoundError, () => null))
+				           .catch(ofClass(NotAuthorizedError, () => null))
+			})
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)
-					           .catch(NotFoundError, () => null)
+					           .catch(ofClass(NotFoundError, () => null))
 				}
 			})
 	}

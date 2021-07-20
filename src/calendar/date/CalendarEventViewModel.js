@@ -62,6 +62,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
 import {parseTime, timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -322,7 +323,7 @@ export class CalendarEventViewModel {
 		           .then(customer => {
 			           this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
 			           this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
-		           }).return()
+		           }).then(noOp)
 	}
 
 	_initAttendees(): Stream<Array<Guest>> {
@@ -628,7 +629,7 @@ export class CalendarEventViewModel {
 			const awaitCancellation = this._eventType === EventType.OWN && event.attendees.length > 1
 				? this._sendCancellation(event)
 				: Promise.resolve()
-			return awaitCancellation.then(() => this._calendarModel.deleteEvent(event)).catch(NotFoundError, noOp)
+			return awaitCancellation.then(() => this._calendarModel.deleteEvent(event)).catch(ofClass(NotFoundError, noOp))
 		} else {
 			return Promise.resolve()
 		}
@@ -661,11 +662,11 @@ export class CalendarEventViewModel {
 				// This is event in a shared calendar. We cannot send anything because it's not our event.
 				const p = this._saveEvent(newEvent, newAlarms)
 				showProgress(p)
-				return p.return(true)
+				return p.then(() => true)
 			}
-		}).catch(PayloadTooLargeError, () => {
+		}).catch(ofClass(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
-		}).finally(() => {
+		})).finally(() => {
 			this._processing = false
 		})
 	}
@@ -678,34 +679,33 @@ export class CalendarEventViewModel {
 		                             .filter(a => !this._ownMailAddresses.includes(a.address.address))
 		                             .map(a => a.address)
 
-		return Promise
-			.each(cancelAddresses, (a) => {
-				const [recipientInfo, recipientInfoPromise] = this._cancelModel.addOrGetRecipient("bcc", {
-					name: a.name,
-					address: a.address,
-					contact: null
-				})
-				//We cannot send a notification to external recipients without a password, so we exclude them
-				if (this._cancelModel.isConfidential()) {
-					return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
-					              .then(() => {
-						              if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
-							              this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
-						              }
-					              })
-				} else {
-					return Promise.resolve()
-				}
+		return promiseMap(cancelAddresses, (a) => {
+			const [recipientInfo, recipientInfoPromise] = this._cancelModel.addOrGetRecipient("bcc", {
+				name: a.name,
+				address: a.address,
+				contact: null
 			})
+			//We cannot send a notification to external recipients without a password, so we exclude them
+			if (this._cancelModel.isConfidential()) {
+				return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
+				              .then(() => {
+					              if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+						              this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+					              }
+				              })
+			} else {
+				return Promise.resolve()
+			}
+		})
 			.then(() => {
 				//We check if there are any attendees left to send the cancellation to
 				return this._cancelModel.allRecipients().length
 					? this._distributor.sendCancellation(updatedEvent, this._cancelModel)
 					: Promise.resolve()
 			})
-			.catch(TooManyRequestsError, () => {
+			.catch(ofClass(TooManyRequestsError, () => {
 				throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
-			})
+			}))
 	}
 
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {
@@ -717,7 +717,7 @@ export class CalendarEventViewModel {
 			return this._calendarModel.createEvent(newEvent, newAlarms, this._zone, groupRoot)
 		} else {
 			return this._calendarModel.updateEvent(newEvent, newAlarms, this._zone, groupRoot, this.existingEvent)
-			           .return()
+			           .then(noOp)
 		}
 	}
 
@@ -799,7 +799,7 @@ export class CalendarEventViewModel {
 		}
 		const p = sendPromise.then(() => this._saveEvent(newEvent, newAlarms))
 		showProgress(p)
-		return p.return(true)
+		return p.then(() => true)
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {

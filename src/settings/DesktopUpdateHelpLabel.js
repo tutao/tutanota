@@ -5,6 +5,7 @@ import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Request} from "../api/common/WorkerProtocol.js"
+import {delay} from "../api/common/utils/PromiseUtils"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>;
@@ -25,17 +26,16 @@ export class DesktopUpdateHelpLabel {
 				} else if (!this._waiting) {
 					// no update available & not currently waiting for check result -> check for update again
 					this._waiting = true
-					Promise.join(
+					Promise.all([
 						nativeApp.invokeNative(new Request('manualUpdate', [])),
 						// make sure there's at least some delay
 						// instant response tends to make users nervous
-						Promise.resolve().delay(500),
-						hasUpdate => {
-							this._waiting = false
-							updateAvailable(hasUpdate)
-							m.redraw()
-						}
-					).catch(() => this._error = true)
+						delay(500)
+					]).then(([hasUpdate]) => {
+						this._waiting = false
+						updateAvailable(hasUpdate)
+						m.redraw()
+					})
 				}
 			})
 		}

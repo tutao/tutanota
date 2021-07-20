@@ -18,7 +18,8 @@ import type {
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
-	SearchRestriction
+	SearchRestriction,
+	SearchResult
 } from "./SearchTypes"
 import type {TypeInfo} from "./IndexUtils"
 import {
@@ -38,17 +39,17 @@ import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
-// $FlowIgnore[untyped-import]
 import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
+import type {TypeModel} from "../../common/EntityTypes"
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
@@ -134,34 +135,46 @@ export class SearchFacade {
 		})
 	}
 
-	_loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
+	async _loadAndReduce(
+		restriction: SearchRestriction,
+		result: SearchResult,
+		suggestionToken: string,
+		minSuggestionCount: number
+	): Promise<void> {
 		if (result.results.length > 0) {
-			return resolveTypeReference(restriction.type).then(model => {
-				// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
-				// for other cases we only check that an attribute contains a word that starts with suggestion word
-				const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
-				return Promise.reduce(result.results, (finalResults, id) => {
-					if (finalResults.length >= minSuggestionCount) {
-						return finalResults
-					} else {
-						return load(restriction.type, id).then(entity => {
-							return this._containsSuggestionToken(entity, model, restriction.attributeIds, suggestionQuery, result.matchWordOrder)
-							           .then(found => {
-								           if (found) {
-									           finalResults.push(id)
-								           }
-								           return finalResults
-							           })
-						}).catch(NotFoundError, e => {
-							return finalResults
-						}).catch(NotAuthorizedError, e => {
-							return finalResults
-						})
+			const model = await resolveTypeReference(restriction.type)
+
+			// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
+			// for other cases we only check that an attribute contains a word that starts with suggestion word
+			const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
+			const finalResults = []
+			for (const id of result.results) {
+				if (finalResults.length >= minSuggestionCount) {
+					break
+				} else {
+					let entity
+					try {
+						entity = await load(restriction.type, id)
+					} catch (e) {
+						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+							continue
+						} else {
+							throw e
+						}
 					}
-				}, []).then((reducedResults) => {
-					result.results = reducedResults
-				})
-			})
+					const found = await this._containsSuggestionToken(
+						entity,
+						model,
+						restriction.attributeIds,
+						suggestionQuery,
+						result.matchWordOrder
+					)
+					if (found) {
+						finalResults.push(id)
+					}
+				}
+			}
+			result.results = finalResults
 		} else {
 			return Promise.resolve()
 		}
@@ -211,7 +224,7 @@ export class SearchFacade {
 		if (searchResult.moreResults.length === 0
 			&& getStartOfDay(getDayShifted(new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime()
 			> getStartOfDay(getDayShifted(new Date(), 1))
-			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
+			&& !this._mailIndexer.isIndexing) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(),
 				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime())
 		}
@@ -273,8 +286,7 @@ export class SearchFacade {
 	 */
 	_addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<*> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		// Use Promise.map as Promise.each leads to "maximum stack size exceeded" in case of large address books (probably evaluated on the same event loop)
-		return Promise.map(suggestions, suggestion => {
+		return promiseMap(suggestions, suggestion => {
 			if (searchResult.results.length < minSuggestionCount) {
 				const suggestionResult: SearchResult = {
 					query: suggestion,
@@ -288,7 +300,7 @@ export class SearchFacade {
 				}
 				return this._startOrContinueSearch(suggestionResult)
 			}
-		}, {concurrency: 1})
+		})
 	}
 
 
@@ -562,7 +574,7 @@ export class SearchFacade {
 				// BUT! we have to look at all of them! Otherwise we may return them in the wrong order. We cannot return elements 10, 15, 20 if we didn't
 				// return element 5 first, no one will ask for it later.
 				// The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
-				Promise.map(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
+				promiseMap(indexEntries.slice(0, (maxResults || indexEntries.length + 1)), (entry, index) => {
 					return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId))
 					                  .then((elementData: ?ElementDataDbRow) => {
 						                  // mark result index id as processed to not query result in next load more operation

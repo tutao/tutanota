@@ -19,6 +19,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -365,22 +366,22 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 		date: Const.CURRENT_DATE
 	})
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
-		.return(false)
-		.catch(PreconditionFailedError, error => {
+		.then(() => false)
+		.catch(ofClass(PreconditionFailedError, error => {
 			// error handling for cancelling a feature.
 			switch (error.data) {
 				case BookingFailureReason.BALANCE_INSUFFICIENT:
-					return Dialog.error("insufficientBalanceError_msg").return(true)
+					return Dialog.error("insufficientBalanceError_msg").then(() => true)
 				case BookingFailureReason.TOO_MANY_DOMAINS:
-					return Dialog.error("tooManyCustomDomains_msg").return(true)
+					return Dialog.error("tooManyCustomDomains_msg").then(() => true)
 				case BookingFailureReason.BUSINESS_USE:
-					return Dialog.error("featureRequiredForBusinessUse_msg").return(true)
+					return Dialog.error("featureRequiredForBusinessUse_msg").then(() => true)
 				case BookingFailureReason.HAS_TEMPLATE_GROUP:
-					return Dialog.error("deleteTemplateGroups_msg").return(true)
+					return Dialog.error("deleteTemplateGroups_msg").then(() => true)
 				default:
-					return Dialog.error(getBookingItemErrorMsg(featureType)).return(true)
+					return Dialog.error(getBookingItemErrorMsg(featureType)).then(() => true)
 			}
-		})
+		}))
 }
 
 export function buyAliases(amount: number): Promise<boolean> {

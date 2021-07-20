@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
@@ -35,6 +35,7 @@ import {ButtonN} from "../gui/base/ButtonN"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -63,7 +64,7 @@ export class GroupViewer {
 			const group = await this._group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups
 			const groupMembers = await this._entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-			return Promise.mapSeries(groupMembers, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
+			return promiseMap(groupMembers, (member) => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 		this._updateMembers()
 
@@ -73,7 +74,7 @@ export class GroupViewer {
 					// load only up to 200 members to avoid too long loading, like for account groups
 					return this._entityClient.loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
 					           .then((administratedGroups) => {
-						           return Promise.mapSeries(administratedGroups, (administratedGroup) => {
+						           return promiseMap(administratedGroups, (administratedGroup) => {
 							           return this._entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo)
 						           })
 					           })
@@ -169,7 +170,7 @@ export class GroupViewer {
 									           return this._group.getAsync()
 									                      .then(group =>
 										                      worker.deactivateGroup(group, !deactivate)
-										                            .catch(PreconditionFailedError, e => {
+										                            .catch(ofClass(PreconditionFailedError, e => {
 												                            if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 													                            Dialog.error("localAdminGroupAssignedError_msg")
 												                            } else if (!deactivate) {
@@ -178,7 +179,7 @@ export class GroupViewer {
 													                            Dialog.error("stillReferencedFromContactForm_msg")
 												                            }
 											                            }
-										                            ))
+										                            )))
 								           }
 							           })
 					           )
@@ -322,9 +323,9 @@ export class GroupViewer {
 	async _updateUsedStorage(): Promise<void> {
 		if (this._isMailGroup()) {
 			const usedStorage = await worker.readUsedGroupStorage(this.groupInfo.group)
-			                                .catch(BadRequestError, e => {
+			                                .catch(ofClass(BadRequestError, e => {
 				                                // may happen if the user gets the admin flag removed
-			                                })
+			                                }))
 			if (usedStorage) this._usedStorageInBytes = usedStorage
 		} else {
 			this._usedStorageInBytes = 0
@@ -334,7 +335,7 @@ export class GroupViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
 				return this._entityClient.load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
@@ -357,7 +358,7 @@ export class GroupViewer {
 				&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(instanceListId)) {
 				return this._updateAdministratedGroups()
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 	_createMembersTableAttrs(): TableAttrs {
@@ -375,9 +376,9 @@ export class GroupViewer {
 					click: () => {
 						showProgressDialog("pleaseWait_msg", this._entityClient.load(GroupTypeRef, userGroupInfo.group)
 						                                         .then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
-							.catch(NotAuthorizedError, e => {
+							.catch(ofClass(NotAuthorizedError, e => {
 								Dialog.error("removeUserFromGroupNotAdministratedError_msg")
-							})
+							}))
 					},
 					icon: () => Icons.Cancel,
 				}

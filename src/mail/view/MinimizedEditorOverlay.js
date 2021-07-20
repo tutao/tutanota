@@ -17,6 +17,7 @@ import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {noOp} from "../../api/common/utils/Utils"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 const COUNTER_POS_OFFSET = px(-8)
 
@@ -35,7 +36,7 @@ export class MinimizedEditorOverlay implements MComponent<MinimizedEditorOverlay
 		const {minimizedEditor, viewModel, eventController} = vnode.attrs
 		this._eventController = eventController
 		this._listener = (updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<*> => {
-			return Promise.each(updates, update => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 					let draft = minimizedEditor.sendMailModel.getDraft()
 					if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {

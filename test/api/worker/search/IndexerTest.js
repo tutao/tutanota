@@ -261,32 +261,24 @@ o.spec("Indexer test", () => {
 		})
 	})
 
-	o("_updateGroups disable MailIndexing in case of a deleted mail group", function (done) {
+	o("_updateGroups disable MailIndexing in case of a deleted mail group", async function () {
 		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
 			mock.disableMailIndexing = o.spy(() => Promise.resolve())
 		})
 
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Mail}], newGroups: []}
-		indexer._updateGroups(user, groupDiff).then(() => {
-			o(true).equals(false)
-		}).catch(MembershipRemovedError, (e) => {
-			done()
-		})
+		const e = await assertThrows(MembershipRemovedError, () => indexer._updateGroups(user, groupDiff))
 	})
 
-	o("_updateGroups disable MailIndexing in case of a deleted contact group", function (done) {
+	o("_updateGroups disable MailIndexing in case of a deleted contact group", async function () {
 		let indexer = mock(new Indexer(restClientMock, (null: any), browserDataStub, restClientMock), (mock) => {
 			mock.disableMailIndexing = o.spy(() => Promise.resolve())
 		})
 
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Contact}], newGroups: []}
-		indexer._updateGroups(user, groupDiff).then(() => {
-			o(true).equals(false)
-		}).catch(MembershipRemovedError, (e) => {
-			done()
-		})
+		const e = await assertThrows(MembershipRemovedError, () => indexer._updateGroups(user, groupDiff))
 	})
 
 	o("_updateGroups don't disable MailIndexing in case no mail or contact group has been deleted", function (done) {

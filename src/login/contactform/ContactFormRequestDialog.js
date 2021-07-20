@@ -36,6 +36,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {InputField} from "../../api/entities/tutanota/InputField"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -362,20 +363,20 @@ export class ContactFormRequestDialog {
 				return showProgressDialog("sending_msg", sendRequest)
 					.then(result => {return showConfirmDialog(result.userEmailAddress)})
 					.then(() => this._close())
-					.catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
+					.catch(ofClass(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg")))
 			}
 		})
 	}
 }
 
 function showConfirmDialog(userEmailAddress: string): Promise<void> {
-	return Promise.fromCallback(cb => {
+	return new Promise(resolve => {
 		// This old button has type login. New buttons with this type have rounded corner but this one should probably not have because
 		// it fills the dialog in the bottom (unless we want dialogs to have rounded corners in the future.
 		// Anyway, if you decide to replace it, take care of it.
 		const confirm = new Button("contactFormSubmitConfirm_action", () => {
 			dialog.close()
-			cb()
+			resolve()
 		}).setType(ButtonType.Login)
 		const requestId = m(TextFieldN, {
 			label: "mailAddress_label",

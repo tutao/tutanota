@@ -42,6 +42,7 @@ import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOffice
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import type {Theme} from "../gui/theme"
 import {themeController} from "../gui/theme"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -60,6 +61,7 @@ export interface ILoginViewController {
 export class LoginViewController implements ILoginViewController {
 	view: LoginView;
 	_loginPromise: Promise<void>;
+	_isLoggingIn: boolean
 
 	constructor(view: LoginView) {
 		this.view = view;
@@ -67,19 +69,22 @@ export class LoginViewController implements ILoginViewController {
 	}
 
 	autologin(credentials: Credentials): void {
-		if (this._loginPromise.isPending()) return
+		if (this._isLoggingIn) return
 		this.view.invalidCredentials = false
 		this.view.accessExpired = false
+		this._isLoggingIn = true
 		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(logins.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
 			})
-		}))
+		})).finally(() => {
+			this._isLoggingIn = false
+		})
 	}
 
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
-		return worker.initialized.then(() => Promise.each(oldCredentials, c => {
+		return worker.initialized.then(() => promiseMap(oldCredentials, c => {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
 			             .then(userPw => {
 				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users
@@ -94,11 +99,11 @@ export class LoginViewController implements ILoginViewController {
 				             console.log(ignored)
 				             // prevent reloading the page by ErrorHandler
 			             })
-		})).return()
+		})).then(noOp)
 	}
 
 	formLogin(): void {
-		if (this._loginPromise.isPending()) return
+		if (this._isLoggingIn) return
 		let mailAddress = this.view.mailAddress()
 		let pw = this.view.password()
 		if (mailAddress === "" || pw === "") {
@@ -108,6 +113,7 @@ export class LoginViewController implements ILoginViewController {
 			this.view.invalidCredentials = false
 			this.view.accessExpired = false
 			let persistentSession = this.view.savePassword()
+			this._isLoggingIn = true
 			this._loginPromise = logins.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 			                           .then(newCredentials => {
 				                           let storedCredentials = deviceConfig.get(mailAddress)
@@ -121,9 +127,13 @@ export class LoginViewController implements ILoginViewController {
 							                                        deviceConfig.delete(mailAddress)
 						                                        }
 					                                        })
-					                                        .catch(NotFoundError, e => console.log("session already deleted"))
+					                                        .catch(ofClass(NotFoundError, e => console.log("session already deleted")))
 				                           }
-			                           }).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+			                           })
+			                           .finally(() => {
+				                           secondFactorHandler.closeWaitingForSecondFactorDialog()
+				                           this._isLoggingIn = false
+			                           })
 			this._handleSession(showProgressDialog("login_msg", this._loginPromise), () => {
 			})
 		}
@@ -286,7 +296,7 @@ export class LoginViewController implements ILoginViewController {
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
-								update(properties).catch(LockedError, noOp)
+								update(properties).catch(ofClass(LockedError, noOp))
 							})
 						}
 					})

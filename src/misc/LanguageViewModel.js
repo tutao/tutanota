@@ -2,6 +2,7 @@
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
 import type {TranslationKeyType} from "./TranslationKey"
+import {getWhitelabelCustomizations} from "./WhitelabelCustomizations"
 
 export type TranslationKey = TranslationKeyType
 
@@ -485,9 +486,9 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?Language
 		}
 	}
 	if (language) {
-		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations
-			&& whitelabelCustomizations.germanLanguageCode) {
-			return downcast(whitelabelCustomizations.germanLanguageCode)
+		const customizations = getWhitelabelCustomizations(window)
+		if (language.code === 'de' && customizations && customizations.germanLanguageCode) {
+			return downcast(customizations.germanLanguageCode)
 		} else {
 			return language.code
 		}

@@ -28,7 +28,7 @@ export class DesktopConfigMigrator {
 		this._electron = electron
 	}
 
-	async applyMigrations(migrationFunction: MigrationKind, oldConfig: Config): Config {
+	async applyMigrations(migrationFunction: MigrationKind, oldConfig: Config): Promise<Config> {
 		// noinspection FallThroughInSwitchStatementJS
 		switch (oldConfig.desktopConfigVersion) {
 			case undefined:

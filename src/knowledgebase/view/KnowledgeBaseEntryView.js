@@ -12,6 +12,7 @@ import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TemplateGrou
 import {locator} from "../../api/main/MainLocator"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry,
@@ -62,7 +63,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 			type: ButtonType.Action,
 			click: () => {
 				getConfirmation("deleteEntryConfirm_msg")
-					.confirmed(() => locator.entityClient.erase(entry).catch(NotFoundError, noOp))
+					.confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
 			}
 		}
 

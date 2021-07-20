@@ -28,6 +28,8 @@ import {lang} from "../../misc/LanguageViewModel"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {resolveRecipientInfo} from "../../mail/model/MailUtils"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {noOp} from "../../api/common/utils/Utils"
 
 export class GroupSharingModel {
 	+info: GroupInfo
@@ -64,7 +66,7 @@ export class GroupSharingModel {
 
 		this.onEntityUpdate = stream()
 
-		this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.addEntityListener((events, id) => this.entityEventsReceived(events, id))
 	}
 
 	static newAsync(info: GroupInfo, eventController: EventController, entityClient: EntityClient, logins: LoginController, worker: WorkerClient): Promise<GroupSharingModel> {
@@ -75,7 +77,7 @@ export class GroupSharingModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
+		this.eventController.removeEntityListener((events, id) => this.entityEventsReceived(events, id))
 	}
 
 	/**
@@ -113,7 +115,7 @@ export class GroupSharingModel {
 
 	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 		const externalRecipients = []
-		return Promise.each(recipients, (recipient) => {
+		return promiseMap(recipients, (recipient) => {
 			return resolveRecipientInfo(this.worker, recipient)
 				.then(r => {
 					if (r.type !== RecipientInfoType.INTERNAL) {
@@ -147,14 +149,14 @@ export class GroupSharingModel {
 				           }
 				           return groupInvitationReturn.invitedMailAddresses
 			           })
-			           .catch(RecipientsNotFoundError, e => {
+			           .catch(ofClass(RecipientsNotFoundError, e => {
 				           throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
-			           })
+			           }))
 		})
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return Promise.each(updates, update => {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId:Id): Promise<void> {
+		return promiseMap(updates, update => {
 			if (!isSameId(eventOwnerGroupId, getEtId(this.group))) {
 				// ignore events of different group here
 				return
@@ -167,7 +169,7 @@ export class GroupSharingModel {
 							this.sentGroupInvitations.push(instance)
 							this.onEntityUpdate()
 						}
-					}).catch(NotFoundError, e => console.log("sent invitation not found", update))
+					}).catch(ofClass(NotFoundError, e => console.log("sent invitation not found", update)))
 				}
 				if (update.operation === OperationType.DELETE) {
 					findAndRemove(this.sentGroupInvitations, (sentGroupInvitation) => isSameId(getElementId(sentGroupInvitation), update.instanceId))
@@ -185,14 +187,14 @@ export class GroupSharingModel {
 								this.onEntityUpdate()
 							})
 						}
-					}).catch(NotFoundError, e => console.log("group member not found", update))
+					}).catch(ofClass(NotFoundError, e => console.log("group member not found", update)))
 				}
 				if (update.operation === OperationType.DELETE) {
 					findAndRemove(this.memberInfos, (memberInfo) => isSameId(getElementId(memberInfo.member), update.instanceId))
 					this.onEntityUpdate()
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 
 

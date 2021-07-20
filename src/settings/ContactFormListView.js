@@ -6,13 +6,13 @@ import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import type {SettingsView} from "./SettingsView"
+import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {getWhitelabelDomain, neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -29,6 +29,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -74,9 +75,9 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(ContactFormTypeRef, [listId, elementId]).catch(NotFoundError, (e) => {
+					return load(ContactFormTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
-					})
+					}))
 				})
 			},
 			sortCompare: (a: ContactForm, b: ContactForm) => a.path.localeCompare(b.path),
@@ -145,9 +146,9 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			return this.processUpdate(update)
-		}).return()
+		}).then(noOp)
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {
@@ -194,12 +195,12 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			&& operation === OperationType.UPDATE) {
 			// a domain may have been added
 			this._customerInfo.reset()
-			return this._customerInfo.getAsync().return()
+			return this._customerInfo.getAsync().then(noOp)
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update) && this._customerInfo.isLoaded()
 			&& operation === OperationType.UPDATE) {
 			// the customer info may have been moved in case of premium upgrade/downgrade
 			this._customerInfo.reset()
-			return this._customerInfo.getAsync().return()
+			return this._customerInfo.getAsync().then(noOp)
 		} else {
 			return Promise.resolve()
 		}

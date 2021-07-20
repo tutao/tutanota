@@ -169,7 +169,8 @@ export class BubbleTextField<T> {
 					oncreate: vnode => {
 						this._domSuggestions = vnode.dom
 						this._selectedSuggestionChangedListener = this.selectedSuggestion.map(
-							makeListSelectionChangedScrollHandler(this._domSuggestions, this.bubbleHandler.suggestionHeight, this._getSelectedSuggestionIndex.bind(this))
+							makeListSelectionChangedScrollHandler(this._domSuggestions, this.bubbleHandler.suggestionHeight,
+								() => this._getSelectedSuggestionIndex())
 						)
 					},
 					onbeforeremove: () => {

@@ -1,9 +1,9 @@
 // @flow
+import type {EasingFunction} from "./Easing"
 import {ease} from "./Easing"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
 import {downcast} from "../../api/common/utils/Utils"
 import {hexToRgb} from "../base/Color"
-import type {EasingFunction} from "./Easing"
 
 assertMainOrNodeBoot()
 
@@ -97,8 +97,9 @@ class Animations {
 				window.requestAnimationFrame(this._animate)
 			}
 		})
-		downcast(promise).animations = animations
-		return promise
+		const animationPromise = downcast<AnimationPromise>(promise)
+		animationPromise.animations = animations
+		return animationPromise
 	}
 
 	cancel(animation: Animation) {

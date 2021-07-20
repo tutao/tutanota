@@ -11,6 +11,7 @@ import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -19,7 +20,7 @@ export interface RecipientInfoBubbleFactory {
 	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo>,
 
 	// If the bubbleFactory also has to deal with state, then it probably wants to know when a bubble is deleted from the text field
-	bubbleDeleted?: Bubble<RecipientInfo> => void
+	+bubbleDeleted?: (Bubble<RecipientInfo>) => void
 }
 
 export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
@@ -44,9 +45,14 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 
 		// ensure match word order for email addresses mainly
 		let contacts: Array<Contact> = await this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
-		                                         .catch(DbError, () => {
-			                                         return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
-		                                         })
+		                                         .catch(ofClass(DbError, async () => {
+			                                         const listId = await this._contactModel.contactListId()
+			                                         if (listId) {
+				                                         return loadAll(ContactTypeRef, listId)
+			                                         } else {
+				                                         return []
+			                                         }
+		                                         }))
 
 		const suggestions = contacts
 			.map(contact => {

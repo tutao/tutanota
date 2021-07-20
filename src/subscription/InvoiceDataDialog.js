@@ -7,6 +7,8 @@ import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {InvoiceData} from "../api/common/TutanotaConstants"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export function show(businessUse: boolean, invoiceData: InvoiceData, accountingInfo: AccountingInfo, headingId: ?TranslationKey, infoMessageId: ?TranslationKey): Dialog {
 
@@ -21,9 +23,9 @@ export function show(businessUse: boolean, invoiceData: InvoiceData, accountingI
 				if (success) {
 					dialog.close()
 				}
-			}).catch(BadRequestError, e => {
+			}).catch(ofClass(BadRequestError, e => {
 				Dialog.error("paymentMethodNotAvailable_msg")
-			})
+			}))
 		}
 	}
 

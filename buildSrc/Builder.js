@@ -35,12 +35,7 @@ async function createHtml(env) {
 
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
-Promise.config({
-    longStackTraces: false,
-    warnings: false
-})
 import('./app.js')`
-
 	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${htmlFileName}`, html)
@@ -69,8 +64,8 @@ async function prepareAssets(stage, host, version) {
 		restUrl = host
 	}
 
-	await fs.copyFile("libs/bluebird.js", "build/polyfill.js")
-
+	// write empty file
+	await fs.writeFile("build/polyfill.js", "")
 
 	return Promise.all([
 		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser")),
@@ -122,7 +117,7 @@ export async function build({desktop, stage, host}, {devServerPort, watchFolders
 			format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js"
 		})
 
-		// Here we include polyfill first, then configure promise (so that rest is not slow) and then import worker
+		// Here we include polyfill first and then import worker
 		// as output is esm simply importing file is enough to execute it
 		await fs.promises.writeFile("build/worker-bootstrap.js", `importScripts("./polyfill.js")
 importScripts("./worker.js")

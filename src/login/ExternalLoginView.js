@@ -8,8 +8,6 @@ import {
 	AccessDeactivatedError,
 	AccessExpiredError,
 	BadRequestError,
-	ConnectionError,
-	InternalServerError,
 	NotAuthenticatedError,
 	NotFoundError,
 	TooManyRequestsError
@@ -29,14 +27,12 @@ import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
-import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/common/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {header} from "../gui/base/Header"
-import type {PasswordChannelPhoneNumber} from "../api/entities/tutanota/PasswordChannelPhoneNumber"
-import type {PhoneNumber} from "../api/entities/sys/PhoneNumber"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 import {getLoginErrorMessage} from "../misc/LoginUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -51,23 +47,17 @@ export class ExternalLoginView {
 	view: Function;
 	oncreate: Function;
 	onremove: Function;
-	_loading: ?Promise<void>;
-	_phoneNumbers: PasswordChannelPhoneNumber[];
 	_symKeyForPasswordTransmission: ?Aes128Key;
-	_sendSmsAllowed: boolean;
 	_autologinInProgress: boolean;
 
 	constructor() {
-		this._loading = null
 		this._autologinInProgress = false
 		this._errorMessageId = null
 		this._helpText = 'emptyString_msg'
 
 		this._password = stream("")
 		this._savePassword = stream(false)
-		this._phoneNumbers = []
 		this._symKeyForPasswordTransmission = null
-		this._sendSmsAllowed = false
 
 
 		this._setupShortcuts()
@@ -81,20 +71,12 @@ export class ExternalLoginView {
 	}
 
 	_getView(): Children {
-		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
+		if (this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {
 			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.get(this._errorMessageId)))
 		} else {
 			return [
-				this._phoneNumbers.length > 0 ? [
-					m("small", lang.get(this._phoneNumbers.length == 1 ? "clickNumber_msg" : "chooseNumber_msg")),
-					m(".mt", this._phoneNumbers.map((n: PhoneNumber) => m(ButtonN, {
-						label: () => n.number,
-						type: ButtonType.Login,
-						click: () => this._sendSms(n._id)
-					})))
-				] : null,
 				m(TextFieldN, {
 					type: TextFieldType.Password,
 					label: "password_label",
@@ -136,18 +118,14 @@ export class ExternalLoginView {
 			this._userId = id.substring(0, userIdLength)
 			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
 
-			this._loading = this._loadAndSetPhoneNumbers()
-			this._loading.then(() => {
-				let credentials = deviceConfig.get(this._userId)
-				if (credentials && args.noAutoLogin !== true) {
-					this._autologin(credentials)
-				} else {
-					m.redraw()
-				}
-			})
+			let credentials = deviceConfig.get(this._userId)
+			if (credentials && args.noAutoLogin !== true) {
+				this._autologin(credentials)
+			} else {
+				m.redraw()
+			}
 		} catch (e) {
 			this._errorMessageId = "invalidLink_msg"
-			this._loading = Promise.reject(e)
 			m.redraw()
 		}
 	}
@@ -185,7 +163,7 @@ export class ExternalLoginView {
 							                                              deviceConfig.delete(this._userId)
 						                                              }
 					                                              })
-					                                              .catch(NotFoundError, e => console.log("session already deleted"))
+					                                              .catch(ofClass(NotFoundError, e => console.log("session already deleted")))
 				                                 }
 			                                 })
 			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
@@ -238,61 +216,4 @@ export class ExternalLoginView {
 		})
 		logins.loginComplete()
 	}
-
-	_loadAndSetPhoneNumbers(): Promise<void> {
-		return worker.loadExternalPasswordChannels(this._userId, this._salt)
-		             .then(passwordChannels => {
-			             this._phoneNumbers = passwordChannels.phoneNumberChannels
-			             this._sendSmsAllowed = true
-		             })
-		             .catch(AccessExpiredError, e => {
-			             this._errorMessageId = 'expiredLink_msg'
-		             })
-		             .catch(NotAuthenticatedError, e => {
-			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(BadRequestError, e => {
-			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(ConnectionError, e => {
-			             if (client.isIE()) {
-				             // IE says it's error code 0 fore some reason
-				             this._helpText = 'loginFailed_msg'
-				             m.redraw()
-			             } else {
-				             this._helpText = 'emptyString_msg'
-				             throw e;
-			             }
-		             }).finally(() => m.redraw())
-	}
-
-	_sendSms(phoneNumberId: Id): Promise<void> {
-		if (!this._sendSmsAllowed) {
-			return Dialog.error(this._helpText)
-		}
-		this._helpText = "sendingSms_msg"
-		this._sendSmsAllowed = false
-		m.redraw()
-		return worker.sendExternalPasswordSms(this._userId, this._salt, phoneNumberId, lang.code, this._symKeyForPasswordTransmission)
-		             .then(result => {
-			             this._symKeyForPasswordTransmission = result.symKeyForPasswordTransmission
-			             this._helpText = "smsSent_msg"
-			             setTimeout(() => {
-				             this._sendSmsAllowed = true
-				             this._helpText = "smsResent_msg"
-				             m.redraw()
-			             }, 60000)
-		             })
-		             .catch(TooManyRequestsError, e => {
-			             this._helpText = "smsSentOften_msg"
-		             })
-		             .catch(AccessExpiredError, e => {
-			             this._errorMessageId = "expiredLink_msg"
-		             })
-		             .catch(InternalServerError, e => {
-			             this._helpText = "smsError_msg"
-		             })
-		             .finally(() => m.redraw())
-	}
-
 }

@@ -1,13 +1,6 @@
-import bluebird from "bluebird"
 import env from "@tutanota/env"
 
 globalThis.env = env
-globalThis.Promise = bluebird.Promise
-Promise.config({
-	longStackTraces: true,
-	warnings: false,
-})
-
 globalThis.isBrowser = typeof window !== "undefined"
 globalThis.mocks = {}
 

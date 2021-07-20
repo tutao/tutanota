@@ -3,7 +3,7 @@ import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "
 import {NotFoundError} from "../../common/error/RestError"
 import type {WhitelabelChild} from "../../entities/sys/WhitelabelChild"
 import {_TypeModel as WhitelabelChildModel, WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
@@ -14,6 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
+import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore;
@@ -55,10 +56,10 @@ export class WhitelabelChildIndexer {
 				           return {whitelabelChild, keyToIndexEntries}
 			           })
 		           })
-		           .catch(NotFoundError, () => {
+		           .catch(ofClass(NotFoundError, () => {
 			           console.log("tried to index non existing whitelabel child")
 			           return null
-		           })
+		           }))
 	}
 
 	/**
@@ -88,7 +89,7 @@ export class WhitelabelChildIndexer {
 										}
 									], indexUpdate),
 									this.suggestionFacade.store()
-								]).return()
+								]).then(noOp)
 							})
 						}
 					})
@@ -100,7 +101,7 @@ export class WhitelabelChildIndexer {
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-		return Promise.each(events, (event, index) => {
+		return promiseMap(events, (event, index) => {
 			if (userIsGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {
@@ -123,6 +124,6 @@ export class WhitelabelChildIndexer {
 					return this._core._processDeleted(event, indexUpdate)
 				}
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

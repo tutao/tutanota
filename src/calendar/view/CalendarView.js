@@ -27,7 +27,7 @@ import {
 	TimeFormat
 } from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
-import {downcast, freezeMap, memoized, neverNull} from "../../api/common/utils/Utils"
+import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
 	addDaysForEvent,
@@ -88,6 +88,7 @@ import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolder
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -122,7 +123,7 @@ export class CalendarView implements CurrentView {
 	viewSlider: ViewSlider
 	// Should not be changed directly but only through the URL
 	selectedDate: Stream<Date>
-	_calendarInfos: Promise<Map<Id, CalendarInfo>>
+	_calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>
 	_eventsForDays: EventsForDays
 	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
@@ -292,8 +293,11 @@ export class CalendarView implements CurrentView {
 		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = locator.progressTracker.registerMonitor(totalWork)
 		let progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
-		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).tap(m.redraw)
-
+		this._calendarInfos = new LazyLoaded(() => locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).then((it) => {
+				m.redraw()
+				return it
+			})
+		).load()
 		this.selectedDate.map((d) => {
 			const thisMonthStart = getMonth(d, getTimeZone()).start
 
@@ -493,8 +497,8 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderCalendars(shared: boolean): Children {
-		return this._calendarInfos.isFulfilled() ?
-			Array.from(this._calendarInfos.value().values())
+		return this._calendarInfos.isLoaded() ?
+			Array.from(this._calendarInfos.getLoaded().values())
 			     .filter(calendarInfo => calendarInfo.shared === shared)
 			     .map((calendarInfo) => {
 				     const {userSettingsGroupRoot} = logins.getUserController()
@@ -603,7 +607,7 @@ export class CalendarView implements CurrentView {
 						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
 							      groupRootId: calendarInfo.groupRoot._id
 						      }))
-							      .catch(NotFoundError, () => console.log("Calendar to be deleted was not found."))
+							      .catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 					      }
 				      }
 			      )
@@ -645,7 +649,7 @@ export class CalendarView implements CurrentView {
 		}
 		Promise.all([
 			locator.mailModel.getUserMailboxDetails(),
-			this._calendarInfos,
+			this._calendarInfos.getAsync(),
 			this._htmlSanitizer
 		]).then(([mailboxDetails, calendarInfos, htmlSanitizer]) => {
 				return createCalendarEventViewModel(getEventStart(calendarEvent, getTimeZone()), calendarInfos, mailboxDetails,
@@ -666,7 +670,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_editEvent(event: CalendarEvent) {
-		Promise.all([this._calendarInfos, locator.mailModel.getUserMailboxDetails()])
+		Promise.all([this._calendarInfos.getAsync(), locator.mailModel.getUserMailboxDetails()])
 		       .then(([calendarInfos, mailboxDetails]) => {
 			       let p = Promise.resolve(event)
 			       if (event.repeatRule) {
@@ -674,22 +678,25 @@ export class CalendarView implements CurrentView {
 				       p = load(CalendarEventTypeRef, event._id)
 			       }
 			       p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e))
-			        .catch(NotFoundError, () => {
+			        .catch(ofClass(NotFoundError, () => {
 				        console.log("calendar event not found when clicking on the event")
-			        })
+			        }))
 		       })
 	}
 
-	_loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
+	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
 		const month = getMonth(dayInMonth, getTimeZone())
 		if (!this._loadedMonths.has(month.start.getTime())) {
 			this._loadedMonths.add(month.start.getTime())
-			return this._loadEvents(month).catch((e) => {
+			try {
+				await this._loadEvents(month)
+			} catch (e) {
 				this._loadedMonths.delete(month.start.getTime())
 				throw e
-			}).tap(() => m.redraw())
+			} finally {
+				m.redraw()
+			}
 		}
-		return Promise.resolve()
 	}
 
 
@@ -722,12 +729,15 @@ export class CalendarView implements CurrentView {
 		}
 
 		// Disallow creation of events when there is no existing calendar
-		const calendarInfos = this._calendarInfos.isFulfilled() && this._calendarInfos.value().size > 0
-			? this._calendarInfos
+		const calendarInfos = this._calendarInfos.isLoaded() && this._calendarInfos.getLoaded().size > 0
+			? this._calendarInfos.getLoaded()
 			: showProgressDialog("pleaseWait_msg",
 				worker.addCalendar("")
 				      .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
-				      .tap(infos => {this._calendarInfos = Promise.resolve(infos)})
+				      .then((infos) => {
+					      this._calendarInfos = new LazyLoaded(() => Promise.resolve(infos)).load()
+					      return infos
+				      })
 			)
 		Promise.all([
 			calendarInfos,
@@ -783,7 +793,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_loadEvents(month: CalendarMonthTimeRange): Promise<*> {
-		return this._calendarInfos.then((calendarInfos) => {
+		return this._calendarInfos.getAsync().then((calendarInfos) => {
 			// Because of the timezones and all day events, we might not load an event which we need to display.
 			// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
 			// events anyway.
@@ -797,7 +807,7 @@ export class CalendarView implements CurrentView {
 			// take care of this now.
 			const aggregateShortEvents = []
 			const aggregateLongEvents = []
-			return Promise.each(calendarInfos.values(), (calendarInfo) => {
+			return promiseMap(calendarInfos.values(), (calendarInfo) => {
 				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
@@ -832,8 +842,8 @@ export class CalendarView implements CurrentView {
 	}
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return this._calendarInfos.then((calendarEvents) => {
-			return Promise.each(updates, update => {
+		return this._calendarInfos.getAsync().then((calendarEvents) => {
+			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 					m.redraw()
 				}
@@ -845,9 +855,9 @@ export class CalendarView implements CurrentView {
 								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
 								m.redraw()
 							})
-							.catch(NotFoundError, (e) => {
+							.catch(ofClass(NotFoundError, (e) => {
 								console.log("Not found event in entityEventsReceived of view", e)
-							})
+							}))
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 						m.redraw()
@@ -856,7 +866,7 @@ export class CalendarView implements CurrentView {
 					&& isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)) {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
-						return this._calendarInfos.then(calendarInfos => {
+						return this._calendarInfos.getAsync().then(calendarInfos => {
 							// Remove calendars we no longer have membership in
 							calendarInfos.forEach((ci, group) => {
 								if (calendarMemberships.every((mb) => group !== mb.group)) {
@@ -866,8 +876,10 @@ export class CalendarView implements CurrentView {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
-								this._calendarInfos = locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
-								return this._calendarInfos.then(() => {
+								this._calendarInfos = new LazyLoaded(() =>
+									locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
+								).load()
+								return this._calendarInfos.getAsync().then(() => {
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)
 									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
@@ -877,12 +889,12 @@ export class CalendarView implements CurrentView {
 									return this._loadMonthIfNeeded(selectedDate)
 									           .then(() => this._loadMonthIfNeeded(nextMonthDate))
 									           .then(() => this._loadMonthIfNeeded(previousMonthDate))
-								}).tap(() => m.redraw())
+								}).then(() => m.redraw())
 							}
 						})
 					}
 				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
-					this._calendarInfos.then(calendarInfos => {
+					this._calendarInfos.getAsync().then(calendarInfos => {
 						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.
 						if (calendarInfo) {
 							return load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then(groupInfo => {
@@ -893,7 +905,7 @@ export class CalendarView implements CurrentView {
 					})
 
 				}
-			}).return()
+			}).then(noOp)
 		})
 	}
 
@@ -974,8 +986,8 @@ export class CalendarView implements CurrentView {
 		newMap.forEach((dayEvents) =>
 			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
 		this._replaceEvents(newMap)
-		if (this._calendarInfos.isFulfilled()) {
-			const infos = this._calendarInfos.value()
+		if (this._calendarInfos.isLoaded()) {
+			const infos = this._calendarInfos.getLoaded()
 			const info = infos.get(ownerGroupId)
 			if (info) {
 				if (isSameId(listIdPart(id), info.groupRoot.longEvents)) {

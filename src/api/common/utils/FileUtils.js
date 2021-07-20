@@ -6,6 +6,7 @@ import {isSameTypeRef} from "./TypeRef"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/File"
 import {downcast} from "./Utils"
+import {intersection} from "./CollectionUtils"
 
 type StringPredicate = string => boolean
 const _false: StringPredicate = () => false
@@ -71,18 +72,19 @@ export function sanitizeFilename(filename: string): string {
 /**
  * Uniqueify all the names in fileNames, case-insensitively
  * @param filenames
- * @param taken: file names that are taken but won't be included in the output
- * @returns {*[]}
+ * @param _taken: file names that are taken but won't be included in the output
  */
-export function deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnlySet<string> = new Set()): {[string]: Array<string>} {
+export function   deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnlySet<string> = new Set()): {[string]: Array<string>} {
 	// make taken lowercase aswell for case insensitivity
 	const taken = new Set(Array.from(_taken).map(toLowerCase))
 
 	// Check first if we need to do a deduplication
 	const deduplicatedNames = new Set(filenames.map(toLowerCase))
-	if (deduplicatedNames.size === filenames.length && union(deduplicatedNames, taken).size === 0) {
+
+	// None of the filenames were duplicated or taken
+	if (deduplicatedNames.size === filenames.length && intersection(deduplicatedNames, taken).size === 0) {
 		// if all file names are good then just return an identity map
-		return filenames.reduce((map, name) => ({...map, name: [name]}), {}) // convert into map oldname -> [newname]
+		return Object.fromEntries(filenames.map(f => [f, [f]]))  // convert into map oldname -> [newname]
 	}
 
 	const suffix = (name, number) => {

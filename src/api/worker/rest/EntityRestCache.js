@@ -12,7 +12,6 @@ import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from ".
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../common/Env"
-// $FlowIgnore[untyped-import]
 import {ValueType} from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
@@ -32,6 +31,8 @@ import {
 } from "../../common/utils/EntityUtils";
 import type {ListElement} from "../../common/utils/EntityUtils"
 import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
+import {promiseMap} from "../../common/utils/PromiseUtils"
+import {ProgrammingError} from "../../common/error/ProgrammingError"
 
 
 assertWorkerOrNode()
@@ -423,28 +424,29 @@ export class EntityRestCache implements EntityRestInterface {
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
 	entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
-		return Promise
-			.mapSeries(batch, (update) => {
-				const {instanceListId, instanceId, operation, type, application} = update
-				if (application === "monitor") return null
+		return promiseMap(batch, (update) => {
+			const {instanceListId, instanceId, operation, type, application} = update
+			if (application === "monitor") return null
 
-				const typeRef = new TypeRef(application, type)
-				switch (operation) {
-					case OperationType.UPDATE:
-						return this._processUpdateEvent(typeRef, update)
+			const typeRef = new TypeRef(application, type)
+			switch (operation) {
+				case OperationType.UPDATE:
+					return this._processUpdateEvent(typeRef, update)
 
-					case OperationType.DELETE:
-						if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
-							// move for mail is handled in create event.
-						} else {
-							this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
-						}
-						return update
+				case OperationType.DELETE:
+					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
+						// move for mail is handled in create event.
+					} else {
+						this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
+					}
+					return update
 
-					case OperationType.CREATE:
-						return this._processCreateEvent(typeRef, update, batch)
-				}
-			})
+				case OperationType.CREATE:
+					return this._processCreateEvent(typeRef, update, batch)
+				default:
+					throw new ProgrammingError("Unknown operation type: " + operation)
+			}
+		})
 			.then((result) => result.filter(Boolean))
 	}
 
@@ -470,8 +472,8 @@ export class EntityRestCache implements EntityRestInterface {
 				// No need to try to download something that's not there anymore
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 				           .then(entity => this._putIntoCache(entity))
-				           .return(update)
-				           .catch(this._handleProcessingError)
+				           .then(() => update)
+				           .catch((e) => this._handleProcessingError(e))
 			} else {
 				return update
 			}
@@ -486,8 +488,8 @@ export class EntityRestCache implements EntityRestInterface {
 			// No need to try to download something that's not there anymore
 			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 			           .then(entity => this._putIntoCache(entity))
-			           .return(update)
-			           .catch(this._handleProcessingError)
+			           .then(() => update)
+			           .catch((e) => this._handleProcessingError(e))
 		}
 		return update
 	}

@@ -39,6 +39,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -82,8 +83,8 @@ export function redeemGiftCard(giftCardId: IdTuple, key: string, validCountryCod
 		})
 		.then(() => {
 			return worker.redeemGiftCard(elementIdPart(giftCardId), key)
-			             .catch(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") })
-			             .catch(NotAuthorizedError, e => { throw new UserError(() => e.message) })
+			             .catch(ofClass(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") }))
+			             .catch(ofClass(NotAuthorizedError, e => { throw new UserError(() => e.message) }))
 		})
 }
 

@@ -29,11 +29,8 @@ import {size} from "../../gui/size"
 import {assertMainOrNode} from "../../api/common/Env"
 import {getFromMap} from "../../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../../api/entities/sys/User"
-import type {Group} from "../../api/entities/sys/Group"
-import type {GroupMembership} from "../../api/entities/sys/GroupMembership"
 import {isColorLight} from "../../gui/base/Color"
 import type {CalendarInfo} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
@@ -224,7 +221,7 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string,
 		if (e1End > e2End) return 1;
 		return 0;
 	})
-	let lastEventEnding = null
+	let lastEventEnding: ?number = null
 	let columns: Array<Array<CalendarEvent>> = []
 	const children = []
 	// Cache for calculation events
@@ -233,7 +230,7 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string,
 		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, handleAsAllDay))
 
 		// Check if a new event group needs to be started
-		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
+		if (lastEventEnding != null && lastEventEnding <= calcEvent.startTime.getTime()) {
 			// The latest event is later than any of the event in the
 			// current group. There is no overlap. Output the current
 			// event group and start a new event group.
@@ -263,7 +260,7 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string,
 
 		// Remember the latest event end time of the current group.
 		// This is later used to determine if a new groups starts.
-		if (lastEventEnding === null || calcEvent.endTime.getTime() > lastEventEnding) {
+		if (lastEventEnding == null || lastEventEnding < calcEvent.endTime.getTime()) {
 			lastEventEnding = calcEvent.endTime.getTime()
 		}
 	})

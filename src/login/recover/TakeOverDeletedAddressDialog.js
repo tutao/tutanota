@@ -16,6 +16,7 @@ import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {assertMainOrNode} from "../../api/common/Env"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {worker} from "../../api/main/WorkerClient"
+import {CancelledError} from "../../api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -72,21 +73,15 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 }
 
 function handleError(e: Error) {
-	return Promise
-		.reject(e)
-		.catch(NotAuthenticatedError, () => {
-			Dialog.error("loginFailed_msg")
-		})
-		.catch(AccessBlockedError, () => {
-			Dialog.error("loginFailedOften_msg")
-		})
-		.catch(InvalidDataError, () => {
-			Dialog.error("takeoverAccountInvalid_msg")
-		})
-		.catch(AccessDeactivatedError, e => {
-			Dialog.error('loginFailed_msg')
-		})
-		.catch(TooManyRequestsError, e => {
-			Dialog.error('tooManyAttempts_msg')
-		})
+	if (e instanceof NotAuthenticatedError) {
+		Dialog.error("loginFailed_msg")
+	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
+		Dialog.error("loginFailedOften_msg")
+	} else if (e instanceof InvalidDataError) {
+		Dialog.error("takeoverAccountInvalid_msg")
+	} else if (e instanceof TooManyRequestsError) {
+		Dialog.error('tooManyAttempts_msg')
+	} else {
+		throw e
+	}
 }

@@ -67,30 +67,31 @@ export function defer<T>(): DeferredObject<T> {
 	return ret
 }
 
-export function asyncFind<T>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<?T> {
-	return Promise.reduce(array, (foundItem, item, index, length) => {
-		if (foundItem) {
-			// the item has been found already, so skip all remaining items in the array
-			return foundItem
-		} else {
-			return finder(item, index, length).then(found => {
-				return (found) ? item : null
-			})
+export async function asyncFind<T>(
+	array: $ReadOnlyArray<T>,
+	finder: (item: T, index: number, arrayLength: number) => Promise<boolean>
+): Promise<?T> {
+	for (let i = 0; i < array.length; i++) {
+		const item = array[i]
+		if (await finder(item, i, array.length)) {
+			return item
 		}
-	}, null)
+	}
+	return null
 }
 
-export function asyncFindAndMap<T, R>(array: T[], finder: (item: T, index: number, arrayLength: number) => Promise<?R>): Promise<?R> {
-	return Promise.reduce(array, (result, item, index, length) => {
-		if (result) {
-			// the item has been found already, so skip all remaining items in the array
-			return result
-		} else {
-			return finder(item, index, length).then(currentResult => {
-				return (currentResult) ? currentResult : null
-			})
+export async function asyncFindAndMap<T, R>(
+	array: $ReadOnlyArray<T>,
+	finder: (item: T, index: number, arrayLength: number) => Promise<?R>
+): Promise<?R> {
+	for (let i = 0; i < array.length; i++) {
+		const item = array[i]
+		const mapped = await finder(item, i, array.length)
+		if (mapped) {
+			return mapped
 		}
-	}, null)
+	}
+	return null
 }
 
 /**
@@ -132,9 +133,9 @@ export function downcast<R>(object: *): R {
 
 export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
-		return instance.slice()
+		return downcast<T>(instance.slice())
 	} else if (instance instanceof Array) {
-		return instance.map(i => clone(i))
+		return downcast<T>(instance.map(i => clone(i)))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
 	} else if (instance instanceof TypeRef) {
@@ -437,7 +438,19 @@ export function filterInt(value: string): number {
 	}
 }
 
-export function insideRect(point: {x: number, y: number}, rect: {top: number, left: number, bottom: number, right: number}): boolean {
+interface Positioned {
+	x: number,
+	y: number,
+}
+
+interface Sized {
+	top: number,
+	left: number,
+	bottom: number,
+	right: number,
+}
+
+export function insideRect(point: Positioned, rect: Sized): boolean {
 	return point.x >= rect.left && point.x < rect.right
 		&& point.y >= rect.top && point.y < rect.bottom
 }
@@ -520,3 +533,6 @@ export function mapNullable<T, U>(val: ?T, action: T => U): U | null {
 export function isSecurityError(e: any): boolean {
 	return e instanceof DOMException && (e.name === "SecurityError" || e.code === e.SECURITY_ERR)
 }
+
+/** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
+export type TimeoutSetter = (fn: () => mixed, number) => TimeoutID

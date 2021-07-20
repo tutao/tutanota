@@ -12,6 +12,7 @@ import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier";
 import {lang} from "../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 lang.init(en)
 
@@ -146,7 +147,7 @@ o.spec("ElectronUpdater Test", function () {
 		o(conf.on.callCount).equals(1)
 
 		await updaterImpl.electronUpdater
-		await Promise.delay(190)
+		await delay(190)
 
 		// check signature
 		o(crypto.publicKeyFromPem.callCount).equals(2)
@@ -174,7 +175,7 @@ o.spec("ElectronUpdater Test", function () {
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 		upd.start()
 
-		await Promise.delay(190)
+		await delay(190)
 		o(autoUpdater.checkForUpdates.callCount).equals(1)
 
 		// don't check signature
@@ -220,7 +221,7 @@ o.spec("ElectronUpdater Test", function () {
 
 		upd.start()
 
-		await Promise.delay(100)
+		await delay(100)
 		// entered start() twice
 		o(conf.removeListener.callCount).equals(2)
 		o(conf.on.callCount).equals(2)
@@ -263,17 +264,17 @@ o.spec("ElectronUpdater Test", function () {
 				return Promise.resolve()
 			}
 		}
-		const scheduler: typeof setInterval = (fn) => setInterval(fn, 10)
+		const scheduler = (fn, time, args) => setInterval(fn, 10)
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()
 
 		// after the error
-		await Promise.delay(2)
+		await delay(2)
 		o(autoUpdater.downloadUpdate.callCount).equals(0)("downloadUpdate after error")
 
 		//after the download
-		await Promise.delay(200)
+		await delay(200)
 		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
 		o(autoUpdater.downloadUpdate.callCount).equals(1)("downloadUpdate after download")
 	})
@@ -283,11 +284,11 @@ o.spec("ElectronUpdater Test", function () {
 			autoUpdater.emit('error', {message: "this is an autoUpdater error"})
 			return Promise.resolve()
 		}
-		const scheduler: typeof setInterval = (fn) => setInterval(fn, 5)
+		const scheduler = (fn) => setInterval(fn, 5)
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()
-		await Promise.delay(150)
+		await delay(150)
 
 		upd._stopPolling()
 		o(autoUpdater.removeAllListeners.callCount).equals(4)("removeAllListeners")
@@ -304,7 +305,7 @@ o.spec("ElectronUpdater Test", function () {
 		o(conf.removeListener.args[0]).equals('enableAutoUpdate')
 		o(conf.on.callCount).equals(1)
 
-		await Promise.delay(250)
+		await delay(250)
 		o(autoUpdater.checkForUpdates.callCount).equals(1)
 
 		// check signature

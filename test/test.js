@@ -1,4 +1,3 @@
-import Promise from "bluebird"
 import child_process, {spawn} from "child_process"
 import {BuildServerClient} from "@tutao/tutanota-build-server"
 import flow from "flow-bin"

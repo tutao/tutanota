@@ -5,7 +5,7 @@ import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {load, loadRange, serviceRequest, update} from "../../api/main/Entity"
-import {assertNotNull, getCustomMailDomains, getWhitelabelDomain, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, getCustomMailDomains, getWhitelabelDomain, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {logins} from "../../api/main/LoginController"
@@ -42,6 +42,8 @@ import {WhitelabelCustomMetaTagsSettings} from "./WhitelabelCustomMetaTagsSettin
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
+import type {UpdatableSettingsViewer} from "../SettingsView"
+import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -344,7 +346,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return Promise.each(updates, update => {
+		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customer.reset()
 				return this._customer.getAsync().then(() => m.redraw())
@@ -359,6 +361,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 				return this._updateFields()
 			}
-		}).return()
+		}).then(noOp)
 	}
 }

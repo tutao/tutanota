@@ -25,6 +25,7 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -195,9 +196,9 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 	promise.then(confirmed => {
 		if (confirmed) {
 			let p = worker.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
-			              .catch(LimitReachedError, e => {
+			              .catch(ofClass(LimitReachedError, e => {
 				              Dialog.error("adminMaxNbrOfAliasesReached_msg")
-			              })
+			              }))
 			              .finally(() => updateNbrOfAliases(editAliasAttrs))
 			showProgressDialog("pleaseWait_msg", p)
 		}
@@ -207,15 +208,15 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 
 export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", worker.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
-		.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg"))
-		.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg"))
-		.catch(PreconditionFailedError, e => {
+		.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg")))
+		.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg")))
+		.catch(ofClass(PreconditionFailedError, e => {
 			let errorMsg = e.toString()
 		if (e.data === FAILURE_USER_DISABLED) {
 			errorMsg = lang.get("addAliasUserDisabled_msg")
 		}
 		return Dialog.error(() => errorMsg)
-	})
+	}))
 		.finally(() => updateNbrOfAliases(aliasFormAttrs))
 }
 

@@ -21,6 +21,7 @@ import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
+import {delay, ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -39,8 +40,8 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 					              events.forEach((event) => {
 						              event.uid && uidToEvent.set(event.uid, event)
 					              })
-					              return Promise.each(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
-						              return Promise.each(events, ({event, alarms}) => {
+					              return promiseMap(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
+						              return promiseMap(events, ({event, alarms}) => {
 							              // Don't try to create event which we already have
 							              if (event.uid && uidToEvent.has(event.uid)) {
 								              return
@@ -61,17 +62,17 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              assignEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
-							                           .delay(100)
+							                           .then(() => delay(100))
 						              })
 					              })
 
 				              })
 		              return showProgressDialog("importCalendar_label", importPromise.then(() => progress(100)), progress)
 	              })
-	              .catch(ParserError, (e) => {
+	              .catch(ofClass(ParserError, (e) => {
 		              console.log("Failed to parse file", e)
 		              Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
-	              })
+	              }))
 
 }
 
@@ -84,7 +85,7 @@ export function exportCalendar(
 ) {
 	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
 		.then((allEvents) => {
-			return Promise.map(allEvents, event => {
+			return promiseMap(allEvents, event => {
 				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length > 0) {
 					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))

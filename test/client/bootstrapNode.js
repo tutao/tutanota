@@ -2,7 +2,6 @@ global.env = require('../../buildSrc/env.js').create(null, "http://localhost:900
 
 global.isBrowser = false
 
-global.Promise = require("bluebird")
 Promise.longStackTraces()
 
 /* Alternative to using Mithrils DOM mock (below).

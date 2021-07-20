@@ -25,11 +25,6 @@ replaceNativeLogger(window, new Logger())
 // TODO: define type definition for top-level views. Maybe it's CurrentView?
 type View = Object
 
-window.Promise = Promise.config({
-	longStackTraces: false,
-	warnings: false
-})
-
 let currentView: ?Component = null
 
 window.tutao = {
@@ -91,7 +86,7 @@ let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
 	origin += "/client/build/index"
 }
-if (!isDesktop() && navigator.registerProtocolHandler) {
+if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 	try {
 		navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
 	} catch (e) {
@@ -255,7 +250,6 @@ function forceLogin(args: {[string]: QueryValue}, requestedPath: string) {
 }
 
 function setupExceptionHandling() {
-	Promise.onPossiblyUnhandledRejection(handleUncaughtError);
 	window.addEventListener('error', function (evt) {
 		// evt.error is not always set, e.g. not for "content.js:1963 Uncaught DOMException: Failed to read the 'selectionStart' property from 'HTMLInputElement': The input element's type ('email') does not support selection."
 		if (evt.error) {

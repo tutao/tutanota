@@ -21,6 +21,7 @@ import type {GroupInvitationPostReturn} from "../../entities/tutanota/GroupInvit
 import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInvitationPostReturn"
 import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
 import type {RecipientInfo} from "../../common/RecipientInfo"
+import {promiseMap} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
@@ -57,7 +58,7 @@ export class ShareFacade {
 				})
 
 				const notFoundRecipients: Array<string> = []
-				return Promise.each(recipients, (recipient) => {
+				return promiseMap(recipients, (recipient) => {
 					return encryptBucketKeyForInternalRecipient(bucketKey, recipient, notFoundRecipients).then(keyData => {
 						if (keyData) {
 							invitationData.internalKeyData.push(keyData)

@@ -3,7 +3,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -13,6 +13,7 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -44,20 +45,21 @@ export class FileController {
 			                        .then((file) => this.open(file))
 		}
 
-		return showProgressDialog("pleaseWait_msg", downloadPromise.catch(CryptoError, e => {
-			console.log(e)
-			return Dialog.error("corrupted_msg")
-		}).catch(ConnectionError, e => {
-			console.log(e)
-			return Dialog.error("couldNotAttachFile_msg")
-		}))
+		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
+			.catch(ofClass(CryptoError, e => {
+				console.log(e)
+				return Dialog.error("corrupted_msg")
+			})).catch(ofClass(ConnectionError, e => {
+				console.log(e)
+				return Dialog.error("couldNotAttachFile_msg")
+			}))
 	}
 
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).return(null)
+		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).then(() => null)
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
 			downloadContent = f => worker.downloadFileContentNative(f)
@@ -77,16 +79,15 @@ export class FileController {
 		// We're returning dialogs here so they don't overlap each other
 		// We're returning null to say that this file is not present.
 		// (it's void by default and doesn't satisfy type checker)
-		const p = Promise
-			.map(tutanotaFiles,
-				tutanotaFile => downloadContent(tutanotaFile)
-					.catch(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name))
-					.catch(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name)),
-				concurrency)
+		const p = promiseMap(tutanotaFiles,
+			tutanotaFile => downloadContent(tutanotaFile)
+				.catch(ofClass(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name)))
+				.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name))),
+			concurrency)
 			.then((results) => results.filter(Boolean)) // filter out failed files
 		// in apps, p is a  Promise<FileReference[]> that have location props.
 		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
-		return save(downcast(p)).return()
+		return save(downcast(p)).then(noOp)
 	}
 
 	/**
@@ -114,14 +115,14 @@ export class FileController {
 		}
 		newFileInput.style.display = "none"
 
-		let promise = Promise.fromCallback(cb => {
+		let promise = new Promise((resolve) => {
 			newFileInput.addEventListener("change", (e: Event) => {
 				this.readLocalFiles((e.target: any).files).then(dataFiles => {
-					cb(null, dataFiles)
+					resolve(dataFiles)
 				}).catch(e => {
 					console.log(e)
 					return Dialog.error("couldNotAttachFile_msg").then(() => {
-						cb(null, [])
+						resolve([])
 					})
 				})
 			})
@@ -140,20 +141,20 @@ export class FileController {
 		for (let i = 0; i < fileList.length; i++) {
 			nativeFiles.push(fileList[i])
 		}
-		return Promise.map(nativeFiles, nativeFile => {
-			return Promise.fromCallback(cb => {
+		return promiseMap(nativeFiles, nativeFile => {
+			return new Promise((resolve, reject) => {
 				let reader = new FileReader()
 				reader.onloadend = function (evt: ProgressEvent) {
 					const target: any = evt.target
 					if (target.readyState === reader.DONE && target.result) { // DONE == 2
-						cb(null, convertToDataFile(nativeFile, new Uint8Array(target.result)))
+						resolve(convertToDataFile(nativeFile, new Uint8Array(target.result)))
 					} else {
-						cb(new Error("could not load file"))
+						reject(new Error("could not load file"))
 					}
 				}
 				reader.readAsArrayBuffer(nativeFile)
 			})
-		})
+		}, {concurrency: 5})
 	}
 
 	openFileReference(file: FileReference): Promise<void> {
@@ -164,7 +165,7 @@ export class FileController {
 		if (isApp() || isDesktop()) {
 			return import("../native/common/FileApp").then(({fileApp}) => fileApp.saveBlob(dataFile))
 			                                         .catch(err => Dialog.error("canNotOpenFileOnDevice_msg"))
-			                                         .return()
+			                                         .then(noOp)
 		}
 		let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 			|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob

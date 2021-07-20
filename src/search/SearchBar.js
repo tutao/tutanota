@@ -40,11 +40,12 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
-import type {SearchRestriction} from "../api/worker/search/SearchTypes"
+import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../api/worker/search/SearchTypes"
 import type {ListElement} from "../api/common/utils/EntityUtils";
 import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
 import {compareContacts} from "../contacts/view/ContactGuiUtils";
+import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import {LayerType} from "../RootView"
 
 assertMainOrNode()
@@ -357,26 +358,32 @@ export class SearchBar implements Component {
 		this._groupInfoRestrictionListId = listId
 	}
 
-	_downloadResults({results, restriction}: SearchResult): Promise<Array<?Entry>> {
+	_downloadResults({results, restriction}: SearchResult): Promise<Array<Entry>> {
 		if (results.length === 0) {
 			return Promise.resolve(([]))
 		}
 
 		const byList = groupBy(results, listIdPart)
-		return Promise
-			.map(byList,
-				([listId, idTuples]) => locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart)),
-				{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
+		return promiseMap(byList, ([listId, idTuples]) => {
+				return locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart))
+				              .catch(ofClass(NotFoundError, () => {
+					              console.log("mail list from search index not found")
+					              return []
+				              }))
+				              .catch(ofClass(NotAuthorizedError, () => {
+					              console.log("no permission on instance from search index")
+					              return []
+				              }))
+			},
+			{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
 			.then(flat)
-			.catch(NotFoundError, () => console.log("mail from search index not found"))
-			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index"))
 	}
 
 	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
 		const {query} = this._state()
 		if (result != null) {
 			this._domInput.blur()
-			let type: ?TypeRef<*> = result._type !== undefined ? result._type : null
+			let type: ?TypeRef<*> = result._type != null ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
 					this._updateSearchUrl(query)
@@ -430,9 +437,9 @@ export class SearchBar implements Component {
 					locator.initializedWorker.then(worker => worker.enableMailIndexing()).then(() => {
 						this.search()
 						this.focus()
-					}).catch(IndexingNotSupportedError, () => {
+					}).catch(ofClass(IndexingNotSupportedError, () => {
 						Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-					})
+					}))
 				}
 			}).finally(
 				() => this._confirmDialogShown = false
@@ -538,8 +545,8 @@ export class SearchBar implements Component {
 		return !m.route.get().startsWith("/search")
 	}
 
-	_filterResults(instances: Array<?Entry>, restriction: SearchRestriction): Entries {
-		let filteredInstances = instances.filter(Boolean) // filter not found results
+	_filterResults(instances: $ReadOnlyArray<Entry>, restriction: SearchRestriction): Entries {
+		let filteredInstances = instances.slice()
 
 		// filter group infos for local admins
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef) && !logins.getUserController().isGlobalAdmin()) {

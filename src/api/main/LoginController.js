@@ -53,20 +53,29 @@ export class LoginControllerImpl implements LoginController {
 			.then(locatorModule => locatorModule.locator.initializedWorker)
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
-		return this._getWorker()
-		           .then((worker) => worker.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin))
-		           .tap(({user, credentials, sessionId, userGroupInfo}) => {
-			           return this._initUserController({
-				           user,
-				           accessToken: credentials.accessToken,
-				           persistentSession,
-				           permanentLogin,
-				           sessionId,
-				           userGroupInfo
-			           })
-		           })
-		           .then((loginData) => loginData.credentials)
+	async createSession(
+		username: string,
+		password: string,
+		clientIdentifier: string,
+		persistentSession: boolean,
+		permanentLogin: boolean
+	): Promise<Credentials> {
+		const worker = await this._getWorker()
+		const {
+			user,
+			credentials,
+			sessionId,
+			userGroupInfo
+		} = await worker.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin)
+		await this._initUserController({
+			user,
+			accessToken: credentials.accessToken,
+			persistentSession,
+			permanentLogin,
+			sessionId,
+			userGroupInfo
+		})
+		return credentials
 	}
 
 	_initUserController(initData: UserControllerInitData): Promise<void> {
@@ -75,20 +84,28 @@ export class LoginControllerImpl implements LoginController {
 			.then((userController) => this.setUserController(userController))
 	}
 
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	async createExternalSession(
+		userId: Id,
+		password: string,
+		salt: Uint8Array,
+		clientIdentifier: string,
+		persistentSession: boolean
 	): Promise<Credentials> {
-		return this._getWorker()
-		           .then((worker) => worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession))
-		           .tap(({user, credentials, sessionId, userGroupInfo}) => {
-			           return this._initUserController({
-				           user,
-				           accessToken: credentials.accessToken,
-				           persistentSession,
-				           sessionId,
-				           userGroupInfo
-			           })
-		           })
-		           .then((loginData) => loginData.credentials)
+		const worker = await this._getWorker()
+		const {
+			user,
+			credentials,
+			sessionId,
+			userGroupInfo
+		} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		await this._initUserController({
+			user,
+			accessToken: credentials.accessToken,
+			persistentSession,
+			sessionId,
+			userGroupInfo
+		})
+		return credentials
 	}
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {

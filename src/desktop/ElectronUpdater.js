@@ -27,6 +27,9 @@ import type {UpdaterWrapper} from "./UpdaterWrapper"
 type LoggerFn = (string, ...args: any) => void
 type UpdaterLogger = {debug: LoggerFn, info: LoggerFn, warn: LoggerFn, error: LoggerFn, silly: LoggerFn, verbose: LoggerFn}
 
+// re-do the type as opposed to doing typeof because... flow
+export type IntervalSetter = (fn: (...Array<mixed>) => mixed, time?: number) => IntervalID
+
 export class ElectronUpdater {
 	_conf: DesktopConfig;
 	_notifier: DesktopNotifier;
@@ -34,7 +37,7 @@ export class ElectronUpdater {
 	_updatePollInterval: ?IntervalID;
 	_checkUpdateSignature: boolean;
 	_errorCount: number;
-	_setInterval: typeof setInterval;
+	_setInterval: IntervalSetter;
 	_updateInfo: ?UpdateInfo = null;
 	_logger: UpdaterLogger;
 	_app: App;
@@ -46,7 +49,7 @@ export class ElectronUpdater {
 	}
 
 	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopCryptoFacade, app: App, tray: DesktopTray,
-	            updater: UpdaterWrapper, scheduler: typeof setInterval = setInterval) {
+	            updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0

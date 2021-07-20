@@ -4,7 +4,7 @@ import {assertMainOrNode} from "../common/Env"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
-import {downcast, identity} from "../common/utils/Utils"
+import {downcast, identity, noOp} from "../common/utils/Utils"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import {isSameTypeRefByAttr, TypeRef} from "../common/utils/TypeRef";
@@ -54,13 +54,13 @@ export class EventController {
 			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
 
-		return loginsUpdates.then(() => {
+		return loginsUpdates.then(async () => {
 			// sequentially to prevent parallel loading of instances
-			return Promise.each(this._entityListeners, listener => {
+			for (const listener of this._entityListeners) {
 				let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
-				return listener(entityUpdatesData, eventOwnerGroupId)
-			})
-		}).return()
+				await listener(entityUpdatesData, eventOwnerGroupId)
+			}
+		}).then(noOp)
 	}
 
 	counterUpdateReceived(update: WebsocketCounterData) {

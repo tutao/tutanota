@@ -21,6 +21,7 @@ import * as AddUserDialog from "./AddUserDialog"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
+import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -196,12 +197,12 @@ function addTemplateGroup(name: string): Promise<boolean> {
 	return showProgressDialog("pleaseWait_msg",
 		worker.createTemplateGroup(name)
 		      .then(() => true)
-		      .catch(PreconditionFailedError, (e) => {
+		      .catch(ofClass(PreconditionFailedError, (e) => {
 			      if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
 				      showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
 			      } else {
 				      Dialog.error(() => e.message)
 			      }
 			      return false
-		      }))
+		      })))
 }
