@@ -48,7 +48,7 @@ platform :ios do
     match(app_identifier: "de.tutao.tutanota",
     	type: "adhoc",
     	verbose: false,
-    	readonly: true,
+    	readonly: false,
     	generate_apple_certs: false,
     	keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
     	api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
