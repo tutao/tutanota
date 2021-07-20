@@ -93,53 +93,6 @@ o.spec("PromiseUtils", function () {
 			o(await promiseMap([1, 2, 3], (n) => n + 1)).deepEquals([2, 3, 4])
 		})
 
-		o("async in order", async function () {
-			const defer1 = defer()
-			const defer2 = defer()
-			const mapper = o.spy((n) => n.promise)
-			const resultPromise = promiseMap([defer1, defer2], mapper)
-
-			await Promise.resolve()
-			o(mapper.callCount).equals(1)
-			defer1.resolve(1)
-			await delay(1)
-			o(mapper.callCount).equals(2)
-			defer2.resolve(2)
-			await Promise.resolve()
-			o(await resultPromise).deepEquals([1, 2])
-		})
-
-		o("stops on rejection", async function () {
-			const defer1 = defer()
-			const defer2 = defer()
-			const mapper = o.spy((n) => n.promise)
-			const resultPromise = promiseMap([defer1, defer2], mapper)
-			await Promise.resolve()
-			o(mapper.callCount).equals(1)
-			defer1.reject(new Error("test"))
-			await assertThrows(Error, () => resultPromise)
-			o(mapper.callCount).equals(1)
-		})
-
-		o("stops on exception", async function () {
-			const mapper = o.spy(() => {
-				throw new Error("test")
-			})
-			await assertThrows(Error, () => promiseMap([1, 2], mapper))
-			o(mapper.callCount).equals(1)
-		})
-	})
-
-	o.spec("promiseMap Promise<Array<T>>", function () {
-		o("empty", async function () {
-			o(await promiseMap(Promise.resolve([]), (n) => n + 1)).deepEquals([])
-		})
-
-		o("non-empty", async function () {
-			o(await promiseMap(Promise.resolve([1, 2, 3]), (n) => n + 1)).deepEquals([2, 3, 4])
-		})
-
-		o("async in order", async function () {
 		o("parallel", async function () {
 			const defer1 = defer()
 			const defer2 = defer()
@@ -161,6 +114,22 @@ o.spec("PromiseUtils", function () {
 			defer3.resolve()
 			await delay(1)
 			o(mapper.callCount).equals(3)
+		})
+
+		o("async in order", async function () {
+			const defer1 = defer()
+			const defer2 = defer()
+			const mapper = o.spy((n) => n.promise)
+			const resultPromise = promiseMap([defer1, defer2], mapper)
+
+			await Promise.resolve()
+			o(mapper.callCount).equals(1)
+			defer1.resolve(1)
+			await delay(1)
+			o(mapper.callCount).equals(2)
+			defer2.resolve(2)
+			await Promise.resolve()
+			o(await resultPromise).deepEquals([1, 2])
 		})
 
 		o("stops on rejection", async function () {

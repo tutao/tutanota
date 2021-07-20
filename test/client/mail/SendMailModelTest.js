@@ -504,9 +504,8 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await assertThrows(() => model.send(method, getConfirmation))
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
-			o(e.message).equals(lang.get("noRecipients_msg"))
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
+			o(e?.message).equals(lang.get("noRecipients_msg"))
 			o(getConfirmation.callCount).equals(0)
 			o(worker.sendMailDraft.callCount).equals(0)
 			o(worker.createMailDraft.callCount).equals(0)
@@ -536,9 +535,8 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(true))
 
-			const e = await assertThrows(() => model.send(method, getConfirmation))
-			o(Object.getPrototypeOf(e)).equals(UserError.prototype)
-			o(e.message).equals(lang.get("noPreSharedPassword_msg"))
+			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
+			o(e?.message).equals(lang.get("noPreSharedPassword_msg"))
 			o(getConfirmation.callCount).equals(1)
 			o(worker.sendMailDraft.callCount).equals(0)
 			o(worker.createMailDraft.callCount).equals(0)

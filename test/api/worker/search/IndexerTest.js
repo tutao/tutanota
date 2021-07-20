@@ -268,8 +268,7 @@ o.spec("Indexer test", () => {
 
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Mail}], newGroups: []}
-		const e = await assertThrows(() => indexer._updateGroups(user, groupDiff))
-		o(Object.getPrototypeOf(e)).equals(MembershipRemovedError.prototype)
+		const e = await assertThrows(MembershipRemovedError, () => indexer._updateGroups(user, groupDiff))
 	})
 
 	o("_updateGroups disable MailIndexing in case of a deleted contact group", async function () {
@@ -279,8 +278,7 @@ o.spec("Indexer test", () => {
 
 		let user = createUser()
 		let groupDiff = {deletedGroups: [{id: "groupId", type: GroupType.Contact}], newGroups: []}
-		const e = await assertThrows(() => indexer._updateGroups(user, groupDiff))
-		o(Object.getPrototypeOf(e)).equals(MembershipRemovedError.prototype)
+		const e = await assertThrows(MembershipRemovedError, () => indexer._updateGroups(user, groupDiff))
 	})
 
 	o("_updateGroups don't disable MailIndexing in case no mail or contact group has been deleted", function (done) {

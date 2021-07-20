@@ -668,8 +668,7 @@ o.spec("CalendarEventViewModel", function () {
 
 			viewModel.addGuest(newGuest)
 			askInsecurePassword = o.spy(async () => true)
-			const e = await assertThrows(() => viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress}))
-			o(Object.getPrototypeOf(e)).equals(BusinessFeatureRequiredError.prototype)
+			const e = await assertThrows(BusinessFeatureRequiredError, () => viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress}))
 		})
 
 		o("own calendar, same guests, agree on updates", async function () {

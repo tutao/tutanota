@@ -71,6 +71,7 @@ import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperti
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
+import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
 
 assertMainOrNode()
 

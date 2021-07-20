@@ -927,10 +927,10 @@ export class MailViewer {
 					           m.redraw()
 					           return inlineImages
 				           })
-				           .catch(NotFoundError, e => {
+				           .catch(ofClass(NotFoundError, e => {
 					           console.log("could load attachments as they have been moved/deleted already", e)
 					           return new Map()
-				           })
+				           }))
 			})
 		}
 	}
@@ -1322,7 +1322,7 @@ export class MailViewer {
 					this._loadedInlineImages, mailboxDetails)
 			})
 					              .then(editor => {editor.show()})
-			              .catch(ofClassUserError, showUserError)
+			              .catch(ofClass(UserError, showUserError))
 		}
 	}
 
