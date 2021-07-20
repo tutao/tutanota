@@ -476,7 +476,8 @@ export class ViewSlider {
 				}
 
 				const gestureInfo = lastGestureInfo
-				if (gestureInfo && event.touches.length === 1 && initialGestureInfo) {
+				const safeInitialGestureInfo = initialGestureInfo
+				if (gestureInfo && safeInitialGestureInfo && event.touches.length === 1 ) {
 					const touch = event.touches[0]
 					const newTouchPos = touch.pageX
 					const sideColRect = sideCol.getBoundingClientRect()
@@ -484,7 +485,7 @@ export class ViewSlider {
 					const safeLastInfo = lastGestureInfo = gestureInfoFromTouch(touch)
 					// If we have horizonal lock or we don't have vertical lock but would like to acquire horizontal one, the lock horizontally
 					if (directionLock === HORIZONTAL ||
-						directionLock !== VERTICAL && Math.abs(safeLastInfo.x - safeLastInfo.x) > 30
+						directionLock !== VERTICAL && Math.abs(safeLastInfo.x - safeInitialGestureInfo.x) > 30
 					) {
 						directionLock = HORIZONTAL
 						// Gesture for side column
@@ -500,7 +501,7 @@ export class ViewSlider {
 						// Scroll events are not cancellable and browsees complain a lot
 						if (event.cancelable !== false) event.preventDefault()
 						// If we don't have a vertical lock but we would like to acquire one, get it
-					} else if (directionLock !== VERTICAL && Math.abs(safeLastInfo.y - safeLastInfo.y) > 30) {
+					} else if (directionLock !== VERTICAL && Math.abs(safeLastInfo.y - safeInitialGestureInfo.y) > 30) {
 						directionLock = VERTICAL
 					}
 					event.stopPropagation()

@@ -28,15 +28,14 @@ const moveMailDataPerFolder: MoveMailData[] = []
 const DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS = 200
 let applyingRules = false // used to avoid concurrent application of rules (-> requests to locked service)
 
-function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
+async function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 	if (moveMailDataPerFolder.length) {
 		const moveToTargetFolder = moveMailDataPerFolder.shift()
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
-		return promiseMap(mailChunks, mailChunk => {
+		await promiseMap(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
 			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
 		})
-			.then(noOp)
 			.catch(ofClass(LockedError, e => { //LockedError should no longer be thrown!?!
 				console.log("moving mail failed", e, moveToTargetFolder)
 			}))
@@ -47,10 +46,9 @@ function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 			.finally(() => {
 				return sendMoveMailRequest(worker)
 			})
-	} else {
-		//We are done and unlock for future requests
-		return Promise.resolve()
 	}
+
+	//We are done and unlock for future requests
 }
 
 // We throttle the moveMail requests to a rate of 50ms
