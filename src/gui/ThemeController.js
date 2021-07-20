@@ -54,7 +54,7 @@ export class ThemeController {
 		// If being accessed from a custom domain, the definition of whitelabelCustomizations is added to index.js serverside upon request
 		// see RootHandler::applyWhitelabelFileModifications.
 		const whitelabelCustomizations = getWhitelabelCustomizations(window)
-		if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations && whitelabelCustomizations.theme) {
+		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
 			await this.updateCustomTheme(whitelabelCustomizations.theme, false)
 		} else {
