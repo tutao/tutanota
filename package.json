@@ -16,7 +16,7 @@
 		"postinstall": "node ./buildSrc/compileKeytar"
 	},
 	"dependencies": {
-		"@tutao/oxmsg": "0.0.6",
+		"@tutao/oxmsg": "0.0.7",
 		"dompurify": "2.3.0",
 		"keytar": "7.2.0",
 		"linkifyjs": "^3.0.0-beta.3",

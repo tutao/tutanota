@@ -674,7 +674,6 @@ o.spec("CalendarEventViewModel", function () {
 				askInsecurePassword,
 				showProgress
 			}))
-			o(Object.getPrototypeOf(e)).equals(BusinessFeatureRequiredError.prototype)
 		})
 
 		o("own calendar, same guests, agree on updates", async function () {
