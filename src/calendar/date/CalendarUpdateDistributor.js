@@ -130,7 +130,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		}
 	}
 
-	_sendCalendarFile({sendMailModel, method, subject, event, body, sender}: {
+	async _sendCalendarFile({sendMailModel, method, subject, event, body, sender}: {
 		sendMailModel: SendMailModel,
 		method: MailMethodEnum,
 		subject: string,
@@ -144,8 +144,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		sendMailModel.setSubject(subject)
 		sendMailModel.setBody(body)
 		this._sendStart()
-		return sendMailModel.send(method)
-		                    .then(noOp)
+		await sendMailModel.send(method)
 		                    .finally(() => this._sendEnd())
 	}
 

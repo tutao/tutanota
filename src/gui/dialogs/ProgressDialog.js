@@ -59,20 +59,6 @@ export async function showProgressDialog<T>(messageIdOrMessageFunction: Translat
 		await delay(DefaultAnimationTime)
 		throw e
 	}
-	// return new Promise((resolve, reject) => {
-	// 	action.then(result => {
-	// 		setTimeout(() => {
-	// 			progressDialog.close()
-	// 			setTimeout(() => cb(null, result), DefaultAnimationTime)
-	// 		}, Math.max(minDialogVisibilityMillis - diff, 0))
-	// 	}).catch(e => {
-	// 		let diff = new Date().getTime() - start
-	// 		setTimeout(() => {
-	// 			progressDialog.close()
-	// 			setTimeout(() => cb(e), DefaultAnimationTime)
-	// 		}, Math.max(minDialogVisibilityMillis - diff, 0))
-	// 	})
-	// })
 }
 
 export function showWorkerProgressDialog<T>(worker: WorkerClient, messageIdOrMessageFunction: TranslationKey | lazy<string>,

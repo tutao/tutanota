@@ -78,7 +78,7 @@ export class U2fClient {
 				}
 			], [], resolve, TIMEOUT)
 		})
-		const response = this._handleError(rawResponse)
+		const response = this._handleRawResponse(rawResponse)
 		const registerResponse = await this._decodeRegisterResponse(response)
 		return createU2fRegisteredDevice({
 			keyHandle: registerResponse.keyHandle,
@@ -89,7 +89,7 @@ export class U2fClient {
 		})
 	}
 
-	_handleError(rawResponse: Object): Object {
+	_handleRawResponse(rawResponse: Object): Object {
 		console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
 		if (!rawResponse.errorCode) {
 			return rawResponse
@@ -114,7 +114,7 @@ export class U2fClient {
 		const rawResponse = await new Promise(resolve => {
 			(window.u2f || u2fApi).sign(this.appId, challengeData, registeredKeys, resolve, TIMEOUT)
 		})
-		const rawAuthenticationResponse = this._handleError(rawResponse)
+		const rawAuthenticationResponse = this._handleRawResponse(rawResponse)
 		return createU2fResponseData({
 			keyHandle: rawAuthenticationResponse.keyHandle,
 			clientData: rawAuthenticationResponse.clientData,

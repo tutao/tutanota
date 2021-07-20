@@ -14,6 +14,10 @@ export type WhitelabelCustomizations = {
 	privacyStatementUrl: ?string,
 }
 
+/**
+ * window.whitelabelCustomizations is defined when the user has logged in via a whitelabel domain. index.js is rewritten to have the definition
+ * this happens at WhitelabelResourceRewriter.java
+ */
 export function getWhitelabelCustomizations(window: typeof window): ?WhitelabelCustomizations {
 	return window.whitelabelCustomizations
 }

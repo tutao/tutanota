@@ -41,7 +41,7 @@ function iosCopyToClipboard(text: string) {
 
 export async function copyToClipboard(text: string): Promise<void> {
 	try {
-		navigator.clipboard.writeText(text)
+		await navigator.clipboard.writeText(text)
 	} catch {
 		console.log('copy failed, trying fallback')
 		if (client.isIos()) {

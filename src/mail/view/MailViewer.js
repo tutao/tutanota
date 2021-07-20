@@ -391,9 +391,7 @@ export class MailViewer {
 					this._rescale(false)
 				},
 				onupdate: (vnode) => {
-					// if (this._domBodyDeferred.promise.isPending()) {
 					this._domBodyDeferred.resolve(vnode.dom)
-					// }
 					this._domBody = vnode.dom
 					// Only measure and update line height once.
 					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
