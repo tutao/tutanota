@@ -87,7 +87,7 @@ function signWithArgs(commandArguments, file_to_sign, unsignedFileName) {
 	return new Promise((resolve, reject) => {
 		child.on('close', (exitCode) => {
 			if (exitCode !== 0) {
-				reject(exitCoe)
+				reject(exitCode)
 			} else {
 				fs.removeSync(unsignedFileName)
 				resolve(file_to_sign)

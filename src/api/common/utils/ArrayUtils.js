@@ -361,6 +361,9 @@ export function lastIndex<T>(array: $ReadOnlyArray<T>): number {
 	}
 }
 
+/**
+ * All of the elements in all of the arguments combined, and deduplicated
+ */
 export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 	return new Set(...iterables.map(iterable => Array.from(iterable)))
 }
