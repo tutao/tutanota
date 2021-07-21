@@ -37,16 +37,16 @@ class ThemeManager : NSObject {
   }
   
   @objc
-  public var currenTheme: Theme? {
+  public var currentTheme: Theme? {
     get {
       return themes.first { theme in theme["themeId"] == selectedThemeId }
     }
   }
   
   @objc
-  public var currenThemeWithFallback: Theme {
+  public var currentThemeWithFallback: Theme {
     get {
-      currenTheme ?? [
+      currentTheme ?? [
         "themeId": "light-fallback",
         "content_bg": "#ffffff",
         "header_bg": "#ffffff"

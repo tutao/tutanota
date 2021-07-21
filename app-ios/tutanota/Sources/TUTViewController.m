@@ -119,7 +119,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 	[_webView.topAnchor constraintEqualToAnchor:self.view.topAnchor].active = YES;
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
-  let theme = [_themeManager currenThemeWithFallback];
+  let theme = [_themeManager currentThemeWithFallback];
   [self applyTheme:theme];
   
     if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
@@ -288,7 +288,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
   } else if ([@"setSelectedTheme" isEqualToString:type]) {
     NSString *themeId = arguments[0];
     _themeManager.selectedThemeId = themeId;
-    [self applyTheme:_themeManager.currenTheme];
+    [self applyTheme:_themeManager.currentTheme];
     sendResponseBlock(NSNull.null, nil);
   } else if ([@"getThemes" isEqualToString:type]) {
     sendResponseBlock(_themeManager.themes, nil);
@@ -318,7 +318,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
   var fileUrl = [self appUrl];
   let folderUrl = [fileUrl URLByDeletingLastPathComponent];
   NSMutableDictionary<NSString *, NSString *> *mutableParams = params.mutableCopy;
-  let theme = _themeManager.currenTheme;
+  let theme = _themeManager.currentTheme;
   if (theme != nil) {
     let encodedTheme = [self objectToJson:theme];
     [mutableParams setObject:encodedTheme forKey:@"theme"];
