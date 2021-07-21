@@ -10,11 +10,12 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../api/common/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/common/Env"
 import {faq} from "./FaqModel"
 import {Keys} from "../api/common/TutanotaConstants"
 import {debounce} from "../api/common/utils/Utils"
 import {writeSupportMail} from "../mail/editor/MailEditor"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -37,8 +38,16 @@ export function showSupportDialog() {
 		dialog.close()
 	}
 
+	// Hide the following faq entries from non-admins on a whitelabel domain
+	const whitelabelFaqNameFilter = (name) => (!isTutanotaDomain() && !logins.getUserController().isGlobalAdmin())
+		? ![
+			'faq.2fa',
+			'faq.mail-auth'
+		].some(e => name.startsWith(e))
+		: true
+
 	const debounceSearch = debounce(200, (value: string) => {
-		searchResult(faq.search(value))
+		searchResult(faq.search(value, whitelabelFaqNameFilter))
 		searchExecuted = value.trim() !== ""
 		m.redraw()
 	})
@@ -96,7 +105,7 @@ export function showSupportDialog() {
 	}
 
 	faq.init().then(() => {
-		faq.getList()
+		faq.getList(whitelabelFaqNameFilter)
 	})
 
 	const dialog = Dialog.largeDialog(
