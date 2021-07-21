@@ -3,6 +3,7 @@ import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m from "mithril"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 
 
 export type SettingsExpanderAttrs = {|
@@ -33,7 +34,9 @@ export class SettingsExpander implements MComponent<SettingsExpanderAttrs> {
 			]),
 			m(ExpanderPanelN, {expanded}, vnode.children),
 			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)) : null,
-			infoLinkId ? m("small.text-break", [m(`a[href=${lang.getInfoLink(infoLinkId)}][target=_blank]`, lang.getInfoLink(infoLinkId))]) : null
+			infoLinkId
+				? ifAllowedTutanotaLinks(infoLinkId, link => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)]))
+				: null
 		];
 	}
 }

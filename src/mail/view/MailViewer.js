@@ -121,7 +121,7 @@ import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
+import {getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
@@ -753,7 +753,8 @@ export class MailViewer {
 				style: {marginBottom: "-10px"},
 			}, [
 				m("div", lang.get("phishingReport_msg")),
-				m("a.mt-s", {href: lang.getInfoLink("phishing_link"), target: "_blank"}, lang.get("whatIsPhishing_msg")),
+				ifAllowedTutanotaLinks("phishing_link",
+					link => m("a.mt-s", {href: link, target: "_blank"}, lang.get("whatIsPhishing_msg"))),
 				m(".flex-wrap.flex-end", [
 					m(ButtonN, {
 						label: "reportPhishing_action",
