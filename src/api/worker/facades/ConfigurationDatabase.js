@@ -11,10 +11,12 @@ import {random} from "../crypto/Randomizer"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 import type {User} from "../../entities/sys/User"
 import {assertNotNull} from "../../common/utils/Utils"
+import type {ExternalImageRuleEnum} from "../../common/TutanotaConstants"
+import {ExternalImageRule} from "../../common/TutanotaConstants"
 
 const VERSION: number = 1
 const DB_KEY_PREFIX: string = "ConfigStorage"
-const ExternalAllowListOS: ObjectStoreName = "ExternalAllowListOS"
+const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
 const MetaDataOS: ObjectStoreName = "MetaDataOS"
 
 type EncryptionMetadata = {
@@ -27,6 +29,11 @@ type ConfigDb = {
 	+metaData: EncryptionMetadata
 }
 
+/** @PublicForTesting */
+export async function encryptItem(item: string, key: Aes128Key, iv: Uint8Array): Promise<Uint8Array> {
+	return aes256Encrypt(key, stringToUtf8Uint8Array(item), iv, true, false).slice(iv.length)
+}
+
 /**
  * A local configuration database that can be used as an alternative to DeviceConfig:
  * Ideal for cases where the configuration values should be stored encrypted,
@@ -37,39 +44,43 @@ export class ConfigurationDatabase {
 
 	+db: LazyLoaded<ConfigDb>
 
-	constructor(loginFacade: LoginFacade) {
+	constructor(loginFacade: LoginFacade, dbLoadFn: (User, Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
 		this.db = new LazyLoaded(() => {
 			const user = assertNotNull(loginFacade.getLoggedInUser())
 			const userGroupKey = loginFacade.getUserGroupKey()
-			return loadConfigDb(user, userGroupKey)
+			return dbLoadFn(user, userGroupKey)
 		})
 	}
 
-	async addAllowedExternalSender(address: string): Promise<void> {
-		const {db} = await this.db.getAsync()
-		const encryptedAddress = await this._encryptItem(address)
-		const transaction = await db.createTransaction(false, [ExternalAllowListOS])
-		return transaction.put(ExternalAllowListOS, null, {address: encryptedAddress})
+	async addExternalImageRule(address: string, rule: ExternalImageRuleEnum): Promise<void> {
+		const {metaData} = await this.db.getAsync()
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+
+		return this._addAddressToImageList(encryptedAddress, rule)
 	}
 
-	async removeAllowedExternalSender(address: string): Promise<void> {
-		const {db} = await this.db.getAsync()
-		const encryptedAddress = await this._encryptItem(address)
-		const transaction = await db.createTransaction(false, [ExternalAllowListOS])
-		return transaction.delete(ExternalAllowListOS, encryptedAddress)
+	async getExternalImageRule(address: string): Promise<ExternalImageRuleEnum> {
+		const {db, metaData} = await this.db.getAsync()
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const transaction = await db.createTransaction(true, [ExternalImageListOS])
+		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)
+		let rule = ExternalImageRule.None
+		if (entry != null) {
+			if (entry.rule != null) {
+				rule = entry.rule
+			} else {
+				// No rule set from earlier version means Allow
+				await this._addAddressToImageList(encryptedAddress, ExternalImageRule.Allow)
+				rule = ExternalImageRule.Allow
+			}
+		}
+		return rule
 	}
 
-	async isAllowedExternalSender(address: string): Promise<boolean> {
+	async _addAddressToImageList(encryptedAddress: Uint8Array, rule: ExternalImageRuleEnum): Promise<void> {
 		const {db} = await this.db.getAsync()
-		const encryptedAddress = await this._encryptItem(address)
-		const transaction = await db.createTransaction(true, [ExternalAllowListOS])
-		return await transaction.get(ExternalAllowListOS, encryptedAddress) != null
-	}
-
-	async _encryptItem(item: string): Promise<Uint8Array> {
-		const db = await this.db.getAsync()
-		const {key, iv} = db.metaData
-		return aes256Encrypt(key, stringToUtf8Uint8Array(item), iv, true, false).slice(iv.length)
+		const transaction = await db.createTransaction(false, [ExternalImageListOS])
+		return transaction.put(ExternalImageListOS, null, {address: encryptedAddress, rule: rule})
 	}
 }
 
@@ -77,7 +88,7 @@ async function loadConfigDb(user: User, userGroupKey: Aes128Key): Promise<Config
 	const id = `${DB_KEY_PREFIX}_${b64UserIdHash(user)}`
 	const db = new DbFacade(VERSION, (event, db) => {
 		db.createObjectStore(MetaDataOS)
-		db.createObjectStore(ExternalAllowListOS, {keyPath: "address"})
+		db.createObjectStore(ExternalImageListOS, {keyPath: "address"})
 	})
 	const metaData = await loadEncryptionMetadata(db, id, userGroupKey) || await initializeDb(db, id, userGroupKey)
 	return {
@@ -115,7 +126,7 @@ async function initializeDb(db: DbFacade, id: string, userGroupKey: Aes128Key): 
 	const key = aes256RandomKey()
 	const iv = random.generateRandomData(IV_BYTE_LENGTH)
 
-	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalAllowListOS])
+	const transaction = await db.createTransaction(false, [MetaDataOS, ExternalImageListOS])
 	await transaction.put(MetaDataOS, Metadata.userEncDbKey, encrypt256Key(userGroupKey, key))
 	await transaction.put(MetaDataOS, Metadata.encDbIv, aes256Encrypt(key, iv, random.generateRandomData(IV_BYTE_LENGTH), true, false))
 

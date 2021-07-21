@@ -15,6 +15,7 @@ import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody"
 import type {CalendarMethodEnum, InboxRuleTypeEnum, MailReportTypeEnum} from "../../api/common/TutanotaConstants"
 import {
 	ConversationType,
+	ExternalImageRule,
 	FeatureType,
 	InboxRuleType,
 	Keys,
@@ -121,7 +122,7 @@ import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
+import {getCoordsOfMouseOrTouchEvent, moreButton} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
@@ -142,7 +143,8 @@ export const ContentBlockingStatus = Object.freeze({
 	Block: "0",
 	Show: "1",
 	AlwaysShow: "2",
-	NoExternalContent: "3"
+	NoExternalContent: "3",
+	AlwaysBlock: "4"
 })
 export type ExternalContentBlockingStatusEnum = $Values<typeof ContentBlockingStatus>;
 
@@ -705,6 +707,16 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
+					if (locator.search.indexingSupported && this.isBlockingExternalImages()) {
+						moreButtons.push({
+							label: "showImages_action",
+							click: () => {
+								this._setContentBlockingStatus(ContentBlockingStatus.Show)
+							},
+							icon: () => Icons.Picture,
+							type: ButtonType.Dropdown
+						})
+					}
 					return moreButtons
 				}, 300)
 			}))
@@ -880,9 +892,9 @@ export class MailViewer {
 			throw e
 		}
 
-		const isAllowListedExternalSender = await worker.isAllowedExternalSender(mail.sender.address)
-		                                                .catch(e => false)
-		const isAllowedAndAuthenticatedExternalSender = isAllowListedExternalSender
+		const externalImageRule = await worker.getExternalImageRule(mail.sender.address)
+		                                      .catch(e => ExternalImageRule.None)
+		const isAllowedAndAuthenticatedExternalSender = externalImageRule === ExternalImageRule.Allow
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
@@ -892,11 +904,13 @@ export class MailViewer {
 
 		this._checkMailForPhishing(mail, sanitizeResult.links)
 
-		this._contentBlockingStatus = isAllowedAndAuthenticatedExternalSender
-			? ContentBlockingStatus.AlwaysShow
-			: sanitizeResult.externalContent.length > 0
-				? ContentBlockingStatus.Block
-				: ContentBlockingStatus.NoExternalContent
+		this._contentBlockingStatus =
+			externalImageRule === ExternalImageRule.Block
+				? ContentBlockingStatus.AlwaysBlock
+				: (isAllowedAndAuthenticatedExternalSender
+					? ContentBlockingStatus.AlwaysShow
+					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+				)
 
 		m.redraw()
 		return sanitizeResult.inlineImageCids
@@ -1238,7 +1252,7 @@ export class MailViewer {
 						              return newMailEditorFromDraft(this.mail,
 							              this._attachments,
 							              this._getMailBody(),
-							              this._contentBlockingStatus === ContentBlockingStatus.Block,
+							              this.isBlockingExternalImages(),
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
@@ -1312,7 +1326,7 @@ export class MailViewer {
 						subject,
 						bodyText: prependEmailSignature(body, logins),
 						replyTos: [],
-					}, this._contentBlockingStatus === ContentBlockingStatus.Block,
+					}, this.isBlockingExternalImages(),
 					this._loadedInlineImages, mailboxDetails)
 			})
 			              .then(editor => editor.show())
@@ -1335,7 +1349,7 @@ export class MailViewer {
 					return Promise.all([this._getMailboxDetails(), import("../editor/MailEditor")])
 					              .then(([mailboxDetails, {newMailEditorAsResponse}]) => {
 						              return newMailEditorAsResponse(args,
-							              this._contentBlockingStatus === ContentBlockingStatus.Block,
+							              this.isBlockingExternalImages(),
 							              this._loadedInlineImages,
 							              mailboxDetails)
 					              })
@@ -1344,6 +1358,11 @@ export class MailViewer {
 				})
 			}
 		})
+	}
+
+	isBlockingExternalImages(): boolean {
+		return this._contentBlockingStatus === ContentBlockingStatus.Block
+			|| this._contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
 	}
 
 	_createResponseMailArgsForForwarding(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<ResponseMailParameters> {
@@ -1641,25 +1660,44 @@ export class MailViewer {
 	}
 
 	_renderExternalContentBanner(): ?Children {
-		return this._contentBlockingStatus === ContentBlockingStatus.Block
-			? m(InfoBanner, {
-				message: "contentBlocked_msg",
-				icon: Icons.Picture,
-				helpLink: "loadImages_link",
-				buttons: [
-					{
-						text: "showBlockedContent_action",
-						click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
-					},
-					locator.search.indexingSupported && this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-						? {
-							text: "allowExternalContentSender_action",
-							click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
-						}
-						: null
-				]
-			})
-			: null
+		if (this._contentBlockingStatus !== ContentBlockingStatus.Block) {
+			return null
+		}
+
+		const showButton = {
+			label: "showBlockedContent_action",
+			click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
+		}
+
+		const alwaysOrNeverAllowButtons = locator.search.indexingSupported
+			? [
+				this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+					? {
+						label: "allowExternalContentSender_action",
+						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+					}
+					: null,
+				{
+					label: "blockExternalContentSender_action",
+					click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock)
+				}
+			].filter(Boolean)
+			: []
+
+		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
+		const maybeDropdownButtons = styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
+			? [ moreButton(alwaysOrNeverAllowButtons, 216) ]
+			: alwaysOrNeverAllowButtons
+
+		return m(InfoBanner, {
+			message: "contentBlocked_msg",
+			icon: Icons.Picture,
+			helpLink: "loadImages_link",
+			buttons: [
+				showButton,
+				...maybeDropdownButtons
+			]
+		})
 	}
 
 	async _setContentBlockingStatus(status: ExternalContentBlockingStatusEnum): Promise<void> {
@@ -1671,18 +1709,18 @@ export class MailViewer {
 			return
 		}
 
-		const previousContentBlockingStatus = this._contentBlockingStatus
+		if (status === ContentBlockingStatus.AlwaysShow) {
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(IndexingNotSupportedError, noOp)
+		} else if (status === ContentBlockingStatus.AlwaysBlock) {
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(IndexingNotSupportedError, noOp)
+		} else {
+			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
+			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(IndexingNotSupportedError, noOp)
+		}
 		this._contentBlockingStatus = status
 
-		if (this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
-			worker.addAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
-		} else if (previousContentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
-			// if we're going from allow to something else it means we're revoking the whitelisting of the given sender
-			worker.removeAllowedExternalSender(this.mail.sender.address).catch(IndexingNotSupportedError, noOp)
-		}
-
 		// We don't check mail authentication status here because the user has manually called this
-		await this.setSanitizedMailBodyFromMail(this.mail, status === ContentBlockingStatus.Block)
+		await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
 		this._domBodyDeferred = defer()
 		this._replaceInlineImages()
 	}
