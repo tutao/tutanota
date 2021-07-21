@@ -6,7 +6,6 @@ import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
-import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
@@ -19,6 +18,9 @@ import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
+import type {DeferredObject} from "../../api/common/utils/Utils"
+import {defer} from "../../api/common/utils/Utils"
+import {client} from "../../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -30,25 +32,22 @@ export class DropdownN {
 	children: $ReadOnlyArray<DropdownChildAttrs>;
 	_domDropdown: HTMLElement;
 	origin: ?PosRect;
-	maxHeight: number;
 	oninit: Function;
 	view: Function;
 	_width: number;
 	shortcuts: Function;
-	_buttonsHeight: number;
 	_filterString: Stream<string>;
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
 	_isFilterable: boolean;
+	_maxHeightDefer: DeferredObject<number>;
 
 
 	constructor(lazyChildren: lazy<$ReadOnlyArray<?DropdownChildAttrs>>, width: number) {
 		this.children = []
-		this.maxHeight = 0
 		this._width = width
-		this._buttonsHeight = 0
 		this._filterString = stream("")
-
+		this._maxHeightDefer = defer()
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
 			this._isFilterable = this.children.length > 10
@@ -100,33 +99,38 @@ export class DropdownN {
 		const _contents = () => {
 			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
-						this.setContentHeight(vnode.dom)
+						console.log("DropdownN - oncreate() dropdown-content, height:", vnode.dom.offsetHeight, vnode.dom)
 						this._domContents = vnode.dom
-
-						const visibleChildren = this._visibleChildren()
-						const buttons = visibleChildren.filter(b => (typeof b !== "string"))
-						const strings = visibleChildren.filter(b => (typeof b === "string"))
-						this._buttonsHeight = buttons.reduce((sum, current) => sum + size.button_height, 0) +
-							strings.reduce((sum, current) => sum + size.dropdown_text_height, 0) +
-							size.vpad_small * 2
-
-						const maxHeight = this._buttonsHeight + this._getFilterHeight()
-						if (this.origin) {
-							showDropdown(this.origin, this._domDropdown, maxHeight, this._width).then(() => {
-									if (this._domInput && !client.isMobileDevice()) {
-										this._domInput.focus()
-									} else {
-										const button = vnode.dom.querySelector("button")
-										button && button.focus()
+						const origin = this.origin
+						if (origin) {
+							// The dropdown-content element is added to the dom has a hidden element first.
+							// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely show the dropdown.
+							this._maxHeightDefer.promise.then(maxHeight => {
+								console.log("DropdownN - maxHeight: ", maxHeight)
+								showDropdown(origin, this._domDropdown, maxHeight, this._width).then(() => {
+										if (this._domInput && !client.isMobileDevice()) {
+											this._domInput.focus()
+										} else {
+											const button = vnode.dom.querySelector("button")
+											button && button.focus()
+										}
 									}
-								}
-							)
+								)
+							})
 						}
 						window.requestAnimationFrame(() => {
 							if (document.activeElement && typeof document.activeElement.blur === "function") {
 								document.activeElement.blur()
 							}
 						})
+					},
+					onupdate: (vnode) => {
+						const children = Array.from(vnode.dom.children)
+						const maxHeightOfChildren = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + 16
+						console.log("Max height of element", vnode.dom.offsetHeight, "Max height of children", maxHeightOfChildren)
+						if (!this._maxHeightDefer.promise.isFulfilled()) {
+							this._maxHeightDefer.resolve(maxHeightOfChildren)
+						}
 					},
 					onscroll: (ev) => {
 						// needed here to prevent flickering on ios
@@ -147,10 +151,7 @@ export class DropdownN {
 				},
 				(this._visibleChildren().map(child => {
 					if (typeof child === "string") {
-						if (child === lang.get("envelopeSenderInfo_msg")) {
-							return m(".flex-v-center.dropdown-text-height.text-break.doNotClose.selectable", child)
-						}
-						return m(".flex-v-center.center.dropdown-text-height.b.text-break.doNotClose.selectable", child)
+						return m(".dropdown-info.text-break.doNotClose.selectable", child)
 					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
 					} else {
@@ -265,13 +266,6 @@ export class DropdownN {
 			return false
 		}
 		return true
-	}
-
-	setContentHeight(domElement: HTMLElement) {
-		if (this._buttonsHeight > 0) {
-			// in ie the height of dropdown-content is too big because of the line-height. to prevent this set the height here.
-			domElement.style.height = this._buttonsHeight + "px"
-		}
 	}
 
 	/**
