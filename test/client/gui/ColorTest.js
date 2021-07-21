@@ -23,5 +23,18 @@ o.spec("color", function () {
 		o("blue is light", function () {
 			o(isColorLight("#3A9AFF")).equals(true)
 		})
+
+		o("three digit white is light", function () {
+			o(isColorLight("#FFF")).equals(true)
+
+		})
+
+		o("three digit black is dark", function () {
+			o(isColorLight("#000")).equals(false)
+		})
+
+		o("three digit cyan is light", function () {
+			o(isColorLight("#0FF")).equals(true)
+		})
 	})
 })

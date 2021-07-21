@@ -1,18 +1,16 @@
 //@flow
 
 import {assertMainOrNodeBoot} from "../../api/common/Env"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {assert} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
+// 3 or 6 digit hex color codes
+export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
+
 export function isColorLight(c: string): boolean {
-	if (c[0] !== "#" || c.length !== 7) {
-		throw new ProgrammingError("Invalid color format: " + c)
-	}
-	const rgb = parseInt(c.slice(1), 16);   // convert rrggbb to decimal
-	const r = (rgb >> 16) & 0xff  // extract red
-	const g = (rgb >> 8) & 0xff   // extract green
-	const b = (rgb >> 0) & 0xff   // extract blue
+
+	const {r, g, b} = hexToRgb(c)
 
 	// Counting the perceptive luminance
 	// human eye favors green color...
@@ -20,42 +18,23 @@ export function isColorLight(c: string): boolean {
 	return a < 0.5
 }
 
-/**
- * We use the alpha channel instead of using opacity for fading colors. Opacity changes are slow on mobile devices as they
- * effect the whole tree of the dom element with changing opacity.
- *
- * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
- */
-export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
-	if (!hexColor.startsWith("#")) {
-		throw new Error("Illegal color definition: " + hexColor)
+export function hexToRgb(colorCode: string): {r: number, g: number, b: number} {
+
+	assert(VALID_HEX_CODE_FORMAT.test(colorCode), "Invalid color code: " + colorCode)
+
+	let hexWithoutHash = colorCode.slice(1)
+	if (hexWithoutHash.length === 3) {
+		hexWithoutHash = Array.from(hexWithoutHash).reduce((acc, cur) => `${acc}${cur}${cur}`, "")   // convert from 3 to 6 digits by duplicating each digit
 	}
-	const withoutHash = hexColor.substring(1)
-	let components
-	if (withoutHash.length === 6) {
-		components = {
-			r: withoutHash.slice(0, 2),
-			g: withoutHash.slice(2, 4),
-			b: withoutHash.slice(4, 6),
-		}
-	} else if (withoutHash.length === 3) {
-		components = {
-			r: withoutHash[0] + withoutHash[0],
-			g: withoutHash[1] + withoutHash[1],
-			b: withoutHash[2] + withoutHash[2],
-		}
-	} else {
-		throw new Error("Illegal color definition: " + hexColor)
-	}
-	const rgb = {
-		r: parseInt(components.r, 16),
-		g: parseInt(components.g, 16),
-		b: parseInt(components.b, 16),
-	}
-	if (isNaN(rgb.r) || isNaN(rgb.g) || isNaN(rgb.b)) {
-		throw new Error("Illegal color definition: " + hexColor)
-	}
-	return rgb
+
+	const rgb = parseInt(hexWithoutHash, 16);   // convert rrggbb to decimal
+
+	const r = (rgb >> 16) & 0xff  // extract red
+	const g = (rgb >> 8) & 0xff   // extract green
+	const b = (rgb >> 0) & 0xff   // extract blue
+
+
+	return {r, g, b}
 }
 
 export function rgbToHex(color: {r: number, g: number, b: number}): string {
