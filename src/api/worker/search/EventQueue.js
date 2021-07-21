@@ -9,6 +9,7 @@ import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {isSameId} from "../../common/utils/EntityUtils"
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
+import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 
 export type QueuedBatch = {
 	events: EntityUpdate[], groupId: Id, batchId: Id
@@ -25,11 +26,18 @@ export type EntityModificationTypeEnum = $Values<typeof EntityModificationType>
 
 type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 
+const MOVABLE_EVENT_TYPE_REFS = [
+	// moved in MoveMailService
+	MailTypeRef,
+	// moved in SwitchAccountTypeService
+	CustomerInfoTypeRef
+]
+
 /**
  * Whether the entity of the event supports MOVE operation. MOVE is supposed to be immutable so we cannot apply it to all instances.
  */
 function isMovableEventType(event: EntityUpdate): boolean {
-	return isSameTypeRefByAttr(MailTypeRef, event.application, event.type)
+	return MOVABLE_EVENT_TYPE_REFS.some(typeRef => isSameTypeRefByAttr(typeRef, event.application, event.type))
 }
 
 /**
