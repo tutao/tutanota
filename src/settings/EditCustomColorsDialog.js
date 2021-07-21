@@ -12,11 +12,9 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {downcast} from "../api/common/utils/Utils"
+import {VALID_HEX_CODE_FORMAT} from "../gui/base/Color"
 
 assertMainOrNode()
-
-// 3 or 6 digit hex color codes
-const COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeController.getDefaultTheme())
@@ -75,7 +73,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 		for (let i = 0; i < colorFieldsAttrs.length; i++) {
 			let colorValue = colorFieldsAttrs[i].value().trim()
 			if (colorValue) {
-				if (COLOR_FORMAT.test(colorValue)) {
+				if (VALID_HEX_CODE_FORMAT.test(colorValue)) {
 					newTheme[(colorFieldsAttrs[i]: any).label()] = colorValue
 				} else {
 					Dialog.error("correctValues_msg")
@@ -104,7 +102,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 
 function getValidColorValue(colorValue: string): ?string {
 	const trimmedColorValue = colorValue.trim()
-	if (trimmedColorValue && COLOR_FORMAT.test(trimmedColorValue)) {
+	if (trimmedColorValue && VALID_HEX_CODE_FORMAT.test(trimmedColorValue)) {
 		return trimmedColorValue
 	} else {
 		return null

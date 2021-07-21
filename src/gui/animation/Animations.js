@@ -202,6 +202,12 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
 }
 
 
+/**
+ * We use the alpha channel instead of using opacity for fading colors. Opacity changes are slow on mobile devices as they
+ * effect the whole tree of the dom element with changing opacity.
+ *
+ * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
+ */
 export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: number): DomMutation {
 	let color = hexToRgb(colorHex)
 
