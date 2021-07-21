@@ -11,68 +11,85 @@ import UIKit
 @objc
 extension UIColor {
 
-  /// Convenience constructor to initialiye from the the hex color string.
+  /// Convenience constructor to initialize from a hex color string.
   /// Supported formats:
   /// #RGB
   /// #RRGGBB
   /// #RRGGBBAA
   @objc
   public convenience init?(hex: String) {
-    if hex.hasPrefix("#") {
-      let start = hex.index(hex.startIndex, offsetBy: 1)
-      var hexColor = String(hex[start...])
+    
+    var color: UInt32 = 0
+    if parseColorCode(hex, &color) {
+      let r = CGFloat(redPart(color)) / 255.0
+      let g = CGFloat(greenPart(color)) / 255.0
+      let b = CGFloat(bluePart(color)) / 255.0
+      let a = CGFloat(alphaPart(color)) / 255
 
-      if hexColor.count == 6 {
-        hexColor += "ff"
-      } else if hexColor.count == 3 {
-        hexColor = expandShortHex(hex: hexColor) + "ff"
-      } else if hexColor.count != 8 {
-        return nil
-      }
-      let r, g, b, a: CGFloat
-
-      let scanner = Scanner(string: hexColor)
-      var hexNumber: UInt64 = 0
-
-      if scanner.scanHexInt64(&hexNumber) {
-        r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
-        g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
-        b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
-        a = CGFloat(hexNumber & 0x000000ff) / 255
-
-        self.init(red: r, green: g, blue: b, alpha: a)
-        return
-      }
+      self.init(red: r, green: g, blue: b, alpha: a)
+      return
     }
+    
     return nil
   }
   
   @objc
-  public static func isColorLight(_ c: String) -> Bool {
-    assert(c.first == "#" && c.count == 7)
-    let start = c.index(c.startIndex, offsetBy: 1)
-    let hexColor = String(c[start...])
-    
-    var rgb: UInt32 = 0
-    let parsed = Scanner(string: hexColor).scanHexInt32(&rgb)   // convert rrggbb to decimal
-    assert(parsed, "Could not parse color  ")
-    let r = (rgb >> 16) & 0xff  // extract red
-    let g = (rgb >> 8) & 0xff   // extract green
-    let b = (rgb >> 0) & 0xff   // extract blue
+  public static func isColorLight(_ hexCode: String) -> Bool {
+    var rgba: UInt32 = 0
+    assert(parseColorCode(hexCode, &rgba), "Invalid color code: " + hexCode)
 
     // Counting the perceptive luminance
     // human eye favors green color...
-    let a = 1 - (0.299 * Double(r) + 0.587 * Double(g) + 0.114 * Double(b)) / 255
+    let a = 1 - (0.299 * Double(redPart(rgba)) + 0.587 * Double(greenPart(rgba)) + 0.114 * Double(bluePart(rgba))) / 255
     return a < 0.5
   }
 }
 
+
+/** Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int */
+private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UInt32>?) -> Bool {
+  if (code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9)) {
+    return false
+  }
+
+  let start = code.index(code.startIndex, offsetBy: 1)
+  var hexString = String(code[start...]).uppercased()
+  
+  // input was #RGB
+  if hexString.count == 3 {
+    hexString = expandShortHex(hex: hexString)
+  }
+  
+  // input was #RGB or #RRGGBB, set alpha channel to max
+  if hexString.count != 8 {
+    hexString += "FF"
+  }
+    
+  return Scanner(string: hexString).scanHexInt32(rrggbbaa)
+}
+
 private func expandShortHex(hex: String) -> String {
-  assert(hex.count == 3)
+  assert(hex.count == 3, "hex string must be exactly 3 characters")
 
   var hexCode = ""
   for char in hex {
     hexCode += String(repeating: char, count: 2)
   }
   return hexCode
+}
+
+private func redPart(_ rrggbbaa: UInt32) -> UInt8 {
+  return UInt8((rrggbbaa >> 24) & 0xff)
+}
+
+private func greenPart(_ rrggbbaa: UInt32) -> UInt8 {
+  return UInt8((rrggbbaa >> 16) & 0xff)
+}
+
+private func bluePart(_ rrggbbaa: UInt32) -> UInt8 {
+  return UInt8((rrggbbaa >> 8) & 0xff)
+}
+
+private func alphaPart(_ rrggbbaa: UInt32) -> UInt8 {
+  return UInt8(rrggbbaa & 0xff)
 }

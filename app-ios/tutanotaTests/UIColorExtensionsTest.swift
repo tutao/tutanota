@@ -26,4 +26,16 @@ class UIColorExtensionsTest: XCTestCase {
     func testIsColorLightBlueLight() throws {
       XCTAssertEqual(UIColor.isColorLight("#3A9AFF"), true)
     }
+  
+    func testIsThreeDigitBlackDark() throws {
+        XCTAssertEqual(UIColor.isColorLight("#000"), false)
+    }
+    
+    func testIsThreeDigitWhiteLight() throws {
+      XCTAssertEqual(UIColor.isColorLight("#FFF"), true)
+    }
+  
+  func testIsThreeDigiCyanLight() throws {
+    XCTAssertEqual(UIColor.init(hex: "#0FF").isLight(), true)
+  }
 }
