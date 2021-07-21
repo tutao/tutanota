@@ -15,7 +15,8 @@ import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
-let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
+// 3 or 6 digit hex color codes
+const COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeController.getDefaultTheme())

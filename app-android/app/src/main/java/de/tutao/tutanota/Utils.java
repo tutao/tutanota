@@ -144,14 +144,11 @@ public class Utils {
 		return map;
 	}
 
-	static boolean isColorLight(String c) {
-		if (c.charAt(0) != '#' || c.length() != 7) {
-			throw new IllegalArgumentException("Invalid color format: " + c);
-		}
-		int rgb = Integer.parseInt(c.substring(1), 16);   // convert rrggbb to decimal
-		int r = (rgb >> 16) & 0xff;  // extract red
-		int g = (rgb >> 8) & 0xff;   // extract green
-		int b = (rgb >> 0) & 0xff;   // extract blue
+	static boolean isColorLight(String color) {
+		int argb = parseColor(color);
+		int r = (argb >> 16) & 0xff;  // extract red
+		int g = (argb >> 8) & 0xff;   // extract green
+		int b = (argb >> 0) & 0xff;   // extract blue
 
 		// Counting the perceptive luminance
 		// human eye favors green color...
@@ -159,11 +156,14 @@ public class Utils {
 		return a < 0.5;
 	}
 
+	/** parse #RGB or #RRGGBB color codes into an 0xAARRGGBB int */
 	@ColorInt
 	public static int parseColor(String color) {
-		if (color.charAt(0) != '#') {
-			color = "#" + color;
+
+		if (color.charAt(0) != '#' || (color.length() != 4 && color.length() != 7)) {
+			throw new IllegalArgumentException("Invalid color format: " + color);
 		}
+
 		if (color.length() == 4) {
 			char[] chars = new char[]{
 					'#',
@@ -176,7 +176,11 @@ public class Utils {
 			};
 			color = new String(chars);
 		}
-		return Color.parseColor(color);
+
+		int rgb = Integer.parseInt(color.substring(1), 16);
+
+		// alpha channel is always max
+		return rgb | 0xff000000;
 	}
 }
 
