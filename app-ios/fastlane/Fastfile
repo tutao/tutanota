@@ -29,7 +29,6 @@ platform :ios do
     )
     build_app(
     	scheme: "tutanota-dist",
-    	xcargs: "-allowProvisioningUpdates",
 		output_directory: "releases",
 		output_name: "tutanota-" + get_version_number(target: "tutanota"),
 		include_bitcode: true,
@@ -48,17 +47,16 @@ platform :ios do
     match(app_identifier: "de.tutao.tutanota",
     	type: "adhoc",
     	verbose: false,
-    	readonly: false,
+    	readonly: true,
     	generate_apple_certs: false,
     	keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
     	api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
     )
   	build_app(scheme: "tutanota-dist",
-		xcargs: "-allowProvisioningUpdates",
 		output_directory: "releases",
 		output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
 		export_options: {
-			method: "ad-hoc",
+			method: "ad-hoc"
 		},
 		include_bitcode: true,
 		verbose: false
