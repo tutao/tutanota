@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-07-09T13:05:00Z",
+	"updated_at": "2021-07-15T13:28:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -588,7 +588,7 @@ export default {
 		"inboxRuleField_label": "Feld",
 		"inboxRuleInvalidEmailAddress_msg": "Die E-Mail-Adresse oder die Domain ist nicht gültig.",
 		"inboxRuleMailHeaderContains_action": "Header enthält",
-		"inboxRuleSenderEquals_action": "Absender",
+		"inboxRuleSenderEquals_action": "Von/Absender",
 		"inboxRulesSettings_action": "Posteingangs-Regeln",
 		"inboxRuleSubjectContains_action": "Betreff enthält",
 		"inboxRuleTargetFolder_label": "Ziel-Ordner",
@@ -1385,6 +1385,7 @@ export default {
 		"whitelabelFeature_label": "Whitelabel-Feature",
 		"whitelabelRegistrationCode_label": "Registrierungs-Code",
 		"whitelabelRegistrationEmailDomain_label": "E-Mail-Domain für Registrierung",
+		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für diesen Account erkannt. Möchtest du es jetzt anwenden?",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "Diese Option verschiebt automatisch alle über SMTP empfangenen E-Mails in den Spam-Ordner. Der Absender erhält einen Link per E-Mail, mit dem er die Absender-Domain der Whitelist hinzufügen kann. E-Mails von Domains, die sich auf der Whitelist befinden, werden nicht in den Spam-Ordner verschoben.",
 		"whitelistProtection_label": "Whitelist-Schutz",
@@ -1397,7 +1398,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für dieses Konto erkannt. Möchtest du es jetzt anwenden?"
+		"you_label": "Du"
 	}
 }

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-07-09T13:04:44Z",
+	"updated_at": "2021-07-15T13:28:06Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -133,7 +133,7 @@ export default {
 		"businessFeatureRequiredGeneral_msg": "To use this function you have to order the business feature.",
 		"businessFeatureRequiredInvite_msg": "To send event invites you have to order the business feature.",
 		"businessFeatureRequiredMultipleDomains_msg": "To add multiple custom email domains you have to order the business feature.",
-		"businessFeatureRequiredTemplates_msg": "To use templates, please first order the Business feature.",
+		"businessFeatureRequiredTemplates_msg": "The Business feature is required to use templates.",
 		"businessFeature_label": "Business feature",
 		"businessIncluded_msg": "The business feature is included.",
 		"businessOrPrivateUsage_label": "Usage",
@@ -584,7 +584,7 @@ export default {
 		"inboxRuleField_label": "Field",
 		"inboxRuleInvalidEmailAddress_msg": "Email address or domain is not valid.",
 		"inboxRuleMailHeaderContains_action": "Header contains",
-		"inboxRuleSenderEquals_action": "Sender",
+		"inboxRuleSenderEquals_action": "From/Sender",
 		"inboxRulesSettings_action": "Inbox rules",
 		"inboxRuleSubjectContains_action": "Subject contains",
 		"inboxRuleTargetFolder_label": "Target folder",
@@ -1381,6 +1381,7 @@ export default {
 		"whitelabelFeature_label": "Whitelabel feature",
 		"whitelabelRegistrationCode_label": "Registration code",
 		"whitelabelRegistrationEmailDomain_label": "Registration email domain",
+		"whitelabelThemeDetected_msg": "A custom theme has been detected for this account. Do you want to apply it now?",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "This option moves all emails received from external senders into the spam folder by default. The senders get a notification email with a link which lets them whitelist their domain. After whitelisting the emails from that domain will no longer go to the spam folder, but to the inbox.",
 		"whitelistProtection_label": "Whitelist protection",
@@ -1393,7 +1394,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"whitelabelThemeDetected_msg": "A custom color theme has been detected for this account. Do you want to apply it now?"
+		"you_label": "You"
 	}
 }

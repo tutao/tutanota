@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2021-07-09T13:05:13Z",
+	"updated_at": "2021-07-15T13:28:08Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1382,6 +1382,7 @@ export default {
 		"whitelabelFeature_label": "Whitelabel-Feature",
 		"whitelabelRegistrationCode_label": "Registrierungs-Code",
 		"whitelabelRegistrationEmailDomain_label": "E-Mail-Domain für Registrierung",
+		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für diesen Account erkannt. Möchten Sie es jetzt anwenden?",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "Diese Option verschiebt automatisch alle über SMTP empfangenen E-Mails in den Spam-Ordner. Der Absender erhält einen Link per E-Mail, mit dem er die Absender-Domain der Whitelist hinzufügen kann. E-Mails von Domains, die sich auf der Whitelist befinden, werden nicht in den Spam-Ordner verschoben.",
 		"whitelistProtection_label": "Whitelist-Schutz",
@@ -1394,7 +1395,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"whitelabelThemeDetected_msg": "Ein benutzerdefiniertes Design wurde für dieses Konto erkannt. Möchten Sie es jetzt anwenden?",
+		"you_label": "Sie"
 	}
 }

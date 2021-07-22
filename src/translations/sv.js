@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-07-09T18:33:22Z",
+	"updated_at": "2021-07-15T13:28:08Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -1380,6 +1380,7 @@ export default {
 		"whitelabelFeature_label": "Whitelabel funktion",
 		"whitelabelRegistrationCode_label": "Registreringskod",
 		"whitelabelRegistrationEmailDomain_label": "Registrering e-postdomän",
+		"whitelabelThemeDetected_msg": "Ett anpassat färgtema har upptäckts för det här kontot. Vill du använda det nu?",
 		"whitelabel_label": "Whitelabel",
 		"whitelistProtectionInfo_label": "Det här alternativet flyttar alla mejl från externa avsändare till skräppostmappen som standard. Avsändarna får ett e-post meddelande med en länk för att vitlista deras domän. Vitlistade domäners e-post kommer inte längre gå till din spam mapp utan till inkorgen.",
 		"whitelistProtection_label": "Vitlistskydd",
