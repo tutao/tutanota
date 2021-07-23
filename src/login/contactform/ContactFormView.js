@@ -75,7 +75,7 @@ class ContactFormView {
 				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
 			}, [
 				(language.pageTitle) ? m("h1.center.pt", language.pageTitle) : null,
-				m(".center", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
+				m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
 				m(".flex.justify-center", [
 					m(".max-width-m.flex-grow-shrink-auto", [
 						m(".pt-l", m(ButtonN, {
@@ -97,7 +97,7 @@ class ContactFormView {
 							: null,
 					])
 				]),
-				m(".pt-l.center", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
+				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
 				renderPrivacyAndImprintLinks()
 			])
 		} else {
