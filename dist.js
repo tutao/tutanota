@@ -428,9 +428,6 @@ async function _writeFile(targetFile, content) {
 }
 
 async function signDesktopClients() {
-	// We import `sign` asynchronously because it uses node-forge, which is unavailable during the f-droid build and causes it to fail
-	const {sign} = await import("./buildSrc/installerSigner.js")
-
 	const MAC_ZIP_SIGNATURE_FILE = 'mac-sig-zip.bin'
 	const MAC_DMG_SIGNATURE_FILE = 'mac-sig-dmg.bin'
 	const WIN_SIGNATURE_FILE = 'win-sig.bin'
@@ -440,14 +437,18 @@ async function signDesktopClients() {
 	const WIN_YML_FILE = 'latest.yml'
 	const LINUX_YML_FILE = 'latest-linux.yml'
 
-	const signIfExists = async (fileName, sigName, ymlName) => {
-		if (await fileExists(fileName)) {
-			console.log("signing", fileName)
-			sign(fileName, sigName, ymlName)
-		}
-	}
 
 	if (doSignDesktopClients()) {
+		// We import `sign` asynchronously because it uses node-forge, which is unavailable during the f-droid build and causes it to fail
+		// For some reason we call signDesktopClients always in the build process.
+		const {sign} = await import("./buildSrc/installerSigner.js")
+		const signIfExists = async (fileName, sigName, ymlName) => {
+			if (await fileExists(fileName)) {
+				console.log("signing", fileName)
+				sign(fileName, sigName, ymlName)
+			}
+		}
+
 		await signIfExists('./build/desktop/tutanota-desktop-mac.zip', MAC_ZIP_SIGNATURE_FILE, MAC_YML_FILE)
 		await signIfExists('./build/desktop/tutanota-desktop-mac.dmg', MAC_DMG_SIGNATURE_FILE, null)
 		await signIfExists('./build/desktop/tutanota-desktop-win.exe', WIN_SIGNATURE_FILE, WIN_YML_FILE)
