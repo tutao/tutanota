@@ -39,6 +39,8 @@ platform :ios do
 		upload_to_app_store(
 			skip_screenshots: true,
 			submit_for_review: false,
+			# must use force as long as we don't automatically create html previews
+			force: true,
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
     end
