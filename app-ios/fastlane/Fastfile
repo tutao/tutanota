@@ -38,7 +38,8 @@ platform :ios do
 	if options[:submit]
 		upload_to_app_store(
 			skip_screenshots: true,
-			submit_for_review: false
+			submit_for_review: false,
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
     end
   end
