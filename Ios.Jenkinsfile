@@ -36,7 +36,7 @@ pipeline {
 					def stage = params.PROD ? 'prod' : 'test'
 					def lane = params.PROD ? 'release' : 'adhoctest'
 					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
-					def fastlaneOpts = params.RELEASE ? "submit:true" : "submit:false"
+					def fastlaneOpts = params.PUBLISH ? "submit:true" : "submit:false"
 
 					sh "npm ci"
 					sh "node dist ${stage}"
@@ -60,10 +60,11 @@ pipeline {
 
 					stash includes: "app-ios/releases/${ipaFileName}", name: 'ipa'
 
-					if (params.RELEASE && params.PROD) {
+					if (params.PUBLISH && params.PROD) {
 						def tag = "tutanota-ios-release-${VERSION}"
-						sh "git tag ${tag}"
-						sh "git push --tags"
+// 						sh "git tag ${tag}"
+// 						sh "git push --tags"
+						sh "echo ${tag}"
 					}
 				}
 			}
@@ -109,7 +110,7 @@ pipeline {
 				script {
 					def util = load "jenkins-lib/util.groovy"
 					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
-					def artifactId = params.RELEASE ? "ios" : "ios-test"
+					def artifactId = params.PUBLISH ? "ios" : "ios-test"
 
 					unstash 'ipa'
 
