@@ -6,7 +6,8 @@ import {TextFieldN, Type as TextFieldType} from "./base/TextFieldN"
 import {theme} from "./theme"
 import {client} from "../misc/ClientDetector"
 import {Keys} from "../api/common/TutanotaConstants"
-import {parseTime, timeStringFromParts} from "../misc/Formatter"
+import {timeStringFromParts} from "../misc/Formatter"
+import {parseTime} from "../misc/parsing/TimeParser";
 
 export type Attrs = {
 	value: string,

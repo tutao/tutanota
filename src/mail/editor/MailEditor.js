@@ -9,7 +9,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK, parseMailtoUrl} from "../model/MailUtils"
+import {conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK} from "../model/MailUtils"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
@@ -61,6 +61,7 @@ import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
 import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
+import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser";
 
 export type MailEditorAttrs = {
 	model: SendMailModel,

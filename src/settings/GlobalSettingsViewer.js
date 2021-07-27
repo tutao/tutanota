@@ -14,7 +14,7 @@ import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import type {AuditLogEntry} from "../api/entities/sys/AuditLogEntry"
 import {AuditLogEntryTypeRef} from "../api/entities/sys/AuditLogEntry"
-import {formatDateTime, formatDateTimeFromYesterdayOn, getDomainPart} from "../misc/Formatter"
+import {formatDateTime, formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {Dialog} from "../gui/base/Dialog"
@@ -49,6 +49,7 @@ import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {getDomainPart} from "../misc/parsing/MailAddressParser";
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
