@@ -1,85 +1,75 @@
 // @flow
-
-import type {MailAddress} from "../../api/entities/tutanota/MailAddress";
-import {createMailAddress} from "../../api/entities/tutanota/MailAddress";
 import {isMailAddress} from "../FormatValidator"
+import type {Recipient, Recipients} from "../../mail/editor/SendMailModel"
 
-
-export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
-	let url = new URL(mailtoUrl)
-	let toRecipients = []
-	let ccRecipients = []
-	let bccRecipients = []
-	let addresses = url.pathname.split(",")
-	let subject = ""
-	let body = ""
-
-	let createMailAddressFromString = (address: string): ?MailAddress => {
-		let nameAndMailAddress = stringToNameAndMailAddress(address)
-		if (nameAndMailAddress) {
-			let mailAddress = createMailAddress()
-			mailAddress.name = nameAndMailAddress.name
-			mailAddress.address = nameAndMailAddress.mailAddress
-			return mailAddress
-		} else {
-			return null
-		}
-	}
-
-	addresses.forEach((address) => {
-		if (address) {
-			const decodedAddress = decodeURIComponent(address)
-			if (decodedAddress) {
-				const mailAddressObject = createMailAddressFromString(decodedAddress)
-				mailAddressObject && toRecipients.push(mailAddressObject)
-			}
-		}
-	})
-
-	if (url.searchParams && typeof url.searchParams.entries === "function") { // not supported in Edge
-		for (let pair of url.searchParams.entries()) {
-			let paramName = pair[0].toLowerCase()
-			let paramValue = pair[1]
-			if (paramName === "subject") {
-				subject = paramValue
-			} else if (paramName === "body") {
-				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
-			} else if (paramName === "cc") {
-				paramValue.split(",")
-				          .forEach((ccAddress) => {
-					          if (ccAddress) {
-						          const addressObject = createMailAddressFromString(ccAddress)
-						          addressObject && ccRecipients.push(addressObject)
-					          }
-				          })
-			} else if (paramName === "bcc") {
-				paramValue.split(",")
-				          .forEach((bccAddress) => {
-					          if (bccAddress) {
-						          const addressObject = createMailAddressFromString(bccAddress)
-						          addressObject && bccRecipients.push(addressObject)
-					          }
-				          })
-			} else if (paramName === "to") {
-				paramValue.split(",")
-				          .forEach((toAddress) => {
-					          if (toAddress) {
-						          const addressObject = createMailAddressFromString(toAddress)
-						          addressObject && toRecipients.push(addressObject)
-					          }
-				          })
-			}
-		}
-	}
-
-	return {
-		to: toRecipients,
-		cc: ccRecipients,
-		bcc: bccRecipients,
-		subject: subject,
-		body: body
-	}
+export type ParsedMailto = {
+	recipients: Recipients,
+	subject: ?string,
+	body: ?string,
+	attach: ?Array<string>
 }
+
+export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
+	let url = new URL(mailtoUrl)
+
+	const createMailAddressFromString = (address: string): ?Recipient => {
+		const nameAndMailAddress = stringToNameAndMailAddress(address)
+		if (!nameAndMailAddress) return null
+		return {
+			name: nameAndMailAddress.name,
+			address: nameAndMailAddress.mailAddress
+		}
+	}
+
+	const addresses = url.pathname.split(",").map(address => {
+		if (!address) return null
+		const decodedAddress = decodeURIComponent(address)
+		if (!decodedAddress) return null
+		return createMailAddressFromString(decodedAddress)
+	}).filter(Boolean)
+
+	const result: any = {
+		to: addresses.length > 0 ? addresses : null,
+		cc: null,
+		bcc: null,
+		attach: null,
+		subject: null,
+		body: null
+	}
+
+	if (!url.searchParams || typeof url.searchParams.entries !== "function") return result // not supported in Edge
+	for (let pair of url.searchParams.entries()) {
+		let paramName = pair[0].toLowerCase()
+		let paramValue = pair[1]
+		switch (paramName) {
+			case "subject":
+				result.subject = paramValue
+				break
+			case "body":
+				result.body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
+				break
+			case "to":
+			case "cc":
+			case "bcc":
+				if (result[paramName] == null) result[paramName] = []
+				const nextAddresses = paramValue
+					.split(",")
+					.map(address => createMailAddressFromString(address))
+					.filter(Boolean)
+				result[paramName].push(...nextAddresses)
+				break
+			case "attach":
+				if (result.attach == null) result.attach = []
+				result.attach.push(paramValue)
+				break
+			default:
+				console.warn("unexpected mailto param, ignoring")
+		}
+	}
+
+	return (result: ParsedMailto)
+}
+
 
 /**
  * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
