@@ -6,11 +6,11 @@ import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {Type} from "../gui/base/TextFieldN"
-import {getCleanedMailAddress} from "../misc/Formatter"
 import {neverNull} from "../api/common/utils/Utils"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {logins} from "../api/main/LoginController"
+import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export function showDeleteAccountDialog() {

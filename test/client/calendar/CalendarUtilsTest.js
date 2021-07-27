@@ -15,10 +15,11 @@ import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createUser} from "../../../src/api/entities/sys/User"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../../../src/api/common/TutanotaConstants"
 import {AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability} from "../../../src/api/common/TutanotaConstants"
-import {parseTime, timeStringFromParts} from "../../../src/misc/Formatter";
+import {timeStringFromParts} from "../../../src/misc/Formatter";
 import {DateTime} from "luxon"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {hasCapabilityOnGroup} from "../../../src/sharing/GroupUtils"
+import {parseTime} from "../../../src/misc/parsing/TimeParser";
 
 o.spec("calendar utils tests", function () {
 	o.spec("getCalendarMonth", function () {

@@ -60,9 +60,10 @@ import {logins} from "../../api/main/LoginController"
 import {locator} from "../../api/main/MainLocator"
 import {EntityClient} from "../../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
-import {parseTime, timeStringFromParts} from "../../misc/Formatter"
+import {timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {parseTime} from "../../misc/parsing/TimeParser";
 
 const TIMESTAMP_ZERO_YEAR = 1970
 

@@ -7,10 +7,10 @@ import {loadAll} from "../api/main/Entity"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Mode} from "../api/common/Env"
-import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
+import {stringToNameAndMailAddress} from "./parsing/MailAddressParser"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>

@@ -3,14 +3,7 @@ import o from "ospec"
 import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
-import {
-	formatDate,
-	formatNameAndAddress,
-	fullNameToFirstAndLastName,
-	getCleanedMailAddress, mailAddressToFirstAndLastName,
-	stringToNameAndMailAddress
-} from "../../../src/misc/Formatter"
-import {isMailAddress, isRegularExpression, isValidCreditCardNumber} from "../../../src/misc/FormatValidator"
+import {formatDate, formatNameAndAddress} from "../../../src/misc/Formatter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {_getNumDaysInMonth, parseBirthday, parseDate} from "../../../src/misc/DateParser";
 
@@ -98,125 +91,6 @@ o.spec("FormatterTest", function () {
 		o(() => parseDate("05/2015")).throws(Error)
 	}))
 
-	o("isStrictMailAddress", function () {
-		// test valid adresses
-		o(isMailAddress("a@b.de", true)).equals(true)
-		o(isMailAddress("a@hello.c", true)).equals(true)
-		o(isMailAddress("a.b@hello.de", true)).equals(true)
-		// test uppercase
-		o(isMailAddress("A@b.hello.de", true)).equals(true)
-		// test missing parts
-		o(isMailAddress("@b.hello.de", true)).equals(false)
-		o(isMailAddress("batello.de", true)).equals(false)
-		o(isMailAddress("ba@tello", true)).equals(false)
-		o(isMailAddress("@hello.de", true)).equals(false)
-		o(isMailAddress("a@@hello.de", true)).equals(false)
-		o(isMailAddress("a@h@hello.de", true)).equals(false)
-		o(isMailAddress("aa@.de", true)).equals(false)
-		o(isMailAddress("aa@", true)).equals(false)
-		o(isMailAddress("aa@.", true)).equals(false)
-		// test empty adresses
-		o(isMailAddress("", true)).equals(false)
-		o(isMailAddress(" ", true)).equals(false)
-		// test space at any place
-		o(isMailAddress(" ab@cd.de", true)).equals(false)
-		o(isMailAddress("a b@cb.de", true)).equals(false)
-		o(isMailAddress("ab @cb.de", true)).equals(false)
-		o(isMailAddress("ab@ cd.de", true)).equals(false)
-		o(isMailAddress("ab@c b.de", true)).equals(false)
-		o(isMailAddress("ab@cd .de", true)).equals(false)
-		o(isMailAddress("ab@cd. de", true)).equals(false)
-		o(isMailAddress("ab@cd.d e", true)).equals(false)
-		o(isMailAddress("ab@cd.de ", true)).equals(false)
-
-		// long local part
-		o(isMailAddress(new Array(64 + 1).join("a") + "@tutanota.de", true)).equals(true)
-		o(isMailAddress(new Array(65 + 1).join("a") + "@tutanota.de", true)).equals(false)
-		// long mail address
-		o(isMailAddress("aaaaaaaaaa@" + new Array(240 + 1).join("a") + ".de", true)).equals(true)
-		o(isMailAddress("aaaaaaaaaa@" + new Array(241 + 1).join("a") + ".de", true)).equals(false)
-
-		o(isMailAddress("abcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyzabcefghijklmno@cd.de", true)).equals(true)
-		o(isMailAddress("abcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyzabcefghijklmnop@cd.de", true)).equals(false)
-	})
-
-	o("isMailAddress", function () {
-		o(isMailAddress("abcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyz@cd.de", false)).equals(true)
-		o(isMailAddress("a@d.de", false)).equals(true)
-		o(isMailAddress("*@d.de", false)).equals(true)
-		o(isMailAddress("asfldawef+@d.de", false)).equals(true)
-		o(isMailAddress("asfldawef=@d.de", false)).equals(true)
-		o(isMailAddress("+@d.de", false)).equals(true)
-		o(isMailAddress("=@d.de", false)).equals(true)
-
-		o(isMailAddress("@d.de", false)).equals(false)
-		o(isMailAddress(" @d.de", false)).equals(false)
-		o(isMailAddress("\t@d.de", false)).equals(false)
-		o(isMailAddress("asdf asdf@d.de", false)).equals(false)
-		o(isMailAddress("@@d.de", false)).equals(false)
-		o(isMailAddress("a@b@d.de", false)).equals(false)
-		o(isMailAddress("abc@döh.de", false)).equals(false) // no IDNA support
-		o(isMailAddress("a,b@d.de", false)).equals(false)
-		o(isMailAddress("a)b@d.de", false)).equals(false)
-	})
-
-	o("cleanedMailAddress", function () {
-		o(getCleanedMailAddress("   a@b.de   ")).equals("a@b.de")
-		o(getCleanedMailAddress("xxxx")).equals(null)
-	})
-
-	o("stringToNameAndMailAddress", function () {
-		// test valid strings
-		o(stringToNameAndMailAddress(" a@b.de ")).deepEquals({name: "", mailAddress: "a@b.de"})
-		o(stringToNameAndMailAddress(" <a@b.de > ")).deepEquals({name: "", mailAddress: "a@b.de"})
-		o(stringToNameAndMailAddress(" Aas Bos a@b.de")).deepEquals({name: "Aas Bos", mailAddress: "a@b.de"})
-		o(stringToNameAndMailAddress(" Aas Bos  <a@b.de>")).deepEquals({name: "Aas Bos", mailAddress: "a@b.de"})
-		o(stringToNameAndMailAddress(" Aas Bos<a@b.de>")).deepEquals({name: "Aas Bos", mailAddress: "a@b.de"})
-		// test invalid strings
-		o(stringToNameAndMailAddress(" Aas Bos  <a@de>")).equals(null)
-		o(stringToNameAndMailAddress(" Aas Bos ")).equals(null)
-		o(stringToNameAndMailAddress(" Aas Bos  a@de")).equals(null)
-	})
-
-	o(" fullNameToNameAndMailAddress", function () {
-		o(fullNameToFirstAndLastName("Peter Pan")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(fullNameToFirstAndLastName("peter pan")).deepEquals({firstName: "peter", lastName: "pan"})
-		o(fullNameToFirstAndLastName("Peter Pater Pan")).deepEquals({firstName: "Peter", lastName: "Pater Pan"})
-		o(fullNameToFirstAndLastName(" Peter ")).deepEquals({firstName: "Peter", lastName: ""})
-	});
-
-	o(" mailAddressToFirstAndLastName", function () {
-		o(mailAddressToFirstAndLastName("Peter.Pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(mailAddressToFirstAndLastName("peter.pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(mailAddressToFirstAndLastName("peter_pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(mailAddressToFirstAndLastName("peter-pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(mailAddressToFirstAndLastName("peter_pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pan"})
-		o(mailAddressToFirstAndLastName("peter.pater.pan@x.de")).deepEquals({firstName: "Peter", lastName: "Pater Pan"})
-		o(mailAddressToFirstAndLastName("peter@x.de")).deepEquals({firstName: "Peter", lastName: ""})
-	})
-
-	o(" isRegularExpression", function () {
-		// no regular expressions
-		o(isRegularExpression("")).equals(false)
-		o(isRegularExpression("1")).equals(false)
-		o(isRegularExpression("$")).equals(false)
-
-		o(isRegularExpression("//")).equals(true)
-		o(isRegularExpression("/123/")).equals(true)
-		o(isRegularExpression("/[1]*/")).equals(true)
-		o(isRegularExpression("/$/")).equals(true)
-		// escaped characters
-		o(isRegularExpression("/\./")).equals(true)
-		o(isRegularExpression("/\\/")).equals(true)
-		o(isRegularExpression("/\$/")).equals(true)
-
-		// with flags
-		o(isRegularExpression("/hey/i")).equals(true)
-		o(isRegularExpression("//muy")).equals(true)
-		o(isRegularExpression("/hey/x")).equals(false)
-	})
-
-
 	o("formatNameAndAddress", function () {
 		o(formatNameAndAddress("", "", null)).equals("")
 		o(formatNameAndAddress("Bernd", "", null)).equals("Bernd")
@@ -288,56 +162,6 @@ o.spec("FormatterTest", function () {
 		o(_getNumDaysInMonth(11, 2020)).equals(30)
 		o(_getNumDaysInMonth(12, 2021)).equals(31)
 		o(_getNumDaysInMonth(12, 2020)).equals(31)
-	})
-
-	o("credit card validation", function () {
-
-		// taken from https://developers.braintreepayments.com/guides/credit-cards/testing-go-live/php
-		const goodValues = [
-			"378282246310005",
-			"371449635398431",
-			"36259600000004",
-			"6011 0009 9130 0009",
-			"3530 1113 3330 0000",
-			"6304000000000000",
-			"55555555 55554444",
-			"2223000048400011",
-			"4111111111111111",
-			"4005519200000004",
-			"400 934 888 888 188 1",
-			"4012000033330026",
-			"4012000077777777",
-			"4012888888881881",
-			"4217651111111119",
-			" 4500600000000061",
-		]
-		const badValues = [
-			"79927398710",
-			"79927398711",
-			"79 9273 98712",
-			"7992 7398 714",
-			"7992 7398715",
-			"79927398716",
-			"7992 7398 717",
-			"79927398718",
-			"79927398719",
-			"128937asd",
-			"i am not a credit card number",
-			"601100099a1300009",
-			"353011asd1333300000",
-			"630400000!000&0000",
-			"55555555d5555s 4444",
-			"a4111111111111111",
-		]
-
-		// not sure why ospec doesn't print a context message when a test fails but this is my workaround
-
-		function testCreditCardNumberValidation(val: string, isValid: boolean) {
-			o(isValidCreditCardNumber(val)).equals(isValid)(`${val} is ${isValid ? "valid" : "invalid"}`)
-		}
-
-		for (let good of goodValues) testCreditCardNumberValidation(good, true)
-		for (let bad of badValues) testCreditCardNumberValidation(bad, false)
 	})
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {

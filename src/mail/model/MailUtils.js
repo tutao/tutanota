@@ -1,7 +1,6 @@
 // @flow
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {isTutanotaMailAddress, RecipientInfoType} from "../../api/common/RecipientInfo"
-import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../../misc/Formatter"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {createContact} from "../../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../../api/entities/tutanota/ContactMailAddress"
@@ -35,8 +34,6 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {User} from "../../api/entities/sys/User"
 import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
-import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
-import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
 import type {EntityClient} from "../../api/common/EntityClient"
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
@@ -48,6 +45,7 @@ import {SysService} from "../../api/entities/sys/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
 import type {WorkerClient} from "../../api/main/WorkerClient"
+import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
@@ -207,82 +205,6 @@ export function getDefaultSenderFromUser({props, userGroupInfo}: IUserController
 		&& contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender))
 		? props.defaultSender
 		: neverNull(userGroupInfo.mailAddress)
-}
-
-export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
-	let url = new URL(mailtoUrl)
-	let toRecipients = []
-	let ccRecipients = []
-	let bccRecipients = []
-	let addresses = url.pathname.split(",")
-	let subject = ""
-	let body = ""
-
-	let createMailAddressFromString = (address: string): ?MailAddress => {
-		let nameAndMailAddress = stringToNameAndMailAddress(address)
-		if (nameAndMailAddress) {
-			let mailAddress = createMailAddress()
-			mailAddress.name = nameAndMailAddress.name
-			mailAddress.address = nameAndMailAddress.mailAddress
-			return mailAddress
-		} else {
-			return null
-		}
-	}
-
-	addresses.forEach((address) => {
-		if (address) {
-			const decodedAddress = decodeURIComponent(address)
-			if (decodedAddress) {
-				const mailAddressObject = createMailAddressFromString(decodedAddress)
-				mailAddressObject && toRecipients.push(mailAddressObject)
-			}
-		}
-	})
-
-	if (url.searchParams && typeof url.searchParams.entries === "function") { // not supported in Edge
-		for (let pair of url.searchParams.entries()) {
-			let paramName = pair[0].toLowerCase()
-			let paramValue = pair[1]
-			if (paramName === "subject") {
-				subject = paramValue
-			} else if (paramName === "body") {
-				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
-			} else if (paramName === "cc") {
-				paramValue.split(",")
-				          .forEach((ccAddress) => {
-					          if (ccAddress) {
-						          const addressObject = createMailAddressFromString(ccAddress)
-						          addressObject && ccRecipients.push(addressObject)
-					          }
-				          })
-			} else if (paramName === "bcc") {
-				paramValue.split(",")
-				          .forEach((bccAddress) => {
-					          if (bccAddress) {
-						          const addressObject = createMailAddressFromString(bccAddress)
-						          addressObject && bccRecipients.push(addressObject)
-					          }
-				          })
-			} else if (paramName === "to") {
-				paramValue.split(",")
-				          .forEach((toAddress) => {
-					          if (toAddress) {
-						          const addressObject = createMailAddressFromString(toAddress)
-						          addressObject && toRecipients.push(addressObject)
-					          }
-				          })
-			}
-		}
-	}
-
-	return {
-		to: toRecipients,
-		cc: ccRecipients,
-		bcc: bccRecipients,
-		subject: subject,
-		body: body
-	}
 }
 
 export function getFolderName(folder: MailFolder): string {

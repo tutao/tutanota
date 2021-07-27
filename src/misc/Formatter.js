@@ -3,7 +3,6 @@ import {lang} from "./LanguageViewModel"
 import {assertMainOrNode} from "../api/common/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
-import {isMailAddress} from "./FormatValidator"
 import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {TimeFormat} from "../api/common/TutanotaConstants"
 import {pad} from "../api/common/utils/StringUtils";
@@ -92,115 +91,6 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 
 
 /**
- * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
- * Additionally, whitespaces at any positions outside name and mailAddress are ignored.
- * @param string The string to check.
- * @return an object with the attributes "name" and "mailAddress" or null if nothing was found.
- */
-export function stringToNameAndMailAddress(string: string): ?{name: string, mailAddress: string} {
-	string = string.trim()
-	if (string === "") {
-		return null
-	}
-	let startIndex = string.indexOf("<")
-	if (startIndex !== -1) {
-		const endIndex = string.indexOf(">", startIndex)
-		if (endIndex === -1) {
-			return null
-		}
-		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
-
-		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
-			return null
-		}
-		const name = string.substring(0, startIndex).trim()
-		return {name: name, mailAddress: cleanedMailAddress}
-	} else {
-		startIndex = string.lastIndexOf(" ")
-		startIndex++
-		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
-		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
-			return null
-		}
-		const name = string.substring(0, startIndex).trim()
-		return {name: name, mailAddress: cleanedMailAddress}
-	}
-}
-
-/**
- * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
- * the address to lower case.
- * @param mailAddress The input mail address.
- * @return The cleaned mail address.
- */
-export function getCleanedMailAddress(mailAddress: string): ?string {
-	var cleanedMailAddress = mailAddress.toLowerCase().trim()
-	if (isMailAddress(cleanedMailAddress, false)) {
-		return cleanedMailAddress
-	}
-	return null
-}
-
-
-export function getDomainPart(mailAddress: string): ?string {
-	const cleanedMailAddress = getCleanedMailAddress(mailAddress)
-	if (cleanedMailAddress) {
-		const parts = mailAddress.split("@");
-		if (parts.length === 2) {
-			return parts[1]
-		} else {
-			null
-		}
-	} else {
-		return null;
-	}
-}
-
-/**
- * Parses the given string for a fist name and a last name separated by whitespace. If there is only one part it is regarded as first name. If there are more than two parts, only the first one is regarded as first name.
- * @param fullName The full name to check.
- * @return Returns an object with the attributes "firstName" and "lastName".
- */
-export function fullNameToFirstAndLastName(fullName: string): {firstName: string, lastName: string} {
-	fullName = fullName.trim()
-	if (fullName === "") {
-		return {firstName: "", lastName: ""}
-	}
-	var separator = fullName.indexOf(" ")
-	if (separator !== -1) {
-		return {firstName: fullName.substring(0, separator), lastName: fullName.substring(separator + 1)}
-	} else {
-		return {firstName: fullName, lastName: ""}
-	}
-}
-
-/**
- * Parses the given email address for a fist name and a last name separated by whitespace, comma, dot or underscore.
- * @param mailAddress The email address to check.
- * @return Returns an object with the attributes "firstName" and "lastName".
- */
-export function mailAddressToFirstAndLastName(mailAddress: string): {firstName: string, lastName: string} {
-	var addr = mailAddress.substring(0, mailAddress.indexOf("@"))
-	var nameData = []
-	if (addr.indexOf(".") !== -1) {
-		nameData = addr.split(".")
-	} else if (addr.indexOf("_") !== -1) {
-		nameData = addr.split("_")
-	} else if (addr.indexOf("-") !== -1) {
-		nameData = addr.split("-")
-	} else {
-		nameData = [addr]
-	}
-	// first character upper case
-	for (let i = 0; i < nameData.length; i++) {
-		if (nameData[i].length > 0) {
-			nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1)
-		}
-	}
-	return {firstName: nameData[0], lastName: nameData.slice(1).join(" ")}
-}
-
-/**
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  */
 export function formatStorageSize(sizeInBytes: number): string {
@@ -265,55 +155,6 @@ export function timeStringFromParts(hours: number, minutes: number, amPm: boolea
 		let hoursString = pad(hours, 2)
 		return hoursString + ":" + minutesString
 	}
-}
-
-/**
- * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
- */
-export function parseTime(timeString: string): ?{hours: number, minutes: number} {
-	let suffix  // am/pm indicator or undefined
-	let hours   // numeric hours
-	let minutes // numeric minutes
-	// See if the time includes a colon separating hh:mm
-	let mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-	if (mt != null) {
-		suffix = mt[3]
-		hours = parseInt(mt[1], 10)
-		minutes = parseInt(mt[2], 10)
-	} else {
-		// Interpret 127am as 1:27am or 2311 as 11:11pm, e.g.
-		mt = timeString.match(/^(\d{1,4})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-		if (mt != null) {
-			suffix = mt[2]
-			const digits = mt[1]
-			// Hours only?
-			if (digits.length <= 2) {
-				hours = parseInt(digits, 10)
-				minutes = 0
-			} else {
-				hours = parseInt(digits.substr(0, digits.length - 2), 10)
-				minutes = parseInt(digits.substr(-2, 2), 10)
-			}
-		} else {
-			return null
-		}
-	}
-	if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
-		return null
-	}
-	if (suffix) {
-		suffix = suffix.toUpperCase()
-	}
-	if (suffix === "PM" || suffix === "P.M.") {
-		if (hours > 12) return null
-		if (hours !== 12) hours = hours + 12
-	} else if (suffix === "AM" || suffix === "A.M.") {
-		if (hours > 12) return null
-		if (hours === 12) hours = 0
-	} else if (hours > 23) {
-		return null
-	}
-	return {hours, minutes}
 }
 
 export function formatMailAddressFromParts(name: string, domain: string): string {
