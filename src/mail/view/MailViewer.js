@@ -914,7 +914,10 @@ export class MailViewer {
 		}
 
 		const externalImageRule = await worker.getExternalImageRule(mail.sender.address)
-		                                      .catch(e => ExternalImageRule.None)
+		                                      .catch(e => {
+			                                      console.log("Error getting external image rule:", e)
+			                                      return ExternalImageRule.None
+		                                      })
 		const isAllowedAndAuthenticatedExternalSender = externalImageRule === ExternalImageRule.Allow
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
@@ -1682,7 +1685,7 @@ export class MailViewer {
 	}
 
 	_renderExternalContentBanner(): ?Children {
-		if (this._contentBlockingStatus !== ContentBlockingStatus.Block) {
+		if (this.isBlockingExternalImages()) {
 			return null
 		}
 
@@ -1708,7 +1711,7 @@ export class MailViewer {
 
 		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
 		const maybeDropdownButtons = styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
-			? [ moreButton(alwaysOrNeverAllowButtons, 216) ]
+			? [moreButton(alwaysOrNeverAllowButtons, 216)]
 			: alwaysOrNeverAllowButtons
 
 		return m(InfoBanner, {

@@ -30,7 +30,7 @@ export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLab
 	return countryInput
 }
 
-export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, width?: number): ButtonAttrs {
+export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, dropdownWidth?: number): ButtonAttrs {
 	return attachDropdown({
 			label: "more_label",
 			colors: ButtonColors.Nav,
@@ -43,7 +43,7 @@ export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?D
 			: Object.assign({}, {type: ButtonType.Dropdown}, child))
 		),
 		() => true,
-		width)
+		dropdownWidth)
 }
 
 
