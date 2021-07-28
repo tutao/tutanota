@@ -51,7 +51,7 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) TUTUserPreferenceFacade *userPreferences;
 @property (readonly, nonnull) TUTAlarmManager *alarmManager;
 @property (readonly, nonnull) ThemeManager *themeManager;
-@property BOOL darkTheme;
+@property BOOL isDarkTheme;
 @end
 
 @implementation TUTViewController
@@ -72,7 +72,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
         _keychainManager = [TUTKeychainManager new];
         _userPreferences = preferenceFacade;
         _alarmManager = alarmManager;
-        _darkTheme = NO;
+        _isDarkTheme = NO;
 	}
 	return self;
 }
@@ -121,21 +121,21 @@ alarmManager:(TUTAlarmManager *)alarmManager
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
   let theme = [_themeManager currentThemeWithFallback];
   [self applyTheme:theme];
-  
-    if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
-        [self.appDelegate.alarmManager resetStoredState];
-    } else {
-        [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
-            if (error) {
-                TUTLog(@"Failed to fetch/process missed notifications: %@", error);
-            } else {
-                TUTLog(@"Successfully processed missed notifications");
-            }
-        }];
-        [self.appDelegate.alarmManager rescheduleAlarms];
-    }
 
-    [self loadMainPageWithParams:[NSDictionary new]];
+  if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
+      [self.appDelegate.alarmManager resetStoredState];
+  } else {
+      [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
+          if (error) {
+              TUTLog(@"Failed to fetch/process missed notifications: %@", error);
+          } else {
+              TUTLog(@"Successfully processed missed notifications");
+          }
+      }];
+      [self.appDelegate.alarmManager rescheduleAlarms];
+  }
+
+  [self loadMainPageWithParams:[NSDictionary new]];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -296,6 +296,8 @@ alarmManager:(TUTAlarmManager *)alarmManager
   } else if ([@"setThemes" isEqualToString:type]) {
     NSArray<NSDictionary<NSString *, NSString*> *> *themes = arguments[0];
     _themeManager.themes = themes;
+    // reapply the current theme in case the definition has changed
+    [self applyTheme:_themeManager.currentTheme];
     sendResponseBlock(NSNull.null, nil);
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
@@ -327,7 +329,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
   let queryParams = [NSURLQueryItem fromDict:mutableParams];
   let components = [NSURLComponents componentsWithURL:fileUrl resolvingAgainstBaseURL:NO];
   components.queryItems = queryParams;
-  
+
   let url = components.URL;
   [_webView loadFileURL:url allowingReadAccessToURL:folderUrl];
 }
@@ -391,14 +393,14 @@ alarmManager:(TUTAlarmManager *)alarmManager
 
 - (nonnull NSURL *)appUrl {
     NSDictionary *environment = [[NSProcessInfo processInfo] environment];
-    
+
     NSString *pagePath;
     if (environment[@"TUT_PAGE_PATH"]) {
         pagePath = environment[@"TUT_PAGE_PATH"];
     } else {
         pagePath = NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"];
     }
-    
+
 	let path = [NSBundle.mainBundle pathForResource:[NSString stringWithFormat:@"%@%@", pagePath, @"index-app"] ofType:@"html"];
 	// For running tests
 	if (path == nil) {
@@ -410,9 +412,9 @@ alarmManager:(TUTAlarmManager *)alarmManager
 - (void)webView:(WKWebView *)webView
 decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-  
+
   var requestUrl = navigationAction.request.URL;
-  
+
   if ([requestUrl.scheme isEqualToString:@"file"]  // check if request url is the appUrl possible with query parameters
       && [requestUrl.path isEqualToString:self.appUrl.path]) {
     decisionHandler(WKNavigationActionPolicyAllow);
@@ -514,7 +516,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
-    if (_darkTheme) {
+    if (self.isDarkTheme) {
         return UIStatusBarStyleLightContent;
     } else {
         // Since iOS 13 UIStatusBarStyleDefault respects dark mode and we just want dark text
@@ -527,9 +529,12 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 }
 
 - (void)applyTheme:(NSDictionary<NSString *,NSString *> *_Nonnull)theme {
+  // We use content_bg instead of header_bg to detect the lightness,
+  // because unlike in Android, we can't manually set the status bar colour (at least not using official APIs)
+  // and the status bar will be the same colour as the webview background (because it is transparent)
   NSString *contentBgString = theme[@"content_bg"];
   let contentBg = [[UIColor alloc] initWithHex:contentBgString];
-  self.darkTheme = ![contentBg isLight];
+  self.isDarkTheme = ![contentBg isLight];
   self.view.backgroundColor = contentBg;
   [self setNeedsStatusBarAppearanceUpdate];
 }
