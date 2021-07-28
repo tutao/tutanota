@@ -112,7 +112,7 @@ export class ContactFormRequestDialog {
 			value: stream(this._subject),
 			helpLabel: this.getConfidentialStateMessage,
 			injectionsRight: () => [attachFilesButton],
-			oninput: (value) => this._subject = value.trim()
+			oninput: (value) => this._subject = value
 		})
 
 		const notificationEmailAddress = m(TextFieldN, {
