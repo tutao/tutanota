@@ -2,7 +2,7 @@
 import type {WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {defer, objToError} from '../api/common/utils/Utils.js'
+import {defer, mapNullable, objToError} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
@@ -25,6 +25,7 @@ import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {ThemeManager} from "./ThemeManager"
+import type {ThemeId} from "../gui/theme"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -322,12 +323,7 @@ export class IPC {
 				if (typeof newThemeId !== "string") {
 					return Promise.reject(new ProgrammingError(`Argument is not a string for ${method}, ${typeof args[0]}`))
 				}
-
-				await this._themeManager.setSelectedThemeId(newThemeId);
-
-				for (const window of this._wm.getAll()) {
-					await window.updateBackgroundColor()
-				}
+				await this._applyTheme(newThemeId)
 				return
 			}
 			case 'getThemes': {
@@ -338,10 +334,21 @@ export class IPC {
 				if (!Array.isArray(themes)) {
 					return Promise.reject(new ProgrammingError("Argument is not an array"))
 				}
-				return this._themeManager.setThemes(themes)
+
+				await this._themeManager.setThemes(themes)
+				await mapNullable(await this._themeManager.getSelectedThemeId(), id => this._applyTheme(id))
+				return
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
+		}
+	}
+
+	async _applyTheme(newThemeId: ThemeId) {
+		await this._themeManager.setSelectedThemeId(newThemeId);
+
+		for (const window of this._wm.getAll()) {
+			await window.updateBackgroundColor()
 		}
 	}
 
