@@ -134,7 +134,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
         }];
         [self.appDelegate.alarmManager rescheduleAlarms];
     }
-    
+
     [self loadMainPageWithParams:[NSDictionary new]];
 }
 
@@ -528,7 +528,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 - (void)applyTheme:(NSDictionary<NSString *,NSString *> *_Nonnull)theme {
   NSString *contentBgString = theme[@"content_bg"];
   let contentBg = [[UIColor alloc] initWithHex:contentBgString];
-  self.darkTheme = ![UIColor isColorLight:contentBgString];
+  self.darkTheme = ![contentBg isLight];
   self.view.backgroundColor = contentBg;
   [self setNeedsStatusBarAppearanceUpdate];
 }

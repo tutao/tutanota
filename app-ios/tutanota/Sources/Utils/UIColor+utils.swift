@@ -9,7 +9,7 @@
 import UIKit
 
 @objc
-extension UIColor {
+public extension UIColor {
 
   /// Convenience constructor to initialize from a hex color string.
   /// Supported formats:
@@ -17,7 +17,7 @@ extension UIColor {
   /// #RRGGBB
   /// #RRGGBBAA
   @objc
-  public convenience init?(hex: String) {
+  convenience init?(hex: String) {
     
     var color: UInt32 = 0
     if parseColorCode(hex, &color) {
@@ -34,14 +34,21 @@ extension UIColor {
   }
   
   @objc
-  public static func isColorLight(_ hexCode: String) -> Bool {
-    var rgba: UInt32 = 0
-    assert(parseColorCode(hexCode, &rgba), "Invalid color code: " + hexCode)
+  func isLight() -> Bool {
+    var r: CGFloat = 0
+    var g: CGFloat = 0
+    var b: CGFloat = 0
+    
+    let success: Bool = self.getRed(&r, green: &g, blue: &b, alpha: nil)
+
+    // lines with assertions are removed in release builds
+    assert(success, "Invalid UI Color")
+    
 
     // Counting the perceptive luminance
     // human eye favors green color...
-    let a = 1 - (0.299 * Double(redPart(rgba)) + 0.587 * Double(greenPart(rgba)) + 0.114 * Double(bluePart(rgba))) / 255
-    return a < 0.5
+    let lightness = 0.299*r  + 0.587*g + 0.114*b
+    return lightness >= 0.5
   }
 }
 
@@ -64,7 +71,7 @@ private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UIn
   if hexString.count != 8 {
     hexString += "FF"
   }
-    
+
   return Scanner(string: hexString).scanHexInt32(rrggbbaa)
 }
 
