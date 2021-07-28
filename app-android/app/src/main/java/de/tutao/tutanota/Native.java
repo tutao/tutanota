@@ -286,6 +286,7 @@ public final class Native {
 				case "setThemes": {
 					JSONArray jsonThemes = args.getJSONArray(0);
 					this.themeManager.setThemes(jsonThemes);
+					activity.applyTheme();    // reapply theme in case the current selected theme definition has changed
 					promise.resolve(null);
 					break;
 				}
