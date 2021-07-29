@@ -1398,6 +1398,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"attachmentWarning_msg": "Eine andere Anwendung möchte die folgenden Dateien an eine neue E-Mail anhängen:"
 	}
 }

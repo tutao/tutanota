@@ -283,7 +283,14 @@ export class Dialog implements ModalComponent {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | () => Children): Promise<void> {
+	/**
+	 * show a dialog with only a "ok" button
+	 *
+	 * @param messageIdOrMessageFunction {TranslationKey | lazy<string>} the text to display
+	 * @param infoToAppend {?string | lazy<Children>} some text or UI elements to show below the message
+	 * @returns {Promise<void>} a promise that resolves after the dialog is fully closed
+	 */
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | lazy<Children>): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
@@ -367,17 +374,23 @@ export class Dialog implements ModalComponent {
 	 * Simpler version of {@link Dialog#confirmMultiple} with just two options: no and yes (or another confirmation).
 	 * @return Promise, which is resolved with user selection - true for confirm, false for cancel.
 	 */
-	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action"): Promise<boolean> {
+	static confirm(
+		messageIdOrMessageFunction: TranslationKey | lazy<string>,
+		confirmId: TranslationKey = "ok_action",
+		infoToAppend?: string | lazy<Children>
+	): Promise<boolean> {
 		return new Promise(resolve => {
 			const closeAction = conf => {
 				dialog.close()
 				setTimeout(() => resolve(conf), DefaultAnimationTime)
 			}
+
 			const buttonAttrs: Array<ButtonAttrs> = [
 				{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
 				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary},
 			]
-			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve)
+
+			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve, infoToAppend)
 		})
 	}
 
@@ -390,19 +403,29 @@ export class Dialog implements ModalComponent {
 	 * @param enableConfirmShortcut whether or not the enter key should be a shortcut to trigger confirmation, otherwise it will count as a
 	 *                              click on whichever button is selected
 	 * one of the buttons.
+	 * @param infoToAppend additional UI elements to show below the message
 	 */
-	static confirmMultiple(messageIdOrMessageFunction: TranslationKey | lazy<string>, buttons: $ReadOnlyArray<ButtonAttrs>,
-	                       onclose?: (positive: boolean) => mixed, enableConfirmShortcut?: boolean): Dialog {
+	static confirmMultiple(
+		messageIdOrMessageFunction: TranslationKey | lazy<string>,
+		buttons: $ReadOnlyArray<ButtonAttrs>,
+		onclose?: (positive: boolean) => mixed,
+		infoToAppend?: string | lazy<Children>): Dialog {
 		let dialog: Dialog
 		const closeAction = (positive) => {
 			dialog.close()
 			setTimeout(() => onclose && onclose(positive), DefaultAnimationTime)
 		}
 
+		let content = [lang.getMaybeLazy(messageIdOrMessageFunction)]
+		if (typeof infoToAppend === "string") {
+			content = content.concat(m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
+		} else if (typeof infoToAppend === "function") {
+			content = content.concat(infoToAppend())
+		}
+
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
-					lang.getMaybeLazy(messageIdOrMessageFunction)),
+				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", content),
 				m(".flex-center.dialog-buttons", buttons.map(a => m(ButtonN, a)))
 			]
 		}).setCloseHandler(() => closeAction(false))

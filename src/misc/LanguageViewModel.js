@@ -464,7 +464,7 @@ export function getLanguageNoDefault(restrictions: ?LanguageCode[]): ?{code: Lan
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguage(restrictions: ?LanguageCode[]): {code: LanguageCode, languageTag: string} { // TODO: change from string to LanguageCode
+export function getLanguage(restrictions: ?LanguageCode[]): {code: LanguageCode, languageTag: string} {
 	const language = getLanguageNoDefault(restrictions)
 	if (language) return language
 
