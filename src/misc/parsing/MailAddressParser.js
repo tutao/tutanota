@@ -29,9 +29,11 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 	}).filter(Boolean)
 
 	const result: any = {
-		to: addresses.length > 0 ? addresses : null,
-		cc: null,
-		bcc: null,
+		recipients: {
+			to: addresses.length > 0 ? addresses : undefined,
+			cc: undefined,
+			bcc: undefined
+		},
 		attach: null,
 		subject: null,
 		body: null
@@ -51,12 +53,12 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 			case "to":
 			case "cc":
 			case "bcc":
-				if (result[paramName] == null) result[paramName] = []
+				if (result.recipients[paramName] == null) result.recipients[paramName] = []
 				const nextAddresses = paramValue
 					.split(",")
 					.map(address => createMailAddressFromString(address))
 					.filter(Boolean)
-				result[paramName].push(...nextAddresses)
+				result.recipients[paramName].push(...nextAddresses)
 				break
 			case "attach":
 				if (result.attach == null) result.attach = []
@@ -67,7 +69,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 		}
 	}
 
-	return (result: ParsedMailto)
+	return result
 }
 
 

@@ -10,6 +10,7 @@ import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {delay} from "../api/common/utils/PromiseUtils"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import url from "url"
 
 export class DesktopUtils {
 
@@ -31,6 +32,24 @@ export class DesktopUtils {
 	 */
 	touch(path: string): void {
 		this._fs.closeSync(this._fs.openSync(path, 'a'))
+	}
+
+	async readDataFile(uriOrPath: string): Promise<DataFile> {
+		try {
+			uriOrPath = url.fileURLToPath(uriOrPath)
+		} catch (e) {
+			// the thing already was a path, or at least not an URI
+		}
+		const data = await this._fs.promises.readFile(uriOrPath)
+		const name = path.basename(uriOrPath)
+		return {
+			_type: "DataFile",
+			data,
+			name,
+			mimeType: "application/octet-stream",
+			size: data.length,
+			id: null
+		}
 	}
 
 	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {

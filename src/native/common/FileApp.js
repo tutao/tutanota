@@ -14,7 +14,7 @@ export const fileApp = {
 	open,
 	deleteFile,
 	clearFileData,
-	readFile,
+	readDataFile,
 	saveBlob,
 	mailToMsg,
 	saveToExportDir,
@@ -121,8 +121,8 @@ function clearFileData(): Promise<any> {
 	return nativeApp.invokeNative(new Request("clearFileData", []))
 }
 
-function readFile(path: string): Promise<Base64> {
-	return nativeApp.invokeNative(new Request("readFile", [path]))
+function readDataFile(uriOrPath: string): Promise<?DataFile> {
+	return nativeApp.invokeNative(new Request("readDataFile", [uriOrPath]))
 }
 
 export function uriToFileRef(uri: string): Promise<FileReference> {
@@ -160,4 +160,17 @@ function saveToExportDir(file: DataFile): Promise<void> {
 
 function checkFileExistsInExportDirectory(path: string): Promise<boolean> {
 	return nativeApp.invokeNative(new Request("checkFileExistsInExportDirectory", [path]))
+}
+
+export function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
+	return Promise.all(filesUris.map(uri =>
+		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
+			return {
+				_type: "FileReference",
+				name,
+				mimeType,
+				size,
+				location: uri
+			}
+		})));
 }

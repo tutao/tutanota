@@ -228,6 +228,26 @@ export class FileController {
 	}
 
 	/**
+	 * take a file location in the form of
+	 *   * a uri like file:///home/user/cat.jpg
+	 *   * an absolute file path like C:\Users\cat.jpg
+	 * and return a DataFile populated
+	 * with data and metadata of that file on disk.
+	 *
+	 * returns null
+	 *   * if not invoked in desktop client
+	 *     * browser doesn't have access to disk
+	 *     * apps use FileRefs
+	 *   * if file can't be opened for any reason
+	 *   * if path is not absolute
+	 */
+	async getDataFile(uriOrPath: string): Promise<?DataFile> {
+		if (!isDesktop()) return null
+		const {fileApp} = await import("../native/common/FileApp")
+		return fileApp.readDataFile(uriOrPath)
+	}
+
+	/**
 	 * Does not delete temporary file in app.
 	 */
 	open(file: DataFile | FileReference): Promise<void> {
