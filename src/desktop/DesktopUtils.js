@@ -34,22 +34,32 @@ export class DesktopUtils {
 		this._fs.closeSync(this._fs.openSync(path, 'a'))
 	}
 
-	async readDataFile(uriOrPath: string): Promise<DataFile> {
+	/**
+	 * try to read a file into a DataFile. return null if it fails.
+	 * @param uriOrPath a file path or a file URI to read the data from
+	 * @returns {Promise<null|DataFile>}
+	 */
+	async readDataFile(uriOrPath: string): Promise<?DataFile> {
 		try {
 			uriOrPath = url.fileURLToPath(uriOrPath)
 		} catch (e) {
 			// the thing already was a path, or at least not an URI
 		}
-		const data = await this._fs.promises.readFile(uriOrPath)
-		const name = path.basename(uriOrPath)
-		return {
-			_type: "DataFile",
-			data,
-			name,
-			mimeType: "application/octet-stream",
-			size: data.length,
-			id: null
+		try {
+			const data = await this._fs.promises.readFile(uriOrPath)
+			const name = path.basename(uriOrPath)
+			return {
+				_type: "DataFile",
+				data,
+				name,
+				mimeType: "application/octet-stream",
+				size: data.length,
+				id: null
+			}
+		} catch (e) {
+			return null
 		}
+
 	}
 
 	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {

@@ -651,14 +651,32 @@ export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaF
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 	const mailbox = await _mailboxPromise(mailboxDetails)
 	const mailTo = parseMailtoUrl(mailtoUrl)
-	const dataFiles = await Promise.all((mailTo.attach || []).map(uri => fileController.getDataFile(uri)))
+	let dataFiles = []
+
+	if (mailTo.attach) {
+		const attach = mailTo.attach
+		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri))))
+
+		// make sure the user is aware that (and which) files have been attached
+		const keepAttachments = dataFiles.filter(Boolean).length === 0 || await Dialog.confirm(
+			"attachmentWarning_msg",
+			"attachFiles_action",
+			() => dataFiles.map((df, i) => df && m(".text-break.selectable.mt-xs", {
+				title: attach[i]
+			}, df.name)).filter(Boolean)
+		)
+
+		dataFiles = keepAttachments
+			? dataFiles.filter(Boolean)
+			: []
+	}
 
 	return newMailEditorFromTemplate(
 		mailbox,
 		mailTo.recipients,
 		mailTo.subject || "",
 		appendEmailSignature(mailTo.body || "", logins.getUserController().props),
-		dataFiles.filter(Boolean),
+		dataFiles,
 		confidential
 	)
 }

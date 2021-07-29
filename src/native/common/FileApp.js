@@ -162,15 +162,15 @@ function checkFileExistsInExportDirectory(path: string): Promise<boolean> {
 	return nativeApp.invokeNative(new Request("checkFileExistsInExportDirectory", [path]))
 }
 
-export function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
-	return Promise.all(filesUris.map(uri =>
-		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
-			return {
-				_type: "FileReference",
-				name,
-				mimeType,
-				size,
-				location: uri
-			}
-		})));
+export function getFilesMetaData(filesUris: string[]): Promise<Array<FileReference>> {
+	return promiseMap(filesUris, async uri => {
+		const [name, mimeType, size] = await Promise.all([getName(uri), getMimeType(uri), getSize(uri)])
+		return {
+			_type: "FileReference",
+			name,
+			mimeType,
+			size,
+			location: uri
+		}
+	})
 }

@@ -1,6 +1,6 @@
 // @flow
 import {Request} from "../../api/common/WorkerProtocol"
-import {getFilesData} from "../common/FileApp"
+import {getFilesMetaData} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
@@ -32,22 +32,21 @@ async function createMailEditor(msg: Request): Promise<void> {
 	await logins.waitForUserLogin()
 
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+	let editor
 	if (mailToUrl) {
-		const editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
-		editor.show()
-		return
+		editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
+	} else {
+		const files = await getFilesMetaData(filesUris)
+		const address = addresses && addresses[0] || ""
+		const recipients = address ? {to: [{name: "", address: address}]} : {}
+		editor = await newMailEditorFromTemplate(
+			mailboxDetails,
+			recipients,
+			subject || (files.length > 0 ? files[0].name : ""),
+			signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+			files
+		)
 	}
-
-	const files = await getFilesData(filesUris)
-	const address = addresses && addresses[0] || ""
-	const recipients = address ? {to: [{name: "", address: address}]} : {}
-	const editor = await newMailEditorFromTemplate(
-		mailboxDetails,
-		recipients,
-		subject || (files.length > 0 ? files[0].name : ""),
-		signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-		files
-	)
 	editor.show()
 }
 
@@ -109,19 +108,6 @@ const addShortcuts = (msg: any): Promise<void> => {
 	return import('../../misc/KeyManager.js').then(module => {
 		module.keyManager.registerDesktopShortcuts(msg.args)
 	})
-}
-
-function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
-	return Promise.all(filesUris.map(uri =>
-		Promise.all([getName(uri), getMimeType(uri), getSize(uri)]).then(([name, mimeType, size]) => {
-			return {
-				_type: "FileReference",
-				name,
-				mimeType,
-				size,
-				location: uri
-			}
-		})));
 }
 
 function reportError(msg: Request): Promise<*> {

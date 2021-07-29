@@ -9,6 +9,15 @@ export type ParsedMailto = {
 	attach: ?Array<string>
 }
 
+/**
+ * takes a URL of the form mailto:a@b.c?body=hello%20world&attach=file:///home/user/cute%20cat.jpg&attach=file:///home/user/ugly%20dog.jpg
+ * and returns an object representing the structured information that should be passed to the mail editor for this URL
+ *
+ * if a param is not given, it is set to null. if it is given, but empty, it will be set to an empty string/array.
+ *
+ * @param mailtoUrl {string}
+ * @returns {ParsedMailto}
+ */
 export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 	let url = new URL(mailtoUrl)
 
@@ -130,7 +139,7 @@ export function getDomainPart(mailAddress: string): ?string {
 		if (parts.length === 2) {
 			return parts[1]
 		} else {
-			null
+			return null
 		}
 	} else {
 		return null;
@@ -161,8 +170,8 @@ export function fullNameToFirstAndLastName(fullName: string): {firstName: string
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
 export function mailAddressToFirstAndLastName(mailAddress: string): {firstName: string, lastName: string} {
-	var addr = mailAddress.substring(0, mailAddress.indexOf("@"))
-	var nameData = []
+	const addr = mailAddress.substring(0, mailAddress.indexOf("@"))
+	let nameData = []
 	if (addr.indexOf(".") !== -1) {
 		nameData = addr.split(".")
 	} else if (addr.indexOf("_") !== -1) {
