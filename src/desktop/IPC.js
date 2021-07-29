@@ -192,6 +192,10 @@ export class IPC {
 				// itemPath, mimeType
 				const itemPath = args[0].toString()
 				return this._dl.open(itemPath)
+			case "readDataFile": {
+				const location = args[0]
+				return this._desktopUtils.readDataFile(location)
+			}
 			case 'download':
 				// sourceUrl, filename, headers
 				return this._dl.downloadNative(...args.slice(0, 3))

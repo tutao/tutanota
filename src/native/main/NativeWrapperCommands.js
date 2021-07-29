@@ -1,34 +1,53 @@
 // @flow
 import {Request} from "../../api/common/WorkerProtocol"
-import {getMimeType, getName, getSize} from "../common/FileApp"
+import {getFilesData} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 
+/**
+ * create a mail editor as requested from the native side, ie because a
+ * mailto-link was clicked or the "Send as mail" option
+ * in LibreOffice/Windows Explorer was used.
+ *
+ * if a mailtoUrl is given:
+ *  * the other arguments will be ignored.
+ *  * confidential will be set to false
+ *
+ */
 async function createMailEditor(msg: Request): Promise<void> {
+	const [
+		{locator},
+		{newMailEditorFromTemplate, newMailtoUrlMailEditor},
+		{logins},
+		signatureModule
+	] = await Promise.all([
+		import('../../api/main/MainLocator.js'),
+		import('../../mail/editor/MailEditor.js'),
+		import('../../api/main/LoginController.js'),
+		import("../../mail/signature/Signature")
+	])
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
-
-	const {locator} = await import('../../api/main/MainLocator.js')
-	const {newMailtoUrlMailEditor, newMailEditorFromTemplate} = await import('../../mail/editor/MailEditor.js')
-	const {logins} = await import('../../api/main/LoginController.js')
-	const signatureModule = await import("../../mail/signature/Signature")
 
 	await logins.waitForUserLogin()
 
-	const files = mailToUrl ? [] : await getFilesData(filesUris)
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+	if (mailToUrl) {
+		const editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
+		editor.show()
+		return
+	}
 
+	const files = await getFilesData(filesUris)
 	const address = addresses && addresses[0] || ""
 	const recipients = address ? {to: [{name: "", address: address}]} : {}
-	const editor = mailToUrl
-		? await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
-		: await newMailEditorFromTemplate(
-			mailboxDetails,
-			recipients,
-			subject || (files.length > 0 ? files[0].name : ""),
-			signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-			files
-		)
+	const editor = await newMailEditorFromTemplate(
+		mailboxDetails,
+		recipients,
+		subject || (files.length > 0 ? files[0].name : ""),
+		signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+		files
+	)
 	editor.show()
 }
 

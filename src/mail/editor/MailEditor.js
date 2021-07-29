@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 
 import {Editor} from "../../gui/editor/Editor"
 import type {Attachment, Recipients, ResponseMailParameters} from "./SendMailModel"
-import {defaultSendMailModel, mailAddressToRecipient, noopBlockingWaitHandler, SendMailModel} from "./SendMailModel"
+import {defaultSendMailModel, noopBlockingWaitHandler, SendMailModel} from "./SendMailModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
@@ -648,21 +648,19 @@ export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaF
 		.then(model => createMailEditorDialog(model, blockExternalContent))
 }
 
-export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+	const mailbox = await _mailboxPromise(mailboxDetails)
+	const mailTo = parseMailtoUrl(mailtoUrl)
+	const dataFiles = await Promise.all((mailTo.attach || []).map(uri => fileController.getDataFile(uri)))
 
-	return _mailboxPromise(mailboxDetails).then(mailbox => {
-		const mailTo = parseMailtoUrl(mailtoUrl)
-		const subject = mailTo.subject
-		const body = appendEmailSignature(mailTo.body, logins.getUserController().props)
-		const recipients = {
-			to: mailTo.to.map(mailAddressToRecipient),
-			cc: mailTo.cc.map(mailAddressToRecipient),
-			bcc: mailTo.bcc.map(mailAddressToRecipient)
-		}
-
-		return newMailEditorFromTemplate(mailbox, recipients, subject, body, [], confidential)
-	})
-
+	return newMailEditorFromTemplate(
+		mailbox,
+		mailTo.recipients,
+		mailTo.subject || "",
+		appendEmailSignature(mailTo.body || "", logins.getUserController().props),
+		dataFiles.filter(Boolean),
+		confidential
+	)
 }
 
 

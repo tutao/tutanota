@@ -10,51 +10,106 @@ import {
 import {isMailAddress} from "../../../../src/misc/FormatValidator"
 
 
-o.spec("MailAddressParser", browser(function () {
+o.spec("MailAddressParser", function () {
 
 	o("parseMailtoUrl single address", function () {
-		let result = parseMailtoUrl("mailto:chris@example.com")
-		o(result.to.length).equals(1)
-		o(result.to[0].address).equals("chris@example.com")
-		o(result.subject).equals("")
-		o(result.body).equals("")
+		let {recipients, subject, body} = parseMailtoUrl("mailto:chris@example.com")
+		o(recipients.to).deepEquals([{name: "", address: "chris@example.com"}])
+		o(subject).equals(null)
+		o(body).equals(null)
 	})
 
 	o("parseMailtoUrl with subject and body", function () {
-		let result = parseMailtoUrl("mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body%0AKind regards%20someone")
-		o(result.to.length).equals(1)
-		o(result.to[0].address).equals("someone@example.com")
-		o(result.cc.length).equals(1)
-		o(result.cc[0].address).equals("someone_else@example.com")
-		o(result.subject).equals("This is the subject")
-		o(result.body).equals("This is the body<br>Kind regards someone")
+		let {
+			recipients,
+			subject,
+			body,
+			attach
+		} = parseMailtoUrl("mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body%0AKind regards%20someone")
+		o(recipients.to).deepEquals([{name: "", address: "someone@example.com"}])
+		o(recipients.cc).deepEquals([{name: "", address: "someone_else@example.com"}])
+		o(subject).equals("This is the subject")
+		o(attach).equals(null)
+		o(body).equals("This is the body<br>Kind regards someone")
 	})
 
 	o("parseMailtoUrl with multiple recipients", function () {
-		let result = parseMailtoUrl("mailto:joe1@example.com,joe2@example.com?to=joe3@example.com&cc=bob1@example.com%2C%20bob2@example.com&body=hello&bcc=carol1@example.com%2C%20carol2@example.com")
-		o(result.to.map(to => to.address)).deepEquals(["joe1@example.com", "joe2@example.com", "joe3@example.com"])
-		o(result.cc.map(cc => cc.address)).deepEquals(["bob1@example.com", "bob2@example.com"])
-		o(result.bcc.map(bcc => bcc.address)).deepEquals(["carol1@example.com", "carol2@example.com"])
-		o(result.body).equals("hello")
+		let {
+			recipients,
+			body
+		} = parseMailtoUrl("mailto:joe1@example.com,joe2@example.com?to=joe3@example.com&cc=bob1@example.com%2C%20bob2@example.com&body=hello&bcc=carol1@example.com%2C%20carol2@example.com")
+		o((recipients.to || []).map(to => to.address)).deepEquals(["joe1@example.com", "joe2@example.com", "joe3@example.com"])
+		o((recipients.cc || []).map(cc => cc.address)).deepEquals(["bob1@example.com", "bob2@example.com"])
+		o((recipients.bcc || []).map(bcc => bcc.address)).deepEquals(["carol1@example.com", "carol2@example.com"])
+		o(body).equals("hello")
 	})
 
 	o("parseMailtoUrl to lower case", function () {
-		let result = parseMailtoUrl("	mailto:matthias@test.de?CC=matthias@test.de&BCC=matthias@test.de&Subject=Blah&Body=What%3F%20Everything%20encoded%20in%20mailto%3F")
-		o(result.to.length).equals(1)
-		o(result.to[0].address).equals("matthias@test.de")
-		o(result.cc.length).equals(1)
-		o(result.cc[0].address).equals("matthias@test.de")
-		o(result.bcc.length).equals(1)
-		o(result.bcc[0].address).equals("matthias@test.de")
-		o(result.subject).equals("Blah")
-		o(result.body).equals("What? Everything encoded in mailto?")
+		let {
+			recipients,
+			subject,
+			body
+		} = parseMailtoUrl("	mailto:matthias@test.de?CC=matthias@test.de&BCC=matthias@test.de&Subject=Blah&Body=What%3F%20Everything%20encoded%20in%20mailto%3F")
+		o((recipients.to || []).map(to => to.address)).deepEquals(["matthias@test.de"])
+		o((recipients.cc || []).map(cc => cc.address)).deepEquals(["matthias@test.de"])
+		o((recipients.bcc || []).map(bcc => bcc.address)).deepEquals(["matthias@test.de"])
+		o(subject).equals("Blah")
+		o(body).equals("What? Everything encoded in mailto?")
 	})
 
 	o("parseMailtoUrl with full addressing scheme", function () {
-		let result = parseMailtoUrl("mailto:Fritz%20Eierschale%20%3Ceierschale@irgend.wo%3E")
-		o(result.to.length).equals(1)
-		o(result.to[0].address).equals("eierschale@irgend.wo")
-		o(result.to[0].name).equals("Fritz Eierschale")
+		let {recipients} = parseMailtoUrl("mailto:Fritz%20Eierschale%20%3Ceierschale@irgend.wo%3E")
+		o(recipients.to).deepEquals([
+			{
+				address: "eierschale@irgend.wo",
+				name: "Fritz Eierschale"
+			}
+		])
+	})
+
+	o("parseMailtoUrl with attachments", function () {
+		let {
+			attach,
+			body
+		} = parseMailtoUrl("mailto:a@b.c?attach=file:///home/user/cat.jpg&body=hello%20world&attach=file:///home/user/dog%20man.jpg&attach=/home/user/pig.jpg")
+		o(attach).deepEquals([
+			"file:///home/user/cat.jpg",
+			"file:///home/user/dog man.jpg",
+			"/home/user/pig.jpg"
+		])
+		o(body).equals("hello world")
+	})
+
+	o("parseMailtoUrl with empty params", function () {
+		let {
+			attach,
+			body,
+			recipients
+		} = parseMailtoUrl("mailto:?attach=&body=&bcc=")
+		o(attach).deepEquals([""])
+		o(recipients).deepEquals({
+			to: undefined,
+			cc: undefined,
+			bcc: []
+		})
+		o(body).equals("")
+	})
+
+	o("parseMailtoUrl without params", function () {
+		let {attach, body, subject, recipients} = parseMailtoUrl("mailto:")
+		o(attach).deepEquals(null)
+		o(body).equals(null)
+		o(subject).equals(null)
+		o(recipients).deepEquals({
+			to: undefined,
+			cc: undefined,
+			bcc: undefined
+		})
+	})
+
+	o("parseMailtoUrl with bogus params", function () {
+		let {bogus} = (parseMailtoUrl("mailto:?bogus=hello"): any)
+		o(bogus).equals(undefined)
 	})
 
 	o("isStrictMailAddress", function () {
@@ -134,4 +189,4 @@ o.spec("MailAddressParser", browser(function () {
 		o(mailAddressToFirstAndLastName("peter@x.de")).deepEquals({firstName: "Peter", lastName: ""})
 	})
 
-}))
+})
