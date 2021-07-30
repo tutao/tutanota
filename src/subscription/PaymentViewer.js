@@ -238,7 +238,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									main: formatPrice(Number(posting.amount), true)
 								}
 							],
-							actionButtonAttrs: posting.type === PostingType.UsageFee
+							actionButtonAttrs: posting.type === PostingType.UsageFee || posting.type === PostingType.Credit
 								? {
 									label: "download_action",
 									icon: () => Icons.Download,
