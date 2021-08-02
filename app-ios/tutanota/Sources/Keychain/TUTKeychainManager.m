@@ -21,14 +21,14 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
 
     NSError *getKeyError;
     let existingKey = [self getKeyWithError:keyId error:&getKeyError];
-    
+
     OSStatus status;
     if (existingKey) {
         let updateQuery = @{
                             (id)kSecClass:(id)kSecClassKey,
                             (id)kSecAttrApplicationTag:keyTag
                           };
-        
+
         let updateFields = @{
                                (id)kSecValueData:key,
                                (id)kSecAttrAccessible:(id)kSecAttrAccessibleAlwaysThisDeviceOnly
@@ -43,8 +43,8 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
                                    };
         status = SecItemAdd((__bridge CFDictionaryRef)addquery, NULL);
     }
-    
-    
+
+
     if (status != errSecSuccess) {
         let errorString = [NSString stringWithFormat:@"Could not store the key, status: %jd", (intmax_t) status];
         *error = [TUTErrorFactory createError:errorString];
@@ -58,16 +58,26 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
                       (id)kSecAttrApplicationTag:keyTag,
                       (id)kSecReturnData:[NSNumber numberWithBool:YES]
                       };
-    
+    // See here for some more context of these magic incantations:
+    // https://stackoverflow.com/a/16901557
+
+    // Core Foundation (C API) key
     CFDataRef key = NULL;
-    OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)getquery,
-                                          (CFTypeRef *)&key);
-    
+    // Retaining the query until we are done
+    CFDictionaryRef cfquery = (CFDictionaryRef)CFBridgingRetain(getquery);
+    OSStatus status = SecItemCopyMatching(cfquery, (CFTypeRef *)&key);
+    // Manually releasing query when we are done
+    CFRelease(cfquery);
+
     if (status != errSecSuccess) {
         *error = [TUTErrorFactory createError:[NSString stringWithFormat:@"Failed to get key %@, status: %jd", keyId, (intmax_t) status]];
         return nil;
     } else if (key) {
-        return (__bridge NSData *)key;
+        // SecItemCopyMatching has "copy" in its name which means we own it and are responsible for
+        // releasing it. Since we don't want to release it but want to return it to the caller we
+        // transfer ownership to ARC.
+        NSData *nsDataKey = CFBridgingRelease(key);
+        return nsDataKey;
     } else {
         return nil;
     }
@@ -82,7 +92,7 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
     NSDictionary* deleteQuery = @{
                                (id)kSecClass:(id)kSecClassKey,
                              };
-    
+
     OSStatus status = SecItemDelete((__bridge CFDictionaryRef) deleteQuery);
     if (status != errSecSuccess) {
         let errorString = [NSString stringWithFormat:@"Could not delete the keys, status: %jd", (intmax_t) status];
