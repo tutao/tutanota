@@ -465,7 +465,8 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
 
 -(void)rescheduleAlarms {
     TUTLog(@"Re-scheduling alarms");
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    // This is not some work we wait for so we can push it to the lower priority queue.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         foreach(notification, self.savedAlarms) {
             NSError *error;
             [self scheduleAlarm:notification error:&error];
