@@ -88,4 +88,8 @@
     return false;
 }
 
+- (NSUInteger)hash {
+  return [self.alarmInfo.alarmIdentifier hash];
+}
+
 @end

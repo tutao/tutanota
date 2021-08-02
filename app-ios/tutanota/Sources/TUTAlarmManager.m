@@ -260,8 +260,11 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
 
 - (void)saveNewAlarm:(TUTAlarmNotification *)alarm {
     let savedNotifications = [_userPreference alarms];
-    [savedNotifications addObject:alarm];
-    [_userPreference storeAlarms:savedNotifications];
+    // Avoid duplicates. Alarms are immutable so we can just keep the old version.
+    if ([savedNotifications indexOfObject:alarm] == NSNotFound) {
+      [savedNotifications addObject:alarm];
+      [_userPreference storeAlarms:savedNotifications];
+    }
 }
 
 - (void)scheduleAlarm:(TUTAlarmNotification *)alarmNotification error:(NSError **)error {
@@ -463,8 +466,7 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
 -(void)rescheduleAlarms {
     TUTLog(@"Re-scheduling alarms");
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        let savedNotifications = [self->_userPreference alarms];
-        foreach(notification, savedNotifications) {
+        foreach(notification, self.savedAlarms) {
             NSError *error;
             [self scheduleAlarm:notification error:&error];
             if (error) {
@@ -472,6 +474,16 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
             }
         }
     });
+}
+
+-(NSSet<TUTAlarmNotification *> *)savedAlarms {
+  let savedNotifications = [self->_userPreference alarms];
+  let set = [NSSet setWithArray:savedNotifications];
+  if (set.count != savedNotifications.count) {
+    TUTLog(@"Duplicated alarms detected, re-saving...");
+    [self.userPreference storeAlarms:set.allObjects];
+  }
+  return set;
 }
 
 @end

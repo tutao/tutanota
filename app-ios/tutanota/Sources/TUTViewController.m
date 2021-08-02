@@ -283,6 +283,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
     }
     NSError *error;
     [self.alarmManager processNewAlarms:alarms error:&error];
+    sendResponseBlock(NSNull.null, nil);
   } else if ([@"getSelectedTheme" isEqualToString:type]) {
       sendResponseBlock(_themeManager.selectedThemeId, nil);
   } else if ([@"setSelectedTheme" isEqualToString:type]) {
