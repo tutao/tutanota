@@ -20,7 +20,7 @@ const notificationQueue = []
 let currentAnimationTimeout: ?TimeoutID = null
 
 class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
-	view(vnode: Vnode<NotificationOverlayAttrs>): ?Children {
+	view(vnode: Vnode<NotificationOverlayAttrs>): Children {
 		return m(".notification-overlay-content.flex.flex-column.flex-space-between", [
 			m(vnode.attrs.message),
 			m(".flex.justify-end.flex-wrap",

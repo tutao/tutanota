@@ -38,7 +38,7 @@ export type AddGroupDialogAttrs = {
 }
 
 export class AddGroupDialog implements MComponent<AddGroupDialogAttrs> {
-	view(vnode: Vnode<AddGroupDialogAttrs>): ?Children {
+	view(vnode: Vnode<AddGroupDialogAttrs>): Children {
 		const {availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged} = vnode.attrs
 
 		return [

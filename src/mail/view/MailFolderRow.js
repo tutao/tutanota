@@ -14,7 +14,7 @@ export type MailFolderRowAttrs = {count: number, button: NavButtonAttrs, rightBu
 
 export class MailFolderRow implements MComponent<MailFolderRowAttrs> {
 
-	view(vnode: Vnode<MailFolderRowAttrs>): ?Children {
+	view(vnode: Vnode<MailFolderRowAttrs>): Children {
 		const {count, button, rightButton} = vnode.attrs
 
 		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [

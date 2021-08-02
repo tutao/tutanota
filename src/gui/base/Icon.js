@@ -27,7 +27,7 @@ import("./icons/Icons.js")
 	})
 
 export class Icon implements MComponent<IconAttrs> {
-	view(vnode: Vnode<IconAttrs>): Children | null | void {
+	view(vnode: Vnode<IconAttrs>): Children {
 		const icon = BootIconsSvg[(vnode.attrs.icon: any)] ? BootIconsSvg[(vnode.attrs.icon: any)] : IconsSvg[(vnode.attrs.icon: any)]
 		const container = vnode.attrs.container || "span"
 		return m(container + ".icon", {

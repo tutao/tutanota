@@ -15,7 +15,7 @@ import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {createDataFile} from "../api/common/DataFile"
 
 export class AboutDialog implements MComponent<void> {
-	view(vnode: Vnode<void>): ?Children {
+	view(vnode: Vnode<void>): Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(theme.logo)),
