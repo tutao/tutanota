@@ -18,9 +18,9 @@ import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {filterNull} from "../../api/common/utils/ArrayUtils"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, downcast} from "../../api/common/utils/Utils"
+import {downcast} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
+import {pureComponent} from "./PureComponent"
 
 assertMainOrNode()
 
@@ -30,17 +30,16 @@ export type DropdownInfoAttrs = {
 	bold: boolean
 }
 
-
-class DropdownInfo implements MComponent<DropdownInfoAttrs> {
-	view(vnode: Vnode<DropdownInfoAttrs>): Children {
-		return m(".dropdown-info.text-break.doNotClose.selectable" + (vnode.attrs.center ? ".center" : "") + (vnode.attrs.bold ? ".b" : "")
-			, vnode.attrs.info)
-	}
-}
+/**
+ * Renders small info message inside the dropdown.
+ */
+const DropdownInfo = pureComponent(({center, bold, info}: DropdownInfoAttrs) => {
+	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
+})
 
 export type DropdownChildAttrs = DropdownInfoAttrs | NavButtonAttrs | ButtonAttrs;
 
-function isDropDownInfo(dropdownChild: DropdownChildAttrs): boolean {
+function isDropDownInfo(dropdownChild: DropdownChildAttrs): boolean %checks {
 	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
 }
 
@@ -57,14 +56,13 @@ export class DropdownN {
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
 	_isFilterable: boolean;
-	_maxHeightDefer: DeferredObject<number>;
+	_maxHeight: ?number;
 
 
 	constructor(lazyChildren: lazy<$ReadOnlyArray<?DropdownChildAttrs>>, width: number) {
 		this.children = []
 		this._width = width
 		this._filterString = stream("")
-		this._maxHeightDefer = defer()
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
 			this._isFilterable = this.children.length > 10
@@ -117,12 +115,23 @@ export class DropdownN {
 			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
 						this._domContents = vnode.dom
-						const origin = this.origin
-						if (origin) {
-							// The dropdown-content element is added to the dom has a hidden element first.
-							// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely show the dropdown.
-							this._maxHeightDefer.promise.then(maxHeight => {
-								showDropdown(origin, this._domDropdown, maxHeight, this._width).then(() => {
+						window.requestAnimationFrame(() => {
+							if (document.activeElement && typeof document.activeElement.blur === "function") {
+								document.activeElement.blur()
+							}
+						})
+					},
+					onupdate: (vnode) => {
+						if (this._maxHeight == null) {
+							const children = Array.from(vnode.dom.children)
+							this._maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0)
+								+ size.vpad
+							if (this.origin) {
+								// The dropdown-content element is added to the dom has a hidden element first.
+								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
+								// show the dropdown.
+								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
+								showDropdown(this.origin, this._domDropdown, this._maxHeight, this._width).then(() => {
 										if (this._domInput && !client.isMobileDevice()) {
 											this._domInput.focus()
 										} else {
@@ -131,47 +140,31 @@ export class DropdownN {
 										}
 									}
 								)
-							})
-						}
-						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur === "function") {
-								document.activeElement.blur()
 							}
-						})
-					},
-					onupdate: (vnode) => {
-						const children = Array.from(vnode.dom.children)
-						const maxHeightOfChildren = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + 16
-						if (!this._maxHeightDefer.promise.isFulfilled()) {
-							this._maxHeightDefer.resolve(maxHeightOfChildren)
 						}
 					},
 					onscroll: (ev) => {
 						// needed here to prevent flickering on ios
-						if (ev.target.scrollTop < 0) {
-							ev.redraw = true
-						} else if ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight) {
-							ev.redraw = true
-						} else {
-							ev.redraw = false
-						}
+						ev.redraw = (ev.target.scrollTop < 0)
+							&& ((ev.target.scrollTop + this._domContents.offsetHeight) > ev.target.scrollHeight)
 					},
 					style: {
+						// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
+						// animation.
 						width: px(this._width),
 						top: px(this._getFilterHeight()),
 						bottom: 0
-					} // a fixed with for the content of this dropdown is needed to avoid that
-					// the elements in the dropdown move during animation
+					}
 				},
-				(this._visibleChildren().map(child => {
+				this._visibleChildren().map(child => {
 					if (isDropDownInfo(child)) {
-						return m(DropdownInfo, downcast(child))
+						return m(DropdownInfo, child)
 					} else if (typeof child.href === 'undefined') {
 						return m(ButtonN, ((child: any): ButtonAttrs))
 					} else {
 						return m(NavButtonN, ((child: any): NavButtonAttrs))
 					}
-				}): any))
+				}))
 		}
 
 		this.view = (): VirtualElement => {

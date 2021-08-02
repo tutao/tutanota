@@ -273,7 +273,7 @@ type $Attrs<+T> = $ReadOnly<T>
 
 interface MComponent<+Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */
-	view(vnode: Vnode<Attrs>): ?Children;
+	view(vnode: Vnode<Attrs>): Children;
 }
 
 export type Child = Vnode<any> | string | number | boolean | null;
