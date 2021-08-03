@@ -30,7 +30,7 @@ export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promi
 		}
 	}
 	if (confirmationTextId != null) {
-		return Dialog.confirm(confirmationTextId, "ok_action", false)
+		return Dialog.confirm(confirmationTextId, "ok_action")
 	} else {
 		return Promise.resolve(true)
 	}
