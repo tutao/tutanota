@@ -1,12 +1,14 @@
-
 declare type QueryValue = string | boolean | Array<QueryValue>
 
+/** Top-level components accept route and query parameters as attrs */
+type TopLevelComponentAttrs = {[string]: QueryValue}
+
 declare type RouteResolverMatch = {
-	onmatch(args: {[string]: QueryValue}, requestedPath: string): ?(Component | Promise<?Component>);
+	onmatch(args: {[string]: QueryValue}, requestedPath: string): $Promisable<?MComponent<TopLevelComponentAttrs>>;
 }
 
 declare type RouteResolverRender = {
-	render(vnode: Object): VirtualElement | Array<VirtualElement>;
+	render(vnode: Vnode<TopLevelComponentAttrs>): VirtualElement | Array<VirtualElement>;
 }
 
 declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
@@ -38,7 +40,7 @@ type Attrs = $ReadOnly<{[?string]: any}>
 
 declare interface Mithril {
 	// We would like to write a definition which allows omitting Attrs if all keys are optional
-	(component: string | MComponent<any> | Class<MComponent<any>>, children?: Children): Vnode<any>;
+	(component: string | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
 
 	<AttrsT: Attrs>(
 		component: string | Class<MComponent<AttrsT>> | MComponent<AttrsT>,

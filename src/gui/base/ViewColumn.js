@@ -17,7 +17,7 @@ export const ColumnType = {
 type Attrs = {rightBorder?: boolean}
 
 export class ViewColumn implements MComponent<Attrs> {
-	component: MComponent<mixed>;
+	component: MComponent<void>;
 	columnType: ColumnTypeEnum;
 	minWidth: number;
 	maxWidth: number;
@@ -39,7 +39,7 @@ export class ViewColumn implements MComponent<Attrs> {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param title A function that returns the translated title text for a column.
 	 */
-	constructor(component: MComponent<mixed>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>, ariaLabel: ?lazy<string>) {
+	constructor(component: MComponent<void>, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>, ariaLabel: ?lazy<string>) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth

@@ -1,6 +1,4 @@
 //@flow
-
-
 import {Dialog} from "../gui/base/Dialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"

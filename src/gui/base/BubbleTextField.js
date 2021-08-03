@@ -75,7 +75,7 @@ export interface Suggestion {
  * We do not add position relative here because it allows us to show the suggestions dropdown even if a parent has overflow hidden
  * by making the element with position relative a parent of that element!
  */
-export class BubbleTextField<T> {
+export class BubbleTextField<T> implements MComponent<void> {
 	loading: ?Promise<void>;
 	bubbles: Bubble<T>[];
 	previousQuery: string;
@@ -84,8 +84,8 @@ export class BubbleTextField<T> {
 	selectedSuggestion: Stream<?Suggestion>;
 	suggestionAnimation: Promise<void>;
 	bubbleHandler: BubbleHandler<T, Suggestion>;
-	view: (Vnode<T>) => Children;
-	oncreate: (VnodeDOM<T>) => void;
+	view: (Vnode<void>) => Children;
+	oncreate: (VnodeDOM<void>) => void;
 
 	_textField: TextField;
 	_domSuggestions: HTMLElement;
@@ -591,67 +591,67 @@ class TextField {
 			] : []
 
 			return m('.flex-grow', autofillGuard.concat(
-				m("input.input[tabindex=0]" + (this._alignRight ? ".right" : ""), {
-					autocomplete: this._preventAutofill ? "off" : this.autocomplete,
-					type: typeAttr,
-					"aria-label": lang.getMaybeLazy(this.label),
-					oncreate: (vnode) => {
-						this._domInput = vnode.dom
-						if (this.type !== Type.Area) {
-							vnode.dom.addEventListener('animationstart', e => {
-								if (e.animationName === "onAutoFillStart") {
-									this.webkitAutofill = true
-									this.animate()
-								} else if (e.animationName === "onAutoFillCancel") {
-									this.webkitAutofill = false
+					m("input.input[tabindex=0]" + (this._alignRight ? ".right" : ""), {
+						autocomplete: this._preventAutofill ? "off" : this.autocomplete,
+						type: typeAttr,
+						"aria-label": lang.getMaybeLazy(this.label),
+						oncreate: (vnode) => {
+							this._domInput = vnode.dom
+							if (this.type !== Type.Area) {
+								vnode.dom.addEventListener('animationstart', e => {
+									if (e.animationName === "onAutoFillStart") {
+										this.webkitAutofill = true
+										this.animate()
+									} else if (e.animationName === "onAutoFillCancel") {
+										this.webkitAutofill = false
+										this.animate()
+									}
+								})
+							}
+							if (this.type !== Type.Password) {
+								vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+							}
+						},
+						onfocus: (e) => this.focus(),
+						onblur: e => this.blur(e),
+						onkeydown: e => {
+							// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
+							let key = {keyCode: e.which, key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey}
+							const input = this._domInput
+							if (input && input.value !== this.value()) {
+								this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
+								if (input.value !== "" && !this.active) {
 									this.animate()
 								}
-							})
-						}
-						if (this.type !== Type.Password) {
-							vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
-						}
-					},
-					onfocus: (e) => this.focus(),
-					onblur: e => this.blur(e),
-					onkeydown: e => {
-						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-						let key = {keyCode: e.which, key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey}
-						const input = this._domInput
-						if (input && input.value !== this.value()) {
-							this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191
-							if (input.value !== "" && !this.active) {
-								this.animate()
 							}
-						}
-						return this._keyHandler != null ? this._keyHandler(key) : true
-					},
-					onremove: e => {
-						// fix for mithril bug that occurs on login, if the cursor is positioned in the password
-						// field and enter is pressed to invoke the login action
-						// ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer
-						// a child of this node. Perhaps it was moved in a 'blur' event handler?")
-						// TODO test if still needed with newer mithril releases
-						if (this._domInput) {
-							this._domInput.onblur = null
-						}
-						this._domInput = null
-					},
-					oninput: e => {
-						const input = this._domInput
-						if (input) {
-							if (this.isEmpty() && input.value !== "" && !this.active && !this.webkitAutofill) {
-								this.animate() // animate in case of browser autocompletion (non-webkit)
+							return this._keyHandler != null ? this._keyHandler(key) : true
+						},
+						onremove: e => {
+							// fix for mithril bug that occurs on login, if the cursor is positioned in the password
+							// field and enter is pressed to invoke the login action
+							// ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer
+							// a child of this node. Perhaps it was moved in a 'blur' event handler?")
+							// TODO test if still needed with newer mithril releases
+							if (this._domInput) {
+								this._domInput.onblur = null
 							}
-							this.value(input.value) // update the input on each change
+							this._domInput = null
+						},
+						oninput: e => {
+							const input = this._domInput
+							if (input) {
+								if (this.isEmpty() && input.value !== "" && !this.active && !this.webkitAutofill) {
+									this.animate() // animate in case of browser autocompletion (non-webkit)
+								}
+								this.value(input.value) // update the input on each change
+							}
+						},
+						style: {
+							"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+							"line-height": px(inputLineHeight),
+							"min-height": px(inputLineHeight),
 						}
-					},
-					style: {
-						"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
-						"line-height": px(inputLineHeight),
-						"min-height": px(inputLineHeight),
-					}
-				})
+					})
 				)
 			)
 		}

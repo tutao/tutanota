@@ -24,7 +24,7 @@ export type PositionRect = {
 type AnimationProvider = (dom: HTMLElement) => DomMutation
 
 type OverlayAttrs = {
-	component: MComponent<mixed>,
+	component: MComponent<void>,
 	position: lazy<PositionRect>,
 	createAnimation?: AnimationProvider,
 	closeAnimation?: AnimationProvider,
@@ -34,7 +34,7 @@ type OverlayAttrs = {
 const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
 let key = 0
 
-export function displayOverlay(position: lazy<PositionRect>, component: MComponent<mixed>, createAnimation?: AnimationProvider,
+export function displayOverlay(position: lazy<PositionRect>, component: MComponent<void>, createAnimation?: AnimationProvider,
                                closeAnimation?: AnimationProvider, shadowClass: string = "dropdown-shadow"): () => Promise<void> {
 	const newAttrs = {
 		position,
@@ -60,7 +60,7 @@ export function displayOverlay(position: lazy<PositionRect>, component: MCompone
 	}
 }
 
-export const overlay: MComponent<OverlayAttrs> = {
+export const overlay: MComponent<void> = {
 	view: (): Children => m("#overlay", {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11

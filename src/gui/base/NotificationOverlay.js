@@ -11,7 +11,7 @@ import {ButtonN, ButtonType} from "./ButtonN"
 assertMainOrNode()
 
 type NotificationOverlayAttrs = {|
-	message: MComponent<mixed>,
+	message: MComponent<void>,
 	buttons: Array<ButtonAttrs>
 |}
 
