@@ -4,7 +4,7 @@ import {spawn} from "child_process"
 import flow from "flow-bin"
 import {BuildServerClient} from "@tutao/tutanota-build-server"
 import path from "path"
-import {fetchDictionaries} from "./buildSrc/DictionaryFetcher"
+import {fetchDictionaries} from "./buildSrc/DictionaryFetcher.js"
 
 let opts
 options
