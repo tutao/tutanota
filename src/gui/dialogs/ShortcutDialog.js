@@ -9,8 +9,6 @@ import {TextFieldN} from "../base/TextFieldN"
 import type {Shortcut} from "../../misc/KeyManager"
 import {ButtonType} from "../base/ButtonN"
 
-let isOpen = false
-
 function makeShortcutName(shortcut: Shortcut): string {
 	return ((shortcut.meta) ? Keys.META.name + " + " : "")
 		+ ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
@@ -19,28 +17,30 @@ function makeShortcutName(shortcut: Shortcut): string {
 		+ shortcut.key.name
 }
 
-export function showShortcutDialog(attrs: ShortcutDialogAttrs) {
-	if (isOpen) return
-	let dialog
+/**
+ * return a promise that resolves when the dialog is closed
+ */
+export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
+	return new Promise(resolve => {
+		let dialog
 
-	const close = () => {
-		isOpen = false
-		dialog.close()
-	}
+		const close = () => {
+			dialog.close()
+			resolve()
+		}
 
-	const headerAttrs = {
-		left: [{label: 'close_alt', click: close, type: ButtonType.Secondary}],
-		middle: () => lang.get("keyboardShortcuts_title")
-	}
-
-	isOpen = true
-	dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, attrs)
-	               .addShortcut({key: Keys.ESC, exec: close, help: "close_alt"})
-	               .show()
+		const headerAttrs = {
+			left: [{label: 'close_alt', click: close, type: ButtonType.Secondary}],
+			middle: () => lang.get("keyboardShortcuts_title")
+		}
+		dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {shortcuts})
+		               .addShortcut({key: Keys.ESC, exec: close, help: "close_alt"})
+		               .show()
+	})
 }
 
-export type ShortcutDialogAttrs = {
-	shortcuts: Stream<Array<Shortcut>>
+type ShortcutDialogAttrs = {
+	shortcuts: Array<Shortcut>
 }
 
 /**
@@ -50,8 +50,7 @@ export type ShortcutDialogAttrs = {
  */
 class ShortcutDialog implements MComponent<ShortcutDialogAttrs> {
 	view(vnode: Vnode<ShortcutDialogAttrs>) {
-		vnode.attrs.shortcuts.map(m.redraw)
-		const shortcuts = vnode.attrs.shortcuts()
+		const {shortcuts} = vnode.attrs
 
 		const textFieldAttrs = shortcuts
 			.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
