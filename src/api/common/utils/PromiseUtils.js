@@ -39,6 +39,7 @@ function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U
 	return PromisableWrapper.from(promiseMap(values, callback, options))
 }
 
+/** Factory function which gives you ack promiseMap implementation. {@see mapInCallContext} for what it means. */
 export function promiseMapCompat(useMapInCallContext: boolean): PromiseMapFn {
 	return useMapInCallContext ? mapInCallContext : mapNoFallback
 }
