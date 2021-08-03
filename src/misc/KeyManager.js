@@ -1,5 +1,4 @@
 //@flow
-import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {client} from "./ClientDetector"
@@ -8,7 +7,6 @@ import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
 import type {KeysEnum} from "../api/common/TutanotaConstants"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {ShortcutDialogAttrs} from "../gui/dialogs/ShortcutDialog"
 
 assertMainOrNodeBoot()
 
@@ -81,16 +79,8 @@ export function focusNext(dom: HTMLElement): boolean {
 	return true
 }
 
-type ShortcutOperation
-	= "register"
-	| "unregister"
-	| "registerModal"
-	| "unregisterModal"
-	| "registerDesktop"
-
-type ShortcutBatch = {
-	operation: ShortcutOperation,
-	shortcuts: Array<Shortcut>
+function createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): string {
+	return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 }
 
 /**
@@ -105,18 +95,15 @@ class KeyManager {
 	_modalShortcuts: Array<Shortcut>;
 	_keyToModalShortcut: Map<string, Shortcut>;
 	_desktopShortcuts: Shortcut[];
-	_dialogAttrs: ShortcutDialogAttrs = {
-		shortcuts: stream([]),
-	};
-	_showModalShortcuts: boolean = false;
+	_isHelpOpen: boolean = false;
 
 	constructor() {
-		let helpShortcut = {
+		const helpShortcut = {
 			key: Keys.F1,
 			exec: () => this.openF1Help(),
 			help: "showHelp_action"
 		}
-		let helpId = this._createKeyIdentifier(helpShortcut.key.code)
+		const helpId = createKeyIdentifier(helpShortcut.key.code)
 		this._modalShortcuts = [helpShortcut]
 		this._keyToShortcut = new Map([[helpId, helpShortcut]])
 		// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
@@ -132,7 +119,7 @@ class KeyManager {
 		let keysToShortcuts = (this._modalShortcuts.length > 1)
 			? this._keyToModalShortcut
 			: this._keyToShortcut
-		let shortcut = keysToShortcuts.get(this._createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
+		let shortcut = keysToShortcuts.get(createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
 		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 			if (shortcut.exec({
 				keyCode,
@@ -147,77 +134,62 @@ class KeyManager {
 		}
 	}
 
-	_createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): string {
-		return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
-	}
+	openF1Help(): void {
+		if (this._isHelpOpen) return
+		this._isHelpOpen = true
 
-	openF1Help() {
-		// first, decide if we're showing the modal shortcuts or the standard shortcuts
+		// we decide which shortcuts to show right now.
+		//
 		// the help dialog will register its own shortcuts which would override the
-		// standard shortcuts if we did this lazily
-		this._showModalShortcuts = this._modalShortcuts.length > 1
-
-		import("../gui/dialogs/ShortcutDialog.js").then(({showShortcutDialog}) => showShortcutDialog(this._dialogAttrs))
+		// standard shortcuts if we did this later
+		//
+		// we can't do this in the register/unregister method because the modal
+		// unregisters the old dialog shortcuts and then registers the new ones
+		// when the top dialog changes, leading to a situation where
+		// modalshortcuts is empty.
+		const shortcutsToShow = this._modalShortcuts.length > 1
+			? [...this._modalShortcuts] // copy values, they will change
+			: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
+		import("../gui/dialogs/ShortcutDialog.js")
+			.then(({showShortcutDialog}) => showShortcutDialog(shortcutsToShow))
+			.then(() => this._isHelpOpen = false)
 	}
 
 	registerShortcuts(shortcuts: Array<Shortcut>) {
 		Keys.META.code = (client.browser === BrowserType.FIREFOX ? 224 : 91)
-		this._handleBatch({operation: "register", shortcuts})
+		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.set(id, s))
 	}
 
 	unregisterShortcuts(shortcuts: Array<Shortcut>) {
-		this._handleBatch({operation: "unregister", shortcuts})
+		this._applyOperation(shortcuts, (id, s) => this._keyToShortcut.delete(id))
 	}
 
 	registerDesktopShortcuts(shortcuts: Array<Shortcut>) {
-		this._handleBatch({operation: "registerDesktop", shortcuts})
+		this._applyOperation(shortcuts, (id, s) => this._desktopShortcuts.push(s))
 	}
 
 	registerModalShortcuts(shortcuts: Array<Shortcut>) {
-		this._handleBatch({operation: "registerModal", shortcuts})
+		this._applyOperation(shortcuts, (id, s) => {
+			this._modalShortcuts.push(s)
+			this._keyToModalShortcut.set(id, s)
+		})
 	}
 
 	unregisterModalShortcuts(shortcuts: Array<Shortcut>) {
-		this._handleBatch({operation: "unregisterModal", shortcuts})
+		this._applyOperation(shortcuts, (id, s) => {
+			remove(this._modalShortcuts, s)
+			this._keyToModalShortcut.delete(id)
+		})
 	}
 
 	/**
-	 * some shortcuts depend on async information. this can lead to out-of-order
-	 * execution of the batches if they're not buffered.
+	 *
+	 * @param shortcuts list of shortcuts to operate on
+	 * @param operation operation to execute for every shortcut and its ID
+	 * @private
 	 */
-	_handleBatch(batch: ShortcutBatch) {
-		for (let s of batch.shortcuts) {
-			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
-
-			switch (batch.operation) {
-				case 'register':
-					this._keyToShortcut.set(id, s)
-					break
-				case 'unregister':
-					this._keyToShortcut.delete(id)
-					break
-				case 'registerModal':
-					this._modalShortcuts.push(s)
-					this._keyToModalShortcut.set(id, s)
-					break
-				case 'unregisterModal':
-					remove(this._modalShortcuts, s)
-					this._keyToModalShortcut.delete(id)
-					break
-				case "registerDesktop":
-					this._desktopShortcuts.push(s)
-					break
-				default:
-					console.error("invalid shortcut batch", batch)
-			}
-		}
-		// conditionally update the dialog attrs since the shortcuts we show
-		// in the help and the shortcuts that are actually active are almost
-		// never the same
-		this._dialogAttrs.shortcuts(this._showModalShortcuts
-			? this._modalShortcuts
-			: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
-		)
+	_applyOperation(shortcuts: Array<Shortcut>, operation: (id: string, s: Shortcut) => mixed) {
+		shortcuts.forEach(s => operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s))
 	}
 }
 
