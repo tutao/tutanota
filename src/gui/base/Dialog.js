@@ -365,7 +365,7 @@ export class Dialog implements ModalComponent {
 	 * Simpler version of {@link Dialog#confirmMultiple} with just two options: no and yes (or another confirmation).
 	 * @return Promise, which is resolved with user selection - true for confirm, false for cancel.
 	 */
-	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action", enableConfirmShortcut: boolean = true): Promise<boolean> {
+	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action"): Promise<boolean> {
 		return new Promise(resolve => {
 			const closeAction = conf => {
 				dialog.close()
@@ -375,7 +375,7 @@ export class Dialog implements ModalComponent {
 				{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
 				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary},
 			]
-			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve, enableConfirmShortcut)
+			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve)
 		})
 	}
 
@@ -410,14 +410,6 @@ export class Dialog implements ModalComponent {
 			  exec: () => closeAction(false),
 			  help: "cancel_action"
 		  })
-		if (enableConfirmShortcut) {
-			dialog.addShortcut({
-				key: Keys.RETURN,
-				shift: false,
-				exec: () => closeAction(true),
-				help: "ok_action",
-			})
-		}
 
 		dialog.show()
 		return dialog
