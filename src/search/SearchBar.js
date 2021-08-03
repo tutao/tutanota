@@ -93,7 +93,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 	lastSelectedGroupInfoResult: Stream<GroupInfo>;
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
 	_closeOverlayFunction: ?(() => Promise<void>);
-	_overlayContentComponent: {view: () => ?Children};
+	_overlayContentComponent: MComponent<void>;
 	_returnListener: () => void;
 	_confirmDialogShown: boolean;
 

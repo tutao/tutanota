@@ -30,6 +30,7 @@ export class BuildServerClient {
 	constructor(buildId) {
 		this.state = STATE_DISCONNECTED
 		this.buildServerHandle = null
+		this.clientSocket = null
 		this.buildId = buildId
 	}
 
@@ -63,12 +64,19 @@ export class BuildServerClient {
 						buildOpts,
 					}
 				)
+
+				if (this.clientSocket != null) {
+					this.clientSocket.unref()
+					this.clientSocket = null
+				}
+
 				lastError = null
 			} catch (e) {
 				lastError = e
 				connectionAttempts++
 			}
 		}
+
 		if (lastError) {
 			throw lastError
 		}
@@ -222,10 +230,10 @@ export class BuildServerClient {
 	 * @private
 	 */
 	_connect({onConnect, onData, onError}) {
-		const clientSocket = createConnection(path.join(this.getBuildServerDirectory(), BuildServerConfiguration.SOCKET))
-			.on("connect", () => onConnect(clientSocket))
-			.on("error", (data) => onError(clientSocket, data))
-			.on("data", (data) => onData(clientSocket, data))
+		this.clientSocket = createConnection(path.join(this.getBuildServerDirectory(), BuildServerConfiguration.SOCKET))
+			.on("connect", () => onConnect(this.clientSocket))
+			.on("error", (data) => onError(this.clientSocket, data))
+			.on("data", (data) => onData(this.clientSocket, data))
 	}
 
 	/**

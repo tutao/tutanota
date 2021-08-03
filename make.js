@@ -33,13 +33,17 @@ if (opts.watch) {
 
 const flowPromise = new Promise((resolve, reject) => {
 	// It's better to set listener right away
-	spawn(flow, ["--quiet"], {stdio: "inherit"}).on("exit", resolve).on("error", reject)
+	spawn(flow, ["--quiet"], {stdio: "inherit"})
+		.on("exit", resolve)
+		.on("error", reject)
+		.unref()
 })
 
 if (options.clean) {
 	console.log("cleaning build dir")
 	fs.emptyDir("build")
 }
+
 runBuild()
 
 async function runBuild() {
@@ -77,6 +81,5 @@ async function runBuild() {
 		await flowPromise
 		process.exit(1)
 	}
-
 }
 

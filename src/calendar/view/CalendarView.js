@@ -88,6 +88,7 @@ import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolder
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -267,7 +268,8 @@ export class CalendarView implements CurrentView {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
 						})
-
+					default:
+						throw new ProgrammingError(`invalid CalendarViewType: "${this._currentViewType}"`)
 				}
 			},
 		}, ColumnType.Background, size.second_col_min_width + size.third_col_min_width, size.third_col_max_width, () => {
