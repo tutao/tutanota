@@ -46,7 +46,7 @@ import {
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {findAllAndRemove, findAndRemove} from "../../api/common/utils/ArrayUtils"
+import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../../misc/Formatter"
 import {NavButtonN} from "../../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
@@ -124,6 +124,7 @@ export class CalendarView implements CurrentView {
 	viewSlider: ViewSlider
 	// Should not be changed directly but only through the URL
 	selectedDate: Stream<Date>
+	/** Mmap from group/groupRoot ID to the calendar info */
 	_calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>
 	_eventsForDays: EventsForDays
 	_loadedMonths: Set<number> // first ms of the month
@@ -870,7 +871,10 @@ export class CalendarView implements CurrentView {
 									this._hiddenCalendars.delete(group)
 								}
 							})
-							if (calendarMemberships.length !== calendarInfos.size) {
+							const oldGroupIds = new Set(calendarInfos.keys())
+							const newGroupIds = new Set(calendarMemberships.map(m => m.group))
+							const diff = symmetricDifference(oldGroupIds, newGroupIds)
+							if (diff.size !== 0) {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
 								this._calendarInfos = new LazyLoaded(() =>

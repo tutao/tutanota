@@ -380,6 +380,26 @@ export function difference<T>(array1: $ReadOnlyArray<T>, array2: $ReadOnlyArray<
 }
 
 /**
+ * Returns a set with elements that are *not* in both sets.
+ *
+ * {a, b, c} △ {b, c, d} == {a, d}
+ */
+export function symmetricDifference<T>(set1: $ReadOnlySet<T>, set2: $ReadOnlySet<T>): Set<T> {
+	const diff = new Set()
+	for (const el of set1) {
+		if (!set2.has(el)) {
+			diff.add(el)
+		}
+	}
+	for (const el of set2) {
+		if (!set1.has(el)) {
+			diff.add(el)
+		}
+	}
+	return diff
+}
+
+/**
  * Splits an array into two based on a predicate, where elements that match the predicate go into the left side
  * @param array
  * @param predicate

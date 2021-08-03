@@ -6,7 +6,7 @@ import {
 	deduplicate, difference,
 	findLastIndex, flat, flatMap, groupBy, groupByAndMap, groupByAndMapUniquely,
 	insertIntoSortedArray,
-	splitInChunks
+	splitInChunks, symmetricDifference
 } from "../../../src/api/common/utils/ArrayUtils"
 
 type ObjectWithId = {
@@ -291,5 +291,35 @@ o.spec("array utils", function () {
 		o(diff([1, 2, 3, 4, 5, 6], [1, 3, 5])).deepEquals([2, 4, 6])
 		o(diff([1, 2, 3], [1, 2, 3, 4, 5, 6])).deepEquals([])
 		o(diff([1, 2, 3], [4, 5, 6, 7, 8, 9])).deepEquals([1, 2, 3])
+	})
+
+	o.spec("symmetric difference", function() {
+		o("both empty", function() {
+			o(Array.from(symmetricDifference(new Set(), new Set()))).deepEquals([])
+		})
+
+		o("left empty", function() {
+			o(Array.from(symmetricDifference(new Set(), new Set([1])))).deepEquals([1])
+		})
+
+		o("right empty", function() {
+			o(Array.from(symmetricDifference(new Set([1]), new Set([])))).deepEquals([1])
+		})
+
+		o("only difference", function() {
+			o(Array.from(symmetricDifference(new Set([1]), new Set([2])))).deepEquals([1, 2])
+		})
+
+		o("only common", function() {
+			o(Array.from(symmetricDifference(new Set([1, 2]), new Set([1, 2])))).deepEquals([])
+		})
+
+		o("left has more", function() {
+			o(Array.from(symmetricDifference(new Set([1, 2]), new Set([2])))).deepEquals([1])
+		})
+
+		o("right has more", function() {
+			o(Array.from(symmetricDifference(new Set([1]), new Set([1, 2])))).deepEquals([2])
+		})
 	})
 })
