@@ -1,6 +1,5 @@
 //@flow
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import {remove} from "../api/common/utils/ArrayUtils"
 import {client} from "./ClientDetector"
 import type {TranslationKey} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
@@ -92,7 +91,6 @@ function createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shi
 class KeyManager {
 	_keyToShortcut: Map<string, Shortcut>;
 	// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
-	_modalShortcuts: Array<Shortcut>;
 	_keyToModalShortcut: Map<string, Shortcut>;
 	_desktopShortcuts: Shortcut[];
 	_isHelpOpen: boolean = false;
@@ -104,7 +102,6 @@ class KeyManager {
 			help: "showHelp_action"
 		}
 		const helpId = createKeyIdentifier(helpShortcut.key.code)
-		this._modalShortcuts = [helpShortcut]
 		this._keyToShortcut = new Map([[helpId, helpShortcut]])
 		// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 		this._keyToModalShortcut = new Map([[helpId, helpShortcut]])
@@ -116,7 +113,7 @@ class KeyManager {
 
 	_handleKeydown(e: KeyboardEvent): void {
 		let keyCode = e.which
-		let keysToShortcuts = (this._modalShortcuts.length > 1)
+		let keysToShortcuts = (this._keyToModalShortcut.size > 1)
 			? this._keyToModalShortcut
 			: this._keyToShortcut
 		let shortcut = keysToShortcuts.get(createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
@@ -147,8 +144,8 @@ class KeyManager {
 		// unregisters the old dialog shortcuts and then registers the new ones
 		// when the top dialog changes, leading to a situation where
 		// modalshortcuts is empty.
-		const shortcutsToShow = this._modalShortcuts.length > 1
-			? [...this._modalShortcuts] // copy values, they will change
+		const shortcutsToShow = this._keyToModalShortcut.size > 1
+			? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
 			: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
 		import("../gui/dialogs/ShortcutDialog.js")
 			.then(({showShortcutDialog}) => showShortcutDialog(shortcutsToShow))
@@ -170,14 +167,12 @@ class KeyManager {
 
 	registerModalShortcuts(shortcuts: Array<Shortcut>) {
 		this._applyOperation(shortcuts, (id, s) => {
-			this._modalShortcuts.push(s)
 			this._keyToModalShortcut.set(id, s)
 		})
 	}
 
 	unregisterModalShortcuts(shortcuts: Array<Shortcut>) {
 		this._applyOperation(shortcuts, (id, s) => {
-			remove(this._modalShortcuts, s)
 			this._keyToModalShortcut.delete(id)
 		})
 	}
