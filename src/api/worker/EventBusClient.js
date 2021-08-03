@@ -463,6 +463,8 @@ export class EventBusClient {
 					           )
 					           .catch(ofClass(NotAuthorizedError, () => {
 						           console.log("could not download entity updates => lost permission")
+						           // We need to do this to mark group as "processed", otherwise progress bar will get stuck
+						           this._progressMonitor.workDone(1)
 					           }))
 				}).then(() => {
 					this._lastUpdateTime = Date.now()
