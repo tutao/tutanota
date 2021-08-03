@@ -2,6 +2,7 @@
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
 import type {TranslationKeyType} from "./TranslationKey"
+import {replaceAll} from "../api/common/utils/StringUtils"
 
 export type TranslationKey = TranslationKeyType
 
@@ -416,8 +417,8 @@ export class LanguageViewModel {
 			}
 		}
 
-		for (var param in replacements) {
-			text = text.replace(param, replacements[param])
+		for (let param in replacements) {
+			text = replaceAll(text, param, replacements[param])
 		}
 
 		return text

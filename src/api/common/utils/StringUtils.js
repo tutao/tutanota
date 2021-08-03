@@ -107,3 +107,19 @@ export function byteLength(str: ?string): number {
 	}
 	return s;
 }
+
+/**
+ * replace all instances of substr in str with replacement
+ */
+export function replaceAll(str: string, substr: string, replacement: string): string {
+	const regex = escapedStringRegExp(substr, 'g')
+	return str.replace(regex, replacement)
+}
+
+/**
+ * Create a regex to exactly match a given string, by escaping any special regex characters
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+ * */
+function escapedStringRegExp(str: string, flags: string): RegExp {
+	return new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags)
+}
