@@ -103,7 +103,7 @@ export class ViewSlider implements IViewSlider {
 					}))
 				),
 				styles.isUsingBottomNavigation() ? m(BottomNav) : null,
-				this._getColumnsForOverlay().map(m),
+				this._getColumnsForOverlay().map((c) => m(c, {})),
 				this._createModalBackground(),
 			])
 		}

@@ -203,7 +203,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 
 	// append catch all at the end because mithril will stop at the first match
 	resolvers["/:path"] = {
-		onmatch: (args: {[string]: QueryValue}, requestedPath: string): Promise<MComponent<void>> => {
+		onmatch: (args: {[string]: QueryValue}, requestedPath: string): $Promisable<?MComponent<TopLevelComponentAttrs>> => {
 			return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")])
 			              .then(([{InfoView}, {ButtonType, ButtonN}]) => {
 				              return {
