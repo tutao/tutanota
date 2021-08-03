@@ -31,8 +31,6 @@ async function createHtml(env) {
 	}
 	const imports = [{src: 'polyfill.js'}, {src: jsFileName}]
 
-	const indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
-
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 import('./app.js')`
