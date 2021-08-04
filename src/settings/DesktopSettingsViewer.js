@@ -211,7 +211,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get('desktopSettings_label')),
-				env.platformId !== 'darwin' ? m(DropDownSelectorN, spellcheckLanguageAttrs) : null,
+				m(TextFieldN, spellcheckLanguageAttrs),
 				env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
 				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
