@@ -1685,7 +1685,8 @@ export class MailViewer {
 	}
 
 	_renderExternalContentBanner(): ?Children {
-		if (this.isBlockingExternalImages()) {
+		// only show banner when there are blocked images and the user hasn't made a decision about how to handle them
+		if (this._contentBlockingStatus !== ContentBlockingStatus.Block) {
 			return null
 		}
 
