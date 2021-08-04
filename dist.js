@@ -25,7 +25,7 @@ import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import visualizer from "rollup-plugin-visualizer"
+import {visualizer} from "rollup-plugin-visualizer"
 import glob from "glob"
 
 const {babel} = pluginBabel
