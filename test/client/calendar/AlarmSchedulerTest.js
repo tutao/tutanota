@@ -1,14 +1,14 @@
 // @flow
 import {AlarmScheduler, AlarmSchedulerImpl} from "../../../src/calendar/date/AlarmScheduler"
-import type {ScheduledId, Scheduler} from "../../../src/misc/Scheduler"
+import type {ScheduledId, Scheduler} from "../../../src/api/common/Scheduler"
 import type {Thunk} from "../../../src/api/common/utils/Utils"
 import {downcast} from "../../../src/api/common/utils/Utils"
-import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
 import o from "ospec"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
+import type {DateProvider} from "../../../src/api/common/DateProvider"
 
 o.spec("AlarmScheduler", function () {
 	let alarmScheduler: AlarmSchedulerImpl
@@ -42,9 +42,9 @@ o.spec("AlarmScheduler", function () {
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, null, notificationSender)
 
 			const expectedAlarmTime = DateTime.fromISO("2021-04-21T19:50Z").toMillis()
-			const scheduled = scheduler.scheduledAt.get(expectedAlarmTime)
+			const scheduled = scheduler.scheduledIn.get(expectedAlarmTime)
 			if (scheduled == null) {
-				throw new Error("Did not schedule, " + Array.from(scheduler.scheduledAt.keys()).map(Date).join(","))
+				throw new Error("Did not schedule, " + Array.from(scheduler.scheduledIn.keys()).map(Date).join(","))
 			}
 			scheduled.thunk()
 			o(notificationSender.callCount).equals(1)
@@ -77,9 +77,9 @@ o.spec("AlarmScheduler", function () {
 			]
 
 			for (const time of expectedTimes) {
-				const scheduled = scheduler.scheduledAt.get(time.toMillis())
+				const scheduled = scheduler.scheduledIn.get(time.toMillis())
 				if (scheduled == null) {
-					const got = Array.from(scheduler.scheduledAt.keys()).map(t => DateTime.fromMillis(t).toISO())
+					const got = Array.from(scheduler.scheduledIn.keys()).map(t => DateTime.fromMillis(t).toISO())
 					throw new Error(`Did not schedule at ${time.toISO()}, but ${got.join(",")}`)
 				}
 
@@ -107,9 +107,9 @@ o.spec("AlarmScheduler", function () {
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, null, notificationSender)
 
 			const expectedAlarmTime = DateTime.fromISO("2021-04-21T19:50Z").toMillis()
-			const scheduled = scheduler.scheduledAt.get(expectedAlarmTime)
+			const scheduled = scheduler.scheduledIn.get(expectedAlarmTime)
 			if (scheduled == null) {
-				throw new Error("Did not schedule, " + Array.from(scheduler.scheduledAt.keys()).map(Date).join(","))
+				throw new Error("Did not schedule, " + Array.from(scheduler.scheduledIn.keys()).map(Date).join(","))
 			}
 			alarmScheduler.cancelAlarm(alarmInfo.alarmIdentifier)
 			o(scheduler.cancelled.has(scheduled.id)).equals(true)("was unscheduled")
@@ -135,7 +135,7 @@ o.spec("AlarmScheduler", function () {
 
 			alarmScheduler.scheduleAlarm(eventInfo, alarmInfo, repeatRule, notificationSender)
 
-			const scheduled = Array.from(scheduler.scheduledAt.values()).map((idThunk) => idThunk.id)
+			const scheduled = Array.from(scheduler.scheduledIn.values()).map((idThunk) => idThunk.id)
 			o(scheduled.length).equals(1)
 
 			alarmScheduler.cancelAlarm(alarmInfo.alarmIdentifier)
@@ -150,24 +150,24 @@ type IdThunk = {id: ScheduledId, thunk: Thunk}
 class SchedulerMock implements Scheduler {
 	alarmId: number;
 	/** key is the time */
-	scheduledAt: Map<number, IdThunk>
+	scheduledIn: Map<number, IdThunk>
 	scheduledAfter: Map<number, IdThunk>
 	cancelled: Set<ScheduledId>
 
 	constructor() {
 		this.alarmId = 0
-		this.scheduledAt = new Map()
+		this.scheduledIn = new Map()
 		this.scheduledAfter = new Map()
 		this.cancelled = new Set()
 	}
 
 	scheduleAt(callback, date): ScheduledId {
 		const id = this._incAlarmId()
-		this.scheduledAt.set(date.getTime(), {id, thunk: callback})
+		this.scheduledIn.set(date.getTime(), {id, thunk: callback})
 		return id
 	}
 
-	scheduleAfter(callback, ms): ScheduledId {
+	scheduleIn(callback, ms): ScheduledId {
 		const id = this._incAlarmId()
 		this.scheduledAfter.set(ms, {id, thunk: callback})
 		return id

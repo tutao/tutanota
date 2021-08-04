@@ -24,6 +24,9 @@ import {SuspensionHandler} from "./SuspensionHandler"
 import {EntityClient} from "../common/EntityClient"
 import {GiftCardFacade} from "./facades/GiftCardFacade"
 import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
+import {SchedulerImpl} from "../common/Scheduler"
+import type {DateProvider} from "../common/DateProvider"
+import {ProgrammingError} from "../common/error/ProgrammingError"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -65,7 +68,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	let cache = new EntityRestCache(entityRestClient)
 	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
 	locator.cachingEntityClient = new EntityClient(locator.cache)
-	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
+	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache, new SchedulerImpl(new WorkerDateProvider(), self))
 	locator.login = new LoginFacade(worker, locator.restClient, locator.cachingEntityClient)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
@@ -92,6 +95,17 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 
 export function resetLocator(): Promise<void> {
 	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._browserData))
+}
+
+class WorkerDateProvider implements DateProvider {
+	now(): number {
+		return Date.now()
+	}
+
+	// The worker doesn't work with time zones, don't even try
+	timeZone(): string {
+		throw new ProgrammingError("Time zone not available in the worker")
+	}
 }
 
 if (typeof self !== "undefined") {

@@ -24,14 +24,15 @@ import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/F
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
+import {ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS} from "../../../../src/api/worker/search/Indexer"
 import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {browserDataStub, makeCore, mock, replaceAllMaps, spy} from "../../TestUtils"
+import {browserDataStub, makeCore, mock} from "../../TestUtils"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
+import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {getDayShifted, getStartOfDay} from "../../../../src/api/common/utils/DateUtils"
 import {createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
@@ -44,8 +45,7 @@ import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFol
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
-import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
-import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
+import {getElementId} from "../../../../src/api/common/utils/EntityUtils";
 
 class FixedDateProvider implements DateProvider {
 	now: number;
@@ -63,8 +63,8 @@ class FixedDateProvider implements DateProvider {
 }
 
 const dbMock: any = {iv: fixedIv}
-const emptyFutureActionsObj = {deleted: {}, moved: {}}
 const mailId = "L-dNNLe----0"
+const mailId2 = "L-dNNLe----1"
 
 o.spec("MailIndexer test", () => {
 
@@ -299,7 +299,7 @@ o.spec("MailIndexer test", () => {
 		const dateProvider = new FixedDateProvider(now)
 
 		const indexer = mock(new MailIndexer((null: any), db, (null: any), (null: any), (null: any), dateProvider), (mocked) => {
-			mocked.indexMailboxes = spy(() => Promise.resolve())
+			mocked.indexMailboxes = o.spy(() => Promise.resolve())
 			mocked.mailIndexingEnabled = false
 			mocked._excludedListIds = []
 			mocked._getSpamFolder = (membership) => {
@@ -309,7 +309,7 @@ o.spec("MailIndexer test", () => {
 		})
 
 		indexer.enableMailIndexing(user).then(() => {
-			o(indexer.indexMailboxes.invocations[0])
+			o(indexer.indexMailboxes.calls[0].args)
 				.deepEquals([user, beforeNowInterval])
 
 			o(indexer.mailIndexingEnabled).equals(true)
@@ -500,7 +500,7 @@ o.spec("MailIndexer test", () => {
 		})
 	}
 
-	o.spec("processEntityEvents", function () {
+	o.spec("_processEntityEvents", function () {
 		let indexUpdate: IndexUpdate
 		o.beforeEach(function () {
 			indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
@@ -512,7 +512,7 @@ o.spec("MailIndexer test", () => {
 				createUpdate(OperationType.CREATE, "mail-list", "1"), createUpdate(OperationType.UPDATE, "mail-list", "2"),
 				createUpdate(OperationType.DELETE, "mail-list", "3")
 			]
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
@@ -524,9 +524,9 @@ o.spec("MailIndexer test", () => {
 			const indexer = _prepareProcessEntityTests(true)
 			let events = [createUpdate(OperationType.CREATE, "new-mail-list", mailId)]
 
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			// nothing changed
-			o(indexer.processNewMail.invocations.length).equals(1)
+			o(indexer.processNewMail.callCount).equals(1)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
 			o(indexer._core._processDeleted.callCount).equals(0)
@@ -539,12 +539,30 @@ o.spec("MailIndexer test", () => {
 				createUpdate(OperationType.DELETE, "old-mail-list", mailId)
 			]
 
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			// nothing changed
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
-			o(indexer.processMovedMail.invocations.length).equals(1)
-			o(indexer.processMovedMail.invocations[0]).deepEquals([events[0], indexUpdate])
+			o(indexer.processMovedMail.callCount).equals(1)
+			o(indexer.processMovedMail.calls[0].args).deepEquals([events[0], indexUpdate])
 			o(indexer._core._processDeleted.callCount).equals(0)
+
+		})
+
+		// Special case of moved mail, server generates a new ID on send
+		o("sent mail", async function () {
+			const indexer = _prepareProcessEntityTests(true)
+
+			let events = [
+				createUpdate(OperationType.CREATE, "new-mail-list", mailId2),
+				createUpdate(OperationType.DELETE, "old-mail-list", mailId)
+			]
+
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+
+			o(indexer.processNewMail.callCount).equals(1)
+			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
+			o(indexer._core._processDeleted.callCount).equals(1)
+			o(indexer._core._processDeleted.args).deepEquals([events[1], indexUpdate])
 		})
 
 
@@ -552,7 +570,7 @@ o.spec("MailIndexer test", () => {
 			const indexer = _prepareProcessEntityTests(true)
 			let events = [createUpdate(OperationType.DELETE, "mail-list", mailId)]
 
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
 			o(indexer._core._processDeleted.callCount).equals(1)
@@ -563,7 +581,7 @@ o.spec("MailIndexer test", () => {
 			const indexer = _prepareProcessEntityTests(true, MailState.DRAFT)
 			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", mailId)]
 
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
 			o(indexer._core._processDeleted.callCount).equals(1)
@@ -574,7 +592,7 @@ o.spec("MailIndexer test", () => {
 			const indexer = _prepareProcessEntityTests(true, MailState.RECEIVED)
 			let events = [createUpdate(OperationType.UPDATE, "new-mail-list", mailId)]
 
-			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
+			await indexer._processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(0)
 			o(indexUpdate.move.length).equals(0)
 			o(indexer._core._processDeleted.callCount).equals(0)
@@ -635,19 +653,188 @@ o.spec("MailIndexer test", () => {
 			const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
 			const dateProvider = new FixedDateProvider(currentIndexTimestamp)
 			const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider), (mocked) => {
-				mocked.indexMailboxes = spy(() => Promise.resolve())
+				mocked.indexMailboxes = o.spy(() => Promise.resolve())
 			})
 			indexer.currentIndexTimestamp = currentIndexTimestamp
 
 			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
 
-			o(indexer.indexMailboxes.invocations).deepEquals([
-				// Start of the day
-				[user, beforeNowInterval]
-			])
+			o(indexer.indexMailboxes.args).deepEquals([user, beforeNowInterval])
 		})
+
+		o.spec("process batched mail events", function () {
+			o("it works", async function () {
+
+				const expectedCreateMails = [
+					createMail({_id: ["list", "instance1"]}),
+					createMail({_id: ["list", "instance3"]}),
+				]
+
+				entityMock.addListInstances(...expectedCreateMails)
+
+				const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), (null: any), entityMock, (null: any)), (mocked) => {
+					mocked.mailIndexingEnabled = true
+					mocked._processIndexMails = o.spy()
+					mocked._processEntityEvents = o.spy()
+				})
+
+				const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+				const groupId = "my-cool-group"
+
+				const batches: Array<QueuedBatch> = [
+					{ // Create Batch
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance1",
+								instanceListId: "list",
+								operation: OperationType.CREATE,
+								type: MailTypeRef.type
+							}),
+						],
+						groupId: groupId,
+						batchId: "batch1"
+					},
+					{ // Non - Create Batch
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance2",
+								instanceListId: "list",
+								operation: OperationType.DELETE,
+								type: MailTypeRef.type
+							})
+						],
+						groupId: groupId,
+						batchId: "batch2"
+					},
+					{ // Create Batch
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance3",
+								instanceListId: "list",
+								operation: OperationType.CREATE,
+								type: MailTypeRef.type
+							})
+						],
+						groupId: groupId,
+						batchId: "batch3"
+					},
+					{ // Non - Create Batch
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance4",
+								instanceListId: "list",
+								operation: OperationType.DELETE,
+								type: MailTypeRef.type
+							}),
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance4",
+								instanceListId: "list",
+								operation: OperationType.CREATE,
+								type: MailTypeRef.type
+							}),
+						],
+						groupId: groupId,
+						batchId: "batch4"
+					},
+				]
+
+				await indexer.processMailUpdates(indexUpdate, groupId, batches)
+
+				o(indexer._processIndexMails.callCount).equals(1)
+				o(indexer._processIndexMails.args[0]).deepEquals(expectedCreateMails)
+				o(indexer._processIndexMails.args[1]).deepEquals(indexUpdate)
+
+				o(indexer._processEntityEvents.calls[0].args).deepEquals([
+					batches[1].events,
+					groupId,
+					"batch2",
+					indexUpdate
+				])
+
+				o(indexer._processEntityEvents.calls[1].args).deepEquals([
+					batches[3].events,
+					groupId,
+					"batch4",
+					indexUpdate
+				])
+			})
+
+			o("contains sent mail batch (one batch, two mails with different IDs)", async function () {
+
+				const expectedCreateMails = [
+					createMail({_id: ["list", "instance1"]}),
+				]
+
+				entityMock.addListInstances(...expectedCreateMails)
+
+				const indexer = mock(new MailIndexer((null: any), (null: any), (null: any), (null: any), entityMock, (null: any)), (mocked) => {
+					mocked.mailIndexingEnabled = true
+					mocked._processIndexMails = o.spy()
+					mocked._processEntityEvents = o.spy()
+				})
+
+				const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+				const groupId = "my-cool-group"
+
+				const batches: Array<QueuedBatch> = [
+					{ // Create Batch
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance1",
+								instanceListId: "list",
+								operation: OperationType.CREATE,
+								type: MailTypeRef.type
+							}),
+						],
+						groupId: groupId,
+						batchId: "batch1"
+					},
+					{ // Non-Create Batch, "Sent mail", sort of a MOVE but the id gets changed
+						events: [
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance2",
+								instanceListId: "list",
+								operation: OperationType.DELETE,
+								type: MailTypeRef.type
+							}),
+							createEntityUpdate({
+								application: "tutanota",
+								instanceId: "instance3",
+								instanceListId: "list",
+								operation: OperationType.CREATE,
+								type: MailTypeRef.type
+							}),
+						],
+						groupId: groupId,
+						batchId: "batch2"
+					}
+				]
+
+				await indexer.processMailUpdates(indexUpdate, groupId, batches)
+
+				o(indexer._processIndexMails.callCount).equals(1)
+				o(indexer._processIndexMails.args[0]).deepEquals(expectedCreateMails)
+				o(indexer._processIndexMails.args[1]).deepEquals(indexUpdate)
+
+				o(indexer._processEntityEvents.calls[0].args).deepEquals([
+					batches[1].events,
+					groupId,
+					"batch2",
+					indexUpdate
+				])
+			})
+		})
+
 	})
 })
+
 
 function createUpdate(type: OperationTypeEnum, listId: Id, instanceId: Id, eventId?: Id) {
 	let update = createEntityUpdate()
@@ -686,8 +873,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 		printStatus: () => {
 		},
 		queue: mock(new EventQueue(true, () => Promise.resolve()), (mock) => {
-			mock.pause = spy(mock.pause.bind(mock))
-			mock.resume = spy(mock.resume.bind(mock))
+			mock.pause = o.spy(mock.pause.bind(mock))
+			mock.resume = o.spy(mock.resume.bind(mock))
 		}),
 		_stats: {},
 		resetStats: () => {}
@@ -711,8 +898,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	o(indexer.mailboxIndexingPromise.isPending()).equals(true)
 	await indexPromise
 
-	o(indexer._core.queue.pause.invocations.length).equals(1)
-	o(indexer._core.queue.resume.invocations.length).equals(1)
+	o(indexer._core.queue.pause.callCount).equals(1)
+	o(indexer._core.queue.resume.callCount).equals(1)
 	o(indexer.mailboxIndexingPromise.isFulfilled()).equals(true)
 	if (indexMailList) {
 		o(indexer._indexMailLists.callCount).equals(1)
@@ -736,7 +923,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 
 	let transaction = {
 		get: (os, id) => {
-			let elementData: ElementDataDbRow = [getListId(mail), new Uint8Array(0), "group-id"]
+			let elementData: ElementDataDbRow = [mailId, new Uint8Array(0), "group-id"]
 			return Promise.resolve(elementData)
 		}
 	}
@@ -751,14 +938,16 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 		mocked._processDeleted = o.spy()
 	})
 
-	const {mail, body} = createMailInstances(["new-mail-list", mailId], "body-id")
-	mail.state = mailState
+	const {mail: mail1, body: body1} = createMailInstances(["new-mail-list", mailId], "body1-id")
+	const {mail: mail2, body: body2} = createMailInstances(["new-mail-list", mailId2], "body2-id")
+
+	mail1.state = mailState
 	const entityMock = new EntityRestClientMock()
-	entityMock.addElementInstances(body)
-	entityMock.addListInstances(mail)
+	entityMock.addElementInstances(body1, body2)
+	entityMock.addListInstances(mail1, mail2)
 	return mock(new MailIndexer(core, db, (null: any), entityMock, entityMock, new LocalTimeDateProvider()), (mocked) => {
-		mocked.processNewMail = spy(mocked.processNewMail.bind(mocked))
-		mocked.processMovedMail = spy(mocked.processMovedMail.bind(mocked))
+		mocked.processNewMail = o.spy(mocked.processNewMail.bind(mocked))
+		mocked.processMovedMail = o.spy(mocked.processMovedMail.bind(mocked))
 		mocked.mailIndexingEnabled = indexingEnabled
 	})
 }

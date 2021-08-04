@@ -170,9 +170,15 @@ export function userIsGlobalAdmin(user: User): boolean {
 	return user.memberships.find(m => m.groupType === GroupType.Admin) != null
 }
 
+export function isIndexMembership({groupType}: GroupMembership): boolean {
+	return groupType === GroupType.Mail
+		|| groupType === GroupType.Contact
+		|| groupType === GroupType.Customer
+		|| groupType === GroupType.Admin
+}
+
 export function filterIndexMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(m => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact
-		|| m.groupType === GroupType.Customer || m.groupType === GroupType.Admin)
+	return user.memberships.filter(isIndexMembership)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {

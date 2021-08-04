@@ -11,7 +11,7 @@ import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
+import {assertNotNull, containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
 	_createNewIndexUpdate,
@@ -28,10 +28,9 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
-import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
+import {flat, groupBy, groupByAndMap, partition, splitInChunks} from "../../common/utils/ArrayUtils"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
@@ -40,7 +39,11 @@ import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
-import {TypeRef} from "../../common/utils/TypeRef";
+import {isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import type {QueuedBatch} from "./EventQueue"
+import {batchMod, EntityModificationType} from "./EventQueue"
+import {getFromMap} from "../../common/utils/MapUtils"
+import {promiseMap} from "../../common/utils/PromiseUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -111,28 +114,33 @@ export class MailIndexer {
 		return keyToIndexEntries
 	}
 
-	processNewMail(event: EntityUpdate): Promise<?{mail: Mail, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
+	async processNewMail(event: EntityUpdate): Promise<?{mail: Mail, keyToIndexEntries: Map<string, SearchIndexEntry[]>}> {
 		if (this._isExcluded(event)) {
-			return Promise.resolve()
+			return null
 		}
-		return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
-		           .then(mail => {
-			           return Promise.all([
-				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null)),
-				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null)
-			           ]).then(([files, body]) => {
-				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
-				           return {mail, keyToIndexEntries}
-			           })
-		           })
-		           .catch(NotFoundError, () => {
-			           console.log("tried to index non existing mail")
-			           return null
-		           })
-		           .catch(NotAuthorizedError, () => {
-			           console.log("tried to index contact without permission")
-			           return null
-		           })
+
+		try {
+			const mail = await this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
+			const attachmentsByListId = groupByAndMap(mail.attachments, id => listIdPart(id), id => elementIdPart(id))
+			const [body, files] = await Promise.all([
+				this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null),
+				promiseMap(attachmentsByListId.entries(),
+					([listId, elementIds]) => this._defaultCachingEntity.loadMultipleEntities(FileTypeRef, listId, elementIds))
+			])
+
+			const keyToIndexEntries = this.createMailIndexEntries(mail, body, flat(files))
+			return {mail, keyToIndexEntries}
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("tried to index nonexistent mail")
+			} else if (e instanceof NotAuthorizedError) {
+				console.log("tried to index mail without permission")
+			} else {
+				throw e
+			}
+
+			return null
+		}
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
@@ -496,46 +504,83 @@ export class MailIndexer {
 	 * @param groupId
 	 * @param batchId
 	 * @param indexUpdate which will be populated with operations
-	 * @param futureActions lookahead for actions optimizations. Actions will be removed when processed.
 	 * @returns {Promise<*>} Indication that we're done.
 	 */
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return Promise.each(events, (event) => {
+	async _processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		if (!this.mailIndexingEnabled) return
+
+		for (let event of events) {
 			if (event.operation === OperationType.CREATE) {
 				if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
 					// do not execute move operation if there is a delete event or another move event.
-					return this.processMovedMail(event, indexUpdate)
+					await this.processMovedMail(event, indexUpdate)
 				} else {
-					return this.processNewMail(event).then((result) => {
-						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						}
-					})
+					// Ideally there would be no create operations happening here, but in SendDraftService
+					// we change the Id of the mail before moving it, so even though it is basically a move, it isn't detected as such
+					const result = await this.processNewMail(event)
+					if (result) {
+						this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+					}
 				}
 			} else if (event.operation === OperationType.UPDATE) {
-				return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
-				           .then(mail => {
-					           if (mail.state === MailState.DRAFT) {
-						           return Promise.all([
-							           this._core._processDeleted(event, indexUpdate),
-							           this.processNewMail(event).then(result => {
-								           if (result) {
-									           this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
-										           indexUpdate)
-								           }
-							           })
-						           ])
-					           }
-				           })
-				           .catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
+				const mail: ?Mail = await this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
+				                              .catch(NotFoundError, () => {
+					                              console.log("tried to index update event for non existing mail")
+					                              return null
+				                              })
+
+				if (mail && mail.state === MailState.DRAFT) {
+					await Promise.all([
+						this._core._processDeleted(event, indexUpdate),
+						this.processNewMail(event).then(result => {
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+									indexUpdate)
+							}
+						})
+					])
+				}
 			} else if (event.operation === OperationType.DELETE) {
 				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) {
-					// Check that this is *not* a move event. Move events are handled separately.
-					return this._core._processDeleted(event, indexUpdate)
+					// This is *not* a move event. Move events are handled above
+					await this._core._processDeleted(event, indexUpdate)
 				}
 			}
-		}).return()
+		}
+	}
+
+	async processMailUpdates(indexUpdate: IndexUpdate, groupId: Id, batches: Array<QueuedBatch>): Promise<void> {
+		if (!this.mailIndexingEnabled) return
+
+		const indexLoader = new IndexLoader(this._entityRestClient)
+
+		// It might be that there's some batch that doesn't include mail update (as result of optimization or otherwise).
+		// We don't care about them.
+		batches = batches.filter((b) => b.events.some(e => e.type === MailTypeRef.type))
+
+		const [createBatches, otherBatches] = partition(batches, batch => {
+			const mailEvent = assertNotNull(batch.events.find(e => e.type === MailTypeRef.type))
+			return batchMod(batch.events, mailEvent.instanceId) === EntityModificationType.CREATE
+		})
+
+		const eventsByListId = new Map()
+		for (let {events} of createBatches) {
+			for (const event of events) {
+				if (!this._isExcluded(event) && isSameTypeRefByAttr(MailTypeRef, event.application, event.type)) {
+					getFromMap(eventsByListId, event.instanceListId, () => []).push(event.instanceId)
+				}
+			}
+		}
+
+		for (let [listId, instanceIds] of eventsByListId.entries()) {
+			const mails = await this._defaultCachingEntity.loadMultipleEntities(MailTypeRef, listId, instanceIds)
+			await this._processIndexMails(mails, indexUpdate, indexLoader)
+		}
+
+		for (let {events, batchId} of otherBatches) {
+			const mailEvents = events.filter(event => isSameTypeRefByAttr(MailTypeRef, event.application, event.type))
+			await this._processEntityEvents(mailEvents, groupId, batchId, indexUpdate)
+		}
 	}
 }
 

@@ -1,12 +1,14 @@
 // @flow
 
-import type {DateProvider} from "../calendar/date/CalendarUtils"
-import type {Thunk} from "../api/common/utils/Utils"
+import type {Thunk} from "./utils/Utils"
+import type {DateProvider} from "./DateProvider"
 
 export opaque type ScheduledId = TimeoutID
 
 export interface Scheduler {
 	scheduleAt(thunk: Thunk, date: Date): ScheduledId;
+
+	scheduleIn(callback: Thunk, ms: number): ScheduledId;
 
 	unschedule(id: ScheduledId): void;
 }
@@ -46,6 +48,10 @@ export class SchedulerImpl implements Scheduler {
 		timeoutId = this._scheduleAtInternal(wrappedCallback, date)
 
 		return timeoutId
+	}
+
+	scheduleIn(callback: Thunk, ms: number): ScheduledId {
+		return this.scheduleAt(callback, new Date(this._dateProvider.now() + ms))
 	}
 
 	/** We have separate internal version which does not re-wrap the thunk. */

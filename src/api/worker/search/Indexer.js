@@ -16,7 +16,7 @@ import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
-import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
+import {_createNewIndexUpdate, filterIndexMemberships, isIndexMembership, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -36,7 +36,7 @@ import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
-import {contains} from "../../common/utils/ArrayUtils"
+import {contains, groupBy} from "../../common/utils/ArrayUtils"
 import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
@@ -52,6 +52,8 @@ import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/Ty
 import {deleteObjectStores} from "../utils/DbUtils"
 import {promiseMap} from "../../common/utils/PromiseUtils"
 import {daysToMillis, millisToDays} from "../../common/utils/DateUtils"
+import type {Scheduler} from "../../common/Scheduler"
+import {BufferingProcessor} from "./BufferingProcessor"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -104,6 +106,8 @@ export function newSearchIndexDB(): DbFacade {
 	})
 }
 
+const PROCESS_MAIL_BODY_BATCHES_DELAY = 4000
+
 export class Indexer {
 	db: Db;
 	_dbInitializedDeferredObject: DeferredObject<void>
@@ -130,8 +134,9 @@ export class Indexer {
 	_entity: EntityClient;
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>;
+	_newMailBuffer: BufferingProcessor<QueuedBatch>;
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface, scheduler: Scheduler) {
 		let deferred = defer()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
@@ -159,6 +164,17 @@ export class Indexer {
 			}
 			return Promise.resolve()
 		})
+		this._newMailBuffer = new BufferingProcessor(scheduler, async (batches) => {
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+
+			const perGroup = groupBy(batches, (batch) => batch.groupId)
+			for (const [groupId, batches] of perGroup.entries()) {
+				await this._mail.processMailUpdates(indexUpdate, groupId, batches)
+			}
+
+			// write update with all the batch ids but without updating the timestamp
+			await this._core.writeIndexUpdate([], indexUpdate)
+		}, PROCESS_MAIL_BODY_BATCHES_DELAY)
 		this._realtimeEventQueue.pause()
 	}
 
@@ -531,86 +547,85 @@ export class Indexer {
 		})
 	}
 
-	_processEntityEvents(batch: QueuedBatch): Promise<void> {
+	async _processEntityEvents(batch: QueuedBatch): Promise<void> {
 		const {events, groupId, batchId} = batch
-		return this
-			.db.initialized.then(() => {
-				if (!this.db.dbFacade.indexingSupported) {
-					return Promise.resolve()
+		const {user} = this._initParams
+		await this.db.initialized
+		try {
+			if (!this.db.dbFacade.indexingSupported) {
+				return
+			}
+
+			const membership = user.memberships.find(membership => isSameId(membership.group, groupId))
+			if (!membership || !isIndexMembership(membership)) {
+				return
+			}
+
+			if (!this._indexedGroupIds.includes(groupId)) {
+				return
+			}
+
+			if (membership.groupType === GroupType.Mail) {
+				this._newMailBuffer.add(batch)
+				return
+			}
+
+			markStart("processEntityEvents")
+			const groupedEventsByTypeRef: Map<TypeRef<any>, EntityUpdate[]> = new Map()
+			for (let event of events) {
+				if (isSameTypeRefByAttr(ContactTypeRef, event.application, event.type)) {
+					getFromMap(groupedEventsByTypeRef, ContactTypeRef, () => []).push(event)
+				} else if (isSameTypeRefByAttr(GroupInfoTypeRef, event.application, event.type)) {
+					getFromMap(groupedEventsByTypeRef, GroupInfoTypeRef, () => []).push(event)
+				} else if (isSameTypeRefByAttr(UserTypeRef, event.application, event.type)) {
+					getFromMap(groupedEventsByTypeRef, UserTypeRef, () => []).push(event)
+				} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, event.application, event.type)) {
+					getFromMap(groupedEventsByTypeRef, WhitelabelChildTypeRef, () => []).push(event)
+				}
+			}
+
+			markStart("processEvent")
+			for (let [typeRef, events] of groupedEventsByTypeRef.entries()) {
+
+				// Handle user first so that we don't create an unnecessary index update
+				if (isSameTypeRef(UserTypeRef, typeRef)) {
+					await this._processUserEntityEvents(events)
+					continue
+				}
+				const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(typeRef))
+
+				if (isSameTypeRef(ContactTypeRef, typeRef)) {
+					await this._contact.processEntityEvents(events, groupId, batchId, indexUpdate)
+				} else if (isSameTypeRef(GroupInfoTypeRef, typeRef)) {
+					await this._groupInfo.processEntityEvents(events, groupId, batchId, indexUpdate, this._initParams.user)
+				} else if (isSameTypeRef(WhitelabelChildTypeRef, typeRef)) {
+					await this._whitelabelChildIndexer.processEntityEvents(events, groupId, batchId, indexUpdate, this._initParams.user)
 				}
 
-				if (filterIndexMemberships(this._initParams.user).map(m => m.group).indexOf(groupId) === -1) {
-					return Promise.resolve()
-				}
-				if (this._indexedGroupIds.indexOf(groupId) === -1) {
-					return Promise.resolve()
-				}
-				markStart("processEntityEvents")
-				const groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = new Map() // define map first because Webstorm has problems with type annotations
-				events.reduce((all, update) => {
-						if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
-							getFromMap(all, MailTypeRef, () => []).push(update)
-						} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
-							getFromMap(all, ContactTypeRef, () => []).push(update)
-						} else if (isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)) {
-							getFromMap(all, GroupInfoTypeRef, () => []).push(update)
-						} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
-							getFromMap(all, UserTypeRef, () => []).push(update)
-						} else if (isSameTypeRefByAttr(WhitelabelChildTypeRef, update.application, update.type)) {
-							getFromMap(all, WhitelabelChildTypeRef, () => []).push(update)
-						}
-						return all
-					},
-					groupedEvents
-				)
-
-				markStart("processEvent")
-				return Promise.each(groupedEvents.entries(), ([key, value]) => {
-					let promise = Promise.resolve()
-					if (isSameTypeRef(UserTypeRef, key)) {
-						return this._processUserEntityEvents(value)
-					}
-					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
-
-					if (isSameTypeRef(MailTypeRef, key)) {
-						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
-					} else if (isSameTypeRef(ContactTypeRef, key)) {
-						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
-					} else if (isSameTypeRef(GroupInfoTypeRef, key)) {
-						promise = this._groupInfo.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
-					} else if (isSameTypeRef(UserTypeRef, key)) {
-						promise = this._processUserEntityEvents(value)
-					} else if (isSameTypeRef(WhitelabelChildTypeRef, key)) {
-						promise = this._whitelabelChildIndexer.processEntityEvents(value, groupId, batchId, indexUpdate, this._initParams.user)
-					}
-					return promise.then(() => {
-						markEnd("processEvent")
-						markStart("writeIndexUpdate")
-						return this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
-					}).then(() => {
-						markEnd("writeIndexUpdate")
-						markEnd("processEntityEvents")
-						// if (!env.dist && env.mode !== "Test") {
-						// 	printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
-						// 		"processEntityEvents", "processEvent", "writeIndexUpdate"
-						// 	])
-						// }
-					})
-				})
-			})
-			.catch(CancelledError, noOp)
-			.catch(DbError, (e) => {
-				if (this._core.isStoppedProcessing()) {
-					console.log("Ignoring DBerror when indexing is disabled", e)
-				} else {
-					throw e
-				}
-			})
-			.catch(InvalidDatabaseStateError, (e) => {
+				markEnd("processEvent")
+				markStart("writeIndexUpdate")
+				await this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
+				markEnd("writeIndexUpdate")
+				markEnd("processEntityEvents")
+				// if (shouldMeasure()) {
+				// 	printMeasure("Update of " + typeRef.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
+				// 		"processEntityEvents", "processEvent", "writeIndexUpdate"
+				// 	])
+				// }
+			}
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				// do nothing
+			} else if (e instanceof DbError && this._core.isStoppedProcessing()) {
+				console.log("Ignoring DBerror when indexing is disabled", e)
+			} else if (e instanceof InvalidDatabaseStateError) {
 				console.log("InvalidDatabaseStateError during _processEntityEvents")
 				this._core.stopProcessing()
-				return this._reCreateIndex()
-			})
+				await this._reCreateIndex()
+			} else {
+				throw e
+			}
+		}
 	}
 
 	_processUserEntityEvents(events: EntityUpdate[]): Promise<void> {

@@ -1,11 +1,11 @@
 // @flow
 import o from "ospec"
-import type {ScheduledId, Scheduler, SystemTimeout} from "../../../src/misc/Scheduler"
-import {SchedulerImpl, SET_TIMEOUT_LIMIT} from "../../../src/misc/Scheduler"
-import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
+import type {ScheduledId, Scheduler, SystemTimeout} from "../../../src/api/common/Scheduler"
+import {SchedulerImpl, SET_TIMEOUT_LIMIT} from "../../../src/api/common/Scheduler"
 import type {Thunk} from "../../../src/api/common/utils/Utils"
 import {assertNotNull, downcast} from "../../../src/api/common/utils/Utils"
 import {DateTime, Duration} from "luxon"
+import type {DateProvider} from "../../../src/api/common/DateProvider"
 
 o.spec("Scheduler", function () {
 	let dateProvider: DateProvider

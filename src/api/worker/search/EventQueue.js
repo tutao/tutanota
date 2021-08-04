@@ -228,25 +228,25 @@ export class EventQueue {
 		}, startIndex)
 	}
 
-	start() {
+	async start(): Promise<void> {
 		if (this._processingBatch) {
 			return
 		}
-		this._processNext()
+		return this._processNext()
 	}
 
 	queueSize(): number {
 		return this._eventQueue.length
 	}
 
-	_processNext() {
+	async _processNext(): Promise<void> {
 		if (this._paused) {
 			return
 		}
 		const next = this._eventQueue[0]
 		if (next) {
 			this._processingBatch = next
-			this._queueAction(next)
+			return this._queueAction(next)
 			    .then(() => {
 				    this._eventQueue.shift()
 				    this._processingBatch = null
@@ -256,10 +256,10 @@ export class EventQueue {
 						    this._lastOperationForEntity.delete(event.instanceId)
 					    }
 				    }
-				    this._processNext()
+				    return this._processNext()
 			    })
 			    .catch((e) => {
-				    // processing continues if the event bus receives a new event
+				    // stop if we encounter an error, processing will continue from where we left off once we receive new events
 				    this._processingBatch = null
 				    if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
 					    console.error("Uncaught EventQueue error!", e)

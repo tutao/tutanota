@@ -29,16 +29,14 @@ import {size} from "../../gui/size"
 import {assertMainOrNode} from "../../api/common/Env"
 import {getFromMap} from "../../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../../api/entities/sys/User"
-import type {Group} from "../../api/entities/sys/Group"
-import type {GroupMembership} from "../../api/entities/sys/GroupMembership"
 import {isColorLight} from "../../gui/base/Color"
 import type {CalendarInfo} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
+import type {DateProvider} from "../../api/common/DateProvider"
 
 assertMainOrNode()
 
@@ -179,22 +177,6 @@ export function getValidTimeZone(zone: string, fallback: ?string): string {
 
 export function getTimeZone(): string {
 	return DateTime.local().zoneName
-}
-
-export interface DateProvider {
-	now(): number;
-
-	timeZone(): string;
-}
-
-export class DateProviderImpl implements DateProvider {
-	now(): number {
-		return Date.now()
-	}
-
-	timeZone(): string {
-		return getTimeZone()
-	}
 }
 
 export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): CalendarRepeatRule {
@@ -792,5 +774,15 @@ export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Da
 		return ".date-current"
 	} else {
 		return ""
+	}
+}
+
+export class DateProviderImpl implements DateProvider {
+	now(): number {
+		return Date.now()
+	}
+
+	timeZone(): string {
+		return getTimeZone()
 	}
 }

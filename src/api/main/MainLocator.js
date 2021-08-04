@@ -15,7 +15,7 @@ import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
 import {defer} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
-import {SchedulerImpl} from "../../misc/Scheduler"
+import {SchedulerImpl} from "../common/Scheduler"
 
 assertMainOrNode()
 

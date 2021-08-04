@@ -34,9 +34,9 @@ import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
 import type {DeviceKeyProvider} from "./DeviceKeyProviderImpl"
 import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
-import {SchedulerImpl} from "../misc/Scheduler"
-import {DateProviderImpl} from "../calendar/date/CalendarUtils"
+import {SchedulerImpl} from "../api/common/Scheduler"
 import {ThemeManager} from "./ThemeManager"
+import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 
 mp()
 
