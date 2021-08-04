@@ -47,8 +47,12 @@ export class WindowManager {
 	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
 	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager, themeManager: ThemeManager) {
 		this._conf = conf
-		conf.getVar(DesktopConfigKey.spellcheck).then(l => this._setSpellcheckLang(l))
-		conf.on(DesktopConfigKey.spellcheck, l => this._setSpellcheckLang(l))
+
+		if (process.platform !== "darwin") {
+			conf.getVar(DesktopConfigKey.spellcheck).then(l => this._setSpellcheckLang(l))
+			conf.on(DesktopConfigKey.spellcheck, l => this._setSpellcheckLang(l))
+		}
+
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
