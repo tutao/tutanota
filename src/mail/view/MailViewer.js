@@ -1652,7 +1652,7 @@ export class MailViewer {
 				icon: Icons.Warning,
 				type: BannerType.Warning,
 				helpLink: "phishing_link",
-				buttons: [{text: "markAsNotPhishing_action", click: () => this._markAsNotPhishing()}]
+				buttons: [{label: "markAsNotPhishing_action", click: () => this._markAsNotPhishing()}]
 			})
 		}
 	}
@@ -1664,7 +1664,7 @@ export class MailViewer {
 				icon: Icons.Warning,
 				helpLink: "mailAuth_link",
 				type: BannerType.Warning,
-				buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+				buttons: [{label: "close_alt", click: () => this._warningDismissed = true}]
 			})
 		}
 	}
@@ -1677,7 +1677,7 @@ export class MailViewer {
 					: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
 				helpLink: "mailAuth_link",
-				buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+				buttons: [{label: "close_alt", click: () => this._warningDismissed = true}]
 			})
 		} else {
 			return null
