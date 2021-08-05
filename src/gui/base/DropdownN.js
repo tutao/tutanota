@@ -345,7 +345,8 @@ export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
 
 /**
  *
- * @param mainButtonAttrs the attributes of the main button
+ * @param mainButtonAttrs the attributes of the main button. if showDropdown returns false, this buttons onclick will
+ * be executed instead of opening the dropdown.
  * @param childAttrs the attributes of the children shown in the dropdown
  * @param showDropdown this will be checked before showing the dropdown
  * @param width width of the dropdown
@@ -355,7 +356,7 @@ export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
 export function attachDropdown(
 	mainButtonAttrs: DropdownButtonAttrs,
 	childAttrs: lazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>,
-	showDropdown?: lazy<boolean> = () => true,
+	showDropdown: lazy<boolean> = () => true,
 	width?: number): ButtonAttrs {
 
 	const oldClick = mainButtonAttrs.click

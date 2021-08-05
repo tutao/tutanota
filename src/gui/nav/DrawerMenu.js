@@ -13,7 +13,6 @@ import {Icons} from "../base/icons/Icons"
 import {Request} from "../../api/common/WorkerProtocol"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {attachDropdown} from "../base/DropdownN"
-import {noOp} from "../../api/common/utils/Utils"
 import {keyManager} from "../../misc/KeyManager"
 
 type Attrs = void
@@ -69,7 +68,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					label: "showHelp_action",
 					icon: () => BootIcons.Help,
 					type: ButtonType.ActionLarge,
-					click: noOp,
+					click: () => keyManager.openF1Help(),
 					noBubble: true,
 					colors: ButtonColors.DrawerNav,
 				},
@@ -82,20 +81,12 @@ export class DrawerMenu implements MComponent<Attrs> {
 					},
 					{
 						label: "keyboardShortcuts_title",
-						click: () => keyManager.openF1Help(),
+						click: () => keyManager.openF1Help(true),
 						type: ButtonType.Dropdown,
 						colors: ButtonColors.DrawerNav,
 					}
 				],
-				() => {
-					// if the account is premium let the user choice, otherwise open the F1-Help
-					if (logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()) {
-						return true;
-					} else {
-						keyManager.openF1Help();
-						return false;
-					}
-				},
+				() => logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount(),
 				300
 			)),
 			isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()
