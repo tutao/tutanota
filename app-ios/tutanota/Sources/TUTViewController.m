@@ -281,9 +281,9 @@ alarmManager:(TUTAlarmManager *)alarmManager
       let alarm = [TUTAlarmNotification fromJSON:json];
       [alarms addObject:alarm];
     }
-    NSError *error;
-    [self.alarmManager processNewAlarms:alarms error:&error];
-    sendResponseBlock(NSNull.null, nil);
+    [self.alarmManager processNewAlarms:alarms completion:^(NSError * _Nullable error) {
+      sendResponseBlock(NSNull.null, error);
+    }];
   } else if ([@"getSelectedTheme" isEqualToString:type]) {
       sendResponseBlock(_themeManager.selectedThemeId, nil);
   } else if ([@"setSelectedTheme" isEqualToString:type]) {

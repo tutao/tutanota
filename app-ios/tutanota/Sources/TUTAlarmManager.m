@@ -150,9 +150,8 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
                 strongSelf.userPreference.lastProcessedNotificationId =
                 missedNotification.lastProcessedNotificationId;
                 
-                [strongSelf processNewAlarms:missedNotification.alarmNotifications error:&error];
-                // ignore the error here
-                complete(nil);
+              [strongSelf processNewAlarms:missedNotification.alarmNotifications completion:complete];
+
             }
         }] resume];
     }];
@@ -222,14 +221,18 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
     return [NSString stringWithFormat:@"%@/rest/sys/missednotification/%@", origin, base64urlId];
 }
 
-- (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications error:(NSError **)error {
-  foreach(alarmNotification, notifications) {
-    [self handleAlarmNotification:alarmNotification error:error];
-    if (*error) {
-      TUTLog(@"schedule error %@", *error);
-    }
+- (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications completion:(void (^)(NSError * _Nullable))completion {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+      NSError* error;
+      foreach(alarmNotification, notifications) {
+        [self handleAlarmNotification:alarmNotification error:&error];
+        if (error) {
+          TUTLog(@"schedule error %@", error);
+        }
+      }
+      completion(error);
+    });
   }
-}
 
 - (void) handleAlarmNotification:(TUTAlarmNotification*)alarmNotification error:(NSError **)error {
     if ([TUTOperationCreate isEqualToString:alarmNotification.operation] ) {

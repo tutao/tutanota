@@ -20,7 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)rescheduleAlarms;
 - (BOOL)hasNotificationTTLExpired;
 - (void)resetStoredState;
-- (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications error:(NSError **)error;
+- (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications completion:(void (^)(NSError * _Nullable))completion;
+
 
 @end
 
