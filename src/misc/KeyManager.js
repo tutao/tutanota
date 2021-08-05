@@ -131,7 +131,12 @@ class KeyManager {
 		}
 	}
 
-	openF1Help(): void {
+	/**
+	 * open a dialog listing all currently active shortcuts
+	 * @param forceBaseShortcuts set to true for the special case where the dialog is opened
+	 * from the support dropdown (which registers its own shortcuts as modal shortcuts)
+	 */
+	openF1Help(forceBaseShortcuts: boolean = false): void {
 		if (this._isHelpOpen) return
 		this._isHelpOpen = true
 
@@ -144,7 +149,7 @@ class KeyManager {
 		// unregisters the old dialog shortcuts and then registers the new ones
 		// when the top dialog changes, leading to a situation where
 		// modalshortcuts is empty.
-		const shortcutsToShow = this._keyToModalShortcut.size > 1
+		const shortcutsToShow = this._keyToModalShortcut.size > 1 && !forceBaseShortcuts
 			? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
 			: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
 		import("../gui/dialogs/ShortcutDialog.js")
