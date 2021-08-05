@@ -49,6 +49,7 @@ import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
 import type {Customer} from "../../entities/sys/Customer"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
+import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
 
 export type Thunk = () => mixed
 
@@ -488,6 +489,7 @@ const ErrorNameToType = {
 	FileOpenError,
 	PayloadTooLargeError,
 	DeviceStorageUnavailableError,
+	MailBodyTooLargeError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,

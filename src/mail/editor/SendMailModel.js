@@ -807,7 +807,6 @@ export class SendMailModel {
 			})
 			.catch(FileNotFoundError, () => {throw new UserError("couldNotAttachFile_msg")})
 			.catch(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")})
-			.catch(MailBodyTooLargeError, () => {throw new UserError("mailBodyTooLarge_msg")})
 	}
 
 	/**
@@ -857,6 +856,8 @@ export class SendMailModel {
 			})
 		}).catch(PayloadTooLargeError, () => {
 			throw new UserError("requestTooLarge_msg")
+		}).catch(MailBodyTooLargeError, () => {
+			throw new UserError("mailBodyTooLarge_msg")
 		})
 
 		return blockingWaitHandler("save_msg", savePromise)
