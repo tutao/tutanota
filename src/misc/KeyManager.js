@@ -137,7 +137,6 @@ class KeyManager {
 	 * from the support dropdown (which registers its own shortcuts as modal shortcuts)
 	 */
 	openF1Help(forceBaseShortcuts: boolean = false): void {
-		console.log("blerb")
 		if (this._isHelpOpen) return
 		this._isHelpOpen = true
 
