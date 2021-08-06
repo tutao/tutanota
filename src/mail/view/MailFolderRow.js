@@ -32,7 +32,7 @@ export class MailFolderRow implements MComponent<MailFolderRowAttrs> {
 				? m(ButtonN, Object.assign({}, rightButton, {
 					oncreate: vnode => {
 						vnode.dom.style.opacity = '0'
-						return animations.add(vnode.dom, opacity(0, 1, true))
+						animations.add(vnode.dom, opacity(0, 1, true))
 					},
 					onbeforeremove: vnode => {
 						vnode.dom.style.opacity = '1'

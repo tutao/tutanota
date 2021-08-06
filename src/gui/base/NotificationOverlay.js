@@ -30,9 +30,11 @@ class NotificationOverlay implements MComponent<NotificationOverlayAttrs> {
 }
 
 /**
+ * @param message What will be shown inside notification
+ * @param closeButtonAttrs To define the close button in the notification
  * @param buttons The postpone button is automatically added and does not have to be passed from outside
  */
-export function show(message: MComponent<mixed>, closeButtonAttrs: $Shape<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
+export function show(message: MComponent<void>, closeButtonAttrs: $Shape<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
 	notificationQueue.push({message, buttons, closeButtonAttrs})
 	if (notificationQueue.length > 1) {
 		// another notification is already visible. Next notification will be shown when closing current notification

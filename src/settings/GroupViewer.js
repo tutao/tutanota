@@ -38,8 +38,8 @@ import type {EntityClient} from "../api/common/EntityClient"
 
 assertMainOrNode()
 
-export class GroupViewer {
-	view: Function
+export class GroupViewer implements MComponent<void> {
+	view: typeof MComponent.prototype.view;
 	+_entityClient: EntityClient
 	groupInfo: GroupInfo
 	_group: LazyLoaded<Group>
@@ -120,7 +120,7 @@ export class GroupViewer {
 								m("", [
 									m(TextFieldN, {
 										label: "mailAddress_label",
-										value: stream(this.groupInfo.mailAddress),
+										value: stream(this.groupInfo.mailAddress ?? ""),
 										disabled: true,
 									}),
 								])

@@ -200,7 +200,7 @@ export class UserViewer {
 
 		const mailAddressFieldAttrs = {
 			label: "mailAddress_label",
-			value: stream(this.userGroupInfo.mailAddress),
+			value: stream(this.userGroupInfo.mailAddress ?? ""),
 			disabled: true,
 		}
 

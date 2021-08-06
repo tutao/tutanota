@@ -22,8 +22,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
-export class WhitelabelChildViewer {
-	view: Function;
+export class WhitelabelChildViewer implements MComponent<void> {
 	whitelabelChild: WhitelabelChild;
 	_mailAddress: string;
 	_comment: string;
@@ -35,7 +34,7 @@ export class WhitelabelChildViewer {
 		this._comment = whitelabelChild.comment || ""
 	}
 
-	view(vnode: Vnode<any>): Children {
+	view(): Children {
 		const mailAddressAttrs = {
 			label: "mailAddress_label",
 			value: stream(this._mailAddress),
@@ -57,7 +56,7 @@ export class WhitelabelChildViewer {
 					      update(this.whitelabelChild)
 				      })
 			},
-			icon: Icons.Edit
+			icon: () => Icons.Edit
 		}
 
 		const commentAttrs = {

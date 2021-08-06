@@ -267,14 +267,13 @@ declare class ContactFindOptions { // cordova contact plugin
 }
 
 interface Attributes {
-
 	[key: string]: any;
 }
 
 type $Attrs<+T> = $ReadOnly<T>
 
 // Declared at the top level to not import it in all places
-interface MComponent<+Attrs> extends Lifecycle<Attrs> {
+interface MComponent<-Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */
 	view(vnode: Vnode<Attrs>): Children;
 }

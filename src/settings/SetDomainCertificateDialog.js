@@ -75,15 +75,6 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 		icon: Icons.Edit
 	}
 
-	const certificateChainFieldAttrs = {
-		label: "certificateChain_label",
-		helpLabel: lang.get("certificateChainInfo_msg"),
-		value: stream(selectedCertificateChain),
-		disabled: true,
-		_injectionsRight: () => {[m(ButtonN, chooseCertificateChainButtonAttrs)]}
-	}
-
-
 	let privKeyFile: ?DataFile = null
 	let selectedPrivateKey = ""
 
@@ -97,14 +88,6 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 			})
 		},
 		icon: Icons.Edit
-	}
-
-	const selectedPrivateKeyFieldAttrs = {
-		label: "privateKey_label",
-		helpLabel: () => lang.get("privateKeyInfo_msg"),
-		value: stream(selectedPrivateKey),
-		disabled: true,
-		_injectionsRight: () => [m(ButtonN, choosePrivateKeyButtonAttrs)],
 	}
 
 	const selectedType = stream(certificateInfo ? getCertificateType(certificateInfo) : CertificateType.LETS_ENCRYPT)

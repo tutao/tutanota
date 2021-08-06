@@ -6,6 +6,7 @@ import m from "mithril"
 import {theme} from "../theme"
 import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
+import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {mapNullable} from "../../api/common/utils/Utils"
@@ -21,17 +22,12 @@ export const BannerType = Object.freeze({
 
 type BannerTypeEnum = $Values<typeof BannerType>
 
-// Compatible with ButtonAttrs
-export type BannerButtonParams = {
-	label: TranslationKey | lazy<string>,
-	click: () => mixed,
-}
 export type InfoBannerAttrs = {
 	message: TranslationKey | lazy<string>,
 	icon: AllIconsEnum,
 	helpLink?: ?InfoLink,
-	buttons?: ?$ReadOnlyArray<?BannerButtonParams>,
-	type: BannerTypeEnum
+	buttons?: ?$ReadOnlyArray<?ButtonAttrs>,
+	type?: BannerTypeEnum
 }
 
 /**
@@ -69,7 +65,7 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 		])
 	}
 
-	renderIcon(icon: AllIconsEnum, type: BannerTypeEnum): Children {
+	renderIcon(icon: AllIconsEnum, type: ?BannerTypeEnum): Children {
 		return m(Icon, {
 			icon,
 			style: {
@@ -79,11 +75,10 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 		})
 	}
 
-	renderButtons(buttons: $ReadOnlyArray<?BannerButtonParams>): Children {
-		return buttons.filter(Boolean).map(({label, click}) => m(ButtonN, {
-			label,
+	renderButtons(buttons: $ReadOnlyArray<?ButtonAttrs>): Children {
+		return buttons.filter(Boolean).map((attrs) => m(ButtonN, {
+			...attrs,
 			type: ButtonType.Secondary,
-			click,
 		}))
 	}
 
@@ -95,7 +90,8 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 				href: lang.getInfoLink(helpLink),
 				small: true,
 				hideLabel: true,
-				centred: true
+				centred: true,
+				label: "help_label"
 			}))
 	}
 }

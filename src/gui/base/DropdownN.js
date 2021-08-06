@@ -33,7 +33,7 @@ export type DropdownInfoAttrs = {
 /**
  * Renders small info message inside the dropdown.
  */
-const DropdownInfo = pureComponent(({center, bold, info}: DropdownInfoAttrs) => {
+const DropdownInfo = pureComponent<DropdownInfoAttrs>(({center, bold, info}) => {
 	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
 })
 
@@ -158,11 +158,11 @@ export class DropdownN {
 				},
 				this._visibleChildren().map(child => {
 					if (isDropDownInfo(child)) {
-						return m(DropdownInfo, child)
+						return m(DropdownInfo, downcast<DropdownInfoAttrs>(child))
 					} else if (typeof child.href === 'undefined') {
-						return m(ButtonN, ((child: any): ButtonAttrs))
+						return m(ButtonN, downcast<ButtonAttrs>(child))
 					} else {
-						return m(NavButtonN, ((child: any): NavButtonAttrs))
+						return m(NavButtonN, downcast<NavButtonAttrs>(child))
 					}
 				}))
 		}
