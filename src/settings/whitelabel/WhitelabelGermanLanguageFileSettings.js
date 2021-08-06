@@ -4,9 +4,11 @@ import stream from "mithril/stream/stream.js"
 import m from "mithril"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 
+export type GermanLanguageCode = "de" | "de_sie"
+
 export type WhitelabelGermanLanguageFileSettingsAttrs = {
-	customGermanLanguageFile: ?string,
-	onGermanLanguageFileChanged: (string) => mixed,
+	customGermanLanguageFile: ?GermanLanguageCode,
+	onGermanLanguageFileChanged: (GermanLanguageCode) => mixed,
 }
 
 export class WhitelabelGermanLanguageFileSettings implements MComponent<WhitelabelGermanLanguageFileSettingsAttrs> {
@@ -18,7 +20,10 @@ export class WhitelabelGermanLanguageFileSettings implements MComponent<Whitelab
 		return this._renderDefaultGermanLanguageFileSettings(customGermanLanguageFile, onGermanLanguageFileChanged)
 	}
 
-	_renderDefaultGermanLanguageFileSettings(customGermanLanguageFile: ?string, onGermanLanguageFileChanged: (string) => mixed): Children {
+	_renderDefaultGermanLanguageFileSettings(
+		customGermanLanguageFile: ?GermanLanguageCode,
+		onGermanLanguageFileChanged: (GermanLanguageCode) => mixed
+	): Children {
 		const items = [
 			{name: "Deutsch (Du)", value: "de"},
 			{name: "Deutsch (Sie)", value: "de_sie"}

@@ -1695,17 +1695,17 @@ export class MailViewer {
 			click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
 		}
 
-		const alwaysOrNeverAllowButtons = locator.search.indexingSupported
+		const alwaysOrNeverAllowButtons: $ReadOnlyArray<ButtonAttrs> = locator.search.indexingSupported
 			? [
 				this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 					? {
 						label: "allowExternalContentSender_action",
-						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow),
 					}
 					: null,
 				{
 					label: "blockExternalContentSender_action",
-					click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock)
+					click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock),
 				}
 			].filter(Boolean)
 			: []

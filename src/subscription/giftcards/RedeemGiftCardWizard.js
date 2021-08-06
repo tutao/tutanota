@@ -3,7 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {neverNull, noOp} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
-import {createWizardDialog, emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
+import {createWizardDialog, emitWizardEvent, WizardEventType, WizardPageWrapper} from "../../gui/base/WizardDialogN"
 import {logins} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
@@ -365,38 +365,28 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 			premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 		}
 
-
 		const wizardPages = [
-			{
-				attrs: {
-					data: giftCardRedeemData,
-					headerTitle: () => lang.get("giftCard_label"),
-					nextAction: (_) => Promise.resolve(true),
-					isSkipAvailable: () => false,
-					isEnabled: () => true
-				},
-				componentClass: GiftCardWelcomePage
-			},
-			{
-				attrs: {
-					data: giftCardRedeemData,
-					headerTitle: () => lang.get(giftCardRedeemData.credentialsMethod === "signup" ? "register_label" : "login_label"),
-					nextAction: (showErrorDialog: boolean) => Promise.resolve(true),
-					isSkipAvailable: () => false,
-					isEnabled: () => true
-				},
-				componentClass: GiftCardCredentialsPage
-			},
-			{
-				attrs: {
-					data: giftCardRedeemData,
-					headerTitle: () => lang.get("redeem_label"),
-					nextAction: (_) => Promise.resolve(true),
-					isSkipAvailable: () => false,
-					isEnabled: () => true
-				},
-				componentClass: RedeemGiftCardPage
-			}
+			new WizardPageWrapper(GiftCardWelcomePage, {
+				data: giftCardRedeemData,
+				headerTitle: () => lang.get("giftCard_label"),
+				nextAction: (_) => Promise.resolve(true),
+				isSkipAvailable: () => false,
+				isEnabled: () => true
+			}),
+			new WizardPageWrapper(GiftCardCredentialsPage, {
+				data: giftCardRedeemData,
+				headerTitle: () => lang.get(giftCardRedeemData.credentialsMethod === "signup" ? "register_label" : "login_label"),
+				nextAction: (showErrorDialog: boolean) => Promise.resolve(true),
+				isSkipAvailable: () => false,
+				isEnabled: () => true
+			}),
+			new WizardPageWrapper(RedeemGiftCardPage, {
+				data: giftCardRedeemData,
+				headerTitle: () => lang.get("redeem_label"),
+				nextAction: (_) => Promise.resolve(true),
+				isSkipAvailable: () => false,
+				isEnabled: () => true
+			}),
 		]
 		return createWizardDialog(giftCardRedeemData, wizardPages,
 			() => {

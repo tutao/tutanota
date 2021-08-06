@@ -98,20 +98,32 @@ class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
 					getSelectedPageIndex: () => a._getEnabledPages().indexOf(a.currentPage),
 					navigateBackHandler: (index) => a._goToPageAction(index)
 				}))),
-				a.currentPage ? m(a.currentPage.componentClass, a.currentPage.attrs) : null
+				a.currentPage ? a.currentPage.view() : null
 			]
 		)
 	}
 }
 
+/**
+ * Pair of attrs and component for those attrs
+ * We care about these properties:
+ * It has WizardPageAttrs for T
+ * A is consistent with the component
+ *
+ * When we use the wrapper we don't care about specific type of attrs or component.
+ */
+export class WizardPageWrapper<T> {
+	+attrs: WizardPageAttrs<T>;
+	view: () => Children;
 
-type WizardPageWrapper<T> = {
-	+attrs: WizardPageAttrs<T>,
-	+componentClass: Class<MComponent<WizardPageAttrs<T>>>
+	constructor<A: WizardPageAttrs<T>>(componentClass: Class<MComponent<A>>, attrs: A) {
+		this.attrs = attrs
+		this.view = () => m(componentClass, attrs)
+	}
 }
 
 class WizardDialogAttrs<T> {
-	data: T
+	+data: T
 	pages: $ReadOnlyArray<WizardPageWrapper<T>>
 	currentPage: ?WizardPageWrapper<T>
 	closeAction: () => Promise<void>
@@ -158,7 +170,7 @@ class WizardDialogAttrs<T> {
 		}
 	}
 
-	_getEnabledPages(): WizardPageWrapper<T>[] {
+	_getEnabledPages(): Array<WizardPageWrapper<T>> {
 		return this.pages.filter(p => p.attrs.isEnabled())
 	}
 
@@ -228,8 +240,11 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(data: T, pages: $ReadOnlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>): WizardDialogAttrsBuilder<T> {
-
+export function createWizardDialog<T>(
+	data: T,
+	pages: $ReadOnlyArray<WizardPageWrapper<T>>,
+	closeAction?: () => Promise<void>
+): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs = {}
 	const child = {view: () => null}

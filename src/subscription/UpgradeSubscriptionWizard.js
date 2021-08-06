@@ -25,7 +25,7 @@ import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceSe
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
-import {createWizardDialog} from "../gui/base/WizardDialogN"
+import {createWizardDialog, WizardPageWrapper} from "../gui/base/WizardDialogN"
 import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
@@ -135,18 +135,9 @@ export function showUpgradeWizard(): void {
 						currentSubscription: SubscriptionType.Free
 					}
 					const wizardPages = [
-						{
-							attrs: new UpgradeSubscriptionPageAttrs(upgradeData),
-							componentClass: UpgradeSubscriptionPage
-						},
-						{
-							attrs: new InvoiceAndPaymentDataPageAttrs(upgradeData),
-							componentClass: InvoiceAndPaymentDataPage
-						},
-						{
-							attrs: new UpgradeConfirmPageAttrs(upgradeData),
-							componentClass: UpgradeConfirmPage
-						}
+						new WizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+						new WizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
+						new WizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
 					]
 					const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
 					wizardBuilder.dialog.show()
@@ -191,22 +182,10 @@ export function loadSignupWizard(): Promise<Dialog> {
 			currentSubscription: null
 		}
 		const wizardPages = [
-			{
-				attrs: new UpgradeSubscriptionPageAttrs(signupData),
-				componentClass: UpgradeSubscriptionPage
-			},
-			{
-				attrs: new SignupPageAttrs(signupData),
-				componentClass: SignupPage
-			},
-			{
-				attrs: new InvoiceAndPaymentDataPageAttrs(signupData),
-				componentClass: InvoiceAndPaymentDataPage
-			},
-			{
-				attrs: new UpgradeConfirmPageAttrs(signupData),
-				componentClass: UpgradeConfirmPage
-			}
+			new WizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
+			new WizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
+			new WizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
+			new WizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
 		]
 
 		const wizardBuilder = createWizardDialog(signupData, wizardPages, () => {

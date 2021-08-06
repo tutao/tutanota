@@ -2,6 +2,7 @@
 
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -10,10 +11,10 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 
 export type WhitelabelRegistrationSettingsAttrs = {
 	whitelabelCode: string,
-	onWhitelabelCodeChanged: ?(string) => mixed,
-	currentRegistrationDomain: string,
-	possibleRegistrationDomains: Array<{name: string, value: string}>,
-	onRegistrationDomainSelected: ?(string => mixed),
+	onWhitelabelCodeChanged: (string) => mixed,
+	currentRegistrationDomain: ?string,
+	possibleRegistrationDomains: SelectorItemList<?string>,
+	onRegistrationDomainSelected: (?string) => mixed,
 }
 
 export class WhitelabelRegistrationSettings implements MComponent<WhitelabelRegistrationSettingsAttrs> {
@@ -34,7 +35,11 @@ export class WhitelabelRegistrationSettings implements MComponent<WhitelabelRegi
 		])
 	}
 
-	_renderRegistrationDomain(currentRegistrationDomain: string, possibleRegistrationDomains: Array<{name: string, value: string}>, onRegistrationDomainSelected: ?(string) => mixed): Children {
+	_renderRegistrationDomain(
+		currentRegistrationDomain: ?string,
+		possibleRegistrationDomains: SelectorItemList<?string>,
+		onRegistrationDomainSelected: (?string) => mixed
+	): Children {
 		const registrationDomainsAttrs = {
 			label: "whitelabelRegistrationEmailDomain_label",
 			selectedValue: stream(currentRegistrationDomain),
@@ -42,7 +47,7 @@ export class WhitelabelRegistrationSettings implements MComponent<WhitelabelRegi
 			selectionChangedHandler: (onRegistrationDomainSelected)
 				? (selectedValue) => {onRegistrationDomainSelected(selectedValue)}
 				: null,
-			disabled: (onRegistrationDomainSelected) ? false : true
+			disabled: !onRegistrationDomainSelected,
 		}
 		return m(DropDownSelectorN, registrationDomainsAttrs)
 	}

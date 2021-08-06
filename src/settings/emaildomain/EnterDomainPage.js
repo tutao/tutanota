@@ -16,7 +16,6 @@ assertMainOrNode()
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
-		const a = vnode.attrs
 		return m("", [
 			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
 			m(".mt", lang.get("enterDomainIntroduction_msg")),

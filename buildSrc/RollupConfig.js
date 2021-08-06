@@ -219,6 +219,8 @@ export const babelPlugins = [
 	// We technically don't need to have this as we expect async to just work but we rely on bluebird in many places and native async
 	// doesn't care about us redefining global Promise.
 	"@babel/plugin-transform-async-to-generator",
+	"@babel/plugin-proposal-optional-chaining",
+	"@babel/plugin-proposal-nullish-coalescing-operator",
 ]
 export const babelDesktopPlugins = [
 	// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code

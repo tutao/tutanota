@@ -5,7 +5,7 @@ import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {load, loadRange, serviceRequest, update} from "../../api/main/Entity"
-import {assertNotNull, getCustomMailDomains, getWhitelabelDomain, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, downcast, getCustomMailDomains, getWhitelabelDomain, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {logins} from "../../api/main/LoginController"
@@ -35,12 +35,14 @@ import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {WhitelabelBrandingDomainSettings} from "./WhitelabelBrandingDomainSettings"
 import {WhitelabelThemeSettings} from "./WhitelabelThemeSettings"
+import type {WhitelabelImprintAndPrivacySettingsAttrs} from "./WhitelabelImprintAndPrivacySettings"
 import {WhitelabelImprintAndPrivacySettings} from "./WhitelabelImprintAndPrivacySettings"
 import {WhitelabelRegistrationSettings} from "./WhitelabelRegistrationSettings"
 import {createStringWrapper} from "../../api/entities/sys/StringWrapper"
 import {WhitelabelCustomMetaTagsSettings} from "./WhitelabelCustomMetaTagsSettings"
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
+import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
 
 assertMainOrNode()
@@ -108,25 +110,26 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderImprintAndPrivacySettings(): Children {
-		const privacyStatementUrl = (this._whitelabelConfig) ? this._whitelabelConfig.privacyStatementUrl : ""
+		const whitelabelConfig = this._whitelabelConfig
+		const privacyStatementUrl = whitelabelConfig?.privacyStatementUrl ?? ""
 		let onPrivacyStatementUrlChanged = null
-		if (this._whitelabelConfig) {
+		if (whitelabelConfig) {
 			onPrivacyStatementUrlChanged = (privacyStatementUrl) => {
-				neverNull(this._whitelabelConfig).privacyStatementUrl = privacyStatementUrl
-				update(neverNull(this._whitelabelConfig))
+				whitelabelConfig.privacyStatementUrl = privacyStatementUrl
+				update(whitelabelConfig)
 			}
 		}
 
-		const imprintUrl = (this._whitelabelConfig) ? this._whitelabelConfig.imprintUrl : ""
+		const imprintUrl = whitelabelConfig?.imprintUrl ?? ""
 		let onImprintUrlChanged = null
-		if (this._whitelabelConfig) {
+		if (whitelabelConfig) {
 			onImprintUrlChanged = (imprintUrl) => {
-				neverNull(this._whitelabelConfig).imprintUrl = imprintUrl
-				update(neverNull(this._whitelabelConfig))
+				whitelabelConfig.imprintUrl = imprintUrl
+				update(whitelabelConfig)
 			}
 		}
 
-		const whitelabelImprintAndPrivacySettingsAttrs = {
+		const whitelabelImprintAndPrivacySettingsAttrs: WhitelabelImprintAndPrivacySettingsAttrs = {
 			privacyStatementUrl,
 			onPrivacyStatementUrlChanged,
 			imprintUrl,
@@ -161,8 +164,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				.map(d => {
 					return {name: d.domain, value: d.domain}
 				}))
-		let onRegistrationDomainSelected = null
-		let currentRegistrationDomain = ""
+		let onRegistrationDomainSelected = noOp
+		let currentRegistrationDomain = null
 		if (this._whitelabelConfig) {
 			onRegistrationDomainSelected = (domain) => {
 				neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.length = 0
@@ -179,7 +182,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const whitelabelCode = (this._whitelabelConfig) ? this._whitelabelConfig.whitelabelCode : ""
-		let onWhitelabelCodeChanged = null
+		let onWhitelabelCodeChanged = noOp
 		if (this._whitelabelConfig) {
 			onWhitelabelCodeChanged = (code) => {
 				neverNull(this._whitelabelConfig).whitelabelCode = code
@@ -202,8 +205,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (!this._whitelabelConfig) return null
 		if (!lang.code === 'de' && !lang.code === 'de_sie') return null
 
-		const customGermanLanguageFile = (this._whitelabelConfig.germanLanguageCode) ? this._whitelabelConfig.germanLanguageCode : null
-		const onGermanLanguageFileChanged = (languageFile) => {
+		const customGermanLanguageFile: ?GermanLanguageCode = downcast(this._whitelabelConfig.germanLanguageCode)
+		const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {
 			if (languageFile) {
 				neverNull(this._whitelabelConfig).germanLanguageCode = languageFile
 				update(neverNull(this._whitelabelConfig))
@@ -254,13 +257,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (!customerInfo) return null
 		const certificateInfo = this._certificateInfo
 
-		const isWhiteLabelFeatureEnabled = isWhitelabelActive(this._lastBooking)
+		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking)
 
 		const whitelabelDomain = (this._whitelabelDomainInfo) ? this._whitelabelDomainInfo.domain : ""
 
 		const whitelabelBrandingDomainSettingsAttrs = {
 			customerInfo,
-			isWhiteLabelFeatureEnabled,
+			isWhitelabelFeatureEnabled,
 			certificateInfo,
 			whitelabelDomain,
 		}

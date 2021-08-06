@@ -17,7 +17,7 @@ import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecord
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {createWizardDialog} from "../../gui/base/WizardDialogN"
+import {createWizardDialog, WizardPageWrapper} from "../../gui/base/WizardDialogN"
 
 assertMainOrNode()
 
@@ -42,23 +42,13 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo):
 	domainData.expectedVerificationRecord.subdomain = null
 	domainData.expectedVerificationRecord.value = "" // will be filled oncreate by the page
 
+
+
 	const wizardPages = [
-		{
-			attrs: new EnterDomainPageAttrs(domainData),
-			componentClass: EnterDomainPage
-		},
-		{
-			attrs: new VerifyOwnershipPageAttrs(domainData),
-			componentClass: VerifyOwnershipPage
-		},
-		{
-			attrs: new AddEmailAddressesPageAttrs(domainData),
-			componentClass: AddEmailAddressesPage
-		},
-		{
-			attrs: new VerifyDnsRecordsPageAttrs(domainData),
-			componentClass: VerifyDnsRecordsPage
-		},
+		new WizardPageWrapper(EnterDomainPage, new EnterDomainPageAttrs(domainData)),
+		new WizardPageWrapper(VerifyOwnershipPage, new VerifyOwnershipPageAttrs(domainData)),
+		new WizardPageWrapper(AddEmailAddressesPage, new AddEmailAddressesPageAttrs(domainData)),
+		new WizardPageWrapper(VerifyDnsRecordsPage, new VerifyDnsRecordsPageAttrs(domainData)),
 	]
 
 	return new Promise((resolve) => {
