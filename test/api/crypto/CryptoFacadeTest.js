@@ -44,7 +44,7 @@ import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress
 import {mockAttribute, unmockAttribute} from "../TestUtils"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
-import {LoginFacade} from "../../../src/api/worker/facades/LoginFacade"
+import {LoginFacade, LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 // $FlowIgnore[untyped-import]
 import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32"
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
@@ -67,11 +67,11 @@ o.spec("crypto facade", function () {
 		const worker = downcast({})
 		restClient = new RestClient(new SuspensionHandler(worker))
 		locator.restClient = restClient
-		locator.login = new LoginFacade((null: any), restClient, downcast({}))
+		locator.login = new LoginFacadeImpl((null: any), restClient, downcast({}))
 	})
 
 	o.afterEach(function () {
-		locator.login.reset()
+		locator.login.resetSession()
 	})
 
 	o("encrypt / decrypt key", function () {

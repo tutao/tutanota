@@ -201,7 +201,11 @@ export class MultiSearchViewer {
 				},
 				{
 					label: "export_action",
-					click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, worker)),
+					click: () =>
+						showProgressDialog(
+							"pleaseWait_msg",
+							exportMails(this.getSelectedMails(), locator.entityClient, worker.fileFacade)
+						),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)

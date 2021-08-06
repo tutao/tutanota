@@ -97,8 +97,8 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 							},
 							price: formatPrice(parseFloat(value), true),
 							helpLabel: () => lang.get(withSubscriptionAmount === 0
-								? "giftCardOptionTextA_msg"
-								: "giftCardOptionTextB_msg",
+									? "giftCardOptionTextA_msg"
+									: "giftCardOptionTextB_msg",
 								{
 									"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
 									"{fullCredit}": formatPrice(value, true)
@@ -142,7 +142,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 		}
 
 		showProgressDialog("loading_msg",
-			worker.generateGiftCard(message, value, country.a)
+			worker.giftCardFacade.generateGiftCard(message, value, country.a)
 			      .then(createdGiftCardId => locator.entityClient.load(GiftCardTypeRef, createdGiftCardId)))
 			.then(giftCard => {
 				attrs.outerDialog().close()

@@ -7,12 +7,11 @@ import {createDropdown} from "../../gui/base/DropdownN.js"
 import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
-import {Type} from "../../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
 import {deviceConfig} from "../../misc/DeviceConfig"
-import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {assertMainOrNode} from "../../api/common/Env"
 import {secondFactorHandler} from "../../misc/SecondFactorHandler"
@@ -90,13 +89,13 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-						? m(passwordForm)
-						: m(TextFieldN,
-							{
-								label: "password_label",
-								type: Type.Password,
-								value: passwordValueStream
-							})
+							? m(passwordForm)
+							: m(TextFieldN,
+								{
+									label: "password_label",
+									type: Type.Password,
+									value: passwordValueStream
+								})
 				]
 			}
 		},
@@ -114,7 +113,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 				} else {
 					showProgressDialog("pleaseWait_msg",
 						worker.initialized.then(() => {
-							return worker.recoverLogin(
+							return worker.loginFacade.recoverLogin(
 								cleanMailAddress,
 								cleanRecoverCodeValue,
 								passwordForm.getNewPassword(),
@@ -132,7 +131,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 				const passwordValue = passwordValueStream()
 				showProgressDialog("pleaseWait_msg",
 					worker.initialized
-					      .then(() => worker.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
+					      .then(() => worker.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
 					.then(() => {
 						recoverDialog.close()
 						deviceConfig.delete(cleanMailAddress)

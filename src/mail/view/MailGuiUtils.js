@@ -223,7 +223,7 @@ export async function loadInlineImages(worker: WorkerClient, attachments: Array<
 	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
-		const dataFile = await worker.downloadFileContent(file)
+		const dataFile = await worker.fileFacade.downloadFileContent(file)
 		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
 		inlineImages.set(inlineImageReference.cid, inlineImageReference)
 	}).then(() => inlineImages)

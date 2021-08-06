@@ -107,7 +107,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							let nextPayment = this._postings.length
 								? Number(this._postings[0].balance) * -1
 								: 0
-							showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
+							showProgressDialog("pleaseWait_msg", worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 								return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
 							})).then(price => {
 								return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
@@ -199,7 +199,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					),
 					this._accountBalance() !== balance
 						? m(".small" + (this._accountBalance() < 0 ? ".content-accent-fg" : ""),
-						lang.get("unprocessedBookings_msg", {"{amount}": formatPrice(this._outstandingBookingsPrice, true)}))
+							lang.get("unprocessedBookings_msg", {"{amount}": formatPrice(this._outstandingBookingsPrice, true)}))
 						: null,
 					this._isPayButtonVisible()
 						? m(".pb", {style: {width: '200px'}}, m(ButtonN, {
@@ -245,7 +245,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									label: "download_action",
 									icon: () => Icons.Download,
 									click: () => {
-										showProgressDialog("pleaseWait_msg", worker.downloadInvoice(neverNull(posting.invoiceNumber))).then(pdfInvoice => fileController.open(pdfInvoice))
+										showProgressDialog("pleaseWait_msg", worker
+											.customerFacade
+											.downloadInvoice(neverNull(posting.invoiceNumber))
+										)
+											.then(pdfInvoice => fileController.open(pdfInvoice))
 									}
 								}
 								: null

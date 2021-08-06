@@ -10,18 +10,26 @@ import {SysService} from "../../entities/sys/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {GiftCardCreateReturn} from "../../entities/sys/GiftCardCreateReturn"
 import {GiftCardCreateReturnTypeRef} from "../../entities/sys/GiftCardCreateReturn"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacadeImpl} from "./LoginFacade"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {GiftCardRedeemGetReturnTypeRef} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {createGiftCardRedeemData} from "../../entities/sys/GiftCardRedeemData"
 import {hash} from "../crypto/Sha256"
-import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
+import {base64ToKey, bitArrayToUint8Array} from "../crypto/CryptoUtils"
 
-export class GiftCardFacade {
+export interface GiftCardFacade {
+	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>;
 
-	_logins: LoginFacade
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn>;
 
-	constructor(logins: LoginFacade) {
+	redeemGiftCard(id: Id, key: string): Promise<void>;
+}
+
+export class GiftCardFacadeImpl implements GiftCardFacade {
+
+	_logins: LoginFacadeImpl
+
+	constructor(logins: LoginFacadeImpl) {
 		this._logins = logins
 	}
 
@@ -48,14 +56,16 @@ export class GiftCardFacade {
 			.then((returnData: GiftCardCreateReturn) => returnData.giftCard)
 	}
 
-	getGiftCardInfo(id: Id, key: Aes128Key): Promise<GiftCardRedeemGetReturn> {
-		const keyHash = hash(bitArrayToUint8Array(key))
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
+		const bitKey = base64ToKey(key)
+		const keyHash = hash(bitArrayToUint8Array(bitKey))
 		const data = createGiftCardRedeemData({giftCardInfo: id, keyHash: keyHash})
-		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, null, key)
+		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, null, bitKey)
 	}
 
-	redeemGiftCard(id: Id, key: Aes128Key): Promise<void> {
-		const keyHash = hash(bitArrayToUint8Array(key))
+	redeemGiftCard(id: Id, key: string): Promise<void> {
+		const bitKey = base64ToKey(key)
+		const keyHash = hash(bitArrayToUint8Array(bitKey))
 		const data = createGiftCardRedeemData({giftCardInfo: id, keyHash: keyHash})
 		return serviceRequestVoid(SysService.GiftCardRedeemService, HttpMethod.POST, data)
 	}

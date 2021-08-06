@@ -77,7 +77,7 @@ export function show(): Promise<void> {
 				showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.Users, 1, 0, false))
 					.then(accepted => {
 						if (accepted) {
-							let p = worker.createUser(userName, emailAddress, passwordForm.getNewPassword(), 0, 1)
+							let p = worker.userManagementFacade.createUser(userName, emailAddress, passwordForm.getNewPassword(), 0, 1)
 							showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
 								"{index}": 0,
 								"{count}": 1

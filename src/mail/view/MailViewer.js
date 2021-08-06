@@ -679,7 +679,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, worker)),
+							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, worker.fileFacade)),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -906,7 +906,7 @@ export class MailViewer {
 			throw e
 		}
 
-		const externalImageRule = await worker.getExternalImageRule(mail.sender.address)
+		const externalImageRule = await worker.configFacade.getExternalImageRule(mail.sender.address)
 		                                      .catch(e => {
 			                                      console.log("Error getting external image rule:", e)
 			                                      return ExternalImageRule.None
@@ -1735,12 +1735,12 @@ export class MailViewer {
 		}
 
 		if (status === ContentBlockingStatus.AlwaysShow) {
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
+			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
+			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else {
 			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			worker.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
+			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
 		}
 		this._contentBlockingStatus = status
 

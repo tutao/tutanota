@@ -16,7 +16,7 @@ import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
@@ -85,7 +85,7 @@ export class LoginViewController implements ILoginViewController {
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void> {
 		return worker.initialized.then(() => promiseMap(oldCredentials, c => {
-			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
+			return worker.loginFacade.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
 			             .then(userPw => {
 				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users
 					             return logins.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
@@ -121,7 +121,7 @@ export class LoginViewController implements ILoginViewController {
 					                           deviceConfig.set(newCredentials)
 				                           }
 				                           if (storedCredentials) {
-					                           return worker.deleteSession(storedCredentials.accessToken)
+					                           return worker.loginFacade.deleteSession(storedCredentials.accessToken)
 					                                        .then(() => {
 						                                        if (!persistentSession) {
 							                                        deviceConfig.delete(mailAddress)
@@ -141,11 +141,11 @@ export class LoginViewController implements ILoginViewController {
 
 
 	recoverLogin(emailAddress: string, recoverCode: string, newPassword: string): Promise<void> {
-		return worker.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
+		return worker.loginFacade.recoverLogin(emailAddress, recoverCode, newPassword, client.getIdentifier())
 	}
 
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: string): Promise<void> {
-		return worker.resetSecondFactors(mailAddress, password, recoverCode)
+		return worker.loginFacade.resetSecondFactors(mailAddress, password, recoverCode)
 	}
 
 	_handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
@@ -315,9 +315,10 @@ export class LoginViewController implements ILoginViewController {
 		if (logins.getUserController().isOutlookAccount() || !logins.getUserController().isGlobalAdmin()) {
 			return Promise.resolve()
 		}
-		return worker.readUsedCustomerStorage().then(usedStorage => {
+		const customerId = assertNotNull(logins.getUserController().user.customer)
+		return worker.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
 			if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
-				return worker.readAvailableCustomerStorage().then(availableStorage => {
+				return worker.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
 					if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
 						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 					}
@@ -328,7 +329,7 @@ export class LoginViewController implements ILoginViewController {
 
 	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void> {
 		return worker.initialized.then(() => {
-			worker.deleteSession(credentials.accessToken)
+			worker.loginFacade.deleteSession(credentials.accessToken)
 			      .then(() => {
 				      // not authenticated error is caught in worker
 				      deviceConfig.delete(credentials.mailAddress)

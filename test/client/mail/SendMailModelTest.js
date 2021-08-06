@@ -27,7 +27,6 @@ import type {User} from "../../../src/api/entities/sys/User"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/User"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
-import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import type {EventController} from "../../../src/api/main/EventController"
 import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
@@ -44,9 +43,8 @@ import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils";
 import {isSameTypeRef, TypeRef} from "../../../src/api/common/utils/TypeRef";
-import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
-import {SysService} from "../../../src/api/entities/sys/Services"
-import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
+import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
+import {createInternalRecipientKeyData} from "../../../src/api/entities/tutanota/InternalRecipientKeyData"
 
 
 type TestIdGenerator = {
@@ -59,23 +57,24 @@ let internalAddresses = []
 
 function mockWorker(): WorkerClient {
 	return downcast({
-		createMailDraft(...args): Promise<Mail> {
-			return Promise.resolve(createMail())
-		},
-		updateMailDraft(...args): Promise<Mail> {
-			return Promise.resolve(createMail())
-		},
-		sendMailDraft(...args): Promise<void> {
-			return Promise.resolve()
-		},
 		entityRequest(...args): Promise<any> {
 			return Promise.resolve()
 		},
-		serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
-			if (service === SysService.PublicKeyService) {
-				return Promise.resolve().then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
-			}
-			return Promise.resolve()
+	})
+}
+
+function mockMailFacade(): MailFacade {
+	return downcast({
+		async createDraft() {
+			return createMail()
+		},
+		async updateDraft() {
+			return createMail()
+		},
+		async sendDraft() {
+		},
+		async getRecipientKeyData(mailAddress: string) {
+			return internalAddresses.includes(mailAddress) ? createInternalRecipientKeyData() : null
 		}
 	})
 }
@@ -149,32 +148,32 @@ o.spec("SendMailModel", function () {
 		lang.init(en)
 	})
 	// the global worker is used in various other places silently, like in call to update from _updateContacts
-	let worker: WorkerClient, logins: LoginController, eventController: EventController, mailModel: MailModel, contactModel: ContactModel,
+	let mailFacade: MailFacade, logins: LoginController, eventController: EventController, mailModel: MailModel, contactModel: ContactModel,
 		mailboxDetails: MailboxDetail, userController: IUserController, entity: EntityClient, model: SendMailModel
 	let customer: Customer
 
 	let mockedAttributeReferences = []
 
 	o.beforeEach(function () {
-
-		currentIdValue: 0,
-			testIdGenerator = {
-				currentListIdValue: 0,
-				newId(): Id {
-					return (this.currentIdValue++).toString()
-				},
-				newListId(): Id {
-					return (this.currentListIdValue++).toString()
-				},
-				newIdTuple(): IdTuple {
-					return [this.newListId(), this.newId()]
-				}
+		testIdGenerator = {
+			currentIdValue: 0,
+			currentListIdValue: 0,
+			newId(): Id {
+				return (this.currentIdValue++).toString()
+			},
+			newListId(): Id {
+				return (this.currentListIdValue++).toString()
+			},
+			newIdTuple(): IdTuple {
+				return [this.newListId(), this.newId()]
 			}
+		}
 
-		worker = mockWorker()
-		locator.init(worker) // because it is used in certain parts of the code
+		const workerMock = mockWorker()
+		mailFacade = mockMailFacade()
+		locator.init(workerMock) // because it is used in certain parts of the code
 
-		entity = new EntityClient(worker)
+		entity = new EntityClient(workerMock)
 		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {
 			if (isSameTypeRef(typeRef, ContactListTypeRef)) {
 				return Promise.resolve(downcast({contacts: testIdGenerator.newId()}))
@@ -233,7 +232,7 @@ o.spec("SendMailModel", function () {
 			mailGroup: createGroup(),
 			mailboxGroupRoot: createMailboxGroupRoot()
 		}
-		model = new SendMailModel(worker, logins, mailModel, contactModel, downcast(eventController), entity, mailboxDetails)
+		model = new SendMailModel(mailFacade, logins, mailModel, contactModel, downcast(eventController), entity, mailboxDetails)
 
 		mockedAttributeReferences.push(mockAttribute(model, model._getDefaultSender, () => DEFAULT_SENDER_FOR_TESTING))
 
@@ -242,9 +241,9 @@ o.spec("SendMailModel", function () {
 			return Promise.resolve({_type: typeRef, _id: id})
 		}))
 
-		mockedAttributeReferences.push(mockAttribute(worker, worker.sendMailDraft, o.spy(worker.sendMailDraft)))
-		mockedAttributeReferences.push(mockAttribute(worker, worker.createMailDraft, o.spy(worker.createMailDraft)))
-		mockedAttributeReferences.push(mockAttribute(worker, worker.updateMailDraft, o.spy(worker.updateMailDraft)))
+		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.sendDraft, mailFacade.sendDraft))
+		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.createDraft, mailFacade.createDraft))
+		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.updateDraft, mailFacade.updateDraft))
 	})
 
 	o.afterEach(function () {
@@ -507,9 +506,9 @@ o.spec("SendMailModel", function () {
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e?.message).equals(lang.get("noRecipients_msg"))
 			o(getConfirmation.callCount).equals(0)
-			o(worker.sendMailDraft.callCount).equals(0)
-			o(worker.createMailDraft.callCount).equals(0)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(0)
+			o(mailFacade.createDraft.callCount).equals(0)
+			o(mailFacade.updateDraft.callCount).equals(0)
 		})
 
 		o("blank subject no confirm", async function () {
@@ -522,9 +521,9 @@ o.spec("SendMailModel", function () {
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(false)
 			o(getConfirmation.callCount).equals(1)
-			o(worker.sendMailDraft.callCount).equals(0)
-			o(worker.createMailDraft.callCount).equals(0)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(0)
+			o(mailFacade.createDraft.callCount).equals(0)
+			o(mailFacade.updateDraft.callCount).equals(0)
 		})
 
 		o("confidential missing password", async function () {
@@ -538,9 +537,9 @@ o.spec("SendMailModel", function () {
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e?.message).equals(lang.get("noPreSharedPassword_msg"))
 			o(getConfirmation.callCount).equals(1)
-			o(worker.sendMailDraft.callCount).equals(0)
-			o(worker.createMailDraft.callCount).equals(0)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(0)
+			o(mailFacade.createDraft.callCount).equals(0)
+			o(mailFacade.updateDraft.callCount).equals(0)
 		})
 
 
@@ -559,9 +558,9 @@ o.spec("SendMailModel", function () {
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(false)
 			o(getConfirmation.callCount).equals(1)
-			o(worker.sendMailDraft.callCount).equals(0)
-			o(worker.createMailDraft.callCount).equals(0)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(0)
+			o(mailFacade.createDraft.callCount).equals(0)
+			o(mailFacade.updateDraft.callCount).equals(0)
 		})
 
 
@@ -581,9 +580,9 @@ o.spec("SendMailModel", function () {
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(true)
 			o(getConfirmation.callCount).equals(1)
-			o(worker.sendMailDraft.callCount).equals(1)
-			o(worker.createMailDraft.callCount).equals(1)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(1)
+			o(mailFacade.createDraft.callCount).equals(1)
+			o(mailFacade.updateDraft.callCount).equals(0)
 			const contact = model.getRecipientList("to")[0].contact
 			o(contact && contact.presharedPassword).equals(password)
 			o(entity.setup.callCount).equals(1)
@@ -612,9 +611,9 @@ o.spec("SendMailModel", function () {
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(true)
 			o(getConfirmation.callCount).equals(0)
-			o(worker.sendMailDraft.callCount).equals(1)
-			o(worker.createMailDraft.callCount).equals(1)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(1)
+			o(mailFacade.createDraft.callCount).equals(1)
+			o(mailFacade.updateDraft.callCount).equals(0)
 			const contact = model.getRecipientList("to")[0].contact
 			o(contact && contact.presharedPassword).equals(password)
 			o(entity.setup.callCount).equals(1)
@@ -693,9 +692,9 @@ o.spec("SendMailModel", function () {
 			o(r).equals(true)
 
 			o(getConfirmation.callCount).equals(0)
-			o(worker.sendMailDraft.callCount).equals(1)
-			o(worker.createMailDraft.callCount).equals(1)
-			o(worker.updateMailDraft.callCount).equals(0)
+			o(mailFacade.sendDraft.callCount).equals(1)
+			o(mailFacade.createDraft.callCount).equals(1)
+			o(mailFacade.updateDraft.callCount).equals(0)
 
 			o(entity.setup.callCount).equals(numContactsToSetup)("contacts that didn't already exist should have been created in the server")
 			o(entity.update.callCount).equals(numContactsToUpdate)("contacts that did already exist should be updated in the server if they received a new password")

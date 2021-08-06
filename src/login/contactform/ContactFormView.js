@@ -113,7 +113,7 @@ class ContactFormView {
 		if (this._formId !== args.formId) {
 			this._formId = args.formId
 			this._loading = true
-			worker.initialized.then(() => worker.loadContactFormByPath(args.formId).then(contactForm => {
+			worker.initialized.then(() => worker.contactFormFacade.loadContactForm(args.formId).then(contactForm => {
 				this._contactForm = contactForm
 				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)

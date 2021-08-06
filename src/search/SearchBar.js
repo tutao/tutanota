@@ -434,7 +434,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 			this._confirmDialogShown = true;
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
-					locator.initializedWorker.then(worker => worker.enableMailIndexing()).then(() => {
+					locator.initializedWorker.then(worker => worker.indexerFacade.enableMailIndexing()).then(() => {
 						this.search()
 						this.focus()
 					}).catch(ofClass(IndexingNotSupportedError, () => {
@@ -485,7 +485,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		if (this._isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
 				locator.initializedWorker.then(worker =>
-					worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+					worker.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
 						if (locator.search.isNewSearch(query, moreResults.restriction)) {
 							return
 						} else {

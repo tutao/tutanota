@@ -137,7 +137,7 @@ export class PasswordForm {
 				Dialog.error(error)
 			} else {
 				showProgressDialog("pleaseWait_msg",
-					worker.changePassword(form.getOldPassword(), form.getNewPassword()))
+					worker.loginFacade.changePassword(form.getOldPassword(), form.getNewPassword()))
 					.then(() => {
 						deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
 						Dialog.error("pwChangeValid_msg")
@@ -166,7 +166,7 @@ export class PasswordForm {
 	static showChangeUserPasswordAsAdminDialog(user: User): void {
 		let form = new PasswordForm(false, false, true)
 		let changeUserPasswordAsAdminOkAction = (dialog) => {
-			let p = worker.changeUserPassword(user, form.getNewPassword()).then(() => {
+			let p = worker.userManagementFacade.changeUserPassword(user, form.getNewPassword()).then(() => {
 				Dialog.error("pwChangeValid_msg")
 				dialog.close()
 			}).catch(e => {

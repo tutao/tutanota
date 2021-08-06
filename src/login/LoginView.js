@@ -337,7 +337,7 @@ export class LoginView {
 					.then(({getTokenFromUrl}) => getTokenFromUrl(location.hash))
 					.then(([id, key]) => {
 						return worker.initialized
-						             .then(() => worker.getGiftCardInfo(id, key))
+						             .then(() => worker.giftCardFacade.getGiftCardInfo(id, key))
 						             .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
 							             .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
 					})

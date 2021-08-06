@@ -19,10 +19,10 @@ import {createUserAccountUserData} from "../../entities/tutanota/UserAccountUser
 import {createUserAccountCreateData} from "../../entities/tutanota/UserAccountCreateData"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {random} from "../crypto/Randomizer"
-import type {GroupManagementFacade} from "./GroupManagementFacade"
+import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
-import type {LoginFacade, RecoverData} from "./LoginFacade"
+import type {LoginFacadeImpl, RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
@@ -36,11 +36,11 @@ assertWorkerOrNode()
 export class UserManagementFacade {
 
 	_worker: WorkerImpl;
-	_login: LoginFacade;
-	_groupManagement: GroupManagementFacade;
+	_login: LoginFacadeImpl;
+	_groupManagement: GroupManagementFacadeImpl;
 	_counters: CounterFacade
 
-	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, counters: CounterFacade) {
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, counters: CounterFacade) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement

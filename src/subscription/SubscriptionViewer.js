@@ -66,7 +66,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "./BuyDialog"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import {SettingsExpander} from "../settings/SettingsExpander"
-import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
+import {elementIdPart, GENERATED_MAX_ID, getEtId} from "../api/common/utils/EntityUtils"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
@@ -486,7 +486,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		if (!this._showPriceData()) {
 			return Promise.resolve();
 		} else {
-			return worker.getCurrentPrice().then(priceServiceReturn => {
+			return worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 				if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
 					if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
 						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
@@ -559,7 +559,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
-		return worker.readUsedCustomerStorage().then(usedStorage => {
+		return worker.customerFacade.readUsedCustomerStorage(getEtId(customer)).then(usedStorage => {
 			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
 			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this._lastBooking)
 				* Const.MEMORY_GB_FACTOR)
@@ -691,7 +691,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 		Dialog.confirm(confirmationMessage).then((confirmed) => {
 			if (confirmed) {
 				const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-				worker.updatePaymentData(paymentInterval, {
+				worker.customerFacade.updatePaymentData(paymentInterval, {
 						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 						country: invoiceCountry,
 						vatNumber: accountingInfo.invoiceVatIdNo

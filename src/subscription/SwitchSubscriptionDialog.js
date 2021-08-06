@@ -51,7 +51,7 @@ import {ofClass} from "../api/common/utils/PromiseUtils"
  */
 export function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
 
-	const model = new SwitchSubscriptionDialogModel(worker, customer, customerInfo, accountingInfo, lastBooking)
+	const model = new SwitchSubscriptionDialogModel(worker.bookingFacade, customer, customerInfo, accountingInfo, lastBooking)
 
 	return showProgressDialog("pleaseWait_msg", model.loadSwitchSubscriptionPrices())
 		.then(prices => {
@@ -138,7 +138,7 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 						return
 					}
 					return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
-						.then(() => worker.switchPremiumToFreeGroup())
+						.then(() => worker.customerFacade.switchPremiumToFreeGroup())
 						.catch(ofClass(PreconditionFailedError, (e) => {
 							const reason = e.data
 							if (reason == null) {

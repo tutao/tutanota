@@ -41,12 +41,14 @@ import {ofClass} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
-const VerificationStatus = {
+const VerificationStatus = Object.freeze({
 	Initial: "Initial",
 	Progress: "Progress",
 	Failed: "Failed",
 	Success: "Success",
-}
+})
+
+type VerificationStatusEnum = $Values<typeof VerificationStatus>
 
 const SecondFactorTypeToNameTextId = {
 	[SecondFactorType.totp]: "totpAuthenticator_label",
@@ -139,7 +141,7 @@ export class EditSecondFactorsForm {
 
 	_showAddSecondFactorDialog() {
 		let u2f = new U2fClient()
-		let totpPromise = worker.generateTotpSecret()
+		let totpPromise = worker.loginFacade.generateTotpSecret()
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
 		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise]))
@@ -214,31 +216,18 @@ export class EditSecondFactorsForm {
 					type: ButtonType.Login
 				}
 
-				let verificationStatus = stream()
+				let verificationStatus = stream<VerificationStatusEnum>()
 				selectedType.map((type) => {
 					verificationStatus(type === SecondFactorType.u2f ? VerificationStatus.Initial : VerificationStatus.Progress)
 				})
 				verificationStatus.map(() => m.redraw())
 
-				totpCode.map(v => {
+				totpCode.map(async v => {
 					let cleanedValue = v.replace(/ /g, "")
 					if (cleanedValue.length === 6) {
-						const time = Math.floor(new Date().getTime() / 1000 / 30)
 						const expectedCode = Number(cleanedValue)
-						// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
-						// If at least one of them works, we accept it.
-						return worker
-							.generateTotpCode(time, totpKeys.key)
-							.then(number => number === expectedCode
-								? VerificationStatus.Success
-								: worker.generateTotpCode(time - 1, totpKeys.key)
-								        .then((number) => number === expectedCode
-									        ? VerificationStatus.Success
-									        : worker.generateTotpCode(time + 1, totpKeys.key)
-									                .then((number) => number === expectedCode
-										                ? VerificationStatus.Success
-										                : VerificationStatus.Failed)))
-							.then(verificationStatus)
+						const verificationResult = await this._tryCodes(expectedCode, totpKeys.key)
+						verificationStatus(verificationResult)
 					} else {
 						return verificationStatus(VerificationStatus.Progress)
 					}
@@ -383,5 +372,27 @@ export class EditSecondFactorsForm {
 			},
 			okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action"
 		})
+	}
+
+	async _tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatusEnum> {
+		const {loginFacade} = worker
+		const time = Math.floor(new Date().getTime() / 1000 / 30)
+
+		// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
+		// If at least one of them works, we accept it.
+
+		const number = await loginFacade.generateTotpCode(time, key)
+		if (number === expectedCode) {
+			return VerificationStatus.Success
+		}
+		const number2 = await loginFacade.generateTotpCode(time - 1, key)
+		if (number2 === expectedCode) {
+			return VerificationStatus.Success
+		}
+		const number3 = await loginFacade.generateTotpCode(time + 1, key)
+		if (number3 === expectedCode) {
+			return VerificationStatus.Success
+		}
+		return VerificationStatus.Failed
 	}
 }

@@ -59,7 +59,12 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 			} else {
 				showProgressDialog("pleaseWait_msg",
 					worker.initialized
-					      .then(() => worker.takeOverDeletedAddress(cleanMailAddress, password, cleanRecoveryCode, cleanTargetAccountAddress ? cleanTargetAccountAddress : null)))
+					      .then(() => worker.loginFacade.takeOverDeletedAddress(
+						      cleanMailAddress,
+						      password,
+						      cleanRecoveryCode,
+						      cleanTargetAccountAddress,
+					      )))
 					.then(() => Dialog.error("takeoverSuccess_msg"))
 					.then(() => {
 						takeoverDialog.close()

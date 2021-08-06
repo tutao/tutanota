@@ -12,6 +12,8 @@ const DIGITS_POWER
 
 const base32 = sjcl.codec.base32
 
+export type TotpSecret = {key: Uint8Array, readableKey: Base32}
+
 export class TotpVerifier {
 	_digits: number;
 
@@ -19,7 +21,7 @@ export class TotpVerifier {
 		this._digits = digits
 	}
 
-	generateSecret(): {key: Uint8Array, readableKey: Base32} {
+	generateSecret(): TotpSecret {
 		let key = random.generateRandomData(16)
 		let readableKey = this.readableKey(key)
 		return {key, readableKey}

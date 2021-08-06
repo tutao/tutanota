@@ -212,7 +212,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateCustomerServerProperties(): Promise<void> {
-		return worker.loadCustomerServerProperties().then(props => {
+		return worker.customerFacade.loadCustomerServerProperties().then(props => {
 			this._props(props)
 			const fieldToName = getSpamRuleFieldToName()
 			this._spamRuleLines(props.emailSenderList.map((rule, index) => {
@@ -511,7 +511,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 			return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
 			             .then(selectedMailGroupId => {
-				             return worker.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+				             return worker.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 			             })
 		})
 	}
@@ -520,7 +520,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		Dialog.confirm(() => lang.get("confirmCustomDomainDeletion_msg", {"{domain}": domainInfo.domain}))
 		      .then(confirmed => {
 			      if (confirmed) {
-				      worker.removeDomain(domainInfo.domain)
+				      worker.customerFacade.removeDomain(domainInfo.domain)
 				            .catch(ofClass(PreconditionFailedError, e => {
 					            let registrationDomains = this._props() != null ? this._props()
 					                                                                  .whitelabelRegistrationDomains

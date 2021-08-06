@@ -47,7 +47,7 @@ export class ContactModelImpl implements ContactModel {
 
 	searchForContact(mailAddress: string): Promise<?Contact> {
 		const cleanMailAddress = mailAddress.trim().toLowerCase()
-		return this._worker.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0)
+		return this._worker.searchFacade.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0)
 		           .then(result => {
 			           // the result is sorted from newest to oldest, but we want to return the oldest first like before
 			           result.results.sort(compareOldestFirst)
@@ -78,7 +78,7 @@ export class ContactModelImpl implements ContactModel {
 	 * @pre locator.search.indexState().indexingSupported
 	 */
 	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-		const result = await this._worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
+		const result = await this._worker.searchFacade.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
 		const resultsByListId = groupBy(result.results, listIdPart)
 		const loadedContacts = await promiseMap(resultsByListId, ([listId, idTuples]) => {
 			// we try to load all contacts from the same list in one request

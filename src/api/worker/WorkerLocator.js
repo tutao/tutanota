@@ -1,17 +1,17 @@
 //@flow
-import {LoginFacade} from "./facades/LoginFacade"
+import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {Indexer} from "./search/Indexer"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityRestClient} from "./rest/EntityRestClient"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {EntityRestCache} from "./rest/EntityRestCache"
-import {GroupManagementFacade} from "./facades/GroupManagementFacade"
+import {GroupManagementFacadeImpl} from "./facades/GroupManagementFacade"
 import {MailFacade} from "./facades/MailFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
 import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
-import {CustomerFacade} from "./facades/CustomerFacade"
+import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../common/Env"
@@ -22,19 +22,21 @@ import {ShareFacade} from "./facades/ShareFacade"
 import {RestClient} from "./rest/RestClient"
 import {SuspensionHandler} from "./SuspensionHandler"
 import {EntityClient} from "../common/EntityClient"
-import {GiftCardFacade} from "./facades/GiftCardFacade"
+import {GiftCardFacadeImpl} from "./facades/GiftCardFacade"
 import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
+import type {ContactFormFacade} from "./facades/ContactFormFacade"
+import {ContactFormFacadeImpl} from "./facades/ContactFormFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
-	login: LoginFacade;
+	login: LoginFacadeImpl;
 	indexer: Indexer;
 	cache: EntityRestInterface;
 	cachingEntityClient: EntityClient;
 	search: SearchFacade;
-	groupManagement: GroupManagementFacade;
+	groupManagement: GroupManagementFacadeImpl;
 	userManagement: UserManagementFacade;
-	customer: CustomerFacade;
+	customer: CustomerFacadeImpl;
 	file: FileFacade;
 	mail: MailFacade;
 	calendar: CalendarFacade;
@@ -46,8 +48,9 @@ type WorkerLocatorType = {
 	Const: Object;
 	share: ShareFacade;
 	restClient: RestClient;
-	giftCards: GiftCardFacade;
-	configFacade: ConfigurationDatabase
+	giftCards: GiftCardFacadeImpl;
+	configFacade: ConfigurationDatabase,
+	contactFormFacade: ContactFormFacade,
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -66,7 +69,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
-	locator.login = new LoginFacade(worker, locator.restClient, locator.cachingEntityClient)
+	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
 		locator.indexer._groupInfo.suggestionFacade,
@@ -74,9 +77,9 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	]
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData)
 	locator.counters = new CounterFacade()
-	locator.groupManagement = new GroupManagementFacade(locator.login, locator.counters, locator.cachingEntityClient)
+	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
-	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
+	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler)
 	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient)
 	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache)
@@ -86,12 +89,13 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.login)
-	locator.giftCards = new GiftCardFacade(locator.login)
+	locator.giftCards = new GiftCardFacadeImpl(locator.login)
 	locator.configFacade = new ConfigurationDatabase(locator.login)
+	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient)
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._browserData))
+	return locator.login.resetSession().then(() => initLocator(locator.login._worker, locator._browserData))
 }
 
 if (typeof self !== "undefined") {

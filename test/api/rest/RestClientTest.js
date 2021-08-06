@@ -34,10 +34,9 @@ o.spec("rest client", function () {
 			}
 		})
 
-		o("GET json", function (done) {
-			o.timeout(200)
+		o("GET json", async function () {
+			o.timeout(400)
 			let responseText = '{"msg":"Hello Client"}'
-			let before = new Date().getTime()
 			app.get("/get/json", (req, res) => {
 				o(req.method).equals('GET')
 				o(req.headers['content-type']).equals(undefined)
@@ -45,10 +44,8 @@ o.spec("rest client", function () {
 
 				res.send(responseText)
 			})
-			rc.request("/get/json", HttpMethod.GET, {}, {}, null, MediaType.Json).then(res => {
-				o(res).equals(responseText)
-				done()
-			})
+			const res = await rc.request("/get/json", HttpMethod.GET, {}, {}, null, MediaType.Json)
+			o(res).equals(responseText)
 		})
 
 		o("GET with body (converted to query parameter)", function (done) {

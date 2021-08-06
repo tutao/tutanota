@@ -614,7 +614,7 @@ export class MailView implements CurrentView {
 				             .then((name) =>
 					             locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
 					                    .then((mailboxDetails) =>
-						                    worker.createMailFolder(name,
+						                    worker.mailFacade.createMailFolder(name,
 							                    getInboxFolder(mailboxDetails.folders)._id,
 							                    mailGroupId)))
 			},

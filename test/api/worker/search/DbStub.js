@@ -25,9 +25,11 @@ export type TableStub = {
 
 export class DbStub {
 	_objectStores: {[name: string]: TableStub}
+	indexingSupported: boolean
 
 	constructor() {
 		this._objectStores = {}
+		this.indexingSupported = true
 	}
 
 	addObjectStore(name: ObjectStoreName, autoIncrement: boolean, keyPath: ?string, index: ?Index) {

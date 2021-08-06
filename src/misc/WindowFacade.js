@@ -228,7 +228,7 @@ class WindowFacade {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				this._worker.notifyVisiblityChange(!document.hidden)
+				this._worker.indexerFacade.onVisibilityChanged(!document.hidden)
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground
 					// so we try to reconnect with a delay to receive _close event first. Otherwise

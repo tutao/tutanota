@@ -170,7 +170,7 @@ class PushServiceApp {
 		const userId = logins.getUserController().user._id
 		if (!deviceConfig.hasScheduledAlarmsForUser(userId)) {
 			console.log("Alarms not scheduled for user, scheduling!")
-			return worker.scheduleAlarmsForNewDevice(pushIdentifier)
+			return worker.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
 			             .then(() => deviceConfig.setAlarmsScheduledForUser(userId, true))
 		} else {
 			return Promise.resolve()

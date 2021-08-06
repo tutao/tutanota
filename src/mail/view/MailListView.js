@@ -243,7 +243,7 @@ export class MailListView implements MComponent<void> {
 							const key = mapKey(mail)
 							const downloadPromise =
 								import("../../misc/HtmlSanitizer")
-									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker, htmlSanitizer))
+									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker.fileFacade, htmlSanitizer))
 									.then(tap(() => progressMonitor.workDone(1)))
 									.then(bundle => generateMailFile(bundle, name, exportMode))
 									.then(tap(() => progressMonitor.workDone(1)))

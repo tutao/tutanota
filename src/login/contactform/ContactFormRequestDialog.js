@@ -92,8 +92,7 @@ export class ContactFormRequestDialog {
 			                     help: "send_action"
 		                     }).setCloseHandler(() => this._close())
 
-		worker.createContactFormUserGroupData()
-
+		worker.customerFacade.createContactFormUserGroupData()
 	}
 
 	view: Function = () => {
@@ -233,6 +232,7 @@ export class ContactFormRequestDialog {
 	}
 
 	async send(): Promise<void> {
+		const {mailFacade, customerFacade} = worker
 		const passwordErrorId = this._passwordForm.getErrorMessageId()
 		if (passwordErrorId) {
 			Dialog.error(passwordErrorId)
@@ -252,30 +252,30 @@ export class ContactFormRequestDialog {
 			}
 			const password = this._passwordForm.getNewPassword()
 			const doSend = async () => {
-				const contactFormResult = await worker.createContactFormUser(password, this._contactForm._id)
+				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
 				const userEmailAddress = contactFormResult.responseMailAddress
 				await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
 
-			try {
-
+				try {
 					if (cleanedNotificationMailAddress) {
-						let pushIdentifier = createPushIdentifier()
-						pushIdentifier.displayName = client.getIdentifier()
-						pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
-						pushIdentifier.language = lang.code
-						pushIdentifier.pushServiceType = PushServiceType.EMAIL
-						pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-						pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-						pushIdentifier._area = "0" // legacy
+						let pushIdentifier = createPushIdentifier({
+							displayName: client.getIdentifier(),
+							identifier: cleanedNotificationMailAddress,
+							language: lang.code,
+							pushServiceType: PushServiceType.EMAIL,
+							_ownerGroup: logins.getUserController().userGroupInfo.group,
+							_owner: logins.getUserController().userGroupInfo.group, // legacy
+							_area: "0", // legacy
+						})
 						await worker.entityRequest(PushIdentifierTypeRef,
 							HttpMethodEnum.POST,
 							neverNull(logins.getUserController().user.pushIdentifierList).list,
 							null, pushIdentifier);
 					}
 
-				const name = ""
-				const mailAddress = contactFormResult.requestMailAddress
-					const draft = await worker.createMailDraft(
+					const name = ""
+					const mailAddress = contactFormResult.requestMailAddress
+					const draft = await mailFacade.createDraft(
 						this._subject, this._editor.getValue(),
 						userEmailAddress,
 						"",
@@ -289,7 +289,7 @@ export class ContactFormRequestDialog {
 						[],
 						MailMethod.NONE
 					)
-					await worker.sendMailDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
+					await mailFacade.sendDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
 
 				} finally {
 					await logins.logout(false)

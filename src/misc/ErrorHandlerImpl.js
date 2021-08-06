@@ -105,7 +105,7 @@ export function handleUncaughtError(e: Error) {
 		}
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
-			worker.resetSession()
+			worker.loginFacade.resetSession()
 			loginDialogActive = true
 			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
 			Dialog.showRequestPasswordDialog(errorMessage, {allowCancel: false})
@@ -313,7 +313,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const name = ""
 	const mailAddress = "reports@tutao.de"
 
-	const draft = await worker.createMailDraft(
+	const draft = await worker.mailFacade.createDraft(
 		content.subject,
 		content.message.split("\n").join("<br>"),
 		neverNull(logins.getUserController().userGroupInfo.mailAddress),
@@ -328,7 +328,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 		[],
 		MailMethod.NONE,
 	)
-	await worker.sendMailDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
+	await worker.mailFacade.sendDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
 }
 
 export function loggingOut() {

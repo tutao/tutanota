@@ -75,6 +75,7 @@ import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
+import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
@@ -128,7 +129,7 @@ export function noopBlockingWaitHandler<T>(messageIdOrMessageFunction: Translati
  * Model which allows sending mails interactively - including resolving of recipients and handling of drafts.
  */
 export class SendMailModel {
-	_worker: WorkerClient
+	_mailFacade: MailFacade;
 	_entity: EntityClient;
 	_logins: LoginController;
 	_mailModel: MailModel;
@@ -167,17 +168,10 @@ export class SendMailModel {
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
-	 * @param worker
-	 * @param logins
-	 * @param mailModel
-	 * @param contactModel
-	 * @param eventController
-	 * @param entity
-	 * @param mailboxDetails
 	 */
-	constructor(worker: WorkerClient, logins: LoginController, mailModel: MailModel, contactModel: ContactModel, eventController: EventController, entity: EntityClient,
+	constructor(mailFacade: MailFacade, logins: LoginController, mailModel: MailModel, contactModel: ContactModel, eventController: EventController, entity: EntityClient,
 	            mailboxDetails: MailboxDetail) {
-		this._worker = worker
+		this._mailFacade = mailFacade
 		this._entity = entity
 		this._logins = logins
 		this._mailModel = mailModel
@@ -258,8 +252,8 @@ export class SendMailModel {
 		return this._mailModel
 	}
 
-	worker(): WorkerClient {
-		return this._worker
+	mailFacade(): MailFacade {
+		return this._mailFacade
 	}
 
 	events(): EventController {
@@ -611,7 +605,7 @@ export class SendMailModel {
 						}
 					})
 			}
-			p = resolveRecipientInfo(this._worker, ri).then((resolved) => {
+			p = resolveRecipientInfo(this._mailFacade, ri).then((resolved) => {
 				this.setMailChanged(true)
 				return resolved
 			})
@@ -669,7 +663,7 @@ export class SendMailModel {
 	}
 
 	_updateDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, draft: Mail): Promise<Mail> {
-		return this._worker.updateMailDraft(
+		return this._mailFacade.updateDraft(
 			this.getSubject(),
 			body,
 			this._senderAddress,
@@ -690,7 +684,7 @@ export class SendMailModel {
 	}
 
 	_createDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, mailMethod: MailMethodEnum): Promise<Mail> {
-		return this._worker.createMailDraft(
+		return this._mailFacade.createDraft(
 			this.getSubject(),
 			body,
 			this._senderAddress,
@@ -796,7 +790,7 @@ export class SendMailModel {
 				makeRecipientDetails(name, mailAddress, type, contact)
 			)
 
-			await this._worker.sendMailDraft(neverNull(this._draft), allRecipients, this._selectedNotificationLanguage)
+			await this._mailFacade.sendDraft(neverNull(this._draft), allRecipients, this._selectedNotificationLanguage)
 			await this._updatePreviousMail()
 			await this._updateExternalLanguage()
 			return true
@@ -978,7 +972,7 @@ export class SendMailModel {
 	 */
 	_waitForResolvedRecipients(): Promise<RecipientInfo[]> {
 		return Promise.all(this.allRecipients().map(recipientInfo => {
-			return resolveRecipientInfo(this._worker, recipientInfo).then(recipientInfo => {
+			return resolveRecipientInfo(this._mailFacade, recipientInfo).then(recipientInfo => {
 				if (recipientInfo.resolveContactPromise) {
 					return recipientInfo.resolveContactPromise.then(() => recipientInfo)
 				} else {
@@ -1037,5 +1031,5 @@ export class SendMailModel {
 }
 
 export function defaultSendMailModel(mailboxDetails: MailboxDetail): SendMailModel {
-	return new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
+	return new SendMailModel(worker.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 }

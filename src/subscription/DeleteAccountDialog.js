@@ -75,7 +75,7 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 		return Dialog.confirm(messageFn)
 		             .then(ok => {
 			             if (ok) {
-				             return worker.deleteAccount(password, reason, neverNull(cleanedTakeover)).then(() => true)
+				             return worker.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover)).then(() => true)
 				                          .catch(ofClass(PreconditionFailedError, () => Dialog.error("passwordWrongInvalid_msg").then(() => false)))
 				                          .catch(ofClass(InvalidDataError, () => Dialog.error("takeoverAccountInvalid_msg").then(() => false)))
 				                          .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg").then(() => false)))

@@ -144,14 +144,14 @@ function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation
 }
 
 function acceptInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts): Promise<void> {
-	return worker.acceptGroupInvitation(invitation)
+	return worker.shareFacade.acceptGroupInvitation(invitation)
 	             .then(() => {
 		             sendAcceptNotificationEmail(invitation, texts)
 	             })
 }
 
 function declineInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts): Promise<void> {
-	return worker.rejectGroupInvitation(invitation._id)
+	return worker.shareFacade.rejectGroupInvitation(invitation._id)
 	             .then(() => {
 		             sendRejectNotificationEmail(invitation, texts)
 	             })

@@ -8,7 +8,7 @@ import {EntityRestClientMock} from "./EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-import {LoginFacade} from "../../../src/api/worker/facades/LoginFacade"
+import {LoginFacade, LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
@@ -19,7 +19,7 @@ o.spec("EventBusClient test", function () {
 	let cacheMock: $Shape<EntityRestCache>
 	let restClient: EntityRestClientMock
 	let workerMock: WorkerImpl
-	let loginMock: LoginFacade
+	let loginMock: LoginFacadeImpl
 
 	o.beforeEach(function () {
 		cacheMock = downcast({
@@ -35,7 +35,7 @@ o.spec("EventBusClient test", function () {
 				getLoggedInUser() {
 					return user;
 				}
-			}: $Shape<LoginFacade>
+			}: $Shape<LoginFacadeImpl>
 		))
 		let mailMock: any = {
 			entityEventsReceived: () => {

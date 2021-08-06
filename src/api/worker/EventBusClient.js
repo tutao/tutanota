@@ -44,6 +44,7 @@ import {
 	isSameId
 } from "../common/utils/EntityUtils";
 import {delay, ofClass, promiseMap} from "../common/utils/PromiseUtils"
+import {LoginFacadeImpl} from "./facades/LoginFacade"
 
 assertWorkerOrNode()
 
@@ -72,7 +73,7 @@ export class EventBusClient {
 	+_entity: EntityClient;
 	+_worker: WorkerImpl;
 	+_mail: MailFacade;
-	+_login: LoginFacade;
+	+_login: LoginFacadeImpl;
 
 	_state: EventBusStateEnum;
 	_socket: ?WebSocket;
@@ -111,7 +112,7 @@ export class EventBusClient {
 	_failedConnectionAttempts: number = 0;
 	_progressMonitor: IProgressMonitor;
 
-	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade,
+	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacadeImpl,
 	            entityClient: EntityClient
 	) {
 		this._indexer = indexer

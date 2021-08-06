@@ -204,6 +204,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 			return Dialog.error(error).then(() => false)
 		} else {
 			return showProgressDialog("pleaseWait_msg", worker
+				.mailAddressFacade
 				.addMailAlias(this.data.editAliasFormAttrs.userGroupInfo.group, this.mailAddress))
 				.then(() => {
 					return true

@@ -57,11 +57,8 @@ import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
 import {createFeature} from "../../../src/api/entities/sys/Feature"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
-import {assertThrows, mockAttribute, unmockAttribute} from "../../api/TestUtils"
-import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
-import {TypeRef} from "../../../src/api/common/utils/TypeRef"
-import {Request} from "../../../src/api/common/WorkerProtocol"
-import {SysService} from "../../../src/api/entities/sys/Services"
+import {assertThrows, unmockAttribute} from "../../api/TestUtils"
+import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 const calendarGroupId = "0"
@@ -114,10 +111,20 @@ o.spec("CalendarEventViewModel", function () {
 			removeEntityListener: noOp,
 		})
 		const entityClient = new EntityClient(worker)
-		inviteModel = new SendMailModel(worker, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
-		updateModel = new SendMailModel(worker, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
-		cancelModel = new SendMailModel(worker, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
-		responseModel = new SendMailModel(worker, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
+		const mailFacade = downcast<MailFacade>({
+			async getRecipientKeyData(mailAddress: string) {
+				if (internalAddresses.includes(mailAddress)) {
+					await delay(delayMs)
+					return createPublicKeyReturn({pubKey: new Uint8Array(0)})
+				} else {
+					return null
+				}
+			}
+		})
+		inviteModel = new SendMailModel(mailFacade, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
+		updateModel = new SendMailModel(mailFacade, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
+		cancelModel = new SendMailModel(mailFacade, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
+		responseModel = new SendMailModel(mailFacade, loginController, mailModel, contactModel, eventController, entityClient, mailboxDetail)
 		const sendFactory = (_, purpose) => {
 			return {
 				invite: inviteModel,
@@ -158,15 +165,6 @@ o.spec("CalendarEventViewModel", function () {
 		askInsecurePassword = o.spy(async () => true)
 		internalAddresses = []
 		delayMs = 0
-
-		function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
-			if (service === SysService.PublicKeyService) {
-				return delay(delayMs).then(() => internalAddresses.includes(downcast(requestEntity).mailAddress) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
-			}
-			return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
-		}
-
-		mockedAttributeReferences.push(mockAttribute(worker, worker.serviceRequest, serviceRequest))
 	})
 
 	o.afterEach(function () {

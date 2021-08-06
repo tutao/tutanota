@@ -84,6 +84,8 @@ import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {delay, ofClass, promiseMap} from "../../common/utils/PromiseUtils"
+import type {TotpSecret} from "../crypto/TotpVerifier"
+import {TotpVerifier} from "../crypto/TotpVerifier"
 
 assertWorkerOrNode()
 
@@ -91,7 +93,55 @@ const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 export type NewSessionData = {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}
 
-export class LoginFacade {
+export interface LoginFacade {
+	createSession(
+		mailAddress: string,
+		passphrase: string,
+		clientIdentifier: string,
+		persistentSession: boolean,
+		permanentLogin: boolean
+	): Promise<NewSessionData>;
+
+	createExternalSession(
+		userId: Id,
+		passphrase: string,
+		salt: Uint8Array,
+		clientIdentifier: string,
+		persistentSession: boolean
+	): Promise<NewSessionData>;
+
+	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}>;
+
+	deleteSession(accessToken: Base64Url): Promise<void>;
+
+	changePassword(oldPassword: string, newPassword: string): Promise<void>;
+
+	generateTotpSecret(): Promise<TotpSecret>;
+
+	generateTotpCode(time: number, key: Uint8Array): Promise<number>;
+
+	getRecoverCode(password: string): Promise<string>;
+
+	createRecoveryCode(password: string): Promise<string>;
+
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void>;
+
+	cancelCreateSession(): Promise<void>;
+
+	resetSession(): Promise<void>;
+
+	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: ?Hex, targetAccountMailAddress: string): Promise<void>;
+
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
+
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>;
+
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>;
+}
+
+export class LoginFacadeImpl implements LoginFacade {
 	_user: ?User;
 	_userGroupInfo: ?GroupInfo;
 	_accessToken: ?string;
@@ -115,7 +165,7 @@ export class LoginFacade {
 		this._worker = worker
 		this._restClient = restClient
 		this._entity = entity
-		this.reset()
+		this.resetSession()
 
 	}
 
@@ -128,7 +178,7 @@ export class LoginFacade {
 		}
 	}
 
-	reset(): Promise<void> {
+	resetSession(): Promise<void> {
 		this._user = null
 		this._userGroupInfo = null
 		this._accessToken = null
@@ -143,7 +193,12 @@ export class LoginFacade {
 	/**
 	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
 	 */
-	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean
+	createSession(
+		mailAddress: string,
+		passphrase: string,
+		clientIdentifier: string,
+		persistentSession: boolean,
+		permanentLogin: boolean
 	): Promise<NewSessionData> {
 		if (this._user) {
 			console.log("session already exists, reuse data")
@@ -187,7 +242,10 @@ export class LoginFacade {
 	/**
 	 * If the second factor login has been cancelled a CancelledError is thrown.
 	 */
-	_waitUntilSecondFactorApprovedOrCancelled(createSessionReturn: CreateSessionReturn, mailAddress: ?string): Promise<{sessionId: IdTuple, userId: Id, accessToken: Base64Url}> {
+	_waitUntilSecondFactorApprovedOrCancelled(
+		createSessionReturn: CreateSessionReturn,
+		mailAddress: ?string
+	): Promise<{sessionId: IdTuple, userId: Id, accessToken: Base64Url}> {
 		let p = Promise.resolve()
 		let sessionId = [
 			this._getSessionListId(createSessionReturn.accessToken),
@@ -229,7 +287,12 @@ export class LoginFacade {
 			}))
 	}
 
-	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	createExternalSession(
+		userId: Id,
+		passphrase: string,
+		salt: Uint8Array,
+		clientIdentifier: string,
+		persistentSession: boolean
 	): Promise<NewSessionData> {
 		if (this._user) {
 			throw new Error("user already logged in")
@@ -273,7 +336,7 @@ export class LoginFacade {
 			})
 	}
 
-	cancelCreateSession() {
+	async cancelCreateSession(): Promise<void> {
 		this._loginRequestSessionId = null
 		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
 	}
@@ -281,7 +344,10 @@ export class LoginFacade {
 	/**
 	 * Resume a session of stored credentials.
 	 */
-	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}> {
+	resumeSession(
+		credentials: Credentials,
+		externalUserSalt: ?Uint8Array
+	): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}> {
 		return this._loadSessionData(credentials.accessToken).then(sessionData => {
 			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
 			let passphraseKeyPromise: Promise<Aes128Key>
@@ -351,7 +417,7 @@ export class LoginFacade {
 			})
 			.then(() => this.storeEntropy())
 			.catch(e => {
-				this.reset()
+				this.resetSession()
 				throw e
 			})
 	}
@@ -741,6 +807,18 @@ export class LoginFacade {
 
 	isLeader(): boolean {
 		return this._leaderStatus.leaderStatus
+	}
+
+	generateTotpSecret(): Promise<TotpSecret> {
+		return this.getTotpVerifier().then(totp => totp.generateSecret())
+	}
+
+	generateTotpCode(time: number, key: Uint8Array): Promise<number> {
+		return this.getTotpVerifier().then(totp => totp.generateTotp(time, key))
+	}
+
+	getTotpVerifier(): Promise<TotpVerifier> {
+		return Promise.resolve(new TotpVerifier())
 	}
 }
 

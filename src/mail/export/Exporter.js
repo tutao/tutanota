@@ -11,7 +11,7 @@ import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {sanitizeFilename} from "../../api/common/utils/FileUtils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {EntityClient} from "../../api/common/EntityClient"
-import type {WorkerClient} from "../../api/main/WorkerClient"
+import type {FileFacade} from "../../api/worker/facades/FileFacade"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
@@ -51,15 +51,12 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
  * a save dialog will then be shown
  * @returns {Promise<void>} resolved after the fileController
  * was instructed to open the new zip File containing the exported files
- * @param mails
- * @param entityClient
- * @param worker
  */
-export function exportMails(mails: Array<Mail>, entityClient: EntityClient, worker: WorkerClient): Promise<void> {
+export function exportMails(mails: Array<Mail>, entityClient: EntityClient, fileFacade: FileFacade): Promise<void> {
 
 	const downloadPromise =
 		promiseMap(mails, mail => import("../../misc/HtmlSanitizer")
-			.then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, worker, htmlSanitizer)))
+			.then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, fileFacade, htmlSanitizer)))
 
 	return Promise.all([
 		getMailExportMode(),

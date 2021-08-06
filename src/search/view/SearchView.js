@@ -338,7 +338,7 @@ export class SearchView implements CurrentView {
 			if (startDate && startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
-						worker.extendMailIndex(startDate.getTime()).then(() => {
+						worker.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
 							setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
 						})
 					}

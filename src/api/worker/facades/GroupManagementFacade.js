@@ -3,15 +3,17 @@ import {assertWorkerOrNode} from "../../common/Env"
 import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"
+import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array} from "../../common/utils/Encoding"
 import {decryptKey, encryptKey, encryptRsaKey, encryptString} from "../crypto/CryptoFacade"
-import type {LoginFacade} from "./LoginFacade"
+import {LoginFacadeImpl} from "./LoginFacade"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {aes128RandomKey} from "../crypto/Aes"
 import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLocalAdminGroupData"
+import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {neverNull} from "../../common/utils/Utils"
@@ -19,24 +21,38 @@ import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveDat
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
 import {SysService} from "../../entities/sys/Services"
-import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import type {User} from "../../entities/sys/User"
-import type {Group} from "../../entities/sys/Group"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
-import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import type {UserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
+import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {EntityClient} from "../../common/EntityClient"
 
 assertWorkerOrNode()
 
-export class GroupManagementFacade {
+export interface GroupManagementFacade {
+	createMailGroup(name: string, mailAddress: string): Promise<void>;
 
-	_login: LoginFacade;
+	createLocalAdminGroup(name: string): Promise<void>;
+
+	createTemplateGroup(name: string): Promise<Id>;
+
+	deactivateGroup(group: Group, restore: boolean): Promise<void>;
+
+	removeUserFromGroup(userId: Id, groupId: Id): Promise<void>;
+
+	addUserToGroup(user: User, groupId: Id): Promise<void>;
+
+	readUsedGroupStorage(groupId: Id): Promise<number>;
+}
+
+export class GroupManagementFacadeImpl {
+
+	_login: LoginFacadeImpl;
 	_counters: CounterFacade
 	_entity: EntityClient
 
-	constructor(login: LoginFacade, counters: CounterFacade, entity: EntityClient) {
+	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient) {
 		this._login = login
 		this._counters = counters
 		this._entity = entity

@@ -22,7 +22,7 @@ assertMainOrNode()
 
 function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 	showProgressDialog("pleaseWait_msg",
-		worker.orderWhitelabelCertificate(domain)
+		worker.customerFacade.orderWhitelabelCertificate(domain)
 		      .then(() => {
 			      dialog.close()
 		      })

@@ -158,7 +158,7 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 		this._onBusyStateChanged(true, onBusyStateChanged)
 		this._checkAddressTimeout = setTimeout(() => {
 			if (this.cleanMailAddress() !== cleanMailAddress) return
-			worker.initialized.then(() => worker.isMailAddressAvailable(cleanMailAddress))
+			worker.initialized.then(() => worker.mailAddressFacade.isMailAddressAvailable(cleanMailAddress))
 			      .then(available => {
 				      if (this.cleanMailAddress() === cleanMailAddress) {
 					      if (available) {

@@ -6,8 +6,8 @@ import {assertMainOrNode} from "../api/common/Env"
 import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
 import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	getSpamRuleType,
 	getSpamRuleField,
+	getSpamRuleType,
 	SpamRuleFieldType,
 	SpamRuleType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS
@@ -21,17 +21,17 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
+import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
 export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 	let existingSpamRules: ?EmailSenderListElement[] = null
 	let customDomains: ?string[]
-	worker.loadCustomerServerProperties().then(props => {
+	worker.customerFacade.loadCustomerServerProperties().then(props => {
 		existingSpamRules = props.emailSenderList
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
@@ -67,13 +67,13 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderLi
 	]
 	let addSpamRuleOkAction = (dialog) => {
 		if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
-			worker.editSpamRule(Object.assign({}, existingSpamRuleOrTemplate, {
+			worker.customerFacade.editSpamRule(Object.assign({}, existingSpamRuleOrTemplate, {
 				value: valueFieldValue(),
 				field: selectedField(),
 				type: selectedType()
 			}))
 		} else {
-			worker.addSpamRule(selectedField(), selectedType(), valueFieldValue())
+			worker.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
 		}
 		dialog.close()
 	}

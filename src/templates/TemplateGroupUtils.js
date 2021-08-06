@@ -19,7 +19,7 @@ export function createInitialTemplateListIfAllowed(): Promise<?TemplateGroupRoot
 			showBusinessFeatureRequiredDialog("businessFeatureRequiredTemplates_msg")
 	}).then(allowed => {
 		if (allowed) {
-			return worker.createTemplateGroup("")
+			return worker.groupManagementFacade.createTemplateGroup("")
 		}
 	}).then(groupId => {
 		if (groupId) {

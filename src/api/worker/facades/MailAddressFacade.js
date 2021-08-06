@@ -5,7 +5,7 @@ import {_service} from "../rest/ServiceRestClient"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createMailAddressAliasServiceData} from "../../entities/sys/MailAddressAliasServiceData"
 import {createDomainMailAddressAvailabilityData} from "../../entities/sys/DomainMailAddressAvailabilityData"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacadeImpl} from "./LoginFacade"
 import {createMailAddressAvailabilityData} from "../../entities/sys/MailAddressAvailabilityData"
 import {DomainMailAddressAvailabilityReturnTypeRef} from "../../entities/sys/DomainMailAddressAvailabilityReturn"
 import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddressAvailabilityReturn"
@@ -16,9 +16,9 @@ import type {MailAddressAliasServiceReturn} from "../../entities/sys/MailAddress
 assertWorkerOrNode()
 
 export class MailAddressFacade {
-	_login: LoginFacade;
+	_login: LoginFacadeImpl;
 
-	constructor(login: LoginFacade) {
+	constructor(login: LoginFacadeImpl) {
 		this._login = login
 
 	}

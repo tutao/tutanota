@@ -34,6 +34,7 @@ import {createTypeInfo} from "../../entities/sys/TypeInfo"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {TypeRef} from "../../common/utils/TypeRef"
 import type {TypeModel} from "../../common/EntityTypes"
+import {LoginFacadeImpl} from "./LoginFacade"
 
 assertWorkerOrNode()
 
@@ -41,11 +42,11 @@ const REST_PATH = "/rest/tutanota/filedataservice"
 const STORAGE_REST_PATH = `/rest/storage/${StorageService.BlobService}`
 
 export class FileFacade {
-	_login: LoginFacade;
+	_login: LoginFacadeImpl;
 	_restClient: RestClient;
 	_suspensionHandler: SuspensionHandler;
 
-	constructor(login: LoginFacade, restClient: RestClient, suspensionHandler: SuspensionHandler) {
+	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler) {
 		this._login = login
 		this._restClient = restClient
 		this._suspensionHandler = suspensionHandler
@@ -159,22 +160,17 @@ export class FileFacade {
 						let headers = this._login.createAuthHeaders()
 						headers['v'] = FileDataDataReturnTypeModel.version
 						let url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {fileDataId})
-						return fileApp.upload(encryptedFileInfo.uri, url.toString(), headers).then(({
-							                                                                            statusCode,
-							                                                                            uri,
-							                                                                            errorId,
-							                                                                            precondition,
-							                                                                            suspensionTime
-						                                                                            }) => {
-							if (statusCode === 200) {
-								return fileDataId;
-							} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
-								this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
-								return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
-							} else {
-								throw handleRestError(statusCode, ` | PUT ${url.toString()} failed to natively upload attachment`, errorId, precondition)
-							}
-						})
+						return fileApp.upload(encryptedFileInfo.uri, url.toString(), headers)
+						              .then(({statusCode, uri, errorId, precondition, suspensionTime}) => {
+							              if (statusCode === 200) {
+								              return fileDataId;
+							              } else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
+								              this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+								              return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
+							              } else {
+								              throw handleRestError(statusCode, ` | PUT ${url.toString()} failed to natively upload attachment`, errorId, precondition)
+							              }
+						              })
 					})
 			})
 	}

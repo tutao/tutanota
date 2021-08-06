@@ -32,8 +32,8 @@ o.spec("Bundler", function () {
 			load: o.spy(() => Promise.resolve({text: body, headers})),
 		}
 
-		const worker = {
-			downloadFileContent: o.spy(file => Promise.resolve("attachment"))
+		const fileFacade = {
+			downloadFileContent: o.spy(() => Promise.resolve("attachment"))
 		}
 
 		const sanitizer = {
@@ -59,7 +59,7 @@ o.spec("Bundler", function () {
 
 		})
 
-		const bundle = await makeMailBundle(mail, downcast(entityClient), downcast(worker), downcast(sanitizer))
+		const bundle = await makeMailBundle(mail, downcast(entityClient), downcast(fileFacade), downcast(sanitizer))
 
 		o(bundle.mailId).deepEquals(mailId)
 		o(bundle.subject).equals(subject)

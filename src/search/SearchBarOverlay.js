@@ -95,7 +95,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				state.indexState.progress !== 100
 					? m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
 						label: "cancel_action",
-						click: () => worker.cancelMailIndexing(),
+						click: () => worker.indexerFacade.cancelMailIndexing(),
 						//icon: () => Icons.Cancel
 						type: ButtonType.Secondary
 					}))
@@ -123,7 +123,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				m(".small", lang.get("indexing_error")),
 				m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
 					label: "retry_action",
-					click: () => worker.extendMailIndex(failedIndexingUpTo),
+					click: () => worker.indexerFacade.extendMailIndex(failedIndexingUpTo),
 					type: ButtonType.Secondary
 				}))
 			]),

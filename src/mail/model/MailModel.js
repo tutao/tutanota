@@ -338,7 +338,7 @@ export class MailModel {
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
-		return this._worker.checkMailForPhishing(mail, links)
+		return this._worker.mailFacade.checkMailForPhishing(mail, links)
 	}
 
 	getTrashFolder(folders: MailFolder[]): MailFolder {

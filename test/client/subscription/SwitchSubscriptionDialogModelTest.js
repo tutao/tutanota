@@ -22,6 +22,7 @@ import {createPriceServiceReturn} from "../../../src/api/entities/sys/PriceServi
 import {createPriceItemData} from "../../../src/api/entities/sys/PriceItemData"
 import type {PriceData} from "../../../src/api/entities/sys/PriceData"
 import {getCurrentCount} from "../../../src/subscription/PriceUtils"
+import {BookingFacade} from "../../../src/api/worker/facades/BookingFacade"
 
 
 const BookingItemPriceType = Object.freeze({
@@ -91,18 +92,18 @@ o.spec("SwitchSubscriptionModelTest", function () {
 	let _customerInfo: CustomerInfo
 	let _accountingInfo: AccountingInfo
 	let _lastBooking: Booking
-	let _workerMock: WorkerClient
+	let bookingMock: BookingFacade
 
 	let model: SwitchSubscriptionDialogModel
 
 	o.spec("loadSwitchSubscriptionPrices", function () {
 		o.beforeEach(function () {
 			createPremiumCustomerInstances()
-			_workerMock = createWorkerMock()
+			bookingMock = createbookingMock()
 		})
 
 		o("switch premium to default", async function () {
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -113,7 +114,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 
 		o("switch premium business to default", async function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Business, 1)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -125,7 +126,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 		o("switch teams to default", async function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -138,7 +139,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Business, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -153,7 +154,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Whitelabel, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Alias, 20)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -219,7 +220,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 				monthlyReferencePrice: "18"
 			}
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 100)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -254,7 +255,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Whitelabel, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Sharing, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -310,7 +311,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			}
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Whitelabel, 1)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -335,7 +336,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Whitelabel, 1)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Alias, 20)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(DEFAULT_PREMIUM_PRICE)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(DEFAULT_PREMIUM_BUSINESS_PRICE)
@@ -403,7 +404,7 @@ o.spec("SwitchSubscriptionModelTest", function () {
 			setBookingItem(_lastBooking, BookingItemFeatureType.Users, 3)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Storage, 10)
 			setBookingItem(_lastBooking, BookingItemFeatureType.Sharing, 1)
-			model = new SwitchSubscriptionDialogModel(_workerMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
+			model = new SwitchSubscriptionDialogModel(bookingMock, _customer, _customerInfo, _accountingInfo, _lastBooking)
 			const subscriptionPlanPrices = await model.loadSwitchSubscriptionPrices()
 			o(subscriptionPlanPrices.Premium).deepEquals(upgradedPremiumPrices)
 			o(subscriptionPlanPrices.PremiumBusiness).deepEquals(upgradedPremiumBusinessPrices)
@@ -443,12 +444,12 @@ o.spec("SwitchSubscriptionModelTest", function () {
 		}
 	}
 
-	function createWorkerMock(): WorkerClient {
+	function createbookingMock(): BookingFacade {
 		return downcast({
-			getPrice: function (featureType: BookingItemFeatureTypeEnum, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
+			getPrice(type: BookingItemFeatureTypeEnum, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
 				const currentPriceData = getPriceData(_lastBooking)
 				const futureBooking = JSON.parse(JSON.stringify(_lastBooking))
-				setBookingItem(futureBooking, featureType, count)
+				setBookingItem(futureBooking, type, count)
 				const futurePriceData = getPriceData(futureBooking)
 				return Promise.resolve(createPriceServiceReturn({
 						currentPriceNextPeriod: currentPriceData,

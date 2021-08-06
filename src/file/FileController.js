@@ -28,7 +28,7 @@ export class FileController {
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		let downloadPromise
 		if (isApp()) {
-			downloadPromise = worker.downloadFileContentNative(tutanotaFile)
+			downloadPromise = worker.fileFacade.downloadFileContentNative(tutanotaFile)
 			                        .then((file) => {
 				                        return (isAndroidApp() && !open
 					                        ? import("../native/common/FileApp")
@@ -38,11 +38,11 @@ export class FileController {
 			                        })
 		} else if (isDesktop()) {
 			downloadPromise = (open
-					? worker.downloadFileContentNative(tutanotaFile)
-					: worker.downloadFileContent(tutanotaFile)
+					? worker.fileFacade.downloadFileContentNative(tutanotaFile)
+					: worker.fileFacade.downloadFileContent(tutanotaFile)
 			).then(file => this.open(file))
 		} else {
-			downloadPromise = worker.downloadFileContent(tutanotaFile)
+			downloadPromise = worker.fileFacade.downloadFileContent(tutanotaFile)
 			                        .then((file) => this.open(file))
 		}
 
@@ -63,16 +63,16 @@ export class FileController {
 		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).then(() => null)
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
-			downloadContent = f => worker.downloadFileContentNative(f)
+			downloadContent = f => worker.fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file =>
 				import("../native/common/FileApp").then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))))
 		} else if (isApp()) {
-			downloadContent = f => worker.downloadFileContentNative(f)
+			downloadContent = f => worker.fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file => this.openFileReference(file).finally(() => this._deleteFile(file.location))))
 		} else {
-			downloadContent = f => worker.downloadFileContent(f)
+			downloadContent = f => worker.fileFacade.downloadFileContent(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip)))
 		}

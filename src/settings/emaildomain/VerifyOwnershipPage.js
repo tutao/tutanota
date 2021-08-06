@@ -30,7 +30,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		// We expect that the page is created again each time when domain is changed so we only need to load it in oncreate.
 		const {data} = vnode.attrs
-		worker.getDomainValidationRecord(data.domain()).then((recordValue) => {
+		worker.customerFacade.getDomainValidationRecord(data.domain()).then((recordValue) => {
 			data.expectedVerificationRecord.value = recordValue
 			m.redraw()
 		})
@@ -67,7 +67,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		return showProgressDialog("pleaseWait_msg", worker.addDomain(this.data.domain()).then((result) => {
+		return showProgressDialog("pleaseWait_msg", worker.customerFacade.addDomain(this.data.domain()).then((result) => {
 				if (result.validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_OK) {
 					return null
 				} else if (result.validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_AVAILABLE) {

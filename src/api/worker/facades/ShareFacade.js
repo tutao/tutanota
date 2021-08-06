@@ -12,7 +12,7 @@ import {HttpMethod} from "../../common/EntityFunctions"
 import {neverNull} from "../../common/utils/Utils"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {LoginFacade} from "./LoginFacade"
+import {LoginFacade, LoginFacadeImpl} from "./LoginFacade"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvitationPostData"
 import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
@@ -27,9 +27,9 @@ assertWorkerOrNode()
 
 export class ShareFacade {
 
-	_loginFacade: LoginFacade;
+	_loginFacade: LoginFacadeImpl;
 
-	constructor(loginFacade: LoginFacade) {
+	constructor(loginFacade: LoginFacadeImpl) {
 		this._loginFacade = loginFacade
 	}
 

@@ -27,7 +27,7 @@ import {createCustomerAccountCreateData} from "../../entities/tutanota/CustomerA
 import {createContactFormAccountData} from "../../entities/tutanota/ContactFormAccountData"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {UserManagementFacade} from "./UserManagementFacade"
-import type {GroupManagementFacade} from "./GroupManagementFacade"
+import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import {createCustomDomainData} from "../../entities/sys/CustomDomainData"
 import type {CustomDomainReturn} from "../../entities/sys/CustomDomainReturn"
 import {CustomDomainReturnTypeRef} from "../../entities/sys/CustomDomainReturn"
@@ -35,7 +35,7 @@ import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactForm
 import {ContactFormAccountReturnTypeRef} from "../../entities/tutanota/ContactFormAccountReturn"
 import {createBrandingDomainDeleteData} from "../../entities/sys/BrandingDomainDeleteData"
 import {createBrandingDomainData} from "../../entities/sys/BrandingDomainData"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacadeImpl} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
@@ -54,16 +54,65 @@ import {ofClass} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
 
-export class CustomerFacade {
-	_login: LoginFacade;
-	_groupManagement: GroupManagementFacade;
+export interface CustomerFacade {
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]>;
+
+	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex>;
+
+	/**
+	 * Reads the used storage of a customer in bytes.
+	 * @return The amount of used storage in byte.
+	 */
+	readUsedCustomerStorage(customerId: Id): Promise<number>;
+
+	/**
+	 * Reads the available storage capacity of a customer in bytes.
+	 * @return The amount of available storage capacity in byte.
+	 */
+	readAvailableCustomerStorage(customerId: Id): Promise<number>;
+
+	loadCustomerServerProperties(): Promise<CustomerServerProperties>;
+
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void>;
+
+	setCatchAllGroup(domainName: string, mailGroupId: ?Id): Promise<void>;
+
+	removeDomain(domainName: string): Promise<void>;
+
+	orderWhitelabelCertificate(domainName: string): Promise<void>;
+
+	addSpamRule(field: SpamRuleFieldTypeEnum, type: SpamRuleTypeEnum, value: string): Promise<void>;
+
+	downloadInvoice(invoiceNumber: string): Promise<DataFile>;
+
+	updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country
+	): Promise<PaymentDataServicePutReturn>;
+
+	switchFreeToPremiumGroup(): Promise<void>;
+
+	createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn>;
+
+	createContactFormUserGroupData(): Promise<void>;
+
+	switchPremiumToFreeGroup(): Promise<void>;
+
+	getDomainValidationRecord(domainName: string): Promise<string>;
+
+	addDomain(domainName: string): Promise<CustomDomainReturn>;
+
+	deleteCertificate(domainName: string): Promise<void>;
+}
+
+export class CustomerFacadeImpl implements CustomerFacade {
+	_login: LoginFacadeImpl;
+	_groupManagement: GroupManagementFacadeImpl;
 	_userManagement: UserManagementFacade;
 	_worker: WorkerImpl;
 	_counters: CounterFacade
 	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 
 
-	constructor(worker: WorkerImpl, login: LoginFacade, groupManagement: GroupManagementFacade, userManagement: UserManagementFacade, counters: CounterFacade) {
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, userManagement: UserManagementFacade, counters: CounterFacade) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
@@ -126,6 +175,7 @@ export class CustomerFacade {
 			                      })
 		           })
 	}
+
 
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
 		return load(CustomerTypeRef, customerId).then(customer => {

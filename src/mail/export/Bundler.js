@@ -1,7 +1,6 @@
 //@flow
 import type {Mail} from "../../api/entities/tutanota/Mail";
 import type {EntityClient} from "../../api/common/EntityClient";
-import type {WorkerClient} from "../../api/main/WorkerClient";
 import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody";
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils";
 import {FileTypeRef} from "../../api/entities/tutanota/File";
@@ -10,6 +9,7 @@ import {MailState} from "../../api/common/TutanotaConstants";
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {FileFacade} from "../../api/worker/facades/FileFacade"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -42,7 +42,7 @@ export type MailBundle = {
  * @param worker
  * @param sanitizer
  */
-export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: WorkerClient, sanitizer: HtmlSanitizer): Promise<MailBundle> {
+export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileFacade: FileFacade, sanitizer: HtmlSanitizer): Promise<MailBundle> {
 	const bodyTextPromise = entityClient.load(MailBodyTypeRef, mail.body)
 	                                    .then(getMailBodyText)
 	                                    .then(body =>
@@ -55,7 +55,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, worker: W
 
 	const attachmentsPromise: Promise<Array<DataFile>> =
 		promiseMap(mail.attachments, fileId => entityClient.load(FileTypeRef, fileId)
-		                                                   .then((tutanotaFile) => worker.downloadFileContent(tutanotaFile)))
+		                                                   .then((file) => fileFacade.downloadFileContent(file)))
 
 	const headersPromise = mail.headers
 		? entityClient.load(MailHeadersTypeRef, mail.headers)

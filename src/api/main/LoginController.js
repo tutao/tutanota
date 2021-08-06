@@ -16,7 +16,12 @@ export interface LoginController {
 	              permanentLogin: boolean
 	): Promise<Credentials>;
 
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	createExternalSession(
+		userId: Id,
+		password: string,
+		salt: Uint8Array,
+		clientIdentifier: string,
+		persistentSession: boolean
 	): Promise<Credentials>;
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void>;
@@ -59,20 +64,10 @@ export class LoginControllerImpl implements LoginController {
 			.then(locatorModule => locatorModule.locator.initializedWorker)
 	}
 
-	async createSession(
-		username: string,
-		password: string,
-		clientIdentifier: string,
-		persistentSession: boolean,
-		permanentLogin: boolean
-	): Promise<Credentials> {
-		const worker = await this._getWorker()
-		const {
-			user,
-			credentials,
-			sessionId,
-			userGroupInfo
-		} = await worker.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin)
+	async createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
+		const {loginFacade} = await this._getWorker()
+		const loginData = await loginFacade.createSession(username, password, clientIdentifier, persistentSession, permanentLogin)
+		const {user, credentials, sessionId, userGroupInfo} = loginData
 		await this._initUserController({
 			user,
 			accessToken: credentials.accessToken,
@@ -81,7 +76,7 @@ export class LoginControllerImpl implements LoginController {
 			sessionId,
 			userGroupInfo
 		})
-		return credentials
+		return loginData.credentials
 	}
 
 	_initUserController(initData: UserControllerInitData): Promise<void> {
@@ -97,13 +92,9 @@ export class LoginControllerImpl implements LoginController {
 		clientIdentifier: string,
 		persistentSession: boolean
 	): Promise<Credentials> {
-		const worker = await this._getWorker()
-		const {
-			user,
-			credentials,
-			sessionId,
-			userGroupInfo
-		} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		const {loginFacade} = await this._getWorker()
+		const loginData = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		const {user, credentials, sessionId, userGroupInfo} = loginData
 		await this._initUserController({
 			user,
 			accessToken: credentials.accessToken,
@@ -111,21 +102,20 @@ export class LoginControllerImpl implements LoginController {
 			sessionId,
 			userGroupInfo
 		})
-		return credentials
+		return loginData.credentials
 	}
 
-	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
-		return this._getWorker()
-		           .then((worker) => worker.resumeSession(credentials, externalUserSalt))
-		           .then(({user, userGroupInfo, sessionId}) => {
-			           return this._initUserController({
-				           user,
-				           accessToken: credentials.accessToken,
-				           userGroupInfo,
-				           sessionId,
-				           persistentSession: true
-			           })
-		           })
+	async resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
+		const {loginFacade} = await this._getWorker()
+		const loginData = await loginFacade.resumeSession(credentials, externalUserSalt)
+		const {user, userGroupInfo, sessionId} = loginData
+		await this._initUserController({
+			user,
+			accessToken: credentials.accessToken,
+			userGroupInfo,
+			sessionId,
+			persistentSession: true
+		})
 	}
 
 	isUserLoggedIn(): boolean {

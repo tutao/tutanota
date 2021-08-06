@@ -157,7 +157,7 @@ export class ExternalLoginView {
 					                                 deviceConfig.set(newCredentials)
 				                                 }
 				                                 if (storedCredentials) { // delete persistent session (saved in deviceConfig) if a new session is created
-					                                 return worker.deleteSession(storedCredentials.accessToken)
+					                                 return worker.loginFacade.deleteSession(storedCredentials.accessToken)
 					                                              .then(() => {
 						                                              if (!persistentSession) {
 							                                              deviceConfig.delete(this._userId)

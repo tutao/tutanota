@@ -41,6 +41,7 @@ import type {AlarmScheduler} from "../date/AlarmScheduler"
 import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 
 
 // Complete as needed
@@ -67,6 +68,8 @@ export interface CalendarModel {
 	 * Update {@param dbEvent} stored on the server with {@param event} from the ics file.
 	 */
 	updateEventWithExternal(dbEvent: CalendarEvent, event: CalendarEvent): Promise<CalendarEvent>;
+
+	createCalendar(name: string, color: ?string): Promise<void>;
 }
 
 export class CalendarModelImpl implements CalendarModel {
@@ -126,7 +129,7 @@ export class CalendarModelImpl implements CalendarModel {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
-			return this._worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+			return this._worker.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
 			           .then(() => newEvent)
 		}
 	}
@@ -180,14 +183,33 @@ export class CalendarModelImpl implements CalendarModel {
 			})
 	}
 
-	loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
-		return import("../date/CalendarUtils")
-			.then(({findPrivateCalendar}) => {
-				return this.loadCalendarInfos(progressMonitor)
-				           .then((calendarInfo) => (!this._logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfo))
-					           ? calendarInfo
-					           : this._worker.addCalendar("").then(() => this.loadCalendarInfos(progressMonitor)))
+	async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
+		const {findPrivateCalendar} = await import("../date/CalendarUtils")
+		const calendarInfo = await this.loadCalendarInfos(progressMonitor)
+		if (!this._logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfo)) {
+			return calendarInfo
+		} else {
+			await this.createCalendar("", null)
+			return this.loadCalendarInfos(progressMonitor)
+		}
+	}
+
+	async createCalendar(name: string, color: ?string): Promise<void> {
+		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
+		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
+		// this should be removed once we handle missed events during startup
+		const {user, group} = await this._worker.calendarFacade.addCalendar(name)
+		this._logins.getUserController().user = user
+
+		if (color != null) {
+			const {userSettingsGroupRoot} = this._logins.getUserController()
+			const newGroupSettings = Object.assign(createGroupSettings(), {
+				group: group._id,
+				color: color
 			})
+			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
+			await this._entityClient.update(userSettingsGroupRoot)
+		}
 	}
 
 	_doCreate(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot, alarmInfos: Array<AlarmInfo>,
@@ -203,7 +225,7 @@ export class CalendarModelImpl implements CalendarModel {
 			downcast(event)._permissions = null
 			event._ownerGroup = groupRoot._id
 
-			return this._worker.createCalendarEvent(event, alarmInfos, existingEvent)
+			return this._worker.calendarFacade.createCalendarEvent(event, alarmInfos, existingEvent)
 		})
 	}
 
@@ -226,7 +248,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		return this._entityClient.load(FileTypeRef, update.file)
-		           .then((file) => this._worker.downloadFileContent(file))
+		           .then((file) => this._worker.fileFacade.downloadFileContent(file))
 		           .then((dataFile: DataFile) =>
 			           import("../export/CalendarImporter.js").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 		           .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
@@ -263,7 +285,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 		if (calendarData.method === CalendarMethod.REPLY) {
 			// Process it
-			return this._worker.getEventByUid(uid).then((dbEvent) => {
+			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent == null) {
 					// event was not found
 					return
@@ -287,7 +309,7 @@ export class CalendarModelImpl implements CalendarModel {
 				return this._updateEvent(dbEvent, newEvent).then(noOp)
 			})
 		} else if (calendarData.method === CalendarMethod.REQUEST) { // Either initial invite or update
-			return this._worker.getEventByUid(uid).then((dbEvent) => {
+			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent) {
 					// then it's an update
 					if (dbEvent.organizer == null || dbEvent.organizer.address !== sender) {
@@ -300,7 +322,7 @@ export class CalendarModelImpl implements CalendarModel {
 				}
 			})
 		} else if (calendarData.method === CalendarMethod.CANCEL) {
-			return this._worker.getEventByUid(uid).then((dbEvent) => {
+			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent != null) {
 					if (dbEvent.organizer == null || dbEvent.organizer.address !== sender) {
 						console.log("CANCEL sent not by organizer, ignoring")
@@ -346,7 +368,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 	scheduleAlarmsLocally(): Promise<void> {
 		if (this._localAlarmsEnabled()) {
-			return this._worker.loadAlarmEvents()
+			return this._worker.calendarFacade.loadAlarmEvents()
 			           .then((eventsWithInfos) => {
 				           for (let {event, userAlarmInfos} of eventsWithInfos) {
 					           for (let userAlarmInfo of userAlarmInfos) {

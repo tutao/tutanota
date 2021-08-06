@@ -40,12 +40,7 @@ import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperti
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import type {InboxRule} from "../../api/entities/tutanota/InboxRule"
 import type {TutanotaProperties} from "../../api/entities/tutanota/TutanotaProperties"
-import type {PublicKeyReturn} from "../../api/entities/sys/PublicKeyReturn"
-import {PublicKeyReturnTypeRef} from "../../api/entities/sys/PublicKeyReturn"
-import {SysService} from "../../api/entities/sys/Services"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
-import type {WorkerClient} from "../../api/main/WorkerClient"
+import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import type {DraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
@@ -136,26 +131,18 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 /**
  * @throws TooManyRequestsError if the recipient could not be resolved because of too many requests.
  */
-export function resolveRecipientInfo(worker: WorkerClient, recipientInfo: RecipientInfo): Promise<RecipientInfo> {
+export function resolveRecipientInfo(mailFacade: MailFacade, recipientInfo: RecipientInfo): Promise<RecipientInfo> {
 	if (recipientInfo.type !== RecipientInfoType.UNKNOWN) {
 		return Promise.resolve(recipientInfo)
 	} else {
-		return getRecipientKeyData(worker, recipientInfo.mailAddress)
-			.then((keyData) => {
-				recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
-				return recipientInfo
-			})
+		return mailFacade.getRecipientKeyData(recipientInfo.mailAddress)
+		                 .then((keyData) => {
+			                 recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
+			                 return recipientInfo
+		                 })
 	}
 }
 
-function getRecipientKeyData(worker: WorkerClient, mailAddress: string): Promise<?PublicKeyReturn> {
-	return worker.serviceRequest(
-		SysService.PublicKeyService,
-		HttpMethod.GET,
-		createPublicKeyData({mailAddress}),
-		PublicKeyReturnTypeRef
-	).catch(ofClass(NotFoundError, () => null))
-}
 
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean): string {
 	if (!name || name === "") {

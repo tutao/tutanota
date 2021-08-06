@@ -49,6 +49,9 @@ export class RequestError {
 
 type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 
+/**
+ * Queue for the remote invocations (e.g. worker or native calls).
+ */
 export class Queue {
 	/**
 	 * Map from request id that have been sent to the callback that will be

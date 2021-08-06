@@ -88,11 +88,11 @@ export class AddGroupDialogViewModel {
 	}
 
 	createMailGroup(): Promise<void> {
-		return worker.createMailGroup(this.groupName, this.mailAddress)
+		return worker.groupManagementFacade.createMailGroup(this.groupName, this.mailAddress)
 	}
 
 	createLocalAdminGroup(): Promise<void> {
-		return worker.createLocalAdminGroup(this.groupName)
+		return worker.groupManagementFacade.createLocalAdminGroup(this.groupName)
 	}
 
 	validateAddGroupInput(): ?TranslationKey {
@@ -162,12 +162,12 @@ export function show(): mixed {
 							}
 						})
 				)
-				} else if (viewModel.groupType === GroupType.Template) {
-					addTemplateGroup(viewModel.groupName).then(success => {
-						if (success) {
-							dialog.close()
-						}
-					})
+			} else if (viewModel.groupType === GroupType.Template) {
+				addTemplateGroup(viewModel.groupName).then(success => {
+					if (success) {
+						dialog.close()
+					}
+				})
 			}
 		}
 
@@ -189,13 +189,12 @@ export function show(): mixed {
 }
 
 
-
 /**
  * @returns {Promise<boolean>} true if group was added, false otherwise
  */
 function addTemplateGroup(name: string): Promise<boolean> {
 	return showProgressDialog("pleaseWait_msg",
-		worker.createTemplateGroup(name)
+		worker.groupManagementFacade.createTemplateGroup(name)
 		      .then(() => true)
 		      .catch(ofClass(PreconditionFailedError, (e) => {
 			      if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {

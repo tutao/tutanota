@@ -14,7 +14,7 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../../api/main/LoginController"
-import {_loadReverseRangeBetween, HttpMethod} from "../../api/common/EntityFunctions"
+import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {
@@ -44,7 +44,6 @@ import {
 	shouldDefaultToAmPmTimeFormat,
 } from "../date/CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
-import {worker} from "../../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../../misc/Formatter"
@@ -485,17 +484,8 @@ export class CalendarView implements CurrentView {
 
 	_showCreateCalendarDialog() {
 		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, "add_action", false, (dialog, properties) => {
-			dialog.close()
-			worker.addCalendar(properties.name)
-			      .then((group) => {
-				      const {userSettingsGroupRoot} = logins.getUserController()
-				      const newGroupSettings = Object.assign(createGroupSettings(), {
-					      group: group._id,
-					      color: properties.color
-				      })
-				      userSettingsGroupRoot.groupSettings.push(newGroupSettings)
-				      update(userSettingsGroupRoot)
-			      })
+			locator.calendarModel.createCalendar(properties.name, properties.color)
+			       .then(() => dialog.close())
 		}, "save_action")
 	}
 
@@ -728,9 +718,9 @@ export class CalendarView implements CurrentView {
 		const calendarInfos = this._calendarInfos.isLoaded() && this._calendarInfos.getLoaded().size > 0
 			? this._calendarInfos.getLoaded()
 			: showProgressDialog("pleaseWait_msg",
-				worker.addCalendar("")
-				      .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
-				      .then((infos) => {
+				locator.calendarModel.createCalendar("", null)
+				       .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
+				       .then((infos) => {
 					      this._calendarInfos = new LazyLoaded(() => Promise.resolve(infos)).load()
 					      return infos
 				      })
@@ -806,7 +796,7 @@ export class CalendarView implements CurrentView {
 			return promiseMap(calendarInfos.values(), (calendarInfo) => {
 				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
-					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
+					locator.entityClient.loadReverseRangeBetween(CalendarEventTypeRef,groupRoot.shortEvents, endId, startId, 200),
 					longEvents.getAsync(),
 				]).then(([shortEventsResult, longEvents]) => {
 					aggregateShortEvents.push(...shortEventsResult.elements)

@@ -170,7 +170,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 								           if (confirmed) {
 									           return this._group.getAsync()
 									                      .then(group =>
-										                      worker.deactivateGroup(group, !deactivate)
+										                      worker.groupManagementFacade.deactivateGroup(group, !deactivate)
 										                            .catch(ofClass(PreconditionFailedError, e => {
 												                            if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 													                            Dialog.error("localAdminGroupAssignedError_msg")
@@ -219,7 +219,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 						let newAdminGroupId = id
 							? id
 							: neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
-						return worker.updateAdminship(this.groupInfo.group, newAdminGroupId)
+						return worker.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
 					}))
 				}
 			}
@@ -300,7 +300,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 	_addUserToGroup(group: Id): Promise<*> {
 		return this._entityClient.load(GroupTypeRef, group)
 		           .then(userGroup => this._entityClient.load(UserTypeRef, neverNull(userGroup.user)))
-		           .then(user => worker.addUserToGroup(user, this.groupInfo.group))
+		           .then(user => worker.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
 	}
 
 	_updateMembers(): void {
@@ -323,7 +323,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 
 	async _updateUsedStorage(): Promise<void> {
 		if (this._isMailGroup()) {
-			const usedStorage = await worker.readUsedGroupStorage(this.groupInfo.group)
+			const usedStorage = await worker.groupManagementFacade.readUsedGroupStorage(this.groupInfo.group)
 			                                .catch(ofClass(BadRequestError, e => {
 				                                // may happen if the user gets the admin flag removed
 			                                }))
@@ -375,8 +375,13 @@ export class GroupViewer implements UpdatableSettingsViewer {
 				const removeButtonAttrs = {
 					label: "remove_action",
 					click: () => {
-						showProgressDialog("pleaseWait_msg", this._entityClient.load(GroupTypeRef, userGroupInfo.group)
-						                                         .then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
+						showProgressDialog("pleaseWait_msg",
+							this._entityClient.load(GroupTypeRef, userGroupInfo.group)
+							    .then(userGroup =>
+								    worker.groupManagementFacade.removeUserFromGroup(
+									    neverNull(userGroup.user),
+									    this.groupInfo.group))
+						)
 							.catch(ofClass(NotAuthorizedError, e => {
 								Dialog.error("removeUserFromGroupNotAdministratedError_msg")
 							}))
@@ -412,7 +417,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 							                                   .user
 							                                   .memberships
 							                                   .find(m => m.groupType === GroupType.Admin)).group
-							showProgressDialog("pleaseWait_msg", worker.updateAdminship(groupInfo.group, adminGroupId))
+							showProgressDialog("pleaseWait_msg", worker.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
 						},
 						icon: () => Icons.Cancel
 					}

@@ -4,7 +4,7 @@ import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
-import type {LoginFacade} from "./LoginFacade"
+import type {LoginFacadeImpl} from "./LoginFacade"
 import {asyncFindAndMap, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
@@ -41,7 +41,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
 import {Request} from "../../common/WorkerProtocol"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
-import {GroupManagementFacade} from "./GroupManagementFacade"
+import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
 import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
 import {flat, flatMap, groupBy, groupByAndMapUniquely} from "../../common/utils/ArrayUtils"
@@ -56,12 +56,12 @@ function hashUid(uid: string): Uint8Array {
 
 export class CalendarFacade {
 
-	_loginFacade: LoginFacade;
-	_groupManagementFacade: GroupManagementFacade;
+	_loginFacade: LoginFacadeImpl;
+	_groupManagementFacade: GroupManagementFacadeImpl;
 	_entityRestCache: EntityRestCache
 	_entity: EntityClient
 
-	constructor(loginFacade: LoginFacade, groupManagementFacade: GroupManagementFacade, entityRestCache: EntityRestCache) {
+	constructor(loginFacade: LoginFacadeImpl, groupManagementFacade: GroupManagementFacadeImpl, entityRestCache: EntityRestCache) {
 		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
 		this._entityRestCache = entityRestCache

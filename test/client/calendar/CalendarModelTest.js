@@ -684,8 +684,10 @@ o.spec("CalendarModel", function () {
 				uid,
 			})
 			const workerClient = makeWorkerClient({
-				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
-				updateCalendarEvent: o.spy(() => Promise.resolve()),
+				calendarFacade: {
+					getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
+					updateCalendarEvent: o.spy(() => Promise.resolve()),
+				}
 			})
 			const model = init({
 				workerClient,
@@ -702,7 +704,7 @@ o.spec("CalendarModel", function () {
 					}
 				]
 			})
-			o(workerClient.updateCalendarEvent.calls.length).equals(0)
+			o(workerClient.calendarFacade.updateCalendarEvent.calls.length).equals(0)
 		})
 
 		o("reply", async function () {
@@ -757,7 +759,7 @@ o.spec("CalendarModel", function () {
 					}
 				]
 			})
-			const [createdEvent, alarms] = workerClient.updateCalendarEvent.calls[0].args
+			const [createdEvent, alarms] = workerClient.calendarFacade.updateCalendarEvent.calls[0].args
 			o(createdEvent.uid).equals(existingEvent.uid)
 			o(createdEvent.summary).equals(existingEvent.summary)
 			o(createdEvent.attendees).deepEquals([
@@ -799,7 +801,7 @@ o.spec("CalendarModel", function () {
 				]
 			})
 			// It'a a new invite, we don't do anything with them yet
-			o(workerClient.updateCalendarEvent.calls).deepEquals([])
+			o(workerClient.calendarFacade.updateCalendarEvent.calls).deepEquals([])
 		})
 
 		o("request as an update", async function () {
@@ -838,7 +840,7 @@ o.spec("CalendarModel", function () {
 					{event: sentEvent, alarms: []}
 				]
 			})
-			const [updatedEvent, updatedAlarms, oldEvent] = workerClient.updateCalendarEvent.calls[0].args
+			const [updatedEvent, updatedAlarms, oldEvent] = workerClient.calendarFacade.updateCalendarEvent.calls[0].args
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedAlarms).deepEquals([alarm])
@@ -881,8 +883,8 @@ o.spec("CalendarModel", function () {
 					{event: sentEvent, alarms: []}
 				]
 			})
-			o(workerClient.updateCalendarEvent.calls).deepEquals([])
-			const [updatedEvent, updatedAlarms, oldEvent] = workerClient.createCalendarEvent.calls[0].args
+			o(workerClient.calendarFacade.updateCalendarEvent.calls).deepEquals([])
+			const [updatedEvent, updatedAlarms, oldEvent] = workerClient.calendarFacade.createCalendarEvent.calls[0].args
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.startTime.toISOString()).equals(sentEvent.startTime.toISOString())
@@ -1008,14 +1010,15 @@ function createEvent(startTime: Date, endTime: Date): CalendarEvent {
 class WorkerMock extends EntityRestClientMock {
 	eventByUid: Map<string, CalendarEvent> = new Map();
 
-	createCalendarEvent = o.spy((event) => {
-		this.addListInstances(event)
-		return Promise.resolve()
-	})
-	updateCalendarEvent = o.spy(() => Promise.resolve())
-
-	getEventByUid(loadUid) {
-		return Promise.resolve(this.eventByUid.get(loadUid))
+	calendarFacade = {
+		createCalendarEvent: o.spy((event) => {
+			this.addListInstances(event)
+			return Promise.resolve()
+		}),
+		updateCalendarEvent: o.spy(() => Promise.resolve()),
+		getEventByUid: (loadUid) => {
+			return Promise.resolve(this.eventByUid.get(loadUid))
+		},
 	}
 }
 

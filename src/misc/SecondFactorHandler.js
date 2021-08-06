@@ -185,7 +185,7 @@ export class SecondFactorHandler {
 					let auth = createSecondFactorAuthDeleteData()
 					auth.session = sessionId
 					return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, auth)
-						.then(() => worker.cancelCreateSession())
+						.then(() => worker.loginFacade.cancelCreateSession())
 						.then(() => this.closeWaitingForSecondFactorDialog())
 				}
 				this._waitingForSecondFactorDialog = Dialog.showActionDialog({

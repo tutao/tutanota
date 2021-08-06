@@ -97,7 +97,7 @@ export class UserViewer {
 				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync()
-				                                         .then(user => worker.changeAdminFlag(user, makeAdmin)))
+				                                         .then(user => worker.userManagementFacade.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -148,7 +148,7 @@ export class UserViewer {
 								                                                                    .memberships
 								                                                                    .find(gm => gm.groupType
 									                                                                    === GroupType.Admin)).group
-								return worker.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
+								return worker.userManagementFacade.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
 					})
@@ -286,7 +286,7 @@ export class UserViewer {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
-								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
+								showProgressDialog("pleaseWait_msg", worker.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group))
 									.catch(ofClass(NotAuthorizedError, e => {
 										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
 									}))
@@ -362,7 +362,7 @@ export class UserViewer {
 					}), stream(availableGroupInfos[0]), 250)
 
 					let addUserToGroupOkAction = (dialog) => {
-						showProgressDialog("pleaseWait_msg", worker.addUserToGroup(user, dropdown.selectedValue().group))
+						showProgressDialog("pleaseWait_msg", worker.groupManagementFacade.addUserToGroup(user, dropdown.selectedValue().group))
 						dialog.close()
 					}
 
@@ -415,7 +415,7 @@ export class UserViewer {
 			let isAdmin = this._isAdmin(user)
 			this._adminStatusSelector.selectedValue(isAdmin)
 
-			return worker.readUsedUserStorage(user).then(usedStorage => {
+			return worker.userManagementFacade.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage = usedStorage
 				m.redraw()
 			}).catch(ofClass(BadRequestError, e => {
@@ -437,7 +437,7 @@ export class UserViewer {
 			showBuyDialog(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
 				if (confirmed) {
 					return this._user.getAsync().then(user => {
-						return worker.deleteUser(user, restore)
+						return worker.userManagementFacade.deleteUser(user, restore)
 					})
 				}
 			})

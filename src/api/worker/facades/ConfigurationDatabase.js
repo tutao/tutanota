@@ -2,7 +2,7 @@
 
 import type {ObjectStoreName} from "../search/DbFacade"
 import {b64UserIdHash, DbFacade} from "../search/DbFacade"
-import {LoginFacade} from "./LoginFacade"
+import {LoginFacadeImpl} from "./LoginFacade"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import {Metadata} from "../search/Indexer"
@@ -44,7 +44,7 @@ export class ConfigurationDatabase {
 
 	+db: LazyLoaded<ConfigDb>
 
-	constructor(loginFacade: LoginFacade, dbLoadFn: (User, Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
+	constructor(loginFacade: LoginFacadeImpl, dbLoadFn: (User, Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
 		this.db = new LazyLoaded(() => {
 			const user = assertNotNull(loginFacade.getLoggedInUser())
 			const userGroupKey = loginFacade.getUserGroupKey()
@@ -53,7 +53,8 @@ export class ConfigurationDatabase {
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRuleEnum): Promise<void> {
-		const {metaData} = await this.db.getAsync()
+		const {db, metaData} = await this.db.getAsync()
+		if (!db.indexingSupported) return
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 
 		return this._addAddressToImageList(encryptedAddress, rule)
@@ -61,6 +62,8 @@ export class ConfigurationDatabase {
 
 	async getExternalImageRule(address: string): Promise<ExternalImageRuleEnum> {
 		const {db, metaData} = await this.db.getAsync()
+		if (!db.indexingSupported) return ExternalImageRule.None
+		
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
 		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)

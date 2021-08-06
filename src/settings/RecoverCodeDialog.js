@@ -22,8 +22,8 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 	const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
 	Dialog.showRequestPasswordDialog(errorMessage)
 	      .map(pw => showProgressDialog("loading_msg", action === 'get'
-		      ? worker.getRecoveryCode(pw)
-		      : worker.createRecoveryCode(pw))
+		      ? worker.loginFacade.getRecoverCode(pw)
+		      : worker.loginFacade.createRecoveryCode(pw))
 		      .then(recoverCode => {
 			      errorMessage("")
 			      showRecoverCodeDialog(recoverCode, showMessage)

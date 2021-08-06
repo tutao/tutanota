@@ -152,9 +152,9 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
  */
 function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number): Promise<boolean> {
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
-	return worker.isMailAddressAvailable(cleanMailAddress).then(available => {
+	return worker.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
 		if (available) {
-			return worker.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
+			return worker.userManagementFacade.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
 				// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
 				return delay(delayTime).then(() => true)
 			})

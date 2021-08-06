@@ -68,7 +68,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			serviceData.campaign = attrs.data.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
 				.then(() => {
-					return worker.switchFreeToPremiumGroup()
+					return worker.customerFacade.switchFreeToPremiumGroup()
 				}))
 				.then(() => {
 					deleteCampaign()

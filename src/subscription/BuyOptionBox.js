@@ -123,7 +123,7 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
  * Loads the price information for the given feature type/amount and updates the price information on the BuyOptionBox.
  */
 export async function updateBuyOptionBoxPriceInformation(worker: WorkerClient, featureType: BookingItemFeatureTypeEnum, amount: number, attrs: BuyOptionBoxAttr): Promise<void> {
-	const newPrice = await worker.getPrice(featureType, amount, false)
+	const newPrice = await worker.bookingFacade.getPrice(featureType, amount, false)
 	if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, featureType)) {
 		attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
 	}
