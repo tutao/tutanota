@@ -47,6 +47,7 @@ import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
+import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 assertMainOrNode()
 
 export class ContactView implements CurrentView {
@@ -64,7 +65,6 @@ export class ContactView implements CurrentView {
 
 	constructor() {
 
-		const contactsExpanded = stream(true)
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
@@ -392,14 +392,15 @@ export class ContactView implements CurrentView {
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
-			locator.contactModel.contactListId().then(contactListId => {
+			locator.contactModel.contactListId().then(async contactListId => {
 				if (args.listId !== contactListId) {
 					contactListId && this._setUrl(`/contact/${contactListId}`)
 				} else {
-					this._contactList = new ContactListView(args.listId, (this: any)) // cast to avoid error in WebStorm
-					this._contactList.list.loadInitial(args.contactId)
+					this._contactList = new ContactListView(args.listId, this)
+					await this._contactList.list.loadInitial(args.contactId)
 				}
-			}).then(m.redraw)
+				m.redraw()
+			})
 		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId
 			&& !this._contactList.list.isEntitySelected(args.contactId)) {
 			this._contactList.list.scrollToIdAndSelect(args.contactId)

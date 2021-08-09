@@ -22,7 +22,7 @@ export type SelectorItem<T> = {
 
 export type SelectorItemList<T> = $ReadOnlyArray<SelectorItem<T>>
 
-export type DropDownSelectorAttrs<T> = {|
+export type DropDownSelectorAttrs<T> = {
 	label: TranslationKey | lazy<string>,
 	items: SelectorItemList<T>,
 	selectedValue: Stream<?T>,
@@ -37,7 +37,7 @@ export type DropDownSelectorAttrs<T> = {|
 	disabled?: boolean,
 	class?: string,
 	doShowBorder?: ?boolean
-|}
+}
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
 
