@@ -85,7 +85,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		[fileURL getResourceValue:&fileSizeValue
 						   forKey:NSURLFileSizeKey
 							error:&fileSizeError];
-		if (fileSizeValue) {
+		if (fileSizeValue != nil) {
 			completion(fileSizeValue, nil);
 		} else {
 			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
