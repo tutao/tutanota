@@ -38,8 +38,8 @@ import type {EntityClient} from "../api/common/EntityClient"
 
 assertMainOrNode()
 
-export class GroupViewer implements MComponent<void> {
-	view: typeof MComponent.prototype.view;
+export class GroupViewer implements UpdatableSettingsViewer {
+	view: () => Children;
 	+_entityClient: EntityClient
 	groupInfo: GroupInfo
 	_group: LazyLoaded<Group>

@@ -211,7 +211,7 @@ export class SettingsView implements CurrentView {
 		}, ColumnType.Background, 400, 600, () => lang.getMaybeLazy(this._selectedFolder.name))
 
 		this._settingsDetailsColumn = new ViewColumn({
-			view: () => (this.detailsViewer) ? m(this.detailsViewer) : m("")
+			view: () => (this.detailsViewer) ? this.detailsViewer.view() : m("")
 		}, ColumnType.Background, 600, 2400, () => lang.get("settings_label"))
 
 		this.viewSlider = new ViewSlider([
