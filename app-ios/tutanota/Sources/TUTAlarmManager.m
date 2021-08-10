@@ -222,51 +222,48 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
 }
 
 - (void)processNewAlarms:(NSArray<TUTAlarmNotification *> *)notifications completion:(void (^)(NSError * _Nullable))completion {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-      NSError* error;
-      foreach(alarmNotification, notifications) {
-        [self handleAlarmNotification:alarmNotification error:&error];
-        if (error) {
-          TUTLog(@"schedule error %@", error);
-        }
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+    NSError* error;
+    let savedNotifications = [self.userPreference alarms];
+    
+    foreach(alarmNotification, notifications) {
+      [self handleAlarmNotification:alarmNotification existingAlarms:savedNotifications error:&error];
+      if (error) {
+        TUTLog(@"error when handling alarm %@", error);
       }
-      completion(error);
-    });
+    }
+    
+    NSLog(@"finished processing %lu alarms", (unsigned long)[notifications count]);
+    // Store alarms in one go at the end, because JSON Serialization leaks memory
+    [self.userPreference storeAlarms:savedNotifications];
+
+    completion(error);
+   });
   }
 
-- (void) handleAlarmNotification:(TUTAlarmNotification*)alarmNotification error:(NSError **)error {
-    if ([TUTOperationCreate isEqualToString:alarmNotification.operation] ) {
-        [self scheduleAlarm:alarmNotification error:error];
+- (void) handleAlarmNotification:(TUTAlarmNotification*)alarm existingAlarms:(NSMutableArray<TUTAlarmNotification*> *)existingAlarms error:(NSError **)error {
+    if ([TUTOperationCreate isEqualToString:alarm.operation] ) {
+        [self scheduleAlarm:alarm error:error];
         if (!(*error)) {
-            [self saveNewAlarm:alarmNotification];
+          // Avoid duplicates. Alarms are immutable so we can just keep the old version.
+          if ([existingAlarms indexOfObject:alarm] == NSNotFound) {
+            [existingAlarms addObject:alarm];
+          }
         }
-    } else if ([TUTOperationDelete isEqualToString:alarmNotification.operation]) {
-        let savedNotifications = [_userPreference alarms];
-        
+    } else if ([TUTOperationDelete isEqualToString:alarm.operation]) {
         TUTAlarmNotification *alarmToUnschedule;
-        let index = [savedNotifications indexOfObject:alarmNotification];
+        let index = [existingAlarms indexOfObject:alarm];
         if (index != NSNotFound) {
-            alarmToUnschedule = savedNotifications[index];
+            alarmToUnschedule = existingAlarms[index];
         } else {
-            alarmToUnschedule = alarmNotification;
+            alarmToUnschedule = alarm;
         }
         [self unscheduleAlarm:alarmToUnschedule error:error];
         if (*error) {
             // don't cancel in case of error as we want to delete saved notifications
-            TUTLog(@"Failed to cancel alarm %@ %@", alarmNotification, *error);
+            TUTLog(@"Failed to cancel alarm %@ %@", alarm, *error);
         }
-
-        [savedNotifications removeObject:alarmNotification];
-        [_userPreference storeAlarms:savedNotifications];
-    }
-}
-
-- (void)saveNewAlarm:(TUTAlarmNotification *)alarm {
-    let savedNotifications = [_userPreference alarms];
-    // Avoid duplicates. Alarms are immutable so we can just keep the old version.
-    if ([savedNotifications indexOfObject:alarm] == NSNotFound) {
-      [savedNotifications addObject:alarm];
-      [_userPreference storeAlarms:savedNotifications];
+        [existingAlarms removeObject:alarm];
     }
 }
 
