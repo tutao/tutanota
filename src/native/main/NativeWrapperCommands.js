@@ -95,10 +95,9 @@ const openFindInPage = (): Promise<void> => {
 	})
 }
 
-const applySearchResultToOverlay = (result: any): Promise<void> => {
+const applySearchResultToOverlay = (msg: any): Promise<void> => {
 	return import('../../gui/SearchInPageOverlay.js').then(module => {
-		const {activeMatchOrdinal, matches} = result.args[0]
-		module.searchInPageOverlay.applyNextResult(activeMatchOrdinal, matches)
+		module.searchInPageOverlay.applyNextResult(msg.args[0])
 		return Promise.resolve()
 	})
 }

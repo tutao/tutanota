@@ -135,14 +135,9 @@ export class IPC {
 			case 'findInPage':
 				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
-					if (w) {
-						// findInPage might reject if requests come too quickly
-						// if it's rejecting for another reason we'll have logs
-						return w.findInPage(downcast(args))
-						        .catch(e => log.debug("findInPage reject:", e))
-					} else {
-						return {numberOfMatches: 0, currentMatch: 0}
-					}
+					return w != null
+						? w.findInPage(downcast(args))
+						: null
 				})
 			case 'stopFindInPage':
 				return this.initialized(windowId).then(() => {

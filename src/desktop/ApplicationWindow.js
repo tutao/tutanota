@@ -21,6 +21,7 @@ import {log} from "./DesktopLog"
 import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -59,7 +60,7 @@ export class ApplicationWindow {
 	_findingInPage: boolean = false;
 	_skipNextSearchBarBlur: boolean = false;
 	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
-	_lastSearchPromiseReject: (?string) => void;
+	_lastSearchPromiseReject: (?Error) => void;
 	_shortcuts: Array<LocalShortcut>;
 	id: number;
 
@@ -367,13 +368,13 @@ export class ApplicationWindow {
 		return this._browserWindow.webContents.getURL().substring(this._startFileURLString.length)
 	}
 
-	findInPage([searchTerm, options]: [string, {forward: boolean, matchCase: boolean}]): Promise<FindInPageResult> {
+	findInPage([searchTerm, options]: [string, {forward: boolean, matchCase: boolean}]): Promise<?FindInPageResult> {
 		this._findingInPage = true
 		if (searchTerm !== '') {
 			this._lastSearchRequest = [searchTerm, options]
 			this._browserWindow.webContents.findInPage(searchTerm, options)
 			return new Promise((resolve, reject) => {
-				this._lastSearchPromiseReject("outdated request")
+				this._lastSearchPromiseReject(new CancelledError("search request was superseded"))
 				this._lastSearchPromiseReject = reject
 				this._browserWindow.webContents
 					// the last listener might not have fired yet
@@ -382,16 +383,15 @@ export class ApplicationWindow {
 						this._lastSearchPromiseReject = noOp
 						resolve(res)
 					})
+			}).catch(e => {
+				// findInPage might reject if requests come too quickly
+				// if it's rejecting for another reason we'll have logs
+				if (!(e instanceof CancelledError)) log.debug("findInPage reject: ", e)
+				return null
 			})
 		} else {
 			this.stopFindInPage()
-			return Promise.resolve({
-				requestId: -1,
-				activeMatchOrdinal: 0,
-				matches: 0,
-				selectionArea: {height: 0, width: 0, x: 0, y: 0},
-				finalUpdate: true
-			})
+			return Promise.resolve(null)
 		}
 	}
 
