@@ -12,6 +12,7 @@ import {transform} from "./animation/Animations"
 import {nativeApp} from "../native/common/NativeWrapper.js"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
+import type {FindInPageResult} from "electron"
 
 assertMainOrNode()
 
@@ -103,19 +104,25 @@ export class SearchInPageOverlay {
 				matchCase: this._matchCase,
 				findNext,
 			}
-		])).then(r => this.applyNextResult(r.activeMatchOrdinal, r.matches))
+		])).then(r => this.applyNextResult(r))
 	}
 
-	applyNextResult(activeMatchOrdinal: number, matches: number): void {
-		if (matches === 1) {
-			/* the search bar loses focus without any events when there
-			*  are no results except for the search bar itself. this enables
-			*  us to retain focus. */
-			this._domInput.blur()
-			this._domInput.focus()
+	applyNextResult(result: ?FindInPageResult): void {
+		if (result == null) {
+			this._numberOfMatches = 0
+			this._currentMatch = 0
+		} else {
+			const {activeMatchOrdinal, matches} = result
+			if (matches === 1) {
+				/* the search bar loses focus without any events when there
+				*  are no results except for the search bar itself. this enables
+				*  us to retain focus. */
+				this._domInput.blur()
+				this._domInput.focus()
+			}
+			this._numberOfMatches = matches - 1
+			this._currentMatch = activeMatchOrdinal - 1
 		}
-		this._numberOfMatches = matches - 1
-		this._currentMatch = activeMatchOrdinal - 1
 		m.redraw()
 	}
 
