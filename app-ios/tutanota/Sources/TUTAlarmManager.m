@@ -227,9 +227,12 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
     let savedNotifications = [self.userPreference alarms];
     
     foreach(alarmNotification, notifications) {
-      [self handleAlarmNotification:alarmNotification existingAlarms:savedNotifications error:&error];
-      if (error) {
-        TUTLog(@"error when handling alarm %@", error);
+      // We ue autorelease pool in case we have a lot of alarms so that we can release objects more often and not get OOM
+      @autoreleasepool {
+        [self handleAlarmNotification:alarmNotification existingAlarms:savedNotifications error:&error];
+        if (error) {
+          TUTLog(@"error when handling alarm %@", error);
+        }
       }
     }
     
@@ -468,11 +471,14 @@ static const int SERVICE_UNAVAILABLE_HTTP_CODE = 503;
     // This is not some work we wait for so we can push it to the lower priority queue.
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         foreach(notification, self.savedAlarms) {
+          // Avoid OOM by releasing memory more often
+          @autoreleasepool {
             NSError *error;
             [self scheduleAlarm:notification error:&error];
             if (error) {
                 TUTLog(@"Error when re-scheduling alarm %@ %@", notification, error);
             }
+          }
         }
     });
 }
