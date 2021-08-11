@@ -1,5 +1,5 @@
 // @flow
-import {assertMainOrNodeBoot} from "../api/common/Env"
+import {assertMainOrNodeBoot, isDesktop} from "../api/common/Env"
 import {downcast} from "../api/common/utils/Utils"
 import type {TranslationKeyType} from "./TranslationKey"
 import {replaceAll} from "../api/common/utils/StringUtils"
@@ -489,9 +489,16 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?Language
 		}
 	}
 	if (language) {
-		const customizations = getWhitelabelCustomizations(window)
-		if (language.code === 'de' && customizations && customizations.germanLanguageCode) {
-			return downcast(customizations.germanLanguageCode)
+		let customizations = null
+
+		// accessing `window` throws an error on desktop, and this file is imported by DesktopMain
+		if (!isDesktop()) {
+			customizations = getWhitelabelCustomizations(window)
+		}
+
+		const germanCode = customizations?.germanLanguageCode
+		if (language.code === 'de' && germanCode != null) {
+			return downcast(germanCode)
 		} else {
 			return language.code
 		}
