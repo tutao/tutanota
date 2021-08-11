@@ -109,10 +109,10 @@ export type ButtonAttrs = {
 /**
  * A button.
  */
-export class ButtonN implements MComponent<LifecycleAttrs<ButtonAttrs>> {
+export class ButtonN implements MComponent<ButtonAttrs> {
 	_domButton: HTMLElement;
 
-	view(vnode: Vnode<LifecycleAttrs<ButtonAttrs>>): Children {
+	view(vnode: Vnode<ButtonAttrs>): Children {
 		const a = vnode.attrs
 		const type = this.getType(a.type)
 		const title = a.title !== undefined ? this.getTitle(a.title) : lang.getMaybeLazy(a.label)
@@ -130,7 +130,6 @@ export class ButtonN implements MComponent<LifecycleAttrs<ButtonAttrs>> {
 					: title,
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
-					a.oncreate && a.oncreate(vnode)
 				},
 				onremove: (vnode) => removeFlash(vnode.dom),
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
@@ -152,7 +151,7 @@ export class ButtonN implements MComponent<LifecycleAttrs<ButtonAttrs>> {
 		)
 	}
 
-	_getStyle(a: LifecycleAttrs<ButtonAttrs>): {} {
+	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
 				'border-radius': '3px',

@@ -243,7 +243,7 @@ export class TemplatePopup implements ModalComponent {
 				}
 			}
 
-		}, attrs ? m(ButtonN, attrs) : null)
+		}, attrs ? m(ButtonN, (attrs: ButtonAttrs)) : null)
 	}
 
 	_createAddButtonAttributes(): ?ButtonAttrs {
