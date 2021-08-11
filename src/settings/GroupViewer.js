@@ -36,6 +36,7 @@ import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDown
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 
