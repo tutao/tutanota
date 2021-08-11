@@ -14,7 +14,7 @@ import cp from 'child_process'
 import util from 'util'
 
 const {babel} = pluginBabel
-
+const exec = util.promisify(cp.exec)
 
 export async function buildDesktop({
 	                                   dirname, // directory this was called from
@@ -72,6 +72,15 @@ export async function buildDesktop({
 	await rollupDesktop(dirname, path.join(distDir, "desktop"), version)
 
 	console.log("Starting installer build...")
+	if (process.platform.startsWith("darwin")) {
+		// dmg-license is required by electron to build the mac installer
+		// We can't put dmg-license as a dependency in package.json because
+		// it will cause npm install to fail if you do it in linux or windows
+		// We could install it in mac and then it will be in package-lock.json
+		// but then we will have to be vigilant that it doesn't get removed ever
+		await exec("npm install dmg-license")
+	}
+
 	// package for linux, win, mac
 	await electronBuilder.build({
 		_: ['build'],
@@ -140,7 +149,7 @@ async function maybeGetKeytar(targets, electronVersion) {
 	                  .filter(t => t !== process.platform)
 	if (trg.length === 0 || process.env.JENKINS) return
 	console.log("fetching prebuilt keytar", trg, electronVersion)
-	return Promise.all(trg.map(t => util.promisify(cp.exec)(
+	return Promise.all(trg.map(t => exec(
 		`prebuild-install --platform ${t} --target ${electronVersion} --tag-prefix v --runtime electron`,
 		{cwd: './node_modules/keytar/'}
 	)))

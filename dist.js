@@ -69,7 +69,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 		options.desktop = {
 			win32: options.win ? [] : undefined,
 			linux: options.linux ? [] : undefined,
-			mac: options.mac ? [] : undefined
+			darwin: options.mac ? [] : undefined
 		}
 
 		if (!Object.values(options.desktop).some(Boolean)) {
@@ -79,7 +79,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 				options.desktop = {
 					win32: process.platform === "win32" ? [] : undefined,
 					linux: process.platform === "linux" ? [] : undefined,
-					mac: process.platform === "darwin" ? [] : undefined
+					darwin: process.platform === "darwin" ? [] : undefined
 				}
 			} else {
 				options.desktop = undefined
