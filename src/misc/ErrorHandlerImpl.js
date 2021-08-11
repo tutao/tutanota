@@ -55,6 +55,7 @@ let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
 let shownQuotaError = false
+let showingImportError = false
 
 const ignoredMessages = [
 	"webkitExitFullScreen",
@@ -65,6 +66,12 @@ const ignoredMessages = [
 export function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
 		// ignore all errors while logging out
+		return
+	}
+
+	// This is from the s.js and it shouldn't change. Unfortunately it is a plain Error.
+	if (e.message.includes("(SystemJS https://git.io/JvFET#")) {
+		handleImportError()
 		return
 	}
 
@@ -351,6 +358,26 @@ function showErrorDialogNotLoggedIn(e) {
 	]
 	Dialog.error("unknownError_msg", info).then(() => {
 		unknownErrorDialogActive = false
+	})
+}
+
+function handleImportError() {
+	if (showingImportError) {
+		return
+	}
+	showingImportError = true
+	const message = "There was an error while loading part of the app. It might be that you are offline, running an outdated version, or your browser is blocking the request."
+	Dialog.choice(
+		() => message,
+		[
+			{text: "close_alt", value: false},
+			{text: "reloadPage_action", value: true},
+		]
+	).then((reload) => {
+		showingImportError = false
+		if (reload) {
+			windowFacade.reload({})
+		}
 	})
 }
 
