@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {ContactView} from "./ContactView"
 import {List} from "../../gui/base/List"
 import {load, loadAll} from "../../api/main/Entity"
@@ -12,7 +13,9 @@ import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
 import {locator} from "../../api/main/MainLocator"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils";
-import type {ContactComparator} from "./ContactGuiUtils"
+import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
+import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {compareContacts} from "./ContactGuiUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
@@ -24,11 +27,14 @@ export class ContactListView {
 	contactView: ContactView;
 	list: List<Contact, ContactRow>;
 	view: Function;
-	contactComparator: boolean;
+	oncreate: Function;
+	onbeforeremove: Function;
 
-	constructor(contactListId: Id, contactView: ContactView, contactComparator: ContactComparator) {
+	constructor(contactListId: Id, contactView: ContactView) {
 		this.listId = contactListId
 		this.contactView = contactView
+
+		const sortByFirstName = stream(true)
 		this.list = new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -52,8 +58,7 @@ export class ContactListView {
 					return null
 				}))
 			},
-			sortCompare: contactComparator,
-
+			sortCompare: (c1, c2) => compareContacts(c1, c2, sortByFirstName()),
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactRow(),
 			showStatus: false,
@@ -69,8 +74,36 @@ export class ContactListView {
 			emptyMessage: lang.get("noContacts_msg")
 		})
 
+
 		this.view = (): VirtualElement => {
-			return m(this.list)
+			return m(ListColumnWrapper, {
+				headerContent: m(DropDownSelectorN, {
+					label: () => "Sort by",
+					selectedValue: sortByFirstName,
+					items: [
+						{
+							name: lang.get("firstName_placeholder"),
+							value: true
+						},
+						{
+							name: lang.get("lastName_placeholder"),
+							value: false
+						}
+					],
+					class: "mt-m ml mb-xs",
+					doShowBorder: false
+				}),
+				padHorizontal: false
+			}, m(this.list))
+		}
+
+		let sortModeChangedListener
+		this.oncreate = () => {
+			sortModeChangedListener = sortByFirstName.map(() => this.list.sort())
+		}
+
+		this.onbeforeremove = () => {
+			sortModeChangedListener.end(true)
 		}
 	}
 
