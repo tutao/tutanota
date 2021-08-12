@@ -492,7 +492,7 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?Language
 		let customizations = null
 
 		// accessing `window` throws an error on desktop, and this file is imported by DesktopMain
-		if (!isDesktop()) {
+		if (typeof window !== "undefined") {
 			customizations = getWhitelabelCustomizations(window)
 		}
 
