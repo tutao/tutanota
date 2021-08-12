@@ -374,7 +374,11 @@ export class ApplicationWindow {
 			this._lastSearchRequest = [searchTerm, options]
 			this._browserWindow.webContents.findInPage(searchTerm, options)
 			return new Promise((resolve, reject) => {
+				// if the last search request is still ongoing, this will reject that requests' promise
+				// we obviously don't care about that requests' result since we are already handling a new one
+				// if the last request is done, this is a noOp
 				this._lastSearchPromiseReject(new CancelledError("search request was superseded"))
+				// make sure we can cancel this promise if we get a new search request before this one is done.
 				this._lastSearchPromiseReject = reject
 				this._browserWindow.webContents
 					// the last listener might not have fired yet
