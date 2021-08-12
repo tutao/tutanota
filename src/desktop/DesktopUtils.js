@@ -10,6 +10,7 @@ import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {delay} from "../api/common/utils/PromiseUtils"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {swapFilename} from "./PathUtils"
 import url from "url"
 
 export class DesktopUtils {
@@ -210,7 +211,7 @@ export class DesktopUtils {
 	 */
 	_writeToDisk(contents: string): string {
 		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
-		const filePath = path.join(path.dirname(process.execPath), filename)
+		const filePath = swapFilename(process.execPath, filename)
 		this._fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 		return filePath
 	}
@@ -220,7 +221,9 @@ export class DesktopUtils {
 	}
 
 	async _registerOnWin(): Promise<void> {
-		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(process.execPath)
+		const execPath = process.execPath
+		const dllPath = swapFilename(execPath, "mapirs.dll")
+		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(execPath, dllPath)
 		return this._executeRegistryScript(tmpRegScript)
 		           .then(() => {
 			           app.setAsDefaultProtocolClient('mailto')

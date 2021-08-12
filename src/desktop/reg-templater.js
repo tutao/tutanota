@@ -3,10 +3,12 @@
 /**
  * produce a tmp windows registry script to register an executable as a mailto handler
  * @param execPath path to the executable that should be registered
+ * @param dllPath path to the mapi dll that handles "Send as Mail..." requests
  * @returns {string} registry script
  */
-module.exports.registerKeys = (execPath: string): string => {
+module.exports.registerKeys = (execPath: string, dllPath: string): string => {
 	execPath = execPath.replace(/\\/g, '\\\\')
+	dllPath = dllPath.replace(/\\/g, '\\\\')
 	return `Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\\mailto]
@@ -47,6 +49,13 @@ module.exports.registerKeys = (execPath: string): string => {
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\tutao\\tutanota\\Capabilities\\UrlAssociations]
 "mailto"="tutanota.Mailto"
 
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail\\tutanota]
+@="tutanota"
+"DLLPath"="${dllPath}"
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail]
+@="tutanota"
+
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\RegisteredApplications]
 "tutanota"="SOFTWARE\\\\Wow6432Node\\\\tutao\\\\tutanota\\\\Capabilities"
 
@@ -74,6 +83,11 @@ module.exports.unregisterKeys = (): string => {
 "tutanota"=-
 
 [-HKEY_LOCAL_MACHINE\\SOFTWARE\\tutao\\tutanota]
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail]
+@=-
+
+[-HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail\\tutanota]
 
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\RegisteredApplications]
 "tutanota"=-
