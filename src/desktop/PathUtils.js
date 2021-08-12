@@ -1,6 +1,5 @@
 //@flow
 import path from "path"
-import url from "url"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {promises as fs} from "fs"
@@ -86,4 +85,15 @@ export function urlIsPrefix(prefix: URL, url: URL): boolean {
 		url.port === prefix.port &&
 		url.username === prefix.username &&
 		url.pathname.startsWith(prefix.pathname)
+}
+
+/**
+ * replace the last component in a file path with another
+ * @param p path to a file/folder
+ * @param file the file name to put in the last path component
+ * @param pathModule path module to use for cross platform testing
+ */
+export function swapFilename(p: string, file: string, pathModule: $Exports<"path"> = path): string {
+	const dir = pathModule.dirname(p)
+	return pathModule.join(dir, file)
 }
