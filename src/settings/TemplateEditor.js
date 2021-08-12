@@ -127,7 +127,7 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 		const removeButtonAttrs: ButtonAttrs = {
 			label: "removeLanguage_action",
 			icon: () => Icons.Trash,
-			Type: ButtonType.Action,
+			type: ButtonType.Action,
 			click: () => {
 				return Dialog.confirm(() => lang.get("deleteLanguageConfirmation_msg", {"{language}": (getLanguageName(this.model.selectedContent()))})).then((confirmed) => {
 					if (confirmed) {

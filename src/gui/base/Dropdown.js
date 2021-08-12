@@ -15,6 +15,7 @@ import {showDropdown} from "./DropdownN"
 import type {Shortcut} from "../../misc/KeyManager"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {delay} from "../../api/common/utils/PromiseUtils"
+import {downcast} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -115,7 +116,7 @@ export class Dropdown {
 					+ (this._alignRight ? ".right" : ""), {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: (vnode) => {
-							this._domInput = vnode.dom
+							this._domInput = downcast<HTMLInputElement>(vnode.dom)
 							this._domInput.value = this._filterString()
 						},
 						oninput: e => {
@@ -172,7 +173,7 @@ export class Dropdown {
 			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow", {
 					oncreate: (vnode) => {
 						this._domDropdown = vnode.dom
-						vnode.dom.style.opacity = 0
+						vnode.dom.style.opacity = "0"
 					},
 					onkeypress: e => {
 						if (this._domInput) {

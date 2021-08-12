@@ -6,6 +6,7 @@ import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKeyType} from "../../misc/TranslationKey"
+import {downcast} from "../../api/common/utils/Utils"
 
 type CalendarProperties = {name: string, color: string}
 
@@ -26,7 +27,7 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, titleT
 				}),
 				m(".small.mt.mb-xs", lang.get("color_label")),
 				m("input.color-picker", {
-					oncreate: ({dom}) => colorPickerDom = dom,
+					oncreate: ({dom}) => colorPickerDom = downcast<HTMLInputElement>(dom),
 					type: "color",
 					value: colorStream(),
 					oninput: (inputEvent) => {

@@ -28,7 +28,7 @@ assertMainOrNode()
 export type DropdownInfoAttrs = {
 	info: string,
 	center: boolean,
-	bold: boolean
+	bold: boolean,
 }
 
 /**
@@ -92,7 +92,7 @@ export class DropdownN {
 				? m("input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs", {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: (vnode) => {
-							this._domInput = vnode.dom
+							this._domInput = downcast<HTMLInputElement>(vnode.dom)
 							this._domInput.value = this._filterString()
 						},
 						oninput: e => {
