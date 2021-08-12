@@ -229,7 +229,6 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 				label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
 				type: ButtonType.TextBubble,
 				isSelected: () => false,
-				color: ButtonColors.Elevated
 			},
 			() => recipientInfo.resolveContactPromise
 				? recipientInfo.resolveContactPromise.then(

@@ -121,7 +121,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 		const editSpellcheckLanguageButtonAttrs: ButtonAttrs = {
 			label: "checkSpelling_action",
-			helpLabel: () => lang.get("requiresNewWindow_msg"),
 			click: () => showSpellcheckLanguageDialog()
 				.then(newLabel => this._spellCheckLang(newLabel)),
 			icon: () => Icons.Edit,
@@ -131,7 +130,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			label: "checkSpelling_action",
 			value: this._spellCheckLang,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)]
+			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)],
+			helpLabel: () => lang.get("requiresNewWindow_msg"),
 		}
 
 		const setDesktopIntegrationAttrs: DropDownSelectorAttrs<boolean> = {

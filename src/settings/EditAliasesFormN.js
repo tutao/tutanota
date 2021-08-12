@@ -31,11 +31,11 @@ assertMainOrNode()
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
-export type EditAliasesFormAttrs = {|
+export type EditAliasesFormAttrs = LifecycleAttrs<{
 	userGroupInfo: GroupInfo,
 	aliasCount: AliasCount,
 	expanded: Stream<boolean>
-|}
+}>
 
 type AliasCount = {
 	availableToCreate: number,
@@ -43,7 +43,7 @@ type AliasCount = {
 }
 
 export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
-	view(vnode: Vnode<LifecycleAttrs<EditAliasesFormAttrs>>): Children {
+	view(vnode: Vnode<EditAliasesFormAttrs>): Children {
 		const a = vnode.attrs
 		const addAliasButtonAttrs: ButtonAttrs = {
 			label: "addEmailAlias_label",
@@ -212,11 +212,11 @@ export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): P
 		.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg")))
 		.catch(ofClass(PreconditionFailedError, e => {
 			let errorMsg = e.toString()
-		if (e.data === FAILURE_USER_DISABLED) {
-			errorMsg = lang.get("addAliasUserDisabled_msg")
-		}
-		return Dialog.error(() => errorMsg)
-	}))
+			if (e.data === FAILURE_USER_DISABLED) {
+				errorMsg = lang.get("addAliasUserDisabled_msg")
+			}
+			return Dialog.error(() => errorMsg)
+		}))
 		.finally(() => updateNbrOfAliases(aliasFormAttrs))
 }
 

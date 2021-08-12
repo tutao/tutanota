@@ -312,7 +312,6 @@ export class SettingsView implements CurrentView {
 									label: 'importUsers_action',
 									click: () => showUserImportDialog(this._customDomains.getLoaded()),
 									icon: () => Icons.ContactImport,
-									color: ButtonColors.Nav
 								}
 								: null
 						})

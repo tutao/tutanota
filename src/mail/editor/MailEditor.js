@@ -341,7 +341,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			           .filter(r => r.type === RecipientInfoType.EXTERNAL || r.type === RecipientInfoType.UNKNOWN
 				           && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
 			           .map(r => m(TextFieldN, Object.assign({}, createPasswordField(model, r), {
-				           oncreate: vnode => animate(vnode.dom, true),
+				           oncreate: vnode => {animate(vnode.dom, true)},
 				           onbeforeremove: vnode => animate(vnode.dom, false)
 			           })))
 
