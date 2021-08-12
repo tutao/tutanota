@@ -110,6 +110,10 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				"to": "./icons/"
 			},
 			"win": {
+				// relative to the project dirm which is ./build/dist/
+				"extraFiles": [
+					"mapirs.dll"
+				],
 				"verifyUpdateCodeSignature": sign,
 				"publisherName": "Tutao GmbH",
 				"sign": sign
