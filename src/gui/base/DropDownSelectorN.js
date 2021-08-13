@@ -10,6 +10,8 @@ import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {BootIcons} from "./icons/BootIcons"
 import {noOp} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -30,7 +32,7 @@ export type DropDownSelectorAttrs<T> = {
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
 	 */
-	selectionChangedHandler?: ?handler<T>,
+	selectionChangedHandler?: ?((T) => mixed),
 	helpLabel?: lazy<Children>,
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,

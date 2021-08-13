@@ -18,6 +18,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
+import type {lazy} from "../../api/common/utils/Utils"
 
 
 export function createKnowledgeBaseDialogInjection(knowledgeBase: KnowledgeBaseModel, templateModel: TemplatePopupModel, editor: Editor): DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> {

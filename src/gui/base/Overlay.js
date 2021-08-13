@@ -8,6 +8,7 @@ import {assertMainOrNodeBoot} from "../../api/common/Env"
 import type {LayerTypeEnum} from "../../RootView"
 import {LayerType} from "../../RootView"
 import {remove} from "../../api/common/utils/ArrayUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 

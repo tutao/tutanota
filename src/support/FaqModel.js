@@ -6,6 +6,7 @@ import {search} from "../api/common/utils/PlainTextSearch"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {delay, promiseMap} from "../api/common/utils/PromiseUtils"
+import type {SanitizeResult} from "../misc/HtmlSanitizer"
 
 export type FaqEntry = {
 	id: string,

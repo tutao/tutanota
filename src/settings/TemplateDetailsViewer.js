@@ -20,6 +20,7 @@ import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRo
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import type {lazy} from "../api/common/utils/Utils"
 
 export class TemplateDetailsViewer implements UpdatableSettingsViewer {
 	isReadOnly: lazy<boolean>

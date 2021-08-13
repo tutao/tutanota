@@ -22,6 +22,7 @@ import type {Group} from "../api/entities/sys/Group"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {KnowledgeBaseEntryView} from "../knowledgebase/view/KnowledgeBaseEntryView"
 import {promiseMap} from "../api/common/utils/PromiseUtils"
+import type {ListConfig} from "../gui/base/List"
 
 assertMainOrNode()
 

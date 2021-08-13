@@ -14,6 +14,7 @@ import {styles} from "../styles"
 import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks} from "../AriaUtils"
 import {LayerType} from "../../RootView"
+import type {windowSizeListener} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 

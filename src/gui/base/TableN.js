@@ -10,6 +10,8 @@ import {ButtonN, ButtonType, isVisible} from "./ButtonN"
 import {downcast, neverNull} from "../../api/common/utils/Utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
+import type {lazy} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
 
 assertMainOrNode()
 
@@ -53,7 +55,7 @@ export type TableLineAttrs = {
  */
 export class TableN implements MComponent<TableAttrs> {
 
-	view(vnode: Vnode<TableAttrs>): VirtualElement {
+	view(vnode: Vnode<TableAttrs>): Children {
 		const a = vnode.attrs
 		const loading = !(a.lines)
 		const alignments = a.columnAlignments || []
@@ -80,7 +82,7 @@ export class TableN implements MComponent<TableAttrs> {
 	}
 
 	_createLine(lineAttrs: TableLineAttrs, showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[], bold: boolean,
-	            columnAlignments: Array<boolean>): VirtualElement {
+	            columnAlignments: Array<boolean>): Children {
 		let cells
 		if (typeof lineAttrs.cells == "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>

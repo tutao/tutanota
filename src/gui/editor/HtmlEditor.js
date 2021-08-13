@@ -9,6 +9,7 @@ import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {Options as ToolbarOptions} from "../base/RichTextToolbar"
 import {RichTextToolbar} from "../base/RichTextToolbar"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export const Mode = Object.freeze({
 	HTML: "html",

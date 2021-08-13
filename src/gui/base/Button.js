@@ -10,6 +10,8 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType, getColors} from "./ButtonN"
+import type {clickHandler} from "./GuiUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -50,7 +52,7 @@ export class Button {
 		this.getLabel = typeof labelTextIdOrTextFunction === "function"
 						? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
-		this.view = (): ?VirtualElement => {
+		this.view = (): ?Children => {
 
 			return m("button.limit-width.noselect" + ((this._type === ButtonType.Bubble) ? ".print" : ""
 				+ (this._type === ButtonType.Floating ? ".z2" : "")), {

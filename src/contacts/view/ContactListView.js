@@ -75,7 +75,7 @@ export class ContactListView {
 		})
 
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(ListColumnWrapper, {
 				headerContent: m(DropDownSelectorN, {
 					label: () => "Sort by",

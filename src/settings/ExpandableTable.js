@@ -6,6 +6,7 @@ import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import type {TableAttrs} from "../gui/base/TableN"
 import {TableN} from "../gui/base/TableN"
 import {SettingsExpander} from "./SettingsExpander"
+import type {lazy} from "../api/common/utils/Utils"
 
 type ExpandableTableAttrs = {|
 	title: TranslationKey | lazy<string>,

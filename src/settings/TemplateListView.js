@@ -24,6 +24,7 @@ import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import type {LoginController} from "../api/main/LoginController"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {promiseMap} from "../api/common/utils/PromiseUtils"
+import type {ListConfig} from "../gui/base/List"
 
 assertMainOrNode()
 

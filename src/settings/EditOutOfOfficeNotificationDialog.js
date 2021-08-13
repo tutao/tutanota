@@ -25,6 +25,7 @@ import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {UserError} from "../api/main/UserError"
 import {DatePicker} from "../gui/date/DatePicker"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import type {lazy} from "../api/common/utils/Utils"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: ?OutOfOfficeNotification) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, logins.getUserController(), lang)

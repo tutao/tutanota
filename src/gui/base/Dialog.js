@@ -26,7 +26,7 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
+import type {lazy, MaybeLazy} from "../../api/common/utils/Utils"
 import {getAsLazy, mapLazily, noOp} from "../../api/common/utils/Utils"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
@@ -91,7 +91,7 @@ export class Dialog implements ModalComponent {
 				help: "selectNext_action"
 			},
 		]
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			let marginPx = px(size.hpad)
 			const sidesMargin = styles.isSingleColumnLayout() && dialogType === DialogType.EditLarge ? "4px" : marginPx
 			return m(this._getDialogWrapperStyle(dialogType), {
@@ -461,7 +461,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	// used in admin client
-	static save(title: lazy<string>, saveAction: action, child: MComponent<void>): Promise<void> {
+	static save(title: lazy<string>, saveAction: () => Promise<void>, child: MComponent<void>): Promise<void> {
 		return new Promise(resolve => {
 			let saveDialog: Dialog
 			const closeAction = () => {
@@ -528,7 +528,7 @@ export class Dialog implements ModalComponent {
 
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons.
-	 * @param   props.child either a component (object with view function that returns a VirtualElement) or a naked view Function
+	 * @param   props.child either a component (object with view function that returns a Children) or a naked view Function
 	 * @param   props.validator Called when "Ok" is clicked. Must return null if the input is valid or an error messageID if it is invalid, so an error message is shown.
 	 * @param   props.okAction called after successful validation.
 	 * @param   props.cancelAction called when allowCancel is true and the cancel button/shortcut was pressed.

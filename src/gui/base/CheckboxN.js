@@ -6,9 +6,10 @@ import {Icon} from "./Icon"
 import {addFlash, removeFlash} from "./Flash"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type CheckboxAttrs = {
-	label: lazy<string | VirtualElement>,
+	label: lazy<string | Children>,
 	checked: Stream<boolean>,
 	helpLabel?: TranslationKey | lazy<string>,
 	disabled?: boolean,

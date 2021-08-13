@@ -40,6 +40,7 @@ import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtil
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24

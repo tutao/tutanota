@@ -113,7 +113,7 @@ export class ContactView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#contact.main-view", [
 				m(this.viewSlider),
 			])

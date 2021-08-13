@@ -99,7 +99,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		const postingExpanded = stream(false)
 
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			const changePaymentDataButtonAttrs = {
 				label: "paymentMethod_label",
 				click: createNotAvailableForFreeClickHandler(true, () => {

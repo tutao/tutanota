@@ -4,6 +4,7 @@ import type {lazyIcon} from "../gui/base/Icon"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {isSelectedPrefix} from "../gui/base/NavButtonN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import type {lazy} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 

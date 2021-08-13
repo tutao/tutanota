@@ -32,6 +32,7 @@ import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
+import type {windowSizeListener} from "../../misc/WindowFacade"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;

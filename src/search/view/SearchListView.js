@@ -95,7 +95,7 @@ export class SearchListView {
 			})
 		}
 
-		this.view = (): ?VirtualElement => {
+		this.view = (): Children => {
 			return this.list ? m(this.list) : null
 		}
 

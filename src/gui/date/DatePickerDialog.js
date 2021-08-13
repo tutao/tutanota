@@ -23,7 +23,7 @@ export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Da
 	if (end) {
 		dateEnd.setDate(end)
 	}
-	const form = {
+	const form: MComponent<void> = {
 		view: () => m(".flex-space-between",
 			client.isDesktopDevice() ? {style: {height: px(305)}} : {}, [
 				m(".pr-s.flex-grow.max-width-200.flex-space-between.flex-column", m(dateStart)),

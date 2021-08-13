@@ -6,6 +6,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {theme} from "./theme"
 import type {ButtonAttrs} from "./base/ButtonN"
 import {ButtonN} from "./base/ButtonN"
+import type {lazy} from "../api/common/utils/Utils"
 
 export type SidebarSectionAttrs = {
 	name: TranslationKey | lazy<string>,

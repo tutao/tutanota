@@ -22,6 +22,13 @@ const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 	usePlaceholderForInlineImages: true
 }
 
+export type SanitizeResult = {
+	text: string,
+	externalContent: Array<string>,
+	inlineImageCids: Array<string>,
+	links: Array<HTMLElement>,
+}
+
 type SanitizeConfig = SanitizeConfigExtra & SanitizeConfigBase
 
 export type Link = HTMLElement

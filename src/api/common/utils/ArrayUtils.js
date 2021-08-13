@@ -90,7 +90,7 @@ export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 /**
  * Find all items in an array that pass the given predicate
  */
-export function findAll<T>(theArray: Array<T>, finder: finder<T>): Array<T> {
+export function findAll<T>(theArray: Array<T>, finder: (T) => boolean): Array<T> {
 	const found = []
 	for (let element of theArray) {
 		if (finder(element)) {
@@ -105,7 +105,7 @@ export function findAll<T>(theArray: Array<T>, finder: finder<T>): Array<T> {
  * @param finder
  * @return {boolean} if the element was found
  */
-export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+export function findAndRemove<T>(theArray: Array<T>, finder: (T) => boolean): boolean {
 	const index = theArray.findIndex(finder)
 	if (index !== -1) {
 		theArray.splice(index, 1)
@@ -115,7 +115,7 @@ export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean
 	}
 }
 
-export function findAllAndRemove<T>(theArray: Array<T>, finder: finder<T>, startIndex: number = 0): boolean {
+export function findAllAndRemove<T>(theArray: Array<T>, finder: (T) => boolean, startIndex: number = 0): boolean {
 	var removedElement = false
 	for (let i = theArray.length - 1; i >= startIndex; i--) {
 		if (finder(theArray[i])) {

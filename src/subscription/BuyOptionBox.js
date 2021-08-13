@@ -13,6 +13,7 @@ import {ButtonN} from "../gui/base/ButtonN"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
+import type {lazy} from "../api/common/utils/Utils"
 
 const PaymentIntervalItems: SegmentControlItem<number>[] = [
 	{name: lang.get("pricing.yearly_label"), value: 12},

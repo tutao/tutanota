@@ -4,6 +4,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {theme} from "../theme"
 import {inputLineHeight, px, size} from "../size"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type TextDisplayAreaAttrs = {
 	value: string,

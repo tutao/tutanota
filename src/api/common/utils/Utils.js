@@ -51,6 +51,8 @@ import type {Customer} from "../../entities/sys/Customer"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
 import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
 
+export type lazy<T> = () => T;
+export type lazyAsync<T> = () => Promise<T>;
 export type Thunk = () => mixed
 
 export type DeferredObject<T> = {

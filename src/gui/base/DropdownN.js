@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {modal} from "./Modal"
-import {animations, opacity, transform} from "./../animation/Animations"
+import {animations, opacity, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -22,6 +22,8 @@ import {downcast} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
 import {pureComponent} from "./PureComponent"
 import {delay} from "../../api/common/utils/PromiseUtils"
+import type {lazy, lazyAsync} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
 
 assertMainOrNode()
 
@@ -168,7 +170,7 @@ export class DropdownN {
 				}))
 		}
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow", {
 					oncreate: vnode => {
 						this._domDropdown = vnode.dom

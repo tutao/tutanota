@@ -14,6 +14,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {isKeyPressed} from "../../misc/KeyManager"
+import type {clickHandler, dropHandler} from "./GuiUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -105,7 +107,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
-			oncreate: (vnode: VirtualElement) => {
+			oncreate: (vnode: Vnode<*>) => {
 				this._domButton = vnode.dom
 				addFlash(vnode.dom)
 			},

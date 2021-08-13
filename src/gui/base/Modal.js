@@ -33,7 +33,7 @@ class Modal {
 		// modal should never get removed, so not saving unsubscriber
 		windowFacade.addHistoryEventListener(e => this._popState(e))
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#modal.fill-absolute", {
 				oncreate: (vnode) => {
 					this._domModal = vnode.dom

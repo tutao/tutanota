@@ -62,7 +62,7 @@ export class ExternalLoginView {
 
 		this._setupShortcuts()
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".main-view", [
 				m(header),
 				m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView()))

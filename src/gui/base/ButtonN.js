@@ -8,6 +8,8 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
+import type {lazy} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
 
 assertMainOrNode()
 

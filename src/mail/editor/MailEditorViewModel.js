@@ -38,6 +38,7 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)

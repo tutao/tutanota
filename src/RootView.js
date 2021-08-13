@@ -43,7 +43,7 @@ class RootView {
 		}
 
 
-		this.view = (vnode): VirtualElement => {
+		this.view = (vnode): Children => {
 			return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {onmousedown}, [
 				m(overlay),
 				m(modal),

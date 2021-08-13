@@ -3,6 +3,8 @@ import {assertMainOrNodeBoot} from "../api/common/Env"
 
 assertMainOrNodeBoot()
 
+type LogCategory = {[key: string]: string}
+
 export const Cat: {[key: string]: LogCategory} = {
 	css: {name: 'css', color: 'orange'},
 	mithril: {name: 'mithril', color: 'darkgreen'},

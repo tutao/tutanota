@@ -9,11 +9,16 @@ import {ButtonColors, ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import type {DropdownChildAttrs} from "./DropdownN"
 import {attachDropdown} from "./DropdownN"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
+import type {lazy, MaybeLazy} from "../../api/common/utils/Utils"
 import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "./Dialog"
 import {logins} from "../../api/main/LoginController"
 import type {AllIconsEnum} from "./Icon"
+
+export type dropHandler = (dragData: string) => void;
+
+// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
+export type clickHandler = (event: MouseEvent, dom: HTMLElement) => mixed;
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLabel?: lazy<string>, label: TranslationKey | lazy<string> = "invoiceCountry_label"): DropDownSelector<?Country> {

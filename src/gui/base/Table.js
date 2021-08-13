@@ -30,7 +30,7 @@ export class Table {
 		this._lines = []
 		this._loading = true
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("", [
 				m("table.table", [
 					[this._createLine(columnHeadingTextIds.map(textId => lang.get(textId)), showActionButtonColumn, (this._loading) ? null : addButton, columnWidths, true)].concat(
@@ -44,13 +44,13 @@ export class Table {
 		}
 	}
 
-	_createContentLines(showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[]): VirtualElement[] {
+	_createContentLines(showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[]): Children[] {
 		return this._lines.map(line => {
 			return this._createLine(line.cells, showActionButtonColumn, (showActionButtonColumn) ? line.actionButton : null, columnWidths, false)
 		})
 	}
 
-	_createLine(texts: string[], showActionButtonColumn: boolean, actionButton: ?Button, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
+	_createLine(texts: string[], showActionButtonColumn: boolean, actionButton: ?Button, columnWidths: ColumnWidthEnum[], bold: boolean): Children {
 		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index]
 			+ ((bold) ? ".b" : ""), {
 			title: text, // show the text as tooltip, so ellipsed lines can be shown

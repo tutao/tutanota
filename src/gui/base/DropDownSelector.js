@@ -9,13 +9,14 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ButtonType} from "./ButtonN"
 import {createDropDownButton} from "./Dropdown";
 import {TextFieldN} from "./TextFieldN"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
 export class DropDownSelector<T> {
 	view: Function;
 	selectedValue: Stream<T>;
-	_changeHandler: handler<T>;
+	_changeHandler: (T) => mixed;
 	_items: {name: string, value: T}[];
 	_selectedValueDisplayValue: string
 
@@ -63,7 +64,7 @@ export class DropDownSelector<T> {
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector.
 	 */
-	setSelectionChangedHandler(handler: handler<T>): DropDownSelector<T> {
+	setSelectionChangedHandler(handler: (T) => mixed): DropDownSelector<T> {
 		this._changeHandler = handler
 		return this
 	}

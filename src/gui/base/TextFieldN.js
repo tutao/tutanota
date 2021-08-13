@@ -8,6 +8,8 @@ import {lang} from "../../misc/LanguageViewModel"
 import {repeat} from "../../api/common/utils/StringUtils"
 import type {keyHandler} from "../../misc/KeyManager"
 import {TabIndex} from "../../api/common/TutanotaConstants"
+import type {lazy} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
 
 export type TextFieldAttrs = {
 	id?: string,
@@ -200,7 +202,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 		return a.type === Type.ExternalPassword && !this.active
 	}
 
-	_getTextArea(a: TextFieldAttrs): VirtualElement {
+	_getTextArea(a: TextFieldAttrs): Children {
 		if (a.disabled) {
 			return m(".text-prewrap.text-break.selectable", {
 				style: {
