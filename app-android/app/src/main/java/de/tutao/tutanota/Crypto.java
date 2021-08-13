@@ -27,7 +27,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -77,17 +76,15 @@ public class Crypto {
 	public static final int AES_KEY_LENGTH = 128;
 	public static final int AES_KEY_LENGTH_BYTES = AES_KEY_LENGTH / 8;
 
-	private final static String TAG = "tutao.Crypto";
-	private SecureRandom randomizer;
+	//private final static String TAG = "tutao.Crypto";
+	private final SecureRandom randomizer;
 
 	private static final Integer ANDROID_6_SDK_VERSION = 23;
 
 	private final Context context;
 
 	static {
-		for (int i = 0; i < FIXED_IV.length; i++) {
-			FIXED_IV[i] = (byte) 0x88;
-		}
+		Arrays.fill(FIXED_IV, (byte) 0x88);
 	}
 
 	public static final String HMAC_256 = "HmacSHA256";
@@ -103,7 +100,7 @@ public class Crypto {
 	}
 
 
-	protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchProviderException, NoSuchAlgorithmException {
+	protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchAlgorithmException {
 		this.randomizer.setSeed(seed);
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 		generator.initialize(RSA_KEY_LENGTH_IN_BITS, randomizer);
@@ -299,10 +296,11 @@ public class Crypto {
 		return this.aesDecrypt(key, encData);
 	}
 
+	/*[NOT USED]
 	public byte[] encryptKey(final byte[] encryptionKey, final byte[] keyToEncryptWithoutIv) throws CryptoError {
 		Objects.requireNonNull(encryptionKey, "encryptionKey is null");
 		return this.encryptKey(bytesToKey(encryptionKey), keyToEncryptWithoutIv);
-	}
+	}*/
 
 	public byte[] encryptKey(final Key encryptionKey, final byte[] keyToEncryptWithoutIv) throws CryptoError {
 		try {
@@ -432,9 +430,9 @@ public class Crypto {
 		}
 	}
 
-	public class EncryptedFileInfo {
-		private String uri;
-		private long unencSize;
+	public static class EncryptedFileInfo {
+		private final String uri;
+		private final long unencSize;
 
 		public EncryptedFileInfo(String uri, long unencSize) {
 			this.unencSize = unencSize;
@@ -445,9 +443,10 @@ public class Crypto {
 			return this.uri;
 		}
 
+		/*[NOT USED]
 		public long getUnencSize() {
 			return this.unencSize;
-		}
+		}*/
 
 		public JSONObject toJSON() throws JSONException {
 			JSONObject json = new JSONObject();

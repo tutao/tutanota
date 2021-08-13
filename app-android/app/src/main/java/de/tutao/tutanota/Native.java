@@ -153,11 +153,9 @@ public final class Native {
 	}
 
 	private void evaluateJs(final String js) {
-		activity.getWebView().post(() -> {
-			activity.getWebView().evaluateJavascript(js, value -> {
-				// no response expected
-			});
-		});
+		activity.getWebView().post(() -> activity.getWebView().evaluateJavascript(js, value -> {
+			// no response expected
+		}));
 	}
 
 	private Promise<Object, Exception, Void> invokeMethod(String method, JSONArray args) {
@@ -238,11 +236,11 @@ public final class Native {
 					break;
 				case "storePushIdentifierLocally":
 
-					String deviceIdentififer = args.getString(0);
+					String deviceIdentifier = args.getString(0);
 					String userId = args.getString(1);
 					String sseOrigin = args.getString(2);
 					Log.d(TAG, "storePushIdentifierLocally");
-					sseStorage.storePushIdentifier(deviceIdentififer, sseOrigin);
+					sseStorage.storePushIdentifier(deviceIdentifier, sseOrigin);
 
 					String pushIdentifierId = args.getString(3);
 					String pushIdentifierSessionKeyB64 = args.getString(4);
@@ -317,13 +315,13 @@ public final class Native {
 				(NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
 		Objects.requireNonNull(notificationManager);
 
-		ArrayList<String> emailAddesses = new ArrayList<>(addressesArray.length());
+		ArrayList<String> emailAddresses = new ArrayList<>(addressesArray.length());
 		for (int i = 0; i < addressesArray.length(); i++) {
 			notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
-			emailAddesses.add(addressesArray.getString(i));
+			emailAddresses.add(addressesArray.getString(i));
 		}
 		activity.startService(LocalNotificationsFacade.notificationDismissedIntent(activity,
-				emailAddesses, "Native", false));
+				emailAddresses, "Native", false));
 	}
 
 	private boolean openLink(@Nullable String uri) {
@@ -375,7 +373,7 @@ public final class Native {
 
 	private Promise<Object, Exception, Void> initPushNotifications() {
 		activity.runOnUiThread(() -> {
-			activity.askBatteryOptinmizationsIfNeeded();
+			activity.askBatteryOptimizationsIfNeeded();
 			activity.setupPushNotifications();
 		});
 		return Utils.resolvedDeferred(null);

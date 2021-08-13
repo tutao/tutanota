@@ -3,8 +3,6 @@ package de.tutao.tutanota;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.os.Build;
-import android.provider.ContactsContract;
 
 import org.jdeferred.DoneFilter;
 import org.jdeferred.Promise;

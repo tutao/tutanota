@@ -65,14 +65,15 @@ import de.tutao.tutanota.push.SseStorage;
 
 import static de.tutao.tutanota.Utils.parseColor;
 
+@SuppressLint("RestrictedApi")
 public class MainActivity extends ComponentActivity {
 
 	private static final String TAG = "MainActivity";
-	public static final String THEME_OBJECT_PREF = "themeObject";
+	//public static final String THEME_OBJECT_PREF = "themeObject";
 	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
-	private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
+	private static final Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
 	private static int requestId = 0;
-	private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
+	private static final String ASKED_BATTERY_OPTIMIZATIONS_PREF = "askedBatteryOptimizations";
 	public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
 	public static final String OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION";
 	public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
@@ -229,7 +230,7 @@ public class MainActivity extends ComponentActivity {
 
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
 		super.onSaveInstanceState(outState);
 		webView.saveState(outState);
 	}
@@ -276,10 +277,10 @@ public class MainActivity extends ComponentActivity {
 
 	}
 
-	public void askBatteryOptinmizationsIfNeeded() {
+	public void askBatteryOptimizationsIfNeeded() {
 		PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (!preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+		if (!preferences.getBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, false)
 				&& !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
 			nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
 				saveAskedBatteryOptimizations(preferences);
@@ -292,7 +293,7 @@ public class MainActivity extends ComponentActivity {
 	}
 
 	private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
-		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
+		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, true).apply();
 	}
 
 	private String getInitialUrl(Map<String, String> parameters) {
@@ -400,11 +401,11 @@ public class MainActivity extends ComponentActivity {
 
 	/**
 	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
-	 * share occured) or from onCreate.
+	 * share occurred) or from onCreate.
 	 */
 	void share(Intent intent) {
 		String action = intent.getAction();
-		String type = intent.getType();
+		//String type = intent.getType();
 		ClipData clipData = intent.getClipData();
 
 		JSONArray files;
@@ -479,7 +480,6 @@ public class MainActivity extends ComponentActivity {
 			// but we want to be sure
 			if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
 				//noinspection unchecked
-				@SuppressWarnings("ConstantConditions")
 				ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
 				if (uris != null) {
 					for (Uri uri : uris) {
@@ -507,9 +507,9 @@ public class MainActivity extends ComponentActivity {
 			return;
 		}
 		nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
-		ArrayList<String> addressess = new ArrayList<>(1);
-		addressess.add(address);
-		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addressess,
+		ArrayList<String> addresses = new ArrayList<>(1);
+		addresses.add(address);
+		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary));
 	}
 
@@ -554,29 +554,27 @@ public class MainActivity extends ComponentActivity {
 		super.onCreateContextMenu(menu, v, menuInfo);
 
 		final WebView.HitTestResult hitTestResult = this.webView.getHitTestResult();
-		switch (hitTestResult.getType()) {
-			case WebView.HitTestResult.SRC_ANCHOR_TYPE:
-				final String link = hitTestResult.getExtra();
-				if (link == null) {
-					return;
-				}
-				if (link.startsWith(getBaseUrl())) {
-					return;
-				}
-				menu.setHeaderTitle(link);
-				menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
-					((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
-							.setPrimaryClip(ClipData.newPlainText(link, link));
-					return true;
-				});
-				menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
-					final Intent intent = new Intent(Intent.ACTION_SEND);
-					intent.putExtra(Intent.EXTRA_TEXT, link);
-					intent.setTypeAndNormalize("text/plain");
-					this.startActivity(Intent.createChooser(intent, "Share link"));
-					return true;
-				});
-				break;
+		if (hitTestResult.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+			final String link = hitTestResult.getExtra();
+			if (link == null) {
+				return;
+			}
+			if (link.startsWith(getBaseUrl())) {
+				return;
+			}
+			menu.setHeaderTitle(link);
+			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
+				((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
+						.setPrimaryClip(ClipData.newPlainText(link, link));
+				return true;
+			});
+			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
+				final Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.putExtra(Intent.EXTRA_TEXT, link);
+				intent.setTypeAndNormalize("text/plain");
+				this.startActivity(Intent.createChooser(intent, "Share link"));
+				return true;
+			});
 		}
 	}
 }

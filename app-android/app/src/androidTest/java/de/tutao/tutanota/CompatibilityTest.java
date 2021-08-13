@@ -1,7 +1,5 @@
 package de.tutao.tutanota;
 
-
-import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -22,12 +20,14 @@ import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
+import androidx.annotation.NonNull;
+
 @RunWith(AndroidJUnit4.class)
 public class CompatibilityTest {
 
     private final static String TEST_DATA = "CompatibilityTestData.json";
 
-    private static ObjectMapper om = new ObjectMapper();
+    private static final ObjectMapper om = new ObjectMapper();
     private static TestData testData;
 
     @BeforeClass

@@ -16,7 +16,7 @@ public class JSONObjectTest {
 
     @Test
     public void escape2(){
-        String r = "\"".replace("\"", "\\\""); // we need a double escaping for quotes as simple escapes are lost when returning to
+        //String r = "\"".replace("\"", "\\\""); // we need a double escaping for quotes as simple escapes are lost when returning to
     }
 
 }

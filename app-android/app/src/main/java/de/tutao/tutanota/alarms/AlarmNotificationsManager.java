@@ -47,8 +47,8 @@ public class AlarmNotificationsManager {
 	public void reScheduleAlarms() {
 		PushKeyResolver pushKeyResolver =
 				new PushKeyResolver(keyStoreFacade, sseStorage);
-		List<AlarmNotification> alarmInfos = sseStorage.readAlarmNotifications();
-		for (AlarmNotification alarmNotification : alarmInfos) {
+		List<AlarmNotification> alarmInfo = sseStorage.readAlarmNotifications();
+		for (AlarmNotification alarmNotification : alarmInfo) {
 			byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
 			if (sessionKey != null) {
 				this.schedule(alarmNotification, sessionKey);
@@ -139,7 +139,7 @@ public class AlarmNotificationsManager {
 				});
 			}
 		} catch (CryptoError cryptoError) {
-			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
+			Log.w(TAG, "Error when decrypting alarmNotification", cryptoError);
 		} catch (Exception e) {
 			Log.e(TAG, "Error when scheduling alarm", e);
 			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e);
@@ -214,12 +214,10 @@ public class AlarmNotificationsManager {
 
 
 	private static class PushKeyResolver {
-		private AndroidKeyStoreFacade keyStoreFacade;
 		private final SseStorage sseStorage;
 		private final Map<String, byte[]> pushIdentifierToResolvedSessionKey = new HashMap<>();
 
 		private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, SseStorage sseStorage) {
-			this.keyStoreFacade = keyStoreFacade;
 			this.sseStorage = sseStorage;
 		}
 

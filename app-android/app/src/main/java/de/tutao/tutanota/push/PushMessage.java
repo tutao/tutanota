@@ -9,7 +9,7 @@ import java.util.List;
 
 final class PushMessage {
 	private static final String TITLE_KEY = "title";
-	private static final String ADDRESS_KEY = "address";
+	//private static final String ADDRESS_KEY = "address";
 	private static final String COUNTER_KEY = "counter";
 	private static final String USER_ID_KEY = "userId";
 	private static final String NOTIFICATIONS_KEY = "notificationInfos";
@@ -53,7 +53,7 @@ final class PushMessage {
 	final static class NotificationInfo {
 		private final String address;
 		private final int counter;
-		private String userId;
+		private final String userId;
 
 		// We pass in mailAddressKey because of the incompatibility between the entity passed with SSE message and the one inside MissedNotification
 		public static NotificationInfo fromJson(JSONObject jsonObject, String mailAddressKey) throws JSONException {

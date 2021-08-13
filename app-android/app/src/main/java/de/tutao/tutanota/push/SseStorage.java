@@ -1,32 +1,13 @@
 package de.tutao.tutanota.push;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.CryptoError;
@@ -34,7 +15,6 @@ import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.data.AppDatabase;
 import de.tutao.tutanota.data.PushIdentifierKey;
-import de.tutao.tutanota.data.SseInfo;
 import de.tutao.tutanota.data.User;
 
 
@@ -71,16 +51,16 @@ public class SseStorage {
 		db.getAlarmInfoDao().clear();
 	}
 
-	public void storePushIdentifierSessionKey(String userId, String pushIdentiferId,
+	public void storePushIdentifierSessionKey(String userId, String pushIdentifierId,
 											  String pushIdentifierSessionKeyB64) throws KeyStoreException, CryptoError {
 		byte[] deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
-		this.db.userInfoDao().insertPushIdentifierKey(new PushIdentifierKey(pushIdentiferId, deviceEncSessionKey));
+		this.db.userInfoDao().insertPushIdentifierKey(new PushIdentifierKey(pushIdentifierId, deviceEncSessionKey));
 		this.db.userInfoDao().insertUser(new User(userId));
 	}
 
 
-	public byte[] getPushIdentifierSessionKey(String pushIdentiferId) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
-		PushIdentifierKey userInfo = this.db.userInfoDao().getPushIdentifierKey(pushIdentiferId);
+	public byte[] getPushIdentifierSessionKey(String pushIdentifierId) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+		PushIdentifierKey userInfo = this.db.userInfoDao().getPushIdentifierKey(pushIdentifierId);
 		if (userInfo == null) {
 			return null;
 		}
@@ -99,8 +79,8 @@ public class SseStorage {
 		db.getAlarmInfoDao().insertAlarmNotification(alarmNotification);
 	}
 
-	public void deleteAlarmNotification(String alarmIdetifier) {
-		db.getAlarmInfoDao().deleteAlarmNotification(alarmIdetifier);
+	public void deleteAlarmNotification(String alarmIdentifier) {
+		db.getAlarmInfoDao().deleteAlarmNotification(alarmIdentifier);
 	}
 
 	@Nullable

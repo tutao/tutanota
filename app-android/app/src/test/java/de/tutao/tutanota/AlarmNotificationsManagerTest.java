@@ -49,7 +49,6 @@ public class AlarmNotificationsManagerTest {
 	AlarmNotificationsManager manager;
 	private SystemAlarmFacade systemAlarmFacade;
 	private SseStorage sseStorage;
-	private AndroidKeyStoreFacade keyStoreFacade;
 	private Crypto crypto;
 	String userId = "userId";
 	String pushIdentifierElementId = "elementId";
@@ -59,7 +58,7 @@ public class AlarmNotificationsManagerTest {
 	public void setUp() throws CryptoError, UnrecoverableEntryException, KeyStoreException {
 		systemAlarmFacade = mock(SystemAlarmFacade.class);
 		sseStorage = mock(SseStorage.class);
-		keyStoreFacade = mock(AndroidKeyStoreFacade.class);
+		AndroidKeyStoreFacade keyStoreFacade = mock(AndroidKeyStoreFacade.class);
 		crypto = mock(Crypto.class);
 		manager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
 
@@ -68,15 +67,15 @@ public class AlarmNotificationsManagerTest {
 	}
 
 	@Test
-	public void testUnscheduleAlarms() throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+	public void testUnscheduleAlarms() {
 		String singleAlarmIdentifier = "singleAlarmIdentifier";
 		String repeatingAlarmIdentifier = "repeatingAlarmIdentifier";
 
-		AlarmNotification alarmNotification = createAlarmNotification(userId, singleAlarmIdentifier, null, null, null);
+		AlarmNotification alarmNotification = createAlarmNotification(userId, singleAlarmIdentifier, null, null);
 		RepeatRule repeatRule = new RepeatRule("1", "1", "Europe/Berlin", String.valueOf(EndType.COUNT.ordinal()), "2");
-		AlarmNotification repeatingAlarmNotification = createAlarmNotification(userId, repeatingAlarmIdentifier, null, null, repeatRule
+		AlarmNotification repeatingAlarmNotification = createAlarmNotification(userId, repeatingAlarmIdentifier, null, repeatRule
 		);
-		AlarmNotification anotherUserAlarm = createAlarmNotification("anotherUserId", "someIdentifeir", null, null, null);
+		AlarmNotification anotherUserAlarm = createAlarmNotification("anotherUserId", "someIdentifier", null, null);
 		ArrayList<AlarmNotification> alarms = new ArrayList<>();
 		alarms.add(alarmNotification);
 		alarms.add(repeatingAlarmNotification);
@@ -98,19 +97,19 @@ public class AlarmNotificationsManagerTest {
 	public void testScheduleSingleNotTooFar() {
 		String notFarIdentifier = "notFar";
 		Date startDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20));
-		AlarmNotification notTooFarSingle = createAlarmNotification(userId, notFarIdentifier, startDate, null, null);
+		AlarmNotification notTooFarSingle = createAlarmNotification(userId, notFarIdentifier, startDate, null);
 
 		manager.scheduleNewAlarms(singletonList(notTooFarSingle));
 
-		Date alarmtime = AlarmModel.calculateAlarmTime(startDate, null, AlarmTrigger.TEN_MINUTES);
-		verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId);
+		Date alarmTime = AlarmModel.calculateAlarmTime(startDate, null, AlarmTrigger.TEN_MINUTES);
+		verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(alarmTime, 0, notFarIdentifier, "summary", startDate, userId);
 	}
 
 	@Test
 	public void testNotScheduleSingleTooFar() {
 		String identifier = "tooFar";
 		Date startDate = new Date(System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(20));
-		AlarmNotification tooFarSingle = createAlarmNotification(userId, identifier, startDate, null, null);
+		AlarmNotification tooFarSingle = createAlarmNotification(userId, identifier, startDate, null);
 
 		manager.scheduleNewAlarms(singletonList(tooFarSingle));
 
@@ -122,7 +121,7 @@ public class AlarmNotificationsManagerTest {
 		String identifier = "notTooFarR";
 		Date startDate = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
 		RepeatRule repeatRule = new RepeatRule(String.valueOf(RepeatPeriod.WEEKLY.value()), "1", "Europe/Berlin", null, null);
-		AlarmNotification alarmNotification = createAlarmNotification(userId, identifier, startDate, null, repeatRule);
+		AlarmNotification alarmNotification = createAlarmNotification(userId, identifier, startDate, repeatRule);
 
 		manager.scheduleNewAlarms(singletonList(alarmNotification));
 
@@ -137,7 +136,7 @@ public class AlarmNotificationsManagerTest {
 
 
 	@NonNull
-	private AlarmNotification createAlarmNotification(String userId, String alarmIdentifier, @Nullable Date startDate, @Nullable Date endDate,
+	private AlarmNotification createAlarmNotification(String userId, String alarmIdentifier, @Nullable Date startDate,
 													  @Nullable RepeatRule repeatRule) {
 		byte[] encSessionKey = "encSessionKey".getBytes();
 		try {
@@ -158,12 +157,8 @@ public class AlarmNotificationsManagerTest {
 		}
 		String start = String.valueOf(calendar.getTimeInMillis());
 		String end;
-		if (endDate != null) {
-			end = String.valueOf(endDate.getTime());
-		} else {
-			calendar.add(Calendar.HOUR, 1);
-			end = String.valueOf(calendar.getTimeInMillis());
-		}
+		calendar.add(Calendar.HOUR, 1);
+		end = String.valueOf(calendar.getTimeInMillis());
 
 		return new AlarmNotification(OperationType.CREATE, "summary", start, end, new AlarmInfo("10M", alarmIdentifier), repeatRule,
 				notificationSessionKey, userId);

@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
@@ -28,7 +29,6 @@ public final class PushNotificationService extends LifecycleJobService {
 
 	private volatile JobParameters jobParameters;
 	private LocalNotificationsFacade localNotificationsFacade;
-	private AlarmNotificationsManager alarmNotificationsManager;
 	private SseClient sseClient;
 
 	public static Intent startIntent(Context context, String sender) {
@@ -46,7 +46,7 @@ public final class PushNotificationService extends LifecycleJobService {
 		SseStorage sseStorage = new SseStorage(appDatabase, keyStoreFacade);
 
 		localNotificationsFacade = new LocalNotificationsFacade(this);
-		alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, new Crypto(this),
+		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, new Crypto(this),
 				new SystemAlarmFacade(this), localNotificationsFacade);
 		TutanotaNotificationsHandler tutanotaNotificationsHandler = new TutanotaNotificationsHandler(localNotificationsFacade, sseStorage,
 				alarmNotificationsManager);
@@ -97,7 +97,7 @@ public final class PushNotificationService extends LifecycleJobService {
 				removeBackgroundServiceNotification();
 				finishJobIfNeeded();
 			} else {
-				sseClient.restartConnectionIfNeeded(new SseInfo(sseStorage.getPushIdentifier(), userIds, sseStorage.getSseOrigin()));
+				sseClient.restartConnectionIfNeeded(new SseInfo(Objects.requireNonNull(sseStorage.getPushIdentifier()), userIds, sseStorage.getSseOrigin()));
 			}
 		});
 
@@ -109,7 +109,7 @@ public final class PushNotificationService extends LifecycleJobService {
 	}
 
 	private void removeBackgroundServiceNotification() {
-		Log.d(TAG, "Stopping foregroud");
+		Log.d(TAG, "Stopping foreground");
 		stopForeground(true);
 	}
 
@@ -119,9 +119,9 @@ public final class PushNotificationService extends LifecycleJobService {
 		Log.d(TAG, "Received onStartCommand, sender: " + (intent == null ? null : intent.getStringExtra("sender")));
 
 		if (intent != null && intent.hasExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-			ArrayList<String> dissmissAddrs =
+			ArrayList<String> dismissAddrs =
 					intent.getStringArrayListExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA);
-			localNotificationsFacade.notificationDismissed(dissmissAddrs, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false));
+			localNotificationsFacade.notificationDismissed(dismissAddrs, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false));
 			return START_STICKY;
 		}
 		return Service.START_STICKY;

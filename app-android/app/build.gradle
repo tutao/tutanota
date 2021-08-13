@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 29
-	buildToolsVersion '29.0.2'
+	compileSdkVersion 30
+	buildToolsVersion '30.0.3'
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 23
-		targetSdkVersion 29
+		targetSdkVersion 30
 		versionCode 386000
 		versionName "3.86.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -85,17 +85,17 @@ tasks.withType(Test) {
 }
 
 dependencies {
-	def room_version = "2.2.3"
-	def lifecycle_version = "2.2.0"
-	def appcompat_version = "1.1.0"
+	def room_version = "2.3.0"
+	def lifecycle_version = "2.3.1"
+	//def appcompat_version = "1.1.0" [NOT USED]
 
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 	androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	implementation 'commons-io:commons-io:2.5'
-	implementation 'org.jdeferred:jdeferred-core:1.2.4'
-	implementation 'androidx.core:core:1.1.0'
+	implementation 'commons-io:commons-io:2.11.0'
+	implementation 'org.jdeferred:jdeferred-core:1.2.6'
+	implementation 'androidx.core:core:1.6.0'
 
 	implementation "androidx.room:room-runtime:$room_version"
 	annotationProcessor "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
@@ -103,11 +103,8 @@ dependencies {
 	implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
 
 
-
-
-
-	testImplementation 'junit:junit:4.12'
-	testImplementation "org.robolectric:robolectric:3.3.2"
-	testImplementation "org.mockito:mockito-core:2.28.2"
-	androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation "org.robolectric:robolectric:4.6.1"
+	testImplementation "org.mockito:mockito-core:3.11.2"
+	androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
 }

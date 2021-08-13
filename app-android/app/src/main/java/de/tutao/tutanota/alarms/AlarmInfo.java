@@ -23,7 +23,7 @@ public final class AlarmInfo {
         return new AlarmInfo(trigger, alarmIdentifier);
     }
 
-    public AlarmInfo(String trigger, String identifier) {
+    public AlarmInfo(@NonNull String trigger, String identifier) {
         this.trigger = trigger;
         this.identifier = Objects.requireNonNull(identifier);
     }
@@ -32,11 +32,13 @@ public final class AlarmInfo {
         return new String(crypto.aesDecrypt(sessionKey, this.trigger), StandardCharsets.UTF_8);
     }
 
-    public String getTrigger() {
+    @NonNull
+	public String getTrigger() {
         return trigger;
     }
 
-    public String getIdentifier() {
+    @NonNull
+	public String getIdentifier() {
         return identifier;
     }
 

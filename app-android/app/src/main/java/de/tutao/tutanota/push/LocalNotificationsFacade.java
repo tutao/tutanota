@@ -1,5 +1,6 @@
 package de.tutao.tutanota.push;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.app.Notification;
@@ -43,7 +44,7 @@ public class LocalNotificationsFacade {
 	private static final int SUMMARY_NOTIFICATION_ID = 45;
 	private static final String PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent";
 
-	private Context context;
+	private final Context context;
 
 	public LocalNotificationsFacade(Context context) {
 		this.context = context;
@@ -127,11 +128,11 @@ public class LocalNotificationsFacade {
 
 			NotificationCompat.Builder notificationBuilder =
 					new NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
-							.setLights(context.getResources().getColor(R.color.red), 1000, 1000);
+							.setLights(context.getResources().getColor(R.color.red, context.getTheme()), 1000, 1000);
 			ArrayList<String> addresses = new ArrayList<>();
 			addresses.add(notificationInfo.getAddress());
 			notificationBuilder.setContentTitle(title)
-					.setColor(context.getResources().getColor(R.color.red))
+					.setColor(context.getResources().getColor(R.color.red, context.getTheme()))
 					.setContentText(notificationContent(notificationInfo.getAddress()))
 					.setNumber(counterPerAlias.counter)
 					.setSmallIcon(R.drawable.ic_status)
@@ -159,7 +160,7 @@ public class LocalNotificationsFacade {
 		);
 		notificationManager.createNotificationChannel(channel);
 
-		PendingIntent pendingIntent = PendingIntent.getActivity(
+		@SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(
 				this.context,
 				/*requestCode*/1,
 				new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
@@ -200,7 +201,7 @@ public class LocalNotificationsFacade {
 				.setSmallIcon(R.drawable.ic_status)
 				.setGroup(NOTIFICATION_EMAIL_GROUP)
 				.setGroupSummary(true)
-				.setColor(context.getResources().getColor(R.color.red))
+				.setColor(context.getResources().getColor(R.color.red, context.getTheme()))
 				.setNumber(summaryCounter)
 				.setStyle(inboxStyle)
 				.setContentIntent(intentOpenMailbox(notificationInfo, true))
@@ -227,7 +228,7 @@ public class LocalNotificationsFacade {
 			intent.setClipData(ClipData.newPlainText("error", errorString));
 		}
 
-		Notification notification = new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+		@SuppressLint("UnspecifiedImmutableFlag") Notification notification = new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_status)
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText(context.getString(message))
@@ -287,6 +288,7 @@ public class LocalNotificationsFacade {
 		return Math.abs(1 + address.hashCode());
 	}
 
+	@SuppressLint("UnspecifiedImmutableFlag")
 	private PendingIntent intentForDelete(ArrayList<String> addresses) {
 		Intent deleteIntent = new Intent(context, PushNotificationService.class);
 		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses);
@@ -297,6 +299,7 @@ public class LocalNotificationsFacade {
 				PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 
+	@SuppressLint("UnspecifiedImmutableFlag")
 	private PendingIntent intentOpenMailbox(PushMessage.NotificationInfo notificationInfo,
 											boolean isSummary) {
 		Intent openMailboxIntent = new Intent(context, MainActivity.class);
@@ -334,12 +337,13 @@ public class LocalNotificationsFacade {
 						.setContentTitle(context.getString(R.string.reminder_label))
 						.setContentText(contentText)
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
-						.setColor(context.getResources().getColor(R.color.red))
+						.setColor(context.getResources().getColor(R.color.red, context.getTheme()))
 						.setContentIntent(openCalendarIntent(context, intent))
 						.setAutoCancel(true)
 						.build());
 	}
 
+	@SuppressLint("UnspecifiedImmutableFlag")
 	private static PendingIntent openCalendarIntent(Context context, Intent alarmIntent) {
 		String userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY);
 		Intent openCalendarEventIntent = new Intent(context, MainActivity.class);

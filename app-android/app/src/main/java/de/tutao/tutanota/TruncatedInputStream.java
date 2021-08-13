@@ -1,3 +1,10 @@
+/*
+
+
+[NOT USED]
+
+
+
 package de.tutao.tutanota;
 
 import java.io.IOException;
@@ -10,9 +17,11 @@ public class TruncatedInputStream extends InputStream {
 	private final long endIndex;
 	private long position;
 
-	/**
+	*/
+/**
 	 * @param endIndex Excluded
-	 */
+	 *//*
+
 	public TruncatedInputStream(InputStream in, int beginIndex, long endIndex) {
 		this.in = in;
 		this.beginIndex = beginIndex;
@@ -39,3 +48,4 @@ public class TruncatedInputStream extends InputStream {
 		return ch;
 	}
 }
+*/

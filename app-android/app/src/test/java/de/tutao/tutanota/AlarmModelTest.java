@@ -25,19 +25,19 @@ public class AlarmModelTest {
 	public void testIterates() {
 		List<Date> occurrences = new ArrayList<>();
 
-		Date now = getDate(timeZone, 2019, 4, 2, 0, 0);
-		Date eventStart = getDate(timeZone, 2019, 4, 2, 12, 0);
+		Date now = getDate(timeZone, 2, 0);
+		Date eventStart = getDate(timeZone, 2, 12);
 
 		AlarmModel.iterateAlarmOccurrences(now, timeZone, eventStart, eventStart, RepeatPeriod.WEEKLY,
 				1, EndType.NEVER, 0, AlarmTrigger.ONE_HOUR, timeZone,
-				(time, occurrence, occurenceTime) -> occurrences.add(time)
+				(time, occurrence, occurrenceTime) -> occurrences.add(time)
 		);
 
 		assertArrayEquals(Arrays.asList(
-				getDate(timeZone, 2019, 4, 2, 11, 0),
-				getDate(timeZone, 2019, 4, 9, 11, 0),
-				getDate(timeZone, 2019, 4, 16, 11, 0),
-				getDate(timeZone, 2019, 4, 23, 11, 0)
+				getDate(timeZone, 2, 11),
+				getDate(timeZone, 9, 11),
+				getDate(timeZone, 16, 11),
+				getDate(timeZone, 23, 11)
 		).toArray(), occurrences.subList(0, 4).toArray());
 	}
 
@@ -48,11 +48,11 @@ public class AlarmModelTest {
 
 		TimeZone repeatTimeZone = TimeZone.getTimeZone("Asia/Anadyr");
 
-		Date now = getDate(repeatTimeZone, 2019, 4, 1, 0, 0);
+		Date now = getDate(repeatTimeZone, 1, 0);
 		// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
-		Date eventStart = getAllDayDateUTC(getDate(timeZone, 2019, 4, 2, 0, 0), timeZone);
-		Date eventEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 3, 0, 0), timeZone);
-		Date repeatEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 4, 0, 0), timeZone);
+		Date eventStart = getAllDayDateUTC(getDate(timeZone, 2, 0), timeZone);
+		Date eventEnd = getAllDayDateUTC(getDate(timeZone, 3, 0), timeZone);
+		Date repeatEnd = getAllDayDateUTC(getDate(timeZone, 4, 0), timeZone);
 
 		AlarmModel.iterateAlarmOccurrences(now, repeatTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY,
 				1, EndType.UNTIL, repeatEnd.getTime(), AlarmTrigger.ONE_DAY, timeZone,
@@ -62,17 +62,17 @@ public class AlarmModelTest {
 
 		List<Date> expected = Arrays.asList(
 				// Event on 2nd, alarm on 1st
-				getDate(timeZone, 2019, 4, 1, 0, 0),
+				getDate(timeZone, 1, 0),
 				// Event on 3rd, alarm on 2d
-				getDate(timeZone, 2019, 4, 2, 0, 0)
+				getDate(timeZone, 2, 0)
 				// No even on 4rd (because endDate is 4th)
 		);
 		assertArrayEquals(expected.toArray(), occurrences.toArray());
 	}
 
-	private Date getDate(TimeZone timeZone, int year, int month, int day, int hour, int minute) {
+	private Date getDate(TimeZone timeZone, int day, int hour) {
 		Calendar calendar = Calendar.getInstance(timeZone);
-		calendar.set(year, month, day, hour, minute, 0);
+		calendar.set(2019, 4, day, hour, 0, 0);
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
 	}
