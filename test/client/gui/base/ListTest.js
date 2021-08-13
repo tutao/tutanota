@@ -146,7 +146,7 @@ o.spec("List", function () {
 
 			await list.loadInitial()
 			list._init()
-			list._createVirtualElements()
+			list._createChildrens()
 			o(list._virtualList.length).equals(Math.ceil(235 / 62) + ScrollBuffer * 2)
 		})
 	})

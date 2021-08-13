@@ -56,7 +56,7 @@ class Header {
 		this._currentView = null
 		this._setupShortcuts()
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			// Do not return undefined if headerView is not present
 			const injectedView = this._currentView && this._currentView.headerView ?
 				this._currentView.headerView() : null

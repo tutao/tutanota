@@ -27,6 +27,7 @@ import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import {themeController} from "../gui/theme"
 import {createAsyncDropdown} from "../gui/base/DropdownN"
+import type {clickHandler} from "../gui/base/GuiUtils"
 
 assertMainOrNode()
 
@@ -96,7 +97,7 @@ export class LoginView {
 			m.redraw()
 		}
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#login-view.main-view.flex.col", {
 				oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),

@@ -9,6 +9,7 @@ import {logins} from "../api/main/LoginController"
 assertMainOrNodeBoot()
 
 export type KeyboardSizeListener = (keyboardSize: number) => mixed;
+export type windowSizeListener = (width: number, height: number) => mixed
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];

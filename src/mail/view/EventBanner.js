@@ -12,6 +12,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type Attrs = {
 	event: CalendarEvent,

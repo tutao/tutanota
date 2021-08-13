@@ -162,7 +162,7 @@ export class ContactFormRequestDialog {
 		])
 	}
 
-	_getPrivacyPolicyCheckboxContent(): VirtualElement {
+	_getPrivacyPolicyCheckboxContent(): Children {
 		let parts = lang.get("acceptPrivacyPolicy_msg").split("{privacyPolicy}")
 		return m("", [
 			m("span", parts[0]),

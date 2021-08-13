@@ -4,6 +4,7 @@ import {px, size} from "../size"
 import {inputLineHeight} from "./TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type LabelAttrs = {
 	label: TranslationKey | lazy<string>,

@@ -56,7 +56,7 @@ class ContactFormView {
 			help: "close_alt"
 		}).setCloseHandler(closeAction)
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".main-view.flex.col", [
 				m(header),
 				m(".flex-center.scroll",
@@ -65,7 +65,7 @@ class ContactFormView {
 		}
 	}
 
-	_getContactFormContent(): VirtualElement {
+	_getContactFormContent(): Children {
 		if (this._loading) {
 			return m(".flex-center.items-center.pt-l", {
 				onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))

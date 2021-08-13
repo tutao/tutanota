@@ -181,7 +181,7 @@ export class RichTextToolbar {
 		}
 		allButtonAttrs.push(removeFormattingButtonAttrs)
 
-		this.view = (): ?VirtualElement => {
+		this.view = (): ?Children => {
 			try {
 				this.selectedSize(parseInt(editor._squire.getFontInfo().size.slice(0, -2)))
 			} catch (e) {

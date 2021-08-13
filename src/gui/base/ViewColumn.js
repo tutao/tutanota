@@ -4,6 +4,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {LayerType} from "../../RootView"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 

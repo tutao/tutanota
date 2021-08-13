@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import {scaleToVisualPasswordStrength} from "../misc/PasswordUtils"
+import type {lazy} from "../api/common/utils/Utils"
 
 export class PasswordIndicator {
 	view: Function;

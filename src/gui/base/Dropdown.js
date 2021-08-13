@@ -16,6 +16,9 @@ import type {Shortcut} from "../../misc/KeyManager"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {delay} from "../../api/common/utils/PromiseUtils"
 import {downcast} from "../../api/common/utils/Utils"
+import type {lazy, lazyAsync} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
+import type {windowSizeListener} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -110,7 +113,7 @@ export class Dropdown {
 			return _shortcuts
 		}
 
-		const _inputField = (): VirtualElement | null => {
+		const _inputField = (): Children | null => {
 			return this._isFilterable
 				? m("input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs"
 					+ (this._alignRight ? ".right" : ""), {
@@ -134,7 +137,7 @@ export class Dropdown {
 				: null
 		}
 
-		const _contents = (): VirtualElement => {
+		const _contents = (): Children => {
 			return m(".dropdown-content.plr-l.scroll.abs", {
 					oncreate: (vnode) => {
 						this.show(vnode.dom)
@@ -169,7 +172,7 @@ export class Dropdown {
 			)
 		}
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow", {
 					oncreate: (vnode) => {
 						this._domDropdown = vnode.dom

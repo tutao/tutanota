@@ -6,6 +6,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
+export type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'
+
 export type StatusFieldAttrs = {
 	status: Status,
 }

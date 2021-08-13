@@ -5,6 +5,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {inputLineHeight, px} from "../../gui/size"
 import type {keyHandler} from "../../misc/KeyManager"
 import {theme} from "../../gui/theme"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type TemplateSearchBarAttrs = {
 	value: Stream<string>,

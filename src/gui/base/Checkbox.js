@@ -7,6 +7,7 @@ import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNode} from "../../api/common/Env"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -30,7 +31,7 @@ export class Checkbox {
 		this._disabledTextId = "emptyString_msg"
 
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".checkbox.pt" + (this.enabled ? ".click" : ".click-disabled"), {
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {

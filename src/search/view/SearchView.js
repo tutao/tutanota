@@ -64,6 +64,7 @@ import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {clickHandler} from "../../gui/base/GuiUtils"
 
 assertMainOrNode()
 
@@ -193,7 +194,7 @@ export class SearchView implements CurrentView {
 			this.folderColumn, this.resultListColumn, this.resultDetailsColumn
 		], "ContactView")
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#search.main-view", m(this.viewSlider))
 		}
 		this._setupShortcuts()

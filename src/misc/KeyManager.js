@@ -6,6 +6,7 @@ import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
 import type {KeysEnum} from "../api/common/TutanotaConstants"
 import {Keys} from "../api/common/TutanotaConstants"
+import type {lazy} from "../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 

@@ -65,6 +65,7 @@ import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -152,7 +153,7 @@ export class MailView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#mail.main-view", {
 				ondragover: (ev) => {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari

@@ -24,7 +24,7 @@ type Styles = {
 
 export class Editor implements ImageHandler {
 	_squire: Squire;
-	view: (vnode: Vnode<any>) => VirtualElement | VirtualElement[];
+	view: (vnode: Vnode<any>) => Children | Children[];
 	onbeforeupdate: Function;
 	onremove: Function;
 	initialized: DeferredObject<void>;
@@ -100,7 +100,7 @@ export class Editor implements ImageHandler {
 		this._minHeight = minHeight
 		return this
 	}
-	
+
 	setCreatesLists(createsLists: boolean) : Editor {
 		this._createsLists = createsLists
 		return this

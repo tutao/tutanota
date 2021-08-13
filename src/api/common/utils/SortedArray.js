@@ -58,7 +58,7 @@ export class SortedArray<T> {
 		insertIntoSortedArray(item, this._contents, this._compareFn)
 	}
 
-	removeFirst(finder: finder<T>): boolean {
+	removeFirst(finder: (T) => boolean): boolean {
 		return findAndRemove(this._contents, finder)
 	}
 }

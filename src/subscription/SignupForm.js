@@ -31,6 +31,7 @@ import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/Regis
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import type {lazy} from "../api/common/utils/Utils"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */

@@ -6,6 +6,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import type {AllIconsEnum} from "./Icon"
 import {Icon} from "./Icon"
 import {px, size} from "../size"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 

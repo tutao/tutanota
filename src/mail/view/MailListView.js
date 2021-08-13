@@ -36,6 +36,7 @@ import {AsyncResult} from "../../api/common/utils/AsyncResult"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
+import type {VirtualRow} from "../../gui/base/List"
 
 assertMainOrNode()
 

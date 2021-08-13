@@ -2,7 +2,7 @@
 import m from "mithril"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
+import type {lazy, MaybeLazy} from "../../api/common/utils/Utils"
 import {resolveMaybeLazy} from "../../api/common/utils/Utils"
 
 
@@ -19,7 +19,7 @@ export type DialogHeaderBarAttrs = {|
  */
 export class DialogHeaderBar implements MComponent<DialogHeaderBarAttrs> {
 
-	view(vnode: Vnode<LifecycleAttrs<DialogHeaderBarAttrs>>): VirtualElement {
+	view(vnode: Vnode<LifecycleAttrs<DialogHeaderBarAttrs>>): Children {
 		const a = Object.assign({}, {left: [], right: []}, vnode.attrs)
 		let columnClass = a.middle ? ".flex-third.overflow-hidden" : ".flex-half.overflow-hidden"
 		return m(".flex-space-between.dialog-header-line-height", {

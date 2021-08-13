@@ -9,6 +9,8 @@ import type {TranslationKey} from "./LanguageViewModel";
 import {lang} from "./LanguageViewModel"
 import {isIOSApp} from "../api/common/Env"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import type {clickHandler} from "../gui/base/GuiUtils"
+import type {lazy} from "../api/common/utils/Utils"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.

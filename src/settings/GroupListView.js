@@ -105,7 +105,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			emptyMessage: lang.get("noEntries_msg")
 		})
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(ListColumnWrapper, {
 					headerContent: m(".mr-negative-s.align-self-end", m(ButtonN, {
 						label: "addGroup_label",

@@ -19,6 +19,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
+import type {lazy} from "../../api/common/utils/Utils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -240,7 +241,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
-	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): VirtualElement {
+	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this._elWidth(attrs))
 		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate, this._currentDate)), {
 			style: {
@@ -258,7 +259,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	}
 
 	_weekVdom(week: Array<CalendarDay>,
-	          attrs: VisualDatePickerAttrs): VirtualElement {
+	          attrs: VisualDatePickerAttrs): Children {
 		return m(".flex.flex-space-between", week.map(d => this._dayVdom(d, attrs)))
 	}
 

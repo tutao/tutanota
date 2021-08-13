@@ -2,6 +2,7 @@
 
 import m from "mithril"
 import {px, size} from "../size"
+import type {clickHandler} from "./GuiUtils"
 
 export type Attrs = {
 	label: string,

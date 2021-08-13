@@ -8,6 +8,8 @@ import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
+import type {clickHandler} from "./GuiUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 

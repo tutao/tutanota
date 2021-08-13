@@ -7,7 +7,7 @@ import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import type {DeferredObject, MaybeLazy} from "../../api/common/utils/Utils"
-import {debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
@@ -30,6 +30,94 @@ assertMainOrNode()
 
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
 export const PageSize = 100
+
+export type SwipeConfiguration<T> = {
+	renderLeftSpacer(): Children;
+
+	renderRightSpacer(): Children;
+
+	// result value indicates whether to commit to the result of the swipe
+	// true indicates committing, false means to not commit and to cancel
+	swipeLeft(listElement: T): Promise<boolean>;
+
+	swipeRight(listElement: T): Promise<boolean>;
+
+	enabled: boolean;
+
+}
+
+/**
+ * 1:1 mapping to DOM elements. Displays a single list entry.
+ */
+export interface VirtualRow<T> {
+	render(): Children;
+
+	update(listEntry: T, selected: boolean): void;
+
+	entity: ?T;
+	top: number;
+	domElement: ?HTMLElement;
+}
+
+export type ListConfig<T, R: VirtualRow<T>> = {
+	rowHeight: number;
+
+	/**
+	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
+	 */
+	fetch(startId: Id, count: number): Promise<Array<T>>;
+
+	/**
+	 * Returns null if the given element could not be loaded
+	 */
+	loadSingle(elementId: Id): Promise<?T>;
+
+	sortCompare(entity1: T, entity2: T): number;
+
+	/**
+	 * Called whenever the user clicks on any element in the list or if the selection changes by any other means.
+	 * Use cases:
+	 *                                                                                                          elementClicked  selectionChanged  multiSelectOperation  entities.length
+	 * Scroll to element (loadInitial(entity) or scrollToIdAndSelect()) which was not selected before:          false           true              false                 1
+	 * Select previous or next element with key shortcut:                                                       false           true              false                 1
+	 * Select previous or next element with key shortcut and multi select:                                      false           true              true                  any
+	 * User clicks non-selected element without multi selection:                                                true            true              false                 1
+	 * User clicks selected element without multi selection:                                                    true            false             false                 1
+	 * User clicks element with multi selection, so selection changes:                                          true            true              true                  any
+	 * User clicks element with multi selection, so selection does not change:                                  true            false             true                  any
+	 * Element is deleted and next element is selected:                                                         false           true              false                 1
+	 * Element is deleted and removed from selection:                                                           false           true              true                  any
+	 *
+	 * @param entities: The selected entities.
+	 * @param elementClicked: True if the user clicked on any element, false if the selection changed by any other means.
+	 * @param selectionChanged: True if the selection changed, false if it did not change. There may be no change, e.g. when the user clicks an element that is already selected.
+	 * @param multiSelectOperation: True if the user executes a multi select (shift or ctrl key pressed) or if an element is removed from the selection because it was removed from the list.
+	 */
+	elementSelected(entities: Array<T>, elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void;
+
+	/**
+	 * add custom drag behaviour to the list.
+	 * @param ev dragstart event
+	 * @param vR: the row the event was started on
+	 * @param selectedElements the currently selected elements
+	 */
+	dragStart?: (ev: DragEvent, vR: VirtualRow<T>, selectedElements: $ReadOnlyArray<T>) => void;
+
+	createVirtualRow(): R;
+
+	listLoadedCompletly?: () => void;
+
+	showStatus: boolean;
+	className: string;
+	swipe: SwipeConfiguration<T>;
+
+	/**
+	 * True if the user may select multiple or 0 elements.
+	 * Keep in mind that even if multiSelectionAllowed == false, elementSelected() will be called with multiSelectOperation = true if an element is deleted and removed from the selection.
+	 */
+	multiSelectionAllowed: boolean;
+	emptyMessage: string;
+}
 
 /**
  * A list that renders only a few dom elements (virtual list) to represent the items of even very large lists.
@@ -150,13 +238,13 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			let list = m(".list-container.fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
 				tabindex: TabIndex.Programmatic,
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
 					this._width = this._domListContainer.clientWidth
-					this._createVirtualElements()
+					this._createChildrens()
 					const render = () => {
 						m.render(vnode.dom, [
 							m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
@@ -616,7 +704,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._domList = domElement
 	}
 
-	_createVirtualElements() {
+	_createChildrens() {
 		let visibleElements = 2 * Math.ceil((this._domListContainer.clientHeight / this._config.rowHeight) / 2) // divide and multiply by two to get an even number (because of alternating row backgrounds)
 		this._virtualList.length = visibleElements + (ScrollBuffer * 2)
 		this._visibleElementsHeight = visibleElements * this._config.rowHeight
@@ -1119,7 +1207,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		}
 	}
 
-	getVirtualElement(): VirtualElement {
+	getVirtualElement(): VirtualRow<T> {
 		if (!this.virtualElement) {
 			let touchAreaOffset = this.touchArea.getBoundingClientRect().top
 			let relativeYposition = this.list.currentPosition + this.startPos.y - touchAreaOffset
@@ -1127,7 +1215,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 				* this.list._config.rowHeight
 			this.virtualElement = this.list._virtualList.find(ve => ve.top === targetElementPosition)
 		}
-		return (this.virtualElement: any)
+		return assertNotNull(this.virtualElement)
 	}
 
 	updateWidth() {
@@ -1166,7 +1254,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 	}
 }
 
-export function listSelectionKeyboardShortcuts<T: VirtualElement, R: VirtualRow<T>>(list: MaybeLazy<List<T, R>>): Array<Shortcut> {
+export function listSelectionKeyboardShortcuts<T: ListElement, R: VirtualRow<T>>(list: MaybeLazy<List<T, R>>): Array<Shortcut> {
 	return [
 		{
 			key: Keys.UP,

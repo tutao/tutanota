@@ -126,7 +126,7 @@ export class SearchInPageOverlay {
 		m.redraw()
 	}
 
-	_getComponent(): VirtualElement {
+	_getComponent(): MComponent<void> {
 		let caseButtonAttrs = {
 			label: "matchCase_alt",
 			icon: () => Icons.MatchCase,

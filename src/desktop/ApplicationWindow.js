@@ -23,6 +23,7 @@ import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
+import type {lazy} from "../api/common/utils/Utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 

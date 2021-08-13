@@ -38,6 +38,7 @@ import {filterInt, noOp} from "../../api/common/utils/Utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,

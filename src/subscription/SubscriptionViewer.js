@@ -246,7 +246,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			})
 		this._giftCardsExpanded = stream(false)
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
 				m(TextFieldN, {

@@ -5,6 +5,7 @@ import {BootIcons, BootIconsSvg} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {IconsEnum} from "./icons/Icons"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 

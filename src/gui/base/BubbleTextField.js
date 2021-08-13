@@ -1,7 +1,7 @@
 // @flow
 import {inputLineHeight, px, size} from "../size"
 import m from "mithril"
-import {animations, fontSize, transform} from "./../animation/Animations"
+import {animations, fontSize, transform} from "../animation/Animations"
 import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
@@ -17,6 +17,7 @@ import type {TextFieldTypeEnum} from "./TextFieldN"
 import {Type} from "./TextFieldN"
 import {windowFacade} from "../../misc/WindowFacade"
 import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -503,7 +504,7 @@ class TextField {
 		this._keyHandler = null
 		this._preventAutofill = false
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(".text-field.rel.overflow-hidden.pt", {
 				oncreate: (vnode) => this._domWrapper = vnode.dom,
 				onclick: (e) => this.focus(),
@@ -567,7 +568,7 @@ class TextField {
 		}
 	}
 
-	_getInputField(): VirtualElement {
+	_getInputField(): Children {
 		if (this.disabled) {
 			return m(".text-break.selectable" + (this._alignRight ? ".right" : ""), {
 				style: {
@@ -658,7 +659,7 @@ class TextField {
 		}
 	}
 
-	_getTextArea(): VirtualElement {
+	_getTextArea(): Children {
 		if (this.disabled) {
 			return m(".text-prewrap.text-break.selectable", {
 				style: {
@@ -716,7 +717,7 @@ class TextField {
 		return this
 	}
 
-	onUpdate(updateHandler: handler<string>): TextField {
+	onUpdate(updateHandler: (string) => mixed): TextField {
 		this.value.map(updateHandler)
 		return this
 	}

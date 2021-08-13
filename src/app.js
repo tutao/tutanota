@@ -16,6 +16,7 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
+import type {lazy} from "./api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 bootFinished()

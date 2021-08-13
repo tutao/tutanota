@@ -31,7 +31,7 @@ import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
-function insertBetween(array: any[], spacer: () => VirtualElement) {
+function insertBetween(array: any[], spacer: () => Children) {
 	let ret = []
 	for (let e of array) {
 		if (e != null) {

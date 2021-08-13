@@ -132,7 +132,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		let lastQueryStream
 		let indexStateStream
 		let shortcuts
-		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
+		this.view = (vnode: Vnode<SearchBarAttrs>): Children => {
 			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
 				m(".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search), {
 					oncreate: (vnode) => {
@@ -560,7 +560,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		return filteredInstances
 	}
 
-	_getInputField(attrs: any): VirtualElement {
+	_getInputField(attrs: any): Children {
 		return m("input.input.input-no-clear", {
 			"aria-autocomplete": "list",
 			tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
