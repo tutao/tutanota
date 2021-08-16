@@ -122,11 +122,11 @@ import {locator} from "../../api/main/MainLocator"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent, moreButton} from "../../gui/base/GuiUtils"
+import {getCoordsOfMouseOrTouchEvent, createMoreSecondaryButtonAttrs} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -288,10 +288,10 @@ export class MailViewer {
 									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-											{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
-												this._tutaoBadge(),
-												getSenderOrRecipientHeading(this.mail, false)
-											]),
+										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
+											this._tutaoBadge(),
+											getSenderOrRecipientHeading(this.mail, false)
+										]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								!this._isAnnouncement() && styles.isUsingBottomNavigation()
@@ -935,8 +935,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-						? ContentBlockingStatus.AlwaysShow
-						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+					? ContentBlockingStatus.AlwaysShow
+					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -1576,8 +1576,8 @@ export class MailViewer {
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		fileController.downloadAndOpen(file, open)
 		              .catch(ofClass(FileOpenError, (e) => {
-		              	console.warn("FileOpenError", e)
-		              	Dialog.error("canNotOpenFileOnDevice_msg")
+			              console.warn("FileOpenError", e)
+			              Dialog.error("canNotOpenFileOnDevice_msg")
 		              }))
 		              .catch(e => {
 			              const msg = e || "unknown error"
@@ -1721,7 +1721,7 @@ export class MailViewer {
 
 		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
 		const maybeDropdownButtons = styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
-			? [moreButton(alwaysOrNeverAllowButtons, 216)]
+			? [createMoreSecondaryButtonAttrs(alwaysOrNeverAllowButtons, 216)]
 			: alwaysOrNeverAllowButtons
 
 		return m(InfoBanner, {
