@@ -203,7 +203,7 @@ export class IPC {
 				// args: [data.name, uint8ArrayToBase64(data.data)]
 				const filename: string = downcast(args[0])
 				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
-				return this._dl.saveBlob(filename, data, neverNull(this._wm.get(windowId)))
+				return this._dl.saveBlob(filename, data)
 			case "aesDecryptFile":
 				// key, path
 				return this._crypto.aesDecryptFile(...args.slice(0, 2))

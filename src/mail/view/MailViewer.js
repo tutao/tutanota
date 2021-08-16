@@ -1575,7 +1575,10 @@ export class MailViewer {
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		fileController.downloadAndOpen(file, open)
-		              .catch(ofClass(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")))
+		              .catch(ofClass(FileOpenError, (e) => {
+		              	console.warn("FileOpenError", e)
+		              	Dialog.error("canNotOpenFileOnDevice_msg")
+		              }))
 		              .catch(e => {
 			              const msg = e || "unknown error"
 			              console.error("could not open file:", msg)
