@@ -3,17 +3,18 @@ import {TutanotaError} from "../api/common/error/TutanotaError"
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {assertMainOrNode, getHttpOrigin, isAdminClient, isApp, isDesktop} from "../api/common/Env"
 import {BadRequestError} from "../api/common/error/RestError"
+import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
+import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
 // $FlowIgnore[untyped-import]
 import u2fApi from "./u2f-api"
 import {SECOND_MS} from "../api/common/TutanotaConstants"
 import {BrowserType} from "./ClientConstants"
 import {client} from "./ClientDetector"
-import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
-import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
 import {delay} from "../api/common/utils/PromiseUtils"
+import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -78,8 +79,8 @@ export class U2fClient {
 				}
 			], [], resolve, TIMEOUT)
 		})
-		const response = this._handleRawResponse(rawResponse)
-		const registerResponse = await this._decodeRegisterResponse(response)
+		const response = this._handleRawResponse(await rawResponse)
+		const registerResponse = this._decodeRegisterResponse(response)
 		return createU2fRegisteredDevice({
 			keyHandle: registerResponse.keyHandle,
 			appId: this.appId,
@@ -89,16 +90,18 @@ export class U2fClient {
 		})
 	}
 
-	_handleRawResponse(rawResponse: Object): Object {
-		console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
+	_handleRawResponse(rawResponse: {clientData: Base64Url, registrationData: Base64Url} | {errorCode: number}): Object {
 		if (!rawResponse.errorCode) {
 			return rawResponse
-		} else if (rawResponse.errorCode === 4) {
-			throw new U2fWrongDeviceError()
-		} else if (rawResponse.errorCode === 5) {
-			throw new U2fTimeoutError()
 		} else {
-			throw new U2fError("U2f error code: " + rawResponse.errorCode)
+			console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
+			if (rawResponse.errorCode === 4) {
+				throw new U2fWrongDeviceError()
+			} else if (rawResponse.errorCode === 5) {
+				throw new U2fTimeoutError()
+			} else {
+				throw new U2fError("U2f error code: " + downcast(rawResponse.errorCode))
+			}
 		}
 	}
 
