@@ -47,7 +47,7 @@ import {promiseMap} from "../api/common/utils/PromiseUtils"
 import {loadTemplateGroupInstances} from "../templates/model/TemplatePopupModel"
 import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import {showGroupSharingDialog} from "../sharing/view/GroupSharingDialog"
-import {getConfirmation, moreButton} from "../gui/base/GuiUtils"
+import {getConfirmation, createMoreActionButtonAttrs} from "../gui/base/GuiUtils"
 import {flat, partition} from "../api/common/utils/ArrayUtils"
 import {SidebarSection} from "../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../sharing/model/ReceivedGroupInvitationsModel"
@@ -254,7 +254,7 @@ export class SettingsView implements CurrentView {
 		const isGroupOwner = isSharedGroupOwner(instance.group, getEtId(logins.getUserController().user))
 		return m(SettingsFolderRow, {
 			mainButtonAttrs: this._createSettingsFolderNavButton(folder),
-			extraButtonAttrs: moreButton(() => [
+			extraButtonAttrs: createMoreActionButtonAttrs(() => [
 				isGroupOwner
 					? {
 						label: "delete_action",

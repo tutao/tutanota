@@ -83,13 +83,13 @@ import {createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers} from "../../sharing/GroupUtils"
 import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
-import {moreButton} from "../../gui/base/GuiUtils"
 import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolderRow"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -543,7 +543,7 @@ export class CalendarView implements CurrentView {
 
 	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
 		const {group, groupInfo, groupRoot} = calendarInfo
-		return m(ButtonN, moreButton(() => [
+		return m(ButtonN, createMoreActionButtonAttrs(() => [
 				{
 					label: "edit_action",
 					icon: () => Icons.Edit,
