@@ -14,11 +14,11 @@ import {BrowserType} from "./ClientConstants"
 import {client} from "./ClientDetector"
 import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
 import {delay} from "../api/common/utils/PromiseUtils"
-import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
 const TIMEOUT = 180
+
 
 /**
  * Abstraction of the U2F high level API.
@@ -31,9 +31,27 @@ const TIMEOUT = 180
  * @see https://fidoalliance.org/specs/fido-u2f-v1.1-id-20160915/fido-u2f-raw-message-formats-v1.1-id-20160915.html#registration-request-message---u2f_register
  *
  * Firefox supports u2f through the window.u2f property which we try to use when it's available.
+ *
+ * NOTE The type definitions for SignResponse and RegisterResponse as found in u2f-api.js are incorrect, disregard them (even when using the u2f-api.js implementation)
+ * The actual values in the response objects are as defined by the fido spec
  */
+
+// https://fidoalliance.org/specs/fido-u2f-v1.0-nfc-bt-amendment-20150514/fido-u2f-javascript-api.html#dictionary-signresponse-members
+type U2fSignResponse = {
+	keyHandle: string,
+	clientData: string,
+	signatureData: string,
+}
+
+// https://fidoalliance.org/specs/fido-u2f-v1.0-nfc-bt-amendment-20150514/fido-u2f-javascript-api.html#registration
+type U2fRegisterResponse = {
+	clientData: Base64Url,
+	registrationData: Base64Url,
+}
+
 export class U2fClient {
 	appId: string;
+	api: {sign: Function, register: Function}
 
 	constructor() {
 		if (window.location.hostname.endsWith("tutanota.com")) {
@@ -41,6 +59,8 @@ export class U2fClient {
 		} else {
 			this.appId = getHttpOrigin() + "/u2f-appid.json"
 		}
+
+		this.api = window.u2f || u2fApi
 	}
 
 	/**
@@ -66,20 +86,11 @@ export class U2fClient {
 	}
 
 	async register(): Promise<U2fRegisteredDevice> {
-		let random = new Uint8Array(32)
-		let c = typeof crypto !== 'undefined' ? crypto : msCrypto
+		const random = new Uint8Array(32)
+		const c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
-		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-
-		const rawResponse = new Promise(resolve => {
-			(window.u2f || u2fApi).register(this.appId, [
-				{
-					version: "U2F_V2",
-					challenge: challenge,
-				}
-			], [], resolve, TIMEOUT)
-		})
-		const response = this._handleRawResponse(await rawResponse)
+		const challenge = base64ToBase64Url(uint8ArrayToBase64(random))
+		const response = await this._doRegister(challenge)
 		const registerResponse = this._decodeRegisterResponse(response)
 		return createU2fRegisteredDevice({
 			keyHandle: registerResponse.keyHandle,
@@ -90,20 +101,24 @@ export class U2fClient {
 		})
 	}
 
-	_handleRawResponse(rawResponse: {clientData: Base64Url, registrationData: Base64Url} | {errorCode: number}): Object {
-		if (!rawResponse.errorCode) {
-			return rawResponse
-		} else {
-			console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
-			if (rawResponse.errorCode === 4) {
-				throw new U2fWrongDeviceError()
-			} else if (rawResponse.errorCode === 5) {
-				throw new U2fTimeoutError()
-			} else {
-				throw new U2fError("U2f error code: " + downcast(rawResponse.errorCode))
-			}
-		}
+	async _doRegister(challenge: Base64): Promise<U2fRegisterResponse> {
+		return new Promise((resolve, reject) => {
+			this.api.register(this.appId, [
+				{
+					version: "U2F_V2",
+					challenge: challenge,
+				}
+			], [], (response) => {
+				if (!response.errorCode) {
+					resolve(response)
+				} else {
+					console.log("U2f error", response.errorCode, JSON.stringify(response))
+					reject(this._errorFromResponseCode(response.errorCode))
+				}
+			}, TIMEOUT)
+		})
 	}
+
 
 	async sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<U2fResponseData> {
 		let registeredKeys = challenge.keys.map(key => {
@@ -113,16 +128,38 @@ export class U2fClient {
 				appId: this.appId
 			}
 		})
-		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
-		const rawResponse = await new Promise(resolve => {
-			(window.u2f || u2fApi).sign(this.appId, challengeData, registeredKeys, resolve, TIMEOUT)
-		})
-		const rawAuthenticationResponse = this._handleRawResponse(rawResponse)
+
+		const challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
+		const response = await this._doSign(challengeData, registeredKeys)
+
 		return createU2fResponseData({
-			keyHandle: rawAuthenticationResponse.keyHandle,
-			clientData: rawAuthenticationResponse.clientData,
-			signatureData: rawAuthenticationResponse.signatureData,
+			keyHandle: response.keyHandle,
+			clientData: response.clientData,
+			signatureData: response.signatureData,
 		})
+	}
+
+	async _doSign(challengeData: Base64, registeredKeys: Array<{version: string, keyHandle: Base64, appId: string}>): Promise<U2fSignResponse> {
+		return new Promise((resolve, reject) => {
+			this.api.sign(this.appId, challengeData, registeredKeys, (response) => {
+				if (!response.errorCode) {
+					resolve(response)
+				} else {
+					console.log("U2f error", response.errorCode, JSON.stringify(response))
+					reject(this._errorFromResponseCode(response.errorCode))
+				}
+			}, TIMEOUT)
+		})
+	}
+
+	_errorFromResponseCode(code: number): Error {
+		if (code === 4) {
+			return new U2fWrongDeviceError()
+		} else if (code === 5) {
+			return new U2fTimeoutError()
+		} else {
+			return new U2fError("U2f error code: " + code)
+		}
 	}
 
 	/**
