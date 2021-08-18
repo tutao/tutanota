@@ -735,7 +735,7 @@ declare module 'electron' {
 
 	declare export type ElectronSession = {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
-		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => mixed) => void;
+		on(event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => mixed): ElectronSession;
 		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;
 		setSpellCheckerDictionaryDownloadURL: (string) => void;
 		setSpellCheckerLanguages: (Array<string>) => void;
@@ -931,8 +931,12 @@ If the size is unknown, it returns 0.
 		| 'pointerLock'
 		| 'fullscreen'
 		| 'openExternal';
-	declare export type ElectronSessionEvent
-		= 'will-download'
+	declare export type ElectronSessionEvent =
+		|'will-download'
+		| 'spellcheck-dictionary-initialized'
+		| 'spellcheck-dictionary-download-begin'
+		| 'spellcheck-dictionary-download-success'
+
 		| 'spellcheck-dictionary-download-failure';
 
 	declare interface FromPartitionOptions {

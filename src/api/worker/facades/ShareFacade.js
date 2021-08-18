@@ -20,7 +20,6 @@ import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvi
 import type {GroupInvitationPostReturn} from "../../entities/tutanota/GroupInvitationPostReturn"
 import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInvitationPostReturn"
 import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
-import type {RecipientInfo} from "../../common/RecipientInfo"
 import {promiseMap} from "../../common/utils/PromiseUtils"
 
 assertWorkerOrNode()
@@ -35,41 +34,42 @@ export class ShareFacade {
 	}
 
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<GroupInvitationPostReturn> {
+	async sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipientMailAddresses: Array<string>, shareCapability: ShareCapabilityEnum): Promise<GroupInvitationPostReturn> {
 		const sharedGroupKey = this._loginFacade.getGroupKey(sharedGroupInfo.group)
-		return resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo()).then(userGroupInfoSessionKey => {
-			return resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo).then(sharedGroupInfoSessionKey => {
-				const bucketKey = aes128RandomKey()
-				const invitationSessionKey = aes128RandomKey()
-				const sharedGroupData = createSharedGroupData({
-					sessionEncInviterName: encryptString(invitationSessionKey, this._loginFacade.getUserGroupInfo().name),
-					sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey)),
-					sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupName),
-					bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
-					sharedGroupEncInviterGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
-					sharedGroupEncSharedGroupInfoKey: encryptKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey)),
-					capability: shareCapability,
-					sharedGroup: sharedGroupInfo.group
-				})
 
-				const invitationData = createGroupInvitationPostData({
-					sharedGroupData,
-					internalKeyData: []
-				})
-
-				const notFoundRecipients: Array<string> = []
-				return promiseMap(recipients, (recipient) => {
-					return encryptBucketKeyForInternalRecipient(bucketKey, recipient, notFoundRecipients).then(keyData => {
-						if (keyData) {
-							invitationData.internalKeyData.push(keyData)
-						}
-					})
-				}).then(() => {
-					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
-					return serviceRequest(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData, GroupInvitationPostReturnTypeRef)
-				})
-			})
+		const userGroupInfoSessionKey = await resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo())
+		const sharedGroupInfoSessionKey = await resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo)
+		const bucketKey = aes128RandomKey()
+		const invitationSessionKey = aes128RandomKey()
+		const sharedGroupData = createSharedGroupData({
+			sessionEncInviterName: encryptString(invitationSessionKey, this._loginFacade.getUserGroupInfo().name),
+			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey)),
+			sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupName),
+			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
+			sharedGroupEncInviterGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
+			sharedGroupEncSharedGroupInfoKey: encryptKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey)),
+			capability: shareCapability,
+			sharedGroup: sharedGroupInfo.group
 		})
+
+		const invitationData = createGroupInvitationPostData({
+			sharedGroupData,
+			internalKeyData: []
+		})
+
+		const notFoundRecipients: Array<string> = []
+		for (let mailAddress of recipientMailAddresses) {
+			const keyData = await encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
+			if (keyData) {
+				invitationData.internalKeyData.push(keyData)
+			}
+		}
+
+		if (notFoundRecipients.length > 0) {
+			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
+		}
+
+		return serviceRequest(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData, GroupInvitationPostReturnTypeRef)
 	}
 
 

@@ -3,6 +3,8 @@ import o from "ospec"
 import n from "../nodemocker"
 import {DesktopDownloadManager} from "../../../src/desktop/DesktopDownloadManager"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {CancelledError} from "../../../src/api/common/error/CancelledError"
+import {assertThrows} from "../../api/TestUtils"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -12,6 +14,9 @@ o.spec("DesktopDownloadManagerTest", function () {
 	let item
 	let WriteStream
 	let fs
+	let dateProvider
+
+	let time = 1629115820468
 	const standardMocks = () => {
 		conf = {
 			removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
@@ -39,6 +44,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const electron = {
 			dialog: {
 				showMessageBox: () => Promise.resolve({response: 1}),
+				showSaveDialog: () => Promise.resolve({filePath: "parentDir/resultFilePath"})
 			},
 			shell: {
 				openPath: (path) => Promise.resolve(path !== "invalid" ? "" : 'invalid path')
@@ -131,7 +137,6 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 
 		fs = {
-			readdirSync: (path) => [],
 			closeSync: () => {
 			},
 			openSync: () => {
@@ -143,6 +148,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 			promises: {
 				unlink: () => Promise.resolve(),
 				mkdir: () => Promise.resolve(),
+				writeFile: () => Promise.resolve(),
+				readdir: () => Promise.resolve([])
 			}
 		}
 
@@ -152,6 +159,9 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const desktopUtils = {
 			touch: (path) => {},
 		}
+		dateProvider = {
+			now: () => time,
+		}
 
 		return {
 			netMock: n.mock("__net", net).set(),
@@ -159,15 +169,16 @@ o.spec("DesktopDownloadManagerTest", function () {
 			electronMock: n.mock("electron", electron).set(),
 			fsMock: n.mock("fs-extra", fs).set(),
 			desktopUtilsMock: n.mock("./DesktopUtils", desktopUtils).set(),
-			langMock: n.mock('../misc/LanguageViewModel', lang).set()
+			langMock: n.mock('../misc/LanguageViewModel', lang).set(),
+			dateProviderMock: n.mock("__dateProvider", dateProvider).set()
 		}
 	}
 
-	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock}) {
-		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, fsMock, electronMock)
+	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, dateProviderMock}) {
+		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, dateProviderMock, fsMock, electronMock)
 	}
 
-	o("no default download path => don't assign save path", async function () {
+	o("no default download path => save to user selected path", async function () {
 		const mocks = standardMocks()
 		mocks.confMock = n.mock("__conf", conf).with({
 			getVar: (key) => {
@@ -181,113 +192,74 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}).set()
 
 		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-		o(sessionMock.removeAllListeners.callCount).equals(2)
-		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
-		o(sessionMock.on.callCount).equals(2)
-		o(sessionMock.on.args[0]).equals("will-download")
-		const itemMock = n.spyify({on: () => {}})
-		await sessionMock.callbacks["will-download"](undefined, itemMock)
-		o(itemMock.on.callCount).equals(1)
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
+		await dl.saveBlob("blob", new Uint8Array([1]))
+		o(mocks.fsMock.promises.mkdir.args).deepEquals(["parentDir", {recursive: true}])
+		o(mocks.fsMock.promises.writeFile.args[0]).equals("parentDir/resultFilePath")
+	})
+
+	o("no default download path, cancelled", async function () {
+		const mocks = standardMocks()
+		mocks.confMock = n.mock("__conf", conf).with({
+			getVar: (key) => {
+				switch (key) {
+					case "defaultDownloadPath":
+						return null
+					default:
+						throw new Error(`unexpected getVar key ${key}`)
+				}
+			}
+		}).set()
+		mocks.electronMock.dialog.showSaveDialog = () => Promise.resolve({canceled: true})
+
+		const dl = makeMockedDownloadManager(mocks)
+		await assertThrows(CancelledError, () => dl.saveBlob("blob", new Uint8Array([1])))
 	})
 
 	o("with default download path", async function () {
 		const mocks = standardMocks()
-
 		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-		await sessionMock.callbacks["will-download"]({}, itemMock)
-		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
-		itemMock.callbacks["done"]({}, 'completed')
+		await dl.saveBlob("blob", new Uint8Array([1]))
+		o(mocks.fsMock.promises.mkdir.args).deepEquals(["/a/download/path", {recursive: true}])
+		o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob")
+
 		o(mocks.electronMock.shell.openPath.callCount).equals(1)
 		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
-
-		// make sure nothing failed
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
-	o("with default download path but it doesn't exist", async function () {
+	o("with default download path but file exists", async function () {
 		const mocks = standardMocks()
-		mocks.fsMock = n.mock("fs-extra", fs).with({
-			existsSync: () => false,
-		}).set()
-
 		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-		o(sessionMock.removeAllListeners.callCount).equals(2)
-		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
-		o(sessionMock.on.callCount).equals(2)
-		o(sessionMock.on.args[0]).equals("will-download")
-		const itemMock = n.spyify({on: () => {}})
-		sessionMock.callbacks["will-download"](undefined, itemMock)
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
+		mocks.fsMock.promises.readdir = () => Promise.resolve(["blob"])
+
+		await dl.saveBlob("blob", new Uint8Array([1]))
+
+		o(mocks.fsMock.promises.mkdir.args).deepEquals(["/a/download/path", {recursive: true}])
+		o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob-1")
+
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 	})
 
 	o("two downloads, open two filemanagers", async function () {
 		const mocks = standardMocks()
 
 		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-
-		await sessionMock.callbacks["will-download"]({}, itemMock)
-		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
-
-		itemMock.callbacks["done"]({}, 'completed')
+		await dl.saveBlob("blob", new Uint8Array([0]))
 		o(mocks.electronMock.shell.openPath.callCount).equals(1)
-		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
+		await dl.saveBlob("blob", new Uint8Array([0]))
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+	})
 
-		await delay(60)
-		sessionMock.callbacks["will-download"]({}, itemMock)
-		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
+	o("two downloads, open two filemanagers after a pause", async function () {
+		const mocks = standardMocks()
 
-		itemMock.callbacks["done"]({}, 'completed')
+		const dl = makeMockedDownloadManager(mocks)
+		await dl.saveBlob("blob", new Uint8Array([0]))
+		o(mocks.electronMock.shell.openPath.callCount).equals(1)
+		time += 1000 * 60
+		await dl.saveBlob("blob", new Uint8Array([0]))
 		o(mocks.electronMock.shell.openPath.callCount).equals(2)
-		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
-
-		// make sure nothing failed
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
-	})
-
-	o("only open one file manager for successive downloads", async function () {
-		const mocks = standardMocks()
-		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		const itemMock = n.mock("__item", item).set()
-		const itemMock2 = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-		await sessionMock.callbacks["will-download"]({}, itemMock)
-		await sessionMock.callbacks["will-download"]({}, itemMock2)
-		itemMock.callbacks["done"]({}, 'completed')
-		itemMock2.callbacks["done"]({}, 'completed')
-
-		o(mocks.electronMock.shell.openPath.callCount).equals(1)
-		o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
-
-		// make sure nothing failed
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(0)
-	})
-
-	o("download interrupted shows error box", async function () {
-		const mocks = standardMocks()
-		const dl = makeMockedDownloadManager(mocks)
-		const sessionMock = n.mock("__session", session).set()
-		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock, "dictUrl")
-		await sessionMock.callbacks["will-download"]({}, itemMock)
-		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
-
-		itemMock.callbacks["done"]({}, 'interrupted')
-
-		o(mocks.electronMock.shell.openPath.callCount).equals(0)
-		o(mocks.electronMock.dialog.showMessageBox.callCount).equals(1)
 	})
 
 	o("downloadNative, no error", async function () {

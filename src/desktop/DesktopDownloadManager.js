@@ -1,32 +1,43 @@
 // @flow
-import type {DownloadItem, ElectronSession} from 'electron'
+import type {ElectronSession} from 'electron'
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import type {ApplicationWindow} from "./ApplicationWindow"
 import {log} from "./DesktopLog";
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
 import {promises as fs} from "fs"
-import {delay} from "../api/common/utils/PromiseUtils"
+import type {DateProvider} from "../calendar/date/CalendarUtils"
+import {CancelledError} from "../api/common/error/CancelledError"
 
+const TAG = "[DownloadManager]"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
 	_net: DesktopNetworkClient;
-	_fileManagersOpen: number;
+	_dateProvider: DateProvider;
+	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
+	_lastOpenedFileManagerAt: ?number;
 	_desktopUtils: DesktopUtils;
 	_fs: $Exports<"fs">;
 	_electron: $Exports<"electron">
 	_topLevelDownloadDir: string
 
-	constructor(conf: DesktopConfig, net: DesktopNetworkClient, desktopUtils: DesktopUtils, fs: $Exports<"fs">, electron: $Exports<"electron">) {
+	constructor(
+		conf: DesktopConfig,
+		net: DesktopNetworkClient,
+		desktopUtils: DesktopUtils,
+		dateProvider: DateProvider,
+		fs: $Exports<"fs">,
+		electron: $Exports<"electron">
+	) {
 		this._conf = conf
 		this._net = net
-		this._fileManagersOpen = 0
+		this._dateProvider = dateProvider
+		this._lastOpenedFileManagerAt = null
 		this._desktopUtils = desktopUtils
 		this._fs = fs
 		this._electron = electron
@@ -34,13 +45,14 @@ export class DesktopDownloadManager {
 	}
 
 	manageDownloadsForSession(session: ElectronSession, dictUrl: string) {
-		dictUrl = dictUrl + '/dictionaries/'
-		log.debug('getting dictionaries from:', dictUrl)
+		dictUrl = dictUrl + "/dictionaries/"
+		log.debug(TAG, "getting dictionaries from:", dictUrl)
 		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
 		session.removeAllListeners('spellcheck-dictionary-download-failure')
-		       .on('spellcheck-dictionary-download-failure', (ev, lcode) => log.debug("failed to dl dict for lang", lcode))
-		session.removeAllListeners('will-download')
-		       .on('will-download', (ev, item) => this._handleDownloadItem(item))
+		       .on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+		       .on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
+		       .on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
+		       .on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 	}
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {|v: string, accessToken: string|}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
@@ -103,69 +115,40 @@ export class DesktopDownloadManager {
 		}
 	}
 
-	async saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
-		const write = ({canceled, filePath}): Promise<void> => {
-			if (!canceled) return this._fs.promises.writeFile(assertNotNull(filePath), data)
-			return Promise.reject('canceled')
+	async saveBlob(filename: string, data: Uint8Array): Promise<void> {
+		const savePath = await this._pickSavePath(filename)
+		await this._fs.promises.mkdir(path.dirname(savePath), {recursive: true})
+		await this._fs.promises.writeFile(savePath, data)
+
+		// See doc for _lastOpenedFileManagerAt on why we do this throttling.
+		const lastOpenedFileManagerAt = this._lastOpenedFileManagerAt
+		const fileManagerTimeout = await this._conf.getConst("fileManagerTimeout")
+		if (lastOpenedFileManagerAt == null || this._dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
+			this._lastOpenedFileManagerAt = this._dateProvider.now()
+			await this._electron.shell.openPath(path.dirname(savePath))
 		}
-
-		const downloadItem: DownloadItem = new this._electron.DownloadItem()
-		downcast(downloadItem).getFilename = () => filename
-
-		await this._handleDownloadItem(downloadItem)
-		const writePromise = downloadItem.savePath
-			? write({canceled: false, filePath: downloadItem.savePath})
-			: this._electron.dialog.showSaveDialog(null, {defaultPath: path.join(this._electron.app.getPath('downloads'), filename)})
-			      .then(write)
-		return writePromise.then(() => {downloadItem.emit('done', undefined, 'completed')})
-		                   .catch(e => {downloadItem.emit('done', e, 'cancelled')})
 	}
 
-
-	async _handleDownloadItem(item: DownloadItem): Promise<void> {
+	async _pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this._conf.getVar('defaultDownloadPath')
-		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
-		let fileManagerLock = noOp
-		if (defaultDownloadPath && this._fs.existsSync(defaultDownloadPath)) {
-			try {
-				const fileName = path.basename(item.getFilename())
-				const savePath = path.join(
-					defaultDownloadPath,
-					nonClobberingFilename(
-						this._fs.readdirSync(defaultDownloadPath),
-						fileName
-					)
+		if (defaultDownloadPath != null) {
+			const fileName = path.basename(filename)
+			return path.join(
+				defaultDownloadPath,
+				nonClobberingFilename(
+					await this._fs.promises.readdir(defaultDownloadPath),
+					fileName
 				)
-				// touch file so it is already in the dir the next time sth gets dl'd
-				this._desktopUtils.touch(savePath)
-				item.savePath = savePath
-
-				if (this._fileManagersOpen === 0) {
-					this._fileManagersOpen = this._fileManagersOpen + 1
-					fileManagerLock = async () => {
-						await this._electron.shell.openPath(path.dirname(savePath))
-						await delay(await this._conf.getConst("fileManagerTimeout"))
-						this._fileManagersOpen = this._fileManagersOpen - 1
-					}
-				}
-			} catch (e) {
-				console.error("error while downloading", e)
-				showDownloadErrorMessageBox(this._electron, e.message, item.getFilename())
+			)
+		} else {
+			const {canceled, filePath} = await this._electron.dialog.showSaveDialog(null,
+				{defaultPath: path.join(this._electron.app.getPath('downloads'), filename)})
+			if (canceled) {
+				throw new CancelledError("Path selection cancelled")
+			} else {
+				return assertNotNull(filePath)
 			}
 		}
-
-		item.on('done', (event, state) => {
-			if (state === 'completed') {
-				fileManagerLock()
-			}
-			if (state === 'interrupted') {
-				console.error("download interrupted", event)
-				showDownloadErrorMessageBox(this._electron, 'download interrupted', item.getFilename())
-			}
-			if (state === 'cancelled') {
-				log.debug("download cancelled", item.getFilename())
-			}
-		})
 	}
 
 	/**
@@ -193,19 +176,4 @@ export class DesktopDownloadManager {
 		// Using sync version because this could get called on app shutdown and it may not complete if async
 		downcast(this._fs.rmdirSync)(this.getTutanotaTempPath(), {recursive: true})
 	}
-
-}
-
-function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: string, filename: string) {
-	electron.dialog.showMessageBox(null, {
-		type: 'error',
-		buttons: [lang.get('ok_action')],
-		defaultId: 0,
-		title: lang.get('download_action'),
-		message: lang.get('couldNotAttachFile_msg')
-			+ '\n'
-			+ filename
-			+ '\n'
-			+ message
-	})
 }

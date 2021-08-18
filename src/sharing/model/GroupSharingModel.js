@@ -127,7 +127,7 @@ export class GroupSharingModel {
 				throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
 					+ externalRecipients.join("\n"))
 			}
-			return this.worker.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients, capability)
+			return this.worker.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients.map(r => r.mailAddress), capability)
 			           .then((groupInvitationReturn) => {
 				           if (groupInvitationReturn.existingMailAddresses.length > 0
 					           || groupInvitationReturn.invalidMailAddresses.length > 0) {

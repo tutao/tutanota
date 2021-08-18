@@ -4,15 +4,15 @@ import {Countries} from "../../api/common/CountryList"
 import {DropDownSelector} from "./DropDownSelector"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {ButtonAttrs} from "./ButtonN"
+import type {ButtonAttrs, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import type {DropdownChildAttrs} from "./DropdownN"
 import {attachDropdown} from "./DropdownN"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Dialog} from "./Dialog"
+import type {AllIconsEnum} from "./Icon"
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLabel?: lazy<string>, label: TranslationKey | lazy<string> = "invoiceCountry_label"): DropDownSelector<?Country> {
@@ -30,12 +30,21 @@ export function createCountryDropdown(selectedCountry: Stream<?Country>, helpLab
 	return countryInput
 }
 
-export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, dropdownWidth?: number): ButtonAttrs {
-	const mailButton = {
+export function createMoreSecondaryButtonAttrs(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, dropdownWidth?: number): ButtonAttrs {
+	return moreButtonAttrsImpl(null, ButtonType.Secondary, lazyChildren, dropdownWidth)
+}
+
+export function createMoreActionButtonAttrs(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, dropdownWidth?: number): ButtonAttrs {
+	return moreButtonAttrsImpl(() => Icons.More, ButtonType.Action, lazyChildren, dropdownWidth)
+}
+
+function moreButtonAttrsImpl(icon: ?lazy<AllIconsEnum>, type: ButtonTypeEnum, lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?DropdownChildAttrs>>>, dropdownWidth?: number): ButtonAttrs {
+	const button = {
 		label: "more_label",
 		colors: ButtonColors.Nav,
 		click: noOp,
-		icon: () => Icons.More
+		icon,
+		type
 	}
 	const buttons = mapLazily(lazyChildren, async children => {
 		const resolvedChildren = await children
@@ -49,7 +58,7 @@ export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?D
 			}
 		})
 	})
-	return attachDropdown(mailButton, buttons, () => true, dropdownWidth)
+	return attachDropdown(button, buttons, () => true, dropdownWidth)
 }
 
 

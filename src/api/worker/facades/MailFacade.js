@@ -55,7 +55,6 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
-import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
@@ -242,32 +241,32 @@ export class MailFacade {
 	): Promise<DraftAttachment[]> {
 		if (providedFiles) {
 			return promiseMap(providedFiles, providedFile => {
-					// check if this is a new attachment or an existing one
-					if (providedFile._type === "DataFile") {
-						// user added attachment
-						const fileSessionKey = aes128RandomKey()
-						const dataFile = downcast<DataFile>(providedFile)
-						return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
-						})
-					} else if (providedFile._type === "FileReference") {
-						const fileSessionKey = aes128RandomKey()
-						const fileRef = downcast<FileReference>(providedFile)
-						return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
-						})
-					} else if (!containsId(existingFileIds, getLetId(providedFile))) {
-						// forwarded attachment which was not in the draft before
-						return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
-							const attachment = createDraftAttachment();
-							attachment.existingFile = getLetId(providedFile)
-							attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
-							return attachment
-						})
-					} else {
-						return null
-					}
-				}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+				// check if this is a new attachment or an existing one
+				if (providedFile._type === "DataFile") {
+					// user added attachment
+					const fileSessionKey = aes128RandomKey()
+					const dataFile = downcast<DataFile>(providedFile)
+					return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
+						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
+					})
+				} else if (providedFile._type === "FileReference") {
+					const fileSessionKey = aes128RandomKey()
+					const fileRef = downcast<FileReference>(providedFile)
+					return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
+						return this.createAndEncryptDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
+					})
+				} else if (!containsId(existingFileIds, getLetId(providedFile))) {
+					// forwarded attachment which was not in the draft before
+					return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
+						const attachment = createDraftAttachment();
+						attachment.existingFile = getLetId(providedFile)
+						attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
+						return attachment
+					})
+				} else {
+					return null
+				}
+			}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.then((attachments) => attachments.filter(Boolean))
 				.then((it) => {
 					// only delete the temporary files after all attachments have been uploaded
@@ -438,7 +437,7 @@ export class MailFacade {
 						           service.secureExternalRecipientKeyData.push(data)
 					           })
 				} else {
-					return encryptBucketKeyForInternalRecipient(bucketKey, recipientInfo, notFoundRecipients).then(keyData => {
+					return encryptBucketKeyForInternalRecipient(bucketKey, recipientInfo.mailAddress, notFoundRecipients).then(keyData => {
 						if (keyData) {
 							service.internalRecipientKeyData.push(keyData)
 						}

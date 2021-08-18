@@ -3,21 +3,23 @@ import {TutanotaError} from "../api/common/error/TutanotaError"
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {assertMainOrNode, getHttpOrigin, isAdminClient, isApp, isDesktop} from "../api/common/Env"
 import {BadRequestError} from "../api/common/error/RestError"
+import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
+import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
 // $FlowIgnore[untyped-import]
 import u2fApi from "./u2f-api"
 import {SECOND_MS} from "../api/common/TutanotaConstants"
 import {BrowserType} from "./ClientConstants"
 import {client} from "./ClientDetector"
-import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
-import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
 import {delay} from "../api/common/utils/PromiseUtils"
+import {downcast} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
 const TIMEOUT = 180
+
 
 /**
  * Abstraction of the U2F high level API.
@@ -30,9 +32,54 @@ const TIMEOUT = 180
  * @see https://fidoalliance.org/specs/fido-u2f-v1.1-id-20160915/fido-u2f-raw-message-formats-v1.1-id-20160915.html#registration-request-message---u2f_register
  *
  * Firefox supports u2f through the window.u2f property which we try to use when it's available.
+ *
+ * NOTE The type definitions for SignResponse and RegisterResponse as found in u2f-api.js are incorrect, disregard them (even when using the u2f-api.js implementation)
+ * The actual values in the response objects are as defined by the fido spec
  */
+
+type U2fRegisterRequest = {
+	version: string,
+	challenge: Base64
+}
+
+type RegisteredKey = {
+	version: string,
+	keyHandle: Base64,
+	appId: string
+}
+
+// https://fidoalliance.org/specs/fido-u2f-v1.0-nfc-bt-amendment-20150514/fido-u2f-javascript-api.html#dictionary-signresponse-members
+type U2fSignResponse = {|
+	keyHandle: string,
+	clientData: string,
+	signatureData: string,
+
+	// 0 in FF, undefined in chrome
+	errorCode: void | 0
+|}
+
+// https://fidoalliance.org/specs/fido-u2f-v1.0-nfc-bt-amendment-20150514/fido-u2f-javascript-api.html#registration
+type U2fRegisterResponse = {|
+	clientData: Base64Url,
+	registrationData: Base64Url,
+
+	// 0 in FF, undefined in chrome
+	errorCode: void | 0
+|}
+
+type U2fErrorResponse = {|
+	errorCode: number
+|}
+
+type U2fApi = {
+	register(appId: string, registerRequests: Array<U2fRegisterRequest>, registeredKeys: Array<RegisteredKey>, callback: (U2fRegisterResponse | U2fErrorResponse) => *, timeoutSeconds: ?number): void,
+	sign(appId: string, challenge: string, registeredKeys: Array<RegisteredKey>, callback: (U2fSignResponse | U2fErrorResponse) => *, timeoutSeconds: number): void
+}
+
+
 export class U2fClient {
 	appId: string;
+	api: U2fApi
 
 	constructor() {
 		if (window.location.hostname.endsWith("tutanota.com")) {
@@ -40,6 +87,8 @@ export class U2fClient {
 		} else {
 			this.appId = getHttpOrigin() + "/u2f-appid.json"
 		}
+
+		this.api = window.u2f || u2fApi
 	}
 
 	/**
@@ -65,21 +114,19 @@ export class U2fClient {
 	}
 
 	async register(): Promise<U2fRegisteredDevice> {
-		let random = new Uint8Array(32)
-		let c = typeof crypto !== 'undefined' ? crypto : msCrypto
+		const random = new Uint8Array(32)
+		const c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
-		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-
-		const rawResponse = new Promise(resolve => {
-			(window.u2f || u2fApi).register(this.appId, [
+		const challenge = base64ToBase64Url(uint8ArrayToBase64(random))
+		const response = await new Promise(resolve => {
+			this.api.register(this.appId, [
 				{
 					version: "U2F_V2",
 					challenge: challenge,
 				}
-			], [], resolve, TIMEOUT)
+			], [], (response) => resolve(this._unwrapResponse(response)), TIMEOUT)
 		})
-		const response = this._handleRawResponse(rawResponse)
-		const registerResponse = await this._decodeRegisterResponse(response)
+		const registerResponse = this._decodeRegisterResponse(response)
 		return createU2fRegisteredDevice({
 			keyHandle: registerResponse.keyHandle,
 			appId: this.appId,
@@ -87,19 +134,6 @@ export class U2fClient {
 			compromised: false,
 			counter: "-1"
 		})
-	}
-
-	_handleRawResponse(rawResponse: Object): Object {
-		console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
-		if (!rawResponse.errorCode) {
-			return rawResponse
-		} else if (rawResponse.errorCode === 4) {
-			throw new U2fWrongDeviceError()
-		} else if (rawResponse.errorCode === 5) {
-			throw new U2fTimeoutError()
-		} else {
-			throw new U2fError("U2f error code: " + rawResponse.errorCode)
-		}
 	}
 
 	async sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<U2fResponseData> {
@@ -110,16 +144,32 @@ export class U2fClient {
 				appId: this.appId
 			}
 		})
-		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
-		const rawResponse = await new Promise(resolve => {
-			(window.u2f || u2fApi).sign(this.appId, challengeData, registeredKeys, resolve, TIMEOUT)
+		const challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
+		const response = await new Promise(resolve => {
+			this.api.sign(this.appId, challengeData, registeredKeys, (response) => resolve(this._unwrapResponse(response)), TIMEOUT)
 		})
-		const rawAuthenticationResponse = this._handleRawResponse(rawResponse)
 		return createU2fResponseData({
-			keyHandle: rawAuthenticationResponse.keyHandle,
-			clientData: rawAuthenticationResponse.clientData,
-			signatureData: rawAuthenticationResponse.signatureData,
+			keyHandle: response.keyHandle,
+			clientData: response.clientData,
+			signatureData: response.signatureData,
 		})
+	}
+
+	_unwrapResponse<T: U2fRegisterResponse | U2fSignResponse>(response: T | U2fErrorResponse): T {
+		if (!response.errorCode) {
+			// Can't get flow to agree that we do in fact have a non-error here
+			return downcast(response)
+		} else {
+			const errorCode = response.errorCode
+			console.log("U2f error", errorCode, JSON.stringify(response))
+			if (errorCode === 4) {
+				throw new U2fWrongDeviceError()
+			} else if (errorCode === 5) {
+				throw new U2fTimeoutError()
+			} else {
+				throw new U2fError("U2f error code: " + errorCode)
+			}
+		}
 	}
 
 	/**

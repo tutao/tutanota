@@ -14,6 +14,7 @@ import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -161,11 +162,11 @@ export class FileController {
 		return import("../native/common/FileApp").then(({fileApp}) => fileApp.open(file))
 	}
 
-	openDataFile(dataFile: DataFile): Promise<void> {
+	async openDataFile(dataFile: DataFile): Promise<void> {
 		if (isApp() || isDesktop()) {
-			return import("../native/common/FileApp").then(({fileApp}) => fileApp.saveBlob(dataFile))
-			                                         .catch(err => Dialog.error("canNotOpenFileOnDevice_msg"))
-			                                         .then(noOp)
+			// For apps "opening" blob currently means saving it. This is not logical but we need to check all cases before changing this.
+			await this._saveBlobNative(dataFile)
+			return
 		}
 		let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
 			|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
@@ -223,6 +224,21 @@ export class FileController {
 			} catch (e) {
 				console.log(e)
 				return Dialog.error("canNotOpenFileOnDevice_msg")
+			}
+		}
+	}
+
+	async _saveBlobNative(dataFile: DataFile) {
+		const {fileApp} = await import("../native/common/FileApp")
+		try {
+			await fileApp.saveBlob(dataFile)
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				// no-op. User cancelled file dialog
+				console.log("saveBlob cancelled")
+			} else {
+				console.warn("openDataFile failed", e)
+				Dialog.error("canNotOpenFileOnDevice_msg")
 			}
 		}
 	}
