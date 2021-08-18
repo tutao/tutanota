@@ -25,6 +25,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
 import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {
+	checkAttachmentSize,
 	createRecipientInfo,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
@@ -644,23 +645,13 @@ export class SendMailModel {
 
 	/** @throws UserError in case files are too big to add */
 	attachFiles(files: $ReadOnlyArray<Attachment>): void {
-		let totalSize = this._attachments.reduce((total, file) => total + Number(file.size), 0)
-		const tooBigFiles: Array<string> = [];
-		files.forEach(file => {
-			if (totalSize + Number(file.size) > MAX_ATTACHMENT_SIZE) {
-				tooBigFiles.push(file.name)
-			} else {
-				totalSize += Number(file.size)
-				this._attachments.push(file)
-			}
-		})
-
+		let sizeLeft = MAX_ATTACHMENT_SIZE - this._attachments.reduce((total, file) => total + Number(file.size), 0)
+		const sizeCheckResult = checkAttachmentSize(files, sizeLeft)
+		this._attachments.push(...sizeCheckResult.attachableFiles)
 		this.setMailChanged(true)
-
-		if (tooBigFiles.length > 0) {
-			throw new UserError(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "))
+		if (sizeCheckResult.tooBigFiles.length > 0) {
+			throw new UserError(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
 		}
-
 	}
 
 	removeAttachment(file: Attachment): void {

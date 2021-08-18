@@ -11,7 +11,8 @@ import {
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState
+	MailState,
+	MAX_ATTACHMENT_SIZE
 } from "../../api/common/TutanotaConstants"
 import {assertNotNull, neverNull, noOp} from "../../api/common/utils/Utils"
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
@@ -49,6 +50,7 @@ import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../m
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import type {DraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
+import type {Attachment} from "../editor/SendMailModel"
 
 assertMainOrNode()
 
@@ -419,4 +421,28 @@ export function recipientInfoToDraftRecipient({name, mailAddress}: RecipientInfo
  */
 export function recipientInfoToEncryptedMailAddress({name, mailAddress}: RecipientInfo): EncryptedMailAddress {
 	return createEncryptedMailAddress({name, address: mailAddress})
+}
+
+type AttachmentSizeCheckResult = {
+	attachableFiles: Array<Attachment>,
+	tooBigFiles: Array<string>
+}
+
+/**
+ * @param files the files that shall be attached.
+ * @param maxAttachmentSize the maximum size the new files may have in total to be attached successfully.
+ */
+export function checkAttachmentSize(files: $ReadOnlyArray<Attachment>, maxAttachmentSize: number = MAX_ATTACHMENT_SIZE): AttachmentSizeCheckResult {
+	let totalSize = 0
+	const attachableFiles: Array<Attachment> = []
+	const tooBigFiles: Array<string> = []
+	files.forEach(file => {
+		if (totalSize + Number(file.size) > maxAttachmentSize) {
+			tooBigFiles.push(file.name)
+		} else {
+			totalSize += Number(file.size)
+			attachableFiles.push(file)
+		}
+	})
+	return {attachableFiles, tooBigFiles}
 }

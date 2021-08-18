@@ -9,7 +9,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK} from "../model/MailUtils"
+import {checkAttachmentSize, conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK} from "../model/MailUtils"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
@@ -656,20 +656,25 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 	if (mailTo.attach) {
 		const attach = mailTo.attach
-		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri))))
+		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri)))).filter(Boolean)
 
 		// make sure the user is aware that (and which) files have been attached
-		const keepAttachments = dataFiles.filter(Boolean).length === 0 || await Dialog.confirm(
+		const keepAttachments = dataFiles.length === 0 || await Dialog.confirm(
 			"attachmentWarning_msg",
 			"attachFiles_action",
-			() => dataFiles.map((df, i) => df && m(".text-break.selectable.mt-xs", {
+			() => dataFiles.map((df, i) => m(".text-break.selectable.mt-xs", {
 				title: attach[i]
-			}, df.name)).filter(Boolean)
+			}, df.name))
 		)
-
-		dataFiles = keepAttachments
-			? dataFiles.filter(Boolean)
-			: []
+		if (keepAttachments) {
+			const sizeCheckResult = checkAttachmentSize(dataFiles)
+			dataFiles = sizeCheckResult.attachableFiles
+			if (sizeCheckResult.tooBigFiles.length > 0) {
+				await Dialog.error(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
+			}
+		} else {
+			dataFiles = []
+		}
 	}
 
 	return newMailEditorFromTemplate(
