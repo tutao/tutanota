@@ -14,9 +14,9 @@ import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolved
 import type {RecipientInfo} from "../../common/RecipientInfo"
 import {ofClass} from "../../common/utils/PromiseUtils"
 
-export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientInfo: RecipientInfo, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
+export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
 	let keyData = createPublicKeyData()
-	keyData.mailAddress = recipientInfo.mailAddress
+	keyData.mailAddress = recipientMailAddress
 	return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
 		.then(publicKeyData => {
 			let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
@@ -24,7 +24,7 @@ export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recip
 			if (notFoundRecipients.length === 0) {
 				return rsaEncrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
 					let data = createInternalRecipientKeyData()
-					data.mailAddress = recipientInfo.mailAddress
+					data.mailAddress = recipientMailAddress
 					data.pubEncBucketKey = encrypted
 					data.pubKeyVersion = publicKeyData.pubKeyVersion
 					return data
@@ -32,7 +32,7 @@ export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recip
 			}
 		})
 		.catch(ofClass(NotFoundError, e => {
-			notFoundRecipients.push(recipientInfo.mailAddress)
+			notFoundRecipients.push(recipientMailAddress)
 		}))
 		.catch(ofClass(TooManyRequestsError, e => {
 			throw new RecipientNotResolvedError("")
