@@ -582,8 +582,8 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("getLog", []))
 	}
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<GroupInvitationPostReturn> {
-		return this._queue.postMessage(new Request("sendGroupInvitation", [sharedGroupInfo, sharedGroupName, recipients, shareCapability]))
+	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipientMailAddresses: Array<string>, shareCapability: ShareCapabilityEnum): Promise<GroupInvitationPostReturn> {
+		return this._queue.postMessage(new Request("sendGroupInvitation", [sharedGroupInfo, sharedGroupName, recipientMailAddresses, shareCapability]))
 	}
 
 	acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
