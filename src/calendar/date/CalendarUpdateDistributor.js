@@ -145,7 +145,16 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		sendMailModel.setBody(body)
 		this._sendStart()
 		await sendMailModel.send(method)
-		                    .finally(() => this._sendEnd())
+		                   .catch((e) => {
+			                   // we remove the attachment from the model to prevent adding more than one calendar file
+			                   // in case the user changes the event and tries to send again a new attachment is created
+			                   const attachedInviteFile = sendMailModel.getAttachments().find(file => file.name === inviteFile.name)
+			                   if (attachedInviteFile) {
+				                   sendMailModel.removeAttachment(attachedInviteFile)
+			                   }
+			                   throw e
+		                   })
+		                   .finally(() => this._sendEnd())
 	}
 
 	_windowUnsubscribe: ?(() => void)
