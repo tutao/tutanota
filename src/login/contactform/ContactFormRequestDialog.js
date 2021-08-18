@@ -35,6 +35,7 @@ import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
 import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {checkAttachmentSize} from "../../mail/model/MailUtils"
 
 assertMainOrNode()
 
@@ -195,22 +196,12 @@ export class ContactFormRequestDialog {
 	}
 
 	_attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
-		let totalSize = 0
-		this._attachments.forEach(file => {
-			totalSize += Number(file.size)
-		})
-		let tooBigFiles = [];
-		files.forEach(file => {
-			if (totalSize + Number(file.size) > MAX_ATTACHMENT_SIZE) {
-				tooBigFiles.push(file.name)
-			} else {
-				totalSize += Number(file.size)
-				this._attachments.push(file)
-			}
-		})
+		let sizeLeft = MAX_ATTACHMENT_SIZE - this._attachments.reduce((total, file) => total + Number(file.size), 0)
+		const sizeCheckResult = checkAttachmentSize(files, sizeLeft)
+		this._attachments.push(...sizeCheckResult.attachableFiles)
 		this._updateAttachmentButtons()
-		if (tooBigFiles.length > 0) {
-			Dialog.error(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "));
+		if (sizeCheckResult.tooBigFiles.length > 0) {
+			Dialog.error(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
 		}
 	}
 
