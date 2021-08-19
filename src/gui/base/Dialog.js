@@ -416,16 +416,21 @@ export class Dialog implements ModalComponent {
 			setTimeout(() => onclose && onclose(positive), DefaultAnimationTime)
 		}
 
-		let content = [lang.getMaybeLazy(messageIdOrMessageFunction)]
-		if (typeof infoToAppend === "string") {
-			content = content.concat(m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
-		} else if (typeof infoToAppend === "function") {
-			content = content.concat(infoToAppend())
+
+		// ensure that m() is called in every view() update for the infoToAppend
+		let getContent = () => {
+			let content = [lang.getMaybeLazy(messageIdOrMessageFunction)]
+			if (typeof infoToAppend === "string") {
+				content = content.concat(m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
+			} else if (typeof infoToAppend === "function") {
+				content = content.concat(infoToAppend())
+			}
+			return content
 		}
 
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", content),
+				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", getContent()),
 				m(".flex-center.dialog-buttons", buttons.map(a => m(ButtonN, a)))
 			]
 		}).setCloseHandler(() => closeAction(false))

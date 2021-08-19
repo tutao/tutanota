@@ -15,17 +15,9 @@ import {isApp, isDesktop} from "../../api/common/Env";
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {neverNull} from "../../api/common/utils/Utils"
-import type {MailReportTypeEnum} from "../../api/common/TutanotaConstants"
-import {MailFolderType, MailReportType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
+import {MailFolderType, MailReportType} from "../../api/common/TutanotaConstants"
 import {getElementId} from "../../api/common/utils/EntityUtils"
-import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
-import stream from "mithril/stream/stream.js"
-import {showSnackBar} from "../../gui/base/SnackBar"
-import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
-import {CheckboxN} from "../../gui/base/CheckboxN"
-import type {MailboxProperties} from "../../api/entities/tutanota/MailboxProperties"
-import {loadMailboxProperties, saveReportMovedMails} from "../../misc/MailboxPropertiesUtils"
+import {reportMailsAutomatically} from "./MailReportDialog"
 
 export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
@@ -68,91 +60,6 @@ export function promptAndDeleteMails(mailModel: MailModel, mails: $ReadOnlyArray
 		} else {
 			return Promise.resolve(false)
 		}
-	})
-}
-
-function confirmMailReportDialog(mailboxProperties: ?MailboxProperties): Promise<boolean> {
-	return new Promise((resolve) => {
-		const shallRememberDecision = stream(false)
-		const rememberDecisionCheckboxAttrs: CheckboxAttrs = {
-			label: () => lang.get("rememberDecision_msg"),
-			checked: shallRememberDecision,
-			helpLabel: () => lang.get("changeMailSettings_msg")
-		}
-		const child = {
-			view: () => {
-				return m("", [
-					m(".pt", lang.get("unencryptedTransmission_msg") + " " + lang.get("allowOperation_msg")),
-					m(".pb", m(CheckboxN, rememberDecisionCheckboxAttrs))
-				])
-			}
-		}
-
-		function updateSpamReportSetting(areMailsReported: boolean) {
-			if (shallRememberDecision()) {
-				const reportMovedMails = areMailsReported
-					? ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM
-					: ReportMovedMailsType.NEVER
-				saveReportMovedMails(mailboxProperties, reportMovedMails)
-			}
-			resolve(areMailsReported)
-			dialog.close()
-		}
-
-		const actionDialogProps = {
-			title: () => lang.get("spamReports_label"),
-			child,
-			okAction: () => updateSpamReportSetting(true),
-			allowCancel: true,
-			allowOkWithReturn: true,
-			okActionTextId: "yes_label",
-			cancelAction: () => updateSpamReportSetting(false),
-			cancelActionTextId: "no_label",
-		}
-		const dialog = Dialog.showActionDialog(actionDialogProps)
-	})
-}
-
-/**
- * Check if the user wants to report mails as spam when they are moved to the spam folder and report them.
- * May open a dialog for confirmation and otherwise shows a Snackbar before reporting to the server.
- */
-function reportMailsAutomatically(mailReportType: MailReportTypeEnum, mailModel: MailModel, mails: $ReadOnlyArray<Mail>): Promise<void> {
-	if (mailReportType !== MailReportType.SPAM) {
-		return Promise.resolve()
-	}
-	return loadMailboxProperties().then(mailboxProperties => {
-		let promise = Promise.resolve(false)
-		let allowUndoing = true // decides if a snackbar is shown to prevent the server request
-		if (!mailboxProperties || mailboxProperties.reportMovedMails === ReportMovedMailsType.ALWAYS_ASK) {
-			promise = confirmMailReportDialog(mailboxProperties)
-			allowUndoing = false
-		} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM) {
-			promise = Promise.resolve(true)
-		} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.NEVER) {
-			// no report
-		}
-		return promise.then((isReportable) => {
-			if (isReportable) {
-				// only show the snackbar to undo the report if the user was not asked already
-				if (allowUndoing) {
-					let undoClicked = false
-					showSnackBar("undoMailReport_msg",
-						{
-							label: () => "Undo",
-							click: () => undoClicked = true,
-						},
-						() => {
-							if (!undoClicked) {
-								mailModel.reportMails(mailReportType, mails)
-							}
-						}
-					)
-				} else {
-					mailModel.reportMails(mailReportType, mails)
-				}
-			}
-		})
 	})
 }
 
