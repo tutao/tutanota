@@ -2,7 +2,7 @@
 import m from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {Button} from "../../gui/base/Button"
-import {Type} from "../../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
 import {ConversationType, InputFieldType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
@@ -13,7 +13,6 @@ import {remove} from "../../api/common/utils/ArrayUtils"
 import {windowFacade} from "../../misc/WindowFacade"
 import {worker} from "../../api/main/WorkerClient"
 import {progressIcon} from "../../gui/base/Icon"
-import {createRecipientInfo, resolveRecipientInfo} from "../../mail/model/MailUtils"
 import {AccessDeactivatedError} from "../../api/common/error/RestError"
 import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
@@ -32,12 +31,12 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {createDropDownButton} from "../../gui/base/Dropdown";
-import {TextFieldN} from "../../gui/base/TextFieldN"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {InputField} from "../../api/entities/tutanota/InputField"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
+import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
 
 assertMainOrNode()
 
@@ -283,7 +282,7 @@ export class ContactFormRequestDialog {
 		return lang.get('confidentialStatus_msg')
 	}
 
-	send() {
+	async send(): Promise<void> {
 		const passwordErrorId = this._passwordForm.getErrorMessageId()
 		if (passwordErrorId) {
 			Dialog.error(passwordErrorId)
@@ -293,80 +292,86 @@ export class ContactFormRequestDialog {
 			Dialog.error("acceptPrivacyPolicyReminder_msg")
 			return
 		}
-		let passwordCheck = Promise.resolve(true)
-		if (this._passwordForm.isPasswordUnsecure()) {
-			passwordCheck = Dialog.confirm("contactFormPasswordNotSecure_msg")
-		}
-		passwordCheck.then(ok => {
-			if (ok) {
 
-				const cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress);
-				if (this._notificationEmailAddress !== "" && !cleanedNotificationMailAddress) {
-					return Dialog.error("mailAddressInvalid_msg")
-				}
-				const password = this._passwordForm.getNewPassword()
+		const confirmSend = !this._passwordForm.isPasswordUnsecure() || await Dialog.confirm("contactFormPasswordNotSecure_msg")
+		if (confirmSend) {
 
-				let statisticsFields: Array<{name: string, value: string}> = []
-				for (const [name, value] of this._statisticFields.entries()) {
-					if (value) {
-						statisticsFields.push({name, value})
-					}
-				}
-
-				const sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
-				                          .then(contactFormResult => {
-						                          let userEmailAddress = contactFormResult.responseMailAddress
-						                          return logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
-						                                       .then(() => {
-								                                       let p = Promise.resolve()
-								                                       if (cleanedNotificationMailAddress) {
-									                                       let pushIdentifier = createPushIdentifier()
-									                                       pushIdentifier.displayName = client.getIdentifier()
-									                                       pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
-									                                       pushIdentifier.language = lang.code
-									                                       pushIdentifier.pushServiceType = PushServiceType.EMAIL
-									                                       pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-									                                       pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-									                                       pushIdentifier._area = "0" // legacy
-									                                       p = worker.entityRequest(PushIdentifierTypeRef,
-										                                       HttpMethodEnum.POST,
-										                                       neverNull(logins.getUserController().user.pushIdentifierList).list,
-										                                       null, pushIdentifier);
-								                                       }
-
-								                                       let recipientInfo =
-									                                       createRecipientInfo(contactFormResult.requestMailAddress, "", null)
-
-								                                       return p.then(() => resolveRecipientInfo(worker, recipientInfo)
-									                                       .then(r => {
-										                                       let recipientInfos = [r]
-										                                       return worker.createMailDraft(this._subject,
-											                                       this._editor.getValue(), userEmailAddress, "",
-											                                       recipientInfos, [], [], ConversationType.NEW,
-											                                       null, this._attachments, true, [], MailMethod.NONE
-										                                       )
-										                                                    .then(draft => {
-											                                                    return worker.sendMailDraft(draft, recipientInfos, lang.code)
-										                                                    })
-									                                       })
-									                                       .finally(e => {
-										                                       return logins.logout(false)
-									                                       })
-								                                       )
-							                                       }
-						                                       )
-						                                       .then(() => {
-							                                       return {userEmailAddress}
-						                                       })
-					                          }
-				                          )
-
-				return showProgressDialog("sending_msg", sendRequest)
-					.then(result => {return showConfirmDialog(result.userEmailAddress)})
-					.then(() => this._close())
-					.catch(ofClass(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg")))
+			const cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress);
+			if (this._notificationEmailAddress !== "" && !cleanedNotificationMailAddress) {
+				return Dialog.error("mailAddressInvalid_msg")
 			}
-		})
+			const password = this._passwordForm.getNewPassword()
+
+			let statisticsFields: Array<{name: string, value: string}> = []
+			for (const [name, value] of this._statisticFields.entries()) {
+				if (value) {
+					statisticsFields.push({name, value})
+				}
+			}
+
+			try {
+				const result = await showProgressDialog("sending_msg",
+					this.sendRequest(password, statisticsFields, cleanedNotificationMailAddress ?? ""))
+				await showConfirmDialog(result)
+				this._close()
+			} catch (e) {
+				if (e instanceof AccessDeactivatedError) {
+					await Dialog.error("contactFormSubmitError_msg")
+				} else {
+					throw e
+				}
+			}
+		}
+	}
+
+	async sendRequest(password: string, statisticsFields: Array<{name: string, value: string}>,
+	                  cleanedNotificationMailAddress: string
+	): Promise<string> {
+		const contactFormResult = await worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
+
+		let userEmailAddress = contactFormResult.responseMailAddress
+		await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
+		if (cleanedNotificationMailAddress) {
+			let pushIdentifier = createPushIdentifier({
+				displayName: client.getIdentifier(),
+				identifier: cleanedNotificationMailAddress,
+				language: lang.code,
+				pushServiceType: PushServiceType.EMAIL,
+				_ownerGroup: logins.getUserController().userGroupInfo.group,
+				_owner: logins.getUserController().userGroupInfo.group, // legacy
+				_area: "0", // legacy
+			})
+			await worker.entityRequest(PushIdentifierTypeRef,
+				HttpMethodEnum.POST,
+				neverNull(logins.getUserController().user.pushIdentifierList).list,
+				null, pushIdentifier);
+		}
+
+		const name = ""
+		const mailAddress = contactFormResult.requestMailAddress
+
+		try {
+			const draft = await worker.createMailDraft(
+				this._subject,
+				this._editor.getValue(),
+				userEmailAddress,
+				"",
+				[createDraftRecipient({name, mailAddress})],
+				[],
+				[],
+				ConversationType.NEW,
+				null,
+				this._attachments,
+				true,
+				[],
+				MailMethod.NONE
+			)
+			await worker.sendMailDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
+		} finally {
+			await logins.logout(false)
+		}
+
+		return userEmailAddress
 	}
 }
 

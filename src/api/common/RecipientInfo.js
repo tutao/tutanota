@@ -21,12 +21,6 @@ export function isExternal(recipientInfo: RecipientInfo): boolean {
 	return recipientInfo.type === RecipientInfoType.EXTERNAL
 }
 
-export function isExternalSecureRecipient(recipientInfo: RecipientInfo): boolean {
-	return isExternal(recipientInfo) &&
-		recipientInfo.contact != null && recipientInfo.contact.presharedPassword != null
-		&& recipientInfo.contact.presharedPassword.trim() !== ""
-}
-
 export function isTutanotaMailAddress(mailAddress: string): boolean {
 	var tutanotaDomains = TUTANOTA_MAIL_ADDRESS_DOMAINS
 	for (var i = 0; i < tutanotaDomains.length; i++) {
@@ -35,4 +29,21 @@ export function isTutanotaMailAddress(mailAddress: string): boolean {
 		}
 	}
 	return false
+}
+
+// We need this type because we cannot pass RecipientInfo across the worker, since they (may) contain Promises
+export type RecipientDetails = {
+	name: string,
+	mailAddress: string,
+	isExternal: boolean,
+	password: ?string,
+}
+
+export function makeRecipientDetails(name: string, mailAddress: string, type: RecipientInfoTypeEnum, contact: ?Contact): RecipientDetails {
+	return {
+		name,
+		mailAddress,
+		isExternal: type === RecipientInfoType.EXTERNAL,
+		password: contact?.presharedPassword ?? contact?.autoTransmitPassword
+	}
 }

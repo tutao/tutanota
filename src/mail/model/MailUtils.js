@@ -47,6 +47,8 @@ import {createPublicKeyData} from "../../api/entities/sys/PublicKeyData"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {DraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
+import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 
 assertMainOrNode()
 
@@ -137,10 +139,10 @@ export function resolveRecipientInfo(worker: WorkerClient, recipientInfo: Recipi
 		return Promise.resolve(recipientInfo)
 	} else {
 		return getRecipientKeyData(worker, recipientInfo.mailAddress)
-		                .then((keyData) => {
-			                recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
-			                return recipientInfo
-		                })
+			.then((keyData) => {
+				recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
+				return recipientInfo
+			})
 	}
 }
 
@@ -403,4 +405,18 @@ export function getExistingRuleForType(props: TutanotaProperties, cleanValue: st
 
 export function canDoDragAndDropExport(): boolean {
 	return isDesktop()
+}
+
+/**
+ * Lossily convert a RecipientInfo to a DraftRecipient
+ */
+export function recipientInfoToDraftRecipient({name, mailAddress}: RecipientInfo): DraftRecipient {
+	return createDraftRecipient({name, mailAddress})
+}
+
+/**
+ * Lossily convert a RecipientInfo to an EncryptedMailAddress
+ */
+export function recipientInfoToEncryptedMailAddress({name, mailAddress}: RecipientInfo): EncryptedMailAddress {
+	return createEncryptedMailAddress({name, address: mailAddress})
 }
