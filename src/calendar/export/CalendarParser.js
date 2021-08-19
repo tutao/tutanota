@@ -211,6 +211,7 @@ export function parseICalendar(stringData: string): ICalObject {
 	const withFoldedLines = stringData
 		.replace(/\r?\n\s/g, "")
 		.split(/\r?\n/)
+		.filter(e => e !== "")
 	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 	if (firstLine.value !== "BEGIN:VCALENDAR") {
