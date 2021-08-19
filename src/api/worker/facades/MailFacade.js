@@ -20,13 +20,11 @@ import {DraftCreateReturnTypeRef} from "../../entities/tutanota/DraftCreateRetur
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
-import {createDraftRecipient} from "../../entities/tutanota/DraftRecipient"
 import {createDraftUpdateData} from "../../entities/tutanota/DraftUpdateData"
 import {DraftUpdateReturnTypeRef} from "../../entities/tutanota/DraftUpdateReturn"
 import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
 import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
-import type {RecipientInfo} from "../../common/RecipientInfo"
-import {isExternalSecureRecipient, RecipientInfoType} from "../../common/RecipientInfo"
+import type {RecipientDetails} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
@@ -55,7 +53,7 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
-import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
+import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 // $FlowIgnore[untyped-import]
@@ -110,14 +108,14 @@ export class MailFacade {
 	 * @param attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
 	 */
-	async createDraft(subject: string, body: string, senderMailAddress: string, senderName: string,
-	                  toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
+	async createDraft(subject: string, bodyText: string, senderMailAddress: string, senderName: string,
+	                  toRecipients: Array<DraftRecipient>, ccRecipients: Array<DraftRecipient>, bccRecipients: Array<DraftRecipient>,
 	                  conversationType: ConversationTypeEnum, previousMessageId: ?Id,
 	                  attachments: ?Attachments,
-	                  confidential: boolean, replyTos: RecipientInfo[], mailMethod: MailMethodEnum): Promise<Mail> {
+	                  confidential: boolean, replyTos: Array<EncryptedMailAddress>, method: MailMethodEnum): Promise<Mail> {
 
-		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
-			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(body)})`)
+		if (byteLength(bodyText) > UNCOMPRESSED_MAX_SIZE) {
+			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
 		}
 
 		const senderMailGroupId = await getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderMailAddress)
@@ -130,32 +128,20 @@ export class MailFacade {
 		service.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
 		service.symEncSessionKey = encryptKey(userGroupKey, sk) // legacy
 		service.draftData = createDraftData({
-			subject: subject,
-			bodyText: body,
-			senderMailAddress: senderMailAddress,
-			senderName: senderName,
-			confidential: confidential,
-			method: mailMethod,
-			toRecipients: this._recipientInfoToDraftRecipient(toRecipients),
-			ccRecipients: this._recipientInfoToDraftRecipient(ccRecipients),
-			bccRecipients: this._recipientInfoToDraftRecipient(bccRecipients),
-			replyTos: replyTos.map(recipient => createEncryptedMailAddress({
-				address: recipient.mailAddress,
-				name: recipient.name
-			})),
+			subject,
+			bodyText,
+			senderMailAddress,
+			senderName,
+			confidential,
+			method,
+			toRecipients,
+			ccRecipients,
+			bccRecipients,
+			replyTos,
 			addedAttachments: await this._createAddedAttachments(attachments, [], mailGroupKey)
 		})
 		const createDraftReturn = await serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, null, sk)
 		return this._entity.load(MailTypeRef, createDraftReturn.draft)
-	}
-
-	_recipientInfoToDraftRecipient(toRecipients: RecipientInfo[]): DraftRecipient[] {
-		return toRecipients.map(ri => {
-			let draftRecipient = createDraftRecipient()
-			draftRecipient.mailAddress = ri.mailAddress
-			draftRecipient.name = ri.name
-			return draftRecipient
-		})
 	}
 
 	/**
@@ -173,7 +159,7 @@ export class MailFacade {
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
 	async updateDraft(subject: string, body: string, senderMailAddress: string, senderName: string,
-	                  toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[],
+	                  toRecipients: Array<DraftRecipient>, ccRecipients: Array<DraftRecipient>, bccRecipients: Array<DraftRecipient>,
 	                  attachments: ?Attachments, confidential: boolean, draft: Mail): Promise<Mail> {
 
 		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
@@ -193,9 +179,9 @@ export class MailFacade {
 			senderName: senderName,
 			confidential: confidential,
 			method: draft.method,
-			toRecipients: this._recipientInfoToDraftRecipient(toRecipients),
-			ccRecipients: this._recipientInfoToDraftRecipient(ccRecipients),
-			bccRecipients: this._recipientInfoToDraftRecipient(bccRecipients),
+			toRecipients,
+			ccRecipients,
+			bccRecipients,
 			replyTos: draft.replyTos,
 			removedAttachments: this._getRemovedAttachments(attachments, draft.attachments),
 			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, mailGroupKey),
@@ -293,49 +279,47 @@ export class MailFacade {
 		return attachment
 	}
 
-	sendDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string): Promise<void> {
-		return getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address)
-			.then(senderMailGroupId => {
-				let bucketKey = aes128RandomKey()
+	async sendDraft(draft: Mail, recipients: Array<RecipientDetails>, language: string): Promise<void> {
+		const senderMailGroupId = await getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address)
+		const bucketKey = aes128RandomKey()
 
-				let sendDraftData = createSendDraftData()
-				sendDraftData.language = language
-				sendDraftData.mail = draft._id
-
-				return promiseMap(draft.attachments, fileId => {
-					return load(FileTypeRef, fileId).then(file => {
-						return resolveSessionKey(FileTypeModel, file).then(fileSessionKey => {
-							let data = createAttachmentKeyData()
-							data.file = fileId
-							if (draft.confidential) {
-								data.bucketEncFileSessionKey = encryptKey(bucketKey, neverNull(fileSessionKey))
-							} else {
-								data.fileSessionKey = keyToUint8Array(neverNull(fileSessionKey))
-							}
-							sendDraftData.attachmentKeyData.push(data)
-						})
-					})
-				}).then(() => {
-					return Promise.all([
-						this._entity.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
-							sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
-						}),
-						resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
-							let sk = neverNull(mailSessionkey)
-							sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
-							if (draft.confidential) {
-								sendDraftData.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
-								if (recipientInfos.find(r => isExternalSecureRecipient(r)) != null) {
-									sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
-								}
-								return this._addRecipientKeyData(bucketKey, sendDraftData, recipientInfos, senderMailGroupId)
-							} else {
-								sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
-							}
-						})
-					])
-				}).then(() => serviceRequestVoid(TutanotaService.SendDraftService, HttpMethod.POST, sendDraftData))
+		const sendDraftData = createSendDraftData()
+		sendDraftData.language = language
+		sendDraftData.mail = draft._id
+		for (let fileId of draft.attachments) {
+			const file = await this._entity.load(FileTypeRef, fileId)
+			const fileSessionKey = await resolveSessionKey(FileTypeModel, file)
+			const data = createAttachmentKeyData({
+				file: fileId,
 			})
+			if (draft.confidential) {
+				data.bucketEncFileSessionKey = encryptKey(bucketKey, neverNull(fileSessionKey))
+			} else {
+				data.fileSessionKey = keyToUint8Array(neverNull(fileSessionKey))
+			}
+			sendDraftData.attachmentKeyData.push(data)
+		}
+
+		await Promise.all([
+			this._entity.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
+				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
+			}),
+			resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
+				let sk = neverNull(mailSessionkey)
+				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
+				if (draft.confidential) {
+					sendDraftData.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
+					const hasExternalSecureRecipient = recipients.some(r => r.isExternal && !!r.password?.trim())
+					if (hasExternalSecureRecipient) {
+						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
+					}
+					return this._addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+				} else {
+					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
+				}
+			})
+		])
+		return serviceRequestVoid(TutanotaService.SendDraftService, HttpMethod.POST, sendDraftData)
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
@@ -397,69 +381,64 @@ export class MailFacade {
 		return this._phishingMarkers.has(hash)
 	}
 
-	_addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipientInfos: RecipientInfo[], senderMailGroupId: Id): Promise<void> {
-		let notFoundRecipients = []
-		return Promise.all(recipientInfos.map(recipientInfo => {
-				if (recipientInfo.mailAddress === "system@tutanota.de" || !recipientInfo) {
-					notFoundRecipients.push(recipientInfo.mailAddress)
-					return Promise.resolve()
+	async _addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipients: Array<RecipientDetails>, senderMailGroupId: Id): Promise<void> {
+		const notFoundRecipients = []
+		for (let recipient of recipients) {
+			if (recipient.mailAddress === "system@tutanota.de" || !recipient) {
+				notFoundRecipients.push(recipient.mailAddress)
+				continue
+			}
+
+			// copy password information if this is an external contact
+			// otherwise load the key information from the server
+			if (recipient.isExternal) {
+				const password = recipient.password
+
+				if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
+					notFoundRecipients.push(recipient.mailAddress)
+					continue
 				}
 
-				// copy password information if this is an external contact
-				// otherwise load the key information from the server
-				if (recipientInfo.type === RecipientInfoType.EXTERNAL && recipientInfo.contact) {
-					let password = recipientInfo.contact.presharedPassword
+				const salt = generateRandomSalt()
+				const passwordKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
+				const passwordVerifier = createAuthVerifier(passwordKey)
 
-					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
-						password = recipientInfo.contact.autoTransmitPassword
-					}
+				const externalGroupKeys = await this._getExternalGroupKey(recipient.mailAddress, passwordKey, passwordVerifier)
+				const data = createSecureExternalRecipientKeyData()
+				data.mailAddress = recipient.mailAddress
+				data.symEncBucketKey = null // legacy for old permission system, not used any more
+				data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
+				data.passwordVerifier = passwordVerifier
+				data.salt = salt
+				data.saltHash = hash(salt)
+				data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
 
-					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
-						notFoundRecipients.push(recipientInfo.mailAddress)
-						return Promise.resolve()
-					}
-
-					let salt = generateRandomSalt()
-					let passwordKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
-					let passwordVerifier = createAuthVerifier(passwordKey)
-
-					return this._getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier)
-					           .then(externalGroupKeys => {
-						           let data = createSecureExternalRecipientKeyData()
-						           data.mailAddress = recipientInfo.mailAddress
-						           data.symEncBucketKey = null // legacy for old permission system, not used any more
-						           data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
-						           data.passwordVerifier = passwordVerifier
-						           data.salt = salt
-						           data.saltHash = hash(salt)
-						           data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
-
-						           service.secureExternalRecipientKeyData.push(data)
-					           })
-				} else {
-					return encryptBucketKeyForInternalRecipient(bucketKey, recipientInfo.mailAddress, notFoundRecipients).then(keyData => {
-						if (keyData) {
-							service.internalRecipientKeyData.push(keyData)
-						}
-					})
+				service.secureExternalRecipientKeyData.push(data)
+			} else {
+				const keyData = await encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
+				if (keyData) {
+					service.internalRecipientKeyData.push(keyData)
 				}
-			})
-		).then(() => {
-			if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
-		})
+			}
+		}
+
+		if (notFoundRecipients.length > 0) {
+			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
+		}
+
 	}
 
 	/**
 	 * Checks that an external user instance with a mail box exists for the given recipient. If it does not exist, it is created.
 	 * Returns the user group key and the user mail group key of the external recipient.
-	 * @param recipientInfo The recipient.
+	 * @param recipientMailAddress
 	 * @param externalUserPwKey The external user's password key.
 	 * @param verifier The external user's verifier, base64 encoded.
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
-	_getExternalGroupKey(recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
+	_getExternalGroupKey(recipientMailAddress: string, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
 		return this._entity.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
-			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
+			let cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
 			return load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 				.then(externalUserReference => {

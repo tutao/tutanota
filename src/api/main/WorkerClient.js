@@ -48,7 +48,6 @@ import type {Mail} from "../entities/tutanota/Mail"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {NewSessionData} from "../worker/facades/LoginFacade"
 import {logins} from "./LoginController"
-import type {RecipientInfo} from "../common/RecipientInfo"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
@@ -57,6 +56,9 @@ import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetRet
 import {TypeRef} from "../common/utils/TypeRef"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {TypeModel} from "../common/EntityTypes"
+import type {DraftRecipient} from "../entities/tutanota/DraftRecipient"
+import type {EncryptedMailAddress} from "../entities/tutanota/EncryptedMailAddress"
+import type {RecipientDetails} from "../common/RecipientInfo"
 
 assertMainOrNode()
 
@@ -237,23 +239,23 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('createMailFolder', arguments))
 	}
 
-	createMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: $ReadOnlyArray<RecipientInfo>,
-	                ccRecipients: $ReadOnlyArray<RecipientInfo>, bccRecipients: $ReadOnlyArray<RecipientInfo>,
+	createMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: $ReadOnlyArray<DraftRecipient>,
+	                ccRecipients: $ReadOnlyArray<DraftRecipient>, bccRecipients: $ReadOnlyArray<DraftRecipient>,
 	                conversationType: ConversationTypeEnum, previousMessageId: ?Id,
 	                attachments: ?$ReadOnlyArray<TutanotaFile | DataFile | FileReference>,
-	                confidential: boolean, replyTos: $ReadOnlyArray<RecipientInfo>, method: MailMethodEnum
+	                confidential: boolean, replyTos: $ReadOnlyArray<EncryptedMailAddress>, method: MailMethodEnum
 	): Promise<Mail> {
 		return this._postRequest(new Request('createMailDraft', arguments))
 	}
 
-	updateMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: $ReadOnlyArray<RecipientInfo>,
-	                ccRecipients: $ReadOnlyArray<RecipientInfo>, bccRecipients: $ReadOnlyArray<RecipientInfo>,
+	updateMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: $ReadOnlyArray<DraftRecipient>,
+	                ccRecipients: $ReadOnlyArray<DraftRecipient>, bccRecipients: $ReadOnlyArray<DraftRecipient>,
 	                attachments: ?$ReadOnlyArray<TutanotaFile | DataFile | FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
 		return this._postRequest(new Request('updateMailDraft', arguments))
 	}
 
-	sendMailDraft(draft: Mail, recipientInfos: $ReadOnlyArray<RecipientInfo>, language: string): Promise<void> {
-		return this._postRequest(new Request('sendMailDraft', [draft, recipientInfos, language]))
+	sendMailDraft(draft: Mail, recipients: $ReadOnlyArray<RecipientDetails>, language: string): Promise<void> {
+		return this._postRequest(new Request('sendMailDraft', [draft, recipients, language]))
 	}
 
 	downloadFileContent(file: TutanotaFile): Promise<DataFile> {

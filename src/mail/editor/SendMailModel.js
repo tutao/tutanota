@@ -10,7 +10,7 @@ import {
 	ReplyType
 } from "../../api/common/TutanotaConstants"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
-import {isExternal} from "../../api/common/RecipientInfo"
+import {isExternal, makeRecipientDetails} from "../../api/common/RecipientInfo"
 import {
 	AccessBlockedError,
 	LockedError,
@@ -30,6 +30,8 @@ import {
 	getEnabledMailAddressesWithUser,
 	getSenderNameForUser,
 	getTemplateLanguages,
+	recipientInfoToDraftRecipient,
+	recipientInfoToEncryptedMailAddress,
 	resolveRecipientInfo,
 	resolveRecipientInfoContact
 } from "../model/MailUtils"
@@ -393,7 +395,7 @@ export class SendMailModel {
 		          .then(ce => {
 			          previousMessageId = ce.messageId
 		          })
-		           .catch(ofClass(NotFoundError, e => {
+		          .catch(ofClass(NotFoundError, e => {
 			          console.log("could not load conversation entry", e);
 		          }))
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
@@ -675,23 +677,48 @@ export class SendMailModel {
 	}
 
 	_updateDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, draft: Mail): Promise<Mail> {
-		return this._worker
-		           .updateMailDraft(this.getSubject(), body, this._senderAddress, this.getSenderName(), this.toRecipients(),
-			           this.ccRecipients(), this.bccRecipients(), attachments, this.isConfidential(), draft)
-		           .catch(ofClass(LockedError, (e) => {
-			           console.log("updateDraft: operation is still active", e)
-			           throw new UserError("operationStillActive_msg")
-		           }))
-		           .catch(ofClass(NotFoundError, () => {
-			           console.log("draft has been deleted, creating new one")
-			           return this._createDraft(body, attachments, downcast(draft.method))
-		           }))
+		try {
+			return this._worker.updateMailDraft(
+				this.getSubject(),
+				body,
+				this._senderAddress,
+				this.getSenderName(),
+				this.toRecipients().map(recipientInfoToDraftRecipient),
+				this.ccRecipients().map(recipientInfoToDraftRecipient),
+				this.bccRecipients().map(recipientInfoToDraftRecipient),
+				attachments,
+				this.isConfidential(),
+				draft
+			)
+		} catch (e) {
+			if (e instanceof LockedError) {
+				console.log("updateDraft: operation is still active", e)
+				throw new UserError("operationStillActive_msg")
+			} else if (e instanceof NotFoundError) {
+				console.log("draft has been deleted, creating new one")
+				return this._createDraft(body, attachments, downcast(draft.method))
+			} else {
+				throw e
+			}
+		}
 	}
 
 	_createDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, mailMethod: MailMethodEnum): Promise<Mail> {
-		return this._worker.createMailDraft(this.getSubject(), body,
-			this._senderAddress, this.getSenderName(), this.toRecipients(), this.ccRecipients(), this.bccRecipients(), this._conversationType,
-			this._previousMessageId, attachments, this.isConfidential(), this._replyTos, mailMethod)
+		return this._worker.createMailDraft(
+			this.getSubject(),
+			body,
+			this._senderAddress,
+			this.getSenderName(),
+			this.toRecipients().map(recipientInfoToDraftRecipient),
+			this.ccRecipients().map(recipientInfoToDraftRecipient),
+			this.bccRecipients().map(recipientInfoToDraftRecipient),
+			this._conversationType,
+			this._previousMessageId,
+			attachments,
+			this.isConfidential(),
+			this._replyTos.map(recipientInfoToEncryptedMailAddress),
+			mailMethod
+		)
 	}
 
 	isConfidential(): boolean {
@@ -778,7 +805,12 @@ export class SendMailModel {
 		const doSend = async () => {
 			await this.saveDraft(true, mailMethod, noopBlockingWaitHandler)
 			await this._updateContacts(this.allRecipients())
-			await this._worker.sendMailDraft(neverNull(this._draft), this.allRecipients(), this._selectedNotificationLanguage)
+
+			const allRecipients = this.allRecipients().map(({name, mailAddress, type, contact}) =>
+				makeRecipientDetails(name, mailAddress, type, contact)
+			)
+
+			await this._worker.sendMailDraft(neverNull(this._draft), allRecipients, this._selectedNotificationLanguage)
 			await this._updatePreviousMail()
 			await this._updateExternalLanguage()
 			return true

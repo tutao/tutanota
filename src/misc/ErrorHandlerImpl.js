@@ -12,13 +12,12 @@ import {
 } from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {Type} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull, noOp} from "../api/common/utils/Utils"
-import {createRecipientInfo} from "../mail/model/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
@@ -38,8 +37,8 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
-import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
 
 assertMainOrNode()
 
@@ -310,14 +309,16 @@ export function clientInfoString(timestamp: Date, loggedIn: bool): {message: str
 }
 
 
-export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
-	const recipient = createRecipientInfo("reports@tutao.de", "", null)
-	return worker.createMailDraft(
+export async function sendFeedbackMail(content: FeedbackContent): Promise<void> {
+	const name = ""
+	const mailAddress = "reports@tutao.de"
+
+	const draft = await worker.createMailDraft(
 		content.subject,
 		content.message.split("\n").join("<br>"),
 		neverNull(logins.getUserController().userGroupInfo.mailAddress),
 		"",
-		[recipient],
+		[createDraftRecipient({name, mailAddress})],
 		[],
 		[],
 		ConversationType.NEW,
@@ -326,9 +327,8 @@ export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 		true,
 		[],
 		MailMethod.NONE,
-	).then(draft => {
-		return worker.sendMailDraft(draft, [recipient], "de")
-	})
+	)
+	await worker.sendMailDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
 }
 
 export function loggingOut() {
