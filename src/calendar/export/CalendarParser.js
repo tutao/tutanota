@@ -539,23 +539,24 @@ type TimeComponents = {hour: number, minute: number}
 type DateTimeComponents = DateComponents & TimeComponents
 
 export function parseTimeIntoComponents(value: string): DateComponents | DateTimeComponents {
-	if (/[0-9]{8}T[0-9]{6}Z/.test(value)) {
+	const trimmedValue = value.trim()
+	if (/[0-9]{8}T[0-9]{6}Z/.test(trimmedValue)) {
 		// date with time in UTC
-		const {year, month, day} = parseDateString(value)
-		const hour = parseInt(value.slice(9, 11))
-		const minute = parseInt(value.slice(11, 13))
+		const {year, month, day} = parseDateString(trimmedValue)
+		const hour = parseInt(trimmedValue.slice(9, 11))
+		const minute = parseInt(trimmedValue.slice(11, 13))
 		return {year, month, day, hour, minute, zone: "UTC"}
-	} else if (/[0-9]{8}T[0-9]{6}/.test(value)) {
+	} else if (/[0-9]{8}T[0-9]{6}/.test(trimmedValue)) {
 		// date with time in local timezone
-		const {year, month, day} = parseDateString(value)
-		const hour = parseInt(value.slice(9, 11))
-		const minute = parseInt(value.slice(11, 13))
+		const {year, month, day} = parseDateString(trimmedValue)
+		const hour = parseInt(trimmedValue.slice(9, 11))
+		const minute = parseInt(trimmedValue.slice(11, 13))
 		return {year, month, day, hour, minute}
-	} else if (/[0-9]{8}/.test(value)) {
+	} else if (/[0-9]{8}/.test(trimmedValue)) {
 		// all day events
-		return Object.assign({}, parseDateString(value))
+		return Object.assign({}, parseDateString(trimmedValue))
 	} else {
-		throw new ParserError("Failed to parse time: " + value)
+		throw new ParserError("Failed to parse time: " + trimmedValue)
 	}
 }
 
