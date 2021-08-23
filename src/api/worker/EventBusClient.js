@@ -291,9 +291,7 @@ export class EventBusClient {
 				break;
 		}
 
-		if (this._socket && typeof this._socket == "function") { // close is undefined in node tests
-			this._socket.close()
-		}
+		this._socket?.close()
 	}
 
 	_unsubscribeFromOldWebsocket() {
