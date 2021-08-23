@@ -154,39 +154,46 @@ class GroupSharingDialogContent implements MComponent<GroupSharingDialogAttrs> {
 	}
 }
 
+// This is a separate function because "this" inside bubble handler object is "any"
+function _createBubbleContextButtons(
+	bubbles: Array<Bubble<RecipientInfo>>,
+	name: string,
+	mailAddress: string
+): Array<DropdownChildAttrs> {
+	let buttonAttrs = [{info: mailAddress, center: false, bold: false}]
+	buttonAttrs.push({
+		label: "remove_action",
+		type: ButtonType.Secondary,
+		click: () => {
+			const bubbleToRemove = bubbles.find((bubble) => bubble.entity.mailAddress === mailAddress)
+			if (bubbleToRemove) {
+				remove(bubbles, bubbleToRemove)
+			}
+		}
+	})
+	return buttonAttrs
+}
+
 function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingTexts) {
 	const bubbleHandler = new RecipientInfoBubbleHandler({
-		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
-			let recipientInfo = createRecipientInfo(mailAddress, name, contact)
-			recipientInfo.resolveContactPromise =
-				resolveRecipientInfoContact(recipientInfo, locator.contactModel, logins.getUserController().user)
-			let bubbleWrapper = {}
-			const childAttrs = () => this._createBubbleContextButtons(recipientInfo.name, mailAddress)
+			createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
+				let recipientInfo = createRecipientInfo(mailAddress, name, contact)
+				recipientInfo.resolveContactPromise =
+					resolveRecipientInfoContact(recipientInfo, locator.contactModel, logins.getUserController().user)
+				let bubbleWrapper = {}
+				const childAttrs = () => _createBubbleContextButtons(invitePeopleValueTextField.bubbles, recipientInfo.name, mailAddress)
 
-			bubbleWrapper.buttonAttrs = attachDropdown({
-				label: () => getDisplayText(recipientInfo.name, mailAddress, false),
-				type: ButtonType.TextBubble,
-				isSelected: () => false,
-			}, childAttrs)
-			bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
-			return bubbleWrapper.bubble
+				bubbleWrapper.buttonAttrs = attachDropdown({
+					label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+					type: ButtonType.TextBubble,
+					isSelected: () => false,
+				}, childAttrs)
+				bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
+				return bubbleWrapper.bubble
+			}
 		},
-
-		_createBubbleContextButtons(name: string, mailAddress: string): Array<DropdownChildAttrs> {
-			let buttonAttrs = [{info: mailAddress, center: false, bold: false}]
-			buttonAttrs.push({
-				label: "remove_action",
-				type: ButtonType.Secondary,
-				click: () => {
-					const bubbleToRemove = invitePeopleValueTextField.bubbles.find((bubble) => bubble.entity.mailAddress === mailAddress)
-					if (bubbleToRemove) {
-						remove(invitePeopleValueTextField.bubbles, bubbleToRemove)
-					}
-				}
-			})
-			return buttonAttrs
-		},
-	}, locator.contactModel, SHOW_CONTACT_SUGGESTIONS_MAX)
+		locator.contactModel, SHOW_CONTACT_SUGGESTIONS_MAX
+	)
 	const invitePeopleValueTextField = new BubbleTextField<RecipientInfo>("shareWithEmailRecipient_label", bubbleHandler)
 	const capability: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 	const realGroupName = getSharedGroupName(model.info, false)
