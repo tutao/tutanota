@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-08-18T09:06:18Z",
+	"updated_at": "2021-08-23T14:16:27Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -119,6 +119,7 @@ export default {
 		"balance_label": "Balance",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Birthday",
+		"blockExternalContentSender_action": "Always block sender",
 		"blue_label": "Blue",
 		"bookingItemUsersIncludingWhitelabel_label": "Users incl. whitelabel feature",
 		"bookingItemUsersIncluding_label": "Users including:",

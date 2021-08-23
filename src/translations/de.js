@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-08-18T09:06:18Z",
+	"updated_at": "2021-08-23T14:18:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -123,6 +123,7 @@ export default {
 		"balance_label": "Kontostand",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Geburtstag",
+		"blockExternalContentSender_action": "Absender immer blockieren",
 		"blue_label": "Blau",
 		"bookingItemUsersIncludingWhitelabel_label": "Benutzer inkl. Whitelabel-Feature",
 		"bookingItemUsersIncluding_label": "Benutzer inklusive:",
