@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-07-16T08:44:30Z",
+	"updated_at": "2021-08-18T09:06:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -107,6 +107,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemôžeš udeliť práva globálneho správcu lokálne spravovanému používateľovi.",
 		"attachFiles_action": "Priložiť súbory",
 		"attachmentName_label": "Názov prílohy",
+		"attachmentWarning_msg": "Iná aplikácia chce pripojiť tieto súbory k novému e-mailu:",
 		"attendeeNotFound_msg": "Nezúčastňuješ sa tejto udalosti.",
 		"attending_label": "Účastníci",
 		"auditLogInfo_msg": "Denník auditu obsahuje dôležité správcovské akcie.",
@@ -748,7 +749,7 @@ export default {
 		"mailAuthFailed_msg": "Pokiaľ ide o dôveryhodnosť tejto správy, buď opatrný/á! Overenie odosielateľa alebo obsahu zlyhalo, takže táto správa môže byť falošná!",
 		"mailAuthMissingWithTechnicalSender_msg": "Nepodarilo sa nám overiť platnosť obsahu ani odosielateľa tejto správy. Skutočný odosielateľ je: {sender}.",
 		"mailAuthMissing_label": "Nepodarilo sa nám overiť platnosť obsahu ani odosielateľa tejto správy.",
-		"mailBodyTooLarge_msg": "Ľutujeme, e-mail sa nepodarilo odoslať, pretože presahuje limit maximálnej veľkosti 1 MB.",
+		"mailBodyTooLarge_msg": "E-mail sa nepodarilo odoslať na server, pretože základný text presahuje maximálnu veľkosť 1 MB.",
 		"mailBody_label": "Telo e-mailu",
 		"mailbox_label": "Poštová schránka",
 		"mailExportModeHelp_msg": "E-mailový formát súboru pre export alebo funkciu drag & drop",

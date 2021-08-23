@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2021-07-15T15:01:39Z",
+	"updated_at": "2021-08-18T09:06:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -1004,7 +1004,7 @@ export default {
 		"privacyPolicyUrl_label": "Liên kết đến chính sách riêng tư",
 		"privateCalendar_label": "Riêng",
 		"privateKeyInfo_msg": "Vui lòng chọn tệp tin chứa khóa bí mật của chứng chỉ với định dạng PEM (mã hóa base64).",
-		"privateKey_label": "Khóa cá nhân",
+		"privateKey_label": "Khóa bí mật",
 		"private_label": "Cá nhân",
 		"progressDeleting_msg": "Đang xoá...",
 		"promotion.npoDiscount_msg": "Ưu đãi cho tổ chức phi lợi nhuận: giảm giá 50% gói Premium và miễn phí 20 biệt danh!",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2021-07-15T13:28:07Z",
+	"updated_at": "2021-08-18T09:06:19Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",

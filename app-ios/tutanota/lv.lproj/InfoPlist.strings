@@ -1,11 +1,12 @@
-NSCameraUsageDescription = "Uzņemt fotoattēlu vai video lai pievienotu pielikumā.";
+NSCameraUsageDescription = "Uzņemiet fotoattēlu vai video, lai pievienotu pielikumā.";
 NSPhotoLibraryUsageDescription = "Pielikumā pievienojiet attēlu no galerijas.";
 NSMicrophoneUsageDescription = "Pielikumā pievienojiet attēlu no galerijas.";
-NSMicrophoneUsageDescription = "Izmantojams video pielikuma ierakstīšanai";
+NSMicrophoneUsageDescription = "Tiek izmantots video pielikuma ierakstīšanai";
 NSContactsUsageDescription = "Atrast saņēmēja e-pasta adresi kontaktos.";
 NSRemindersUsageDescription = "Parāda paziņojumus par jaunām ienākošajām vēstulēm.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotoattēli";
 TutaoNoPermissionTitle = "Nav atļaujas";
-TutaoCancelAction = "Atcelt.";
-TutaoSettingsAction = "Uzstādījumi";
+TutaoChangePermissionMsg = "Lai piešķirtu piekļuvi, jums ir jāizmaina šīs ierīces atļaujas.";
+TutaoCancelAction = "Atcelt";
+TutaoSettingsAction = "Iestatījumi";

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2021-07-15T13:28:07Z",
+	"updated_at": "2021-08-18T09:06:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -101,6 +101,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Vous ne pouvez pas donner le statut admin à un utilisateur administré localement.",
 		"attachFiles_action": "Joindre des fichiers",
 		"attachmentName_label": "Nom de la pièce jointe",
+		"attachmentWarning_msg": "Une autre application souhaite attacher les fichiers suivants à un nouveau mail:",
 		"attendeeNotFound_msg": "Vous n'assisterez pas à cet événement.",
 		"attending_label": "En attente",
 		"auditLogInfo_msg": "Le log d'audit contient des actions administratives importantes.",

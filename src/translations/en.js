@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-07-15T13:28:06Z",
+	"updated_at": "2021-08-18T09:06:18Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -86,7 +86,6 @@ export default {
 		"agenda_label": "Agenda",
 		"allDay_label": "All Day",
 		"allowExternalContentSender_action": "Always trust sender",
-		"blockExternalContentSender_action": "Always block sender",
 		"allowOperation_msg": "Do you want to allow this?",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
 		"all_contacts_label": "All contacts",
@@ -107,6 +106,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "You can't assign global admin rights to a locally administrated user.",
 		"attachFiles_action": "Attach files",
 		"attachmentName_label": "Attachment name",
+		"attachmentWarning_msg": "Another Application wants to attach the following files to a new email:",
 		"attendeeNotFound_msg": "You are not attending this event.",
 		"attending_label": "Attending",
 		"auditLogInfo_msg": "The audit log contains important administrative actions.",
@@ -750,7 +750,7 @@ export default {
 		"mailAuthFailed_msg": "Be careful when trusting this message! The verification of the sender or contents has failed, so this message might be forged!",
 		"mailAuthMissingWithTechnicalSender_msg": "We could not prove that the content or sender of this message is valid. The technical sender is: {sender}.",
 		"mailAuthMissing_label": "We could not prove that the content or sender of this message is valid.",
-		"mailBodyTooLarge_msg": "Sorry, the email couldn't be sent because the body exceeds the maximum size limit of 1 MB.",
+		"mailBodyTooLarge_msg": "Your email couldn't be sent to the server, because the body text exceeds the maximum size limit of 1MB.",
 		"mailBody_label": "Email body",
 		"mailbox_label": "Mailbox",
 		"mailExportModeHelp_msg": "Email file format to use when exporting or drag & dropping",
@@ -1192,7 +1192,7 @@ export default {
 		"showContact_action": "Show contact",
 		"showEmailAliases_action": "Show email aliases",
 		"showHeaders_action": "Show email headers",
-		"showHelp_action": "Show this help",
+		"showHelp_action": "Show help",
 		"showImages_action": "Show images",
 		"showInboxRules_action": "Show inbox rules",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
@@ -1251,7 +1251,7 @@ export default {
 		"switchTrash_action": "Switch to trash folder",
 		"switchWeekView_action": "Switch to week view",
 		"takeoverAccountInvalid_msg": "The email address specified as the take over target account does not belong to a Premium admin.",
-		"takeoverMailAddressInfo_msg": "Optional: Specify the target paid account admin email address in order to re-use your email addresses in the target account.",
+		"takeoverMailAddressInfo_msg": "Optional: Enter the email address of the administrator of your paid account in order to re-use your email addresses in the target account.",
 		"takeoverMailAddress_label": "Target account address",
 		"takeoverSuccess_msg": "You may now re-use your old address in the specified account as email alias or additional user.",
 		"takeOverUnusedAddress_msg": "You may take over the email address of your deleted account into another paid account and re-use it there. In order to do so please specify the target paid account admin email address. Please note: In case you had configured a second factor for authentication, please provide your recovery code instead because 2FA can not be used for a deleted account.",
@@ -1395,15 +1395,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"attachmentWarning_msg": "Another Application wants to attach the following files to a new email:",
-		"spamReports_label": "Report spam",
-		"alwaysReport_action": "Always report",
-		"neverReport_action": "Never report",
-		"unencryptedTransmission_msg": "The email(s) moved to the spam folder will be transmitted to the server in unencrypted form to improve spam protection.",
-		"allowOperation_msg": "Do you want to allow this?",
-		"undoMailReport_msg": "The email(s) will be reported in unencrypted form.",
-		"rememberDecision_msg": "Remember decision",
-		"changeMailSettings_msg": "You may later change your decision in the email settings."
+		"you_label": "You"
 	}
 }

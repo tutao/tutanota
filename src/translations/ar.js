@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2021-07-15T13:28:07Z",
+	"updated_at": "2021-08-18T09:06:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -113,6 +113,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "لا يمكنك إسناد حقوق مشرف عام إلى مستخدم مدار محليًا.",
 		"attachFiles_action": "إرفاق ملفات",
 		"attachmentName_label": "اسم المرفق",
+		"attachmentWarning_msg": "يريد تطبيق آخر إرفاق الملفات التالية برسالة بريد إلكتروني جديدة :",
 		"attendeeNotFound_msg": "أنت لا تحضر هذا الحدث.",
 		"attending_label": "حضور",
 		"auditLogInfo_msg": "يحتوي سجل التدقيق على إجراءات إدارية مهمة.",
@@ -588,7 +589,7 @@ export default {
 		"inboxRuleField_label": "حقل",
 		"inboxRuleInvalidEmailAddress_msg": "عنوان البريد الإلكتروني أو النطاق غير صالح.",
 		"inboxRuleMailHeaderContains_action": "الرأسية تحتوي على",
-		"inboxRuleSenderEquals_action": "المُرسِل",
+		"inboxRuleSenderEquals_action": "من / المرسل",
 		"inboxRulesSettings_action": "قوانين صندوق الواردات",
 		"inboxRuleSubjectContains_action": "الموضوع يحتوي على",
 		"inboxRuleTargetFolder_label": "الملف الهدف",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2021-07-23T07:18:37Z",
+	"updated_at": "2021-08-18T09:06:19Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -110,6 +110,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Sie können einen lokal administrierten Benutzer nicht zum globalen Admin machen.",
 		"attachFiles_action": "Dateien anhängen",
 		"attachmentName_label": "Anhang-Name",
+		"attachmentWarning_msg": "Eine andere Anwendung möchte die folgenden Dateien an eine neue E-Mail anhängen:",
 		"attendeeNotFound_msg": "Sie nehmen nicht an diesem Termin teil.",
 		"attending_label": "Teilnehmen",
 		"auditLogInfo_msg": "Das Audit-Log enthält Einträge von wichtigen Aktionen eines Administrators.",
@@ -1194,7 +1195,7 @@ export default {
 		"showContact_action": "Kontakt anzeigen",
 		"showEmailAliases_action": "Aliasse anzeigen",
 		"showHeaders_action": "Öffne die E-Mail-Header",
-		"showHelp_action": "Zeige diese Hilfe an",
+		"showHelp_action": "Zeige die Hilfe an",
 		"showImages_action": "Bilder anzeigen",
 		"showInboxRules_action": "Regeln anzeigen",
 		"showingEventsUntil_msg": "Zeigt alle Ereignisse bis {untilDay} an.",
@@ -1397,7 +1398,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"attachmentWarning_msg": "Eine andere Anwendung möchte die folgenden Dateien an eine neue E-Mail anhängen:"
+		"you_label": "Sie"
 	}
 }

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2021-07-15T13:28:07Z",
+	"updated_at": "2021-08-18T09:06:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -180,7 +180,7 @@ export default {
 		"cancelSharingBooking_label": "Annulla la funzionalità di condivisione per {1} utenti",
 		"cancelUserAccounts_label": "Cancella {1} utente(i)",
 		"cancelWhitelabelBooking_label": "Annullare l'upgrade whitelabel per {1} utenti",
-		"cancel_action": "Cancella",
+		"cancel_action": "Annulla",
 		"canNotOpenFileOnDevice_msg": "Questo file non può essere aperto su questo dispositivo.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Inserire l'orario in formato ore e minuti.",

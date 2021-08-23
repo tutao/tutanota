@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-07-17T00:06:55Z",
+	"updated_at": "2021-08-19T19:01:28Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -110,6 +110,7 @@ export default {
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Você não pode especificar direitos de administrador global a um usuário gerenciado localmente.",
 		"attachFiles_action": "Anexar arquivos",
 		"attachmentName_label": "Nome do anexo",
+		"attachmentWarning_msg": "Outra aplicação quer anexar os seguintes arquivos em um novo e-mail:",
 		"attendeeNotFound_msg": "Você não participará dessse evento.",
 		"attending_label": "Participando",
 		"auditLogInfo_msg": "O histórico de auditoria contém ações administrativas importantes.",
@@ -751,7 +752,7 @@ export default {
 		"mailAuthFailed_msg": "Tenha cuidado ao confiar nesta mensagem. Não confie no conteúdo dessa mensagem, pois o endereço do remetente e o conteúdo podem ser falsificados!",
 		"mailAuthMissingWithTechnicalSender_msg": "Não foi possível confirmar que o conteúdo ou remetente desta mensagem é válido. O remetente técnico é: {sender}.",
 		"mailAuthMissing_label": "Não pudemos provar que o conteúdo ou o remetente dessa mensagem é válido.",
-		"mailBodyTooLarge_msg": "Me desculpe, o email não foi enviado porque o corpo excede o tamanho limite máximo de 1 MB.",
+		"mailBodyTooLarge_msg": "Seu email não pôde ser enviado ao servidor, porque o corpo do texto excede o limite máximo de 1MB.",
 		"mailBody_label": "Texto do email",
 		"mailbox_label": "Caixa de mensagens",
 		"mailExportModeHelp_msg": "Formato de arquivo a ser utilizado quando estiver exportando com o arrastar e soltar",
