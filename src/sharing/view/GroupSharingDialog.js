@@ -11,8 +11,8 @@ import {lang} from "../../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../../mail/model/MailUtils"
+import type {DropdownChildAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {remove} from "../../api/common/utils/ArrayUtils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -161,19 +161,19 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 			recipientInfo.resolveContactPromise =
 				resolveRecipientInfoContact(recipientInfo, locator.contactModel, logins.getUserController().user)
 			let bubbleWrapper = {}
+			const childAttrs = () => this._createBubbleContextButtons(recipientInfo.name, mailAddress)
+
 			bubbleWrapper.buttonAttrs = attachDropdown({
 				label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 				type: ButtonType.TextBubble,
 				isSelected: () => false,
-			}, () => {
-				return this._createBubbleContextButtons(recipientInfo.name, mailAddress)
-			})
+			}, childAttrs)
 			bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
 			return bubbleWrapper.bubble
 		},
 
-		_createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | string> {
-			let buttonAttrs = [mailAddress]
+		_createBubbleContextButtons(name: string, mailAddress: string): Array<DropdownChildAttrs> {
+			let buttonAttrs = [{info: mailAddress, center: false, bold: false}]
 			buttonAttrs.push({
 				label: "remove_action",
 				type: ButtonType.Secondary,
