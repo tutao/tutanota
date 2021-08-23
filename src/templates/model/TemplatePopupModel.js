@@ -72,6 +72,7 @@ export class TemplatePopupModel {
 		this.selectedTemplate = stream(null)
 		this._selectedContentLanguage = lang.code
 		this._searchFilter = new TemplateSearchFilter()
+		this._groupInstances = []
 
 		this._entityEventReceived = (updates) => {
 			return this._entityUpdate(updates)
@@ -93,7 +94,6 @@ export class TemplatePopupModel {
 		})
 
 		this._eventController.addEntityListener(this._entityEventReceived)
-
 	}
 
 	init(): Promise<TemplatePopupModel> {
