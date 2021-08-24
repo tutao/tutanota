@@ -417,3 +417,18 @@ export function partition<T>(array: Array<T>, predicate: T => boolean): [Array<T
 
 	return [left, right]
 }
+
+export function compare<T>(a1: Array<T>, a2: Array<T>, comp: (T, T) => boolean = (a, b) => a === b): boolean {
+	if (a1.length !== a2.length) {
+		return false
+	}
+
+	for (let i = 0; i < a1.length; ++i) {
+		if (!comp(a1[i], a2[1])) {
+			return false
+		}
+	}
+
+	return true
+}
+

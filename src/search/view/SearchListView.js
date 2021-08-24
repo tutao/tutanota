@@ -20,14 +20,8 @@ import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
-import {
-	elementIdPart,
-	GENERATED_MAX_ID,
-	isSameId,
-	listIdPart,
-	sortCompareByReverseId
-} from "../../api/common/utils/EntityUtils";
 import type {ListElement} from "../../api/common/utils/EntityUtils"
+import {elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../../mail/view/MailGuiUtils";
 import {MailRow} from "../../mail/view/MailRow";
 import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
@@ -133,8 +127,8 @@ export class SearchListView {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
-				           .then(results => results.map(instance => new SearchResultListEntry(instance)))
-				           .finally(m.redraw)
+					           .then(results => results.map(instance => new SearchResultListEntry(instance)))
+					           .finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
 				if (this._searchResult) {
@@ -246,26 +240,26 @@ export class SearchListView {
 
 		const grouped = groupBy(toLoad, listIdPart)
 		return promiseMap(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)))
-		              .then(flat)
-		              .then((loaded) => {
-			              // Filter not found instances from the current result as well so we don’t loop trying to load them
-			              if (loaded.length < toLoad.length) {
-				              const resultLength = currentResult.results.length
-				              console.log(`Could not load some results: ${loaded.length} out of ${toLoad.length}`)
-				              // loop backwards to remove correct elements by index
-				              for (let i = toLoad.length - 1; i >= 0; i--) {
-					              const toLoadId = toLoad[i]
-					              if (loaded.find((l) => isSameId(l._id, toLoadId)) == null) {
-						              currentResult.results.splice(startIndex + i, 1)
-						              if (loaded.length === toLoad.length) {
-							              break
-						              }
-					              }
-				              }
-				              console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
-			              }
-			              return loaded
-		              })
+			.then(flat)
+			.then((loaded) => {
+				// Filter not found instances from the current result as well so we don’t loop trying to load them
+				if (loaded.length < toLoad.length) {
+					const resultLength = currentResult.results.length
+					console.log(`Could not load some results: ${loaded.length} out of ${toLoad.length}`)
+					// loop backwards to remove correct elements by index
+					for (let i = toLoad.length - 1; i >= 0; i--) {
+						const toLoadId = toLoad[i]
+						if (loaded.find((l) => isSameId(l._id, toLoadId)) == null) {
+							currentResult.results.splice(startIndex + i, 1)
+							if (loaded.length === toLoad.length) {
+								break
+							}
+						}
+					}
+					console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
+				}
+				return loaded
+			})
 	}
 
 	isEntitySelected(id: Id): boolean {

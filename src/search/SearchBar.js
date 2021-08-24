@@ -469,7 +469,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 		const limit = isSameTypeRef(MailTypeRef, restriction.type)
 			? this._isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize
 			: null
-		locator.search.search(query, restriction, useSuggestions ? 10 : 0, limit)
+		locator.search.search({query: query || "", restriction, minSuggestionCount: useSuggestions ? 10 : 0, maxResults: limit})
 		       .then(result => this._loadAndDisplayResult(query, result, limit))
 		       .finally(() => cb())
 	})
