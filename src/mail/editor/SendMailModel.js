@@ -677,30 +677,24 @@ export class SendMailModel {
 	}
 
 	_updateDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, draft: Mail): Promise<Mail> {
-		try {
-			return this._worker.updateMailDraft(
-				this.getSubject(),
-				body,
-				this._senderAddress,
-				this.getSenderName(),
-				this.toRecipients().map(recipientInfoToDraftRecipient),
-				this.ccRecipients().map(recipientInfoToDraftRecipient),
-				this.bccRecipients().map(recipientInfoToDraftRecipient),
-				attachments,
-				this.isConfidential(),
-				draft
-			)
-		} catch (e) {
-			if (e instanceof LockedError) {
-				console.log("updateDraft: operation is still active", e)
-				throw new UserError("operationStillActive_msg")
-			} else if (e instanceof NotFoundError) {
-				console.log("draft has been deleted, creating new one")
-				return this._createDraft(body, attachments, downcast(draft.method))
-			} else {
-				throw e
-			}
-		}
+		return this._worker.updateMailDraft(
+			this.getSubject(),
+			body,
+			this._senderAddress,
+			this.getSenderName(),
+			this.toRecipients().map(recipientInfoToDraftRecipient),
+			this.ccRecipients().map(recipientInfoToDraftRecipient),
+			this.bccRecipients().map(recipientInfoToDraftRecipient),
+			attachments,
+			this.isConfidential(),
+			draft
+		).catch(ofClass(LockedError, e => {
+			console.log("updateDraft: operation is still active", e)
+			throw new UserError("operationStillActive_msg")
+		})).catch(ofClass(NotFoundError, e => {
+			console.log("draft has been deleted, creating new one")
+			return this._createDraft(body, attachments, downcast(draft.method))
+		}))
 	}
 
 	_createDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, mailMethod: MailMethodEnum): Promise<Mail> {
