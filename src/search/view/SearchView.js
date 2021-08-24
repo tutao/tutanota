@@ -481,11 +481,11 @@ export class SearchView implements CurrentView {
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (args.hasOwnProperty('query')) {
 			if (locator.search.isNewSearch(args.query, restriction)) {
-				locator.search.search(args.query, restriction, 0, maxResults)
+				locator.search.search({query: args.query, restriction, minSuggestionCount: 0, maxResults})
 			}
 		} else if (lastQuery && locator.search.isNewSearch(lastQuery, restriction)) {
 			// If query is not set for some reason (e.g. switching search type), use the last query value
-			locator.search.search(lastQuery, restriction, 0, maxResults)
+			locator.search.search({query: lastQuery, restriction, minSuggestionCount: 0, maxResults})
 		}
 		// update the filters
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {

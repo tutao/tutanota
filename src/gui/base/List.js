@@ -11,7 +11,7 @@ import {debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils
 import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
-import {animations, transform} from "./../animation/Animations"
+import {animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"

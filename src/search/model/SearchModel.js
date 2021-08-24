@@ -8,8 +8,16 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {compare} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
+
+export type SearchQuery = {
+	query: string,
+	restriction: SearchRestriction,
+	minSuggestionCount: number,
+	maxResults: ?number
+}
 
 export class SearchModel {
 	_worker: WorkerClient;
@@ -17,6 +25,8 @@ export class SearchModel {
 	indexState: Stream<SearchIndexStateInfo>;
 	lastQuery: Stream<?string>;
 	indexingSupported: boolean;
+	_lastQuery: ?SearchQuery
+	_lastSearchPromise: Promise<?SearchResult>
 
 	constructor(worker: WorkerClient) {
 		this._worker = worker
@@ -31,10 +41,21 @@ export class SearchModel {
 			indexedMailCount: 0,
 			failedIndexingUpTo: null
 		})
+		this._lastQuery = null
+		this._lastSearchPromise = Promise.resolve()
 	}
 
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number,
-	       maxResults: ?number): Promise<?SearchResult> {
+	async search(searchQuery: SearchQuery): Promise<?SearchResult> {
+		console.log("search:", searchQuery, this._lastQuery, this._lastQuery && compareSearchQuery(searchQuery, this._lastQuery))
+		if (this._lastQuery && compareSearchQuery(searchQuery, this._lastQuery)) {
+			console.log("its the same")
+			return this._lastSearchPromise
+		}
+
+		this._lastQuery = searchQuery
+
+		const {query, restriction, minSuggestionCount, maxResults} = searchQuery
+
 		this.lastQuery(query)
 		let result = this.result()
 		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
@@ -57,9 +78,9 @@ export class SearchModel {
 				moreResults: []
 			}
 			this.result(result)
-			return Promise.resolve(result)
+			this._lastSearchPromise = Promise.resolve(result)
 		} else {
-			return this._worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+			this._lastSearchPromise = this._worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
 			}).catch(ofClass(DbError, (e) => {
@@ -72,6 +93,8 @@ export class SearchModel {
 				}
 			}))
 		}
+
+		return this._lastSearchPromise
 	}
 
 	isNewSearch(query: string, restriction: SearchRestriction): boolean {
@@ -85,12 +108,29 @@ export class SearchModel {
 		if (result.restriction === restriction) { // both are the same instance
 			return false
 		}
-		return !isSameTypeRef(restriction.type, result.restriction.type)
-			|| restriction.start !== result.restriction.start
-			|| restriction.end !== result.restriction.end
-			|| restriction.field !== result.restriction.field
-			|| restriction.listId !== result.restriction.listId
+
+		return !compareSearchRestriction(restriction, result.restriction)
 	}
+}
+
+function compareSearchQuery(a: SearchQuery, b: SearchQuery) {
+	return a.query === b.query
+		&& compareSearchRestriction(a.restriction, b.restriction)
+		&& a.minSuggestionCount === b.minSuggestionCount
+		&& a.maxResults === b.maxResults
+}
+
+function compareSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
+	const isSameAttributeIds = a.attributeIds != null && b.attributeIds != null
+		? compare(a.attributeIds, b.attributeIds)
+		: true
+
+	return isSameTypeRef(a.type, b.type)
+		&& a.start === b.start
+		&& a.end === b.end
+		&& a.field === b.field
+		&& isSameAttributeIds
+		&& a.listId === b.listId
 }
 
 export function hasMoreResults(searchResult: SearchResult): boolean {
