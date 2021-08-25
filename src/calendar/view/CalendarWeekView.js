@@ -1,18 +1,20 @@
 // @flow
 
 import m from "mithril"
-import {getStartOfDay, incrementDate} from "../../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
 import {styles} from "../../gui/styles"
 import {formatTime} from "../../misc/Formatter"
 import {
-	CALENDAR_EVENT_HEIGHT, DEFAULT_HOUR_OF_DAY,
+	CALENDAR_EVENT_HEIGHT,
+	DEFAULT_HOUR_OF_DAY,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	getCalendarWeek,
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
-	getEventStart, getTimeZone,
+	getEventStart,
+	getTimeZone,
 	getWeekNumber,
 	layOutEvents
 } from "../date/CalendarUtils"
@@ -23,7 +25,7 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import type {WeekStartEnum} from "../../api/common/TutanotaConstants"
-import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
+import {WeekStart} from "../../api/common/TutanotaConstants"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import {Icon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -31,9 +33,12 @@ import {lang} from "../../misc/LanguageViewModel"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
+import type {CalendarViewTypeEnum} from "./CalendarView"
+import {CalendarViewType, SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
 
 export type Attrs = {
 	selectedDate: Date,
+	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewTypeEnum) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
@@ -91,8 +96,6 @@ export class CalendarWeekView implements MComponent<Attrs> {
 
 		const marginForWeekEvents = mainWeek.eventsForWeek.size === 0 ? 0 : 6
 
-		const {startOfTheWeek} = logins.getUserController().userSettingsGroupRoot
-
 		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -105,7 +108,9 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			},
 		}, [
 			m(".calendar-long-events-header.mt-s.flex-fixed", {
-				style: {height: px(45 + 24 + mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT + marginForWeekEvents + 8)},
+				style: {
+					height: px(45 + 24 + mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT + marginForWeekEvents + size.vpad_small)
+				},
 			}, [
 				m(".pr-l.flex.row.items-center", [
 					m("button.calendar-switch-button", {
@@ -118,23 +123,24 @@ export class CalendarWeekView implements MComponent<Attrs> {
 					// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 					// weeks that do not start on Monday are not strictly defined, so we only display
 					// a week number if the user's client is configured to start weeks on Monday
-					startOfTheWeek === WeekStart.MONDAY
+					attrs.startOfTheWeek === WeekStart.MONDAY
 						? m(".ml-m.content-message-bg.small", {style: {padding: "2px 4px"}}, lang.get("weekNumber_label", {"{week}": String(getWeekNumber(firstDate))}))
 						: null
 				]),
 				m(".flex", {
-					style: {
-						"margin": `0 0 ${px(marginForWeekEvents)} ${px(size.calendar_hour_width)}`
-					}
-				}, thisWeek.week.map((wd) => m(".flex.center-horizontally.flex-grow.center.b.", [
-					m(".calendar-day-indicator", {
-						style: {"margin-right": "4px"},
-					}, lang.formats.weekdayShort.format(wd) + " "),
-					m(".calendar-day-indicator.calendar-day-number" + (todayTimestamp === wd.getTime() ? ".date-current" : ""), {
-						style: {margin: "0"}
-					}, wd.getDate())
-				]))),
-				m(".calendar-hour-margin.flex.row", {
+						style: {
+							"margin": `0 0 ${px(marginForWeekEvents)} ${px(size.calendar_hour_width)}`
+						}
+					},
+					thisWeek.week.map((wd) => m(".flex.center-horizontally.flex-grow.center.b.", [
+						m(".calendar-day-indicator", {
+							style: {"margin-right": "4px"},
+						}, lang.formats.weekdayShort.format(wd) + " "),
+						m(".calendar-day-indicator.calendar-day-number" + (todayTimestamp === wd.getTime() ? ".date-current" : ""), {
+							style: {margin: "0"}
+						}, wd.getDate())
+					]))),
+				m(".calendar-hour-margin.flex.col", {
 						oncreate: (vnode) => {
 							if (mainWeek === thisWeek) {
 								this._longEventsDom = vnode.dom
@@ -147,10 +153,40 @@ export class CalendarWeekView implements MComponent<Attrs> {
 							}
 						}
 					},
-					m(".rel.mb-s",
-						{style: {height: px(mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT), width: "100%"}},
-						thisWeek.longEvents.children
-					))
+					[
+						m(".rel",
+							{style: {height: px(mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT), width: "100%"}},
+							thisWeek.longEvents.children
+						),
+
+						// Selected Day Indicator Row
+						m(".rel.flex", {
+								style: {
+									height: px(size.vpad_small),
+									width: "100%",
+								}
+							},
+							thisWeek.week.map(day => m(".flex-grow.flex.col", {
+									style: {
+										justifyContent: "flex-end"
+									}
+								}, [
+									m("", {
+										style: {
+											background: isSameDay(attrs.selectedDate, day)
+												? theme.content_accent
+												: "none",
+											width: "100%",
+											// The calendar-long-events-header has a 1px border on the bottom that overlaps this selection indicator
+											// therefore we need to make it +1px thicker so that it looks correct (consistent with the indicator in month view)
+											height: px(SELECTED_DATE_INDICATOR_THICKNESS + 1)
+										}
+									}),
+								])
+							)
+						)
+					]
+				),
 			]),
 			m("", {
 				style: {'border-bottom': `1px solid ${theme.content_border}`,}
@@ -185,9 +221,10 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				m(".flex.flex-grow", thisWeek.week.map((weekday, i) => {
 						const events = thisWeek.eventsPerDay[i]
 						const newEventHandler = (hours, minutes) => {
-							const eventDate = new Date(weekday)
-							eventDate.setHours(hours, minutes)
-							attrs.onNewEvent(eventDate)
+							const newDate = new Date(weekday)
+							newDate.setHours(hours, minutes)
+							attrs.onNewEvent(newDate)
+							attrs.onDateSelected(new Date(weekday), CalendarViewType.WEEK)
 						}
 						return m(".flex-grow.calendar-column-border", {
 							style: {
@@ -257,7 +294,6 @@ export class CalendarWeekView implements MComponent<Attrs> {
 					const endsAfter = eventEndsAfterDay(lastDayOfWeek, zone, event)
 					const left = startsBefore ? 0 : dayOfStartDateInWeek * dayWidth
 					const right = endsAfter ? 0 : (6 - dayOfEndDateInWeek) * dayWidth
-						+ calendarEventMargin
 					return m(".abs", {
 						style: {
 							top: px(c * CALENDAR_EVENT_HEIGHT),
@@ -271,7 +307,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 						endsAfter,
 						color: getEventColor(event, attrs.groupColors),
 						onEventClicked: attrs.onEventClicked,
-						showTime: isAllDayEvent(event) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME,
+						showTime: !isAllDayEvent(event),
 						user: logins.getUserController().user
 					}))
 				}))

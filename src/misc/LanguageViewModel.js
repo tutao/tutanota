@@ -223,6 +223,7 @@ export class LanguageViewModel {
 		dateWithWeekday: Intl.DateTimeFormat,
 		dateWithWeekdayWoMonth: Intl.DateTimeFormat,
 		dateWithWeekdayAndYear: Intl.DateTimeFormat,
+		dateWithWeekdayAndYearLong: Intl.DateTimeFormat,
 		dateWithWeekdayAndTime: Intl.DateTimeFormat,
 		weekdayShort: Intl.DateTimeFormat,
 		weekdayNarrow: Intl.DateTimeFormat,
@@ -321,6 +322,12 @@ export class LanguageViewModel {
 				weekday: 'short',
 				day: 'numeric',
 				month: 'short',
+				year: 'numeric'
+			}),
+			dateWithWeekdayAndYearLong: new Intl.DateTimeFormat(tag, {
+				weekday: 'long',
+				day: 'numeric',
+				month: 'long',
 				year: 'numeric'
 			}),
 			dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, Object.assign({}, {

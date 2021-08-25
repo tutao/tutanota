@@ -1373,6 +1373,7 @@ export default {
 		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will normally be automatically approved after 48 hours. Thank you for your patience!",
 		"waitingForU2f_msg": "Waiting for security key…",
 		"wantToSendReport_msg": "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
+		"week_label": "Week",
 		"weekNumber_label": "Week {week}",
 		"weekStart_label": "Week start",
 		"weeks_label": "weeks",

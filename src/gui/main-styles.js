@@ -1109,6 +1109,15 @@ styles.registerStyle('main', () => {
 			'background': theme.list_alternate_bg
 		},
 
+		'.calendar-day-top:hover': {
+			opacity: 0.7,
+		},
+
+		'.calendar-day:hover .calendar-day-top': {
+			'background-color': theme.button_bubble_bg
+		},
+
+
 		'.calendar-hour': {
 			'cursor': 'pointer',
 			'border-bottom': `1px solid ${theme.content_border}`,

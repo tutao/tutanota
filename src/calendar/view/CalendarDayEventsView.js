@@ -5,13 +5,13 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
-import {expandEvent, getEventColor, getEventText, getTimeZone, hasAlarmsForTheUser, layOutEvents} from "../date/CalendarUtils"
+import {expandEvent, formatEventTime, getEventColor, getTimeZone, hasAlarmsForTheUser, layOutEvents} from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
 import {neverNull} from "../../api/common/utils/Utils"
-import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
+import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
+import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 
 export type Attrs = {
 	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
@@ -102,7 +102,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 		const startTime = (ev.startTime.getHours() * 60 + ev.startTime.getMinutes()) * 60 * 1000
 		const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
 		const colSpan = expandEvent(ev, columnIndex, columns)
-
+		const padding = 2
 		return m(".abs.darker-hover", {
 			style: {
 				left: px(columnWidth * columnIndex),
@@ -111,12 +111,13 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				height: px(height)
 			},
 		}, m(CalendarEventBubble, {
-			text: getEventText(ev, isAllDayEvent(ev) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME),
+			text: ev.summary,
+			secondLineText: !isAllDayEvent(ev) ? formatEventTime(ev, EventTextTimeOption.START_END_TIME) : null,
 			color: getEventColor(ev, attrs.groupColors),
 			click: (domEvent) => attrs.onEventClicked(ev, domEvent),
-			height: height - 2,
+			height: height - padding,
 			hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
-			verticalPadding: 2
+			verticalPadding: padding
 		}))
 	}
 

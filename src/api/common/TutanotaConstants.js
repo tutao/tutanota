@@ -508,7 +508,6 @@ export type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 export const AlarmIntervalByCode: {} = reverse(AlarmInterval)
 
 export const EventTextTimeOption = Object.freeze({
-	NO_TIME: "noTime",
 	START_TIME: "startTime",
 	END_TIME: "endTime",
 	START_END_TIME: "startAndEndTime",

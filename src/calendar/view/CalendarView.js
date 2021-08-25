@@ -90,7 +90,7 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
 
-
+export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
 export type CalendarInfo = {
@@ -216,9 +216,8 @@ export class CalendarView implements CurrentView {
 								this._newEvent(date)
 							},
 							selectedDate: this.selectedDate(),
-							onDateSelected: (date) => {
-								const viewType = styles.isDesktopLayout() ? CalendarViewType.WEEK : CalendarViewType.DAY
-								this._setUrl(viewType, date)
+							onDateSelected: (date, calendarViewType) => {
+								this._setUrl(calendarViewType, date)
 							},
 							onChangeMonth: (next) => this._viewPeriod(next),
 							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
@@ -241,6 +240,7 @@ export class CalendarView implements CurrentView {
 							},
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
+							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 						})
 					case CalendarViewType.WEEK:
 						return m(CalendarWeekView, {
@@ -250,8 +250,8 @@ export class CalendarView implements CurrentView {
 								this._newEvent(date)
 							},
 							selectedDate: this.selectedDate(),
-							onDateSelected: (date) => {
-								this._setUrl(CalendarViewType.DAY, date)
+							onDateSelected: (date, viewType) => {
+								this._setUrl(viewType, date)
 							},
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
@@ -392,9 +392,9 @@ export class CalendarView implements CurrentView {
 				const dateTime = DateTime.fromJSDate(this.selectedDate())
 				let newDate
 				if (next) {
-					newDate = dateTime.plus({month: 1}).toJSDate()
+					newDate = dateTime.plus({month: 1}).startOf("month").toJSDate()
 				} else {
-					newDate = dateTime.minus({month: 1}).toJSDate()
+					newDate = dateTime.minus({month: 1}).startOf("month").toJSDate()
 				}
 				this.selectedDate(newDate)
 				m.redraw()
@@ -405,9 +405,9 @@ export class CalendarView implements CurrentView {
 				const dateTime = DateTime.fromJSDate(this.selectedDate())
 				let newDate
 				if (next) {
-					newDate = dateTime.plus({week: 1}).toJSDate()
+					newDate = dateTime.plus({week: 1}).startOf("week").toJSDate()
 				} else {
-					newDate = dateTime.minus({week: 1}).toJSDate()
+					newDate = dateTime.minus({week: 1}).startOf("week").toJSDate()
 				}
 				this.selectedDate(newDate)
 				m.redraw()
@@ -419,6 +419,8 @@ export class CalendarView implements CurrentView {
 
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues = [
+			{name: "Day", value: CalendarViewType.DAY, icon: Icons.Table, href: "/calendar/day"},
+			{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.Table, href: "/calendar/week"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]

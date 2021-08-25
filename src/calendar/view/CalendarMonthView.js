@@ -4,8 +4,7 @@
 import m from "mithril"
 import {px, size} from "../../gui/size"
 import type {WeekStartEnum} from "../../api/common/TutanotaConstants"
-import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
-import {CalendarEventBubble} from "./CalendarEventBubble"
+import {WeekStart} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../date/CalendarUtils"
 import {
 	CALENDAR_EVENT_HEIGHT,
@@ -22,7 +21,7 @@ import {
 	getWeekNumber,
 	layOutEvents
 } from "../date/CalendarUtils"
-import {incrementDate} from "../../api/common/utils/DateUtils"
+import {incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import {theme} from "../../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -36,10 +35,12 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
+import type {CalendarViewTypeEnum} from "./CalendarView"
+import {CalendarViewType, SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
-	onDateSelected: (date: Date) => mixed,
+	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewTypeEnum) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (calendarEvent: CalendarEvent, clickEvent: Event) => mixed,
@@ -81,9 +82,11 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 	view({attrs}: Vnode<CalendarMonthAttrs>): Children {
 		const previousMonthDate = new Date(attrs.selectedDate)
 		previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
+		previousMonthDate.setDate(1)
 
 		const nextMonthDate = new Date(attrs.selectedDate)
 		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+		nextMonthDate.setDate(1)
 		return m(PageView, {
 			previousPage: {
 				key: previousMonthDate.getTime(),
@@ -158,11 +161,12 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 	}
 
 	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date, weekDayNumber: number): Children {
+		const {selectedDate} = attrs
+		const isSelectedDate = isSameDay(selectedDate, d.date)
 		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
-				onclick: () => attrs.onDateSelected(new Date(d.date)),
-				oncontextmenu: (e) => {
+				onclick: (e) => {
 					if (styles.isDesktopLayout()) {
 						const newDate = new Date(d.date)
 						let hour = new Date().getHours()
@@ -171,14 +175,30 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 						}
 						newDate.setHours(hour, 0)
 						attrs.onNewEvent(newDate)
+						attrs.onDateSelected(new Date(d.date), CalendarViewType.MONTH)
 					} else {
-						attrs.onDateSelected(new Date(d.date))
+						attrs.onDateSelected(new Date(d.date), CalendarViewType.DAY)
 					}
 					e.preventDefault()
-				}
+				},
 			},
 			[
-				m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
+				m(".calendar-day-top", {
+						onclick: e => {
+							attrs.onDateSelected(new Date(d.date), CalendarViewType.DAY)
+							e.stopPropagation()
+						}
+					},
+					[
+						m("", {
+							style: {
+								height: px(SELECTED_DATE_INDICATOR_THICKNESS),
+								backgroundColor: isSelectedDate ? theme.content_accent : "none"
+							},
+						}),
+						m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day))
+					]
+				),
 				// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 				// weeks that do not start on Monday are not strictly defined, so we only display
 				// a week number if the user's client is configured to start weeks on Monday
@@ -247,16 +267,14 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 							bottom: px(1),
 							height: px(CALENDAR_EVENT_HEIGHT),
 							left: px(weekday * dayWidth + eventMargin),
-							width: px(dayWidth - 2 - eventMargin * 2)
+							width: px(dayWidth - 2 - eventMargin * 2),
+							pointerEvents: "none"
 						}
-					}, m(CalendarEventBubble, {
-						text: "+" + moreEventsCount,
-						color: isPadding ? theme.list_bg.substring(1) : theme.content_bg.substring(1),
-						click: () => {
-							attrs.onDateSelected(day.date)
-						},
-						hasAlarm: false,
-					}))
+					}, m("", {
+						style: {
+							'font-weight': '600'
+						}
+					}, "+" + moreEventsCount))
 				} else {
 					return null
 				}
@@ -293,7 +311,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			startsBefore: startsBeforeWeek,
 			endsAfter: endsAfterWeek,
 			color: getEventColor(event, attrs.groupColors),
-			showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
+			showTime: styles.isDesktopLayout() && !isAllDayEvent(event),
 			user: logins.getUserController().user,
 			onEventClicked: (e, domEvent) => {
 				attrs.onEventClicked(event, domEvent)
