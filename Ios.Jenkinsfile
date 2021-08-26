@@ -37,7 +37,7 @@ pipeline {
 					def lane = params.PROD ? 'release' : 'adhoctest'
 					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
 					def fastlaneOpts = params.PROD && params.PUBLISH ? "submit:true" : "submit:false"
-
+					sh "echo $PATH"
 					sh "npm ci"
 					sh "node dist ${stage}"
 					sh "node buildSrc/prepareMobileBuild.js dist"
