@@ -82,7 +82,7 @@ export async function reportMailsAutomatically(mailReportType: MailReportTypeEnu
 			let undoClicked = false
 			showSnackBar("undoMailReport_msg",
 				{
-					label: "undo_action",
+					label: "cancel_action",
 					click: () => undoClicked = true,
 				},
 				() => {
