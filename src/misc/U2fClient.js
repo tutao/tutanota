@@ -118,14 +118,15 @@ export class U2fClient {
 		const c = typeof crypto !== 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
 		const challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-		const response = await new Promise(resolve => {
+		const wrappedResponse = await new Promise((resolve) => {
 			this.api.register(this.appId, [
 				{
 					version: "U2F_V2",
 					challenge: challenge,
 				}
-			], [], (response) => resolve(this._unwrapResponse(response)), TIMEOUT)
+			], [], (response) => resolve(response), TIMEOUT)
 		})
+		const response = this._unwrapResponse(wrappedResponse)
 		const registerResponse = this._decodeRegisterResponse(response)
 		return createU2fRegisteredDevice({
 			keyHandle: registerResponse.keyHandle,
@@ -145,9 +146,10 @@ export class U2fClient {
 			}
 		})
 		const challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
-		const response = await new Promise(resolve => {
-			this.api.sign(this.appId, challengeData, registeredKeys, (response) => resolve(this._unwrapResponse(response)), TIMEOUT)
+		const wrappedResponse = await new Promise((resolve) => {
+			this.api.sign(this.appId, challengeData, registeredKeys, (response) => resolve(response), TIMEOUT)
 		})
+		const response = this._unwrapResponse(wrappedResponse)
 		return createU2fResponseData({
 			keyHandle: response.keyHandle,
 			clientData: response.clientData,
