@@ -7,10 +7,15 @@ import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {Icons} from "../../gui/base/icons/Icons"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
-import {formatEventDuration, getTimeZone} from "../date/CalendarUtils"
-import {getAttendeeStatus} from "../../api/common/TutanotaConstants"
-import {memoized} from "../../api/common/utils/Utils"
+import {createRepeatRuleFrequencyValues, formatEventDuration, getRepeatEndTime, getTimeZone} from "../date/CalendarUtils"
+import type {RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
+import {EndType, getAttendeeStatus, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import {downcast, memoized} from "../../api/common/utils/Utils"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
+import {lang} from "../../misc/LanguageViewModel"
+import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
+import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
+import {formatDateWithMonth} from "../../misc/Formatter"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -40,9 +45,12 @@ export class EventPreviewView implements MComponent<Attrs> {
 						}
 					}, event.summary)
 				]),
-				m(".flex.pb-s.items-center", [
+				m(".flex.pb-s", [
 						this._renderSectionIndicator(Icons.Time),
-						m(".align-self-center.selectable", formatEventDuration(event, getTimeZone(), false))
+						m(".align-self-center.selectable.flex-column", [
+							m("", formatEventDuration(event, getTimeZone(), false)),
+							this._renderRepeatRule(event)
+						])
 					]
 				),
 				event.location
@@ -75,6 +83,20 @@ export class EventPreviewView implements MComponent<Attrs> {
 					: null,
 			]),
 		])
+	}
+
+	_renderRepeatRule(event: CalendarEvent): Children {
+		const repeatRule = event.repeatRule
+		if (repeatRule) {
+			const frequency = formatRepetitionFrequency(repeatRule)
+			if (frequency) {
+				return m("", frequency + formatRepetitionEnd(repeatRule, isAllDayEvent(event)))
+			} else {
+				// If we cannot properly process the frequency we just indicate that the event is part of a series.
+				return m("", lang.get("unknownRepetition_msg"))
+			}
+		}
+		return null
 	}
 
 	_renderAttendee(attendee: CalendarEventAttendee): Children {
@@ -116,4 +138,53 @@ function getLocationUrl(text: string): URL {
 		url = new URL(osmHref)
 	}
 	return url
+}
+
+function formatRepetitionFrequency(repeatRule: RepeatRule): ?string {
+	if (repeatRule.interval === "1") {
+		const frequency = createRepeatRuleFrequencyValues().find(frequency => frequency.value === repeatRule.frequency)
+		if (frequency) {
+			return frequency.name
+		}
+	} else {
+		return lang.get("repetition_msg", {
+			"{interval}": repeatRule.interval,
+			"{timeUnit}": getFrequencyTimeUnit(downcast(repeatRule.frequency))
+		})
+	}
+
+	return null
+}
+
+/**
+ * @returns {string} The returned string includes a leading separator (", " or " ").
+ */
+function formatRepetitionEnd(repeatRule: RepeatRule, isAllDay: boolean): string {
+	switch (repeatRule.endType) {
+		case EndType.Count:
+			if (!repeatRule.endValue) {
+				return ""
+			}
+			return ", " + lang.get("times_msg", {"{amount}": repeatRule.endValue})
+		case EndType.UntilDate:
+			const repeatEndTime = getRepeatEndTime(repeatRule, isAllDay, getTimeZone())
+			return " " + lang.get("until_label") + " " + formatDateWithMonth(repeatEndTime)
+		default:
+			return ""
+	}
+}
+
+function getFrequencyTimeUnit(frequency: RepeatPeriodEnum): string {
+	switch (frequency) {
+		case RepeatPeriod.DAILY:
+			return lang.get("days_label")
+		case RepeatPeriod.WEEKLY:
+			return lang.get("weeks_label")
+		case RepeatPeriod.MONTHLY:
+			return lang.get("months_label")
+		case RepeatPeriod.ANNUALLY:
+			return lang.get("years_label")
+		default:
+			throw new Error("Unknown calendar event repeat rule frequency: " + frequency)
+	}
 }

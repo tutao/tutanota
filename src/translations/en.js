@@ -1396,6 +1396,14 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"days_label": "days",
+		"weeks_label": "weeks",
+		"months_label": "months",
+		"years_label": "years",
+		"times_msg": "{amount} times",
+		"until_label": "until",
+		"repetition_msg": "Every {interval} {timeUnit}",
+		"unknownRepetition_msg": "The event is part of a series."
 	}
 }

@@ -36,6 +36,8 @@ import type {CalendarInfo} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
+import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
+import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 
 assertMainOrNode()
 
@@ -455,6 +457,22 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 	}
 }
 
+/**
+ * Returns the end date of a repeating rule that can be used to display in the ui.
+ * The actual end date that is stored on the repeat rule is always one day behind the displayed end date. The end date is always excluded
+ * but to  display the end date we want show the last date of the period which is included.
+ * @returns {Date}
+ */
+export function getRepeatEndTime(repeatRule: RepeatRule, isAllDay: boolean, timeZone: string): Date {
+	if (repeatRule.endType !== EndType.UntilDate) {
+		throw new Error("Event has no repeat rule end type is not UntilDate: " + JSON.stringify(repeatRule))
+	}
+	const rawEndDate = new Date(Number(repeatRule.endValue))
+	const localDate = isAllDay ? getAllDayDateForTimezone(rawEndDate, timeZone) : rawEndDate
+	// Shown date is one day behind the actual end (for us it's excluded)
+	return incrementByRepeatPeriod(localDate, RepeatPeriod.DAILY, -1, timeZone)
+}
+
 export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
                                          timeZone: string) {
 	const repeatRule = event.repeatRule
@@ -790,4 +808,22 @@ export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Da
 	} else {
 		return ""
 	}
+}
+
+export function createRepeatRuleFrequencyValues(): SelectorItemList<?RepeatPeriodEnum> {
+	return [
+		{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
+		{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
+		{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
+		{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
+		{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
+	]
+}
+
+export function createRepeatRuleEndTypeValues(): SelectorItemList<EndTypeEnum> {
+	return [
+		{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
+		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
+		{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
+	]
 }

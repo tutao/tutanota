@@ -8,7 +8,7 @@ import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEv
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
 import {assertNotNull, clone, filterInt, noOp} from "../../api/common/utils/Utils"
-import {findPrivateCalendar, getTimeZone} from "./CalendarUtils"
+import {findPrivateCalendar, getEventStart, getTimeZone} from "./CalendarUtils"
 import {logins} from "../../api/main/LoginController"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
@@ -16,6 +16,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {createCalendarEventViewModel} from "./CalendarEventViewModel"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
 	try {
@@ -33,15 +34,25 @@ function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event
 	}
 }
 
-export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<void> {
-	return Promise.all([
-		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()),
-		locator.mailModel.getUserMailboxDetails(),
+export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: ?Mail): Promise<void> {
+	const [latestEvent, {CalendarEventPopup}, {htmlSanitizer}] = await Promise.all([
 		getLatestEvent(event),
-		import("../view/CalendarEventEditDialog")
-	]).then(([calendarInfo, mailboxDetails, latestEvent, {showCalendarEventDialog}]) => {
-		showCalendarEventDialog(latestEvent.startTime, calendarInfo, mailboxDetails, latestEvent, mail)
-	})
+		import("../view/CalendarEventPopup"),
+		import("../../misc/HtmlSanitizer")
+	])
+	let viewModel = null
+	let onEditEvent = null
+	// Do not create calendar event view model for external users as external users cannot delete/edit a calendar event. They don't have a calendar.
+	if (logins.getUserController().isInternalUser()) {
+		const calendarInfos = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor())
+		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		viewModel = await createCalendarEventViewModel(getEventStart(latestEvent, getTimeZone()), calendarInfos, mailboxDetails, latestEvent, mail, true)
+		onEditEvent = async () => {
+			const {showCalendarEventDialog} = await import("../view/CalendarEventEditDialog")
+			showCalendarEventDialog(latestEvent.startTime, calendarInfos, mailboxDetails, latestEvent, mail)
+		}
+	}
+	new CalendarEventPopup(latestEvent, eventBubbleRect, htmlSanitizer, onEditEvent, viewModel).show()
 }
 
 export function getEventFromFile(file: TutanotaFile): Promise<?CalendarEvent> {
