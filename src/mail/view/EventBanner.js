@@ -48,7 +48,7 @@ export class EventBanner implements MComponent<Attrs> {
 				m(".ml-negative-s.limit-width.align-self-start", m(ButtonN, {
 					label: "viewEvent_action",
 					type: ButtonType.Secondary,
-					click: () => import("../../calendar/date/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, mail))
+					click: (e, dom) => import("../../calendar/date/CalendarInvites").then(({showEventDetails}) => showEventDetails(event, dom.getBoundingClientRect(), mail))
 				})),
 			],
 		)

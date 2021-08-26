@@ -15,9 +15,9 @@ import {downcast, memoized, noOp} from "../../api/common/utils/Utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum} from "../../api/common/TutanotaConstants"
-import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys} from "../../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../../api/common/utils/ArrayUtils"
-import {getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
+import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -92,9 +92,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			viewModel.onEndDateSelected(date)
 		})
 
-		const repeatValues = createRepeatValues()
+		const repeatValues = createRepeatRuleFrequencyValues()
 		const intervalValues = createIntevalValues()
-		const endTypeValues = createEndTypeValues()
+		const endTypeValues = createRepeatRuleEndTypeValues()
 		const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg")
 		repeatEndDatePicker.date.map((date) => viewModel.onRepeatEndDateSelected(date))
 		let finished = false
@@ -473,28 +473,10 @@ function renderStatusIcon(viewModel: CalendarEventViewModel, attendee: Guest): C
 }
 
 
-function createRepeatValues() {
-	return [
-		{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
-		{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
-		{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
-		{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
-		{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
-	]
-}
-
 function createIntevalValues() {
 	return numberRange(1, 256).map(n => {
 		return {name: String(n), value: n}
 	})
-}
-
-function createEndTypeValues() {
-	return [
-		{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
-		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
-		{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
-	]
 }
 
 function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<RecipientInfo> {

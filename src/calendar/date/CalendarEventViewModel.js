@@ -22,12 +22,12 @@ import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUs
 import {
 	createRepeatRuleWithValues,
 	generateUid,
-	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
 	getDiffInDays,
 	getEventEnd,
 	getEventStart,
 	getNextHalfHour,
+	getRepeatEndTime,
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getTimeZone,
@@ -240,11 +240,7 @@ export class CalendarEventViewModel {
 				endValue: existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1,
 			}
 			if (existingRule.endType === EndType.UntilDate) {
-				const rawEndDate = new Date(Number(existingRule.endValue))
-				const localDate = this.allDay() ? getAllDayDateForTimezone(rawEndDate, this._zone) : rawEndDate
-				// Shown date is one day behind the actual end (for us it's excluded)
-				const shownDate = incrementByRepeatPeriod(localDate, RepeatPeriod.DAILY, -1, this._zone)
-				repeat.endValue = shownDate.getTime()
+				repeat.endValue = getRepeatEndTime(existingRule, this.allDay(), this._zone).getTime()
 			}
 			this.repeat = repeat
 		} else {

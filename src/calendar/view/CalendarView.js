@@ -654,13 +654,11 @@ export class CalendarView implements CurrentView {
 					calendarEvent, null, true
 				).then((viewModel) => {
 					new CalendarEventPopup(
-						viewModel,
 						calendarEvent,
-						calendarInfos,
-						mailboxDetails,
 						domTarget.getBoundingClientRect(),
-						() => this._editEvent(calendarEvent),
 						htmlSanitizer,
+						() => this._editEvent(calendarEvent),
+						viewModel
 					).show()
 				})
 			}
