@@ -8,7 +8,7 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
-import {compare} from "../../api/common/utils/ArrayUtils"
+import {arrayEquals} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -46,9 +46,7 @@ export class SearchModel {
 	}
 
 	async search(searchQuery: SearchQuery): Promise<?SearchResult> {
-		console.log("search:", searchQuery, this._lastQuery, this._lastQuery && compareSearchQuery(searchQuery, this._lastQuery))
-		if (this._lastQuery && compareSearchQuery(searchQuery, this._lastQuery)) {
-			console.log("its the same")
+		if (this._lastQuery && areSearchQueriesEqual(searchQuery, this._lastQuery)) {
 			return this._lastSearchPromise
 		}
 
@@ -113,7 +111,7 @@ export class SearchModel {
 	}
 }
 
-function compareSearchQuery(a: SearchQuery, b: SearchQuery) {
+function areSearchQueriesEqual(a: SearchQuery, b: SearchQuery) {
 	return a.query === b.query
 		&& compareSearchRestriction(a.restriction, b.restriction)
 		&& a.minSuggestionCount === b.minSuggestionCount
@@ -121,9 +119,10 @@ function compareSearchQuery(a: SearchQuery, b: SearchQuery) {
 }
 
 function compareSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
-	const isSameAttributeIds = a.attributeIds != null && b.attributeIds != null
-		? compare(a.attributeIds, b.attributeIds)
-		: true
+
+
+	const isSameAttributeIds = a.attributeIds === b.attributeIds
+		|| (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
 
 	return isSameTypeRef(a.type, b.type)
 		&& a.start === b.start
