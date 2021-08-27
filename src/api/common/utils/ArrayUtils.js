@@ -27,6 +27,10 @@ export function numberRange(min: number, max: number): Array<number> {
  * It is valid to compare Uint8Array to Array<T>, don't restrict it to be one type
  */
 export function arrayEquals<T, A: Uint8Array | Array<T>>(a1: A, a2: A): boolean {
+	if (a1 === a2) {
+		return true
+	}
+
 	if (a1.length === a2.length) {
 		for (let i = 0; i < a1.length; i++) {
 			if (a1[i] !== a2[i]) {
@@ -417,18 +421,3 @@ export function partition<T>(array: Array<T>, predicate: T => boolean): [Array<T
 
 	return [left, right]
 }
-
-export function compare<T>(a1: Array<T>, a2: Array<T>, comp: (T, T) => boolean = (a, b) => a === b): boolean {
-	if (a1.length !== a2.length) {
-		return false
-	}
-
-	for (let i = 0; i < a1.length; ++i) {
-		if (!comp(a1[i], a2[1])) {
-			return false
-		}
-	}
-
-	return true
-}
-
