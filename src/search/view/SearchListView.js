@@ -13,7 +13,8 @@ import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {locator} from "../../api/main/MainLocator"
-import {defer, neverNull} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "../../api/common/utils/Utils"
+import {defer, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {worker} from "../../api/main/WorkerClient"
 import {logins} from "../../api/main/LoginController"
@@ -52,6 +53,8 @@ export class SearchListView {
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: ?SearchResult;
+
+	_lastSearchResults: ?DeferredObject<Array<SearchResultListEntry>> = null
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
@@ -121,14 +124,38 @@ export class SearchListView {
 			fetch: (startId, count) => {
 				if (locator.search.indexState().initializing) {
 					// show spinner until the actual search index is initialized
-					return defer().promise
+					return new Promise(noOp)
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0 && !hasMoreResults(this._searchResult)) {
+
+				const lastResult = this._searchResult
+				if (!lastResult || lastResult.results.length === 0 && !hasMoreResults(lastResult)) {
 					return Promise.resolve([])
 				}
-				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
-					           .then(results => results.map(instance => new SearchResultListEntry(instance)))
-					           .finally(m.redraw)
+
+
+				// If search is triggered and completes again before we finished loading the results from the previous search
+				// then we will end up loading results again and they will be inserted into the list, resulting in duplicate entries
+				// this can happen if the user hits the enter key fast while in the search bar
+				// so we will ignore whatever is being downloaded from the last search, and the new search will update the list
+				if (this._lastSearchResults) {
+					this._lastSearchResults.resolve([])
+					this._lastSearchResults = null
+				}
+
+				// save to a local var because flow complains at about it being nullable when returning
+				const deferredResult = defer()
+				this._lastSearchResults = deferredResult
+
+				this._loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
+		                    .then(results => results.map(instance => new SearchResultListEntry(instance)))
+				    .then(results => {
+					    if (this._lastSearchResults) {
+						    this._lastSearchResults.resolve(results)
+						    this._lastSearchResults = null
+					    }
+				    })
+
+				return deferredResult.promise.finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
 				if (this._searchResult) {
