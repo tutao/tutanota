@@ -1676,9 +1676,10 @@ o.spec("CalendarEventViewModel", function () {
 			o(notAvailable).equals(false)
 		})
 
-		o("available for external users", function () {
+		o("available for external users", async function () {
 			const userController = makeUserController([], AccountType.EXTERNAL, "", false)
 			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
+			await viewModel.updateCustomerFeatures()
 			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})

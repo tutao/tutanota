@@ -319,12 +319,15 @@ export class CalendarEventViewModel {
 		return stream(newStatuses)
 	}
 
-	updateCustomerFeatures(): Promise<void> {
-		return this._userController.loadCustomer()
-		           .then(customer => {
-			           this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
-			           this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
-		           }).then(noOp)
+	async updateCustomerFeatures(): Promise<void> {
+		if (this._userController.isInternalUser()) {
+			const customer = await this._userController.loadCustomer()
+			this.hasBusinessFeature(isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled))
+			this.hasPremiumLegacy(isCustomizationEnabledForCustomer(customer, FeatureType.PremiumLegacy))
+		} else {
+			this.hasBusinessFeature(false)
+			this.hasPremiumLegacy(false)
+		}
 	}
 
 	_initAttendees(): Stream<Array<Guest>> {
