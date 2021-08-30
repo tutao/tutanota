@@ -4,52 +4,50 @@ import {fileURLToPath} from "url"
 
 /**
  *
- * @param options
+ * @param options Instance of BuildServerConfig
+ * @param runDetached Boolean. If set to true, the build server will run in detached mode
  * @returns {Promise<{stop: (function(): *), disconnectStdIo: disconnectStdIo}>}
  */
-export async function createBuildServer(options) {
-	const port = options.devServerPort
-	const builder = options.builder
-	const preserveLogs = options.preserveLogs || false
-	const detached = options.detached || false
-	const directory = options.directory
-	const watchFolders = options.watchFolders
-	const webRoot = options.webRoot
-	const spaRedirect = options.spaRedirect || true
+export async function createBuildServer(options, runDetached) {
+	const detached = typeof (runDetached) != "undefined" ? runDetached : false
 
-	if (!directory) {
+	if (!options.directory) {
 		throw new Error('Build directory is required')
 	}
 
 	const dirname = path.dirname(fileURLToPath(import.meta.url))
 	const args = [
 		path.join(dirname, "BuildServerStarter.js"),
-		'-d', directory,
+		'-d', options.directory,
 	]
 
-	if (port != null) {
-		args.push('-p', port)
+	if (options.devServerPort != null) {
+		args.push('-p', options.devServerPort)
 	}
 
-	if (preserveLogs) {
+	if (options.preserveLogs) {
 		args.push('--preserve-logs')
 	}
 
-	if (webRoot) {
+	if (options.webRoot) {
 		args.push("--web-root")
-		args.push(webRoot)
+		args.push(options.webRoot)
 	}
 
-	if (spaRedirect) {
-		args.push("--single-page")
+	if (options.spaRedirect) {
+		args.push("--spaRedirect")
 	}
 
-	if (watchFolders) {
-		args.push("--watch")
-		args.push(watchFolders.join(":"))
+	if (options.watchFolders) {
+		args.push("--watchFolders")
+		args.push(options.watchFolders.join(":"))
 	}
 
-	args.push(builder)
+	if (options.autoRebuild) {
+		args.push("--autoRebuild")
+	}
+
+	args.push(options.builderPath)
 	const spawnOptions = {
 		detached: detached,
 		serialization: "json",

@@ -1,86 +1,77 @@
 import {createServer} from "net"
 import fs from "fs-extra"
-import chokidar from "chokidar"
-import express from "express"
-import http from "http"
-import expressws from "express-ws"
 import {default as path} from "path"
-import os from "os"
+import {DevServer} from "./DevServer.js"
+import {Watchers} from "./Watchers.js"
 
 
 const STATUS_OK = "ok"
 const STATUS_ERROR = "error"
 const STATUS_INFO = "info"
+const STATUS_CONFIG = "config"
 /**
  * Contains the definition of status codes that are sent with each message the server sends to its client.
  *
  * <p><b>INFO</b> - Status code that is sent with messages of an informative nature.</p>
  * <p><b>OK</b> - Status code that is sent after the build server has successfully finished a build command.</p>
  * <p><b>ERROR</b> - Status code that is sent if an error occurs in the server.</p>
- * @type {{ERROR: string, OK: string, INFO: string}}
+ * <p><b>CONFIG</b> - Status code that indicates that the message contains a dump of the server config.</p>
+ * @type {{ERROR: string, OK: string, INFO: string, CONFIG: string}}
  */
 export const BuildServerStatus = {
 	OK: STATUS_OK,
 	ERROR: STATUS_ERROR,
-	INFO: STATUS_INFO
+	INFO: STATUS_INFO,
+	CONFIG: STATUS_CONFIG
 }
 
 const COMMAND_SHUTDOWN = "shutdown"
 const COMMAND_BUILD = "build"
+const COMMAND_DUMP_CONFIG = "config"
 /**
  * <p>Contains the definition of commands the server accepts</p>.
  *
  * <p><b>BUILD</b> - Command to trigger the execution of a build</p>.
  * <p><b>SHUTDOWN</b> - Command to shutdown the server</p>.
+ * <p><b>CONFIG</b> - Command to have the server dump the current build config</p>.
  * @type {{BUILD: string, SHUTDOWN: string}}
  */
 export const BuildServerCommand = {
 	SHUTDOWN: COMMAND_SHUTDOWN,
-	BUILD: COMMAND_BUILD
+	BUILD: COMMAND_BUILD,
+	CONFIG: COMMAND_DUMP_CONFIG
 }
 
 const SOCKET = "socket"
-const MESSAGE_SEPERATOR = String.fromCharCode(23)
+const MESSAGE_SEPARATOR = String.fromCharCode(23)
 const LOGFILE = 'build.log'
 /**
  * Contains static configuration parameters of the server.
  *
- * <p><b>MESSAGE_SEPERATOR</b> - Seperator used between server messages sent to the client (currently EOM https://en.wikipedia.org/wiki/End_of_message)</p>
+ * <p><b>MESSAGE_SEPARATOR</b> - Seperator used between server messages sent to the client (currently EOM https://en.wikipedia.org/wiki/End_of_message)</p>
  * <p><b>SOCKET</b> - Name of the socket that the server will create within the directory passed via the BuildServer constructor</p>
  * <p><b>LOGFILE</b> - Name of the logfile.</p>
- * @type {{SOCKET: string, MESSAGE_SEPERATOR: string}}
+ * @type {{SOCKET: string, MESSAGE_SEPARATOR: string}}
  */
 export const BuildServerConfiguration = {
 	SOCKET,
-	MESSAGE_SEPERATOR,
+	MESSAGE_SEPARATOR,
 	LOGFILE
 }
 
 
 export class BuildServer {
 	/**
-	 * @param devServerPort if set, a dev server will be listening on this port
-	 * @param builderPath absolute path to the builder which will be used by the server
-	 * @param preserveLogs boolean, logs will not be deleted on server shutdown if set to true
-	 * @param directory absolute path to directory in which the build server will create its log file and socket. This will identify a given build server
-	 * @param watchFolders directories to watch for file changes that re-trigger the last build
-	 * @param webRoot absolute path to directory to be used as webRoot by devServer
-	 * @param spaRedirect boolean, if true the devServer will redirect any requests to '/?r=<requestedURL>'
+	 * @param config A BuildServerConfig object
 	 */
-	constructor({devServerPort, builderPath, preserveLogs, directory, watchFolders, webRoot, spaRedirect}) {
-		this.devServerPort = devServerPort
-		this.builderPath = builderPath
-		this.preserveLogs = preserveLogs || false
-		this.directory = directory
-		this.watchFolders = watchFolders
-		this.webRoot = webRoot
-		this.spaRedirect = spaRedirect || true
-		this.webSockets = []
-		this.serverSocket = null
-		this.fileWatcher = null
+	constructor(config) {
+		this.config = config
 
-		this.socketPath = path.join(this.directory, SOCKET)
-		this.logFilePath = path.join(this.directory, LOGFILE)
+		this.serverSocket = null
+		this.watchers = new Watchers()
+
+		this.socketPath = path.join(this.config.directory, SOCKET)
+		this.logFilePath = path.join(this.config.directory, LOGFILE)
 	}
 
 	/**
@@ -91,7 +82,7 @@ export class BuildServer {
 		await this._createTempDir()
 		await this._initLog()
 
-		this.builder = await import(this.builderPath)
+		this.builder = await import(this.config.builderPath)
 		if (await fs.exists(this.socketPath)) {
 			this.log("Socket already exists, removing", this.socketPath)
 			await fs.remove(this.socketPath)
@@ -104,7 +95,7 @@ export class BuildServer {
 			})
 		this.log("Build server listening on ", this.socketPath)
 
-		this._startDevServer(this.webRoot, this.devServerPort)
+		this._startDevServer(this.config.webRoot, this.config.devServerPort)
 	}
 
 	/**
@@ -112,15 +103,13 @@ export class BuildServer {
 	 * @returns {Promise<void>}
 	 */
 	async stop() {
-		if (this.watcher) {
-			await this.watcher.close()
-		}
-		await this._stopDevServer()
+		this._stopDevServer()
+
 		if (this.socketServer) {
 			await this.socketServer.close()
 		}
-		if (this.fileWatcher) {
-			await this.fileWatcher.close()
+		if (this.watchers) {
+			this.watchers.stop()
 		}
 		if (this.serverSocket) {
 			this.log("Removing build server socket")
@@ -128,7 +117,7 @@ export class BuildServer {
 			this.serverSocket.destroy()
 		}
 		await this._removeSocket()
-		if (!this.preserveLogs) {
+		if (!this.config.preserveLogs) {
 			this.log("Removing build server directory")
 			await this._removeTempDir()
 		}
@@ -159,65 +148,43 @@ export class BuildServer {
 			JSON.stringify({
 				status,
 				message
-			}) + MESSAGE_SEPERATOR
+			}) + MESSAGE_SEPARATOR
 		)
 	}
 
-	async _setupWatchers(log) {
-		this.watcher && await this.watcher.close()
-		this.fileWatcher && await this.fileWatcher.close()
-		if (this.watchFolders && Array.isArray(this.watchFolders)) {
-			log("Setting up watchers for: " + this.watchFolders.join(","))
-			this.watcher = chokidar.watch(this.watchFolders, {
-				ignoreInitial: true,
-				ignored: path => path.includes('/node_modules/') || path.includes('/.git/') || path.endsWith(LOGFILE),
-			}).on("all", async (event, path) => {
-				try {
-					log("invalidating", path)
-					this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(path))
-					if (this.httpServer) {
-						this._messageWebSockets({status: "prepare"})
-						const updates = await this._generateBundles()
-						for (const update of updates) {
-							this._messageWebSockets({status: "ready"})
-							this._messageWebSockets({changes: update.changes})
-						}
-					}
-				} catch (e) {
-					this._sendToClient(STATUS_ERROR, String(e) + e.stack)
-				}
-			})
+	async _onSrcDirChanged(event, path) {
+		try {
+			this.log("invalidating", path)
+			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(path))
+			if (this.config.autoRebuild) {
+				const updates = await this._generateBundles()
+				this.devServer?.updateBundles(updates)
+			}
+		} catch (e) {
+			this._sendToClient(STATUS_ERROR, String(e) + e.stack)
 		}
-		log(`Setting up watcher for: "${this.builderPath}"`)
-		this.fileWatcher = chokidar.watch([this.builderPath], {ignoreInitial: true})
-		                           .on("all", async () => {
-			                           log("Build watcher")
-			                           // If the builder code changes, we need to force a restart
-			                           await this._shutdown(log)
-		                           })
 	}
 
-	_messageWebSockets(obj) {
-		const message = JSON.stringify(obj)
-		for (const socket of this.webSockets) {
-			try {
-				socket.send(message)
-			} catch (e) {
-				this.log("Failed to message socket", e)
-			}
-		}
+	async _onBuilderChanged() {
+		this.log("Builder code has changed, restarting server ...")
+		// If the builder code changes, we need to force a restart
+		await this._shutdown((...args) => this.log(args))
+	}
+
+	async _setupWatchers(log) {
+		this.watchers.start(log, this.config.watchFolders, this._onSrcDirChanged.bind(this), this.config.builderPath, this._onBuilderChanged.bind(this))
 	}
 
 	async _runInitialBuild(log) {
 		this.log("initial build")
 		this._stopDevServer()
-		if (this.devServerPort) {
+		if (this.config.devServerPort) {
 			this._startDevServer()
 		}
 
 		this.bundleWrappers = await this.builder.build(
 			this.lastBuildConfig,
-			this._getConfig(),
+			this.config,
 			(...message) => {log("Builder: " + message.join(" "))}
 		)
 		await this._generateBundles(log)
@@ -278,18 +245,19 @@ export class BuildServer {
 					await this._generateBundles(log)
 				}
 				this._sendToClient(STATUS_OK, "Build finished")
+			} else if (command === COMMAND_DUMP_CONFIG) {
+				await this._sendToClient(STATUS_CONFIG, this.config)
 			} else {
 				log("Unknown command: " + command)
 			}
 		} catch (e) {
 			log("Error:", String(e), e.stack)
-			this._sendToClient(STATUS_ERROR, String(e) + e.stack)
+			await this._sendToClient(STATUS_ERROR, String(e) + e.stack)
 		}
 	}
 
 	/**
 	 * Writes ...args to socket and logfile
-	 * @param socket
 	 * @param args
 	 * @private
 	 */
@@ -311,74 +279,16 @@ export class BuildServer {
 		log("Client close")
 	}
 
-	async _stopDevServer() {
-		this.webSockets = []
-		if (this.httpServer) {
-			await this.httpServer.close()
+	_stopDevServer() {
+		if (this.devServer) {
+			this.devServer.stop()
+			this.devServer = null
 		}
 	}
 
 	_startDevServer() {
-		if (!this.webRoot) {
-			this.log("No root path defined, not starting devServer")
-			return
-		}
-
-		if (!this.devServerPort) {
-			this.log("No dev server port defined, not starting devServer")
-			return
-		}
-		const app = express()
-		const sockets = []
-
-		this.httpServer = http.createServer(app)
-		expressws(app, this.httpServer)
-
-		this._setupHMR(app, sockets)
-
-		// do not change the order of these two lines
-		app.use(express.static(this.webRoot))
-		this._setupSpaRedirect(app)
-
-		this.httpServer.addListener("error", err => this._logTee("Web server error:", err))
-		this.httpServer.addListener("listening", () => this.log(`Web Server is serving files from "${this.webRoot}" on localhost:${this.devServerPort}`))
-		this.httpServer.listen(this.devServerPort)
-	}
-
-	/**
-	 * Sets up hot module reloading for devServer
-	 * @param app
-	 * @param sockets
-	 * @private
-	 */
-	_setupHMR(app, sockets) {
-		// set up hot module reloading
-		app.ws("/__hmr", (ws, req) => {
-			this.log("New websocket connection")
-			this.webSockets.push(ws)
-			ws.send(JSON.stringify({greeting: true}))
-			ws.on("close", () => {
-				this.log("Websocket disconnect")
-				sockets.splice(sockets.includes(ws), 1)
-			})
-		})
-	}
-
-	/**
-	 * Sets up redirect for Single Page Applications
-	 * @param app
-	 * @private
-	 */
-	_setupSpaRedirect(app) {
-		if (this.spaRedirect) {
-			app.use((req, res, next) => {
-				if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
-					res.redirect('/?r=' + req.url.replace(/\?/g, "&"))
-				} else {
-					next()
-				}
-			})
-		}
+		this.devServer = new DevServer(this.config.webRoot, this.config.spaRedirect, this.config.devServerPort, this._logTee.bind(this))
+		this.devServer.start()
 	}
 
 	async _initLog() {
@@ -386,11 +296,11 @@ export class BuildServer {
 	}
 
 	async _createTempDir() {
-		await fs.mkdirs(this.directory)
+		await fs.mkdirs(this.config.directory)
 	}
 
 	async _removeTempDir() {
-		await fs.rm(this.directory, {recursive: true})
+		await fs.rm(this.config.directory, {recursive: true})
 	}
 
 	async _removeSocket() {
@@ -402,26 +312,12 @@ export class BuildServer {
 		}
 	}
 
-	_getConfig() {
-		return {
-			devServerPort: this.devServerPort,
-			builder: this.builderPath,
-			preserveLogs: this.preserveLogs,
-			directory: this.directory,
-			watchFolders: this.watchFolders,
-			socket: this.socketPath,
-			logFile: this.logFilePath,
-			webRoot: this.webRoot,
-			spaRedirect: this.spaRedirect
-		}
-	}
-
 	log(...args) {
-		console.log(args.join(" "))
 		if (this.logStream.writable) {
 			this.logStream.write(args.join(" ") + "\n")
+		} else {
+			console.log(args.join(" "))
 		}
-
 	}
 
 	_canWriteToSocket() {

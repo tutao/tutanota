@@ -3,23 +3,12 @@ import os from "os"
 import path from "path"
 import {createBuildServer} from "./BuildServerFactory.js"
 import {BuildServerCommand, BuildServerConfiguration, BuildServerStatus} from "./BuildServer.js"
+import {BuildServerConfig} from "./BuildServerConfig.js"
 
 const waitTimeinMs = 600
 const STATE_SERVER_START_PENDING = "SERVER_START_PENDING"
 const STATE_CONNECTED = "CONNECTED"
 const STATE_DISCONNECTED = "DISCONNECTED"
-
-/**
- * Returns path to build server directory. Our convention is to use a directory in the os-specific tempdir and create a sub directory name
- * as the current user. This prevents collisions and permission issues when building with multiple users on one system.
- * @returns {string} Absolute path to build server directory
- */
-function getBuildServerRootDirectory() {
-	const tempDir = os.tmpdir()
-	const buildServerBaseDir = path.join(tempDir, 'tutanota-build-server')
-	const userName = os.userInfo().username
-	return path.join(buildServerBaseDir, userName)
-}
 
 /**
  * This class provides a convenient interface to BuildServer.js taking care of bootstrapping a BuildServer instance in a
@@ -38,32 +27,41 @@ export class BuildServerClient {
 	 * Start a build server, connect and wait for the build to finish.
 	 *
 	 * @param forceRestart boolean, whether to restart the server
-	 * @param builder absolute path to the builder which will be used by the server
+	 * @param builderPath absolute path to the builder which will be used by the server
 	 * @param watchFolders absolute paths to folders to watch for changes
 	 * @param devServerPort if set, a dev server will be listening on this port
 	 * @param webRoot absolute path to directory to be used as webRoot by devServer
 	 * @param spaRedirect boolean, if true the devServer will redirect any requests to '/?r=<requestedURL>'
+	 * @param preserveLogs boolean
 	 * @param buildOpts these will be passed through to the builder's build() method - ignored by BuildServer and BuildServerClient
 	 * @return {Promise<void>}
 	 */
-	async buildWithServer({forceRestart, builder, watchFolders, devServerPort, webRoot, spaRedirect, buildOpts}) {
+	async buildWithServer({
+		                      forceRestart,
+		                      builderPath,
+		                      watchFolders,
+		                      devServerPort,
+		                      webRoot,
+		                      spaRedirect,
+		                      preserveLogs,
+		                      autoRebuild,
+		                      buildOpts
+	                      }) {
+		this.config = new BuildServerConfig(builderPath, watchFolders, devServerPort, webRoot, spaRedirect, preserveLogs, this._getBuildServerDirectory(), autoRebuild)
 		if (forceRestart) {
-			await this._restartServer({builder, watchFolders, devServerPort, webRoot, spaRedirect})
+			console.log("Called with forceRestart")
+			await this._restartServer(this.config)
+		} else {
+			await this._bootstrapBuildServer(this.config)
 		}
+
 		let connectionAttempts = 0
 		let lastError = null
+
 		while (connectionAttempts < 2 && this.state !== STATE_CONNECTED) {
 			await new Promise(r => setTimeout(r, waitTimeinMs));
 			try {
-				await this._connectAndBuild({
-						builder,
-						watchFolders,
-						devServerPort,
-						webRoot,
-						spaRedirect,
-						buildOpts,
-					}
-				)
+				await this._connectAndBuild(this.config, buildOpts)
 
 				if (this.clientSocket != null) {
 					this.clientSocket.unref()
@@ -83,6 +81,68 @@ export class BuildServerClient {
 	}
 
 	/**
+	 * Checks whether a server is already running using the requested configuration. Starts a new server if that is not the case.
+	 * @param config
+	 * @returns {Promise<*>}
+	 * @private
+	 */
+	async _bootstrapBuildServer(config) {
+		return new Promise((resolve, reject) => {
+			this._connect({
+				onConnect: (socket) => {
+					const data = JSON.stringify({
+						command: BuildServerCommand.CONFIG,
+					})
+					socket.write(data)
+				},
+				onData: async (socket, data) => {
+					const serverMessages = this._parseServerMessages(data)
+					if (serverMessages.length > 1 || serverMessages[0].status !== BuildServerStatus.CONFIG) {
+						console.log("Received an unexpected reply from the server, ignoring it ...")
+						/** We might get output from an earlier build command here that was working against the same build server instance
+						 *  We simply ignore any output here, until we get a reply to the BuildServerCommand.CONFIG request
+						 **/
+						return
+					}
+					if (!config.equals(serverMessages[0].message)) {
+						console.log("Build server is already running, but uses different configuration, restarting ...")
+						socket.removeAllListeners()
+						await this._restartServer(config)
+						resolve()
+					} else {
+						console.log("Build server is already running, using existing instance ...")
+						/** Prevent server output to be handled by the handlers above rather than the ones in _connectAndBuild
+						 * after we have established that the old build server can be reused**/
+						socket.removeAllListeners()
+						resolve()
+					}
+				},
+				onError: async () => {
+					// no server is running - start an instance
+					await this._start(config)
+					resolve()
+				}
+			})
+		})
+	}
+
+	/**
+	 * Returns path to build server directory. Our convention is to use a directory in the os-specific tempdir and create a sub directory name
+	 * as the current user. This prevents collisions and permission issues when building with multiple users on one system.
+	 * @returns {string} Absolute path to build server directory
+	 */
+	_getBuildServerRootDirectory() {
+		const tempDir = os.tmpdir()
+		const buildServerBaseDir = path.join(tempDir, 'tutanota-build-server')
+		const userName = os.userInfo().username
+		return path.join(buildServerBaseDir, userName)
+	}
+
+	_getBuildServerDirectory() {
+		return path.join(this._getBuildServerRootDirectory(), this.buildId)
+	}
+
+	/**
 	 * Updates the client's state to reflect a connection has been established.
 	 * @private
 	 */
@@ -92,8 +152,9 @@ export class BuildServerClient {
 		*  Initially we connect the client's and server's StdIO so that we can receive and print any server error messages
 		*  during server bootstrap.Once a socket connection has been established between server and client, the server has an
 		*  alternative way of sending messages to the client, so we can disconnect StdIO at this point.
+		* If we run in watch mode (autoRebuild) we want to stay connected to the buildServer's STDIO.
 		*/
-		if (this.buildServerHandle) {
+		if (this.buildServerHandle && !this.config.autoRebuild) {
 			console.log("Disconnecting StdIO from server process")
 			this.buildServerHandle.disconnectStdIo()
 		}
@@ -105,7 +166,7 @@ export class BuildServerClient {
 	 * @returns {Promise<unknown>}
 	 * @private
 	 */
-	async _connectAndBuild({builder, watchFolders, devServerPort, webRoot, spaRedirect, buildOpts}) {
+	async _connectAndBuild(config, buildOpts) {
 		return new Promise((resolve, reject) => {
 			this._connect({
 				onConnect: (socket) => {
@@ -137,15 +198,7 @@ export class BuildServerClient {
 					// If no build server is running, onError will be called on first connection attempt, start one if required
 					if (this.state !== STATE_SERVER_START_PENDING) {
 						console.log("No build server running, starting a fresh instance ...")
-						await this._start({
-								builder,
-								watchFolders,
-								devServerPort,
-								webRoot,
-								spaRedirect,
-							}
-						)
-						this.state = STATE_SERVER_START_PENDING
+						await this._start(config)
 						reject()
 					} else {
 						reject()
@@ -163,12 +216,12 @@ export class BuildServerClient {
 	 */
 	_parseServerMessages(data) {
 		/*
-		Note: It is not quite clear to me how node's socket functions work and if this code handles all possible cases.
 		The code here assumes that multiple writes to the socket by the server can be received at once, but
-		that no message by the server will be split across multiple calls of onData().
+		that no message by the server will be split across multiple calls of onData(). This might not be the case for large messages
+		or environments with a relatively small MTU. As long as we are using a local connection, this should not be an issue.
 		 */
 		const dataAsString = data.toString()
-		const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPERATOR)
+		const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPARATOR)
 		const messagesAsObjects = []
 		messagesAsJSON.forEach((message) => {
 			try {
@@ -185,36 +238,24 @@ export class BuildServerClient {
 
 	/**
 	 * Shuts down any running BuildServer and starts a fresh instance.
-	 * @param builder
-	 * @param watchFolders
-	 * @param devServerPort
-	 * @param webRoot
-	 * @param spaRedirect
+	 * @param config Instance of BuildServerConfig
 	 * @returns {Promise<void>}
 	 * @private
 	 */
-	async _restartServer({builder, watchFolders, devServerPort, webRoot, spaRedirect}) {
-		console.log("Called with forceRestart")
+	async _restartServer(config) {
 		await new Promise((resolve, reject) => {
 			this._connect({
-					onConnect: (socket) => {
+					onConnect: async (socket) => {
 						console.log("Shutting down build server")
 						const message = JSON.stringify({command: BuildServerCommand.SHUTDOWN})
 						socket.write(message)
+						await this._start(config)
 						resolve()
 					},
 					onData: (socket, data) => {},
-					onError: async (socket, data) => {
+					onError: async (error) => {
 						console.log("No build server running, starting a new one")
-						await this._start({
-								builder,
-								watchFolders,
-								devServerPort,
-								webRoot,
-								spaRedirect,
-							}
-						)
-						this.state = STATE_SERVER_START_PENDING
+						await this._start(config)
 						resolve()
 					}
 				}
@@ -230,7 +271,7 @@ export class BuildServerClient {
 	 * @private
 	 */
 	_connect({onConnect, onData, onError}) {
-		this.clientSocket = createConnection(path.join(this.getBuildServerDirectory(), BuildServerConfiguration.SOCKET))
+		this.clientSocket = createConnection(path.join(this._getBuildServerDirectory(), BuildServerConfiguration.SOCKET))
 			.on("connect", () => onConnect(this.clientSocket))
 			.on("error", (data) => onError(this.clientSocket, data))
 			.on("data", (data) => onData(this.clientSocket, data))
@@ -238,27 +279,15 @@ export class BuildServerClient {
 
 	/**
 	 * Starts a BuildServer in a new process. Sets this.buildServerHandle.
-	 * @param builder
-	 * @param watchFolders
-	 * @param devServerPort
-	 * @param webRoot
-	 * @param spaRedirect
+	 * @param config Instance of BuildServerConfig
 	 * @returns {Promise<void>}
 	 */
-	async _start({builder, watchFolders, devServerPort, webRoot, spaRedirect}) {
-		this.buildServerHandle = await createBuildServer({
-			builder,
-			watchFolders,
-			directory: this.getBuildServerDirectory(),
-			detached: true,
-			devServerPort,
-			webRoot,
-			spaRedirect,
-		})
-	}
+	async _start(config) {
+		this.state = STATE_SERVER_START_PENDING
 
-
-	getBuildServerDirectory() {
-		return path.join(getBuildServerRootDirectory(), this.buildId)
+		this.buildServerHandle = await createBuildServer(
+			config,
+			config.autoRebuild ? false : true,
+		)
 	}
 }

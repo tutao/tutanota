@@ -5,6 +5,7 @@ import path from "path"
 import fs from "fs"
 import {createConnection} from "net"
 import http from "http"
+import {BuildServerConfig} from "../src/BuildServerConfig.js"
 
 const directoryPrefix = path.join(os.tmpdir(), 'tutanota-build-tools-test-')
 
@@ -19,6 +20,16 @@ const watchFolders = path.resolve('test')
 const webRoot = path.resolve('test/dummy_webroot/')
 const spaRedirect = true
 
+const buildServerConfig = new BuildServerConfig(
+	builderPath,
+	watchFolders,
+	devServerPort,
+	webRoot,
+	spaRedirect,
+	preserveLogs,
+	directory,
+)
+
 const logFile = path.join(directory, BuildServerConfiguration.LOGFILE)
 const socketPath = path.join(directory, BuildServerConfiguration.SOCKET)
 
@@ -26,37 +37,36 @@ const BUILD_STATUS_WAITING = "waiting"
 const BUILD_STATUS_SUCCESS = "success"
 const BUILD_STATUS_ERROR = "error"
 
-
 o.spec("BuildServer", function () {
 	let buildServer = null
 	let clientSocket = null
-	let buildStatus = BUILD_STATUS_WAITING
+	let configDump = null
+	let buildStatus = null
 
 	o.before(async function () {
-		buildServer = new BuildServer({
-			devServerPort,
-			builderPath,
-			preserveLogs,
-			directory,
-			watchFolders,
-			webRoot,
-			spaRedirect,
-		})
+		buildServer = new BuildServer(buildServerConfig)
 		await buildServer.start()
 		clientSocket = await connectToServer((data) => {
 			const dataAsString = data.toString()
-			const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPERATOR)
-			messagesAsJSON.forEach((message) => {
-				if (message.length > 1) {
-					const {status} = JSON.parse(message)
+			const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPARATOR)
+			messagesAsJSON.forEach((serverMessage) => {
+				if (serverMessage.length > 1) {
+					const {status, message} = JSON.parse(serverMessage)
 					if (status === BuildServerStatus.OK) {
 						buildStatus = BUILD_STATUS_SUCCESS
 					} else if (status === BuildServerStatus.ERROR) {
 						buildStatus === BUILD_STATUS_ERROR
+					} else if (status === BuildServerStatus.CONFIG) {
+						buildStatus = BUILD_STATUS_SUCCESS
+						configDump = message
 					}
 				}
 			})
 		})
+	})
+
+	o.beforeEach(function () {
+		buildStatus = BUILD_STATUS_WAITING
 	})
 
 	o("Server should create required files", async function () {
@@ -122,6 +132,22 @@ o.spec("BuildServer", function () {
 			await new Promise(r => setTimeout(r, 50));
 		}
 		o(buildStatus).equals(BUILD_STATUS_SUCCESS)
+	})
+
+	o("Server should dump config", async function () {
+		const data = JSON.stringify(
+			{
+				command: BuildServerCommand.CONFIG
+			}
+		)
+
+		clientSocket.write(data)
+
+		while (buildStatus === BUILD_STATUS_WAITING) {
+			await new Promise(r => setTimeout(r, 50));
+		}
+
+		o(buildServerConfig.equals(configDump)).deepEquals(true)
 	})
 
 	o("Server should shutdown gracefully", async function () {

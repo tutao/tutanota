@@ -24,7 +24,7 @@ async function run() {
 		const buildServerClient = new BuildServerClient("test")
 		await buildServerClient.buildWithServer({
 			forceRestart: clean,
-			builder: path.resolve("TestBuilder.js"),
+			builderPath: path.resolve("TestBuilder.js"),
 			watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
 			buildOpts: {}
 		})
