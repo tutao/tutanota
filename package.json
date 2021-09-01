@@ -43,7 +43,7 @@
 		"body-parser": "1.19.0",
 		"chokidar": "3.5.2",
 		"commander": "5.0.0-2",
-		"electron": "11.4.11",
+		"electron": "13.3.0",
 		"electron-builder": "22.11.11",
 		"electron-notarize": "1.0.1",
 		"electron-packager": "15.3.0",
