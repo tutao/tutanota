@@ -124,7 +124,6 @@ o.spec("ApplicationWindow Test", function () {
 							callbacks: Object.create(null),
 							destroyed: false,
 							zoomFactor: 1.0,
-
 							isDestroyed: () => {
 								return this.webContents.destroyed
 							},
@@ -175,7 +174,10 @@ o.spec("ApplicationWindow Test", function () {
 							removeAllListeners: (k) => {
 								this.webContents.callbacks[k] = []
 								return this
-							}
+							},
+							setWindowOpenHandler(handler) {
+								this.windowOpenHandler = handler
+							},
 						})
 					},
 					removeMenu: function () {
@@ -324,7 +326,6 @@ o.spec("ApplicationWindow Test", function () {
 
 		o(Object.keys(bwInstance.callbacks)).deepEquals(['closed', 'focus', 'blur'])
 		o(Object.keys(bwInstance.webContents.callbacks)).deepEquals([
-			'new-window',
 			'will-attach-webview',
 			'will-navigate',
 			'before-input-event',
@@ -601,7 +602,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(threw).equals(true)
 	})
 
-	o.spec("new-window is redirected to openExternal", function () {
+	o.spec("new window is redirected to openExternal", function () {
 		let electronMock
 		let bwInstance
 
@@ -617,40 +618,62 @@ o.spec("ApplicationWindow Test", function () {
 
 		o("not url is not redirected", function () {
 			const url = 'ba/\\.nanas'
-			const e = {preventDefault: o.spy()}
-			bwInstance.webContents.callbacks['new-window'](e, url)
 
+			const result = bwInstance.webContents.windowOpenHandler({
+				url,
+				frameName: "frameName",
+				features: "",
+				disposition: "default",
+				referrer: {},
+			})
+
+			o(result).deepEquals({action: "deny"})
 			o(electronMock.shell.openExternal.callCount).equals(0)
-			// o(electronMock.shell.openExternal.args[0]).equals(url)
-			o(e.preventDefault.callCount).equals(1)
 		})
 
 		o("url without protocol is not redirected", function () {
 			const url = 'dies.ist.ne/url'
-			const e = {preventDefault: o.spy()}
-			bwInstance.webContents.callbacks['new-window'](e, url)
 
+			const result = bwInstance.webContents.windowOpenHandler({
+				url,
+				frameName: "frameName",
+				features: "",
+				disposition: "default",
+				referrer: {},
+			})
+
+			o(result).deepEquals({action: "deny"})
 			o(electronMock.shell.openExternal.callCount).equals(0)
-			o(e.preventDefault.callCount).equals(1)
 		})
 
 		o("http url is redirected", function () {
 			const url = "http://example.com"
-			const e = {preventDefault: o.spy()}
-			bwInstance.webContents.callbacks['new-window'](e, url)
+			const result = bwInstance.webContents.windowOpenHandler({
+				url,
+				frameName: "frameName",
+				features: "",
+				disposition: "default",
+				referrer: {},
+			})
 
+			o(result).deepEquals({action: "deny"})
 			o(electronMock.shell.openExternal.callCount).equals(1)
-			o(electronMock.shell.openExternal.args[0]).equals(url)
-			o(e.preventDefault.callCount).equals(1)
+			o(electronMock.shell.openExternal.args[0]).equals("http://example.com/")
 		})
 
 		o("file url is not opened nor redirected", function () {
 			const url = "file:///etc/shadow"
-			const e = {preventDefault: o.spy()}
-			bwInstance.webContents.callbacks['new-window'](e, url)
 
+			const result = bwInstance.webContents.windowOpenHandler({
+				url,
+				frameName: "frameName",
+				features: "",
+				disposition: "default",
+				referrer: {},
+			})
+
+			o(result).deepEquals({action: "deny"})
 			o(electronMock.shell.openExternal.callCount).equals(0)
-			o(e.preventDefault.callCount).equals(1)
 		})
 	})
 
