@@ -8,6 +8,7 @@ import type {
 	WebContents,
 	WebContentsEvent
 } from 'electron'
+import type {NewWindowOpenDetails, NewWindowOpenReturn} from "electron"
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
@@ -208,7 +209,6 @@ export class ApplicationWindow {
 		    .on('blur', ev => this._localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-		    .on('new-window', (e, newWindowUrl) => this._onNewWindow(e, newWindowUrl))
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('will-navigate', (e, url) => {
 			    // >Emitted when a user or the page wants to start navigation. It can happen when the window.location object is changed or
@@ -262,6 +262,7 @@ export class ApplicationWindow {
 		    .on('update-target-url', (ev, url) => {
 			    this._ipc.sendRequest(this.id, 'updateTargetUrl', [url, this._startFileURLString])
 		    })
+		this._browserWindow.webContents.setWindowOpenHandler((details) => this._onNewWindow(details))
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
 		this._reRegisterShortcuts()
@@ -276,9 +277,8 @@ export class ApplicationWindow {
 		await this._browserWindow.loadURL(url.toString())
 	}
 
-	_onNewWindow(e: WebContentsEvent, newWindowUrl: string) {
-		e.preventDefault()
-		const parsedUrl = parseUrlOrNull(newWindowUrl)
+	_onNewWindow(details: NewWindowOpenDetails): NewWindowOpenReturn {
+		const parsedUrl = parseUrlOrNull(details.url)
 		if (parsedUrl == null) {
 			log.warn("Could not parse url for new-window, will not open")
 		} else if (parsedUrl.protocol === 'file:') {
@@ -287,8 +287,9 @@ export class ApplicationWindow {
 		} else {
 			// we never open any new windows directly from the renderer
 			// except for links in mails etc. so open them in the browser
-			this._electron.shell.openExternal(newWindowUrl)
+			this._electron.shell.openExternal(parsedUrl.toString())
 		}
+		return {action: "deny"}
 	}
 
 	_reRegisterShortcuts() {
