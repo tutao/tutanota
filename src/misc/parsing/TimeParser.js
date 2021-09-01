@@ -1,10 +1,12 @@
 // @flow
 
 
+import {Time} from "../../api/common/utils/Time"
+
 /**
  * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
  */
-export function parseTime(timeString: string): ?{hours: number, minutes: number} {
+export function parseTime(timeString: string): ?Time {
 	let suffix  // am/pm indicator or undefined
 	let hours   // numeric hours
 	let minutes // numeric minutes
@@ -47,5 +49,5 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	} else if (hours > 23) {
 		return null
 	}
-	return {hours, minutes}
+	return new Time(hours, minutes)
 }

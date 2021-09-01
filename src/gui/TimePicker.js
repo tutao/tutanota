@@ -8,10 +8,11 @@ import {client} from "../misc/ClientDetector"
 import {Keys} from "../api/common/TutanotaConstants"
 import {timeStringFromParts} from "../misc/Formatter"
 import {parseTime} from "../misc/parsing/TimeParser";
+import {Time} from "../api/common/utils/Time"
 
 export type Attrs = {
-	value: string,
-	onselected: (string) => mixed,
+	value: ?Time,
+	onselected: (?Time) => mixed,
 	amPmFormat: boolean,
 	disabled?: boolean
 }
@@ -38,20 +39,22 @@ export class TimePicker implements MComponent<Attrs> {
 
 
 	view({attrs}: Vnode<Attrs>): Children {
-		const parsedTime = parseTime(attrs.value)
-		if (parsedTime) {
+		const value = attrs.value
+		const valueAsString = value?.to24HourString() ?? ""
+		if (value) {
 			this._previousSelectedIndex = this._selectedIndex
-			this._selectedIndex = this._values.indexOf(timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat))
+			this._selectedIndex = this._values.indexOf(valueAsString)
 			if (!this._focused) {
-				this._value(attrs.value)
+				this._value(valueAsString)
 			}
 		}
 		if (client.isMobileDevice()) {
 			if (this._oldValue !== attrs.value) {
 				this._onSelected(attrs)
 			}
-			this._oldValue = attrs.value
-			this._value(parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, false) || "")
+
+			this._oldValue = valueAsString
+			this._value(valueAsString)
 			return m(TextFieldN, {
 				label: "emptyString_msg",
 				// input[type=time] wants value in 24h format, no matter what is actually displayed. Otherwise it will be empty.
@@ -59,7 +62,7 @@ export class TimePicker implements MComponent<Attrs> {
 				type: TextFieldType.Time,
 				oninput: (value) => {
 					this._value(value)
-					attrs.onselected(value)
+					attrs.onselected(parseTime(value))
 				},
 				disabled: attrs.disabled
 			})
@@ -100,8 +103,8 @@ export class TimePicker implements MComponent<Attrs> {
 						overflow: "auto",
 
 					},
-				}, this._values.map((t, i) => m("pr-s.pl-s.darker-hover", {
-					key: t,
+				}, this._values.map((time, i) => m("pr-s.pl-s.darker-hover", {
+					key: time,
 					style: {
 						"background-color": this._selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
 						flex: "1 0 auto",
@@ -109,9 +112,9 @@ export class TimePicker implements MComponent<Attrs> {
 					},
 					onmousedown: () => {
 						this._focused = false
-						attrs.onselected(t)
+						attrs.onselected(parseTime(time))
 					},
-				}, t)))
+				}, time)))
 				: null,
 		]
 
@@ -120,9 +123,8 @@ export class TimePicker implements MComponent<Attrs> {
 	_onSelected(attrs: Attrs) {
 		this._focused = false
 		const value = this._value()
-		const parsedTime = parseTime(value)
-		const timeString = parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat)
-		attrs.onselected(timeString || value)
+
+		attrs.onselected(parseTime(value))
 	}
 
 	_setScrollTop(attrs: Attrs, vnode: VnodeDOM<Attrs>) {

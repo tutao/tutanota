@@ -17,10 +17,11 @@ import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {prepareCalendarDescription} from "../date/CalendarUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {noOp} from "../../api/common/utils/Utils"
+import type {PosRect} from "../../gui/base/Dropdown"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
-	_eventBubbleRect: ClientRect
+	_eventBubbleRect: PosRect
 	_shortcuts: Shortcut[]
 	_sanitizedDescription: string
 	_onEditEvent: () => mixed
@@ -31,7 +32,7 @@ export class CalendarEventPopup implements ModalComponent {
 	view: (Vnode<mixed>) => Children
 
 	constructor(calendarEvent: CalendarEvent,
-	            eventBubbleRect: ClientRect,
+	            eventBubbleRect: PosRect,
 	            htmlSanitizer: HtmlSanitizer,
 	            onEditEvent: ?() => mixed,
 	            viewModel: ?CalendarEventViewModel,

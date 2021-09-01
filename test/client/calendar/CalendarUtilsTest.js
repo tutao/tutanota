@@ -2,11 +2,15 @@
 import o from "ospec"
 import type {CalendarMonth} from "../../../src/calendar/date/CalendarUtils";
 import {
+	eventEndsBefore,
+	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getCalendarMonth,
-	getStartOfWeek,
+	getDiffInDays,
+	getDiffInHours,
+	getStartOfWeek, getTimeZone,
 	getWeekNumber,
-
+	isEventBetweenDays,
 	prepareCalendarDescription
 } from "../../../src/calendar/date/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
@@ -19,7 +23,9 @@ import {timeStringFromParts} from "../../../src/misc/Formatter";
 import {DateTime} from "luxon"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {hasCapabilityOnGroup} from "../../../src/sharing/GroupUtils"
-import {parseTime} from "../../../src/misc/parsing/TimeParser";
+import {parseTime} from "../../../src/misc/parsing/TimeParser"
+import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
+import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 
 o.spec("calendar utils tests", function () {
 	o.spec("getCalendarMonth", function () {
@@ -148,62 +154,67 @@ o.spec("calendar utils tests", function () {
 	})
 
 	o.spec("parseTimeTo", function () {
+
+		function parseTimeString(timeString: string): ?{hours: number, minutes: number} {
+			return parseTime(timeString)?.toObject() ?? null
+		}
+
 		o("parses full 24H time", function () {
-			o(parseTime("12:45")).deepEquals({hours: 12, minutes: 45})
-			o(parseTime("1245")).deepEquals({hours: 12, minutes: 45})
-			o(parseTime("2359")).deepEquals({hours: 23, minutes: 59})
-			o(parseTime("0000")).deepEquals({hours: 0, minutes: 0})
-			o(parseTime("0623")).deepEquals({hours: 6, minutes: 23})
-			o(parseTime("08:09")).deepEquals({hours: 8, minutes: 9})
+			o(parseTimeString("12:45")).deepEquals({hours: 12, minutes: 45})
+			o(parseTimeString("1245")).deepEquals({hours: 12, minutes: 45})
+			o(parseTimeString("2359")).deepEquals({hours: 23, minutes: 59})
+			o(parseTimeString("0000")).deepEquals({hours: 0, minutes: 0})
+			o(parseTimeString("0623")).deepEquals({hours: 6, minutes: 23})
+			o(parseTimeString("08:09")).deepEquals({hours: 8, minutes: 9})
 		})
 
 		o("parses partial 24H time", function () {
-			o(parseTime("12")).deepEquals({hours: 12, minutes: 0})
-			o(parseTime("1:2")).deepEquals({hours: 1, minutes: 2})
-			o(parseTime("102")).deepEquals({hours: 1, minutes: 2})
-			o(parseTime("17")).deepEquals({hours: 17, minutes: 0})
-			o(parseTime("6")).deepEquals({hours: 6, minutes: 0})
-			o(parseTime("955")).deepEquals({hours: 9, minutes: 55})
-			o(parseTime("12:3")).deepEquals({hours: 12, minutes: 3})
-			o(parseTime("809")).deepEquals({hours: 8, minutes: 9})
+			o(parseTimeString("12")).deepEquals({hours: 12, minutes: 0})
+			o(parseTimeString("1:2")).deepEquals({hours: 1, minutes: 2})
+			o(parseTimeString("102")).deepEquals({hours: 1, minutes: 2})
+			o(parseTimeString("17")).deepEquals({hours: 17, minutes: 0})
+			o(parseTimeString("6")).deepEquals({hours: 6, minutes: 0})
+			o(parseTimeString("955")).deepEquals({hours: 9, minutes: 55})
+			o(parseTimeString("12:3")).deepEquals({hours: 12, minutes: 3})
+			o(parseTimeString("809")).deepEquals({hours: 8, minutes: 9})
 		})
 
 		o("not parses incorrect time", function () {
-			o(parseTime("12:3m")).deepEquals(null)
-			o(parseTime("A:3")).deepEquals(null)
-			o(parseTime("")).deepEquals(null)
-			o(parseTime(":2")).deepEquals(null)
-			o(parseTime("25:03")).deepEquals(null)
-			o(parseTime("22:93")).deepEquals(null)
-			o(parseTime("24")).deepEquals(null)
-			o(parseTime("13pm")).deepEquals(null)
-			o(parseTime("263PM")).deepEquals(null)
-			o(parseTime("1403PM")).deepEquals(null)
-			o(parseTime("14:03:33PM")).deepEquals(null)
-			o(parseTime("9:37 acme")).deepEquals(null)
+			o(parseTimeString("12:3m")).deepEquals(null)
+			o(parseTimeString("A:3")).deepEquals(null)
+			o(parseTimeString("")).deepEquals(null)
+			o(parseTimeString(":2")).deepEquals(null)
+			o(parseTimeString("25:03")).deepEquals(null)
+			o(parseTimeString("22:93")).deepEquals(null)
+			o(parseTimeString("24")).deepEquals(null)
+			o(parseTimeString("13pm")).deepEquals(null)
+			o(parseTimeString("263PM")).deepEquals(null)
+			o(parseTimeString("1403PM")).deepEquals(null)
+			o(parseTimeString("14:03:33PM")).deepEquals(null)
+			o(parseTimeString("9:37 acme")).deepEquals(null)
 		})
 
 		o("parses AM/PM time", function () {
-			o(parseTime("7PM")).deepEquals({hours: 19, minutes: 0})
-			o(parseTime("11PM")).deepEquals({hours: 23, minutes: 0})
-			o(parseTime("12PM")).deepEquals({hours: 12, minutes: 0})
-			o(parseTime("11:30PM")).deepEquals({hours: 23, minutes: 30})
-			o(parseTime("12AM")).deepEquals({hours: 0, minutes: 0})
-			o(parseTime("12:30AM")).deepEquals({hours: 0, minutes: 30})
-			o(parseTime("3:30AM")).deepEquals({hours: 3, minutes: 30})
-			o(parseTime("3:30PM")).deepEquals({hours: 15, minutes: 30})
-			o(parseTime("9:37am")).deepEquals({hours: 9, minutes: 37})
-			o(parseTime("1:59pm")).deepEquals({hours: 13, minutes: 59})
-			o(parseTime("3:30 AM")).deepEquals({hours: 3, minutes: 30})
-			o(parseTime("3:30 PM")).deepEquals({hours: 15, minutes: 30})
-			o(parseTime("9:37 am")).deepEquals({hours: 9, minutes: 37})
-			o(parseTime("1:59 pm")).deepEquals({hours: 13, minutes: 59})
-			o(parseTime("9:37 a.m.")).deepEquals({hours: 9, minutes: 37})
-			o(parseTime("1:59 p.m.")).deepEquals({hours: 13, minutes: 59})
-			o(parseTime("1052 P.M.")).deepEquals({hours: 22, minutes: 52})
-			o(parseTime("1052 A.M.")).deepEquals({hours: 10, minutes: 52})
-			o(parseTime("948 P.M.")).deepEquals({hours: 21, minutes: 48})
-			o(parseTime("948 A.M.")).deepEquals({hours: 9, minutes: 48})
+			o(parseTimeString("7PM")).deepEquals({hours: 19, minutes: 0})
+			o(parseTimeString("11PM")).deepEquals({hours: 23, minutes: 0})
+			o(parseTimeString("12PM")).deepEquals({hours: 12, minutes: 0})
+			o(parseTimeString("11:30PM")).deepEquals({hours: 23, minutes: 30})
+			o(parseTimeString("12AM")).deepEquals({hours: 0, minutes: 0})
+			o(parseTimeString("12:30AM")).deepEquals({hours: 0, minutes: 30})
+			o(parseTimeString("3:30AM")).deepEquals({hours: 3, minutes: 30})
+			o(parseTimeString("3:30PM")).deepEquals({hours: 15, minutes: 30})
+			o(parseTimeString("9:37am")).deepEquals({hours: 9, minutes: 37})
+			o(parseTimeString("1:59pm")).deepEquals({hours: 13, minutes: 59})
+			o(parseTimeString("3:30 AM")).deepEquals({hours: 3, minutes: 30})
+			o(parseTimeString("3:30 PM")).deepEquals({hours: 15, minutes: 30})
+			o(parseTimeString("9:37 am")).deepEquals({hours: 9, minutes: 37})
+			o(parseTimeString("1:59 pm")).deepEquals({hours: 13, minutes: 59})
+			o(parseTimeString("9:37 a.m.")).deepEquals({hours: 9, minutes: 37})
+			o(parseTimeString("1:59 p.m.")).deepEquals({hours: 13, minutes: 59})
+			o(parseTimeString("1052 P.M.")).deepEquals({hours: 22, minutes: 52})
+			o(parseTimeString("1052 A.M.")).deepEquals({hours: 10, minutes: 52})
+			o(parseTimeString("948 P.M.")).deepEquals({hours: 21, minutes: 48})
+			o(parseTimeString("948 A.M.")).deepEquals({hours: 9, minutes: 48})
 		})
 	})
 
@@ -349,6 +360,65 @@ o.spec("calendar utils tests", function () {
 				DateTime.fromObject({year: 2019, month: 5, day: 1, hour: 0, zone: timeZone}).toJSDate(),
 				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 0, zone: timeZone}).toJSDate(),
 			])
+		})
+	})
+	o.spec("Diff between events", function () {
+		o("diff in hours", function () {
+			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 2, 0, 0))).equals(24)
+			o(getDiffInHours(new Date(2021, 0, 2, 0, 0), new Date(2021, 0, 1, 0, 0))).equals(-24)
+			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 0, 30))).equals(0)
+			o(getDiffInHours(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 1, 0))).equals(1)
+		})
+		o("diff in days", function () {
+			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 2, 0, 0))).equals(1)
+			o(getDiffInDays(new Date(2021, 0, 2, 0, 0), new Date(2021, 0, 1, 0, 0))).equals(-1)
+			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 0, 30))).equals(0)
+			o(getDiffInDays(new Date(2021, 0, 1, 0, 0), new Date(2021, 0, 1, 1, 0))).equals(0)
+		})
+	})
+
+	o.spec("Event start and end time comparison", function () {
+
+		const zone = getTimeZone()
+
+		function eventOn(start: Date, end: Date): CalendarEvent {
+			return createCalendarEvent({
+				startTime: start, endTime: end
+			})
+		}
+
+		o("starts after", function () {
+			o(eventStartsAfter(new Date(2021, 0, 1), zone, eventOn(new Date(2021, 0, 1), new Date(2021, 0, 1)))).equals(false)(`starts same day`)
+			o(eventStartsAfter(new Date(2021, 0, 1), zone, eventOn(new Date(2020, 11, 31), new Date(2021, 0, 1)))).equals(false)(`starts before`)
+			o(eventStartsAfter(new Date(2021, 0, 1), zone, eventOn(new Date(2021, 0, 2), new Date(2021, 0, 2)))).equals(true)(`starts after`)
+		})
+
+		o("ends before", function () {
+			o(eventEndsBefore(new Date(2021, 0, 1), zone, eventOn(new Date(2020, 11, 31), new Date(2021, 0, 1)))).equals(false)(`ends same day`)
+			o(eventEndsBefore(new Date(2021, 0, 1), zone, eventOn(new Date(2020, 11, 31), new Date(2021, 0, 2)))).equals(false)(`ends after`)
+			o(eventEndsBefore(new Date(2021, 0, 1), zone, eventOn(new Date(2020, 11, 30), new Date(2020, 11, 31)))).equals(true)(`ends before`)
+		})
+
+		o("event is in week", function () {
+			const firstDayOfWeek = new Date(2021, 8, 6)
+			const lastDayOfWeek = new Date(2021, 8, 12)
+
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 5, 13, 30), new Date(2021, 8, 6, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts before, ends first day`)
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 5, 13, 30), new Date(2021, 8, 12, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts before, ends last day`)
+
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 6, 13, 30), new Date(2021, 8, 6, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts first day, ends first day`)
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 6, 13, 30), new Date(2021, 8, 12, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts first day, ends last day`)
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 6, 13, 30), new Date(2021, 8, 13, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts first day, ends after`)
+
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 12, 13, 30), new Date(2021, 8, 12, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts last day, ends last day`)
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 12, 13, 30), new Date(2021, 8, 13, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts last day, ends after`)
+
+
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 5, 13, 30), new Date(2021, 8, 13, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(true)(`starts before, ends after`)
+
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 5, 13, 30), new Date(2021, 8, 5, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(false)(`starts before, ends before`)
+			o(isEventBetweenDays(eventOn(new Date(2021, 8, 13, 13, 30), new Date(2021, 8, 13, 13, 30)), firstDayOfWeek, lastDayOfWeek, zone)).equals(false)(`starts after, ends after`)
+			// Cases not mentioned are UB
 		})
 	})
 })

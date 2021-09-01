@@ -1,9 +1,10 @@
 //@flow
-import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate, isValidDate} from "../../api/common/utils/DateUtils"
+import {getEndOfDay, getStartOfDay, incrementDate, isSameDay, isSameDayOfDate, isValidDate} from "../../api/common/utils/DateUtils"
 import type {
 	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
-	EndTypeEnum, EventTextTimeOptionEnum,
+	EndTypeEnum,
+	EventTextTimeOptionEnum,
 	RepeatPeriodEnum,
 	WeekStartEnum
 } from "../../api/common/TutanotaConstants"
@@ -11,7 +12,8 @@ import {
 	AlarmInterval,
 	CalendarAttendeeStatus,
 	defaultCalendarColor,
-	EndType, EventTextTimeOption,
+	EndType,
+	EventTextTimeOption,
 	getWeekStart,
 	RepeatPeriod,
 	WeekStart
@@ -34,12 +36,15 @@ import type {CalendarInfo} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
+import type {Time} from "../../api/common/utils/Time"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
+import type {GroupColors} from "../view/CalendarView"
 
 assertMainOrNode()
 
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
+export const EVENT_BEING_DRAGGED_OPACITY = 0.7
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -51,8 +56,20 @@ export function eventStartsBefore(currentDate: Date, zone: string, event: Calend
 	return getEventStart(event, zone).getTime() < currentDate.getTime()
 }
 
+export function eventEndsBefore(date: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventEnd(event, zone).getTime() < date.getTime()
+}
+
+export function eventStartsAfter(date: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventStart(event, zone).getTime() > date.getTime()
+}
+
 export function eventEndsAfterDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
 	return getEventEnd(event, zone).getTime() > getStartOfNextDayWithZone(currentDate, zone).getTime()
+}
+
+export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventEnd(event, zone).getTime() >= getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
 export function generateUid(groupId: Id, timestamp: number): string {
@@ -299,8 +316,6 @@ export function formatEventTime(event: CalendarEvent, showTime: EventTextTimeOpt
 			return ` - ${formatTime(event.endTime)}`
 		case EventTextTimeOption.START_END_TIME:
 			return `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`
-		case EventTextTimeOption.ALL_DAY:
-			return lang.get("allDay_label")
 		default:
 			throw new Error("Unknown time option " + showTime)
 	}
@@ -321,17 +336,24 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 	return colSpan;
 }
 
-
 /**
  * Result is positive or 0 if b > a, result is negative or 0 otherwise
  */
 export function getDiffInDays(a: Date, b: Date): number {
 	// discard the time and time-zone information
-	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
+	return Math.floor(DateTime.fromJSDate(b).diff(DateTime.fromJSDate(a), 'day').days)
 }
 
-export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {
-	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
+/**
+ * Result is positive or 0 if b > a, result is negative or 0 otherwise
+ */
+export function getDiffInHours(a: Date, b: Date): number {
+	// discard the time and time-zone information
+	return Math.floor(DateTime.fromJSDate(b).diff(DateTime.fromJSDate(a), 'hours').hours)
+}
+
+export function getEventColor(event: CalendarEvent, groupColors: GroupColors): string {
+	return (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
 }
 
 export function getStartOfWeek(date: Date, firstDayOfWeekFromOffset: number): Date {
@@ -344,10 +366,10 @@ export function getStartOfWeek(date: Date, firstDayOfWeekFromOffset: number): Da
 	return incrementDate(getStartOfDay(date), -firstDay)
 }
 
-export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<Date> {
-	let calculationDate = getStartOfWeek(dayInTheWeek, getStartOfTheWeekOffset(startOfTheWeek))
+export function getRangeOfDays(startDay: Date, numDays: number): Array<Date> {
+	let calculationDate = startDay
 	const days = []
-	for (let i = 0; i < 7; i++) {
+	for (let i = 0; i < numDays; i++) {
 		days.push(calculationDate)
 		calculationDate = incrementDate(new Date(calculationDate), 1)
 	}
@@ -499,7 +521,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 		}
 	}
 	let calcStartTime = eventStartTime
-	const calcDuration = allDay ? getDiffInDays(eventEndTime, eventStartTime) : eventEndTime - eventStartTime
+	const calcDuration = allDay ? getDiffInDays(eventStartTime, eventEndTime) : eventEndTime - eventStartTime
 	let calcEndTime = eventEndTime
 	let iteration = 1
 	while ((endOccurrences == null || iteration <= endOccurrences)
@@ -804,6 +826,57 @@ export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Da
 	} else {
 		return ""
 	}
+}
+
+export function getTimeTextFormatForLongEvent(ev: CalendarEvent, startDay: Date, endDay: Date, zone: string): ?EventTextTimeOptionEnum {
+	const startsBefore = eventStartsBefore(startDay, zone, ev)
+	const endsAfter = eventEndsAfterOrOn(endDay, zone, ev)
+
+	if (startsBefore && endsAfter || isAllDayEvent(ev)) {
+		return null
+	} else if (startsBefore && !endsAfter) {
+		return EventTextTimeOption.END_TIME
+	} else if (!startsBefore && endsAfter) {
+		return EventTextTimeOption.START_TIME
+	} else {
+		return EventTextTimeOption.START_END_TIME
+	}
+}
+
+/**
+ * Creates a new date with the year, month and day from the Date and the hours and minutes from the Time
+ * @param date
+ * @param time
+ */
+export function combineDateWithTime(date: Date, time: Time): Date {
+	const newDate = new Date(date)
+	newDate.setHours(time.hours)
+	newDate.setMinutes(time.minutes)
+
+	return newDate
+
+}
+
+export function deactivateBubblePointerEvents(bubbleDoms: Iterable<HTMLElement>) {
+	for (let dom of bubbleDoms) {
+		dom.style.pointerEvents = "none"
+		dom.style.opacity = "0.7"
+	}
+}
+
+export function activateBubblePointerEvents(bubbleDoms: Iterable<HTMLElement>) {
+	for (let dom of bubbleDoms) {
+		dom.style.pointerEvents = "auto"
+		dom.style.opacity = "1"
+	}
+}
+
+/**
+ * Check if an event occurs during some time period of days, either partially or entirely
+ * Expects that firstDayOfWeek is before lastDayOfWeek, and that event starts before it ends, otherwise result is invalid
+ */
+export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay: Date, zone: string): boolean {
+	return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(getEndOfDay(lastDay), zone, event))
 }
 
 export function createRepeatRuleFrequencyValues(): SelectorItemList<?RepeatPeriodEnum> {

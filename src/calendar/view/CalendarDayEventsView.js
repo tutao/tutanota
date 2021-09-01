@@ -3,59 +3,87 @@
 import m from "mithril"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
-import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "../../api/common/utils/DateUtils"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
-import {expandEvent, formatEventTime, getEventColor, getTimeZone, hasAlarmsForTheUser, layOutEvents} from "../date/CalendarUtils"
+import {
+	EVENT_BEING_DRAGGED_OPACITY,
+	eventEndsAfterDay,
+	eventStartsBefore,
+	expandEvent,
+	formatEventTime,
+	getEventColor,
+	getTimeTextFormatForLongEvent,
+	getTimeZone,
+	hasAlarmsForTheUser,
+	layOutEvents
+} from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {neverNull} from "../../api/common/utils/Utils"
+import {mapNullable, neverNull} from "../../api/common/utils/Utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
-import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
+import {Time} from "../../api/common/utils/Time"
+import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
+import {haveSameId} from "../../api/common/utils/EntityUtils"
+import type {CalendarEventBubbleClickHandler} from "./CalendarView"
+import type {GroupColors} from "./CalendarView"
 
 export type Attrs = {
-	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
-	groupColors: {[Id]: string},
+	onEventClicked: CalendarEventBubbleClickHandler,
+	groupColors: GroupColors,
 	events: Array<CalendarEvent>,
 	displayTimeIndicator: boolean,
 	onTimePressed: (hours: number, minutes: number) => mixed,
 	onTimeContextPressed: (hours: number, minutes: number) => mixed,
+	day: Date,
+	setCurrentDraggedEvent: (ev: CalendarEvent) => *,
+	setTimeUnderMouse: (time: Time) => *,
+	temporaryEvents: $ReadOnlyArray<CalendarEvent>,
+	fullViewWidth?: number
 }
 
-export const calendarDayTimes: Array<Date> = numberRange(0, 23).map((n) => {
-	const d = new Date()
-	d.setHours(n, 0, 0, 0)
-	return d
-})
+export const calendarDayTimes: Array<Time> = numberRange(0, 23).map(number => new Time(number, 0))
 const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
 
 export class CalendarDayEventsView implements MComponent<Attrs> {
 	_dayDom: ?HTMLElement;
 
-	view(vnode: Vnode<Attrs>): Children {
+	view({attrs}: Vnode<Attrs>): Children {
 		return m(".col.rel",
 			{
 				oncreate: (vnode) => {
 					this._dayDom = vnode.dom
 					m.redraw()
+				},
+				onmousemove: (mouseEvent: MouseEvent) => {
+					const time = this._getTimeUnderMouseEvent(mouseEvent)
+					attrs.setTimeUnderMouse(time)
 				}
 			},
 			[
-				calendarDayTimes.map(n => m(".calendar-hour.flex", {
+				calendarDayTimes.map(time => m(".calendar-hour.flex", {
 						onclick: (e) => {
 							e.stopPropagation()
-							vnode.attrs.onTimePressed(n.getHours(), n.getMinutes())
+							attrs.onTimePressed(time.hours, time.minutes)
 						},
 						oncontextmenu: (e) => {
-							vnode.attrs.onTimeContextPressed(n.getHours(), n.getMinutes())
+							attrs.onTimeContextPressed(time.hours, time.minutes)
 							e.preventDefault()
-						}
+						},
 					},
-					)
-				),
-				this._dayDom ? this._renderEvents(vnode.attrs, vnode.attrs.events) : null,
-				this._renderTimeIndicator(vnode.attrs),
+				)),
+				this._dayDom ? this._renderEvents(attrs, attrs.events) : null,
+				this._renderTimeIndicator(attrs),
 			])
+	}
+
+	_getTimeUnderMouseEvent(mouseEvent: MouseEvent): Time {
+		const {y, targetHeight} = getPosAndBoundsFromMouseEvent(mouseEvent)
+		const sectionHeight = targetHeight / 24
+		const hour = y / sectionHeight
+		const hourRounded = Math.floor(hour)
+		// increment in 15 minute intervals
+		const minute = Math.floor((hour - hourRounded) * 4) * 15
+		return new Time(hour, minute)
 	}
 
 	_renderTimeIndicator(attrs: Attrs): Children {
@@ -97,27 +125,47 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 		return layOutEvents(events, getTimeZone(), (columns) => this._renderColumns(attrs, columns), false)
 	}
 
-
 	_renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
-		const startTime = (ev.startTime.getHours() * 60 + ev.startTime.getMinutes()) * 60 * 1000
-		const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
+
+		const zone = getTimeZone()
+		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
+		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
+
+		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
+		const height = (endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
+		const maxWidth = attrs.fullViewWidth != null
+			? px(attrs.fullViewWidth / 2)
+			: "none"
+
 		const colSpan = expandEvent(ev, columnIndex, columns)
 		const padding = 2
+
 		return m(".abs.darker-hover", {
 			style: {
+				maxWidth,
 				left: px(columnWidth * columnIndex),
 				width: px(columnWidth * colSpan),
 				top: px(startTime / DAY_IN_MILLIS * allHoursHeight),
 				height: px(height)
 			},
+			onmousedown: () => {
+				if (!attrs.temporaryEvents.includes(ev)) {
+					attrs.setCurrentDraggedEvent(ev)
+				}
+			},
 		}, m(CalendarEventBubble, {
 			text: ev.summary,
-			secondLineText: !isAllDayEvent(ev) ? formatEventTime(ev, EventTextTimeOption.START_END_TIME) : null,
+			secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev, attrs.day, attrs.day, zone), option => formatEventTime(ev, option)),
 			color: getEventColor(ev, attrs.groupColors),
 			click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 			height: height - padding,
 			hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
-			verticalPadding: padding
+			verticalPadding: padding,
+			fadeIn: !attrs.temporaryEvents.includes(ev),
+			opacity: attrs.temporaryEvents.includes(ev)
+				? EVENT_BEING_DRAGGED_OPACITY
+				: 1,
+			enablePointerEvents: !attrs.temporaryEvents.includes(ev)
 		}))
 	}
 

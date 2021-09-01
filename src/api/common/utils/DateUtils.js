@@ -69,6 +69,9 @@ export function getDayShifted(date: Date, days: number): Date {
 	return new Date(date.getTime() + days * DAY_IN_MILLIS)
 }
 
+/**
+ * Increment the date in place and return it
+ */
 export function incrementDate(date: Date, byValue: number): Date {
 	date.setDate(date.getDate() + byValue)
 	return date

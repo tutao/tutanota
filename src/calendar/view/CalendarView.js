@@ -9,7 +9,7 @@ import {ViewSlider} from "../../gui/base/ViewSlider"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
@@ -43,13 +43,12 @@ import {
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
 } from "../date/CalendarUtils"
-import {showCalendarEventDialog} from "./CalendarEventEditDialog"
+import {askIfShouldSendCalendarUpdatesToAttendees, showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
-import {formatDateWithWeekday, formatMonthWithFullYear} from "../../misc/Formatter"
+import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
 import {NavButtonN} from "../../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
-import {CalendarDayView} from "./CalendarDayView"
 import {geEventElementMaxId, getEventElementMinId} from "../../api/common/utils/CommonCalendarUtils"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import {DateTime} from "luxon"
@@ -64,7 +63,7 @@ import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../../gui/styles"
-import {CalendarWeekView} from "./CalendarWeekView"
+import {MultiDayCalendarView} from "./MultiDayCalendarView"
 import {Dialog} from "../../gui/base/Dialog"
 import {isApp} from "../../api/common/Env"
 import type {Group} from "../../api/entities/sys/Group"
@@ -78,7 +77,8 @@ import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
-import {createCalendarEventViewModel} from "../date/CalendarEventViewModel"
+import type {EventCreateResult} from "../date/CalendarEventViewModel"
+import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers} from "../../sharing/GroupUtils"
 import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
@@ -92,6 +92,12 @@ import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export const LIMIT_PAST_EVENTS_YEARS = 100
+
+export type EventUpdateHandler = (eventId: IdTuple, newStartDate: Date) => Promise<EventCreateResult>
+
+type MouseOrPointerEvent = MouseEvent | PointerEvent
+export type CalendarEventBubbleClickHandler = (CalendarEvent, MouseOrPointerEvent) => mixed
+export type GroupColors = Map<Id, string>
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -155,7 +161,7 @@ export class CalendarView implements CurrentView {
 						? null
 						: {
 							label: 'newEvent_action',
-							click: () => this._newEvent(),
+							click: () => this._newEvent(this.selectedDate()),
 						},
 					content: [
 						m(SidebarSection, {
@@ -198,9 +204,9 @@ export class CalendarView implements CurrentView {
 
 		const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
 			return userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
-				acc[gc.group] = gc.color
+				acc.set(gc.group, gc.color)
 				return acc
-			}, {})
+			}, new Map())
 		})
 
 		this.contentColumn = new ViewColumn({
@@ -219,15 +225,25 @@ export class CalendarView implements CurrentView {
 							onDateSelected: (date, calendarViewType) => {
 								this._setUrl(calendarViewType, date)
 							},
-							onChangeMonth: (next) => this._viewPeriod(next),
+							onChangeMonth: (next) => this._viewPeriod(next, CalendarViewType.MONTH),
 							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
+							onEventMoved: async (id, newDate) => {
+								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
+								const newDateWithOriginalTime = new Date(
+									newDate.getFullYear(), newDate.getMonth(), newDate.getDate(),
+									event.startTime.getHours(), event.startTime.getMinutes(), event.startTime.getSeconds()
+								)
+								return this._moveEvent(event, newDateWithOriginalTime)
+							}
 						})
 					case CalendarViewType.DAY:
-						return m(CalendarDayView, {
+						return m(MultiDayCalendarView, {
 							eventsForDays: this._eventsForDays,
+							renderHeaderText: formatDateWithWeekdayAndYearLong,
+							daysInPeriod: 1,
 							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
 							onNewEvent: (date) => {
 								this._newEvent(date)
@@ -240,23 +256,43 @@ export class CalendarView implements CurrentView {
 							},
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
+							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+							onEventMoved: async (id, newDate) => {
+								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
+								return this._moveEvent(event, newDate)
+							}
 						})
 					case CalendarViewType.WEEK:
-						return m(CalendarWeekView, {
+						return m(MultiDayCalendarView, {
 							eventsForDays: this._eventsForDays,
+							daysInPeriod: 7,
+							renderHeaderText: date => {
+								const startOfTheWeekOffset = getStartOfTheWeekOffset(downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek))
+								const firstDate = getStartOfWeek(date, startOfTheWeekOffset)
+								const lastDate = incrementDate(new Date(firstDate), 6)
+								if (firstDate.getMonth() !== lastDate.getMonth()) {
+									return `${lang.formats.monthLong.format(firstDate)} - ${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(firstDate)}`
+								} else {
+									return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)}`
+								}
+							},
 							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
 							onNewEvent: (date) => {
 								this._newEvent(date)
 							},
 							selectedDate: this.selectedDate(),
 							onDateSelected: (date, viewType) => {
-								this._setUrl(viewType, date)
+								this._setUrl(viewType ?? CalendarViewType.WEEK, date)
 							},
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
-							onChangeWeek: (next) => this._viewPeriod(next)
+							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
+							onEventMoved: async (id, newDate) => {
+								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
+								return this._moveEvent(event, newDate)
+							}
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
@@ -343,6 +379,19 @@ export class CalendarView implements CurrentView {
 		}
 	}
 
+
+	async _moveEvent(event: CalendarEvent, newStartDate: Date): Promise<EventCreateResult> {
+		const viewModel: CalendarEventViewModel = await this._createCalendarEventViewModel(event)
+		viewModel.rescheduleEvent(newStartDate)
+
+		// Errors are handled in the individual views
+		return viewModel.saveAndSend({
+			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
+			askInsecurePassword: async () => true,
+			showProgress: noOp,
+		})
+	}
+
 	_setupShortcuts(): Shortcut[] {
 		return [
 			{
@@ -368,13 +417,13 @@ export class CalendarView implements CurrentView {
 			{
 				key: Keys.J,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(true),
+				exec: () => this._viewPeriod(true, this._currentViewType),
 				help: "viewNextPeriod_action"
 			},
 			{
 				key: Keys.K,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
-				exec: () => this._viewPeriod(false),
+				exec: () => this._viewPeriod(false, this._currentViewType),
 				help: "viewPrevPeriod_action"
 			},
 			{
@@ -386,41 +435,40 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_viewPeriod(next: boolean) {
-		switch (this._currentViewType) {
-			case CalendarViewType.MONTH: {
-				const dateTime = DateTime.fromJSDate(this.selectedDate())
-				let newDate
-				if (next) {
-					newDate = dateTime.plus({month: 1}).startOf("month").toJSDate()
-				} else {
-					newDate = dateTime.minus({month: 1}).startOf("month").toJSDate()
-				}
-				this.selectedDate(newDate)
-				m.redraw()
-				this._setUrl(CalendarViewType.MONTH, newDate)
-				break;
-			}
-			case CalendarViewType.WEEK: {
-				const dateTime = DateTime.fromJSDate(this.selectedDate())
-				let newDate
-				if (next) {
-					newDate = dateTime.plus({week: 1}).startOf("week").toJSDate()
-				} else {
-					newDate = dateTime.minus({week: 1}).startOf("week").toJSDate()
-				}
-				this.selectedDate(newDate)
-				m.redraw()
-				this._setUrl(CalendarViewType.WEEK, newDate)
-				break;
-			}
+	_viewPeriod(next: boolean, viewType: CalendarViewTypeEnum) {
+
+		let duration, unit
+		switch (viewType) {
+			case CalendarViewType.MONTH:
+				duration = {month: 1}
+				unit = "month"
+				break
+			case CalendarViewType.WEEK:
+				duration = {week: 1}
+				unit = "week"
+				break
+			case CalendarViewType.DAY:
+				duration = {day: 1}
+				unit = "day"
+				break
+			default:
+				throw new ProgrammingError("Invalid CalendarViewType: " + viewType)
 		}
+
+		const dateTime = DateTime.fromJSDate(this.selectedDate())
+		const newDate = next
+			? dateTime.plus(duration).startOf(unit).toJSDate()
+			: dateTime.minus(duration).startOf(unit).toJSDate()
+
+		this.selectedDate(newDate)
+		m.redraw()
+		this._setUrl(viewType, newDate)
 	}
 
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues = [
-			{name: "Day", value: CalendarViewType.DAY, icon: Icons.Table, href: "/calendar/day"},
-			{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.Table, href: "/calendar/week"},
+			{name: "Day", value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
+			{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.TableColumns, href: "/calendar/week"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
@@ -445,7 +493,7 @@ export class CalendarView implements CurrentView {
 		return m(ButtonN, {
 			label: 'newEvent_action',
 			click: () => {
-				this._newEvent()
+				this._newEvent(this.selectedDate())
 			},
 			icon: () => Icons.Add,
 			type: ButtonType.Action,
@@ -632,29 +680,47 @@ export class CalendarView implements CurrentView {
 		}, "save_action")
 	}
 
-	_onEventSelected(calendarEvent: CalendarEvent, domEvent: Event) {
+	async _onEventSelected(calendarEvent: CalendarEvent, domEvent: MouseOrPointerEvent) {
+
 		const domTarget = domEvent.currentTarget
 		if (domTarget == null || !(domTarget instanceof HTMLElement)) {
 			return
 		}
-		Promise.all([
+
+		const x = domEvent.clientX
+		const y = domEvent.clientY
+
+		const [viewModel, htmlSanitizer] = await Promise.all([
+			this._createCalendarEventViewModel(calendarEvent),
+			this._htmlSanitizer
+		])
+
+		// We want the popup to show at the users mouse
+		const rect = {
+			bottom: y,
+			height: 0,
+			width: 0,
+			top: y,
+			left: x,
+			right: x,
+		}
+
+		new CalendarEventPopup(
+			calendarEvent,
+			rect,
+			htmlSanitizer,
+			() => this._editEvent(calendarEvent),
+			viewModel
+		).show()
+	}
+
+	async _createCalendarEventViewModel(event: CalendarEvent): Promise<CalendarEventViewModel> {
+		const [mailboxDetails, calendarInfos] = await Promise.all([
 			locator.mailModel.getUserMailboxDetails(),
 			this._calendarInfos.getAsync(),
-			this._htmlSanitizer
-		]).then(([mailboxDetails, calendarInfos, htmlSanitizer]) => {
-				return createCalendarEventViewModel(getEventStart(calendarEvent, getTimeZone()), calendarInfos, mailboxDetails,
-					calendarEvent, null, true
-				).then((viewModel) => {
-					new CalendarEventPopup(
-						calendarEvent,
-						domTarget.getBoundingClientRect(),
-						htmlSanitizer,
-						() => this._editEvent(calendarEvent),
-						viewModel
-					).show()
-				})
-			}
-		)
+		])
+		return createCalendarEventViewModel(getEventStart(event, getTimeZone()), calendarInfos, mailboxDetails,
+			event, null, false)
 	}
 
 	_editEvent(event: CalendarEvent) {

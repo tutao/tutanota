@@ -511,7 +511,6 @@ export const EventTextTimeOption = Object.freeze({
 	START_TIME: "startTime",
 	END_TIME: "endTime",
 	START_END_TIME: "startAndEndTime",
-	ALL_DAY: "allDay"
 })
 export type EventTextTimeOptionEnum = $Values<typeof EventTextTimeOption>;
 

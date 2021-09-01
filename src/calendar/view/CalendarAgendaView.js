@@ -6,11 +6,11 @@ import {styles} from "../../gui/styles"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatDate, formatDateWithWeekday} from "../../misc/Formatter"
 import {
-	eventEndsAfterDay,
 	eventStartsBefore,
 	formatEventTime,
 	getEventColor,
 	getStartOfDayWithZone,
+	getTimeTextFormatForLongEvent,
 	getTimeZone,
 	hasAlarmsForTheUser
 } from "../date/CalendarUtils"
@@ -20,15 +20,16 @@ import {px, size} from "../../gui/size"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {EventTextTimeOption} from "../../api/common/TutanotaConstants"
+import type {CalendarEventBubbleClickHandler} from "./CalendarView"
+import type {GroupColors} from "./CalendarView"
 
 type Attrs = {
 	/**
 	 * maps start of day timestamp to events on that day
 	 */
 	eventsForDays: Map<number, Array<CalendarEvent>>,
-	onEventClicked: (ev: CalendarEvent, domEvent: Event) => mixed,
-	groupColors: {[Id]: string},
+	onEventClicked: CalendarEventBubbleClickHandler,
+	groupColors: GroupColors,
 	hiddenCalendars: Set<Id>,
 	onDateSelected: (date: Date) => mixed,
 }
@@ -93,27 +94,20 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 								? m(".mb-s", lang.get("noEntries_msg"))
 								: events.map((ev) => {
 									const startsBefore = eventStartsBefore(day, zone, ev)
-									const endsAfter = eventEndsAfterDay(day, zone, ev)
-
-									let timeFormat
-									if (isAllDayEvent(ev) || (startsBefore && endsAfter)) {
-										timeFormat = EventTextTimeOption.ALL_DAY
-									} else if (startsBefore && !endsAfter) {
-										timeFormat = EventTextTimeOption.END_TIME
-									} else if (!startsBefore && endsAfter) {
-										timeFormat = EventTextTimeOption.START_TIME
-									} else {
-										timeFormat = EventTextTimeOption.START_END_TIME
-									}
+									const timeFormat = getTimeTextFormatForLongEvent(ev, day, day, zone)
 
 									return m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
 										text: ev.summary,
-										secondLineText: formatEventTime(ev, timeFormat) + (ev.location ? ", " + ev.location : ""),
+										secondLineText: (timeFormat ? formatEventTime(ev, timeFormat) : "") + (ev.location ? ", "
+											+ ev.location : ""),
 										color: getEventColor(ev, attrs.groupColors),
 										hasAlarm: !startsBefore && hasAlarmsForTheUser(logins.getUserController().user, ev),
 										click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 										height: 38,
-										verticalPadding: 2
+										verticalPadding: 2,
+										fadeIn: true,
+										opacity: 1,
+										enablePointerEvents: true
 									}))
 								}))
 						])

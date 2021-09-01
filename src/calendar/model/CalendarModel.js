@@ -111,15 +111,18 @@ export class CalendarModelImpl implements CalendarModel {
 
 	/**
 	 * Update existing event.
-	 * @param newAlarms - current state of alarms belonging to the user.
 	 * */
-	updateEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot,
+	updateEvent(newEvent: CalendarEvent,
+	            newAlarms: Array<AlarmInfo>,
+	            zone: string,
+	            groupRoot: CalendarGroupRoot,
 	            existingEvent: CalendarEvent
 	): Promise<CalendarEvent> {
 		if (existingEvent._id == null) {
 			throw new Error("Invalid existing event: no id")
 		}
-		if (existingEvent._ownerGroup !== groupRoot._id || newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
+		if (existingEvent._ownerGroup !== groupRoot._id
+			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
 			|| !repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)
 		) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
@@ -139,26 +142,26 @@ export class CalendarModelImpl implements CalendarModel {
 		const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
 		const notFoundMemberships = []
 		return promiseMap(calendarMemberships, (membership) => Promise
-				.all([
-					this._entityClient.load(CalendarGroupRootTypeRef, membership.group).then((it) => {
-						progressMonitor.workDone(1)
-						return it
-					}),
-					this._entityClient.load(GroupInfoTypeRef, membership.groupInfo).then((it) => {
-						progressMonitor.workDone(1)
-						return it
-					}),
-					this._entityClient.load(GroupTypeRef, membership.group).then((it) => {
-						progressMonitor.workDone(1)
-						return it
-					})
-				])
-				.catch(ofClass(NotFoundError, () => {
-					notFoundMemberships.push(membership)
-					progressMonitor.workDone(3)
-					return null
-				}))
-			)
+			.all([
+				this._entityClient.load(CalendarGroupRootTypeRef, membership.group).then((it) => {
+					progressMonitor.workDone(1)
+					return it
+				}),
+				this._entityClient.load(GroupInfoTypeRef, membership.groupInfo).then((it) => {
+					progressMonitor.workDone(1)
+					return it
+				}),
+				this._entityClient.load(GroupTypeRef, membership.group).then((it) => {
+					progressMonitor.workDone(1)
+					return it
+				})
+			])
+			.catch(ofClass(NotFoundError, () => {
+				notFoundMemberships.push(membership)
+				progressMonitor.workDone(3)
+				return null
+			}))
+		)
 			.then((groupInstances) => {
 				const calendarInfos: Map<Id, CalendarInfo> = new Map()
 				const filtered = groupInstances.filter(Boolean)

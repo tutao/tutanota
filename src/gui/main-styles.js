@@ -1108,13 +1108,11 @@ styles.registerStyle('main', () => {
 		'.calendar-day:hover': {
 			'background': theme.list_alternate_bg
 		},
-
-		'.calendar-day-top:hover': {
-			opacity: 0.7,
+		'.calendar-day:hover .calendar-day-header-button': {
+			opacity: 1,
 		},
-
-		'.calendar-day:hover .calendar-day-top': {
-			'background-color': theme.button_bubble_bg
+		'.calendar-day-header-button': {
+			opacity: 0,
 		},
 
 
@@ -1149,15 +1147,20 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-day-indicator': { // overriden for mobile
-			height: "24px",
+			height: "22px",
 			"line-height": "24px",
 			"text-align": "center",
 			"font-size": "14px",
 		},
 
+		'.calendar-day .calendar-day-indicator:hover': {
+			"background": theme.list_message_bg,
+			"opacity": .7
+		},
+
 		'.calendar-day-number': {
-			margin: "4px auto",
-			width: "24px",
+			margin: "3px auto",
+			width: "22px",
 		},
 
 		'.calendar-event': {
@@ -1237,7 +1240,6 @@ styles.registerStyle('main', () => {
 			overflow: "hidden",
 			"background-color": theme.content_bg,
 			"border-bottom": `1px solid ${theme.content_border}`,
-			transition: 'height 200ms ease-in-out'
 		},
 
 		'.calendar-month-week-number': {
@@ -1319,7 +1321,6 @@ styles.registerStyle('main', () => {
 		},
 
 		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
-
 		'.date-selected': {
 			'border-radius': '50%',
 			background: theme.content_accent,
@@ -1327,11 +1328,12 @@ styles.registerStyle('main', () => {
 		},
 		'.date-current': {
 			'border-radius': '50%',
-			background: getContentButtonIconBackground(),
-			color: theme.navigation_button_icon,
+			background: theme.content_accent,
+			opacity: .5,
+			color: theme.elevated_bg,
 		},
 
-		'.switch-month-button': {
+		'.clickable': {
 			'cursor': 'pointer',
 		},
 

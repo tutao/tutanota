@@ -138,20 +138,20 @@ export class CalendarFacade {
 	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		return promiseMap(alarmInfos, (alarmInfo) => {
-				const newAlarm = createUserAlarmInfo()
-				newAlarm._ownerGroup = user.userGroup.group
-				newAlarm.alarmInfo = createAlarmInfo()
-				newAlarm.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
-				newAlarm.alarmInfo.trigger = alarmInfo.trigger
-				newAlarm.alarmInfo.calendarRef = createCalendarEventRef({
-					listId: listIdPart(event._id),
-					elementId: elementIdPart(event._id)
-				})
-				const alarmNotification = createAlarmNotificationForEvent(event, newAlarm.alarmInfo, user._id)
-				return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
-					[userAlarmInfoListId, id], alarmNotification
-				]))
-			}) // sequentially to avoid rate limiting
+			const newAlarm = createUserAlarmInfo()
+			newAlarm._ownerGroup = user.userGroup.group
+			newAlarm.alarmInfo = createAlarmInfo()
+			newAlarm.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
+			newAlarm.alarmInfo.trigger = alarmInfo.trigger
+			newAlarm.alarmInfo.calendarRef = createCalendarEventRef({
+				listId: listIdPart(event._id),
+				elementId: elementIdPart(event._id)
+			})
+			const alarmNotification = createAlarmNotificationForEvent(event, newAlarm.alarmInfo, user._id)
+			return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
+				[userAlarmInfoListId, id], alarmNotification
+			]))
+		}) // sequentially to avoid rate limiting
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -167,15 +167,15 @@ export class CalendarFacade {
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
 		return promiseMap(pushIdentifierList, identifier => {
-				return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
-					if (pushIdentifierSk) {
-						const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
-						return {identifierId: identifier._id, pushIdentifierSessionEncSessionKey}
-					} else {
-						return null
-					}
-				})
-			}) // rate limiting against blocking while resolving session keys (neccessary)
+			return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
+				if (pushIdentifierSk) {
+					const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
+					return {identifierId: identifier._id, pushIdentifierSessionEncSessionKey}
+				} else {
+					return null
+				}
+			})
+		}) // rate limiting against blocking while resolving session keys (neccessary)
 			.then(maybeEncSessionKeys => {
 				const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
 				for (let notification of alarmNotifications) {
@@ -289,16 +289,16 @@ export class CalendarFacade {
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
 		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships
 		                                .filter(m => m.groupType === GroupType.Calendar && m.capability == null)
-		return asyncFindAndMap(calendarMemberships, ( membership) => {
-				return this._entity.load(CalendarGroupRootTypeRef, membership.group)
-				           .then((groupRoot) =>
-					           groupRoot.index && this._entity.load(CalendarEventUidIndexTypeRef, [
-						           groupRoot.index.list,
-						           uint8arrayToCustomId(hashUid(uid))
-					           ]))
-				           .catch(ofClass(NotFoundError, () => null))
-				           .catch(ofClass(NotAuthorizedError, () => null))
-			})
+		return asyncFindAndMap(calendarMemberships, (membership) => {
+			return this._entity.load(CalendarGroupRootTypeRef, membership.group)
+			           .then((groupRoot) =>
+				           groupRoot.index && this._entity.load(CalendarEventUidIndexTypeRef, [
+					           groupRoot.index.list,
+					           uint8arrayToCustomId(hashUid(uid))
+				           ]))
+			           .catch(ofClass(NotFoundError, () => null))
+			           .catch(ofClass(NotAuthorizedError, () => null))
+		})
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)

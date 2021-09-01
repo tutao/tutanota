@@ -34,7 +34,7 @@ import type {CalendarUpdateDistributor} from "../../../src/calendar/date/Calenda
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
-import {getAllDayDateUTCFromZone} from "../../../src/calendar/date/CalendarUtils"
+import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils"
 import {DateTime} from "luxon"
 import {createMailAddressAlias} from "../../../src/api/entities/sys/MailAddressAlias"
 import {RecipientInfoType} from "../../../src/api/common/RecipientInfo"
@@ -60,10 +60,11 @@ import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatur
 import {assertThrows, unmockAttribute} from "../../api/TestUtils"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {Time} from "../../../src/api/common/utils/Time"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
-const zone = "Europe/Berlin"
+const zone = getTimeZone()
 const wrapEncIntoMailAddress = (address) => createEncryptedMailAddress({address})
 const accountMailAddress = "address@tutanota.com"
 const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
@@ -187,8 +188,8 @@ o.spec("CalendarEventViewModel", function () {
 		o(viewModel.summary()).equals(existingEvent.summary)
 		o(viewModel.startDate.toISOString()).equals(DateTime.fromObject({year: 2020, month: 5, day: 26, zone}).toJSDate().toISOString())
 		o(viewModel.endDate.toISOString()).equals(DateTime.fromObject({year: 2020, month: 5, day: 26, zone}).toJSDate().toISOString())
-		o(viewModel.startTime).equals("12:00")
-		o(viewModel.endTime).equals("13:00")
+		o(viewModel.startTime?.toObject()).deepEquals({hours: 12, minutes: 0})
+		o(viewModel.endTime?.toObject()).deepEquals({hours: 13, minutes: 0})
 		o(viewModel.note).equals(existingEvent.description)
 		o(viewModel.location()).equals(existingEvent.location)
 		o(viewModel.isReadOnlyEvent()).equals(false)
@@ -693,7 +694,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
@@ -734,7 +735,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
@@ -775,7 +776,7 @@ o.spec("CalendarEventViewModel", function () {
 			await updateModel.bccRecipients()[0].resolveContactPromise
 			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
 			updateModel.onMailChanged(true)
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 
@@ -811,7 +812,7 @@ o.spec("CalendarEventViewModel", function () {
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
 			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
 			viewModel.updatePassword(viewModel.attendees()[0], "123")
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => false)
 
@@ -856,7 +857,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("no"))
@@ -900,7 +901,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("cancel"))
@@ -939,7 +940,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const userController = makeUserController([], AccountType.PREMIUM, "", true)
 			const viewModel = init({userController, calendars, existingEvent, calendarModel, distributor})
-			viewModel.onStartDateSelected(new Date(2020, 4, 3))
+			viewModel.setStartDate(new Date(2020, 4, 3))
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(async () => "yes")
 
@@ -1222,12 +1223,12 @@ o.spec("CalendarEventViewModel", function () {
 				endTime: DateTime.fromObject({year: 2020, month: 6, day: 9, hour: 15, zone}).toJSDate(),
 			})
 			const viewModel = init({calendars, existingEvent})
-			viewModel.onStartDateSelected(DateTime.fromObject({year: 2020, month: 6, day: 10, zone}).toJSDate())
+			viewModel.setStartDate(DateTime.fromObject({year: 2020, month: 6, day: 10, zone}).toJSDate())
 
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString())
 				.equals(DateTime.fromObject({year: 2020, month: 6, day: 11, zone}).toJSDate().toISOString())
-			o(viewModel.endTime).equals("15:00")
+			o(viewModel.endTime?.toObject()).deepEquals({hours: 15, minutes: 0})
 		})
 
 		o("date adjusted backwards", async function () {
@@ -1237,12 +1238,12 @@ o.spec("CalendarEventViewModel", function () {
 				endTime: DateTime.fromObject({year: 2020, month: 6, day: 9, hour: 15, zone}).toJSDate(),
 			})
 			const viewModel = init({calendars, existingEvent})
-			viewModel.onStartDateSelected(DateTime.fromObject({year: 2020, month: 6, day: 6, zone}).toJSDate())
+			viewModel.setStartDate(DateTime.fromObject({year: 2020, month: 6, day: 6, zone}).toJSDate())
 
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString())
 				.equals(DateTime.fromObject({year: 2020, month: 6, day: 7, zone}).toJSDate().toISOString())
-			o(viewModel.endTime).equals("15:00")
+			o(viewModel.endTime?.toObject()).deepEquals({hours: 15, minutes: 0})
 		})
 	})
 
@@ -1254,12 +1255,12 @@ o.spec("CalendarEventViewModel", function () {
 				endTime: DateTime.fromObject({year: 2020, month: 6, day: 8, hour: 15, zone}).toJSDate(),
 			})
 			const viewModel = init({calendars, existingEvent})
-			viewModel.onStartTimeSelected("14:00")
+			viewModel.setStartTime(new Time(14, 0))
 
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString())
 				.equals(DateTime.fromObject({year: 2020, month: 6, day: 8, zone}).toJSDate().toISOString())
-			o(viewModel.endTime).equals("16:00")
+			o(viewModel.endTime?.to24HourString()).deepEquals("16:00")
 		})
 
 		o("time adjusted backward", async function () {
@@ -1269,12 +1270,12 @@ o.spec("CalendarEventViewModel", function () {
 				endTime: DateTime.fromObject({year: 2020, month: 6, day: 8, hour: 15, zone}).toJSDate(),
 			})
 			const viewModel = init({calendars, existingEvent})
-			viewModel.onStartTimeSelected("12:00")
+			viewModel.setStartTime(new Time(12, 0))
 
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString())
 				.equals(DateTime.fromObject({year: 2020, month: 6, day: 8, zone}).toJSDate().toISOString())
-			o(viewModel.endTime).equals("14:00")
+			o(viewModel.endTime?.toObject()).deepEquals({hours: 14, minutes: 0})
 		})
 
 		o("time not adjust when different day", async function () {
@@ -1284,12 +1285,12 @@ o.spec("CalendarEventViewModel", function () {
 				endTime: DateTime.fromObject({year: 2020, month: 6, day: 9, hour: 15, zone}).toJSDate(),
 			})
 			const viewModel = init({calendars, existingEvent})
-			viewModel.onStartTimeSelected("12:00")
+			viewModel.setStartTime(new Time(12, 0))
 
 			// No hours because it's a "date", not "time" field.
 			o(viewModel.endDate.toISOString())
 				.equals(DateTime.fromObject({year: 2020, month: 6, day: 9, zone}).toJSDate().toISOString())
-			o(viewModel.endTime).equals("15:00")
+			o(viewModel.endTime?.to24HourString()).equals("15:00")
 		})
 	})
 

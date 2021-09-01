@@ -14,6 +14,8 @@ import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "./Dialog"
 import {logins} from "../../api/main/LoginController"
 import type {AllIconsEnum} from "./Icon"
+import type {Element, ListElement} from "../../api/common/utils/EntityUtils"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 export type dropHandler = (dragData: string) => void;
 
@@ -160,4 +162,42 @@ export function ifAllowedTutanotaLinks(linkId: InfoLink, render: (string) => Chi
 		return render(lang.getInfoLink(linkId))
 	}
 	return null
+}
+
+export function entityDraggedHandler(id: Id | IdTuple): DragEventHandler {
+	const idString = id instanceof Array
+		? id.join(",")
+		: id
+	return ev => ev.dataTransfer?.setData("text", idString)
+}
+
+export function handleEntityDragged(entity: Element | ListElement, ev: DragEvent) {
+	const idString = entity._id instanceof Array
+		? entity._id.join(",")
+		: entity._id
+	ev.dataTransfer?.setData("text", idString)
+}
+
+
+export type MousePosAndBounds = {
+	x: number, y: number, targetWidth: number, targetHeight: number
+}
+
+/**
+ * Get the mouse's x and y coordinates relative to the target, and the width and height of the target.
+ * The currentTarget must be a HTMLElement or this throws an error
+ * @param mouseEvent
+ */
+export function getPosAndBoundsFromMouseEvent({currentTarget, x, y}: MouseEvent): MousePosAndBounds {
+	if (currentTarget instanceof HTMLElement) {
+		const {height, width, left, top} = currentTarget.getBoundingClientRect()
+		return {
+			targetHeight: height,
+			targetWidth: width,
+			x: x - left,
+			y: y - top,
+		}
+	} else {
+		throw new ProgrammingError("Target is not a HTMLElement")
+	}
 }

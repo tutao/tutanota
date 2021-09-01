@@ -33,9 +33,7 @@ import {
 	getTimeZone,
 	incrementByRepeatPeriod,
 	incrementSequence,
-	prepareCalendarDescription,
-	timeString,
-	timeStringInZone
+	prepareCalendarDescription
 } from "./CalendarUtils"
 import {assertNotNull, clone, downcast, isCustomizationEnabledForCustomer, neverNull, noOp} from "../../api/common/utils/Utils"
 import {generateEventElementId, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
@@ -60,11 +58,11 @@ import {logins} from "../../api/main/LoginController"
 import {locator} from "../../api/main/MainLocator"
 import {EntityClient} from "../../api/common/EntityClient"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
-import {timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
-import {parseTime} from "../../misc/parsing/TimeParser";
+import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
+import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -105,11 +103,14 @@ export class CalendarEventViewModel {
 	+selectedCalendar: Stream<?CalendarInfo>;
 	startDate: Date;
 	endDate: Date;
-	startTime: string;
-	endTime: string;
+
+	// Null start or end time means the user input was invalid
+	startTime: ?Time;
+	endTime: ?Time;
+
 	+allDay: Stream<boolean>;
 	repeat: ?RepeatData
-	calendars: Array<CalendarInfo>
+	calendars: Map<Id, CalendarInfo>
 	+attendees: Stream<$ReadOnlyArray<Guest>>;
 	organizer: ?EncryptedMailAddress;
 	+possibleOrganizers: $ReadOnlyArray<EncryptedMailAddress>;
@@ -117,7 +118,7 @@ export class CalendarEventViewModel {
 	note: string;
 	+amPmFormat: boolean;
 	+existingEvent: ?CalendarEvent
-	_oldStartTime: ?string;
+	_oldStartTime: ?Time;
 	+_zone: string;
 	// We keep alarms read-only so that view can diff just array and not all elements
 	alarms: $ReadOnlyArray<AlarmInfo>;
@@ -143,6 +144,9 @@ export class CalendarEventViewModel {
 	hasBusinessFeature: Stream<boolean>
 	hasPremiumLegacy: Stream<boolean>
 
+
+	+initialized: Promise<CalendarEventViewModel>
+
 	constructor(
 		userController: IUserController,
 		distributor: CalendarUpdateDistributor,
@@ -160,6 +164,7 @@ export class CalendarEventViewModel {
 		this._distributor = distributor
 		this._calendarModel = calendarModel
 		this._entityClient = entityClient
+		this._userController = userController
 		this._responseTo = responseTo
 		this._inviteModel = sendMailModelFactory(mailboxDetail, "invite")
 		this._updateModel = sendMailModelFactory(mailboxDetail, "update")
@@ -172,49 +177,79 @@ export class CalendarEventViewModel {
 		this._processing = false
 		this.hasBusinessFeature = stream(false)
 		this.hasPremiumLegacy = stream(false)
-
-		const existingOrganizer = existingEvent && existingEvent.organizer
-		this.organizer = existingOrganizer
-			? copyMailAddress(existingOrganizer)
-			: addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
 		this.location = stream("")
 		this.note = ""
 		this.allDay = stream(false)
 		this.amPmFormat = userController.userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 		this.existingEvent = existingEvent
 		this._zone = zone
-		this.alarms = []
-		this._userController = userController
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
-		if (existingEvent) {
-			if (existingEvent.invitedConfidentially != null) {
-				this.setConfidential(existingEvent.invitedConfidentially)
-			}
-		}
 		this._eventType = this._initEventType(existingEvent, calendars)
-
+		const existingOrganizer = existingEvent && existingEvent.organizer
 		this.possibleOrganizers = existingOrganizer && !this.canModifyOrganizer()
 			? [existingOrganizer]
 			: existingOrganizer && !this._ownMailAddresses.includes(existingOrganizer.address)
 				? [existingOrganizer].concat(this._ownPossibleOrganizers(mailboxDetail, userController))
 				: this._ownPossibleOrganizers(mailboxDetail, userController)
 
-		this.calendars = Array.from(calendars.values())
+		this.organizer = existingOrganizer
+			? copyMailAddress(existingOrganizer)
+			: addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
+		this.alarms = []
+
+		this.calendars = calendars
 		this.selectedCalendar = stream(this.getAvailableCalendars()[0])
 
-		if (existingEvent) {
-			this._applyValuesFromExistingEvent(existingEvent, calendars)
-		} else {
-			// We care about passed time here, use it for default time values.
-			this._setDefaultTimes(date)
-			this.startDate = getStartOfDayWithZone(date, this._zone)
-			this.endDate = getStartOfDayWithZone(date, this._zone)
-		}
-		this.updateCustomerFeatures()
+
+		this.initialized = Promise.resolve().then(async () => {
+			if (existingEvent) {
+				if (existingEvent.invitedConfidentially != null) {
+					this.setConfidential(existingEvent.invitedConfidentially)
+				}
+			}
+
+			if (existingEvent) {
+				await this._applyValuesFromExistingEvent(existingEvent, calendars)
+			} else {
+				// We care about passed time here, use it for default time values.
+				this._setDefaultTimes(date)
+				this.startDate = getStartOfDayWithZone(date, this._zone)
+				this.endDate = getStartOfDayWithZone(date, this._zone)
+			}
+			await this.updateCustomerFeatures()
+
+			return this
+		})
 	}
 
-	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {
+	rescheduleEvent(newStartDate: Date) {
+		const oldStartDate = new Date(this.startDate)
+		const startTime = this.startTime
+
+		if (startTime) {
+			oldStartDate.setHours(startTime.hours)
+			oldStartDate.setMinutes(startTime.minutes)
+		}
+
+		const oldEndDate = new Date(this.endDate)
+		const endTime = this.endTime
+
+		if (endTime) {
+			oldEndDate.setHours(endTime.hours)
+			oldEndDate.setMinutes(endTime.minutes)
+		}
+
+		const diff = newStartDate.getTime() - oldStartDate.getTime()
+		const newEndDate = new Date(oldEndDate.getTime() + diff)
+
+		this.startDate = newStartDate
+		this.endDate = newEndDate
+		this.startTime = Time.fromDate(newStartDate)
+		this.endTime = Time.fromDate(newEndDate)
+	}
+
+	async _applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): Promise<void> {
 		this.summary(existingEvent.summary)
 		const calendarForGroup = calendars.get(neverNull(existingEvent._ownerGroup))
 		if (calendarForGroup) {
@@ -227,9 +262,12 @@ export class CalendarEventViewModel {
 			// We don't care about passed time here, just use current one as default
 			this._setDefaultTimes()
 		} else {
-			this.startTime = timeStringInZone(getEventStart(existingEvent, this._zone), this.amPmFormat, this._zone)
-			this.endTime = timeStringInZone(getEventEnd(existingEvent, this._zone), this.amPmFormat, this._zone)
-			this.endDate = getStartOfDayWithZone(getEventEnd(existingEvent, this._zone), this._zone)
+			const startDate = DateTime.fromJSDate(getEventStart(existingEvent, this._zone), {zone: this._zone})
+			const endDate = DateTime.fromJSDate(getEventEnd(existingEvent, this._zone), {zone: this._zone})
+
+			this.startTime = Time.fromDateTime(startDate)
+			this.endTime = Time.fromDateTime(endDate)
+			this.endDate = getStartOfDayWithZone(endDate.toJSDate(), this._zone)
 		}
 
 		if (existingEvent.repeatRule) {
@@ -250,9 +288,10 @@ export class CalendarEventViewModel {
 		this.location(existingEvent.location)
 		this.note = prepareCalendarDescription(existingEvent.description)
 
-		this._calendarModel.loadAlarms(existingEvent.alarmInfos, this._userController.user).then((alarms) => {
-			alarms.forEach((alarm) => this.addAlarm(downcast(alarm.alarmInfo.trigger)))
-		})
+		const alarms = await this._calendarModel.loadAlarms(existingEvent.alarmInfos, this._userController.user)
+		for (let alarm of alarms) {
+			this.addAlarm(downcast(alarm.alarmInfo.trigger))
+		}
 	}
 
 	/**
@@ -365,8 +404,8 @@ export class CalendarEventViewModel {
 	_setDefaultTimes(date: Date = getNextHalfHour()) {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		this.startTime = timeString(date, this.amPmFormat)
-		this.endTime = timeString(endTimeDate, this.amPmFormat)
+		this.startTime = Time.fromDate(date)
+		this.endTime = Time.fromDate(endTimeDate)
 	}
 
 	_ownPossibleOrganizers(mailboxDetail: MailboxDetail, userController: IUserController): Array<EncryptedMailAddress> {
@@ -377,7 +416,7 @@ export class CalendarEventViewModel {
 		return this.attendees().find(a => this._ownMailAddresses.includes(a.address.address))
 	}
 
-	onStartTimeSelected(value: string) {
+	setStartTime(value: ?Time) {
 		this._oldStartTime = this.startTime
 		this.startTime = value
 		if (this.startDate.getTime() === this.endDate.getTime()) {
@@ -385,7 +424,7 @@ export class CalendarEventViewModel {
 		}
 	}
 
-	onEndTimeSelected(value: string) {
+	setEndTime(value: ?Time) {
 		this.endTime = value
 	}
 
@@ -450,25 +489,23 @@ export class CalendarEventViewModel {
 	}
 
 	_adjustEndTime() {
-		const parsedOldStartTime = this._oldStartTime && parseTime(this._oldStartTime)
-		const parsedStartTime = parseTime(this.startTime)
-		const parsedEndTime = parseTime(this.endTime)
-		if (!parsedStartTime || !parsedEndTime || !parsedOldStartTime) {
+		if (!this.startTime || !this.endTime || !this._oldStartTime) {
 			return
 		}
-		const endTotalMinutes = parsedEndTime.hours * 60 + parsedEndTime.minutes
-		const startTotalMinutes = parsedStartTime.hours * 60 + parsedStartTime.minutes
-		const diff = Math.abs(endTotalMinutes - parsedOldStartTime.hours * 60 - parsedOldStartTime.minutes)
+
+		const endTotalMinutes = this.endTime.hours * 60 + this.endTime.minutes
+		const startTotalMinutes = this.startTime.hours * 60 + this.startTime.minutes
+		const diff = Math.abs(endTotalMinutes - this._oldStartTime.hours * 60 - this._oldStartTime.minutes)
 		const newEndTotalMinutes = startTotalMinutes + diff
 		let newEndHours = Math.floor(newEndTotalMinutes / 60)
 		if (newEndHours > 23) {
 			newEndHours = 23
 		}
 		const newEndMinutes = newEndTotalMinutes % 60
-		this.endTime = timeStringFromParts(newEndHours, newEndMinutes, this.amPmFormat)
+		this.endTime = new Time(newEndHours, newEndMinutes)
 	}
 
-	onStartDateSelected(date: ?Date) {
+	setStartDate(date: ?Date) {
 		if (date) {
 			// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
 			// tackle because it is a rare case.
@@ -478,14 +515,14 @@ export class CalendarEventViewModel {
 				newDate.setFullYear(thisYear)
 				this.startDate = newDate
 			} else {
-				const diff = getDiffInDays(date, this.startDate)
+				const diff = getDiffInDays(this.startDate, date)
 				this.endDate = DateTime.fromJSDate(this.endDate, {zone: this._zone}).plus({days: diff}).toJSDate()
 				this.startDate = date
 			}
 		}
 	}
 
-	onEndDateSelected(date: ?Date) {
+	setEndDate(date: ?Date) {
 		if (date) {
 			this.endDate = date
 		}
@@ -639,21 +676,34 @@ export class CalendarEventViewModel {
 		}
 	}
 
+	async waitForResolvedRecipients(): Promise<void> {
+		await Promise.all([
+			this._inviteModel.waitForResolvedRecipients(),
+			this._updateModel.waitForResolvedRecipients(),
+			this._cancelModel.waitForResolvedRecipients(),
+		])
+	}
+
 	/**
 	 * @reject UserError
 	 */
-	saveAndSend(
+	async saveAndSend(
 		{askForUpdates, askInsecurePassword, showProgress}: {
 			askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 			askInsecurePassword: () => Promise<boolean>,
 			showProgress: ShowProgressCallback,
 		}
 	): Promise<EventCreateResult> {
+		await this.initialized
+
 		if (this._processing) {
 			return Promise.resolve(false)
 		}
 		this._processing = true
-		return Promise.resolve().then(() => {
+		return Promise.resolve().then(async () => {
+
+			await this.waitForResolvedRecipients()
+
 			const newEvent = this._initializeNewEvent()
 			const newAlarms = this.alarms.slice()
 			if (this._eventType === EventType.OWN) {
@@ -914,17 +964,18 @@ export class CalendarEventViewModel {
 
 	getAvailableCalendars(): Array<CalendarInfo> {
 		// Prevent moving the calendar to another calendar if you only have read permission or if the event has attendees.
+		const calendarArray = Array.from(this.calendars.values())
 		if (this.isReadOnlyEvent()) {
-			return this.calendars
-			           .filter((calendarInfo) => calendarInfo.group._id === assertNotNull(this.existingEvent)._ownerGroup)
+			return calendarArray
+				.filter((calendarInfo) => calendarInfo.group._id === assertNotNull(this.existingEvent)._ownerGroup)
 		} else if (this.attendees().length || this._eventType === EventType.INVITE) {
 			// We don't allow inviting in a shared calendar. If we have attendees, we cannot select a shared calendar
 			// We also don't allow accepting invites into shared calendars.
-			return this.calendars
-			           .filter((calendarInfo) => !calendarInfo.shared)
+			return calendarArray
+				.filter((calendarInfo) => !calendarInfo.shared)
 		} else {
-			return this.calendars
-			           .filter((calendarInfo) => hasCapabilityOnGroup(this._userController.user, calendarInfo.group, ShareCapability.Write))
+			return calendarArray
+				.filter((calendarInfo) => hasCapabilityOnGroup(this._userController.user, calendarInfo.group, ShareCapability.Write))
 		}
 	}
 
@@ -956,19 +1007,21 @@ export class CalendarEventViewModel {
 			startDate = getAllDayDateUTCFromZone(startDate, this._zone)
 			endDate = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(endDate, this._zone), this._zone)
 		} else {
-			const parsedStartTime = parseTime(this.startTime)
-			const parsedEndTime = parseTime(this.endTime)
-			if (!parsedStartTime || !parsedEndTime) {
+
+			const startTime = this.startTime
+			const endTime = this.endTime
+			if (!startTime || !endTime) {
 				throw new UserError("timeFormatInvalid_msg")
 			}
+
 			startDate = DateTime.fromJSDate(startDate, {zone: this._zone})
-			                    .set({hour: parsedStartTime.hours, minute: parsedStartTime.minutes})
+			                    .set({hour: startTime.hours, minute: startTime.minutes})
 			                    .toJSDate()
 
 			// End date is never actually included in the event. For the whole day event the next day
 			// is the boundary. For the timed one the end time is the boundary.
 			endDate = DateTime.fromJSDate(endDate, {zone: this._zone})
-			                  .set({hour: parsedEndTime.hours, minute: parsedEndTime.minutes})
+			                  .set({hour: endTime.hours, minute: endTime.minutes})
 			                  .toJSDate()
 		}
 

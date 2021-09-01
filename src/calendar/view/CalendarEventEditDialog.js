@@ -82,14 +82,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		startDatePicker.setDate(viewModel.startDate)
 		endDatePicker.setDate(viewModel.endDate)
 		startDatePicker.date.map((date) => {
-			viewModel.onStartDateSelected(date)
+			viewModel.setStartDate(date)
 			if (endDatePicker.date() !== viewModel.endDate) {
 				endDatePicker.setDate(viewModel.endDate)
 			}
 		})
 
 		endDatePicker.date.map((date) => {
-			viewModel.onEndDateSelected(date)
+			viewModel.setEndDate(date)
 		})
 
 		const repeatValues = createRepeatRuleFrequencyValues()
@@ -150,40 +150,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				viewModel.changeDescription(description)
 			}
 
-			function askForUpdates() {
-				return new Promise((resolve) => {
-					let alertDialog: Dialog
-					const cancelButton = {
-						label: "cancel_action",
-						click: () => {
-							resolve("cancel")
-							alertDialog.close()
-						},
-						type: ButtonType.Secondary
-					}
-					const noButton = {
-						label: "no_label",
-						click: () => {
-							resolve("no")
-							alertDialog.close()
-						},
-						type: ButtonType.Secondary
-					}
-					const yesButton = {
-						label: "yes_label",
-						click: () => {
-							resolve("yes")
-							alertDialog.close()
-						},
-						type: ButtonType.Primary,
-					}
-
-					const onclose = (positive) => positive
-						? resolve("yes")
-						: resolve("cancel")
-					alertDialog = Dialog.confirmMultiple("sendUpdates_msg", [cancelButton, noButton, yesButton], onclose)
-				})
-			}
 
 			function showProgress(p: Promise<mixed>) {
 				// We get all errors in main promise, we don't need to handle them here
@@ -193,7 +159,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			Promise.resolve().then(() => {
 				return viewModel
 					.saveAndSend({
-						askForUpdates,
+						askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
 						showProgress,
 						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
 					})
@@ -245,7 +211,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						value: viewModel.startTime,
-						onselected: (time) => viewModel.onStartTimeSelected(time),
+						onselected: (time) => viewModel.setStartTime(time),
 						amPmFormat: viewModel.amPmFormat,
 						disabled: viewModel.isReadOnlyEvent()
 					}))
@@ -256,7 +222,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						value: viewModel.endTime,
-						onselected: (time) => viewModel.onEndTimeSelected(time),
+						onselected: (time) => viewModel.setEndTime(time),
 						amPmFormat: viewModel.amPmFormat,
 						disabled: viewModel.isReadOnlyEvent()
 					}))
@@ -625,4 +591,39 @@ function renderConfidentialButton(viewModel: CalendarEventViewModel) {
 			}
 		)
 		: null
+}
+
+export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no" | "cancel"> {
+	return new Promise((resolve) => {
+		let alertDialog: Dialog
+		const cancelButton = {
+			label: "cancel_action",
+			click: () => {
+				resolve("cancel")
+				alertDialog.close()
+			},
+			type: ButtonType.Secondary
+		}
+		const noButton = {
+			label: "no_label",
+			click: () => {
+				resolve("no")
+				alertDialog.close()
+			},
+			type: ButtonType.Secondary
+		}
+		const yesButton = {
+			label: "yes_label",
+			click: () => {
+				resolve("yes")
+				alertDialog.close()
+			},
+			type: ButtonType.Primary,
+		}
+
+		const onclose = (positive) => positive
+			? resolve("yes")
+			: resolve("cancel")
+		alertDialog = Dialog.confirmMultiple("sendUpdates_msg", [cancelButton, noButton, yesButton], onclose)
+	})
 }
