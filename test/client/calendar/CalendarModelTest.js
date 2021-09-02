@@ -10,15 +10,14 @@ import {
 	getAllDayDateUTCFromZone,
 	getMonth,
 	getTimeZone,
-	incrementByRepeatPeriod,
-	findNextAlarmOccurrence
+	incrementByRepeatPeriod
 } from "../../../src/calendar/date/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, downcast, neverNull, noOp} from "../../../src/api/common/utils/Utils"
 import {asResult, mapToObject} from "../../api/TestUtils"
 import type {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../../src/calendar/model/CalendarModel"
-import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import type {EntityUpdateData} from "../../../src/api/main/EventController"
@@ -42,6 +41,7 @@ import {ProgressTracker} from "../../../src/api/main/ProgressTracker"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {MailModel} from "../../../src/mail/model/MailModel"
 import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
+import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
@@ -810,6 +810,7 @@ o.spec("CalendarModel", function () {
 				_id: [alarmsListId, alarm._id],
 				alarmInfo: alarm,
 			}))
+			const startTime = new Date()
 			const existingEvent = createCalendarEvent({
 				_id: ["listId", "eventId"],
 				_ownerGroup: groupRoot._id,
@@ -817,18 +818,19 @@ o.spec("CalendarModel", function () {
 				sequence: "1",
 				uid,
 				organizer: createEncryptedMailAddress({address: sender}),
-				alarmInfos: [[alarmsListId, alarm._id]]
+				alarmInfos: [[alarmsListId, alarm._id]],
+				startTime
 			})
 			workerMock.eventByUid.set(uid, existingEvent)
 
 			const workerClient = makeWorkerClient(workerMock)
 			const model = init({workerClient})
-
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
 				uid,
 				sequence: "2",
 				organizer: createEncryptedMailAddress({address: sender}),
+				startTime
 			})
 			await model.processCalendarUpdate(sender, {
 				method: CalendarMethod.REQUEST,
