@@ -46,7 +46,7 @@ export class SearchModel {
 	}
 
 	async search(searchQuery: SearchQuery): Promise<?SearchResult> {
-		if (this._lastQuery && areSearchQueriesEqual(searchQuery, this._lastQuery)) {
+		if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
 			return this._lastSearchPromise
 		}
 
@@ -107,19 +107,18 @@ export class SearchModel {
 			return false
 		}
 
-		return !compareSearchRestriction(restriction, result.restriction)
+		return !searchRestrictionEquals(restriction, result.restriction)
 	}
 }
 
-function areSearchQueriesEqual(a: SearchQuery, b: SearchQuery) {
+function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
 	return a.query === b.query
-		&& compareSearchRestriction(a.restriction, b.restriction)
+		&& searchRestrictionEquals(a.restriction, b.restriction)
 		&& a.minSuggestionCount === b.minSuggestionCount
 		&& a.maxResults === b.maxResults
 }
 
-function compareSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
-
+function searchRestrictionEquals(a: SearchRestriction, b: SearchRestriction): boolean {
 
 	const isSameAttributeIds = a.attributeIds === b.attributeIds
 		|| (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))

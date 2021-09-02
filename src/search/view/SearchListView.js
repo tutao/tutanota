@@ -139,7 +139,6 @@ export class SearchListView {
 				// so we will ignore whatever is being downloaded from the last search, and the new search will update the list
 				if (this._lastSearchResults) {
 					this._lastSearchResults.resolve([])
-					this._lastSearchResults = null
 				}
 
 				// save to a local var because flow complains at about it being nullable when returning
@@ -147,10 +146,14 @@ export class SearchListView {
 				this._lastSearchResults = deferredResult
 
 				this._loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
-		                    .then(results => results.map(instance => new SearchResultListEntry(instance)))
 				    .then(results => {
-					    if (this._lastSearchResults) {
-						    this._lastSearchResults.resolve(results)
+					    const entries = results.map(instance => new SearchResultListEntry(instance))
+
+					    // We only want to resolve the most recent deferred object with it's respective search query results
+					    // Any queries that started but didn't finish before this one began have already been resolved with `[]`
+					    if (this._lastSearchResults === deferredResult) {
+						    // Resolve on the local version because flow doesn't deduce that _lastSearchResults is not null
+						    deferredResult.resolve(entries)
 						    this._lastSearchResults = null
 					    }
 				    })
