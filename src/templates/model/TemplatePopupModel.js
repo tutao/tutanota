@@ -50,7 +50,6 @@ export class TemplatePopupModel {
 	_allTemplates: SortedArray<EmailTemplate>
 	+searchResults: Stream<$ReadOnlyArray<EmailTemplate>>
 	+selectedTemplate: Stream<?EmailTemplate>
-	_templateListId: Id
 	initialized: LazyLoaded<TemplatePopupModel>
 	+_eventController: EventController;
 	+_entityEventReceived: EntityEventsListener;
@@ -59,7 +58,6 @@ export class TemplatePopupModel {
 	_groupInstances: Array<TemplateGroupInstance>
 
 	_selectedContentLanguage: LanguageCode
-	_selectedContent: ?EmailTemplateContent
 
 	_searchFilter: TemplateSearchFilter
 
