@@ -360,7 +360,6 @@ export class TemplatePopup implements ModalComponent {
 			items: this._templateModel.searchResults(),
 			selectedItem: this._templateModel.selectedTemplate,
 			emptyListMessage: () => this._templateModel.isLoaded() ? "nothingFound_label" : "loadingTemplates_label",
-			itemHeight: TEMPLATE_LIST_ENTRY_HEIGHT,
 			width: TEMPLATE_LIST_ENTRY_WIDTH,
 			renderItem: (template) => m(TemplatePopupResultRow, {template: template}),
 			onItemDoubleClicked: (template) => {

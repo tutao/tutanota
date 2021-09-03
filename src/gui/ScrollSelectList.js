@@ -9,54 +9,59 @@ import {Icons} from "./base/icons/Icons"
 import type {MaybeLazy} from "../api/common/utils/Utils"
 import {resolveMaybeLazy} from "../api/common/utils/Utils"
 
-export type ScrollSelectListAttrs<T> = {
-	items: MaybeLazy<$ReadOnlyArray<T>>,
+export type ScrollSelectListAttrs<T> = {|
+	items: $ReadOnlyArray<T>,
 	selectedItem: Stream<?T>,
 	emptyListMessage: MaybeLazy<TranslationKey>,
-	itemHeight: number,
 	width: number,
 	renderItem: (T) => Children,
 	onItemDoubleClicked: T => mixed
-}
+|}
 
 export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>> {
 
-	handleSelectionMapping: Stream<void>
-	scrollDom: HTMLElement
+	_handleSelectionMapping: Stream<void>
+	_selectedItem: ?T
 
 	constructor(vnode: Vnode<ScrollSelectListAttrs<T>>) {
-		this.handleSelectionMapping = stream()
+		this._handleSelectionMapping = stream()
 	}
 
 	view(vnode: Vnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
-		const items = resolveMaybeLazy(a.items)
 		return m(".flex.flex-column.scroll-no-overlay",
 			{
 				oncreate: vnode => {
-					this.scrollDom = vnode.dom
-					this.handleSelectionMapping = a.selectedItem.map(selection => {
-						const selectedIndex = selection
-							? resolveMaybeLazy(a.items).indexOf(selection)
-							: -1
-
-						if (selectedIndex !== -1) {
-							this.onSelectionChanged(selectedIndex, a.itemHeight)
-						}
+					console.log("ScrollSelectList: oncreate", vnode.dom)
+					this._handleSelectionMapping = a.selectedItem.map(selection => {
+						// Ensures that redraw happens after selected item changed this guarantess that the selected item is focused correctly.
+						// Selecting the correct item in the list requires that the (possible filtered) list needs render first and then we
+						// can scroll to the new selected item. Therefore we call onSelectionChange in onupdate callback.
+						m.redraw()
 					})
 				},
-				onbeforeremove: vnode => {
-					this.handleSelectionMapping.end(true)
+
+				onremove: vnode => {
+					this._handleSelectionMapping.end(true)
 				}
 			},
-			items.length > 0
-				? items.map(item => this.renderRow(item, vnode))
+			a.items.length > 0
+				? a.items.map(item => this.renderRow(item, vnode))
 				: m(".row-selected.text-center.pt", lang.get(resolveMaybeLazy(a.emptyListMessage))))
 	}
+
+	onupdate(vnode: Vnode<ScrollSelectListAttrs<T>>) {
+		const newSelectedItem = vnode.attrs.selectedItem()
+		if (newSelectedItem !== this._selectedItem) {
+			this._onSelectionChanged(newSelectedItem, vnode.attrs.items, vnode.dom)
+		}
+	}
+
 
 	renderRow(item: T, vnode: Vnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
 		const isSelected = a.selectedItem() === item
+
 		return m(".flex.flex-column.click", {
 				style: {
 					maxWidth: a.width
@@ -66,7 +71,6 @@ export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>>
 					{
 						onclick: (e) => {
 							a.selectedItem(item)
-							m.redraw()
 							e.stopPropagation()
 						},
 						ondblclick: (e) => {
@@ -88,24 +92,14 @@ export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>>
 		)
 	}
 
-	onSelectionChanged(selectedIndex: number, entryHeight: number) {
-
-		const scrollWindowHeight = this.scrollDom.getBoundingClientRect().height
-		const scrollOffset = this.scrollDom.scrollTop
-
-		// Actual position in the list
-		const selectedTop = entryHeight * selectedIndex
-		const selectedBottom = selectedTop + entryHeight
-
-		// Relative to the top of the scroll window
-		const selectedRelativeTop = selectedTop - scrollOffset
-		const selectedRelativeBottom = selectedBottom - scrollOffset
-
-		// clamp the selected item to stay between the top and bottom of the scroll window
-		if (selectedRelativeTop < 0) {
-			this.scrollDom.scrollTop = selectedTop
-		} else if (selectedRelativeBottom > scrollWindowHeight) {
-			this.scrollDom.scrollTop = selectedBottom - scrollWindowHeight
+	_onSelectionChanged(selectedItem: ?T, items: $ReadOnlyArray<T>, scrollDom: HTMLElement) {
+		this._selectedItem = selectedItem
+		const selectedIndex = items.indexOf(selectedItem)
+		if (selectedIndex !== -1) {
+			const selectedDomElement = scrollDom.children.item(selectedIndex)
+			if (selectedDomElement) {
+				selectedDomElement.scrollIntoView({block: "nearest", inline: "nearest"})
+			}
 		}
 	}
 }
