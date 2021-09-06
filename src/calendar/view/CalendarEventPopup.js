@@ -91,7 +91,7 @@ export class CalendarEventPopup implements ModalComponent {
 		}
 
 		this.view = (vnode: Vnode<any>) => {
-			return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
+			return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow.flex.flex-column", {
 					style: {
 						width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)), // minus margin, need to apply it now to not overflow later
 						opacity: "0", // see hack description below
@@ -143,11 +143,10 @@ export class CalendarEventPopup implements ModalComponent {
 							colors: ButtonColors.DrawerNav,
 						}),
 					]),
-					m(EventPreviewView, {
+					m(".flex-grow.scroll.visible-scrollbar", m(EventPreviewView, {
 						event: this._calendarEvent,
-						limitDescriptionHeight: true,
 						sanitizedDescription: this._sanitizedDescription
-					}),
+					})),
 				],
 			)
 		}
