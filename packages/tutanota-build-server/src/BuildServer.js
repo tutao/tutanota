@@ -152,12 +152,15 @@ export class BuildServer {
 		)
 	}
 
-	async _onSrcDirChanged(event, path) {
+	async _onSrcDirChanged(event, path, log) {
 		try {
-			this.log("invalidating", path)
+			log("invalidating", path)
 			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(path))
 			if (this.config.autoRebuild) {
+				log("Rebuilding ...")
+				await this.builder.preBuild?.(log)
 				const updates = await this._generateBundles()
+				await this.builder.postBuild?.(log)
 				this.devServer?.updateBundles(updates)
 			}
 		} catch (e) {
@@ -172,7 +175,7 @@ export class BuildServer {
 	}
 
 	async _setupWatchers(log) {
-		this.watchers.start(log, this.config.watchFolders, this._onSrcDirChanged.bind(this), this.config.builderPath, this._onBuilderChanged.bind(this))
+		this.watchers.start(log, this.config.watchFolders, (event, path) => this._onSrcDirChanged(event, path, log), this.config.builderPath, this._onBuilderChanged.bind(this))
 	}
 
 	async _runInitialBuild(log) {
@@ -182,12 +185,14 @@ export class BuildServer {
 			this._startDevServer()
 		}
 
+		await this.builder.preBuild?.(log)
 		this.bundleWrappers = await this.builder.build(
 			this.lastBuildConfig,
 			this.config,
 			(...message) => {log("Builder: " + message.join(" "))}
 		)
 		await this._generateBundles(log)
+		await this.builder.postBuild?.(log)
 		await this._setupWatchers(log)
 	}
 
@@ -242,7 +247,9 @@ export class BuildServer {
 				if (this.bundleWrappers == null) {
 					await this._runInitialBuild(log)
 				} else {
+					await this.builder.preBuild?.(log)
 					await this._generateBundles(log)
+					await this.builder.postBuild?.(log)
 				}
 				this._sendToClient(STATUS_OK, "Build finished")
 			} else if (command === COMMAND_DUMP_CONFIG) {
@@ -265,8 +272,11 @@ export class BuildServer {
 		if (!args || !Array.isArray(args)) {
 			return
 		}
+
+		const message = args.join(" ").trimRight()
+
 		if (this._canWriteToSocket()) {
-			this._sendToClient(STATUS_INFO, args.join(" "))
+			this._sendToClient(STATUS_INFO, message)
 		}
 		this.log(args)
 	}
