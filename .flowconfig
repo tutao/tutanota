@@ -19,7 +19,6 @@ node_modules/@tutao/oxmsg/flow
 [options]
 module.ignore_non_literal_requires=true
 include_warnings=true
-module.name_mapper='^@tutao/oxmsg$' -> '<PROJECT_ROOT>/node_modules/@tutao/oxmsg/lib/index.js'
 
 [lints]
 untyped-import=error
