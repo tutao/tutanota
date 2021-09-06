@@ -20,7 +20,6 @@ import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 
 export type Attrs = {
 	event: CalendarEvent,
-	limitDescriptionHeight: boolean,
 	sanitizedDescription: string,
 }
 
@@ -32,7 +31,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 		this._getLocationUrl = memoized(getLocationUrl)
 	}
 
-	view({attrs: {event, limitDescriptionHeight, sanitizedDescription}}: Vnode<Attrs>): Children {
+	view({attrs: {event, sanitizedDescription}}: Vnode<Attrs>): Children {
 
 		const url = this._getLocationUrl(event.location.trim())
 
@@ -40,11 +39,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 			m(".flex.col.smaller", [
 				m(".flex.pb-s.items-center", [
 					this._renderSectionIndicator(BootIcons.Calendar),
-					m(".h3.selectable.text-break.scroll-no-overlay", {
-						style: {
-							maxHeight: "3em",
-						}
-					}, event.summary)
+					m(".h3.selectable.text-break", event.summary)
 				]),
 				m(".flex.pb-s", [
 						this._renderSectionIndicator(Icons.Time),
@@ -73,13 +68,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 				!!event.description
 					? m(".flex.pb-s.items-start", [
 						this._renderSectionIndicator(Icons.AlignLeft, {marginTop: "2px"}),
-						limitDescriptionHeight
-							? m(".scroll-no-overlay.full-width.selectable.text-break", {
-								style: {
-									maxHeight: "100px"
-								}
-							}, m.trust(sanitizedDescription))
-							: m(".selectable", m.trust(sanitizedDescription))
+						m(".full-width.selectable.text-break", m.trust(sanitizedDescription))
 					])
 					: null,
 			]),
