@@ -9,6 +9,8 @@ import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {babelDesktopPlugins, bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
+import {spawn} from "child_process"
+import flow_bin from "flow-bin"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -91,6 +93,14 @@ function debugModels() {
 			return imports[id]
 		}
 	}
+}
+
+export async function preBuild(log) {
+	await runFlowChecks(log)
+}
+
+export async function postBuild(log) {
+
 }
 
 export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
@@ -201,4 +211,23 @@ async function buildAndStartDesktop(log, version) {
 
 	log("Bundled desktop client")
 	return [nodeBundleWrapper]
+}
+
+function runFlowChecks(log) {
+	log("Running flow checks")
+	return new Promise((resolve, reject) => {
+		const childProcess = spawn(flow_bin, ["--quiet"], {stdio: "pipe"})
+			.on("exit", (code) => {
+				if (code === 0) {
+					log("Flow checks ok")
+					resolve()
+				} else {
+					reject(new Error("Flow detected errors"))
+				}
+			})
+		childProcess.on("error", reject)
+		// capture any output from the flow process and forward it to the log() function
+		childProcess.stdout.on("data", (data) => log(data))
+		childProcess.stderr.on("data", (data) => log(data))
+	})
 }
