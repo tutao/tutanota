@@ -300,17 +300,20 @@ export class CalendarEventViewModel {
 	_initGuestStatus(existingEvent: ?CalendarEvent, resolveRecipientsLazily: boolean): Stream<$ReadOnlyMap<string, CalendarAttendeeStatusEnum>> {
 		const newStatuses = new Map()
 		if (existingEvent) {
-			existingEvent.attendees.forEach((attendee) => {
-				if (this._ownMailAddresses.includes(attendee.address.address)) {
-					this._ownAttendee(copyMailAddress(attendee.address))
-				} else {
-					this._updateModel.addOrGetRecipient("bcc", {
-						name: attendee.address.name,
-						address: attendee.address.address,
-					}, resolveRecipientsLazily)
-				}
-				newStatuses.set(attendee.address.address, getAttendeeStatus(attendee))
-			})
+			existingEvent
+				.attendees
+				.filter(attendee => !downcast(attendee.address)._errors)
+				.forEach((attendee) => {
+					if (this._ownMailAddresses.includes(attendee.address.address)) {
+						this._ownAttendee(copyMailAddress(attendee.address))
+					} else {
+						this._updateModel.addOrGetRecipient("bcc", {
+							name: attendee.address.name,
+							address: attendee.address.address,
+						}, resolveRecipientsLazily)
+					}
+					newStatuses.set(attendee.address.address, getAttendeeStatus(attendee))
+				})
 		}
 		return stream(newStatuses)
 	}
