@@ -14,10 +14,11 @@ import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../common/Env"
 import {compress, uncompress} from "../Compression"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 import {promiseMap} from "../../common/utils/PromiseUtils"
 import type {ModelValue, TypeModel, ValueTypeEnum} from "../../common/EntityTypes"
 import {assertNotNull} from "../../common/utils/Utils"
+import {EncryptedMailAddressTypeRef} from "../../entities/tutanota/EncryptedMailAddress"
 
 assertWorkerOrNode()
 
@@ -42,6 +43,7 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 				decrypted._errors = {}
 			}
 			decrypted._errors[key] = JSON.stringify(e)
+			console.log("error when decrypting value on type:", `[${model.app},${model.name}]`, "key:", key)
 		} finally {
 			if (valueType.encrypted) {
 				if (valueType.final) {
