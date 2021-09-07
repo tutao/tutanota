@@ -12,7 +12,8 @@ options
 	.arguments('[stage] [host]')
 	.option('-c, --clean', 'Clean build directory')
 	.option('-w, --watch', 'Watch build dir and rebuild if necessary')
-	.option('-d, --desktop', 'assemble & start desktop client')
+	.option('-d, --desktop', 'Assemble & start desktop client')
+	.option('-s, --serve', 'Start a local server to serve the website')
 	.action(function (stage, host) {
 		opts = options.opts()
 		if (!["test", "prod", "local", "host", undefined].includes(stage)
@@ -26,14 +27,10 @@ options
 	})
 	.parse(process.argv)
 
-if (opts.watch) {
-	console.error("Watch mode (dev server) is currently disabled")
-	process.exit(1)
-}
 
 const flowPromise = new Promise((resolve, reject) => {
 	// It's better to set listener right away
-	spawn(flow, ["--quiet"],{stdio: "inherit"})
+	spawn(flow, ["--quiet"], {stdio: "inherit"})
 		.on("exit", resolve)
 		.on("error", reject)
 		.unref()
@@ -47,20 +44,24 @@ if (options.clean) {
 runBuild()
 
 async function runBuild() {
+	let buildServerOptions = {
+		forceRestart: typeof (opts.clean) !== "undefined" ? opts.clean : false,
+		builderPath: path.resolve("./buildSrc/Builder.js"),
+		preserveLogs: true,
+		autoRebuild: typeof (opts.watch) !== "undefined" ? opts.watch : false,
+		buildOpts: opts,
+		watchFolders: [path.resolve("src")]
+	}
+
+	if (opts.serve) {
+		buildServerOptions.devServerPort = 9001
+		buildServerOptions.webRoot = path.resolve('build')
+		buildServerOptions.spaRedirect = true
+	}
 
 	try {
 		const buildServerClient = new BuildServerClient("make")
-		await buildServerClient.buildWithServer({
-			forceRestart: opts.clean,
-			builder: path.resolve("./buildSrc/Builder.js"),
-			watchFolders: [path.resolve("src")],
-			buildOpts: opts,
-			webRoot: path.resolve('build'),
-			spaRedirect: true,
-			// Disabled until dev server mode is fixed
-			// devServerPort: 9001,
-			preserveLogs: true,
-		})
+		await buildServerClient.buildWithServer(buildServerOptions)
 
 		const dictPath = "build/dictionaries"
 		if (!fs.existsSync(dictPath)) {
@@ -75,6 +76,9 @@ async function runBuild() {
 			spawn("./start-desktop.sh", {stdio: "inherit"})
 		} else if (!opts.watch) {
 			await flowPromise
+			// There is something that inconsistently hangs the process upon completion.
+			// We need to find it at some point, but calling this fixes it for now
+			process.exit(0)
 		}
 	} catch (e) {
 		console.error(e)
