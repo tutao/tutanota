@@ -58,7 +58,7 @@ export async function buildDesktop({
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
 
-	await maybeGetKeytar(targets, content.build.electronVersion)
+	await maybeGetKeytar(targets)
 
 	// prepare files
 	try {
@@ -142,15 +142,22 @@ async function rollupDesktop(dirname, outDir, version) {
 /**
  * we can't cross-compile keytar, so we need to have the prebuilt version
  * when building a desktop client for windows on linux
+ *
+ * napiVersion is the N-API version that's used by keytar.
+ * the current release artifacts on github are namend accordingly,
+ * e.g. keytar-v7.7.0-napi-v3-linux-x64.tar.gz for N-API v3
  */
-async function maybeGetKeytar(targets, electronVersion) {
+async function maybeGetKeytar(targets, napiVersion = 3) {
 	const trg = Object.keys(targets)
 	                  .filter(t => targets[t] != null)
 	                  .filter(t => t !== process.platform)
 	if (trg.length === 0 || process.env.JENKINS) return
-	console.log("fetching prebuilt keytar", trg, electronVersion)
+	console.log("fetching prebuilt keytar for", trg, "N-API", napiVersion)
 	return Promise.all(trg.map(t => exec(
-		`prebuild-install --platform ${t} --target ${electronVersion} --tag-prefix v --runtime electron`,
-		{cwd: './node_modules/keytar/'}
+		`prebuild-install --platform ${t} --target ${napiVersion} --tag-prefix v --runtime napi --verbose`,
+		{
+			cwd: './node_modules/keytar/',
+			stdout: 'inherit'
+		}
 	)))
 }

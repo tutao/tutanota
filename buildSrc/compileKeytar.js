@@ -6,13 +6,9 @@
 	DEBUG flag to the keytar build.
  */
 import {spawn} from "child_process"
-import fs from "fs-extra"
 import options from "commander"
-import path, {dirname} from "path"
-import {fileURLToPath} from "url"
 import {createRequire} from 'module';
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import path from 'path'
 
 let opts
 options
@@ -32,15 +28,10 @@ async function buildKeytarForElectron(opts) {
 	const arch = process.arch
 	const verbose = opts.verbose || false
 	const debug = opts.debug || false
-	const distUrl = "https://electronjs.org/headers"
-	const electronVersion = await readElectronVersionFromPackageDotJson()
 	const gypCommand = "rebuild"
 	const modulePath = findKeytarModuleDir()
 	const gypOpts = [
 		"--build-from-source",
-		"--runtime=electron",
-		`--target=${electronVersion}`,
-		`--dist-url=${distUrl}`,
 		`--arch=${arch}`
 	]
 
@@ -79,15 +70,6 @@ async function buildKeytarForElectron(opts) {
 			process.exit(1)
 		}
 	})
-}
-
-async function readElectronVersionFromPackageDotJson() {
-	let electronVersion
-	const packageDotJsonPath = path.join(__dirname, "../package.json")
-	const packageDotJsonContents = await fs.readJson(packageDotJsonPath)
-	electronVersion = packageDotJsonContents.devDependencies.electron
-	electronVersion = electronVersion.replace(/[~^]/, "")
-	return electronVersion;
 }
 
 /* Finds the directory where keytar is located. When building tutanota-3 by itself, this obviously is "node_modules/keytar".
