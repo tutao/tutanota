@@ -154,8 +154,9 @@ export class BuildServer {
 
 	async _onSrcDirChanged(event, path, log) {
 		try {
-			log("invalidating", path)
-			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(path))
+			const normalizedPath = await fs.promises.realpath(path)
+			log("invalidating", normalizedPath)
+			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(normalizedPath))
 			if (this.config.autoRebuild) {
 				log("Rebuilding ...")
 				await this.builder.preBuild?.(log)

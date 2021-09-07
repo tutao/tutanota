@@ -15,7 +15,7 @@ export class Watchers {
 			log("Setting up watchers for: " + sourceFolders.join(","))
 			this.watcher = chokidar.watch(sourceFolders, {
 				ignoreInitial: true,
-				ignored: path => path.includes('/node_modules/') || path.includes('/.git/'),
+				ignored: path => path.includes('/.git/'),
 			}).on("all", sourceFolderHandler)
 		}
 		log(`Setting up watcher for: "${builderPath}"`)
