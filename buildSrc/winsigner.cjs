@@ -41,6 +41,7 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 	//  http://timestamp.globalsign.com/scripts/timstamp.dll
 	//  http://timestamp.comodoca.com/authenticode
 	//  http://www.startssl.com/timestamp
+	//  http://timestamp.sectigo.com
 
 	if (!certificateFile) {
 		console.error("ERROR: " + file_to_sign.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
@@ -60,7 +61,7 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
-		"-key", "10",
+		"-key", "11", // this is the key corresponding to the Windows authenticode codesigning certificate
 		"-pass", hsmPin,
 		"-h", hash ? hash : "sha256",
 		"-t", "http://timestamp.comodoca.com",
