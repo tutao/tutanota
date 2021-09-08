@@ -32,7 +32,6 @@ export class ScrollSelectList<T> implements MComponent<ScrollSelectListAttrs<T>>
 		return m(".flex.flex-column.scroll-no-overlay",
 			{
 				oncreate: vnode => {
-					console.log("ScrollSelectList: oncreate", vnode.dom)
 					this._handleSelectionMapping = a.selectedItem.map(selection => {
 						// Ensures that redraw happens after selected item changed this guarantess that the selected item is focused correctly.
 						// Selecting the correct item in the list requires that the (possible filtered) list needs render first and then we

@@ -160,6 +160,9 @@ styles.registerStyle('main', () => {
 		'.overflow-x-hidden': {
 			'overflow-x': 'hidden'
 		},
+		'.overflow-y-visible': {
+			"overflow-y": 'visible !important'
+		},
 
 		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
 		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
