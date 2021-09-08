@@ -14,11 +14,10 @@ import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../common/Env"
 import {compress, uncompress} from "../Compression"
-import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
+import {TypeRef} from "../../common/utils/TypeRef";
 import {promiseMap} from "../../common/utils/PromiseUtils"
 import type {ModelValue, TypeModel, ValueTypeEnum} from "../../common/EntityTypes"
 import {assertNotNull} from "../../common/utils/Utils"
-import {EncryptedMailAddressTypeRef} from "../../entities/tutanota/EncryptedMailAddress"
 
 assertWorkerOrNode()
 
