@@ -8,111 +8,91 @@ import {createEmailTemplateContent} from "../../../src/api/entities/tutanota/Ema
 
 
 o.spec("TemplateSearchFilter", function () {
-	o("finds in title", function () {
-		const emailTemplate: EmailTemplate = createEmailTemplate({
-			tag: "more_steps_needed",
-			title: "Please provide more steps",
-			contents: [
-				createEmailTemplateContent({languageCode: "en", text: "We will require more information"}),
-				createEmailTemplateContent({languageCode: "de", text: "Wir benötigen mehr Informationen, um"})
-			]
-		})
-		o(searchInTemplates("Please provide", [emailTemplate])).deepEquals([emailTemplate])
-	})
-	o("finds in one content", function () {
-		const emailTemplate: Array<EmailTemplate> = [
-			createEmailTemplate({
-				tag: "more_steps_needed",
-				title: "Please provide more steps",
-				contents: [
-					createEmailTemplateContent(
-						{languageCode: "en", text: "We will require more information"}
-					)
-				]
-			}),
-			createEmailTemplate({
-				tag: "account_access",
-				title: "Account cannot be accessed",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Cannot access account"}),
-					createEmailTemplateContent({languageCode: "de", text: "Zugriff auf Konto nicht möglich"})
-				]
-			}),
+	const abcTemplate = createEmailTemplate({
+		tag: "aBc_tag",
+		title: "aBc_title",
+		contents: [
+			createEmailTemplateContent({languageCode: "en", text: "aBc english"}),
+			createEmailTemplateContent({languageCode: "de", text: "aBc deutsch"})
 		]
-		o(searchInTemplates("access", emailTemplate)).deepEquals([emailTemplate[1]]) // should find the last one
 	})
-	o("finds in both content and one title", function () { // 2nd template should be found first
-		const emailTemplate: Array<EmailTemplate> = [
-			createEmailTemplate({
-				tag: "account_access_lost",
-				title: "Lost access",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Lost access to account"}),
-					createEmailTemplateContent({languageCode: "de", text: "Zugangsdaten zum Konto verloren"})
-				]
-			}),
-			createEmailTemplate({
-				tag: "account_refund",
-				title: "Account Refund",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Refund account"}),
-					createEmailTemplateContent({languageCode: "de", text: "Zahlung stornieren"})
-				]
-			})
+
+	const defTemplate = createEmailTemplate({
+		tag: "dEf_tag",
+		title: "dEf_title",
+		contents: [
+			createEmailTemplateContent({languageCode: "en", text: "dEf english"}),
+			createEmailTemplateContent({languageCode: "de", text: "dEf deutsch"})
 		]
-		o(searchInTemplates("account", emailTemplate)).deepEquals([emailTemplate[0], emailTemplate[1]])
 	})
+	const abcdefTemplate = createEmailTemplate({
+		tag: "abcdef_tag",
+		title: "abcdef_title",
+		contents: [
+			createEmailTemplateContent({languageCode: "en", text: "abcdef english"}),
+			createEmailTemplateContent({languageCode: "de", text: "abcdef deutsch"})
+		]
+	})
+
+
+	const emailTemplates: Array<EmailTemplate> = [
+		abcTemplate,
+		defTemplate,
+		abcdefTemplate
+	]
+
+	o("find nothing ", function () {
+		o(searchInTemplates("xyz", emailTemplates)).deepEquals([])
+		o(searchInTemplates("abc xyz", emailTemplates)).deepEquals([])
+	})
+
+	o("no words", function () {
+		o(searchInTemplates("", emailTemplates)).deepEquals(emailTemplates)
+		o(searchInTemplates("", emailTemplates)).deepEquals(emailTemplates)
+
+	})
+
 	o("finds in tag", function () {
-		const emailTemplate: EmailTemplate = createEmailTemplate({
-			tag: "#account_info",
-			title: "Account information required",
-			contents: [
-				createEmailTemplateContent({languageCode: "en", text: "Please provide more information regarding"}),
-				createEmailTemplateContent({languageCode: "de", text: "Wir benötigen weitere Informationen, um"})
-			]
-		})
-		o(searchInTemplates("account_info", [emailTemplate])).deepEquals([emailTemplate])
+		o(searchInTemplates("tag", emailTemplates)).deepEquals(emailTemplates)
+		o(searchInTemplates("AbC_Tag", emailTemplates)).deepEquals([abcTemplate])
+		o(searchInTemplates("def_tag", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
+		o(searchInTemplates("cdef_tag", emailTemplates)).deepEquals([abcdefTemplate])
 	})
-	o("finds in multiple tags", function () {
-		const emailTemplate: Array<EmailTemplate> = [
-			createEmailTemplate({
-				tag: "#account_access",
-				title: "Cannot access account",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "If you cannot access your account"}),
-					createEmailTemplateContent({languageCode: "de", text: "Wenn Sie auf Ihr Konto nicht zugreifen können"})
-				]
-			}),
-			createEmailTemplate({
-				tag: "#account_refund",
-				title: "Refund account",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Refund account"}),
-					createEmailTemplateContent({languageCode: "de", text: "Zahlung stonieren"})
-				]
-			})
-		]
-		o(searchInTemplates("account", emailTemplate)).deepEquals(emailTemplate)
+
+
+	o("tag search", function () {
+		o(searchInTemplates("#abc_tag", emailTemplates)).deepEquals([abcTemplate])
+		o(searchInTemplates("#abc tag", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate]) // ignore second word
+		o(searchInTemplates("#abc_title", emailTemplates)).deepEquals([]) // do not search in title
+		o(searchInTemplates("#abc", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
+		o(searchInTemplates("#def_", emailTemplates)).deepEquals([defTemplate])
+
+		// explicit tag search should use startWith and not contains
+		o(searchInTemplates("#tag", emailTemplates)).deepEquals([])
+		o(searchInTemplates("#def", emailTemplates)).deepEquals([defTemplate])
+		o(searchInTemplates("#_", emailTemplates)).deepEquals([])
 	})
-	o("finds in content with multiple languages", function () {
-		const emailTemplate: Array<EmailTemplate> = [
-			createEmailTemplate({
-				tag: "account_refund",
-				title: "Access",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Account access"}),
-					createEmailTemplateContent({languageCode: "de", text: "Account Zugriff"})
-				]
-			}),
-			createEmailTemplate({
-				tag: "account_refund",
-				title: "Refund",
-				contents: [
-					createEmailTemplateContent({languageCode: "en", text: "Account refund"}),
-					createEmailTemplateContent({languageCode: "de", text: "Account stornieren"})
-				]
-			})
-		]
-		o(searchInTemplates("Account", emailTemplate)).deepEquals(emailTemplate)
+
+	o("finds in title", function () {
+		o(searchInTemplates("title", emailTemplates)).deepEquals(emailTemplates)
+		o(searchInTemplates("abc_title", emailTemplates)).deepEquals([abcTemplate])
+		o(searchInTemplates("def_title", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
+		o(searchInTemplates("abcdef_title", emailTemplates)).deepEquals([abcdefTemplate])
+	})
+
+	o("finds in content", function () {
+		o(searchInTemplates("english", emailTemplates)).deepEquals(emailTemplates)
+		o(searchInTemplates("deutsch", emailTemplates)).deepEquals(emailTemplates)
+	})
+
+	o("multiple words - words must appear in same attribute", function () {
+		o(searchInTemplates("def title deutsch", emailTemplates)).deepEquals([])
+		o(searchInTemplates("title deutsch", emailTemplates)).deepEquals([])
+		o(searchInTemplates("def deutsch", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
+		o(searchInTemplates("ab deu", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
+		o(searchInTemplates("abc title", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
+		o(searchInTemplates("abc def title", emailTemplates)).deepEquals([abcdefTemplate])
+		o(searchInTemplates("ab de ti", emailTemplates)).deepEquals([abcdefTemplate])
+		o(searchInTemplates("abc   tag", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
 	})
 })
