@@ -33,7 +33,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				}
 			}
 		}, [
-			m(".text-break.flex-grow.pr",
+			m(".text-break.flex-grow.pr.overflow-y-visible",
 				selectedContent ? m.trust(selectedContent.text) : null
 			)
 		])
