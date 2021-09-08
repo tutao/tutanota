@@ -27,6 +27,7 @@ public class PushIdentifierKey {
 		return deviceEncPushIdentifierKey;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return "PushIdentifierKey{" +

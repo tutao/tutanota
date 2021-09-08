@@ -24,21 +24,24 @@ import de.tutao.tutanota.OperationType;
 @Entity(primaryKeys = "identifier")
 @TypeConverters(AlarmNotification.OperationTypeConverter.class)
 public class AlarmNotification {
-	private OperationType operation;
-	private String summary;
-	private String eventStart;
-	private String eventEnd;
+	private final OperationType operation;
+	private final String summary;
+	private final String eventStart;
+	private final String eventEnd;
 	@Embedded
 	@NonNull
-	private AlarmInfo alarmInfo;
+	private final AlarmInfo alarmInfo;
 	@Embedded
-	private RepeatRule repeatRule;
+	private final RepeatRule repeatRule;
 	@Embedded(prefix = "key")
-	private NotificationSessionKey notificationSessionKey;
-	private String user;
+	private final NotificationSessionKey notificationSessionKey;
+	private final String user;
 
-	public AlarmNotification(OperationType operation, String summary, String eventStart, String eventEnd,
-							 AlarmInfo alarmInfo,
+	public AlarmNotification(OperationType operation,
+							 String summary,
+							 String eventStart,
+							 String eventEnd,
+							 @NonNull AlarmInfo alarmInfo,
 							 RepeatRule repeatRule,
 							 @Nullable NotificationSessionKey notificationSessionKey, // in case of a delete operation there is no session key
 							 String user) {
@@ -106,6 +109,7 @@ public class AlarmNotification {
 		return repeatRule;
 	}
 
+	@NonNull
 	public AlarmInfo getAlarmInfo() {
 		return alarmInfo;
 	}

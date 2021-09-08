@@ -1,12 +1,10 @@
 package de.tutao.tutanota;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -20,8 +18,6 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
 
 import org.apache.commons.io.IOUtils;
@@ -50,8 +46,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import de.tutao.tutanota.push.LocalNotificationsFacade;
-
-import static android.app.Activity.RESULT_OK;
 
 
 public class FileUtil {
@@ -102,28 +96,25 @@ public class FileUtil {
 		final Intent chooser = Intent.createChooser(intent, "Select File");
 		return
 				activity.startActivityForResult(chooser)
-						.then(new DonePipe<ActivityResult, Object, Exception, Void>() {
-							@Override
-							public Promise<Object, Exception, Void> pipeDone(ActivityResult result) {
-								JSONArray selectedFiles = new JSONArray();
-								if (result.resultCode == RESULT_OK) {
-									ClipData clipData = result.data.getClipData();
-									try {
-										if (clipData != null) {
-											for (int i = 0; i < clipData.getItemCount(); i++) {
-												ClipData.Item item = clipData.getItemAt(i);
-												selectedFiles.put(item.getUri().toString());
-											}
-										} else {
-											Uri uri = result.data.getData();
-											selectedFiles.put(uri.toString());
+						.then((DonePipe<ActivityResult, Object, Exception, Void>) result -> {
+							JSONArray selectedFiles = new JSONArray();
+							if (result.resultCode == RESULT_OK) {
+								ClipData clipData = result.data.getClipData();
+								try {
+									if (clipData != null) {
+										for (int i = 0; i < clipData.getItemCount(); i++) {
+											ClipData.Item item = clipData.getItemAt(i);
+											selectedFiles.put(item.getUri().toString());
 										}
-									} catch (Exception e) {
-										return new DeferredObject<Object, Exception, Void>().reject(e);
+									} else {
+										Uri uri = result.data.getData();
+										selectedFiles.put(uri.toString());
 									}
+								} catch (Exception e) {
+									return new DeferredObject<Object, Exception, Void>().reject(e);
 								}
-								return Utils.resolvedDeferred(selectedFiles);
 							}
+							return Utils.resolvedDeferred(selectedFiles);
 						});
 	}
 

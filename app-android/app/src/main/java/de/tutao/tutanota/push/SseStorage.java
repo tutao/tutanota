@@ -1,32 +1,13 @@
 package de.tutao.tutanota.push;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.CryptoError;
@@ -34,7 +15,6 @@ import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.data.AppDatabase;
 import de.tutao.tutanota.data.PushIdentifierKey;
-import de.tutao.tutanota.data.SseInfo;
 import de.tutao.tutanota.data.User;
 
 

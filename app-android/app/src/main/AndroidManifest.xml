@@ -31,7 +31,8 @@
                 android:name=".MainActivity"
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
                 android:launchMode="singleInstance"
-                android:theme="@style/SplashTheme">
+                android:theme="@style/SplashTheme"
+                android:exported="true">
             <!--Main intent for launching from home screen-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

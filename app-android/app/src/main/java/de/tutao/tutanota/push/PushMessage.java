@@ -53,7 +53,7 @@ final class PushMessage {
 	final static class NotificationInfo {
 		private final String address;
 		private final int counter;
-		private String userId;
+		private final String userId;
 
 		// We pass in mailAddressKey because of the incompatibility between the entity passed with SSE message and the one inside MissedNotification
 		public static NotificationInfo fromJson(JSONObject jsonObject, String mailAddressKey) throws JSONException {

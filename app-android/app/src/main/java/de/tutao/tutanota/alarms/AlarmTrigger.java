@@ -10,7 +10,7 @@ public enum AlarmTrigger {
     THREE_DAYS("3D"),
     ONE_WEEK("1W");
 
-    private String value;
+    private final String value;
 
     AlarmTrigger(String value) {
         this.value = value;

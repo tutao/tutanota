@@ -31,12 +31,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.activity.ComponentActivity;
 import androidx.annotation.ColorInt;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.ComponentActivity;
 import androidx.core.content.ContextCompat;
 
 import org.jdeferred.Deferred;
@@ -67,17 +66,17 @@ import static de.tutao.tutanota.Utils.parseColor;
 
 public class MainActivity extends ComponentActivity {
 
-	private static final String TAG = "MainActivity";
-	public static final String THEME_OBJECT_PREF = "themeObject";
 	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
-	private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
-	private static int requestId = 0;
-	private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
 	public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
 	public static final String OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION";
 	public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
 	public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
 	public static final String IS_SUMMARY_EXTRA = "isSummary";
+	private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
+	private static final String TAG = "MainActivity";
+
+	private static int requestId = 0;
+	private final Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
 
 	private WebView webView;
 	public SseStorage sseStorage;
@@ -91,7 +90,7 @@ public class MainActivity extends ComponentActivity {
 		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
 		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false),
 				keyStoreFacade);
-		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage,
+		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(sseStorage,
 				new Crypto(this), new SystemAlarmFacade(this), new LocalNotificationsFacade(this));
 		nativeImpl = new Native(this, sseStorage, alarmNotificationsManager);
 
@@ -229,7 +228,7 @@ public class MainActivity extends ComponentActivity {
 
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
 		super.onSaveInstanceState(outState);
 		webView.saveState(outState);
 	}
@@ -345,7 +344,7 @@ public class MainActivity extends ComponentActivity {
 		} else {
 			int requestCode = getRequestCode();
 			requests.put(requestCode, p);
-			ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+			requestPermissions(new String[]{permission}, requestCode);
 		}
 		return p;
 	}
@@ -354,8 +353,11 @@ public class MainActivity extends ComponentActivity {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
 	}
 
+	// deprecated but we need requestCode to identify the request which is not possible with new API
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		Deferred deferred = requests.remove(requestCode);
 		if (deferred == null) {
 			Log.w(TAG, "No deferred for the permission request" + requestCode);
@@ -368,16 +370,21 @@ public class MainActivity extends ComponentActivity {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public Promise<ActivityResult, ?, ?> startActivityForResult(@RequiresPermission Intent intent) {
 		int requestCode = getRequestCode();
 		Deferred p = new DeferredObject();
 		requests.put(requestCode, p);
+		// deprecated but we need requestCode to identify the request which is not possible with new API
 		super.startActivityForResult(intent, requestCode);
 		return p;
 	}
 
+	// deprecated but we need requestCode to identify the request which is not possible with new API
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 		Deferred deferred = requests.remove(requestCode);
 		if (deferred != null) {
 			deferred.resolve(new ActivityResult(resultCode, data));
@@ -404,7 +411,6 @@ public class MainActivity extends ComponentActivity {
 	 */
 	void share(Intent intent) {
 		String action = intent.getAction();
-		String type = intent.getType();
 		ClipData clipData = intent.getClipData();
 
 		JSONArray files;
@@ -479,7 +485,6 @@ public class MainActivity extends ComponentActivity {
 			// but we want to be sure
 			if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
 				//noinspection unchecked
-				@SuppressWarnings("ConstantConditions")
 				ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
 				if (uris != null) {
 					for (Uri uri : uris) {
@@ -554,29 +559,27 @@ public class MainActivity extends ComponentActivity {
 		super.onCreateContextMenu(menu, v, menuInfo);
 
 		final WebView.HitTestResult hitTestResult = this.webView.getHitTestResult();
-		switch (hitTestResult.getType()) {
-			case WebView.HitTestResult.SRC_ANCHOR_TYPE:
-				final String link = hitTestResult.getExtra();
-				if (link == null) {
-					return;
-				}
-				if (link.startsWith(getBaseUrl())) {
-					return;
-				}
-				menu.setHeaderTitle(link);
-				menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
-					((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
-							.setPrimaryClip(ClipData.newPlainText(link, link));
-					return true;
-				});
-				menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
-					final Intent intent = new Intent(Intent.ACTION_SEND);
-					intent.putExtra(Intent.EXTRA_TEXT, link);
-					intent.setTypeAndNormalize("text/plain");
-					this.startActivity(Intent.createChooser(intent, "Share link"));
-					return true;
-				});
-				break;
+		if (hitTestResult.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+			final String link = hitTestResult.getExtra();
+			if (link == null) {
+				return;
+			}
+			if (link.startsWith(getBaseUrl())) {
+				return;
+			}
+			menu.setHeaderTitle(link);
+			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
+				((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
+						.setPrimaryClip(ClipData.newPlainText(link, link));
+				return true;
+			});
+			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
+				final Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.putExtra(Intent.EXTRA_TEXT, link);
+				intent.setTypeAndNormalize("text/plain");
+				this.startActivity(Intent.createChooser(intent, "Share link"));
+				return true;
+			});
 		}
 	}
 }

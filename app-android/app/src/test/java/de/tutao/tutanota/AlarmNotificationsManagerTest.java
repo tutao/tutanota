@@ -61,7 +61,7 @@ public class AlarmNotificationsManagerTest {
 		sseStorage = mock(SseStorage.class);
 		keyStoreFacade = mock(AndroidKeyStoreFacade.class);
 		crypto = mock(Crypto.class);
-		manager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
+		manager = new AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
 
 		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
 		when(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey);

@@ -1,15 +1,14 @@
 package de.tutao.tutanota.data;
 
+import static androidx.room.OnConflictStrategy.REPLACE;
+
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 
 import java.util.List;
 
-import de.tutao.tutanota.alarms.AlarmInfo;
 import de.tutao.tutanota.alarms.AlarmNotification;
-
-import static androidx.room.OnConflictStrategy.REPLACE;
 
 @Dao
 public interface AlarmInfoDao {

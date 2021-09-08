@@ -1,8 +1,8 @@
 package de.tutao.tutanota;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.OpenableColumns;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 
 public class Utils {
@@ -44,28 +45,20 @@ public class Utils {
 
 
 	public static byte[] readFile(File file) throws IOException {
-		FileInputStream in = new FileInputStream(file);
-		try {
-			byte[] bytes = IOUtils.toByteArray(in);
-			return bytes;
-		} finally {
-			in.close();
+		try (FileInputStream in = new FileInputStream(file)) {
+			return IOUtils.toByteArray(in);
 		}
 	}
 
-	public static void writeFile(File outputFile, byte[] bytes)
-			throws FileNotFoundException, IOException {
-		if (!outputFile.getParentFile().exists()) {
+	public static void writeFile(File outputFile, byte[] bytes) throws IOException {
+		if (!Objects.requireNonNull(outputFile.getParentFile()).exists()) {
 			outputFile.getParentFile().mkdirs();
 		}
 		if (!outputFile.exists()) {
 			outputFile.createNewFile();
 		}
-		FileOutputStream out = new FileOutputStream(outputFile);
-		try {
+		try (FileOutputStream out = new FileOutputStream(outputFile)) {
 			IOUtils.write(bytes, out);
-		} finally {
-			out.close();
 		}
 	}
 
@@ -73,6 +66,7 @@ public class Utils {
 		return Uri.fromFile(file).toString();
 	}
 
+	@SuppressLint("Range")
 	public static FileInfo getFileInfo(Context context, Uri fileUri) throws FileNotFoundException {
 		String scheme = fileUri.getScheme();
 		if (scheme == null || scheme.equals("file")) {
@@ -103,13 +97,12 @@ public class Utils {
 
 	public static byte[] merge(byte[]... arrays) {
 		int length = 0;
-		for (int i = 0; i < arrays.length; i++) {
-			length += arrays[i].length;
+		for (byte[] bytes : arrays) {
+			length += bytes.length;
 		}
 		byte[] merged = new byte[length];
 		int position = 0;
-		for (int i = 0; i < arrays.length; i++) {
-			byte[] array = arrays[i];
+		for (byte[] array : arrays) {
 			System.arraycopy(array, 0, merged, position, array.length);
 			position += array.length;
 		}
@@ -148,7 +141,7 @@ public class Utils {
 		int argb = parseColor(color);
 		int r = (argb >> 16) & 0xff;  // extract red
 		int g = (argb >> 8) & 0xff;   // extract green
-		int b = (argb >> 0) & 0xff;   // extract blue
+		int b = (argb) & 0xff;   // extract blue
 
 		// Counting the perceptive luminance
 		// human eye favors green color...

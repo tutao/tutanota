@@ -7,7 +7,7 @@ import android.util.Log;
 final class LooperThread extends Thread {
 
 	private volatile Handler handler;
-	private Runnable initRunnable;
+	private final Runnable initRunnable;
 
 	LooperThread(Runnable initRunnable) {
 		this.initRunnable = initRunnable;
