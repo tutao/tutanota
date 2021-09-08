@@ -76,7 +76,7 @@ function signWithHSM(filePath, signatureFileName, dir) {
 	let result = spawnSync("/usr/bin/pkcs11-tool", [
 		"-s",
 		"-m", "SHA512-RSA-PKCS",
-		"--id", "10",
+		"--id", "10", // this is the installer verification key
 		"--pin", "env:HSM_USER_PIN",
 		"-i", path.basename(filePath),
 		"-o", signatureFileName
