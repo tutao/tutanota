@@ -43,7 +43,7 @@ o.spec("TemplateSearchFilter", function () {
 
 	o("find nothing ", function () {
 		o(searchInTemplates("xyz", emailTemplates)).deepEquals([])
-		o(searchInTemplates("abc xyz", emailTemplates)).deepEquals([])
+		o(searchInTemplates("123 xyz", emailTemplates)).deepEquals([])
 	})
 
 	o("no words", function () {
@@ -57,20 +57,21 @@ o.spec("TemplateSearchFilter", function () {
 		o(searchInTemplates("AbC_Tag", emailTemplates)).deepEquals([abcTemplate])
 		o(searchInTemplates("def_tag", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
 		o(searchInTemplates("cdef_tag", emailTemplates)).deepEquals([abcdefTemplate])
+		o(searchInTemplates("cdef_tag ", emailTemplates)).deepEquals([abcdefTemplate])
 	})
 
 
 	o("tag search", function () {
 		o(searchInTemplates("#abc_tag", emailTemplates)).deepEquals([abcTemplate])
-		o(searchInTemplates("#abc tag", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate]) // ignore second word
+		o(searchInTemplates("#abc 123", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
 		o(searchInTemplates("#abc_title", emailTemplates)).deepEquals([]) // do not search in title
 		o(searchInTemplates("#abc", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
-		o(searchInTemplates("#def_", emailTemplates)).deepEquals([defTemplate])
+		o(searchInTemplates("#def_", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
 
-		// explicit tag search should use startWith and not contains
-		o(searchInTemplates("#tag", emailTemplates)).deepEquals([])
-		o(searchInTemplates("#def", emailTemplates)).deepEquals([defTemplate])
-		o(searchInTemplates("#_", emailTemplates)).deepEquals([])
+		// explicit tag search uses contains as well
+		o(searchInTemplates("#tag", emailTemplates)).deepEquals(emailTemplates)
+		o(searchInTemplates("#def", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
+		o(searchInTemplates("#_", emailTemplates)).deepEquals(emailTemplates)
 	})
 
 	o("finds in title", function () {
@@ -85,14 +86,8 @@ o.spec("TemplateSearchFilter", function () {
 		o(searchInTemplates("deutsch", emailTemplates)).deepEquals(emailTemplates)
 	})
 
-	o("multiple words - words must appear in same attribute", function () {
-		o(searchInTemplates("def title deutsch", emailTemplates)).deepEquals([])
-		o(searchInTemplates("title deutsch", emailTemplates)).deepEquals([])
-		o(searchInTemplates("def deutsch", emailTemplates)).deepEquals([defTemplate, abcdefTemplate])
-		o(searchInTemplates("ab deu", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
-		o(searchInTemplates("abc title", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
-		o(searchInTemplates("abc def title", emailTemplates)).deepEquals([abcdefTemplate])
-		o(searchInTemplates("ab de ti", emailTemplates)).deepEquals([abcdefTemplate])
-		o(searchInTemplates("abc   tag", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate])
+	o("multiple words - one word must match but result order is changed", function () {
+		o(searchInTemplates("abcdef title", emailTemplates)).deepEquals([abcdefTemplate, abcTemplate, defTemplate])
+		o(searchInTemplates("#abc tag", emailTemplates)).deepEquals([abcTemplate, abcdefTemplate, defTemplate])
 	})
 })

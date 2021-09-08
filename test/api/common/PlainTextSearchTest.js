@@ -1,43 +1,64 @@
 // @flow
 import o from "ospec"
-import {_findMatches, _search, search} from "../../../src/support/PlainTextSearch"
+import {_findMatches, _search, search} from "../../../src/api/common/utils/PlainTextSearch"
 
 o.spec("PlainTextSearchTest", function () {
 
+	const entryWithNestedArray1 = {
+		title: "Is my password strong enough?",
+		tags: "password, login",
+		text: "The indicator displays if the password is strong.",
+		contentObject: {
+			text: "Text content nestedEntry1 object."
+		},
+		contentArray: [
+			{text: "nestedEntry1 first array element"},
+			{text: "nestedEntry1 second array element"}
+		]
+	}
+
+	const entryWithNestedArray2 = {
+		title: "Password strength",
+		tags: "password, login",
+		text: "The indicator displays the password strength. Password, Password, Password, Password, Password, Password, Password Password, Password, Password.",
+		contentObject: {
+			text: "Text content nestedEntry2 object."
+		},
+		contentArray: [
+			{text: "nestedEntry2 first array element"},
+			{text: "nestedEntry2 second array element"}
+		]
+	}
+
+	const someEntry = {
+		title: "Some Title",
+		tags: "tag",
+		text: "Test text."
+	}
+	const howChoosePasswordEntry = {
+		title: "How do I choose a strong password?",
+		//missing tags property should not be a problem
+		text: "Tutanota uses a password strength indicator that takes several aspects of a password into consideration to make sure your chosen password is a perfect match for your <a target=\"_blank\" rel=\"noreferrer\" href=\"https://www.tutanota.com/\">secure email</a> account. You can find additional tips on how to choose a strong password <a target=\"_blank\" rel=\"noreferrer\" href=\"https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords\">here</a>.Tutanota has no limitations in regard to the password length or used characters; all unicode characters are respected.",
+	}
+	const wantPasswordEntry = {
+		title: "I want a stronger password?",
+		tags: "password, login",
+		text: "Tutanota uses a password x strength indicator. Password, Password, Password, Password, Password, Password Password, Password, Password, Password, Password, Password, Password, Password, Password, Password, Password, Password.",
+	}
+
 	const entries = [
-		{
-			title: "Some Title",
-			tags: "tag",
-			text: "Test text."
-		},
-		//real entry:
-		{
-			title: "How do I choose a strong password?",
-			//missing tags property should not be a problem
-			text: "Tutanota uses a password strength indicator that takes several aspects of a password into consideration to make sure your chosen password is a perfect match for your <a target=\"_blank\" rel=\"noreferrer\" href=\"https://www.tutanota.com/\">secure email</a> account. You can find additional tips on how to choose a strong password <a target=\"_blank\" rel=\"noreferrer\" href=\"https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords\">here</a>.Tutanota has no limitations in regard to the password length or used characters; all unicode characters are respected.",
-		},
-		{
-			title: "I want a stronger password?",
-			tags: "password, login",
-			text: "Tutanota uses a password x strength indicator. Password, Password, Password, Password, Password, Password Password, Password, Password, Password, Password, Password, Password, Password, Password, Password, Password, Password.",
-		},
-		{
-			title: "Is my password strong enough?",
-			tags: "password, login",
-			text: "The indicator displays if the password is strong.",
-		},
-		{
-			title: "Password strength",
-			tags: "password, login",
-			text: "The indicator displays the password strength. Password, Password, Password, Password, Password, Password, Password Password, Password, Password.",
-		},
+		someEntry,
+		howChoosePasswordEntry,
+		wantPasswordEntry,
+		entryWithNestedArray1,
+		entryWithNestedArray2,
 	]
 
 	const _searchEntries = [
 		{
 			title: "Some Title. This test is random.",
 			tags: "tag, attestation",
-			text: "Test text. Their test is not ist random. Tests are easy."
+			text: "Test text. Their test is not ist random. Tests are easy.",
 		}
 	]
 
@@ -74,7 +95,6 @@ o.spec("PlainTextSearchTest", function () {
 			const searchResult = _search(query.join(" "), _searchEntries, attributeNames, false)
 			o(searchResult[0].partialWordMatches).deepEquals(6)
 		})
-
 	})
 
 	o.spec("search function", function () {
@@ -106,6 +126,11 @@ o.spec("PlainTextSearchTest", function () {
 		o("check case insensitivity", function () {
 			o(search((entries[0].text.toUpperCase()), entries, attributeNames, false)).deepEquals([entries[0]])
 		})
+
+		o("do not check for empty words ", function () {
+			o(search(" How \t \n choose  ", entries, attributeNames, false)).deepEquals([howChoosePasswordEntry])
+		})
+
 
 		o("test the order of results", function () {
 			// should return only entries [1..3] in that order because:
@@ -216,5 +241,48 @@ o.spec("PlainTextSearchTest", function () {
 		})
 	})
 
+	o.spec("Nested elements", function () {
+		o("check nested attribute object - not implemented yet", function () {
+			const query = "object"
+			const _searchResult = search(query, entries, ["contentObject.text"], false)
+			o(_searchResult).deepEquals([])
+		})
+
+		o("check nested attribute array", function () {
+			const query = "array"
+			const _searchResult = search(query, entries, ["contentArray.text"], false)
+			o(_searchResult).deepEquals([entryWithNestedArray1, entryWithNestedArray2])
+		})
+
+		o("check nested attribute array", function () {
+			const query = "nestedEntry1"
+			const _searchResult = search(query, entries, ["contentArray.text"], false)
+			o(_searchResult).deepEquals([entryWithNestedArray1])
+		})
+
+		o("check invalid attribute property", function () {
+			const query = "nestedEntry1"
+			o(search(query, entries, ["nonExistingProperty.text"], false).length).equals(0)
+			o(search(query, entries, ["contentArray.nonExistingAttribute"], false).length).equals(0)
+			o(search(query, entries, ["contentArray.text.level3"], false).length).equals(0)
+			o(search(query, entries, ["contentArray"], false).length).equals(0)
+			o(search(query, entries, ["title.text"], false).length).equals(0) // nested access on string value
+		})
+
+		o("check order in nested array", function () {
+			const query = "nestedEntry2 array"
+			const searchResult = search(query, entries, ["contentArray.text"], false)
+			o(searchResult).deepEquals([entryWithNestedArray2, entryWithNestedArray1])
+		})
+
+		o("mark hits in nested array", function () {
+			const query = "nestedEntry2"
+			const searchResult = search(query, entries, ["contentArray.text"], true)
+			const copyOfNestedEntry = JSON.parse(JSON.stringify(entryWithNestedArray2))
+			copyOfNestedEntry.contentArray[0].text = "<mark>nestedEntry2</mark> first array element"
+			copyOfNestedEntry.contentArray[1].text = "<mark>nestedEntry2</mark> second array element"
+			o(searchResult).deepEquals([copyOfNestedEntry])
+		})
+	})
 })
 

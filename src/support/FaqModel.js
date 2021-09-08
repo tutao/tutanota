@@ -2,7 +2,7 @@
 import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
 import {assert, downcast} from "../api/common/utils/Utils"
-import {search} from "./PlainTextSearch"
+import {search} from "../api/common/utils/PlainTextSearch"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {delay, promiseMap} from "../api/common/utils/PromiseUtils"
@@ -97,7 +97,7 @@ export class FaqModel {
 		return this._list
 	}
 
-	search(query: string): Array<FaqEntry> {
+	search(query: string): $ReadOnlyArray<FaqEntry> {
 		const cleanQuery = query.trim()
 		if (cleanQuery === "") {
 			return []
