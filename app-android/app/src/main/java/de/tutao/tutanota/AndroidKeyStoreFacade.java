@@ -1,20 +1,14 @@
 package de.tutao.tutanota;
 
 import android.content.Context;
-import android.os.Build;
-import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -24,14 +18,12 @@ import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Calendar;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
-import javax.security.auth.x500.X500Principal;
 
 
 public class AndroidKeyStoreFacade {
@@ -43,13 +35,10 @@ public class AndroidKeyStoreFacade {
 	private static final String RSA_ALGORITHM = "RSA/ECB/PKCS1Padding";
 	private static final String ANDROID_OPEN_SSL_PROVIDER = "AndroidOpenSSL";
 
-	private final Context context;
 	private volatile KeyStore keyStore;
-	private Crypto crypto;
-
+	private final Crypto crypto;
 
 	public AndroidKeyStoreFacade(Context context) {
-		this.context = context;
 		this.crypto = new Crypto(context);
 	}
 
@@ -109,29 +98,6 @@ public class AndroidKeyStoreFacade {
 		}
 	}
 
-	private void generateAsymmetricKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-		Calendar start = Calendar.getInstance();
-		Calendar end = Calendar.getInstance();
-		end.add(Calendar.YEAR, 50);
-
-		KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-				.setAlias(ASYMMETRIC_KEY_ALIAS)
-				.setSubject(new X500Principal("CN=" + ASYMMETRIC_KEY_ALIAS))
-				.setSerialNumber(BigInteger.TEN)
-				.setStartDate(start.getTime())
-				.setEndDate(end.getTime())
-				.setKeySize(2048)
-				.build();
-		Log.d(TAG, "Generating device key");
-		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", AndroidKeyStore);
-		kpg.initialize(spec);
-		long startTime = System.currentTimeMillis();
-		kpg.generateKeyPair();
-		long endTime = System.currentTimeMillis();
-		Log.d(TAG, "Generation of key took (ms): " + (endTime - startTime));
-	}
-
-	@RequiresApi(23)
 	private void generateSymmetricKey() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		KeyGenerator keyGenerator = KeyGenerator.getInstance("AES", AndroidKeyStore);
 		keyGenerator.init(new KeyGenParameterSpec.Builder(SYMMETRIC_KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)

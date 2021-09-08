@@ -1,19 +1,17 @@
 package de.tutao.tutanota;
 
+import static android.provider.ContactsContract.CommonDataKinds.Email;
+import static android.provider.ContactsContract.Contacts;
+
 import android.Manifest;
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.os.Build;
-import android.provider.ContactsContract;
 
 import org.jdeferred.DoneFilter;
 import org.jdeferred.Promise;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static android.provider.ContactsContract.*;
-import static android.provider.ContactsContract.CommonDataKinds.*;
 
 /**
  * Created by mpfau on 4/12/17.

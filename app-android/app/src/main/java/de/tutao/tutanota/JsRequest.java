@@ -1,5 +1,7 @@
 package de.tutao.tutanota;
 
+import androidx.annotation.NonNull;
+
 public enum JsRequest {
 	updatePushIdentifier("updatePushIdentifier"),
 	notify("notify"),
@@ -18,6 +20,7 @@ public enum JsRequest {
 		name = s;
 	}
 
+	@NonNull
 	public String toString() {
 		return this.name;
 	}

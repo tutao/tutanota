@@ -1,6 +1,5 @@
 package de.tutao.tutanota.push;
 
-import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;

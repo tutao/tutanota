@@ -28,7 +28,6 @@ public final class PushNotificationService extends LifecycleJobService {
 
 	private volatile JobParameters jobParameters;
 	private LocalNotificationsFacade localNotificationsFacade;
-	private AlarmNotificationsManager alarmNotificationsManager;
 	private SseClient sseClient;
 
 	public static Intent startIntent(Context context, String sender) {
@@ -46,7 +45,7 @@ public final class PushNotificationService extends LifecycleJobService {
 		SseStorage sseStorage = new SseStorage(appDatabase, keyStoreFacade);
 
 		localNotificationsFacade = new LocalNotificationsFacade(this);
-		alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, new Crypto(this),
+		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(sseStorage, new Crypto(this),
 				new SystemAlarmFacade(this), localNotificationsFacade);
 		TutanotaNotificationsHandler tutanotaNotificationsHandler = new TutanotaNotificationsHandler(localNotificationsFacade, sseStorage,
 				alarmNotificationsManager);

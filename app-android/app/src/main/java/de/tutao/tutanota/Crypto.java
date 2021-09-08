@@ -78,16 +78,14 @@ public class Crypto {
 	public static final int AES_KEY_LENGTH_BYTES = AES_KEY_LENGTH / 8;
 
 	private final static String TAG = "tutao.Crypto";
-	private SecureRandom randomizer;
+	private final SecureRandom randomizer;
 
 	private static final Integer ANDROID_6_SDK_VERSION = 23;
 
 	private final Context context;
 
 	static {
-		for (int i = 0; i < FIXED_IV.length; i++) {
-			FIXED_IV[i] = (byte) 0x88;
-		}
+		Arrays.fill(FIXED_IV, (byte) 0x88);
 	}
 
 	public static final String HMAC_256 = "HmacSHA256";
@@ -432,9 +430,9 @@ public class Crypto {
 		}
 	}
 
-	public class EncryptedFileInfo {
-		private String uri;
-		private long unencSize;
+	public static final class EncryptedFileInfo {
+		private final String uri;
+		private final long unencSize;
 
 		public EncryptedFileInfo(String uri, long unencSize) {
 			this.unencSize = unencSize;

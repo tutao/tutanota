@@ -27,26 +27,24 @@ public class AlarmNotificationsManager {
 	public static final long TIME_IN_THE_FUTURE_LIMIT_MS = TimeUnit.DAYS.toMillis(14);
 
 	private static final String TAG = "AlarmNotificationsMngr";
-	private final AndroidKeyStoreFacade keyStoreFacade;
 	private final SseStorage sseStorage;
 	private final Crypto crypto;
 	private final SystemAlarmFacade systemAlarmFacade;
 	private final PushKeyResolver pushKeyResolver;
 	private final LocalNotificationsFacade localNotificationsFacade;
 
-	public AlarmNotificationsManager(AndroidKeyStoreFacade androidKeyStoreFacade, SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade,
+	public AlarmNotificationsManager(SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade,
 									 LocalNotificationsFacade localNotificationsFacade) {
-		keyStoreFacade = androidKeyStoreFacade;
 		this.sseStorage = sseStorage;
 		this.crypto = crypto;
 		this.systemAlarmFacade = systemAlarmFacade;
-		this.pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage);
+		this.pushKeyResolver = new PushKeyResolver(sseStorage);
 		this.localNotificationsFacade = localNotificationsFacade;
 	}
 
 	public void reScheduleAlarms() {
 		PushKeyResolver pushKeyResolver =
-				new PushKeyResolver(keyStoreFacade, sseStorage);
+				new PushKeyResolver(sseStorage);
 		List<AlarmNotification> alarmInfos = sseStorage.readAlarmNotifications();
 		for (AlarmNotification alarmNotification : alarmInfos) {
 			byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
@@ -214,12 +212,10 @@ public class AlarmNotificationsManager {
 
 
 	private static class PushKeyResolver {
-		private AndroidKeyStoreFacade keyStoreFacade;
 		private final SseStorage sseStorage;
 		private final Map<String, byte[]> pushIdentifierToResolvedSessionKey = new HashMap<>();
 
-		private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, SseStorage sseStorage) {
-			this.keyStoreFacade = keyStoreFacade;
+		private PushKeyResolver(SseStorage sseStorage) {
 			this.sseStorage = sseStorage;
 		}
 

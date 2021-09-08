@@ -51,12 +51,13 @@ public final class SseInfo {
 		}
 	}
 
-	public SseInfo(String pushIdentifier, Collection<String> userIds, String sseOrigin) {
+	public SseInfo(@NonNull String pushIdentifier, Collection<String> userIds, String sseOrigin) {
 		this.pushIdentifier = pushIdentifier;
 		this.userIds = userIds;
 		this.sseOrigin = sseOrigin;
 	}
 
+	@NonNull
 	public String getPushIdentifier() {
 		return pushIdentifier;
 	}

@@ -14,7 +14,7 @@ public class TutaoCipherInputStream extends FilterInputStream {
 	private static final int UPDATE_BUFFER_SIZE = 4096;
 
 	private final Cipher cipher;
-	private byte[] temp;
+	private final byte[] temp;
 
 	private boolean finished = false;
 
