@@ -100,13 +100,17 @@ export class EventPreviewView implements MComponent<Attrs> {
 	}
 
 	_renderAttendee(attendee: CalendarEventAttendee): Children {
+		let attendeeField = attendee.address.address
+		if(downcast(attendee.address)._errors){
+			attendeeField = lang.get("corruptedValue_msg")
+		}
 		return m(".flex.items-center", [
 			m(Icon, {
 				icon: iconForAttendeeStatus[getAttendeeStatus(attendee)],
 				style: {fill: theme.content_fg},
 				class: "mr-s"
 			}),
-			m(".span.line-break-anywhere.selectable", attendee.address.address),
+			m(".span.line-break-anywhere.selectable", attendeeField),
 		])
 	}
 
