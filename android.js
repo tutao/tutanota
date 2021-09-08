@@ -58,6 +58,8 @@ async function buildAndroid({host, buildType, webClient}) {
 	})
 
 
+	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
+
 	let apkPath
 
 	switch (buildType) {
@@ -68,53 +70,18 @@ async function buildAndroid({host, buildType, webClient}) {
 			apkPath = 'app/build/outputs/apk/debug/app-debug.apk'
 			break;
 		case 'releaseTest':
-			apkPath = 'app/build/outputs/apk/releaseTest/app-releaseTest-unsigned.apk'
+			apkPath = `app/build/outputs/apk/releaseTest/tutanota-${version}.apk`
 			break
 		default:
-			apkPath = 'app/build/outputs/apk/release/app-release-unsigned.apk'
+			apkPath = `app/build/outputs/apk/release/tutanota-${version}.apk`
 	}
-
-	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
 
 	await fs.promises.mkdir("build/app-android", {recursive: true})
 
 	const outPath = `./build/app-android/tutanota-${version}-${buildType}.apk`
-	if (buildType === 'release' || buildType === 'releaseTest') {
-		await signAndroidApp({apkPath, outPath})
-	} else {
-		log("Skipping signing because build was not run as release or releaseTest")
-		await fs.promises.rename(path.join("app-android", apkPath), outPath)
-	}
+	await fs.promises.rename(path.join("app-android", apkPath), outPath)
 
 	log(`Build complete. The APK is located at: ${outPath}`)
-}
-
-async function signAndroidApp({apkPath, outPath}) {
-
-	const keyAlias = getEnv('APK_SIGN_ALIAS')
-	const storePass = getEnv('APK_SIGN_STORE_PASS')
-	const keyPass = getEnv('APK_SIGN_KEY_PASS')
-	const keyStore = getEnv('APK_SIGN_STORE')
-	const androidHome = getEnv('ANDROID_HOME')
-
-	// see https://developer.android.com/studio/publish/app-signing#signing-manually
-	// jarsigner must be run before zipalign
-	runCommand('/opt/jdk1.8.0_112/bin/jarsigner', [
-		'-verbose',
-		'-strict',
-		'-keystore', keyStore,
-		'-storepass', storePass,
-		'-keypass', keyPass,
-		'./app-android/' + apkPath,
-		keyAlias
-	])
-
-	// Android requires all resources to be aligned for mmap. Must be done.
-	runCommand(`${androidHome}/build-tools/${BUILD_TOOLS_V}/zipalign`, [
-		'4',
-		'app-android/' + apkPath,
-		outPath
-	])
 }
 
 function runCommand(command, args, options) {
@@ -125,11 +92,4 @@ function runCommand(command, args, options) {
 		// original e contains lots of noise. `e.stack` has enough for debugging
 		throw new Error(e.stack)
 	}
-}
-
-function getEnv(name) {
-	if (!(name in process.env)) {
-		throw new Error(`${name} is not set`)
-	}
-	return process.env[name]
 }
