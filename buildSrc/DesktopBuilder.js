@@ -58,7 +58,11 @@ export async function buildDesktop({
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
 	if (targets["win32"] != null) {
-		await fs.promises.copyFile('../mapirs/target/x86_64-pc-windows-gnu/release/mapirs.dll', './build/dist/mapirs.dll')
+		const dllName = "mapirs.dll"
+		const dllSrc = path.join('../mapirs/target/x86_64-pc-windows-gnu/release', dllName)
+		const dllTrg = path.join(distDir, dllName)
+		console.log("copy", dllName, "from", dllSrc, "to", dllTrg)
+		await fs.promises.copyFile(dllSrc, dllTrg)
 	}
 
 	await maybeGetKeytar(targets)

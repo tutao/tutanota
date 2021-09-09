@@ -52,6 +52,7 @@ module.exports.registerKeys = (execPath: string, dllPath: string): string => {
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail\\tutanota]
 @="tutanota"
 "DLLPath"="${dllPath}"
+"EXEPath"="${execPath}"
 
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail]
 @="tutanota"
