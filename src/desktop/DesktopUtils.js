@@ -223,7 +223,8 @@ export class DesktopUtils {
 	async _registerOnWin(): Promise<void> {
 		const execPath = process.execPath
 		const dllPath = swapFilename(execPath, "mapirs.dll")
-		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(execPath, dllPath)
+		const logPath = path.join(app.getPath('userData'), 'logs')
+		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(execPath, dllPath, logPath)
 		return this._executeRegistryScript(tmpRegScript)
 		           .then(() => {
 			           app.setAsDefaultProtocolClient('mailto')

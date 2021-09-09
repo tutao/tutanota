@@ -4,11 +4,13 @@
  * produce a tmp windows registry script to register an executable as a mailto handler
  * @param execPath path to the executable that should be registered
  * @param dllPath path to the mapi dll that handles "Send as Mail..." requests
+ * @param logPath path to the directory the mapi dll should put logs in
  * @returns {string} registry script
  */
-module.exports.registerKeys = (execPath: string, dllPath: string): string => {
+module.exports.registerKeys = (execPath: string, dllPath: string, logPath: string): string => {
 	execPath = execPath.replace(/\\/g, '\\\\')
 	dllPath = dllPath.replace(/\\/g, '\\\\')
+	logPath = logPath.replace(/\\/g, '\\\\')
 	return `Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\\mailto]
@@ -53,6 +55,7 @@ module.exports.registerKeys = (execPath: string, dllPath: string): string => {
 @="tutanota"
 "DLLPath"="${dllPath}"
 "EXEPath"="${execPath}"
+"LOGPath"="${logPath}"
 
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail]
 @="tutanota"
