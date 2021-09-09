@@ -16,6 +16,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import {formatDateWithMonth} from "../../misc/Formatter"
+import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -101,7 +102,7 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 	_renderAttendee(attendee: CalendarEventAttendee): Children {
 		let attendeeField = attendee.address.address
-		if(downcast(attendee.address)._errors){
+		if(hasError(attendee.address)){
 			attendeeField = lang.get("corruptedValue_msg")
 		}
 		return m(".flex.items-center", [
