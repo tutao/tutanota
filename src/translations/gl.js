@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2021-08-18T09:06:19Z",
+	"updated_at": "2021-09-01T12:47:47Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -121,6 +121,7 @@ export default {
 		"balance_label": "Balance",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Cumpleanos",
+		"blockExternalContentSender_action": "Bloquear sempre remitente",
 		"blue_label": "Azul",
 		"bookingItemUsersIncludingWhitelabel_label": "Usuarias incl. mellora de Personalización",
 		"bookingItemUsersIncluding_label": "Usuarios incluíndo:",

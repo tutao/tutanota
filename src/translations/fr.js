@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2021-08-18T09:06:18Z",
+	"updated_at": "2021-09-01T12:47:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1169,6 +1169,7 @@ export default {
 		"wantToSendReport_msg": "Quelque chose d'inattendu a eu lieu. Voulez-vous envoyer un rapport d'erreur ? Vous pouvez ajouter un message pour nous aider à corriger ce problème.",
 		"weekNumber_label": "Semaine {week}",
 		"weekStart_label": "Début de semaine",
+		"week_label": "Semaine",
 		"welcomeMailBodyTweetText_msg": "Je viens de créer mon compte Tutanota. Maintenant, je protège mes messages des regards indiscrets ! Vous pouvez me rejoindre :",
 		"welcomeMailBody_markdown": "Bienvenue dans votre boîte de réception sécurisée et sans pub, protégée avec un chiffrement fort. Tutanota facilite la transition depuis les autres services d'e-mail. Nos clients web et applications Android & iOS intuitifs ainsi que nos applications PC pour Windows, Mac OS et Linux vous permettent d'accéder à votre boîte de réception sécurisée depuis tous vos appareils.\n\nEn tant que professionnel, vous pouvez gagner du temps et de l'argent en hébergeant tous vos e-mails professionnels chiffrés de bout-en-bout sur les serveurs sécurisés Tutanota, situés en Allemagne : Marque blanche Tutanota pour votre entreprise, placez la connexion sur votre propre site web, ajouter un formulaire de contact chiffré à votre site web afin que vous clients puissent vous joindre facilement et de façon confidentielle. [Apprenez-en plus sur les fonctions Tutanota dédiées aux entreprises]({businessLink}).\n\n**Tutanota applique 4 principes pour fournir une alternative intuitive et respectant la confidentialité**\n\n1. Tutanota ne vous trace pas.\n2. Tutanota ne peut pas scanner vos données.\n3. Tutanota chiffre toute votre boîte de réception, vos contacts et calendriers.\n4. Tutanota intègre la confidentialité par conception.\n\nRecommander Tutanota, le [service e-mail open source qui vous respecte autant que votre droit à la vie privée]({blogOpenSourceLink}).\n\nNous croyons que chacun mérite une boîte de réception privée gratuite. Vous pouvez nous supporter en nous suivant sur votre média social préféré et en partageant notre contenu avec vos amis et collègues. Ensemble nous changerons l'Internet pour le meilleur :\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nMerci beaucoup,\\\nVotre équipe Tutanota\n\nTutanota est open source. [Vous pouvez inspecter et relire le code source ici]({githubLink}).",
 		"welcomeMailSubject_msg": "Faites comme chez vous : vos données restent privées.",
