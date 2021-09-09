@@ -64,6 +64,7 @@ import {timeStringFromParts} from "../../misc/Formatter"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {parseTime} from "../../misc/parsing/TimeParser";
+import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -302,7 +303,7 @@ export class CalendarEventViewModel {
 		if (existingEvent) {
 			existingEvent
 				.attendees
-				.filter(attendee => !downcast(attendee.address)._errors)
+				.filter(attendee => !hasError(attendee.address))
 				.forEach((attendee) => {
 					if (this._ownMailAddresses.includes(attendee.address.address)) {
 						this._ownAttendee(copyMailAddress(attendee.address))
