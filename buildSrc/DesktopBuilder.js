@@ -57,13 +57,7 @@ export async function buildDesktop({
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
-	if (targets["win32"] != null) {
-		const dllName = "mapirs.dll"
-		const dllSrc = path.join('../mapirs/target/x86_64-pc-windows-gnu/release', dllName)
-		const dllTrg = path.join(distDir, dllName)
-		console.log("copy", dllName, "from", dllSrc, "to", dllTrg)
-		await fs.promises.copyFile(dllSrc, dllTrg)
-	}
+	if (targets["win32"] != null) await getMapirs(distDir)
 
 	await maybeGetKeytar(targets)
 
@@ -167,4 +161,38 @@ async function maybeGetKeytar(targets, napiVersion = 3) {
 			stdout: 'inherit'
 		}
 	)))
+}
+
+async function getMapirs(distDir) {
+	const dllName = "mapirs.dll"
+	const dllSrc = process.platform === "win32"
+		? path.join('../mapirs/target/release', dllName)
+		: path.join('../mapirs/target/x86_64-pc-windows-gnu/release', dllName)
+	const dllTrg = path.join(distDir, dllName)
+	console.log("trying to copy", dllName, "from", dllSrc, "to", dllTrg)
+	try {
+		await fs.promises.copyFile(dllSrc, dllTrg)
+	} catch (e) {
+		console.log("no local", dllName, "found, using release from github")
+		await downloadLatestMapirs(dllName, dllTrg)
+	}
+}
+
+async function downloadLatestMapirs(dllName, dllTrg) {
+	const {Octokit} = await import("@octokit/rest")
+	const octokit = new Octokit();
+	const opts = {
+		owner: "tutao",
+		repo: "mapirs"
+	}
+	const res = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', opts)
+	const asset_id = res.data.assets.find(a => a.name.startsWith(dllName)).id
+	const asset = await octokit.repos.getReleaseAsset(Object.assign(opts, {
+		asset_id,
+		headers: {
+			"Accept": "application/octet-stream"
+		}
+	}))
+
+	await fs.promises.writeFile(dllTrg, Buffer.from(asset.data))
 }
