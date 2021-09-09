@@ -10,6 +10,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {styles} from "../styles"
 import {LayerType} from "../../RootView"
+import type {lazy} from "../../api/common/utils/Utils"
+import type {clickHandler} from "./GuiUtils"
 
 assertMainOrNode()
 

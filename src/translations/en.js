@@ -1404,8 +1404,7 @@ export default {
 		"times_msg": "{amount} times",
 		"until_label": "until",
 		"repetition_msg": "Every {interval} {timeUnit}",
-		"unknownRepetition_msg": "The event is part of a series."
-		"you_label": "You",
+		"unknownRepetition_msg": "The event is part of a series.",
 		"corruptedValue_msg": "Value cannot be displayed."
 	}
 }
