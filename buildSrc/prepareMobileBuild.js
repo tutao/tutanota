@@ -1,8 +1,21 @@
 import fs from "fs"
-
+import options from "commander"
 import glob from "glob"
+import {fileURLToPath} from "url"
 
-export function prepareFiles(buildType) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	options
+		.usage('make|dist')
+		.arguments('<target>')
+		.parse(process.args)
+
+	prepareMobileBuild(options.args[0])
+}
+
+/**
+ * Removes source maps, icons, HTML files which are not needed for mobile apps.
+ */
+export function prepareMobileBuild(buildType) {
 	console.log("prepare mobile build for build type", buildType)
 	let prefix
 	switch (buildType) {

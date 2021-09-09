@@ -1,9 +1,9 @@
 import options from "commander"
 
 import {execFileSync} from "child_process"
-import {prepareFiles} from "./buildSrc/prepareMobileBuild.js"
 import fs from "fs"
 import path from "path"
+import {prepareMobileBuild} from "./buildSrc/prepareMobileBuild.js"
 
 
 /**
@@ -22,7 +22,6 @@ options
 	.option('-w --webclient <client>', 'choose web client build', /^(make|dist)$/i, 'dist')
 	.parse(process.argv)
 
-const BUILD_TOOLS_V = "28.0.3"
 const log = (...messages) => console.log("\nBUILD:", ...messages, "\n")
 
 buildAndroid({
@@ -35,14 +34,13 @@ buildAndroid({
 })
 
 async function buildAndroid({host, buildType, webClient}) {
-
 	log(`Starting build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 
 	runCommand('node', [webClient, `${host}`], {
 		stdio: [null, process.stdout, process.stderr]
 	})
 
-	prepareFiles(webClient)
+	await prepareMobileBuild(webClient)
 
 	try {
 		log("cleaning 'build/app-android'")
@@ -53,33 +51,18 @@ async function buildAndroid({host, buildType, webClient}) {
 
 	log("Starting build: ", buildType)
 
-	runCommand('./gradlew', [`assemble${buildType}`], {
+	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
+	const apkName = `tutanota-tutao-${buildType}-${version}.apk`
+	const apkPath = `app-android/app/build/outputs/apk/tutao/${buildType}/${apkName}`
+
+	runCommand('./gradlew', [`assembleTutao${buildType}`], {
 		cwd: './app-android/',
 	})
 
-
-	const {version} = JSON.parse(await fs.promises.readFile("package.json", "utf8"))
-
-	let apkPath
-
-	switch (buildType) {
-		case 'debugDist':
-			apkPath = 'app/build/outputs/apk/debugDist/app-debugDist.apk'
-			break;
-		case 'debug':
-			apkPath = 'app/build/outputs/apk/debug/app-debug.apk'
-			break;
-		case 'releaseTest':
-			apkPath = `app/build/outputs/apk/releaseTest/tutanota-${version}.apk`
-			break
-		default:
-			apkPath = `app/build/outputs/apk/release/tutanota-${version}.apk`
-	}
-
 	await fs.promises.mkdir("build/app-android", {recursive: true})
 
-	const outPath = `./build/app-android/tutanota-${version}-${buildType}.apk`
-	await fs.promises.rename(path.join("app-android", apkPath), outPath)
+	const outPath = `./build/app-android/${apkName}`
+	await fs.promises.rename(apkPath, outPath)
 
 	log(`Build complete. The APK is located at: ${outPath}`)
 }
