@@ -6,7 +6,7 @@ android {
 	defaultConfig {
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 23
-		targetSdkVersion 29
+		targetSdkVersion 30
 		versionCode 388000
 		versionName "3.88.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

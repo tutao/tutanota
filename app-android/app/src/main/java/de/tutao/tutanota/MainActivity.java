@@ -452,20 +452,12 @@ public class MainActivity extends ComponentActivity {
 				jsonAddresses.put(address);
 			}
 		}
-		Promise<Void, Exception, Void> permissionPromise;
-		if (files.length() > 0) {
-			permissionPromise = this.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-		} else {
-			permissionPromise = new DeferredObject<Void, Exception, Void>().resolve(null);
-		}
 
 		// Satisfy Java's lambda requirements
 		final String fText = text;
 		final JSONArray fJsonAddresses = jsonAddresses;
-		permissionPromise.then((__) -> {
-			nativeImpl.sendRequest(JsRequest.createMailEditor,
-					new Object[]{files, fText, fJsonAddresses, subject, mailToUrlString});
-		});
+		nativeImpl.sendRequest(JsRequest.createMailEditor,
+				new Object[]{files, fText, fJsonAddresses, subject, mailToUrlString});
 	}
 
 	@NonNull

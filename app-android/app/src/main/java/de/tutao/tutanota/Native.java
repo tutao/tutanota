@@ -1,6 +1,7 @@
 package de.tutao.tutanota;
 
 import android.app.NotificationManager;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -278,7 +279,7 @@ public final class Native {
 					break;
 				}
 				case "getThemes": {
-					List<Map<String,String>> themesList = this.themeManager.getThemes();
+					List<Map<String, String>> themesList = this.themeManager.getThemes();
 					promise.resolve(new JSONArray(themesList));
 					break;
 				}
@@ -329,11 +330,13 @@ public final class Native {
 	private boolean openLink(@Nullable String uri) {
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 		PackageManager pm = activity.getPackageManager();
-		boolean resolved = intent.resolveActivity(pm) != null;
-		if (resolved) {
+		try {
 			activity.startActivity(intent);
+		} catch (ActivityNotFoundException e) {
+			Log.i(TAG, "Activity for intent " + uri + " not found.", e);
+			return false;
 		}
-		return resolved;
+		return true;
 	}
 
 	private boolean shareText(String string, @Nullable String title) {
@@ -366,11 +369,8 @@ public final class Native {
 		sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		Intent intent = Intent.createChooser(sendIntent, null);
-		boolean resolved = intent.resolveActivity(activity.getPackageManager()) != null;
-		if (resolved) {
-			activity.startActivity(intent);
-		}
-		return resolved;
+		activity.startActivity(intent);
+		return true;
 	}
 
 	private Promise<Object, Exception, Void> initPushNotifications() {
