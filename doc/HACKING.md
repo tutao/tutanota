@@ -15,7 +15,6 @@
  * [`android.js`](../android.js): script for building Android app
  * [`make.js`](../make.js): script for building dev version
  * [`dist.js`](../dist.js): script for building release versions of the web & desktop clients
- * [`fdroid-fix-deps.js`](../fdroid-fix-deps.js): script for removing some binary dependencies (iOS, Flow & Electron) so that we pass F-Droid checks
  * [`fdroid-metadata-workaround`](../fdroid-metadata-workaround): is a link inside app-android so that F-Droid can find our metadata because our Android
  project is not in the root. Can be removed once it's fixed in F-Droid.
  * [`tutao-pub.pem`](../tutao-pub.pem): public key which is used to verify desktop clients

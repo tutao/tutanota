@@ -32,4 +32,4 @@ const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 
 delete packageJson.scripts["postinstall"]
 
-fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "  "))
+fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "\t"))
