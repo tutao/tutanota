@@ -1,5 +1,5 @@
 //@flow
-import {logins} from "../api/main/LoginController"
+import type {LoginController} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import type {TranslationKey} from "./LanguageViewModel"
@@ -12,12 +12,19 @@ import {
 	BadRequestError,
 	ConnectionError,
 	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {TutanotaError} from "../api/common/error/TutanotaError"
 import type {ApprovalStatusEnum} from "../api/common/TutanotaConstants"
 import {ApprovalStatus} from "../api/common/TutanotaConstants"
+import type {ResetAction} from "../login/recover/RecoverLoginDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
+import {worker} from "../api/main/WorkerClient"
+import {UserError} from "../api/main/UserError"
+import {ofClass} from "../api/common/utils/PromiseUtils"
+import {showUserError} from "./ErrorHandlerImpl"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -25,7 +32,7 @@ import {ApprovalStatus} from "../api/common/TutanotaConstants"
  * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
  */
-export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defaultStatus: ?ApprovalStatusEnum): Promise<boolean> {
+export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus: ?ApprovalStatusEnum): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) { // external users are not authorized to load the customer
 		return Promise.resolve(true)
 	}
@@ -80,8 +87,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 	})
 }
 
-export function getLoginErrorMessage(error: TutanotaError, isExternalLogin: boolean): TranslationKey {
-
+export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): TranslationKey {
 	switch (error.constructor) {
 		case BadRequestError:
 		case NotAuthenticatedError:
@@ -99,4 +105,39 @@ export function getLoginErrorMessage(error: TutanotaError, isExternalLogin: bool
 		default:
 			return "emptyString_msg"
 	}
+}
+
+export async function showSignupDialog() {
+	showProgressDialog('loading_msg', worker.initialized
+	                                        .then(() => import("../subscription/UpgradeSubscriptionWizard")
+		                                        .then((wizard) => wizard.loadSignupWizard())))
+		.then(dialog => dialog.show())
+
+}
+
+export async function showGiftCardDialog(urlHash: string) {
+	const showWizardPromise =
+		import("../subscription/giftcards/GiftCardUtils")
+			.then(({getTokenFromUrl}) => getTokenFromUrl(urlHash))
+			.then(async ([id, key]) => {
+				return worker.initialized
+				             .then(() => worker.giftCardFacade.getGiftCardInfo(id, key))
+				             .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
+					             .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
+			})
+	showProgressDialog("loading_msg", showWizardPromise)
+		.then(dialog => dialog.show())
+		.catch((e) => {
+			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+				throw new UserError("invalidGiftCard_msg")
+			} else {
+				throw e
+			}
+		})
+		.catch(ofClass(UserError, showUserError))
+}
+
+export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
+	const dialog = await import("../login/recover/RecoverLoginDialog")
+	dialog.show(mailAddress, resetAction)
 }

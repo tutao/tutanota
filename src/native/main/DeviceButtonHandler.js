@@ -23,8 +23,6 @@ export function handleBackPress(): Promise<boolean> {
 			if (lastModalComponent) { // first check if any modal dialog is visible
 				lastModalComponent.component.onClose()
 				return true
-			} else if (tutao.currentView instanceof LoginView && tutao.currentView.onBackPress()) {
-				return true
 			} else { // otherwise try to navigate back in the current view
 				const viewSlider = header._getViewSlider()
 				const currentRoute = m.route.get()

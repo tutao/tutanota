@@ -9,7 +9,7 @@ import {downcast} from "../../src/api/common/utils/Utils"
  * @param old name of the module to replace
  * @returns {MockBuilder}
  */
-function mock<T>(old: string, replacer: T): MockBuilder<T> {
+function mock<T>(old: string, replacer: any): MockBuilder<T> {
 	return new MockBuilder(old, replacer)
 }
 
@@ -139,7 +139,7 @@ function deepAssign<T, B>(obj: T, adder: B): T & B {
 	return downcast(ret)
 }
 
-class MockBuilder<T> {
+export class MockBuilder<T> {
 	_mock: T
 	_old: string
 

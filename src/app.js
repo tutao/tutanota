@@ -164,8 +164,16 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 	}
 
 	const paths = applicationPaths({
-		loginViewResolver: createViewResolver(() => import("./login/LoginView.js")
-			.then(module => module.login), false),
+		loginViewResolver: createViewResolver(async () => {
+			const {LoginView} = await import("./login/LoginView.js")
+			const {LoginViewModel} = await import("./login/LoginViewModel.js")
+			const {secondFactorHandler} = await import("./misc/SecondFactorHandler")
+			const loginViewModel = new LoginViewModel(logins, deviceConfig, secondFactorHandler)
+			loginViewModel.init()
+			const loginListener = await import("./login/LoginListener")
+			await loginListener.registerLoginListener()
+			return new LoginView(loginViewModel)
+		}, false),
 		contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js")
 			.then(module => new module.ContactView())),
 		externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js")
@@ -179,7 +187,38 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 		contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js")
 			.then(module => module.contactFormView), false),
 		calendarViewResolver: createViewResolver(() => import("./calendar/view/CalendarView.js")
-			.then(module => new module.CalendarView()), true)
+			.then(module => new module.CalendarView()), true),
+		/**
+		 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
+		 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
+		 * behaviour of resolvers created with createViewResolver(), e.g. caching.
+		 */
+		signupViewResolver: {
+			async onmatch() {
+				const {showSignupDialog} = await import("./misc/LoginUtils")
+				showSignupDialog()
+				m.route.set("/login", {noAutoLogin: true})
+				return null
+			}
+		},
+		giftcardViewResolver: {
+			async onmatch() {
+				const {showGiftCardDialog} = await import("./misc/LoginUtils")
+				showGiftCardDialog(location.hash)
+				m.route.set("/login", {noAutoLogin: true})
+				return null
+			}
+		},
+		recoverViewResolver: {
+			async onmatch(args) {
+				const {showRecoverDialog} = await import("./misc/LoginUtils")
+				const resetAction = (args.resetAction === "password" || args.resetAction === "secondFactor") ? args.resetAction : "password"
+				const mailAddress = typeof args.mailAddress === "string" ? args.mailAddress : ""
+				showRecoverDialog(mailAddress, resetAction)
+				m.route.set("/login", {noAutoLogin: true})
+				return null
+			}
+		},
 	})
 
 	// see https://github.com/MithrilJS/mithril.js/issues/2659
@@ -275,11 +314,11 @@ env.dist && isTutanotaDomain() && setTimeout(() => {
 ''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''
-''''''''''''''''''''''''',:,''''''''''''    
+''''''''''''''''''''''''',:,''''''''''''
 ''''''''''''';:llllcccccccc,''''''''''''    Do you care about privacy?
-'''''''''''':kXWXkoc::;,,''''''''''''''' 
+'''''''''''':kXWXkoc::;,,'''''''''''''''
 '''''''''''',cdk0KKK00kxdolc;,''''''''''    Work at Tutanota! Fight for our rights!
-'''''''''''''''';coxOKNMMWWNK0kdl:,'''''    
+'''''''''''''''';coxOKNMMWWNK0kdl:,'''''
 '''''''''''''''''''',;oKMMMMMMMMWX0dc,''    https://tutanota.com/jobs
 '''''''''''''''''''''';kWMMMMMMMMMMWXk:'
 '''''''''''''''''''',:xXMMMMMMMMMMMMMWKl

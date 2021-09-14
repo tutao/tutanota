@@ -5,91 +5,42 @@ import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, mapNullable, neverNull} from "../api/common/utils/Utils"
-import {deviceConfig} from "../misc/DeviceConfig"
+import {defer, mapNullable} from "../api/common/utils/Utils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
-import type {ILoginViewController} from "./LoginViewController"
-import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
-import {UserError} from "../api/main/UserError"
-import {showUserError} from "../misc/ErrorHandlerImpl"
+import type {ILoginViewModel} from "./LoginViewModel"
+import {DisplayMode, LoginState} from "./LoginViewModel"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
-import {ofClass} from "../api/common/utils/PromiseUtils"
 import {themeController} from "../gui/theme"
 import {createAsyncDropdown} from "../gui/base/DropdownN"
 import type {clickHandler} from "../gui/base/GuiUtils"
 
 assertMainOrNode()
 
-const DisplayMode = Object.freeze({
-	Credentials: "credentials",
-	Form: "form",
-})
 
 export class LoginView {
-
-	targetPath: string;
-	mailAddress: Stream<string>;
-	password: Stream<string>;
+	+view: typeof MComponent.prototype.view;
+	+_viewModel: ILoginViewModel;
+	+_moreExpanded: Stream<boolean>;
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
 	// in order to focus it
 	loginForm: DeferredObject<LoginForm>;
-	helpText: Vnode<any> | string;
-	invalidCredentials: boolean;
-	accessExpired: boolean;
-	savePassword: Stream<boolean>;
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
-	view: Function;
-	_knownCredentials: Credentials[];
-	_displayMode: ?$Values<typeof DisplayMode>;
-	_isDeleteCredentials: boolean;
-	_viewController: Promise<ILoginViewController>;
-	oncreate: Function;
-	onremove: Function;
-	permitAutoLogin: boolean;
-	_showingSignup: boolean;
-	_moreExpanded: Stream<boolean>;
 
-	constructor() {
-		this.targetPath = '/mail'
-		this._requestedPath = this.targetPath
+	constructor(viewController: ILoginViewModel) {
+		this._viewModel = viewController
+		this._requestedPath = "/mail"
 
-		this.mailAddress = stream("")
-		this.helpText = lang.get('emptyString_msg')
-		this.invalidCredentials = false
-		this.accessExpired = false
-		this.password = stream("")
 		this.loginForm = defer()
-		this.savePassword = stream(false)
-		this._knownCredentials = []
-		this._isDeleteCredentials = false;
 		this._moreExpanded = stream(false)
-
-		this._viewController = import('../login/LoginViewController.js')
-			.then(module => new module.LoginViewController(this))
-
-		if (window.location.href.includes('signup')) {
-			if (window.location.hash.includes('theme=blue')) {
-				themeController.setThemeId('blue')
-			}
-			this.permitAutoLogin = false
-			this._signup()
-		} else if (window.location.href.endsWith('recover')) {
-			this.permitAutoLogin = false
-			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
-		} else {
-			this.permitAutoLogin = true
-		}
 
 		let bottomMargin = 0
 		const keyboardListener = (keyboardSize) => {
@@ -116,11 +67,12 @@ export class LoginView {
 							width: client.isDesktopDevice() ? "360px" : null,
 						}
 					}, [
-						this._displayMode === DisplayMode.Credentials
-							? this.renderCredentialsSelector()
-							: this.renderLoginForm(),
+						(this._viewModel.displayMode === DisplayMode.Credentials
+							|| this._viewModel.displayMode === DisplayMode.DeleteCredentials)
+							? this._renderCredentialsSelector()
+							: this._renderLoginForm(),
 						!(isApp() || isDesktop()) && isTutanotaDomain()
-							? this.renderAppButtons()
+							? this._renderAppButtons()
 							: null,
 						this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
 						!isApp() ? renderPrivacyAndImprintLinks() : null
@@ -144,12 +96,16 @@ export class LoginView {
 						? m(ButtonN, {
 							label: "loginOtherAccount_action",
 							type: ButtonType.Secondary,
-							click: () => this._showLoginForm("")
+							click: () => {
+								this._viewModel.showLoginForm()
+							}
 						})
 						: null,
 					this._deleteCredentialsLinkVisible()
 						? m(ButtonN, {
-							label: this._isDeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+							label: this._viewModel.displayMode === DisplayMode.DeleteCredentials
+								? "cancel_action"
+								: "deleteCredentials_action",
 							type: ButtonType.Secondary,
 							click: () => this._switchDeleteCredentialsState()
 						})
@@ -158,7 +114,7 @@ export class LoginView {
 						? m(ButtonN, {
 							label: "knownCredentials_label",
 							type: ButtonType.Secondary,
-							click: () => this._showCredentials()
+							click: () => this._viewModel.showCredentials()
 						})
 						: null,
 					this._signupLinkVisible()
@@ -180,7 +136,6 @@ export class LoginView {
 							label: "recoverAccountAccess_action",
 							click: () => {
 								m.route.set('/recover')
-								import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
 							},
 							type: ButtonType.Secondary,
 						})
@@ -205,19 +160,22 @@ export class LoginView {
 	}
 
 	_signupLinkVisible(): boolean {
-		return this._displayMode !== DisplayMode.Credentials && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+		return this._viewModel.displayMode === DisplayMode.Form
+			&& (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
 	}
 
 	_loginAnotherLinkVisible(): boolean {
-		return this._displayMode === DisplayMode.Credentials
+		return (this._viewModel.displayMode === DisplayMode.Credentials
+			|| this._viewModel.displayMode === DisplayMode.DeleteCredentials)
 	}
 
 	_deleteCredentialsLinkVisible(): boolean {
-		return this._displayMode === DisplayMode.Credentials
+		return this._viewModel.displayMode === DisplayMode.Credentials
+			|| this._viewModel.displayMode === DisplayMode.DeleteCredentials
 	}
 
 	_knownCredentialsLinkVisible(): boolean {
-		return this._displayMode !== DisplayMode.Credentials && (this._knownCredentials.length > 0)
+		return this._viewModel.displayMode === DisplayMode.Form && (this._viewModel.getSavedCredentials().length > 0)
 	}
 
 	_switchThemeLinkVisible(): boolean {
@@ -237,49 +195,56 @@ export class LoginView {
 			|| this._recoverLoginVisible()
 	}
 
-	login() {
-		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
-	}
-
-	renderLoginForm(): Children {
+	_renderLoginForm(): Children {
 		return m("", {
 			oncreate: vnode => {
 				this.loginForm.resolve(vnode.children[0].state)
 			}
 		}, m(LoginForm, {
-			onSubmit: () => this.login(),
-			mailAddress: this.mailAddress,
-			password: this.password,
-			savePassword: this.savePassword,
-			helpText: this.helpText,
-			invalidCredentials: this.invalidCredentials,
+			onSubmit: () => this._loginWithProgressDialog(),
+			mailAddress: this._viewModel.mailAddress,
+			password: this._viewModel.password,
+			savePassword: this._viewModel.savePassword,
+			helpText: lang.get(this._viewModel.helpText),
+			invalidCredentials: this._viewModel.state === LoginState.InvalidCredentials,
 			showRecoveryOption: this._recoverLoginVisible(),
-			accessExpired: this.accessExpired
+			accessExpired: this._viewModel.state === LoginState.AccessExpired,
 		}))
 	}
 
-	renderCredentialsSelector(): Children {
+	async _loginWithProgressDialog() {
+		await showProgressDialog(
+			"login_msg",
+			this._viewModel.login()
+		)
+		m.redraw()
+		if (this._viewModel.state === LoginState.LoggedIn) {
+			m.route.set(this._requestedPath)
+		}
+	}
+
+	_renderCredentialsSelector(): Children {
 		return m(CredentialsSelector, {
-			credentials: this._knownCredentials,
-			isDeleteCredentials: this._isDeleteCredentials,
+			credentials: this._viewModel.getSavedCredentials(),
 			onCredentialsSelected: c => {
-				this._viewController
-				    .then(viewController => viewController.autologin(c))
+				this._viewModel.useCredentials(c)
+				this._loginWithProgressDialog()
 			},
-			onCredentialsDeleted: this._isDeleteCredentials
-				? c => {
-					this._viewController
-					    .then(viewController => viewController.deleteCredentialsNotLoggedIn(c))
-				} : null
+			onCredentialsDeleted: this._viewModel.displayMode === DisplayMode.DeleteCredentials
+				? (credentials) => {
+					this._viewModel.deleteCredentials(credentials)
+					    .then(() => m.redraw())
+				}
+				: null
 		})
 	}
 
-	renderAppButtons(): Children {
+	_renderAppButtons(): Children {
 		return m(".flex-center.pt-l", [
 			m(ButtonN, {
 				label: 'appInfoAndroidImageAlt_alt',
 				click: e => {
-					this.openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
+					this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
 					e.preventDefault()
 				},
 				icon: () => BootIcons.Android,
@@ -289,7 +254,7 @@ export class LoginView {
 			m(ButtonN, {
 				label: 'appInfoIosImageAlt_alt',
 				click: e => {
-					this.openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
+					this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
 					e.preventDefault()
 				},
 				icon: () => BootIcons.Apple,
@@ -299,7 +264,7 @@ export class LoginView {
 			m(ButtonN, {
 				label: 'appInfoFDroidImageAlt_alt',
 				click: e => {
-					this.openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
+					this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
 					e.preventDefault()
 				},
 				icon: () => BootIcons.FDroid,
@@ -309,162 +274,45 @@ export class LoginView {
 		])
 	}
 
-	setKnownCredentials(credentials: Credentials[]) {
-		this._knownCredentials = credentials
-		if (this._displayMode === DisplayMode.Credentials && credentials.length === 0) {
-			this._displayMode = DisplayMode.Form
-		}
-		m.redraw()
-	}
-
-	_signup() {
-		if (!this._showingSignup) {
-			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard())).then(dialog => dialog.show())
-		}
-	}
-
 	updateUrl(args: Object, requestedPath: string) {
-		if (requestedPath.startsWith("/signup")) {
-			this._signup()
-			return
-		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
-			return
-		} else if (requestedPath.startsWith("/giftcard")) {
-
-			const showWizardPromise =
-				import("../subscription/giftcards/GiftCardUtils")
-					.then(({getTokenFromUrl}) => getTokenFromUrl(location.hash))
-					.then(([id, key]) => {
-						return worker.initialized
-						             .then(() => worker.giftCardFacade.getGiftCardInfo(id, key))
-						             .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
-							             .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
-					})
-
-			showProgressDialog("loading_msg", showWizardPromise)
-				.then(dialog => dialog.show())
-				.catch((e) => {
-					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
-						throw new UserError("invalidGiftCard_msg")
-					} else {
-						throw e
-					}
-				})
-				.catch(ofClass(UserError, showUserError))
-			return
-		}
-		this._showingSignup = false
-
-
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
 		} else if (args.action) {
-			this._requestedPath = this.targetPath + `?action=${args.action}`
+			// Action needs be forwarded this way in order to be able to deal with cases where a user is not logged in and clicks
+			// on the support link on our website (https://mail.tutanota.com?action=supportMail)
+			this._requestedPath = `/mail?action=${args.action}`
 		} else {
-			this._requestedPath = this.targetPath
+			this._requestedPath = "/mail"
 		}
 
-		let promise = Promise.resolve()
-		if (args.migrateCredentials && client.localStorage() && !localStorage.getItem("tutanotaConfig")) {
-			try {
-				const oldCredentials = JSON.parse(
-					utf8Uint8ArrayToString(
-						base64ToUint8Array(base64UrlToBase64(args.migrateCredentials))))._credentials || []
+		const autoLogin = args.noAutoLogin == null || args.noAutoLogin === false
 
-				promise = showProgressDialog("loading_msg",
-					this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials)))
-			} catch (e) {
-				console.log("Failed to parse old credentials", e)
+		if (autoLogin) {
+			if (args.userId) {
+				this._viewModel.useUserId(args.userId)
 			}
-		} else if (client.localStorage() && localStorage.getItem("config")) { // migrate ios credentials
-			if (localStorage.getItem("tutanotaConfig")) {
-				localStorage.removeItem("config")
-			} else {
-				const oldCredentials = JSON.parse(neverNull(localStorage.getItem("config")))._credentials || []
-				promise = showProgressDialog("loading_msg",
-					this._viewController.then(viewController => viewController.migrateDeviceConfig(oldCredentials))
-					    .finally(() => localStorage.removeItem("config")))
+			if (this._viewModel.canLogin()) {
+				this._loginWithProgressDialog()
+				m.redraw()
+				return
 			}
-
 		}
-		promise.then(() => {
-			// if (this._displayMode) {
-			// 	return
-			// }
-			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
-				args.userId && deviceConfig.getByUserId(args.userId))) {
-				// there are no credentials stored for the desired email address or user id, so let the user enter the password
-				this.mailAddress(args.loginWith)
 
-				// when we pre-fill the email address field we need to delete all current state
-				this.helpText = lang.get('emptyString_msg')
-				this.invalidCredentials = false
-				this.accessExpired = false
-
-				this.password("")
-				this.loginForm.promise.then((loginForm: LoginForm) => {
-					loginForm.passwordTextField.domInput.focus()
-				})
-
-				this._knownCredentials = deviceConfig.getAllInternal()
-				this._displayMode = DisplayMode.Form
-				m.redraw()
-			} else {
-				this._knownCredentials = deviceConfig.getAllInternal()
-				this._displayMode = this._knownCredentials.length > 0 ? DisplayMode.Credentials : DisplayMode.Form
-				let autoLoginCredentials: ?Credentials = null
-				if (args.noAutoLogin !== true && this.permitAutoLogin) {
-					if (args.loginWith && deviceConfig.get(args.loginWith)) {
-						// there are credentials for the desired email address existing, so try to auto login
-						autoLoginCredentials = deviceConfig.get(args.loginWith)
-					} else if (args.userId && deviceConfig.getByUserId(args.userId)) {
-						autoLoginCredentials = deviceConfig.getByUserId(args.userId)
-					} else if (this._knownCredentials.length === 1) {
-						// there is one credentials stored, so try to auto login
-						autoLoginCredentials = this._knownCredentials[0]
-					}
-				}
-				m.redraw()
-				if (autoLoginCredentials) {
-					this._viewController.then(
-						viewController => viewController.autologin(neverNull(autoLoginCredentials)))
-				}
-			}
-
-			if (this._isDeleteCredentials) {
-				this._switchDeleteCredentialsState();
-			}
+		this._viewModel.mailAddress(args.loginWith ?? "")
+		this._viewModel.password("")
+		this.loginForm.promise.then((loginForm: LoginForm) => {
+			loginForm.passwordTextField.domInput.focus()
 		})
-	}
 
-	_showLoginForm(mailAddress: string) {
-		this.mailAddress(mailAddress)
-		this._isDeleteCredentials = false;
-		this._displayMode = DisplayMode.Form
 		m.redraw()
 	}
 
-	_showCredentials() {
-		this._displayMode = DisplayMode.Credentials
-		m.redraw()
-	}
-
-	onBackPress(): boolean {
-		if (this._displayMode !== DisplayMode.Credentials && this._knownCredentials.length > 0) {
-			this._showCredentials()
-			return true
-		}
-		return false
-	}
-
-	openUrl(url: string) {
+	_openUrl(url: string) {
 		window.open(url, '_blank')
 	}
 
 	_switchDeleteCredentialsState(): void {
-		this._isDeleteCredentials = !this._isDeleteCredentials;
-		m.redraw();
+		this._viewModel.switchDeleteState()
 	}
 }
 
@@ -499,5 +347,3 @@ export function renderPrivacyAndImprintLinks(): Children {
 		]
 	)
 }
-
-export const login: LoginView = new LoginView()

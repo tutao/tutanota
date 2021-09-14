@@ -79,11 +79,11 @@ export class DeviceConfig {
 		return this._credentials.map(c => c.mailAddress)
 	}
 
-	get(mailAddress: string): ?Credentials {
+	getSavedCredentialsByMailAddress(mailAddress: string): ?Credentials {
 		return this._credentials.find(c => c.mailAddress === mailAddress)
 	}
 
-	getByUserId(id: Id): ?Credentials {
+	getSavedCredentialsByUserId(id: Id): ?Credentials {
 		return this._credentials.find(c => c.userId === id)
 	}
 

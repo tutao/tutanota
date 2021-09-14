@@ -4,7 +4,7 @@ import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 export type CredentialsSelectorAttrs = {
-	credentials: Credentials[];
+	credentials: $ReadOnlyArray<Credentials>;
 	onCredentialsSelected: Credentials => void;
 	// will show the delete options if this is provided
 	onCredentialsDeleted?: ?(Credentials => void);

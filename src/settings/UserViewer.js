@@ -247,7 +247,7 @@ export class UserViewer {
 				],
 				m(this._userStatusSelector)
 			]),
-			(!logins.getUserController().isOutlookAccount()) ? m(this._secondFactorsForm) : null,
+			m(this._secondFactorsForm),
 			(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 			(this._groupsTable) ? m(this._groupsTable) : null,
 			(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,

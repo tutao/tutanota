@@ -813,7 +813,7 @@ export class SendMailModel {
 			.catch(ofClass(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)}))
 			.catch(ofClass(AccessBlockedError, e => {
 				// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
-				return checkApprovalStatus(true, ApprovalStatus.SPAM_SENDER)
+				return checkApprovalStatus(this._logins, true, ApprovalStatus.SPAM_SENDER)
 					.then(() => {
 						console.log("could not send mail (blocked access)", e)
 						return false

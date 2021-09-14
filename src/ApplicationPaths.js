@@ -11,7 +11,10 @@ type ViewResolvers = {
 	searchViewResolver: RouteResolverMatch,
 	settingsViewResolver: RouteResolverMatch,
 	contactFormViewResolver: RouteResolverMatch,
-	calendarViewResolver: RouteResolverMatch
+	calendarViewResolver: RouteResolverMatch,
+	signupViewResolver: RouteResolverMatch,
+	giftcardViewResolver: RouteResolverMatch,
+	recoverViewResolver: RouteResolverMatch,
 }
 
 export function applicationPaths(
@@ -23,14 +26,16 @@ export function applicationPaths(
 		searchViewResolver,
 		settingsViewResolver,
 		contactFormViewResolver,
-		calendarViewResolver
+		calendarViewResolver,
+		signupViewResolver,
+		giftcardViewResolver,
+		recoverViewResolver,
 	}: ViewResolvers
 ): ApplicationPaths {
 	return {
 		"/login": loginViewResolver,
-		"/signup": loginViewResolver,
-		"/recover": loginViewResolver,
-		"/takeover": loginViewResolver,
+		"/signup": signupViewResolver,
+		"/recover": recoverViewResolver,
 		"/mailto": mailViewResolver,
 		"/mail": mailViewResolver,
 		"/mail/:listId": mailViewResolver,
@@ -48,7 +53,7 @@ export function applicationPaths(
 		"/calendar": calendarViewResolver,
 		"/calendar/:view": calendarViewResolver,
 		"/calendar/:view/:date": calendarViewResolver,
-		"/giftcard/": loginViewResolver,
+		"/giftcard/": giftcardViewResolver,
 	}
 }
 

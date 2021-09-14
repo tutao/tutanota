@@ -52,8 +52,6 @@ export interface IUserController {
 
 	isPremiumAccount(): boolean;
 
-	isOutlookAccount(): boolean;
-
 	isInternalUser(): boolean;
 
 	loadCustomer(): Promise<Customer>;
@@ -133,10 +131,6 @@ export class UserController implements IUserController {
 
 	isPremiumAccount(): boolean {
 		return this.user.accountType === AccountType.PREMIUM
-	}
-
-	isOutlookAccount(): boolean {
-		return this.user.accountType === AccountType.STARTER
 	}
 
 	/**
@@ -301,7 +295,11 @@ export class UserController implements IUserController {
 }
 
 export type UserControllerInitData = {
-	user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean
+	user: User,
+	userGroupInfo: GroupInfo,
+	sessionId: IdTuple,
+	accessToken: Base64Url,
+	persistentSession: boolean,
 }
 
 // noinspection JSUnusedGlobalSymbols
