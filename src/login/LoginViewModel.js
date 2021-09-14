@@ -9,6 +9,7 @@ import {
 } from "../api/common/error/RestError"
 import {assertMainOrNode} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
+import {DeviceConfig} from "../misc/DeviceConfig"
 import {SecondFactorHandler} from "../misc/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
