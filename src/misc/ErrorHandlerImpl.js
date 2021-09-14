@@ -18,7 +18,7 @@ import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull, noOp} from "../api/common/utils/Utils"
-import {logins} from "../api/main/LoginController"
+import {logins, SessionType} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream/stream.js"
@@ -111,9 +111,9 @@ export function handleUncaughtError(e: Error) {
 			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
 			Dialog.showRequestPasswordDialog(errorMessage, {allowCancel: false})
 			      .map(pw => {
+					      // SessionType is Login because it can (seemingly) only happen for long-running (normal) sessions.
 					      showProgressDialog("pleaseWait_msg",
-						      logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
-							      pw, client.getIdentifier(), false, true))
+						      logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, false, SessionType.Login))
 						      .then(() => {
 							      errorMessage("")
 							      loginDialogActive = false

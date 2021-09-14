@@ -433,7 +433,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_showOrderAgreement(): boolean {
-		return (logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount())
+		return (logins.getUserController().isPremiumAccount())
 			&& ((this._customer != null && this._customer.businessUse)
 				|| (this._customer != null && (this._customer.orderProcessingAgreement != null
 					|| this._customer.orderProcessingAgreementNeeded)))
@@ -479,7 +479,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_showPriceData(): boolean {
-		return logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()
+		return logins.getUserController().isPremiumAccount()
 	}
 
 	_updatePriceInfo(): Promise<void> {

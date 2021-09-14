@@ -87,7 +87,7 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 }
 
 function deleteSavedCredentials() {
-	const credentials = deviceConfig.getByUserId(logins.getUserController().user._id)
+	const credentials = deviceConfig.getSavedCredentialsByUserId(logins.getUserController().user._id)
 	if (credentials) {
 		deviceConfig.delete(credentials.mailAddress)
 	}

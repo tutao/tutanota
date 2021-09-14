@@ -118,7 +118,7 @@ export class ExternalLoginView {
 			this._userId = id.substring(0, userIdLength)
 			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
 
-			let credentials = deviceConfig.get(this._userId)
+			let credentials = deviceConfig.getSavedCredentialsByMailAddress(this._userId)
 			if (credentials && args.noAutoLogin !== true) {
 				this._autologin(credentials)
 			} else {
@@ -152,7 +152,7 @@ export class ExternalLoginView {
 			                                 .then(newCredentials => {
 				                                 this._password("")
 				                                 // For external users userId is used instead of email address
-				                                 let storedCredentials = deviceConfig.get(this._userId)
+				                                 let storedCredentials = deviceConfig.getSavedCredentialsByMailAddress(this._userId)
 				                                 if (persistentSession) {
 					                                 deviceConfig.set(newCredentials)
 				                                 }
@@ -173,47 +173,31 @@ export class ExternalLoginView {
 	}
 
 	_handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
-		return login.then(() => this._postLoginActions())
-		            .then(() => {
-			            m.route.set(`/mail${location.hash}`)
-			            this._helpText = 'emptyString_msg'
-		            })
-		            .catch(e => {
-			            const messageId = getLoginErrorMessage(e, true)
-			            if (e instanceof AccessExpiredError) {
-				            this._errorMessageId = messageId
-			            } else {
-				            this._helpText = messageId
-			            }
-			            m.redraw()
-			            // any other kind of error we forward on to the global error handler
-			            if (e instanceof BadRequestError
-				            || e instanceof NotAuthenticatedError
-				            || e instanceof AccessExpiredError
-				            || e instanceof AccessBlockedError
-				            || e instanceof AccessDeactivatedError
-				            || e instanceof TooManyRequestsError
-				            || e instanceof CancelledError) {
-				            return errorAction()
-			            } else {
-				            throw e
-			            }
-		            })
-	}
-
-	_postLoginActions() {
-		// only show "Tutanota" after login if there is no custom title set
-		if (document.title === LOGIN_TITLE) {
-			document.title = "Tutanota"
-		}
-		windowFacade.addOnlineListener(() => {
-			console.log("online")
-			worker.tryReconnectEventBus(true, true, 2000)
-		})
-		windowFacade.addOfflineListener(() => {
-			console.log("offline")
-			worker.closeEventBus(CloseEventBusOption.Pause)
-		})
-		logins.loginComplete()
+		return login
+			.then(() => {
+				m.route.set(`/mail${location.hash}`)
+				this._helpText = 'emptyString_msg'
+			})
+			.catch(e => {
+				const messageId = getLoginErrorMessage(e, true)
+				if (e instanceof AccessExpiredError) {
+					this._errorMessageId = messageId
+				} else {
+					this._helpText = messageId
+				}
+				m.redraw()
+				// any other kind of error we forward on to the global error handler
+				if (e instanceof BadRequestError
+					|| e instanceof NotAuthenticatedError
+					|| e instanceof AccessExpiredError
+					|| e instanceof AccessBlockedError
+					|| e instanceof AccessDeactivatedError
+					|| e instanceof TooManyRequestsError
+					|| e instanceof CancelledError) {
+					return errorAction()
+				} else {
+					throw e
+				}
+			})
 	}
 }

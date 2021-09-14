@@ -5,7 +5,7 @@ import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {Request} from "../../../src/api/common/WorkerProtocol"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
-import {logins} from "../../../src/api/main/LoginController"
+import {logins, SessionType} from "../../../src/api/main/LoginController"
 import {assertThrows} from "../TestUtils"
 
 o.spec("WorkerTest request / response", node(function () {
@@ -23,12 +23,7 @@ o.spec("WorkerTest request / response", node(function () {
 
 	o("login", async function () {
 		o.timeout(5000)
-		try {
-
-			await logins.createSession("map-free@tutanota.de", "map", "Linux Firefox", false, true)
-		} catch (e) {
-			throw e
-		}
+		await logins.createSession("map-free@tutanota.de", "map", false, SessionType.Login)
 	})
 
 	o("programming error handling", async function () {

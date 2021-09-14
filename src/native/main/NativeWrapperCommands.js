@@ -30,7 +30,6 @@ async function createMailEditor(msg: Request): Promise<void> {
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 
 	await logins.waitForUserLogin()
-
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 	let editor
 	if (mailToUrl) {
@@ -48,6 +47,8 @@ async function createMailEditor(msg: Request): Promise<void> {
 		)
 	}
 	editor.show()
+
+
 }
 
 const showAlertDialog = (msg: Request): Promise<void> => {
