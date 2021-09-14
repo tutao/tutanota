@@ -171,7 +171,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			const {LoginView} = await import("./login/LoginView.js")
 			const {LoginViewModel} = await import("./login/LoginViewModel.js")
 			const {secondFactorHandler} = await import("./misc/SecondFactorHandler")
-			const {locator} = await import ("./api/main/MainLocator")
+			const {locator} = await import("./api/main/MainLocator")
 			const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, secondFactorHandler)
 			await loginViewModel.init()
 			return new LoginView(loginViewModel, "/mail")

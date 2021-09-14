@@ -312,9 +312,9 @@ export class LoginView {
 		this._viewModel.password("")
 		// We want to focus password field if login field is already filled in
 		if (args.loginWith) {
-			this.loginForm.promise.then((loginForm: LoginForm) => {
-				loginForm.passwordTextField.domInput.focus()
-			})
+		this.loginForm.promise.then((loginForm: LoginForm) => {
+			loginForm.passwordTextField.domInput.focus()
+		})
 		}
 
 		m.redraw()
