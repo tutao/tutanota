@@ -1,36 +1,54 @@
 //@flow
+import type {DeferredObject} from "../common/utils/Utils"
 import {assertNotNull, defer} from "../common/utils/Utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
+import {AccountType} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
-import type {WorkerClient} from "./WorkerClient"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
+import {NotFoundError} from "../common/error/RestError"
+import {ProgrammingError} from "../common/error/ProgrammingError"
+import {remove} from "../common/utils/ArrayUtils"
+import {client} from "../../misc/ClientDetector"
+import type {LoginFacade} from "../worker/facades/LoginFacade"
 
 assertMainOrNodeBoot()
+
+export interface LoginEventHandler {
+	onLoginSuccess(loggedInEvent: LoggedInEvent): mixed;
+
+	onLoginFailure(): mixed;
+
+	onLogout(): mixed;
+}
+
+export const SessionType = Object.freeze({
+	ContactForm: "ContactForm",
+	SignUp: "SignUp",
+	Login: "Login",
+	GiftCard: "GiftCard",
+})
+export type SessionTypeEnum = $Values<typeof SessionType>
+
+export type LoggedInEvent = {|
+	+sessionType: SessionTypeEnum,
+|}
 
 export interface LoginController {
 	createSession(username: string,
 	              password: string,
-	              clientIdentifier: string,
 	              persistentSession: boolean,
-	              permanentLogin: boolean
+	              sessionType: SessionTypeEnum,
 	): Promise<Credentials>;
 
-	createExternalSession(
-		userId: Id,
-		password: string,
-		salt: Uint8Array,
-		clientIdentifier: string,
-		persistentSession: boolean
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
 	): Promise<Credentials>;
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void>;
 
 	isUserLoggedIn(): boolean;
 
-	waitForUserLogin(): Promise<void>;
-
-	loginComplete(): void;
+	waitForUserLogin(): Promise<LoggedInEvent>;
 
 	isInternalUserLoggedIn(): boolean;
 
@@ -42,47 +60,84 @@ export interface LoginController {
 
 	isEnabled(feature: FeatureTypeEnum): boolean;
 
-	isEnabled(feature: FeatureTypeEnum): boolean;
-
-	loadCustomizations(): Promise<void>;
-
-	determineIfWhitelabel(): Promise<void>;
-
 	isWhitelabel(): boolean;
 
 	logout(sync: boolean): Promise<void>;
+
+	deleteOldSession(accessToken: string): Promise<void>;
+
+	registerHandler(handler: LoginEventHandler): void;
+
+	unregisterHandler(handler: LoginEventHandler): void;
+
 }
 
 export class LoginControllerImpl implements LoginController {
 	_userController: ?IUserController
 	customizations: ?NumberString[]
-	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
+	waitForLogin: DeferredObject<LoggedInEvent> = defer()
 	_isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
+	_loginEventHandlers: Array<LoginEventHandler> = []
 
-	_getWorker(): Promise<WorkerClient> {
-		return import("./MainLocator")
-			.then(locatorModule => locatorModule.locator.initializedWorker)
+	async _getLoginFacade(): Promise<LoginFacade> {
+		const locatorModule = await import("./MainLocator")
+		const worker = await locatorModule.locator.initializedWorker
+		await worker.initialized
+		return worker.loginFacade
 	}
 
-	async createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
-		const {loginFacade} = await this._getWorker()
-		const loginData = await loginFacade.createSession(username, password, clientIdentifier, persistentSession, permanentLogin)
-		const {user, credentials, sessionId, userGroupInfo} = loginData
-		await this._initUserController({
-			user,
-			accessToken: credentials.accessToken,
-			persistentSession,
-			permanentLogin,
-			sessionId,
-			userGroupInfo
+	async createSession(
+		username: string,
+		password: string,
+		persistentSession: boolean,
+		sessionType: SessionTypeEnum,
+	): Promise<Credentials> {
+		if (persistentSession && sessionType !== SessionType.Login) {
+			throw new ProgrammingError("Only login sessions can be persistent")
+		}
+		const permanentLogin = sessionType === SessionType.Login
+		const loginFacade = await this._getLoginFacade()
+		try {
+			const {
+				user,
+				credentials,
+				sessionId,
+				userGroupInfo
+			} = await loginFacade.createSession(username, password, client.getIdentifier(), persistentSession, permanentLogin)
+			await this._initUserController(
+				{
+					user,
+					userGroupInfo,
+					sessionId,
+					accessToken: credentials.accessToken,
+					persistentSession,
+				},
+				sessionType
+			)
+			return credentials
+		} catch (e) {
+			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
+			throw e
+		}
+	}
+
+	registerHandler(handler: LoginEventHandler) {
+		this._loginEventHandlers.push(handler)
+	}
+
+	unregisterHandler(handler: LoginEventHandler) {
+		remove(this._loginEventHandlers, handler)
+	}
+
+	async _initUserController(initData: UserControllerInitData, sessionType: SessionTypeEnum): Promise<void> {
+		const userControllerModule = await import("./UserController")
+		this._userController = await userControllerModule.initUserController(initData)
+		await this.loadCustomizations()
+		await this._determineIfWhitelabel()
+		this._loginEventHandlers.forEach((handler) => {
+			handler.onLoginSuccess({sessionType})
 		})
-		return loginData.credentials
-	}
-
-	_initUserController(initData: UserControllerInitData): Promise<void> {
-		return import("./UserController")
-			.then((userControllerModule) => userControllerModule.initUserController(initData))
-			.then((userController) => this.setUserController(userController))
+		this.waitForLogin.resolve({sessionType})
 	}
 
 	async createExternalSession(
@@ -92,42 +147,57 @@ export class LoginControllerImpl implements LoginController {
 		clientIdentifier: string,
 		persistentSession: boolean
 	): Promise<Credentials> {
-		const {loginFacade} = await this._getWorker()
-		const loginData = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
-		const {user, credentials, sessionId, userGroupInfo} = loginData
-		await this._initUserController({
-			user,
-			accessToken: credentials.accessToken,
-			persistentSession,
-			sessionId,
-			userGroupInfo
-		})
-		return loginData.credentials
+		const worker = await this._getLoginFacade()
+		try {
+			const {
+				user,
+				credentials,
+				sessionId,
+				userGroupInfo
+			} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+			await this._initUserController(
+				{
+					user,
+					accessToken: credentials.accessToken,
+					persistentSession,
+					sessionId,
+					userGroupInfo,
+				},
+				SessionType.Login,
+			)
+			return credentials
+		} catch (e) {
+			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
+			throw e
+		}
 	}
 
 	async resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
-		const {loginFacade} = await this._getWorker()
-		const loginData = await loginFacade.resumeSession(credentials, externalUserSalt)
-		const {user, userGroupInfo, sessionId} = loginData
-		await this._initUserController({
-			user,
-			accessToken: credentials.accessToken,
-			userGroupInfo,
-			sessionId,
-			persistentSession: true
-		})
+		try {
+			const loginFacade = await this._getLoginFacade()
+			const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt)
+			await this._initUserController(
+				{
+					user,
+					accessToken: credentials.accessToken,
+					userGroupInfo,
+					sessionId,
+					persistentSession: true
+				},
+				SessionType.Login,
+			)
+		} catch (e) {
+			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
+			throw e
+		}
 	}
 
 	isUserLoggedIn(): boolean {
 		return this._userController != null
 	}
 
-	waitForUserLogin(): Promise<void> {
+	waitForUserLogin(): Promise<LoggedInEvent> {
 		return this.waitForLogin.promise
-	}
-
-	loginComplete(): void {
-		this.waitForLogin.resolve()
 	}
 
 	isInternalUserLoggedIn(): boolean {
@@ -140,10 +210,6 @@ export class LoginControllerImpl implements LoginController {
 
 	getUserController(): IUserController {
 		return assertNotNull(this._userController) // only to be used after login (when user is defined)
-	}
-
-	setUserController(userController: ?IUserController): void {
-		this._userController = userController
 	}
 
 	isProdDisabled(): boolean {
@@ -168,18 +234,18 @@ export class LoginControllerImpl implements LoginController {
 		}
 	}
 
-	logout(sync: boolean): Promise<void> {
+	async logout(sync: boolean): Promise<void> {
 		if (this._userController) {
-			return this._userController.deleteSession(sync).then(() => {
-				this.setUserController(null)
-			})
+			await this._userController.deleteSession(sync)
+			this._userController = null
+			this.waitForLogin = defer()
+			this._loginEventHandlers.forEach((handler) => handler.onLogout())
 		} else {
 			console.log("No session to delete")
-			return Promise.resolve()
 		}
 	}
 
-	async determineIfWhitelabel(): Promise<void> {
+	async _determineIfWhitelabel(): Promise<void> {
 		this._isWhitelabel = await this.getUserController().isWhitelabelAccount()
 	}
 
@@ -187,6 +253,18 @@ export class LoginControllerImpl implements LoginController {
 		return this._isWhitelabel
 	}
 
+	async deleteOldSession(accessToken: string): Promise<void> {
+		const loginFacade = await this._getLoginFacade()
+		try {
+			await loginFacade.deleteSession(accessToken)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("session already deleted")
+			} else {
+				throw e
+			}
+		}
+	}
 }
 
 export const logins: LoginController = new LoginControllerImpl()

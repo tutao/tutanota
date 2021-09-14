@@ -1187,7 +1187,6 @@ export class MailViewer {
 			return contactsPromise.then(() => {
 				return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					if (defaultInboxRuleField
-						&& !logins.getUserController().isOutlookAccount()
 						&& !logins.isEnabled(FeatureType.InternalCommunication)) {
 						let rule = getExistingRuleForType(logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
 						let actionLabel = rule ? "editInboxRule_action" : "addInboxRule_action"
@@ -1259,7 +1258,7 @@ export class MailViewer {
 	}
 
 	_editDraft(): Promise<void> {
-		return checkApprovalStatus(false).then(sendAllowed => {
+		return checkApprovalStatus(logins,false).then(sendAllowed => {
 			if (sendAllowed) {
 				// check if to be opened draft has already been minimized, iff that is the case, re-open it
 				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.mail)
@@ -1287,7 +1286,7 @@ export class MailViewer {
 		if (this._isAnnouncement()) {
 			return Promise.resolve()
 		}
-		const sendAllowed = await checkApprovalStatus(false)
+		const sendAllowed = await checkApprovalStatus(logins,false)
 		if (sendAllowed) {
 			const mailboxDetails = await this._mailModel.getMailboxDetailsForMail(this.mail)
 			let prefix = "Re: "
@@ -1362,7 +1361,7 @@ export class MailViewer {
 	}
 
 	_forward(): Promise<void> {
-		return checkApprovalStatus(false).then(sendAllowed => {
+		return checkApprovalStatus(logins, false).then(sendAllowed => {
 			if (sendAllowed) {
 				return this._createResponseMailArgsForForwarding([], [], true).then(args => {
 					return Promise.all([this._getMailboxDetails(), import("../editor/MailEditor")])

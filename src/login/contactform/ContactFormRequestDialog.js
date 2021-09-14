@@ -18,7 +18,7 @@ import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {client} from "../../misc/ClientDetector"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
 import {HttpMethod as HttpMethodEnum} from "../../api/common/EntityFunctions"
-import {logins} from "../../api/main/LoginController"
+import {logins, SessionType} from "../../api/main/LoginController"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -254,7 +254,7 @@ export class ContactFormRequestDialog {
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
 				const userEmailAddress = contactFormResult.responseMailAddress
-				await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
+				await logins.createSession(userEmailAddress, password, false, SessionType.ContactForm)
 
 				try {
 					if (cleanedNotificationMailAddress) {

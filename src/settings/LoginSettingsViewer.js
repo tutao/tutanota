@@ -136,8 +136,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(TextFieldN, mailAddressAttrs),
 					m(TextFieldN, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
-					(!user.isOutlookAccount()) ?
-						m(this._secondFactorsForm) : null,
+					m(this._secondFactorsForm),
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(TableN, activeSessionTableAttrs),
 					m(".small", lang.get("sessionsInfo_msg")),

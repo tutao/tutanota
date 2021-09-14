@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 import {neverNull, noOp} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {createWizardDialog, emitWizardEvent, WizardEventType, WizardPageWrapper} from "../../gui/base/WizardDialogN"
-import {logins} from "../../api/main/LoginController"
+import {logins, SessionType} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Dialog} from "../../gui/base/Dialog"
@@ -146,7 +146,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 				} else {
 					const loginPromise =
 						logins.logout(false)
-						      .then(() => logins.createSession(mailAddress, password, client.getIdentifier(), false, false))
+						      .then(() => logins.createSession(mailAddress, password, false, SessionType.GiftCard))
 						      .then(credentials => this._postLogin(data, credentials))
 						      .catch(e => { this._loginFormHelpText = lang.get(getLoginErrorMessage(e, false))})
 					// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
@@ -208,7 +208,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					const {mailAddress, password, recoverCode} = neverNull(newAccountData || existingAccountData)
 					this._password(password)
 					data.mailAddress(mailAddress)
-					logins.createSession(mailAddress, password, client.getIdentifier(), false, false)
+					logins.createSession(mailAddress, password, false, SessionType.GiftCard)
 					      .then(credentials => {
 						      data.credentials(credentials)
 						      emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)

@@ -11,7 +11,7 @@ import {getClientType, Keys, PaymentDataResultType} from "../api/common/Tutanota
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
-import {logins} from "../api/main/LoginController"
+import {logins, SessionType} from "../api/main/LoginController"
 import {client} from "../misc/ClientDetector"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -68,7 +68,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 		let login = Promise.resolve()
 		if (!logins.isUserLoggedIn()) {
-			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
+			// This should be signup
+			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, false, SessionType.SignUp)
 		}
 		login.then(() => {
 			if (!data.accountingInfo || !data.customer) {

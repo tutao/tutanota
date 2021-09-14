@@ -11,7 +11,7 @@ import {client} from "../misc/ClientDetector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 
 export type LoginFormAttrs = {
-	onSubmit: (username: string, password: string) => void,
+	onSubmit: (username: string, password: string) => mixed,
 	mailAddress: Stream<string>,
 	password: Stream<string>,
 	savePassword?: Stream<boolean>,
@@ -22,7 +22,6 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements MComponent<LoginFormAttrs> {
-
 	mailAddressTextField: TextFieldN
 	passwordTextField: TextFieldN
 
@@ -118,20 +117,20 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 						? m('a', {
 							href: '/recover',
 							onclick: e => {
-								m.route.set('/recover')
-								import("./recover/RecoverLoginDialog").then((dialog) => dialog.show(a.mailAddress(), "password"))
+								m.route.set('/recover', {mailAddress: a.mailAddress(), resetAction: "password"})
 								e.preventDefault()
 							}
 						}, lang.get("recoverAccountAccess_action"))
-						: (a.accessExpired && a.accessExpired ? m('a', {
-							href: '/takeover',
-							onclick: e => {
-								m.route.set('/takeover')
-								import("./recover/TakeOverDeletedAddressDialog")
-									.then(({showTakeOverDialog}) => showTakeOverDialog(a.mailAddress(), a.password()))
-								e.preventDefault()
-							}
-						}, lang.get("help_label")) : null)
+						: (a.accessExpired && a.accessExpired
+							? m('a', {
+								href: '#',
+								onclick: e => {
+									import("./recover/TakeOverDeletedAddressDialog")
+										.then(({showTakeOverDialog}) => showTakeOverDialog(a.mailAddress(), a.password()))
+									e.preventDefault()
+								}
+							}, lang.get("help_label"))
+							: null)
 				])),
 		])
 	}

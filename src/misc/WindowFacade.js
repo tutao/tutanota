@@ -112,7 +112,7 @@ class WindowFacade {
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if(env.mode === Mode.Desktop && client.isMacOS && window.addEventListener) {
+		if (env.mode === Mode.Desktop && client.isMacOS && window.addEventListener) {
 			window.addEventListener('keydown', e => {
 				if (!e.metaKey || e.key === 'Meta') return
 				// prevent history nav if the active element is an input / squire editor
