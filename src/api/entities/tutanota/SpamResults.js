@@ -5,18 +5,18 @@ import {TypeRef} from "../../common/utils/TypeRef"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
-export const CalendarEventIndexRefTypeRef: TypeRef<CalendarEventIndexRef> = new TypeRef("tutanota", "CalendarEventIndexRef")
+export const SpamResultsTypeRef: TypeRef<SpamResults> = new TypeRef("tutanota", "SpamResults")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarEventIndexRef",
-	"since": 42,
+	"name": "SpamResults",
+	"since": 48,
 	"type": "AGGREGATED_TYPE",
-	"id": 1100,
-	"rootId": "CHR1dGFub3RhAARM",
+	"id": 1217,
+	"rootId": "CHR1dGFub3RhAATB",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1101,
+			"id": 1218,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,23 +25,23 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"list": {
-			"id": 1102,
+			"id": 1219,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "CalendarEventUidIndex"
+			"refType": "SpamResult"
 		}
 	},
 	"app": "tutanota",
 	"version": "48"
 }
 
-export function createCalendarEventIndexRef(values?: $Shape<$Exact<CalendarEventIndexRef>>): CalendarEventIndexRef {
-	return Object.assign(create(_TypeModel, CalendarEventIndexRefTypeRef), values)
+export function createSpamResults(values?: $Shape<$Exact<SpamResults>>): SpamResults {
+	return Object.assign(create(_TypeModel, SpamResultsTypeRef), values)
 }
 
-export type CalendarEventIndexRef = {
-	_type: TypeRef<CalendarEventIndexRef>;
+export type SpamResults = {
+	_type: TypeRef<SpamResults>;
 
 	_id: Id;
 

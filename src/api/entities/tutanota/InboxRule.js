@@ -47,7 +47,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createInboxRule(values?: $Shape<$Exact<InboxRule>>): InboxRule {

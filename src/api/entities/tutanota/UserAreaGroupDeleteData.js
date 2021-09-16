@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createUserAreaGroupDeleteData(values?: $Shape<$Exact<UserAreaGroupDeleteData>>): UserAreaGroupDeleteData {

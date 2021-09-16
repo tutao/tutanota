@@ -4,6 +4,7 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "../../common/utils/TypeRef"
 import type {TypeModel} from "../../common/EntityTypes"
 
+import type {SpamResults} from "./SpamResults"
 import type {MailFolderRef} from "./MailFolderRef"
 
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
@@ -67,6 +68,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"spamResults": {
+			"id": 1220,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "SpamResults",
+			"dependency": null
+		},
 		"systemFolders": {
 			"id": 443,
 			"type": "AGGREGATION",
@@ -98,7 +107,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
@@ -117,6 +126,7 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: ?Uint8Array;
 
+	spamResults: ?SpamResults;
 	systemFolders: ?MailFolderRef;
 	mails: Id;
 	receivedAttachments: Id;

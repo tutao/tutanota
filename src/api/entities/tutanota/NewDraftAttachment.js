@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {

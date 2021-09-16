@@ -77,7 +77,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createUserSettingsGroupRoot(values?: $Shape<$Exact<UserSettingsGroupRoot>>): UserSettingsGroupRoot {
