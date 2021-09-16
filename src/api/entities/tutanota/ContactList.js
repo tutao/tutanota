@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "47"
+	"version": "48"
 }
 
 export function createContactList(values?: $Shape<$Exact<ContactList>>): ContactList {

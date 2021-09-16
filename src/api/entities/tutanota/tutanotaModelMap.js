@@ -123,6 +123,7 @@ const map: {[string]: () => mixed} = {
     KnowledgeBaseEntry: () => import('./KnowledgeBaseEntry'),
     TemplateGroupRoot: () => import('./TemplateGroupRoot'),
     UserAreaGroupDeleteData: () => import('./UserAreaGroupDeleteData'),
-    MailboxProperties: () => import('./MailboxProperties')
+    MailboxProperties: () => import('./MailboxProperties'),
+    SpamResults: () => import('./SpamResults')
 }
 export default map
