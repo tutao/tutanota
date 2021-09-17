@@ -1,11 +1,3 @@
-//
-//  TutaoErrorFactory.m
-//  Tutanota
-//
-//  Created by Tutao GmbH on 28.10.16.
-//
-//
-
 #import <Foundation/Foundation.h>
 #import "TUTErrorFactory.h"
 

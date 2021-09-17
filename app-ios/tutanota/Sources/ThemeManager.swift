@@ -1,22 +1,12 @@
-//
-//  ThemeManager.swift
-//  tutanota
-//
-//  Created by Tutao GmbH on 6/11/21.
-//  Copyright © 2021 Tutao GmbH. All rights reserved.
-//
-
 import Foundation
 
 typealias ThemeId = String
 typealias Theme = Dictionary<String, String>
 
-let SELECTED_THEME = "theme"
-let THEMES = "themes"
+fileprivate let SELECTED_THEME = "theme"
+fileprivate let THEMES = "themes"
 
-@objc
 class ThemeManager : NSObject {
-  @objc
   public var selectedThemeId: ThemeId {
     get {
       return UserDefaults.standard.object(forKey: SELECTED_THEME) as! ThemeId? ?? "light"
@@ -26,7 +16,6 @@ class ThemeManager : NSObject {
     }
   }
   
-  @objc
   public var themes: Array<Theme> {
     get {
       UserDefaults.standard.object(forKey: THEMES) as! Array<Theme>? ?? []
@@ -36,14 +25,12 @@ class ThemeManager : NSObject {
     }
   }
   
-  @objc
   public var currentTheme: Theme? {
     get {
       return themes.first { theme in theme["themeId"] == selectedThemeId }
     }
   }
   
-  @objc
   public var currentThemeWithFallback: Theme {
     get {
       currentTheme ?? [

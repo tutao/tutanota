@@ -1,10 +1,4 @@
-//
-//  TUTErrorFactory.h
-//  Tutanota
-//
-//  Created by Tutao GmbH on 28.10.16.
-//
-//
+NS_ASSUME_NONNULL_BEGIN
 
 extern NSString *const TUT_ERROR_DOMAIN;
 extern NSString *const TUT_CRYPTO_ERROR;
@@ -18,3 +12,5 @@ extern NSString *const TUT_NETWORK_ERROR;
 + (NSError *)wrapNativeErrorWithDomain:(NSString *)domain message:(NSString *)description error:(NSError *)error;
 + (NSError *)wrapCryptoErrorWithMessage:(NSString *)descrption error:(NSError *)error;
 @end
+
+NS_ASSUME_NONNULL_END

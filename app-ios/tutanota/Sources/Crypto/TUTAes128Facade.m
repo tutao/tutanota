@@ -1,11 +1,3 @@
-//
-//  TUTAes128Facade.m
-//
-//  Created by Tutao GmbH on 19.10.16.
-//  Copyright © 2016 Tutao GmbH. All rights reserved.
-//
-
-
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCryptor.h>
 #import <CommonCrypto/CommonHMAC.h>
@@ -27,9 +19,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 };
 
 @implementation TUTAes128Facade
-
-
-+ (NSData*) encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error{
++ (NSData*)encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error {
 	NSInputStream *inputStream = [[NSInputStream alloc]initWithData:plainText];
 	NSOutputStream *outputStream = [[NSOutputStream alloc] initToMemory];
 	[outputStream open];
@@ -54,7 +44,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 	return encryptedData;
 }
 
-+  (TUTSubKeys *)getSubKeys:(NSData *)key withMac:(BOOL)useMac{
++ (TUTSubKeys *)getSubKeys:(NSData *)key withMac:(BOOL)useMac {
 	TUTSubKeys * subKeys;
 	if (useMac) {
 		NSData *hash = [TUTCrypto sha256:key];
@@ -65,7 +55,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 	return subKeys;
 }
 
-+ (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
++ (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error {
 	if ([iv length] != TUTAO_IV_BYTE_SIZE){
 		*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"invalid iv length"];
 		return NO;
@@ -77,8 +67,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
     return [TUTAes128Facade executeCryptOperation:kCCEncrypt onStream:plainText result:output withKey:key iv:iv padding:YES error:error];
 }
 
-+ (NSData*) decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error{
-
++ (NSData*)decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error {
 	NSData *cipherTextWithoutMac;
 	BOOL useMac = [encryptedData length]  % 2 == 1;
 	let subKeys = [TUTAes128Facade getSubKeys:key withMac:useMac];
@@ -120,7 +109,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
     return decryptedKey;
 }
 
-+ (NSString *)decryptBase64String:(NSString *)string encryptionKey:(NSData *)encryptionKey error:(NSError **)error {
++ (NSString *_Nullable)decryptBase64String:(NSString *)string encryptionKey:(NSData *)encryptionKey error:(NSError **)error {
     NSData *data = [TUTEncodingConverter base64ToBytes:string];
     NSData *decrypted = [TUTAes128Facade decrypt: data withKey:encryptionKey error:error];
     if (*error) {
@@ -129,7 +118,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
     return [TUTEncodingConverter bytesToString:decrypted];
 }
 
-+ (BOOL) decryptStream:(NSInputStream*)encryptedData result:(NSOutputStream*)output withKey:(NSData*)key error:(NSError**)error{
++ (BOOL)decryptStream:(NSInputStream*)encryptedData result:(NSOutputStream*)output withKey:(NSData*)key error:(NSError**)error {
 	NSData* iv = [TUTAes128Facade readIvFromStream:encryptedData];
 	if (!iv){
 		return NO;
@@ -138,7 +127,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 }
 
 
-+ (NSData*) readIvFromStream:(NSInputStream*)stream {
++ (NSData*)readIvFromStream:(NSInputStream*)stream {
 	uint8_t readBuffer[TUTAO_IV_BYTE_SIZE];
 	size_t readBytes;
 	
@@ -151,7 +140,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 	return iv ;
 }
 
-+ (BOOL) executeCryptOperation:(CCOperation) operation onStream:(NSInputStream*)inputStream result:(NSOutputStream*)outputStream withKey:(NSData*)key iv:(NSData*)iv padding:(BOOL)padding error:(NSError**)error{
++ (BOOL)executeCryptOperation:(CCOperation) operation onStream:(NSInputStream*)inputStream result:(NSOutputStream*)outputStream withKey:(NSData*)key iv:(NSData*)iv padding:(BOOL)padding error:(NSError**)error {
 	CCCryptorRef cryptor = NULL;
 	CCCryptorStatus cryptorStatus;
 	
@@ -214,7 +203,7 @@ static const uint8_t FIXED_IV_BYTES[] = {
 	}
 }
 
-+ (BOOL)writeBytes:(const void *)dataIn dataInLength:(NSUInteger)dataInLength to: (NSOutputStream*) output error:(NSError**) error{
++ (BOOL)writeBytes:(const void *)dataIn dataInLength:(NSUInteger)dataInLength to: (NSOutputStream*)output error:(NSError**)error {
 	if(![output hasSpaceAvailable]){
 		*error = [TUTErrorFactory createError:@"No space available for output stream"];
 		return NO;

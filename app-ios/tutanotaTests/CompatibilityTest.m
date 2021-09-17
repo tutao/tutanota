@@ -11,6 +11,7 @@
 #import "TUTEncodingConverter.h"
 #import <Foundation/Foundation.h>
 #import "TUTCrypto.h"
+#import "TUTBigNum.h"
 #import "Swiftier.h"
 #import <openssl/bn.h>
 #import <openssl/ossl_typ.h>
@@ -61,9 +62,9 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 - (void) testBignumToB64 {
 	BIGNUM *number = BN_new();
 	BN_dec2bn(&number, "1");
-	NSString *b64Number = [TUTCrypto toB64:number];
+	NSString *b64Number = [TUTBigNum toB64:number];
 	BIGNUM *convertedNumber = BN_new();
-	[TUTCrypto toBIGNUM:convertedNumber fromB64:b64Number];
+	[TUTBigNum toBIGNUM:convertedNumber fromB64:b64Number];
 	XCTAssertEqual(0, BN_cmp(number, convertedNumber));
 }
 
@@ -83,10 +84,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 
 	NSArray *testsCases = self.testData[@"rsaEncryptionTests"];
 	let crypto = [TUTCrypto new];
-	NSMutableArray<XCTestExpectation *> *expectations = [NSMutableArray new];
 	for	(NSDictionary *testCase in testsCases ) {
-		XCTestExpectation *expectation = [self expectationWithDescription:[NSString stringWithFormat:@"Testing %@", testCase]];
-		[expectations addObject:expectation];
 
 		let publicKey = [CompatibilityTest hexToPublicKey: testCase[@"publicKey"]];
 		let plainTextB64 = [self hexToB64:testCase[@"input"]];
@@ -95,20 +93,14 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 
 		NSData *seed = [[NSData alloc] initWithBase64EncodedString:seedB64 options:0];
 		randValueMock = (unsigned char *)seed.bytes;
-
-		[crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seedB64
-							 completion:^(NSString * _Nullable encryptedBase64, NSError * _Nullable error) {
-							 	 XCTAssertEqualObjects(encryptedBase64, encResultB64);
-								 let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
-								 [crypto rsaDecryptWithPrivateKey:privateKey base64Data:encryptedBase64
-													   completion:^(NSString * _Nullable decryptedBase64, NSError * _Nullable error) {
-														   XCTAssertEqualObjects(decryptedBase64, plainTextB64);
-														   [expectation fulfill];
-													   }];
-							 }];
+    
+    NSError *error;
+    let encryptedBase64 = [crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seedB64 error:&error];
+    XCTAssertEqualObjects(encryptedBase64, encResultB64);
+    let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
+    let decryptedBase64 = [crypto rsaDecryptWithPrivateKey:privateKey base64Data:encryptedBase64 error:&error];
+    XCTAssertEqualObjects(decryptedBase64, plainTextB64);
 	}
-
-	[self waitForExpectations:expectations timeout:10000];
 }
 
 - (void)testAes128{
@@ -222,7 +214,7 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 			//let nextParamValue = [TUTEncodingConverter bytesToBase64: [TUTEncodingConverter hexToBytes:nextParamValueHex]];
 			var nextParamValue = BN_new();
 			BN_hex2bn(&nextParamValue, nextParamValueHex.UTF8String);
-			[key addObject:[TUTCrypto toB64:nextParamValue]];
+			[key addObject:[TUTBigNum toB64:nextParamValue]];
 			pos += nextParamLen;
 		}
 		//_validateKeyLength(key)
@@ -231,24 +223,26 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 }
 
 
-+ (NSDictionary<NSString*, NSString*>*) hexToPrivateKey:( NSString*) hexKey {
++ (TUTPrivateKey *) hexToPrivateKey:( NSString*) hexKey {
 	let privateKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
-	return @{
-				 @"modulus": privateKeyArray[0],
-				 @"privateExponent":privateKeyArray[1],
-				 @"primeP":privateKeyArray[2],
-				 @"primeQ":privateKeyArray[3],
-				 @"primeExponentP":privateKeyArray[4],
-				 @"primeExponentQ":privateKeyArray[5],
-				 @"crtCoefficient":privateKeyArray[6],
-				 };
+  let dict = @{
+    @"modulus": privateKeyArray[0],
+    @"privateExponent":privateKeyArray[1],
+    @"primeP":privateKeyArray[2],
+    @"primeQ":privateKeyArray[3],
+    @"primeExponentP":privateKeyArray[4],
+    @"primeExponentQ":privateKeyArray[5],
+    @"crtCoefficient":privateKeyArray[6],
+    };
+  return [[TUTPrivateKey alloc] initWithDict:dict];
 }
 
-+ (NSDictionary<NSString*, NSString*>*) hexToPublicKey:( NSString*) hexKey {
++ (TUTPublicKey *) hexToPublicKey:( NSString*) hexKey {
 	let publicKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
-	return @{
+	let dict = @{
 			 @"modulus":publicKeyArray[0]
 			 };
+  return [[TUTPublicKey alloc] initWithDict:dict];
 }
 
 - (NSString*) hexToB64:(NSString *) hexString {
