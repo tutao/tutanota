@@ -1,14 +1,5 @@
-//
-//  UIColor+hex.swift
-//  tutanota
-//
-//  Created by Tutao GmbH on 6/1/21.
-//  Copyright © 2021 Tutao GmbH. All rights reserved.
-//
-
 import UIKit
 
-@objc
 public extension UIColor {
 
   /// Convenience constructor to initialize from a hex color string.
@@ -16,9 +7,7 @@ public extension UIColor {
   /// #RGB
   /// #RRGGBB
   /// #RRGGBBAA
-  @objc
   convenience init?(hex: String) {
-    
     var color: UInt32 = 0
     if parseColorCode(hex, &color) {
       let r = CGFloat(redPart(color)) / 255.0
@@ -33,7 +22,6 @@ public extension UIColor {
     return nil
   }
   
-  @objc
   func isLight() -> Bool {
     var r: CGFloat = 0
     var g: CGFloat = 0

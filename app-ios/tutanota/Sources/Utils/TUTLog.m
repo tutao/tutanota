@@ -1,11 +1,3 @@
-//
-//  TUTLog.m
-//  tutanota
-//
-//  Created by Tutao GmbH on 26.09.19.
-//  Copyright © 2019 Tutao GmbH. All rights reserved.
-//
-
 #import "TUTLog.h"
 #import "Swiftier.h"
 #import "PSPDFFastEnumeration.h"

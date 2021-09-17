@@ -1,20 +1,13 @@
-//
-//  TUTAes128Facade.h
-//
-//  Created by Tutao GmbH on 20.10.16.
-//  Copyright © 2016 Tutao GmbH. All rights reserved.
-//
-
-
+NS_ASSUME_NONNULL_BEGIN
 
 extern NSInteger const TUTAO_IV_BYTE_SIZE;
 
 @interface TUTAes128Facade : NSObject
 
-+ (NSData *)encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error;
-+ (NSData *)decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error;
-+ (NSData *)decryptKey:(NSData *)encryptedKey withEncryptionKey:(NSData *)encryptionKey error:(NSError**)error;
-+ (NSString *)decryptBase64String:(NSString *)string encryptionKey:(NSData *)encryptionKey error:(NSError **)error;
++ (NSData *_Nullable)encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error;
++ (NSData *_Nullable)decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error;
++ (NSData *_Nullable)decryptKey:(NSData *)encryptedKey withEncryptionKey:(NSData *)encryptionKey error:(NSError**)error;
++ (NSString *_Nullable)decryptBase64String:(NSString *)string encryptionKey:(NSData *)encryptionKey error:(NSError **)error;
 @end
 
-
+NS_ASSUME_NONNULL_END
