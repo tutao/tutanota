@@ -11,7 +11,6 @@ import PhotosUI
 import UIKit
 
 /// Utility class which shows pickers for files.
-@objc
 class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate,
   UIDocumentMenuDelegate, UIPopoverPresentationControllerDelegate, UIDocumentPickerDelegate
 {
@@ -21,29 +20,29 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   private var attachmentTypeMenu: UIDocumentMenuViewController?
   private var imagePickerController: UIImagePickerController
   private var supportedUTIs: [String]
-  private var resultHandler: (([String]?, Error?) -> Void)?
+  private var resultHandler: ResponseCallback<[String]>?
   private var popOverPresentationController: UIPopoverPresentationController?
 
-  @objc init(viewController: UIViewController) {
+  init(viewController: UIViewController) {
     self.supportedUTIs = ["public.content", "public.archive", "public.data"]
     self.sourceController = viewController
     self.imagePickerController = UIImagePickerController()
-    self.cameraImage = TUTFontIconFactory.createFontImage(
-      forIconId: TUT_ICON_CAMERA, fontName: "ionicons", size: 34)
-    self.photoLibImage = TUTFontIconFactory.createFontImage(
-      forIconId: TUT_ICON_FILES, fontName: "ionicons", size: 34)
+    self.cameraImage = IconFactory.createFontImage(
+      iconId: TUT_ICON_CAMERA, fontName: "ionicons", fontSize: 34)
+    self.photoLibImage = IconFactory.createFontImage(
+      iconId: TUT_ICON_FILES, fontName: "ionicons", fontSize: 34)
     super.init()
     self.imagePickerController.delegate = self
   }
 
-  @objc public func open(
+  public func open(
     withAnchorRect anchorRect: CGRect,
-    completion completionHandler: @escaping ([String]?, Error?) -> Void
+    completion completionHandler: @escaping ResponseCallback<[String]>
   ) {
     if let previousHandler = self.resultHandler {
         TUTSLog("Another file picker is already open?")
         self.sourceController.dismiss(animated: true, completion: nil)
-        previousHandler([], nil)
+      previousHandler(.success([]))
     }
     self.resultHandler = completionHandler
 
@@ -62,7 +61,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         popOverPresentationController?.sourceView = sourceController.view
         popOverPresentationController?.sourceRect = anchorRect
       }
-      let photosLabel = TUTUtils.translate("TutaoChoosePhotosAction", default: "Photos")
+      let photosLabel = translate("TutaoChoosePhotosAction", default: "Photos")
       attachmentTypeMenu.addOption(
         withTitle: photosLabel, image: self.photoLibImage, order: .first,
         handler: { [weak self] in
@@ -96,7 +95,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     // add menu item for opening the camera and take a photo or video.
     // according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
     if UIImagePickerController.isSourceTypeAvailable(.camera) {
-      let cameraLabel = TUTUtils.translate("TutaoShowCameraAction", default: "Camera")
+      let cameraLabel = translate("TutaoShowCameraAction", default: "Camera")
       attachmentTypeMenu.addOption(
         withTitle: cameraLabel, image: self.cameraImage, order: .first
       ) { [weak self] in
@@ -185,7 +184,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     // we have to copy the file into a folder of this app.
     let targetFolder: String
     do {
-      targetFolder = try TUTFileUtil.getDecryptedFolder()
+      targetFolder = try FileUtils.getDecryptedFolder()
     } catch {
       self.sendError(error: error)
       return
@@ -307,7 +306,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 
   private func copyToLocalFolder(srcUrl: URL, filename: String) throws -> URL {
     let targetFolder: String
-    targetFolder = try TUTFileUtil.getDecryptedFolder()
+    targetFolder = try FileUtils.getDecryptedFolder()
     let targetUrl = URL(fileURLWithPath: targetFolder).appendingPathComponent(filename)
     let fileManager = FileManager.default
     // NSFileManager copyItemAtUrl returns an error if the file alredy exists. so delete it first.
@@ -334,12 +333,12 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   }
 
   func sendMultipleResults(filePaths: [String]) {
-    self.resultHandler?(filePaths, nil)
+    self.resultHandler?(.success(filePaths))
     self.resultHandler = nil
   }
 
   func sendError(error: Error) {
-    self.resultHandler?(nil, error)
+    self.resultHandler?(.failure(error))
     self.resultHandler = nil
   }
 

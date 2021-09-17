@@ -20,13 +20,65 @@
 #import "TUTCrypto.h"
 #import "TUTAes128Facade.h"
 #import "TUTEncodingConverter.h"
-#import "TUTFileUtil.h"
 #import "TUTErrorFactory.h"
 #import "../Utils/TUTLog.h"
+#import "TUTBigNum.h"
 
 #import "Swiftier.h"
+#import "../Utils/PSPDFFastEnumeration.h"
 
 static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
+static NSInteger const PUBLIC_EXPONENT = 65537;
+static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
+
+@implementation TUTPublicKey : NSObject
+- (instancetype)initWithVersion:(NSInteger)version
+                      keyLength:(NSInteger)keyLength
+                        modulus:(NSString *)modulus
+                 publicExponent:(NSInteger)publicExponent {
+  self = [super init];
+  _version = version;
+  _keyLength = keyLength;
+  _modulus = modulus;
+  _publicExponent = publicExponent;
+  return self;
+}
+@end
+
+@implementation TUTPrivateKey : NSObject
+- (instancetype)initWithVersion:(NSInteger)version
+                      keyLength:(NSInteger)keyLength
+                        modulus:(NSString *)modulus
+                privateExponent:(NSString *)privateExponent
+                         primeP:(NSString *)primeP
+                         primeQ:(NSString *)primeQ
+                 primeExponentP:(NSString *)primeExponentP
+                 primeExponentQ:(NSString *)primeExponentQ
+                 crtCoefficient:(NSString *)crtCoefficient {
+
+  self = [super init];
+  _version = version;
+  _keyLength = keyLength;
+  _modulus = modulus;
+  _privateExponent = privateExponent;
+  _primeP = primeP;
+  _primeQ = primeQ;
+  _primeExponentP = primeExponentP;
+  _primeExponentQ = primeExponentQ;
+  _crtCoefficient = crtCoefficient;
+  return self;
+}
+@end
+
+@implementation TUTKeyPair : NSObject
+- (instancetype)initWithPublicKey:(TUTPublicKey *)publicKey
+                       privateKey:(TUTPrivateKey *)privateKey {
+  self = [super init];
+  _publicKey = publicKey;
+  _privateKey = privateKey;
+  return self;
+}
+@end
 
 @interface TUTCrypto ()
 @property (readwrite) dispatch_queue_t serialQueue;
@@ -34,146 +86,119 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 @implementation TUTCrypto
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-		dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
-		self.serialQueue = dispatch_queue_create("de.tutao.serialqueue", queueAttributes);
-    }
-    return self;
+- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed error:(NSError **)error {
+  // seeds the PRNG (pseudorandom number generator)
+  NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
+  RAND_seed([seed bytes], (int) [seed length]);
+  
+  
+  RSA* rsaKey = RSA_new();
+  BIGNUM * e = BN_new();
+  BN_dec2bn(&e, [PUBLIC_EXPONENT_STRING UTF8String]); // public exponent <- 65537
+  
+  // generate rsa key
+  int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
+  TUTKeyPair *keyPair;
+  if (status > 0){
+    keyPair = [TUTCrypto createRSAKeyPair:rsaKey
+                                keyLength:RSA_KEY_LENGTH_IN_BITS
+                                  version:0];
+  } else {
+    *error = [TUTCrypto logOpenSslError:@"Error while generating rsa key" statusCode:status];
+  }
+  BN_free(e);
+  RSA_free(rsaKey);
+  return keyPair;
 }
 
-- (void)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed
-					completion:(void (^)(NSDictionary *keyPair, NSError *error))completion {
-	dispatch_async(self.serialQueue, ^{
-		// seeds the PRNG (pseudorandom number generator)
-		NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
-		RAND_seed([seed bytes], (int) [seed length]);
-
-
-		RSA* rsaKey = RSA_new();
-		NSString * publicExponent = @"65537";
-		BIGNUM * e = BN_new();
-		BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
-
-		// generate rsa key
-		int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
-		if (status > 0){
-			NSMutableDictionary* keyPair = [TUTCrypto createRSAKeyPair:rsaKey
-														  keyLength:[NSNumber numberWithInteger: RSA_KEY_LENGTH_IN_BITS]
-															version:[NSNumber numberWithInt:0]];
-			completion(keyPair, nil);
-		} else {
-			let error = [TUTCrypto logOpenSslError:@"Error while generating rsa key" statusCode:status];
-			completion(nil, error);
-		}
-		BN_free(e);
-		RSA_free(rsaKey);
-	});
-}
-
-- (void)rsaEncryptWithPublicKey:(NSObject * _Nonnull)publicKey
-					 base64Data:(NSString * _Nonnull)base64Data
-					 base64Seed:(NSString * _Nonnull)base64Seed
-					completion:(void (^ _Nonnull)(NSString * _Nullable encryptedBase64, NSError * _Nullable error))completion {
+- (NSString *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey * _Nonnull)publicKey
+                     base64Data:(NSString * _Nonnull)base64Data
+                     base64Seed:(NSString * _Nonnull)base64Seed
+                          error: (NSError **)error {
 	//convert json data to private key;
 	RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
 
 	// convert base64 data to bytes.
 	NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
 
-	dispatch_async(self.serialQueue, ^{
-		int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
-		NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
-		int paddingLength = (int) [paddingBuffer length];
-
-		// seeds the PRNG (pseudorandom number generator)
-		NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
-		RAND_seed([seed bytes], (int) [seed length]);
-
-		// add padding
-		int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [decodedData bytes], (int) [decodedData length], NULL, 0);
-
-		NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
-		if (status >= 0) {
-			// encrypt
-			status = RSA_public_encrypt(paddingLength, [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
-		}
-		if (status >= 0) {
-			// Success
-			NSString* encryptedBase64 = [encryptedData base64EncodedStringWithOptions:0];
-			completion(encryptedBase64, nil);
-		} else {
-			// Error handling
-			let error = [TUTCrypto logOpenSslError:@"rsa encryption failed" statusCode:status];
-			completion(nil, error);
-		}
-		RSA_free(publicRsaKey);
-	});
+  int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
+  NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
+  int paddingLength = (int) [paddingBuffer length];
+  
+  // seeds the PRNG (pseudorandom number generator)
+  NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
+  RAND_seed([seed bytes], (int) [seed length]);
+  
+  // add padding
+  int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [decodedData bytes], (int) [decodedData length], NULL, 0);
+  
+  NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
+  if (status >= 0) {
+    // encrypt
+    status = RSA_public_encrypt(paddingLength, [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
+  }
+  NSString *encryptedBase64;
+  if (status >= 0) {
+    // Success
+    encryptedBase64 = [encryptedData base64EncodedStringWithOptions:0];
+  } else {
+    // Error handling
+    *error = [TUTCrypto logOpenSslError:@"rsa encryption failed" statusCode:status];
+  }
+  RSA_free(publicRsaKey);
+  return encryptedBase64;
 }
 
 
-- (void)rsaDecryptWithPrivateKey:(NSObject * _Nonnull)privateKey
-					  base64Data:(NSString * _Nonnull)base64Data
-					  completion:(void (^)(NSString * _Nullable decryptedBase64, NSError * _Nullable error))completion {
-
-	//convert json data to private key;
-	RSA* privateRsaKey = [TUTCrypto createPrivateRSAKey:privateKey];
-
-	int rsaCheckResult = RSA_check_key(privateRsaKey);
-	if (rsaCheckResult != 1){
-		let error = [TUTCrypto logOpenSslError:@"Invald private rsa key" statusCode:rsaCheckResult];
-		completion(nil, error);
-		RSA_free(privateRsaKey);
-		return;
-	}
-
-	// convert encrypted base64 data to bytes.
-	NSData *decodedData =  [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
-
-	int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
-	NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
-
-	dispatch_async(self.serialQueue, ^{
-		// Decrypt
-		int status = RSA_private_decrypt((int) [decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
-
-		NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
-		// decryption succesfull remove padding
-		if ( status >= 0 ){
-			// converstion to bn and back is necessary to prepare paremeter flen for RSA_padding_check. Passing 256 to flen does not work.
-			// see: http://marc.info/?l=openssl-users&m=108573630510562&w=2
-			BIGNUM *bn = BN_bin2bn([decryptedBuffer bytes], (int) [decryptedBuffer length], NULL);
-			int flen = BN_bn2bin(bn, [decryptedBuffer mutableBytes]);
-			status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], (int) [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
-		}
-
-		if (status > 0) {
-			// Success
-			NSData* decryptedData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
-			NSString* decryptedBase64 = [decryptedData base64EncodedStringWithOptions:0];
-			completion(decryptedBase64, nil);
-		} else {
-			// Error handling
-			let error = [TUTCrypto logOpenSslError:@"rsa decryption failed" statusCode:status];
-			completion(nil, error);
-		}
-		RSA_free(privateRsaKey);
-	});
+- (NSString *_Nullable)rsaDecryptWithPrivateKey:(TUTPrivateKey * )privateKey
+                                     base64Data:(NSString *)base64Data
+                                          error:(NSError **)error {
+  //convert json data to private key;
+  RSA* privateRsaKey = [TUTCrypto createPrivateRSAKey:privateKey];
+  
+  int rsaCheckResult = RSA_check_key(privateRsaKey);
+  if (rsaCheckResult != 1){
+    *error = [TUTCrypto logOpenSslError:@"Invald private rsa key" statusCode:rsaCheckResult];
+    RSA_free(privateRsaKey);
+    return nil;
+  }
+  
+  // convert encrypted base64 data to bytes.
+  NSData *decodedData =  [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
+  
+  int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
+  NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
+  
+  // Decrypt
+  int status = RSA_private_decrypt((int) [decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
+  
+  NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
+  // decryption succesfull remove padding
+  if ( status >= 0 ){
+    // converstion to bn and back is necessary to prepare paremeter flen for RSA_padding_check. Passing 256 to flen does not work.
+    // see: http://marc.info/?l=openssl-users&m=108573630510562&w=2
+    BIGNUM *bn = BN_bin2bn([decryptedBuffer bytes], (int) [decryptedBuffer length], NULL);
+    int flen = BN_bn2bin(bn, [decryptedBuffer mutableBytes]);
+    status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], (int) [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
+  }
+  
+  NSString* decryptedBase64;
+  if (status > 0) {
+    // Success
+    NSData* decryptedData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
+    decryptedBase64 = [decryptedData base64EncodedStringWithOptions:0];
+  } else {
+    // Error handling
+    *error = [TUTCrypto logOpenSslError:@"rsa decryption failed" statusCode:status];
+  }
+  RSA_free(privateRsaKey);
+  
+  return decryptedBase64;
 }
 
 
 
-+ (RSA *)createPrivateRSAKey:(NSObject *)key {
-	NSString *modulus = [key valueForKey:@"modulus"];
-	NSString *privateExponent = [key valueForKey:@"privateExponent"];
-	NSString *primeP = [key valueForKey:@"primeP"];
-	NSString *primeQ = [key valueForKey:@"primeQ"];
-	NSString *primeExponentP = [key valueForKey:@"primeExponentP"];
-	NSString *primeExponentQ = [key valueForKey:@"primeExponentQ"];
-	NSString *crtCoefficient = [key valueForKey:@"crtCoefficient"];
-
++ (RSA *)createPrivateRSAKey:(TUTPrivateKey *)key {
 	RSA *rsaKey = RSA_new();
 	rsaKey->e = BN_new();
 	rsaKey->n= BN_new();
@@ -184,15 +209,15 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	rsaKey->dmq1 = BN_new();
 	rsaKey->iqmp = BN_new();
 
-	const char *publicExponent = "65537";
-	BN_dec2bn(&rsaKey->e, publicExponent ); // public exponent <- 65537
-	[TUTCrypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
-	[TUTCrypto toBIGNUM:rsaKey->d fromB64:privateExponent]; // private exponent <- privateExponent
-	[TUTCrypto toBIGNUM:rsaKey->p fromB64:primeP]; // secret prime factor <- primeP
-	[TUTCrypto toBIGNUM:rsaKey->q fromB64:primeQ ]; // secret prime factor <- primeQ
-	[TUTCrypto toBIGNUM:rsaKey->dmp1 fromB64:primeExponentP]; // d mod (p-1) <- primeExponentP
-	[TUTCrypto toBIGNUM:rsaKey->dmq1 fromB64:primeExponentQ]; // d mod (q-1) <- primeExponentQ
-	[TUTCrypto toBIGNUM:rsaKey->iqmp fromB64:crtCoefficient]; // q^-1 mod p <- crtCoefficient
+	const char *publicExponent = [PUBLIC_EXPONENT_STRING UTF8String];
+	BN_dec2bn(&rsaKey->e, publicExponent); // public exponent <- 65537
+	[TUTBigNum toBIGNUM:rsaKey->n fromB64:key.modulus]; // public modulus <- modulus
+	[TUTBigNum toBIGNUM:rsaKey->d fromB64:key.privateExponent]; // private exponent <- privateExponent
+	[TUTBigNum toBIGNUM:rsaKey->p fromB64:key.primeP]; // secret prime factor <- primeP
+	[TUTBigNum toBIGNUM:rsaKey->q fromB64:key.primeQ]; // secret prime factor <- primeQ
+	[TUTBigNum toBIGNUM:rsaKey->dmp1 fromB64:key.primeExponentP]; // d mod (p-1) <- primeExponentP
+	[TUTBigNum toBIGNUM:rsaKey->dmq1 fromB64:key.primeExponentQ]; // d mod (q-1) <- primeExponentQ
+	[TUTBigNum toBIGNUM:rsaKey->iqmp fromB64:key.crtCoefficient]; // q^-1 mod p <- crtCoefficient
 	return rsaKey;
 }
 
@@ -206,130 +231,37 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 	const char *publicExponent = "65537";
 	BN_dec2bn(&rsaKey->e, publicExponent ); // public exponent <- 65537
-	[TUTCrypto toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
+	[TUTBigNum toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
 	return rsaKey;
 }
 
 
-
-+ (void)toBIGNUM:(BIGNUM *) number fromB64:(NSString*)value{
-	NSData *valueData =  [[NSData alloc] initWithBase64EncodedString:value options: 0];
-	BN_bin2bn((unsigned char *) [valueData bytes], (int) [valueData length], number);
++ (TUTKeyPair *)createRSAKeyPair:(RSA*)key
+                       keyLength:(NSInteger)keyLength
+                         version:(NSInteger)version
+{
+  let modulus = [TUTBigNum toB64:key->n];
+  let publicKey = [[TUTPublicKey alloc] initWithVersion:version
+                                              keyLength:keyLength
+                                                modulus:modulus
+                                         publicExponent:PUBLIC_EXPONENT
+  ];
+  
+  let privateKey = [[TUTPrivateKey alloc] initWithVersion:version
+                                                keyLength:keyLength
+                                                modulus:modulus
+                                                privateExponent:[TUTBigNum toB64:key->d]
+                                                primeP:[TUTBigNum toB64:key->p]
+                                                primeQ:[TUTBigNum toB64:key->q]
+                                                primeExponentP:[TUTBigNum toB64:key->dmp1]
+                                                primeExponentQ:[TUTBigNum toB64:key->dmq1]
+                                                crtCoefficient:[TUTBigNum toB64:key->iqmp]
+  ];
+  
+  return [[TUTKeyPair alloc] initWithPublicKey:publicKey privateKey:privateKey];
 }
 
-+ (NSString *)toB64:(BIGNUM*)number{
-	int numBytes = BN_num_bytes(number);
-	NSMutableData *nsData = [NSMutableData dataWithLength:numBytes];
-	BN_bn2bin(number, [nsData mutableBytes]);
-	return [nsData base64EncodedStringWithOptions:0];
-}
-
-
-
-
-
-+ (NSMutableDictionary *)createRSAKeyPair:(RSA*)key keyLength:(NSNumber*)keyLength version:(NSNumber*)version {
-	NSMutableDictionary *publicKey = [NSMutableDictionary new];
-	[publicKey setObject: version forKey: @"version"];
-	[publicKey setObject: keyLength forKey: @"keyLength"];
-	[publicKey setObject: [TUTCrypto toB64:key->n] forKey: @"modulus"];
-
-	NSMutableDictionary *privateKey = [NSMutableDictionary new];
-	[privateKey setObject: version forKey: @"version"];
-	[privateKey setObject: keyLength forKey: @"keyLength"];
-	[privateKey setObject: [TUTCrypto toB64:key->n]  forKey: @"modulus"];
-
-	[privateKey setObject: [TUTCrypto toB64:key->d] forKey: @"privateExponent"];
-	[privateKey setObject: [TUTCrypto toB64:key->p] forKey: @"primeP"];
-	[privateKey setObject: [TUTCrypto toB64:key->q] forKey: @"primeQ"];
-	[privateKey setObject: [TUTCrypto toB64:key->dmp1] forKey: @"primeExponentP"];
-	[privateKey setObject: [TUTCrypto toB64:key->dmq1] forKey: @"primeExponentQ"];
-	[privateKey setObject: [TUTCrypto toB64:key->iqmp] forKey: @"crtCoefficient"];
-
-	NSMutableDictionary *keyPair= [NSMutableDictionary new];
-	[keyPair setObject: publicKey forKey: @"publicKey"];
-	[keyPair setObject: privateKey forKey: @"privateKey"];
-	return keyPair;
-}
-
-- (void)aesEncryptFileWithKey:(NSString *)keyBase64
-					   atPath:(NSString *)filePath
-				   completion:(void(^ _Nonnull)(NSDictionary<NSString *, NSString *> * _Nullable fileInfo, NSError * _Nullable error))completion {
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		NSError *error;
-		NSData *keyData = [TUTEncodingConverter base64ToBytes:keyBase64];
-
-		if (![TUTFileUtil fileExistsAtPath:filePath]) {
-			let message = [NSString stringWithFormat:@"file to encrypt does not exists: %@", filePath];
-			let wrappedError = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:message];
-			completion(nil, wrappedError);
-			return;
-		};
-
-		NSString *encryptedFolder = [TUTFileUtil getEncryptedFolder:&error];
-		if (error) {
-			let wrappedError = [TUTErrorFactory wrapCryptoErrorWithMessage:@"Could not set up encrypted folder" error:error];
-			completion(nil,  wrappedError);
-			return;
-		}
-
-		let encryptedFilePath = [encryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
-		let iv = [self generateIv];
-		let plainTextData = [NSData dataWithContentsOfFile:filePath];
-		let outputData = [TUTAes128Facade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
-		let resultDict = @{
-			@"uri": encryptedFilePath,
-			@"unencSize": [NSString stringWithFormat:@"%lu", (unsigned long)plainTextData.length]
-		};
-		if (error) {
-			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES encrypt file" error:error]);
-			return;
-		}
-		if (![outputData writeToFile:encryptedFilePath atomically:YES]) {
-			completion(nil, [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"Failed to write decrypted file"]);
-			return;
-		}
-		completion(resultDict, nil);
-	});
-};
-
-- (void)aesDecryptFileWithKey:(NSString *)base64key
-					   atPath:(NSString *)filePath
-				   completion:(void(^)(NSString * _Nullable filePath, NSError * _Nullable error))completion {
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		NSError *error;
-		NSData *key = [TUTEncodingConverter base64ToBytes:base64key];
-
-		if (![TUTFileUtil fileExistsAtPath:filePath]) {
-			let message = [NSString stringWithFormat:@"File to decrypt does not exists: %@", filePath];
-			let fileError = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:message];
-			completion(nil, fileError);
-			return;
-		};
-
-		NSString *decryptedFolder = [TUTFileUtil getDecryptedFolder:&error];
-		if (error) {
-			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Could not set up decrypted folder" error:error]);
-			return;
-		}
-
-		let fileData = [[NSFileManager defaultManager] contentsAtPath:filePath];
-		let plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
-
-		let plainTextData = [TUTAes128Facade decrypt:fileData withKey:key error:&error];
-		if (error) {
-			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES decrypt file" error:error]);
-			return;
-		}
-		if (![plainTextData writeToFile:plainTextFilePath atomically:YES]) {
-			completion(nil, [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"Failed to write decrypted file"]);
-			return;
-		}
-		completion(plainTextFilePath, nil);
-	});
-};
-
-- (NSData *) generateIv {
++ (NSData *)generateIv {
 	unsigned char buffer[TUTAO_IV_BYTE_SIZE];
 	int rc = RAND_bytes(buffer, (int) TUTAO_IV_BYTE_SIZE);
 	if (rc!=1){
