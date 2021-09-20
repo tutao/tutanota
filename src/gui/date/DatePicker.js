@@ -9,6 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
 import {BootIcons} from "../base/icons/BootIcons"
+import type {lazy} from "../../api/common/utils/Utils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "../base/Icon"
 import {getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
@@ -19,7 +20,6 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
-import type {lazy} from "../../api/common/utils/Utils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -179,7 +179,6 @@ type VisualDatePickerAttrs = $Attrs<{
 export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	_displayingDate: Date;
 	_lastSelectedDate: ?Date;
-	_currentDate: Date;
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
 		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
@@ -187,7 +186,6 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	view(vnode: Vnode<VisualDatePickerAttrs>): Children {
 		const selectedDate = vnode.attrs.selectedDate
-		this._currentDate = getStartOfDay(new Date())
 		if (selectedDate && !isSameDayOfDate(this._lastSelectedDate, selectedDate)) {
 			this._lastSelectedDate = selectedDate
 			this._displayingDate = new Date(selectedDate)
@@ -231,19 +229,15 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_onPrevMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
-		const selectedDate = addMonth(this._lastSelectedDate || new Date(), -1)
-		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
 	_onNextMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
-		const selectedDate = addMonth(this._lastSelectedDate || new Date(), 1)
-		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
 	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this._elWidth(attrs))
-		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate, this._currentDate)), {
+		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate)), {
 			style: {
 				height: size,
 				width: size,

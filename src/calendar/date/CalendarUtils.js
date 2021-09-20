@@ -32,14 +32,13 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../../api/entities/sys/User"
 import {isColorLight} from "../../gui/base/Color"
-import type {CalendarInfo} from "../view/CalendarView"
+import type {CalendarInfo, GroupColors} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import type {Time} from "../../api/common/utils/Time"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
-import type {GroupColors} from "../view/CalendarView"
 
 assertMainOrNode()
 
@@ -818,11 +817,9 @@ export function prepareCalendarDescription(description: string): string {
 export const DEFAULT_HOUR_OF_DAY = 6
 
 /** Get CSS class for the date element. */
-export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Date): string {
+export function getDateIndicator(day: Date, selectedDate: ?Date): string {
 	if (isSameDayOfDate(day, selectedDate)) {
-		return ".date-selected"
-	} else if (isSameDayOfDate(day, currentDate)) {
-		return ".date-current"
+		return ".accent-bg.circle"
 	} else {
 		return ""
 	}

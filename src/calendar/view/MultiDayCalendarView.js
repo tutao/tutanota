@@ -46,7 +46,6 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {styles} from "../../gui/styles"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
-import {haveSameId} from "../../api/common/utils/EntityUtils"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -502,8 +501,8 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 
 		return m(".flex", days.map(day => {
 
-			const dayNumberClass = ".calendar-day-indicator.calendar-day-number.clickable"
-				+ (this._getTodayTimestamp() === day.getTime() ? ".date-current" : "")
+			const dayNumberClass = ".calendar-day-indicator.calendar-day-number.clickable.circle"
+				+ (this._getTodayTimestamp() === day.getTime() ? ".accent-bg" : "")
 
 			// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
 			const onclick = () => onDateSelected(day, CalendarViewType.DAY)

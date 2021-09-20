@@ -331,10 +331,12 @@ styles.registerStyle('main', () => {
 
 		'.password-indicator-bg': {'background-color': theme.content_button},
 
-		'.accent-bg': {'background-color': theme.content_accent},
+		'.accent-bg': {
+			'background-color': theme.content_accent,
+			color: theme.content_button_icon_selected
+		},
 		'.accent-fg': {color: theme.content_button_icon},
 		'.accent-fg path': {fill: theme.content_button_icon},
-
 		'.red': {
 			'background-color': '#840010',
 		},
@@ -627,7 +629,7 @@ styles.registerStyle('main', () => {
 			'border-radius': "50%",
 			overflow: "hidden"
 		},
-		'.circle': {
+		'.dot': {
 			width: px(size.hpad_large_mobile + 1),
 			height: px(size.hpad_large_mobile + 1),
 			'border-radius': "50%",
@@ -1321,18 +1323,9 @@ styles.registerStyle('main', () => {
 		},
 
 		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
-		'.date-selected': {
-			'border-radius': '50%',
-			background: theme.content_accent,
-			color: theme.content_button_icon_selected,
+		'.circle': {
+			'border-radius': '50%'
 		},
-		'.date-current': {
-			'border-radius': '50%',
-			background: theme.content_accent,
-			opacity: .5,
-			color: theme.elevated_bg,
-		},
-
 		'.clickable': {
 			'cursor': 'pointer',
 		},

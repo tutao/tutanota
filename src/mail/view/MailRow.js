@@ -106,7 +106,7 @@ export class MailRow {
 	 */
 	render(): Children {
 		return m(".flex", [
-			m(".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs", m(".circle.bg-accent-fg.hidden", {
+			m(".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs", m(".dot.bg-accent-fg.hidden", {
 					oncreate: vnode => this._domUnread = vnode.dom,
 				})
 			),
