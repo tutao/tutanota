@@ -29,8 +29,6 @@ import {styles} from "../../gui/styles"
 import {formatMonthWithFullYear} from "../../misc/Formatter"
 import {isAllDayEvent, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {windowFacade} from "../../misc/WindowFacade"
-import {Icon} from "../../gui/base/Icon"
-import {Icons} from "../../gui/base/icons/Icons"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
@@ -45,6 +43,7 @@ import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {theme} from "../../gui/theme"
+import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -142,12 +141,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			styles.isDesktopLayout() ?
 				m(".mt-s.pr-l.flex.row.items-center",
 					[
-						m("button.calendar-switch-button", {
-							onclick: () => attrs.onChangeMonth(false),
-						}, m(Icon, {icon: Icons.ArrowDropLeft, class: "icon-large switch-month-button"})),
-						m("button.calendar-switch-button", {
-							onclick: () => attrs.onChangeMonth(true),
-						}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
+						renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
+						renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
 						m("h1", formatMonthWithFullYear(date)),
 					])
 				: m(".pt-s"),

@@ -1409,6 +1409,10 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"prevMonth_label": "Vorheriger Monat",
+		"nextMonth_label": "Nächster Monat",
+		"prevWeek_label": "Vorherige Woche",
+		"nextWeek_label": "Nächste Woche"
 	}
 }

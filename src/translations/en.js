@@ -1377,7 +1377,6 @@ export default {
 		"weekNumber_label": "Week {week}",
 		"weekStart_label": "Week start",
 		"weeks_label": "weeks",
-		"week_label": "Week",
 		"welcomeMailBodyTweetText_msg": "Just set up my Tutanota mailbox. Now I protect my emails from prying eyes! You can join, too: ",
 		"welcomeMailBody_markdown": "Welcome to your secure and ad-free Tutanota mailbox, protected with strong encryption. Tutanota makes switching from other email services easy. Our intuitive web client, apps for Android & iOS, as well as desktop apps for Windows, Mac OS and Linux enable you to access your secure mailbox on any device.\n\nAs a professional, you can save time and money by hosting all your business emails end-to-end encrypted on Tutanota's secure servers, based in Germany: Whitelabel Tutanota for your business, place the login on your own website, and add an encrypted contact form to your website so clients can easily reach you confidentially. [Find out more about Tutanota's comprehensive business features]({businessLink}).\n\n**Tutanota follows 4 principles to offer a privacy-friendly alternative**\n\n1. Tutanota does not track you.\n2. Tutanota can not scan your data.\n3. Tutanota encrypts your entire mailbox, contacts & calendar.\n4. Tutanota incorporates privacy by design.\n\nRecommend Tutanota, the [open source email service that respects you and your right to privacy]({blogOpenSourceLink}).\n\nWe believe that everyone deserves a free and private mailbox. You can support us by following us on your favorite social media channel and by sharing our content with your friends and colleagues. Together we will change the Internet for the better:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nThank you very much,\\\nyour Tutanota Team\n\nTutanota is open source. [You can inspect and review the source code here]({githubLink}).\n",
 		"welcomeMailSubject_msg": "Feel at home: Your data is secure.",
@@ -1407,8 +1406,14 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
 		"allWeek_label": "All week",
 		"switchDayView_action": "Switch to day view",
+		"you_label": "You",
+		"prevMonth_label": "Previous month",
+		"nextMonth_label": "Next month",
+		"prevWeek_label": "Previous week",
+		"nextWeek_label": "Next week",
+		"prevDay_label": "Previous day",
+		"nextDay_label": "Next day"
 	}
 }

@@ -1409,9 +1409,14 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"week_label": "Woche",
 		"allWeek_label": "ganze Woche",
 		"switchDayView_action": "Zur Tages-Ansicht wechseln",
+		"you_label": "Du",
+		"prevMonth_label": "Vorheriger Monat",
+		"nextMonth_label": "Nächster Monat",
+		"prevWeek_label": "Vorherige Woche",
+		"nextWeek_label": "Nächste Woche",
+		"prevDay_label": "Vorheriger Tag",
+		"nextDay_label": "Nächster Tag"
 	}
 }

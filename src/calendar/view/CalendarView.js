@@ -89,6 +89,7 @@ import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
+import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -310,15 +311,25 @@ export class CalendarView implements CurrentView {
 				}
 			},
 		}, ColumnType.Background, size.second_col_min_width + size.third_col_min_width, size.third_col_max_width, () => {
-			if (this._currentViewType === CalendarViewType.MONTH) {
-				return formatMonthWithFullYear(this.selectedDate())
-			} else if (this._currentViewType === CalendarViewType.DAY) {
-				return formatDateWithWeekday(this.selectedDate())
-			} else if (this._currentViewType === CalendarViewType.AGENDA) {
-				return lang.get("agenda_label")
-			} else {
-				return ""
-			}
+
+			const left = (title) => renderCalendarSwitchLeftButton(title, () => this._viewPeriod(false, this._currentViewType))
+			const right = (title) => renderCalendarSwitchRightButton(title, () => this._viewPeriod(true, this._currentViewType))
+
+			return {
+				[CalendarViewType.DAY]: {
+					left: left("prevDay_label"),
+					middle: formatDateWithWeekday(this.selectedDate()),
+					right: right("nextDay_label")
+				},
+				// week view doesn't exist on mobile so we don't bother making buttons/title
+				[CalendarViewType.WEEK]: "",
+				[CalendarViewType.MONTH]: {
+					left: left("prevMonth_label"),
+					middle: formatMonthWithFullYear(this.selectedDate()),
+					right: right("nextMonth_label")
+				},
+				[CalendarViewType.AGENDA]: lang.get("agenda_label")
+			}[this._currentViewType]
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")

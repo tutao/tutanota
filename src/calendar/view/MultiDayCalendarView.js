@@ -30,8 +30,6 @@ import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import type {EventTextTimeOptionEnum, WeekStartEnum} from "../../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
-import {Icon} from "../../gui/base/Icon"
-import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -46,6 +44,7 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {styles} from "../../gui/styles"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -269,7 +268,8 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 
 		return m(".calendar-long-events-header.mt-s.flex-fixed", [
 			m(".pr-l.flex.row.items-center", [
-				this.renderPeriodSwitcherButtons(onChangeViewPeriod),
+				renderCalendarSwitchLeftButton("prevWeek_label", () => onChangeViewPeriod(false)),
+				renderCalendarSwitchRightButton("nextWeek_label", () => onChangeViewPeriod(true)),
 				m("h1", renderHeaderText(selectedDate)),
 				this.renderWeekNumberLabel(firstDate, startOfTheWeek)
 			]),
@@ -321,21 +321,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 			thisPageLongEvents.children
 		)
 	}
-
-	renderPeriodSwitcherButtons(callback: boolean => *): Children {
-		return [
-			m("button.calendar-switch-button", {
-				onclick: () => {
-					callback(false)
-				},
-			}, m(Icon, {icon: Icons.ArrowDropLeft, class: "icon-large switch-month-button"})),
-			m("button.calendar-switch-button", {
-				onclick: () => {
-					callback(true)
-				},
-			}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"}))
-		]
-	}
+	
 
 	renderSelectedDateIndicatorRow(selectedDate: Date, dates: Array<Date>): Children {
 		return m(".flex.pt-s", dates.map(day => m(".flex-grow.flex.col", {

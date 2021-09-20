@@ -219,13 +219,23 @@ class Header {
 
 	_getCenterContent(): Children {
 		const viewSlider = this._getViewSlider()
-		const header = (title: string) => m(".flex-center.header-middle.items-center.text-ellipsis.b", title)
+
+		const header = (title, left, right) => {
+			return m(".flex-center.header-middle.items-center.text-ellipsis.b", [left || null, title, right || null])
+		}
+
 		if (this._mobileSearchBarVisible()) {
 			return this._renderMobileSearchBar()
 		} else if (viewSlider) {
-			const fistVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
-			const title = fistVisibleBgColumn ? fistVisibleBgColumn.getTitle() : ""
-			return header(title)
+			const firstVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
+			if (firstVisibleBgColumn) {
+				const title = firstVisibleBgColumn.getTitle()
+				const buttonLeft = firstVisibleBgColumn.getTitleButtonLeft()
+				const buttonRight = firstVisibleBgColumn.getTitleButtonRight()
+				return header(title, buttonLeft, buttonRight)
+			} else {
+				return header("")
+			}
 
 		} else if (m.route.get().startsWith('/login')) {
 			return header(lang.get("login_label"))
