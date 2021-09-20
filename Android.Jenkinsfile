@@ -46,7 +46,7 @@ pipeline {
 				]) {
 					sh 'node android.js -b release prod'
 				}
-				stash includes: "build/app-android/tutanota-tutao-${VERSION}-release.apk", name: 'apk'
+				stash includes: "build/app-android/tutanota-tutao-release-${VERSION}.apk", name: 'apk'
 			}
 		}
 
@@ -68,7 +68,7 @@ pipeline {
 				]) {
 					sh 'node android.js -b releaseTest test'
 				}
-				stash includes: "build/app-android/tutanota-tutao-${VERSION}-releaseTest.apk", name: 'apk'
+				stash includes: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk", name: 'apk'
 			}
 		}
 
@@ -83,7 +83,7 @@ pipeline {
 				unstash 'apk'
 
 				script {
-					def filePath = "build/app-android/tutanota-tutao-${VERSION}-release.apk"
+					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
 					def tag = "tutanota-android-release-${VERSION}"
 					def util = load "jenkins-lib/util.groovy"
 
@@ -130,7 +130,7 @@ pipeline {
 					util.publishToNexus(groupId: "app",
 							artifactId: "android-test",
 							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-${VERSION}-releaseTest.apk",
+							assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
 							fileExtension: 'apk'
 					)
 
@@ -139,7 +139,7 @@ pipeline {
 					// this happens because the AppId is set to de.tutao.tutanota.test by the android build
 					// and play store knows which app to publish just based on the id
 					androidApkUpload(googleCredentialsId: 'android-app-publisher-credentials',
-							apkFilesPattern: "build/app-android/tutanota-tutao-${VERSION}-releaseTest.apk",
+							apkFilesPattern: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
 							trackName: 'internal',
 							rolloutPercentage: '100%')
 				}
