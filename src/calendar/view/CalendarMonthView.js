@@ -330,7 +330,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 				top: px(position.top),
 				height: px(CALENDAR_EVENT_HEIGHT),
 				left: px(position.left),
-				right: px(position.right)
+				right: px(position.right),
+				pointerEvents: !styles.isUsingBottomNavigation() ? "auto" : "none"
 			},
 			onmousedown: () => {
 				if (this._lastMousePos && !isTemporary) {
@@ -351,7 +352,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			opacity: isTemporary
 				? EVENT_BEING_DRAGGED_OPACITY
 				: 1,
-			enablePointerEvents: !this._eventDragHandler.isDragging && !isTemporary
+			enablePointerEvents: !this._eventDragHandler.isDragging && !isTemporary && !styles.isUsingBottomNavigation()
 		}))
 	}
 
