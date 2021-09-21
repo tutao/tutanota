@@ -93,6 +93,10 @@ export class Queue {
 			let command = this._commands[message.type]
 			let request = (message: any)
 			if (command != null) {
+				const commandResult = command(request)
+				if (commandResult == null || typeof commandResult.then !== "function") {
+					throw new Error(`Handler returned non-promise result: ${message.type}`)
+				}
 				command(request).then(value => {
 					this._transport.postMessage(new Response(request, value))
 				}).catch(e => {

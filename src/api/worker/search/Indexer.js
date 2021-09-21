@@ -270,7 +270,7 @@ export class Indexer {
 		this._core.queue.start()
 	}
 
-	onVisibilityChanged(visible: boolean) {
+	async onVisibilityChanged(visible: boolean): Promise<void> {
 		this._core.onVisibilityChanged(visible)
 	}
 
