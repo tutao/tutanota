@@ -81,4 +81,4 @@ parent dir
 └── tutanota-3
 ```
 
-otherwise, the builder will load the current release from https://github.com/tutao/mapirs/releases/latest
+Otherwise, the builder will load the current release from https://github.com/tutao/mapirs/releases/latest .
