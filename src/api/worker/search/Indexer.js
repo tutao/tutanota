@@ -184,49 +184,45 @@ export class Indexer {
 			}
 
 			await transaction.wait()
-
-			try {
-				await this._worker.sendIndexState({
-					initializing: false,
-					mailIndexEnabled: this._mail.mailIndexingEnabled,
-					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0,
-					failedIndexingUpTo: null
-				})
-				this._core.startProcessing()
-				await this._contact.indexFullContactList(user.userGroup.group)
-				await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
-				await this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user)
-				await this._mail.mailboxIndexingPromise
-				await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
-				const groupIdToEventBatches = await this._loadPersistentGroupData(user)
-				await this._loadNewEntities(groupIdToEventBatches)
-				          .catch(ofClass(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message)))
-			} catch (e) {
-				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
-					// in case of MembershipRemovedError mail or contact group has been removed from user.
-					// in case of InvalidDatabaseError no group id has been stored to the database.
-					// disable mail indexing and init index again in both cases.
-					// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
-					// initialized promise will be resolved in this.init later.
-					console.log("disable mail indexing and init again", e)
-					return this._reCreateIndex()
-				} else {
-					throw e
-				}
-			}
-		} catch (e) {
 			await this._worker.sendIndexState({
 				initializing: false,
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
 				indexedMailCount: 0,
-				failedIndexingUpTo: this._mail.currentIndexTimestamp
+				failedIndexingUpTo: null
 			})
-			this._dbInitializedDeferredObject.reject(e)
-			throw e
+			this._core.startProcessing()
+			await this._contact.indexFullContactList(user.userGroup.group)
+			await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
+			await this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user)
+			await this._mail.mailboxIndexingPromise
+			await this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)
+			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
+			await this._loadNewEntities(groupIdToEventBatches)
+			          .catch(ofClass(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. "
+				          + e.message)))
+		} catch (e) {
+			if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
+				// in case of MembershipRemovedError mail or contact group has been removed from user.
+				// in case of InvalidDatabaseError no group id has been stored to the database.
+				// disable mail indexing and init index again in both cases.
+				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
+				// initialized promise will be resolved in this.init later.
+				console.log("disable mail indexing and init again", e)
+				return this._reCreateIndex()
+			} else {
+				await this._worker.sendIndexState({
+					initializing: false,
+					mailIndexEnabled: this._mail.mailIndexingEnabled,
+					progress: 0,
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: this._mail.currentIndexTimestamp
+				})
+				this._dbInitializedDeferredObject.reject(e)
+				throw e
+ 			}
 		}
 	}
 
@@ -395,23 +391,23 @@ export class Indexer {
 			memberships = memberships.filter(membership => contains(restrictTo, membership.group))
 		}
 		return promiseMap(memberships, (membership: GroupMembership) => {
-				// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
-				return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
-				           .then(eventBatches => {
-					           return {
-						           groupId: membership.group,
-						           groupData: ({
-							           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
-							           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-							           groupType: getMembershipGroupType(membership)
-						           }: GroupData)
-					           }
-				           })
-				           .catch(ofClass(NotAuthorizedError, () => {
-					           console.log("could not download entity updates => lost permission on list")
-					           return null
-				           }))
-			}) // sequentially to avoid rate limiting
+			// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
+			return this._entity.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
+			           .then(eventBatches => {
+				           return {
+					           groupId: membership.group,
+					           groupData: ({
+						           lastBatchIds: eventBatches.map(eventBatch => eventBatch._id[1]),
+						           indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						           groupType: getMembershipGroupType(membership)
+					           }: GroupData)
+				           }
+			           })
+			           .catch(ofClass(NotAuthorizedError, () => {
+				           console.log("could not download entity updates => lost permission on list")
+				           return null
+			           }))
+		}) // sequentially to avoid rate limiting
 			.then((data) => data.filter(Boolean))
 	}
 
