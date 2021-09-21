@@ -82,22 +82,54 @@ export class WorkerImpl {
 		initLocator(this, browserData);
 
 		const exposedWorker: WorkerInterface = {
-			loginFacade: locator.login,
-			customerFacade: locator.customer,
-			giftCardFacade: locator.giftCards,
-			groupManagementFacade: locator.groupManagement,
-			configFacade: locator.configFacade,
-			calendarFacade: locator.calendar,
-			mailFacade: locator.mail,
-			shareFacade: locator.share,
-			counterFacade: locator.counters,
-			indexerFacade: locator.indexer,
-			searchFacade: locator.search,
-			bookingFacade: bookingFacade,
-			mailAddressFacade: locator.mailAddress,
-			fileFacade: locator.file,
-			userManagementFacade: locator.userManagement,
-			contactFormFacade: locator.contactFormFacade,
+			get loginFacade() {
+				return locator.login
+			},
+			get customerFacade() {
+				return locator.customer
+			},
+			get giftCardFacade() {
+				return locator.giftCards
+			},
+			get groupManagementFacade() {
+				return locator.groupManagement
+			},
+			get configFacade() {
+				return locator.configFacade
+			},
+			get calendarFacade() {
+				return locator.calendar
+			},
+			get mailFacade() {
+				return locator.mail
+			},
+			get shareFacade() {
+				return locator.share
+			},
+			get counterFacade() {
+				return locator.counters
+			},
+			get indexerFacade() {
+				return locator.indexer
+			},
+			get searchFacade() {
+				return locator.search
+			},
+			get bookingFacade() {
+				return bookingFacade
+			},
+			get mailAddressFacade() {
+				return locator.mailAddress
+			},
+			get fileFacade() {
+				return locator.file
+			},
+			get userManagementFacade() {
+				return locator.userManagement
+			},
+			get contactFormFacade() {
+				return locator.contactFormFacade
+			},
 		}
 
 		this._queue.setCommands({
