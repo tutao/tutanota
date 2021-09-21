@@ -49,6 +49,7 @@ import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -593,37 +594,3 @@ function renderConfidentialButton(viewModel: CalendarEventViewModel) {
 		: null
 }
 
-export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no" | "cancel"> {
-	return new Promise((resolve) => {
-		let alertDialog: Dialog
-		const cancelButton = {
-			label: "cancel_action",
-			click: () => {
-				resolve("cancel")
-				alertDialog.close()
-			},
-			type: ButtonType.Secondary
-		}
-		const noButton = {
-			label: "no_label",
-			click: () => {
-				resolve("no")
-				alertDialog.close()
-			},
-			type: ButtonType.Secondary
-		}
-		const yesButton = {
-			label: "yes_label",
-			click: () => {
-				resolve("yes")
-				alertDialog.close()
-			},
-			type: ButtonType.Primary,
-		}
-
-		const onclose = (positive) => positive
-			? resolve("yes")
-			: resolve("cancel")
-		alertDialog = Dialog.confirmMultiple("sendUpdates_msg", [cancelButton, noButton, yesButton], onclose)
-	})
-}

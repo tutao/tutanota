@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {Dialog} from "../../../src/gui/base/Dialog"
-import {getConfirmation} from "../../../src/gui/base/GuiUtils"
+import {getConfirmation, getPosAndBoundsFromMouseEvent} from "../../../src/gui/base/GuiUtils"
 import {downcast} from "../../../src/api/common/utils/Utils"
 
 o.spec("GuiUtils", function () {
@@ -102,6 +102,5 @@ o.spec("GuiUtils", function () {
 			o(Dialog.confirm.args).deepEquals(["message", "ok action"])
 		})
 	})
-
 })
 

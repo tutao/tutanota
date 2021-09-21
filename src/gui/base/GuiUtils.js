@@ -164,21 +164,6 @@ export function ifAllowedTutanotaLinks(linkId: InfoLink, render: (string) => Chi
 	return null
 }
 
-export function entityDraggedHandler(id: Id | IdTuple): DragEventHandler {
-	const idString = id instanceof Array
-		? id.join(",")
-		: id
-	return ev => ev.dataTransfer?.setData("text", idString)
-}
-
-export function handleEntityDragged(entity: Element | ListElement, ev: DragEvent) {
-	const idString = entity._id instanceof Array
-		? entity._id.join(",")
-		: entity._id
-	ev.dataTransfer?.setData("text", idString)
-}
-
-
 export type MousePosAndBounds = {
 	x: number, y: number, targetWidth: number, targetHeight: number
 }

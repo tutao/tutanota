@@ -43,7 +43,7 @@ import {
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
 } from "../date/CalendarUtils"
-import {askIfShouldSendCalendarUpdatesToAttendees, showCalendarEventDialog} from "./CalendarEventEditDialog"
+import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
@@ -89,12 +89,16 @@ import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
-import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
+import {
+	askIfShouldSendCalendarUpdatesToAttendees,
+	renderCalendarSwitchLeftButton,
+	renderCalendarSwitchRightButton
+} from "./CalendarGuiUtils"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
-export type EventUpdateHandler = (eventId: IdTuple, newStartDate: Date) => Promise<EventCreateResult>
+export type EventDateUpdateHandler = (event: CalendarEvent, newStartDate: Date) => Promise<EventCreateResult>
 
 type MouseOrPointerEvent = MouseEvent | PointerEvent
 export type CalendarEventBubbleClickHandler = (CalendarEvent, MouseOrPointerEvent) => mixed
@@ -231,8 +235,7 @@ export class CalendarView implements CurrentView {
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
-							onEventMoved: async (id, newDate) => {
-								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
+							onEventMoved: async (event, newDate) => {
 								const newDateWithOriginalTime = new Date(
 									newDate.getFullYear(), newDate.getMonth(), newDate.getDate(),
 									event.startTime.getHours(), event.startTime.getMinutes(), event.startTime.getSeconds()
@@ -259,10 +262,7 @@ export class CalendarView implements CurrentView {
 							hiddenCalendars: this._hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-							onEventMoved: async (id, newDate) => {
-								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
-								return this._moveEvent(event, newDate)
-							}
+							onEventMoved: this._moveEvent.bind(this)
 						})
 					case CalendarViewType.WEEK:
 						return m(MultiDayCalendarView, {
@@ -290,10 +290,7 @@ export class CalendarView implements CurrentView {
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
-							onEventMoved: async (id, newDate) => {
-								const event = await locator.entityClient.load(CalendarEventTypeRef, id)
-								return this._moveEvent(event, newDate)
-							}
+							onEventMoved: this._moveEvent.bind(this)
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
@@ -478,11 +475,17 @@ export class CalendarView implements CurrentView {
 
 	_renderCalendarViewButtons(): Children {
 		const calendarViewValues = [
-			{name: "Day", value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
-			{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.TableColumns, href: "/calendar/week"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
+
+		if (styles.isDesktopLayout()) {
+			calendarViewValues.unshift(
+				{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
+				{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.TableColumns, href: "/calendar/week"}
+			)
+		}
+
 		return calendarViewValues.map(viewType => m(".folder-row.flex-start.plr-l",
 			// undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 			m(".flex-grow.ml-negative-s", m(NavButtonN, {

@@ -1407,6 +1407,9 @@ styles.registerStyle('main', () => {
 				left: "3px",
 			},
 		},
+		'.dragging-mod-key *': {
+			cursor: "grabbing !important"
+		},
 		// This is applied to elements that should indicate they will be draggable when some key is pressed.
 		// Ideally we would use cursor: grab here, but it doesn't seem to be supported in electron
 		'.drag-mod-key *': {

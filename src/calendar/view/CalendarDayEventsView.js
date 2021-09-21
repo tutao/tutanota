@@ -6,7 +6,6 @@ import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "../../api/common/utils/DateUtils"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
 import {
-	EVENT_BEING_DRAGGED_OPACITY,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	expandEvent,
@@ -15,7 +14,8 @@ import {
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
 	hasAlarmsForTheUser,
-	layOutEvents
+	layOutEvents,
+	TEMPORARY_EVENT_OPACITY
 } from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {mapNullable, neverNull} from "../../api/common/utils/Utils"
@@ -23,9 +23,8 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"
 import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
-import {haveSameId} from "../../api/common/utils/EntityUtils"
-import type {CalendarEventBubbleClickHandler} from "./CalendarView"
-import type {GroupColors} from "./CalendarView"
+import type {CalendarEventBubbleClickHandler, GroupColors} from "./CalendarView"
+import {getTimeFromMousePos} from "./CalendarGuiUtils"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler,
@@ -55,7 +54,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 					m.redraw()
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
-					const time = this._getTimeUnderMouseEvent(mouseEvent)
+					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), 4)
 					attrs.setTimeUnderMouse(time)
 				}
 			},
@@ -74,16 +73,6 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				this._dayDom ? this._renderEvents(attrs, attrs.events) : null,
 				this._renderTimeIndicator(attrs),
 			])
-	}
-
-	_getTimeUnderMouseEvent(mouseEvent: MouseEvent): Time {
-		const {y, targetHeight} = getPosAndBoundsFromMouseEvent(mouseEvent)
-		const sectionHeight = targetHeight / 24
-		const hour = y / sectionHeight
-		const hourRounded = Math.floor(hour)
-		// increment in 15 minute intervals
-		const minute = Math.floor((hour - hourRounded) * 4) * 15
-		return new Time(hour, minute)
 	}
 
 	_renderTimeIndicator(attrs: Attrs): Children {
@@ -127,6 +116,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 
 	_renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
 
+		// If an event starts in the previous day or ends in the next, we want to clamp top/height to fit within just this day
 		const zone = getTimeZone()
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
 		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
@@ -163,7 +153,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			verticalPadding: padding,
 			fadeIn: !attrs.temporaryEvents.includes(ev),
 			opacity: attrs.temporaryEvents.includes(ev)
-				? EVENT_BEING_DRAGGED_OPACITY
+				? TEMPORARY_EVENT_OPACITY
 				: 1,
 			enablePointerEvents: !attrs.temporaryEvents.includes(ev)
 		}))

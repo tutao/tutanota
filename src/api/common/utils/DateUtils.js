@@ -77,6 +77,11 @@ export function incrementDate(date: Date, byValue: number): Date {
 	return date
 }
 
+export function incrementMont(d: Date, byValue: number): Date {
+	const date = new Date(d)
+	date.setDate(date.getMonth() + byValue)
+	return date
+}
 
 export function isSameDayOfDate(date1: ?Date, date2: ?Date): boolean {
 	return !date1 && !date2

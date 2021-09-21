@@ -4,14 +4,17 @@
 import {pad} from "./StringUtils"
 import type {DateTime} from "luxon"
 
+/**
+ * A wrapper around time handling for the calendar stuff, mostly for the CalendarEventViewModel
+ */
 export class Time {
 
 	+hours: number
 	+minutes: number
 
 	constructor(hours: number, minutes: number) {
-		this.hours = hours
-		this.minutes = minutes
+		this.hours = Math.floor(hours) % 24
+		this.minutes = Math.floor(minutes) % 60
 	}
 
 	static fromDate(date: Date): Time {

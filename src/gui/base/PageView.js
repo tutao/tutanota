@@ -24,7 +24,6 @@ export class PageView implements MComponent<Attrs> {
 					this._viewDom = vnode.dom
 					this._swipeHandler = new PageSwipeHandler(vnode.dom, (next) => this._onChangePage(next))
 				},
-				onDrop: console.log.bind(console)
 			},
 			[
 				m(".abs", {

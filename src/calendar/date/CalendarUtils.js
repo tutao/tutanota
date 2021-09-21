@@ -43,7 +43,7 @@ import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 assertMainOrNode()
 
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
-export const EVENT_BEING_DRAGGED_OPACITY = 0.7
+export const TEMPORARY_EVENT_OPACITY = 0.7
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -825,6 +825,9 @@ export function getDateIndicator(day: Date, selectedDate: ?Date): string {
 	}
 }
 
+/**
+ * Determine what format the time of an event should be rendered in given a surrounding time period
+ */
 export function getTimeTextFormatForLongEvent(ev: CalendarEvent, startDay: Date, endDay: Date, zone: string): ?EventTextTimeOptionEnum {
 	const startsBefore = eventStartsBefore(startDay, zone, ev)
 	const endsAfter = eventEndsAfterOrOn(endDay, zone, ev)
@@ -854,20 +857,6 @@ export function combineDateWithTime(date: Date, time: Time): Date {
 
 }
 
-export function deactivateBubblePointerEvents(bubbleDoms: Iterable<HTMLElement>) {
-	for (let dom of bubbleDoms) {
-		dom.style.pointerEvents = "none"
-		dom.style.opacity = "0.7"
-	}
-}
-
-export function activateBubblePointerEvents(bubbleDoms: Iterable<HTMLElement>) {
-	for (let dom of bubbleDoms) {
-		dom.style.pointerEvents = "auto"
-		dom.style.opacity = "1"
-	}
-}
-
 /**
  * Check if an event occurs during some time period of days, either partially or entirely
  * Expects that firstDayOfWeek is before lastDayOfWeek, and that event starts before it ends, otherwise result is invalid
@@ -892,4 +881,10 @@ export function createRepeatRuleEndTypeValues(): SelectorItemList<EndTypeEnum> {
 		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
 		{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
 	]
+}
+
+export function getFirstDayOfMonth(d: Date): Date {
+	const date = new Date(d)
+	date.setDate(1)
+	return date
 }
