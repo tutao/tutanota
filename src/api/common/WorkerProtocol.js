@@ -94,10 +94,12 @@ export class Queue {
 			let request = (message: any)
 			if (command != null) {
 				const commandResult = command(request)
+				// Every method exposed via worker protocol must return a promise. Failure to do so is a violation of contract so we
+				// try to catch it early and throw an error.
 				if (commandResult == null || typeof commandResult.then !== "function") {
 					throw new Error(`Handler returned non-promise result: ${message.type}`)
 				}
-				command(request).then(value => {
+				commandResult.then(value => {
 					this._transport.postMessage(new Response(request, value))
 				}).catch(e => {
 					this._transport.postMessage(new RequestError(request, e))

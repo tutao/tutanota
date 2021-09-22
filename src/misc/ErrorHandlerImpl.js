@@ -98,8 +98,9 @@ export function handleUncaughtError(e: Error) {
 			invalidSoftwareVersionActive = true
 			Dialog.error("outdatedClient_msg").then(() => invalidSoftwareVersionActive = false)
 		}
-	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e
-		instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
+	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError
+		|| e instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
+		// If we session is closed (e.g. password is changed) we log user out forcefully so we reload the page
 		if (!loginDialogActive) {
 			windowFacade.reload({})
 		}

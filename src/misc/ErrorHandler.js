@@ -16,13 +16,21 @@ export function handleUncaughtError(e: Error) {
 	}
 
 	// decoupled to remove size of boot bundle
-	import('./ErrorHandlerImpl.js').then(module => {
-		module.handleUncaughtError(e)
-	})
+	import('./ErrorHandlerImpl.js')
+		.then(module => {
+			module.handleUncaughtError(e)
+		})
+		.catch(e => {
+			console.error("Could not import ErrorHandlerImpl", e)
+		})
 }
 
 export function logginOut() {
-	import('./ErrorHandlerImpl.js').then(module => {
-		module.loggingOut()
-	})
+	import('./ErrorHandlerImpl.js')
+		.then(module => {
+			module.loggingOut()
+		})
+		.catch(e => {
+			console.error("Could not import ErrorHandlerImpl", e)
+		})
 }
