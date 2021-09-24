@@ -3,13 +3,13 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
-import {worker} from "../api/main/WorkerClient"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import {delay, ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 const delayTime = 900
 
@@ -119,7 +119,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	// index
 	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
 		if (accepted) {
-			return showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
+			return showWorkerProgressDialog(locator.worker, () => lang.get("createActionStatus_msg", {
 				"{index}": nbrOfCreatedUsers,
 				"{count}": userDetailsArray.length
 			}), promiseMap(userDetailsArray, (user, userIndex) => {
@@ -152,9 +152,9 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
  */
 function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number): Promise<boolean> {
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
-	return worker.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
+	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
 		if (available) {
-			return worker.userManagementFacade.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
+			return locator.userManagementFacade.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers).then(() => {
 				// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
 				return delay(delayTime).then(() => true)
 			})

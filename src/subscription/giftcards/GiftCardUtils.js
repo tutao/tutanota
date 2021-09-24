@@ -3,7 +3,6 @@
 import m from "mithril"
 import QRCode from "qrcode"
 import {Icons} from "../../gui/base/icons/Icons"
-import {worker} from "../../api/main/WorkerClient"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
@@ -20,6 +19,7 @@ import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {serviceRequest} from "../../api/main/Entity"
 import {SysService} from "../../api/entities/sys/Services"
 import {px} from "../../gui/size"
+import type {lazy} from "../../api/common/utils/Utils"
 import {assertNotNull, neverNull} from "../../api/common/utils/Utils"
 import {LocationServiceGetReturnTypeRef} from "../../api/entities/sys/LocationServiceGetReturn"
 import type {Country} from "../../api/common/CountryList"
@@ -27,7 +27,6 @@ import {getByAbbreviation} from "../../api/common/CountryList"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {theme} from "../../gui/theme"
-import {writeGiftCardMail} from "../../mail/editor/MailEditor"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
@@ -40,7 +39,6 @@ import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtil
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
-import type {lazy} from "../../api/common/utils/Utils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -83,7 +81,7 @@ export function redeemGiftCard(giftCardId: IdTuple, key: string, validCountryCod
 			if (!confirmed) throw new CancelledError("")
 		})
 		.then(() => {
-			return worker.giftCardFacade.redeemGiftCard(elementIdPart(giftCardId), key)
+			return locator.giftCardFacade.redeemGiftCard(elementIdPart(giftCardId), key)
 			             .catch(ofClass(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") }))
 			             .catch(ofClass(NotAuthorizedError, e => { throw new UserError(() => e.message) }))
 		})
@@ -104,7 +102,7 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 }
 
 export function generateGiftCardLink(giftCard: GiftCard): Promise<string> {
-	return worker.resolveSessionKey(GiftCardTypeModel, giftCard).then(key => {
+	return locator.worker.resolveSessionKey(GiftCardTypeModel, giftCard).then(key => {
 		// This should not assert false and if it does we want to know about it
 		key = assertNotNull(key)
 		return getWebRoot() + `/giftcard/#${_encodeToken(elementIdPart(giftCard._id), key)}`

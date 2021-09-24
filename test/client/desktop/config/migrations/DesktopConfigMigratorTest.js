@@ -3,13 +3,13 @@ import o from "ospec"
 import {DesktopConfigMigrator} from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator"
 import {DesktopCryptoFacade} from "../../../../../src/desktop/DesktopCryptoFacade"
 import {downcast} from "../../../../../src/api/common/utils/Utils"
-import type {DeviceKeyProvider} from "../../../../../src/desktop/DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../../../../../src/desktop/DeviceKeyProviderImpl"
 import {makeDeviceKeyProvider} from "../../../../api/TestUtils"
 
 o.spec('desktop config migrator test', function () {
 	let migrator
 	let crypto: DesktopCryptoFacade
-	let deviceKeyProvider: DeviceKeyProvider
+	let deviceKeyProvider: DesktopDeviceKeyProvider
 	const key = new Uint8Array([1, 2, 3])
 
 	o.before(function () {

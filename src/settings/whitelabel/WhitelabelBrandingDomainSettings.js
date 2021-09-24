@@ -2,7 +2,6 @@
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
 import {neverNull} from "../../api/common/utils/Utils"
 import {LockedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -19,6 +18,7 @@ import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
 import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
 import {formatDateTime} from "../../misc/Formatter"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo,
@@ -52,7 +52,7 @@ export class WhitelabelBrandingDomainSettings implements MComponent<WhitelabelBr
 			click: () => {
 				Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 					if (ok) {
-						showProgressDialog("pleaseWait_msg", worker.customerFacade.deleteCertificate(whitelabelDomain))
+						showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
 							.catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
 							.catch(ofClass(PreconditionFailedError, e => {
 								if (e.data === "lock.locked") {
@@ -80,7 +80,7 @@ export class WhitelabelBrandingDomainSettings implements MComponent<WhitelabelBr
 					const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
 					whitelabelFailedPromise.then(failed => {
 						if (!failed) {
-							SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
+							SetCustomDomainCertificateDialog.show(customerInfo)
 						}
 					})
 				}

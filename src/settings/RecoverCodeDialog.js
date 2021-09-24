@@ -6,13 +6,13 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
 import m from "mithril"
-import {worker} from "../api/main/WorkerClient"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 type Action = 'get' | 'create'
 
@@ -20,10 +20,11 @@ assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
 	const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
+	const loginFacade = locator.loginFacade
 	Dialog.showRequestPasswordDialog(errorMessage)
 	      .map(pw => showProgressDialog("loading_msg", action === 'get'
-		      ? worker.loginFacade.getRecoverCode(pw)
-		      : worker.loginFacade.createRecoveryCode(pw))
+		      ? loginFacade.getRecoverCode(pw)
+		      : loginFacade.createRecoveryCode(pw))
 		      .then(recoverCode => {
 			      errorMessage("")
 			      showRecoverCodeDialog(recoverCode, showMessage)

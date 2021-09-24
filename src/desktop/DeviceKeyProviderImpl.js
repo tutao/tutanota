@@ -10,11 +10,11 @@ import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUn
 export const SERVICE_NAME = 'tutanota-vault'
 export const ACCOUNT_NAME = 'tuta'
 
-export interface DeviceKeyProvider {
+export interface DesktopDeviceKeyProvider {
 	getDeviceKey(): Promise<Aes256Key>;
 }
 
-export class DeviceKeyProviderImpl implements DeviceKeyProvider {
+export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
 	_secretStorage: SecretStorage;
 	_deviceKey: Aes256Key
 	_crypto: DesktopCryptoFacade

@@ -4,7 +4,6 @@ import type {Entry, SearchBarState, ShowMoreAction} from "./SearchBar"
 import {px, size} from "../gui/size"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {worker} from "../api/main/WorkerClient"
 import {Icons} from "../gui/base/icons/Icons"
 import {isEmpty} from "../api/common/utils/ArrayUtils"
 import {logins} from "../api/main/LoginController"
@@ -28,6 +27,7 @@ import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/model/ContactUtils.js"
 import {getMailFolderIcon} from "../mail/view/MailGuiUtils";
 import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
+import {locator} from "../api/main/MainLocator"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState,
@@ -95,7 +95,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				state.indexState.progress !== 100
 					? m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
 						label: "cancel_action",
-						click: () => worker.indexerFacade.cancelMailIndexing(),
+						click: () => locator.indexerFacade.cancelMailIndexing(),
 						//icon: () => Icons.Cancel
 						type: ButtonType.Secondary
 					}))
@@ -123,7 +123,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 				m(".small", lang.get("indexing_error")),
 				m("div", {onmousedown: e => attrs.skipNextBlur(true)}, m(ButtonN, {
 					label: "retry_action",
-					click: () => worker.indexerFacade.extendMailIndex(failedIndexingUpTo),
+					click: () => locator.indexerFacade.extendMailIndex(failedIndexingUpTo),
 					type: ButtonType.Secondary
 				}))
 			]),

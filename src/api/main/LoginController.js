@@ -3,7 +3,6 @@ import type {DeferredObject} from "../common/utils/Utils"
 import {assertNotNull, defer} from "../common/utils/Utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
-import {AccountType} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
@@ -15,12 +14,13 @@ import type {LoginFacade} from "../worker/facades/LoginFacade"
 assertMainOrNodeBoot()
 
 export interface LoginEventHandler {
-	onLoginSuccess(loggedInEvent: LoggedInEvent): mixed;
+	onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>;
 }
 
 export const SessionType = Object.freeze({
 	Login: "Login",
 	Temporary: "Temporary",
+	Persistent: "Persistent",
 })
 export type SessionTypeEnum = $Values<typeof SessionType>
 
@@ -31,11 +31,10 @@ export type LoggedInEvent = {|
 export interface LoginController {
 	createSession(username: string,
 	              password: string,
-	              persistentSession: boolean,
 	              sessionType: SessionTypeEnum,
 	): Promise<Credentials>;
 
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionTypeEnum
 	): Promise<Credentials>;
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void>;
@@ -77,37 +76,34 @@ export class LoginControllerImpl implements LoginController {
 		const locatorModule = await import("./MainLocator")
 		const worker = await locatorModule.locator.initializedWorker
 		await worker.initialized
-		return worker.loginFacade
+		return locatorModule.locator.loginFacade
 	}
 
 	async createSession(
 		username: string,
 		password: string,
-		persistentSession: boolean,
 		sessionType: SessionTypeEnum,
 	): Promise<Credentials> {
-		if (persistentSession && sessionType !== SessionType.Login) {
-			throw new ProgrammingError("Only login sessions can be persistent")
-		}
-		const permanentLogin = sessionType === SessionType.Login
+		const permanentLogin = sessionType !== SessionType.Temporary
+		const persistentSession = sessionType === SessionType.Persistent
 		const loginFacade = await this._getLoginFacade()
-			const {
+		const {
+			user,
+			credentials,
+			sessionId,
+			userGroupInfo
+		} = await loginFacade.createSession(username, password, client.getIdentifier(), persistentSession, permanentLogin)
+		await this._initUserController(
+			{
 				user,
-				credentials,
+				userGroupInfo,
 				sessionId,
-				userGroupInfo
-			} = await loginFacade.createSession(username, password, client.getIdentifier(), persistentSession, permanentLogin)
-			await this._initUserController(
-				{
-					user,
-					userGroupInfo,
-					sessionId,
-					accessToken: credentials.accessToken,
-					persistentSession,
-				},
-				sessionType
-			)
-			return credentials
+				accessToken: credentials.accessToken,
+				persistentSession,
+			},
+			sessionType
+		)
+		return credentials
 	}
 
 	registerHandler(handler: LoginEventHandler) {
@@ -123,9 +119,9 @@ export class LoginControllerImpl implements LoginController {
 		this._userController = await userControllerModule.initUserController(initData)
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
-		this._loginEventHandlers.forEach((handler) => {
-			handler.onLoginSuccess({sessionType})
-		})
+		for (const handler of this._loginEventHandlers) {
+			await handler.onLoginSuccess({sessionType})
+		}
 		this.waitForLogin.resolve({sessionType})
 	}
 
@@ -134,41 +130,42 @@ export class LoginControllerImpl implements LoginController {
 		password: string,
 		salt: Uint8Array,
 		clientIdentifier: string,
-		persistentSession: boolean
+		sessionType: SessionTypeEnum,
 	): Promise<Credentials> {
 		const worker = await this._getLoginFacade()
-			const {
+		const persistentSession = sessionType === SessionType.Persistent
+		const {
+			user,
+			credentials,
+			sessionId,
+			userGroupInfo
+		} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		await this._initUserController(
+			{
 				user,
-				credentials,
+				accessToken: credentials.accessToken,
+				persistentSession,
 				sessionId,
-				userGroupInfo
-			} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
-			await this._initUserController(
-				{
-					user,
-					accessToken: credentials.accessToken,
-					persistentSession,
-					sessionId,
-					userGroupInfo,
-				},
-				SessionType.Login,
-			)
-			return credentials
+				userGroupInfo,
+			},
+			SessionType.Login,
+		)
+		return credentials
 	}
 
 	async resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
-			const loginFacade = await this._getLoginFacade()
-			const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt)
-			await this._initUserController(
-				{
-					user,
-					accessToken: credentials.accessToken,
-					userGroupInfo,
-					sessionId,
-					persistentSession: true
-				},
-				SessionType.Login,
-			)
+		const loginFacade = await this._getLoginFacade()
+		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt)
+		await this._initUserController(
+			{
+				user,
+				accessToken: credentials.accessToken,
+				userGroupInfo,
+				sessionId,
+				persistentSession: true
+			},
+			SessionType.Persistent,
+		)
 	}
 
 	isUserLoggedIn(): boolean {

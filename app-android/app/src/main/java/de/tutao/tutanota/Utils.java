@@ -43,7 +43,6 @@ public class Utils {
 				.replaceAll("=", "");
 	}
 
-
 	public static byte[] readFile(File file) throws IOException {
 		try (FileInputStream in = new FileInputStream(file)) {
 			return IOUtils.toByteArray(in);

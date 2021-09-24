@@ -3,9 +3,19 @@ import o from "ospec"
 import type {CredentialsEncryption, CredentialsStorage, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
 import {assertNotNull} from "../../../../src/api/common/utils/Utils"
+import type {CredentialEncryptionModeEnum} from "../../../../src/misc/credentials/CredentialEncryptionMode"
+import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
+import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator"
+import {spyify} from "../../nodemocker"
+
+
+const encryptionKey = new Uint8Array([1, 2, 5, 8])
+const migratedKey = new Uint8Array([8, 3, 5, 8])
 
 class CredentialsStorageStub implements CredentialsStorage {
 	values = new Map<Id, PersistentCredentials>()
+	_credentialsEncryptionMode: ?CredentialEncryptionModeEnum
+	_credentialsEncryptionKey: ?Uint8Array
 
 	store(encryptedCredentials: PersistentCredentials) {
 		this.values.set(encryptedCredentials.credentialInfo.userId, encryptedCredentials)
@@ -22,9 +32,26 @@ class CredentialsStorageStub implements CredentialsStorage {
 	deleteByUserId(userId: Id) {
 		this.values.delete(userId)
 	}
+
+	getCredentialEncryptionMode(): ?CredentialEncryptionModeEnum {
+		return this._credentialsEncryptionMode
+	}
+
+	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionModeEnum | null): void {
+		this._credentialsEncryptionMode = encryptionMode
+	}
+
+	getCredentialsEncryptionKey(): ?Uint8Array {
+		return this._credentialsEncryptionKey;
+	}
+
+	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null) : void {
+		this._credentialsEncryptionKey = credentialsEncryptionKey
+	}
 }
 
 class CredentialsEncryptionStub implements CredentialsEncryption {
+
 	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 		if (encryptedPassword == null) {
@@ -50,6 +77,16 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 			accessToken: encryptedCredentials.accessToken,
 		}
 	}
+
+	async getSupportedEncryptionModes() {
+		return []
+	}
+}
+
+class CredentialsKeyMigratorStub implements ICredentialsKeyMigrator {
+	async migrateCredentialsKey(oldKeyEncrypted, oldMode, newMode) {
+		return migratedKey
+	}
 }
 
 o.spec("CredentialsProvider", function () {
@@ -60,6 +97,7 @@ o.spec("CredentialsProvider", function () {
 	let externalCredentials: Credentials
 	let encryptedInternalCredentials: PersistentCredentials
 	let encryptedExternalCredentials: PersistentCredentials
+	let keyMigrator: ICredentialsKeyMigrator
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
@@ -95,8 +133,8 @@ o.spec("CredentialsProvider", function () {
 		}
 		encryption = new CredentialsEncryptionStub()
 		storage = new CredentialsStorageStub()
-		credentialsProvider = new CredentialsProvider(encryption, storage)
-
+		keyMigrator = spyify(new CredentialsKeyMigratorStub())
+		credentialsProvider = new CredentialsProvider(encryption, storage, keyMigrator)
 	})
 
 	o.spec("Storing credentials", function () {
@@ -143,6 +181,47 @@ o.spec("CredentialsProvider", function () {
 		o("Should no-op when credentials are not there", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
 			o(storage.loadByUserId(internalCredentials.userId)).equals(null)
+		})
+	})
+
+	o.spec("Setting credentials encryption mode", function () {
+		o("Enrolling", async function () {
+			storage._credentialsEncryptionMode = null
+			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
+
+			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
+
+			o(storage.getCredentialEncryptionMode()).equals(newEncryptionMode)
+		})
+	})
+
+	o.spec("Changing credentials encryption mode", function () {
+		o("Changing encryption mode", async function () {
+			const oldEncryptionMode = CredentialEncryptionMode.SYSTEM_PASSWORD
+			storage._credentialsEncryptionMode = oldEncryptionMode
+			storage._credentialsEncryptionKey = encryptionKey
+
+			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
+			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
+
+			o(storage.getCredentialEncryptionMode()).equals(newEncryptionMode)
+			o(Array.from(keyMigrator.migrateCredentialsKey.args[0])).deepEquals(Array.from(encryptionKey))
+			o(keyMigrator.migrateCredentialsKey.args[1]).equals(oldEncryptionMode)
+			o(keyMigrator.migrateCredentialsKey.args[2]).equals(newEncryptionMode)
+			o(Array.from(storage.getCredentialsEncryptionKey() ?? [])).deepEquals(Array.from(migratedKey))
+		})
+	})
+
+	o.spec("clearCredentials", function() {
+		o("deleted credentials, key and mode", async function() {
+			await storage.store(encryptedInternalCredentials)
+			await storage.store(encryptedExternalCredentials)
+
+			await credentialsProvider.clearCredentials()
+
+			o(storage.loadAll()).deepEquals([])
+			o(storage.getCredentialsEncryptionKey()).equals(null)
+			o(storage.getCredentialEncryptionMode()).equals(null)
 		})
 	})
 })

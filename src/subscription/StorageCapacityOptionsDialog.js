@@ -6,7 +6,6 @@ import {BookingItemFeatureType, Keys} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
 import {load} from "../api/main/Entity"
-import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {buyStorage} from "./SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -17,6 +16,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {showBuyDialog} from "./BuyDialog"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {locator} from "../api/main/MainLocator"
 
 export function showStorageCapacityOptionsDialog(storageWarningTextId: ?TranslationKey): Promise<void> {
 	const userController = logins.getUserController()
@@ -90,7 +90,7 @@ function createStorageCapacityBoxAttr(amount: number, freeAmount: number, buyAct
 		paymentInterval: null,
 		showReferenceDiscount: false
 	}
-	updateBuyOptionBoxPriceInformation(worker, BookingItemFeatureType.Storage, amount, attrs)
+	updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Storage, amount, attrs)
 	return {amount, buyOptionBoxAttr: attrs}
 }
 

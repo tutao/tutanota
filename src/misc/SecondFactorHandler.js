@@ -16,7 +16,6 @@ import {assertMainOrNode} from "../api/common/Env"
 import {AccessBlockedError, BadRequestError, NotAuthenticatedError, NotFoundError} from "../api/common/error/RestError"
 import {Icons, SecondFactorImage} from "../gui/base/icons/Icons"
 import {locator} from "../api/main/MainLocator"
-import {worker} from "../api/main/WorkerClient"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import type {Challenge} from "../api/entities/sys/Challenge"
@@ -185,7 +184,7 @@ export class SecondFactorHandler {
 					let auth = createSecondFactorAuthDeleteData()
 					auth.session = sessionId
 					return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, auth)
-						.then(() => worker.loginFacade.cancelCreateSession())
+						.then(() => locator.loginFacade.cancelCreateSession())
 						.then(() => this.closeWaitingForSecondFactorDialog())
 				}
 				this._waitingForSecondFactorDialog = Dialog.showActionDialog({

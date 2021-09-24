@@ -135,6 +135,9 @@ type NativeRequestType = 'init'
 	| 'setSelectedTheme'
 	| 'getThemes'
 	| 'setThemes'
+	| 'encryptUsingKeychain'
+	| 'decryptUsingKeychain'
+	| 'getSupportedEncryptionModes'
 
 /** Requests from native to web */
 type JsRequestType = 'createMailEditor'

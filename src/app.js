@@ -5,7 +5,7 @@ import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import "./gui/main-styles"
-import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
+import {assertMainOrNodeBoot, bootFinished, isAndroidApp, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import type {lazy} from "./api/common/utils/Utils"
 import {downcast, neverNull} from "./api/common/utils/Utils"
@@ -17,6 +17,7 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
+
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -98,8 +99,6 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 
 //$FlowFixMe[untyped-import]
 import("./translations/en").then((en) => lang.init(en.default)).then(async () => {
-
-
 	// do this after lang initialized
 	if (client.isIE()) {
 		import("./gui/base/NotificationOverlay.js").then((module) => module.show({
@@ -108,6 +107,9 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	} else if (isDesktop()) {
 		import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates())
 	}
+
+	const {locator} = await import("./api/main/MainLocator")
+	locator.init()
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
@@ -164,14 +166,37 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	}
 
 	const loginListener = await import("./login/LoginListener")
-	await loginListener.registerLoginListener()
+	await loginListener.registerLoginListener(locator.credentialsProvider)
+
+	styles.init()
+
+	/**
+	 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
+	 * This code can (and will) be removed once all users have migrated.
+	 */
+	if (isApp()) {
+		const {nativeApp} = await import("./native/common/NativeWrapper")
+		// We can only determine platform after we establish native bridge
+		await nativeApp.initialized()
+		const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
+		const hasCredentials = deviceConfig.loadAll().length > 0
+		if (isAndroidApp() && !hasAlreadyMigrated && hasCredentials) {
+			const migrationModule = await import("./misc/credentials/CredentialsMigration")
+			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeApp)
+			await migration.migrateCredentials()
+			const {showCredentialsEncryptionDialog} = await import("./gui/dialogs/SelectCredentialsEncryptionModeDialog")
+			// We need to render root to show the dialog
+			m.mount(neverNull(document.body), root)
+			await showCredentialsEncryptionDialog(locator.credentialsProvider)
+		}
+	}
 
 	const paths = applicationPaths({
 		loginViewResolver: createViewResolver(async () => {
 			const {LoginView} = await import("./login/LoginView.js")
 			const {LoginViewModel} = await import("./login/LoginViewModel.js")
 			const {secondFactorHandler} = await import("./misc/SecondFactorHandler")
-			const {locator} = await import("./api/main/MainLocator")
+			const {locator} = await import ("./api/main/MainLocator")
 			const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, secondFactorHandler)
 			await loginViewModel.init()
 			return new LoginView(loginViewModel, "/mail")
@@ -225,7 +250,6 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 
 	// see https://github.com/MithrilJS/mithril.js/issues/2659
 	m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
-	styles.init()
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	const resolvers: {[string]: RouteResolver} = {
@@ -263,10 +287,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	// flow fails to resolve RouteResolver properly
 	m.route(neverNull(document.body), startRoute, downcast(resolvers))
 
-	const workerPromise = import("./api/main/WorkerClient.js")
-	workerPromise.then((worker) => {
-		import("./gui/InfoMessageHandler.js")
-	})
+	import("./gui/InfoMessageHandler.js").then((module) => module.registerInfoMessageHandler())
 
 	// after we set up prefixWithoutFile
 	initSW()

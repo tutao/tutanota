@@ -7,7 +7,6 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
 import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../model/MailUtils"
-import type {MailboxDetail} from "../model/MailModel"
 import {logins} from "../../api/main/LoginController";
 import {FeatureType} from "../../api/common/TutanotaConstants";
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
@@ -21,8 +20,6 @@ import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
-import {delay} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -118,7 +115,7 @@ export class MultiMailViewer {
 				{
 					label: "export_action",
 					click: this._actionBarAction(
-						(mails) => showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, worker.fileFacade))
+						(mails) => showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade))
 					),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,

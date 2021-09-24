@@ -36,7 +36,6 @@ import {sendShareNotificationEmail} from "../GroupSharingUtils"
 import {GroupSharingModel} from "../model/GroupSharingModel"
 import {logins} from "../../api/main/LoginController"
 import {locator} from "../../api/main/MainLocator"
-import {worker} from "../../api/main/WorkerClient"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {getConfirmation} from "../../gui/base/GuiUtils"
@@ -55,7 +54,15 @@ export function showGroupSharingDialog(groupInfo: GroupInfo,
 
 	const texts = getTextsForGroupType(groupType)
 
-	showProgressDialog("loading_msg", GroupSharingModel.newAsync(groupInfo, locator.eventController, locator.entityClient, logins, worker))
+	showProgressDialog("loading_msg", GroupSharingModel.newAsync(
+		groupInfo,
+		locator.eventController,
+		locator.entityClient,
+		logins,
+		locator.mailFacade,
+		locator.shareFacade,
+		locator.groupManagementFacade
+	))
 		.then(model => {
 			model.onEntityUpdate.map(m.redraw.bind(m))
 			const contentAttrs: GroupSharingDialogAttrs = {

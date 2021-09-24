@@ -1,5 +1,4 @@
 //@flow
-import {worker} from "../../api/main/WorkerClient"
 import {getDisplayText} from "../../mail/model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
@@ -20,6 +19,7 @@ import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
 import {FeatureType, GroupType} from "../../api/common/TutanotaConstants"
 import {ColorPicker} from "../../gui/base/ColorPicker"
+import {locator} from "../../api/main/MainLocator"
 
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -144,15 +144,15 @@ function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation
 }
 
 function acceptInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts): Promise<void> {
-	return worker.shareFacade.acceptGroupInvitation(invitation)
-	             .then(() => {
-		             sendAcceptNotificationEmail(invitation, texts)
-	             })
+	return locator.shareFacade.acceptGroupInvitation(invitation)
+	              .then(() => {
+		              sendAcceptNotificationEmail(invitation, texts)
+	              })
 }
 
 function declineInvite(invitation: ReceivedGroupInvitation, texts: GroupSharingTexts): Promise<void> {
-	return worker.shareFacade.rejectGroupInvitation(invitation._id)
-	             .then(() => {
-		             sendRejectNotificationEmail(invitation, texts)
-	             })
+	return locator.shareFacade.rejectGroupInvitation(invitation._id)
+	              .then(() => {
+		              sendRejectNotificationEmail(invitation, texts)
+	              })
 }

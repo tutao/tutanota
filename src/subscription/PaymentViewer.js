@@ -15,7 +15,6 @@ import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
-import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -107,7 +106,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							let nextPayment = this._postings.length
 								? Number(this._postings[0].balance) * -1
 								: 0
-							showProgressDialog("pleaseWait_msg", worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
+							showProgressDialog("pleaseWait_msg", locator.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 								return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
 							})).then(price => {
 								return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
@@ -245,7 +244,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									label: "download_action",
 									icon: () => Icons.Download,
 									click: () => {
-										showProgressDialog("pleaseWait_msg", worker
+										showProgressDialog("pleaseWait_msg", locator
 											.customerFacade
 											.downloadInvoice(neverNull(posting.invoiceNumber))
 										)

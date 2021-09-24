@@ -43,6 +43,8 @@ import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
+import type {CalendarFacade} from "../../api/worker/facades/CalendarFacade"
+import type {FileFacade} from "../../api/worker/facades/FileFacade"
 
 
 export type CalendarInfo = {
@@ -96,9 +98,12 @@ export class CalendarModelImpl implements CalendarModel {
 	_mailModel: MailModel;
 	_alarmScheduler: () => Promise<AlarmScheduler>;
 	+_userAlarmToAlarmInfo: Map<string, string>
+	_calendarFacade: CalendarFacade
+	_fileFacade: FileFacade
 
 	constructor(notifications: Notifications, alarmScheduler: () => Promise<AlarmScheduler>, eventController: EventController, worker: WorkerClient,
-	            logins: LoginController, progressTracker: ProgressTracker, entityClient: EntityClient, mailModel: MailModel
+	            logins: LoginController, progressTracker: ProgressTracker, entityClient: EntityClient, mailModel: MailModel,
+	            calendarFacade: CalendarFacade, fileFacade: FileFacade
 	) {
 		this._notifications = notifications
 		this._alarmScheduler = alarmScheduler
@@ -109,6 +114,8 @@ export class CalendarModelImpl implements CalendarModel {
 		this._progressTracker = progressTracker
 		this._entityClient = entityClient
 		this._mailModel = mailModel
+		this._calendarFacade = calendarFacade
+		this._fileFacade = fileFacade
 		this._userAlarmToAlarmInfo = new Map()
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
@@ -144,7 +151,7 @@ export class CalendarModelImpl implements CalendarModel {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
-			return this._worker.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+			return this._calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
 			           .then(() => newEvent)
 		}
 	}
@@ -213,7 +220,7 @@ export class CalendarModelImpl implements CalendarModel {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
 		// this should be removed once we handle missed events during startup
-		const {user, group} = await this._worker.calendarFacade.addCalendar(name)
+		const {user, group} = await this._calendarFacade.addCalendar(name)
 		this._logins.getUserController().user = user
 
 		if (color != null) {
@@ -240,7 +247,7 @@ export class CalendarModelImpl implements CalendarModel {
 			downcast(event)._permissions = null
 			event._ownerGroup = groupRoot._id
 
-			return this._worker.calendarFacade.createCalendarEvent(event, alarmInfos, existingEvent)
+			return this._calendarFacade.createCalendarEvent(event, alarmInfos, existingEvent)
 		})
 	}
 
@@ -263,7 +270,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		return this._entityClient.load(FileTypeRef, update.file)
-		           .then((file) => this._worker.fileFacade.downloadFileContent(file))
+		           .then((file) => this._fileFacade.downloadFileContent(file))
 		           .then((dataFile: DataFile) =>
 			           import("../export/CalendarImporter.js").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 		           .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
@@ -300,7 +307,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 		if (calendarData.method === CalendarMethod.REPLY) {
 			// Process it
-			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
+			return this._calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent == null) {
 					// event was not found
 					return
@@ -324,7 +331,7 @@ export class CalendarModelImpl implements CalendarModel {
 				return this._updateEvent(dbEvent, newEvent).then(noOp)
 			})
 		} else if (calendarData.method === CalendarMethod.REQUEST) { // Either initial invite or update
-			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
+			return this._calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent) {
 					// then it's an update
 					if (dbEvent.organizer == null || dbEvent.organizer.address !== sender) {
@@ -337,7 +344,7 @@ export class CalendarModelImpl implements CalendarModel {
 				}
 			})
 		} else if (calendarData.method === CalendarMethod.CANCEL) {
-			return this._worker.calendarFacade.getEventByUid(uid).then((dbEvent) => {
+			return this._calendarFacade.getEventByUid(uid).then((dbEvent) => {
 				if (dbEvent != null) {
 					if (dbEvent.organizer == null || dbEvent.organizer.address !== sender) {
 						console.log("CANCEL sent not by organizer, ignoring")
@@ -383,7 +390,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 	scheduleAlarmsLocally(): Promise<void> {
 		if (this._localAlarmsEnabled()) {
-			return this._worker.calendarFacade.loadAlarmEvents()
+			return this._calendarFacade.loadAlarmEvents()
 			           .then((eventsWithInfos) => {
 				           for (let {event, userAlarmInfos} of eventsWithInfos) {
 					           for (let userAlarmInfo of userAlarmInfos) {

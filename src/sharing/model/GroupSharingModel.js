@@ -18,8 +18,6 @@ import {GroupTypeRef} from "../../api/entities/sys/Group"
 import type {GroupMemberInfo} from "../GroupUtils"
 import {getSharedGroupName, hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers} from "../GroupUtils"
 import type {LoginController} from "../../api/main/LoginController"
-import type {WorkerClient} from "../../api/main/WorkerClient"
-import {worker} from "../../api/main/WorkerClient"
 import {UserError} from "../../api/main/UserError"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {RecipientInfoType} from "../../api/common/RecipientInfo"
@@ -30,6 +28,9 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {resolveRecipientInfo} from "../../mail/model/MailUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {noOp} from "../../api/common/utils/Utils"
+import type {MailFacade} from "../../api/worker/facades/MailFacade"
+import type {ShareFacade} from "../../api/worker/facades/ShareFacade"
+import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade"
 
 export class GroupSharingModel {
 	+info: GroupInfo
@@ -40,10 +41,12 @@ export class GroupSharingModel {
 	eventController: EventController
 	entityClient: EntityClient
 	logins: LoginController
-	worker: WorkerClient
 
 	// notifier for outside to do a redraw
 	onEntityUpdate: Stream<void>
+	_mailFacade: MailFacade
+	_shareFacade: ShareFacade
+	_groupManagementFacade: GroupManagementFacade
 
 	constructor(groupInfo: GroupInfo,
 	            group: Group,
@@ -52,7 +55,10 @@ export class GroupSharingModel {
 	            eventController: EventController,
 	            entityClient: EntityClient,
 	            logins: LoginController,
-	            worker: WorkerClient) {
+				mailFacade: MailFacade,
+				shareFacade: ShareFacade,
+	            groupManagementFacade: GroupManagementFacade,
+	) {
 
 		this.info = groupInfo
 		this.group = group
@@ -62,18 +68,28 @@ export class GroupSharingModel {
 		this.eventController = eventController
 		this.entityClient = entityClient
 		this.logins = logins
-		this.worker = worker
+		this._mailFacade = mailFacade
+		this._shareFacade = shareFacade
+		this._groupManagementFacade = groupManagementFacade
 
 		this.onEntityUpdate = stream()
 
 		this.eventController.addEntityListener((events, id) => this.entityEventsReceived(events, id))
 	}
 
-	static newAsync(info: GroupInfo, eventController: EventController, entityClient: EntityClient, logins: LoginController, worker: WorkerClient): Promise<GroupSharingModel> {
+	static newAsync(
+		info: GroupInfo,
+		eventController: EventController,
+		entityClient: EntityClient,
+		logins: LoginController,
+		mailFacade: MailFacade,
+		shareFacade: ShareFacade,
+		groupManagementFacade: GroupManagementFacade,
+	): Promise<GroupSharingModel> {
 		return entityClient.load(GroupTypeRef, info.group).then(group =>
 			Promise.all([entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations), loadGroupMembers(group, entityClient)])
 			       .then(([sentGroupInvitations, memberInfos]) =>
-				       new GroupSharingModel(info, group, memberInfos, sentGroupInvitations, eventController, entityClient, logins, worker)))
+				       new GroupSharingModel(info, group, memberInfos, sentGroupInvitations, eventController, entityClient, logins, mailFacade, shareFacade, groupManagementFacade)))
 	}
 
 	dispose() {
@@ -91,7 +107,7 @@ export class GroupSharingModel {
 
 	removeGroupMember(member: GroupMember): Promise<void> {
 		return this.canRemoveGroupMember(member)
-			? worker.groupManagementFacade.removeUserFromGroup(member.user, getEtId(this.group))
+			? this._groupManagementFacade.removeUserFromGroup(member.user, getEtId(this.group))
 			: Promise.reject(new ProgrammingError("User does not have permission to remove this member from the group"))
 	}
 
@@ -108,7 +124,7 @@ export class GroupSharingModel {
 
 	cancelInvitation(invitation: SentGroupInvitation): Promise<void> {
 		return this.canCancelInvitation(invitation) && invitation.receivedInvitation
-			? worker.shareFacade.rejectGroupInvitation(invitation.receivedInvitation)
+			? this._shareFacade.rejectGroupInvitation(invitation.receivedInvitation)
 			: Promise.reject(new Error("User does not have permission to cancel this invitation")) // TODO error type
 	}
 
@@ -116,7 +132,7 @@ export class GroupSharingModel {
 	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 		const externalRecipients = []
 		return promiseMap(recipients, (recipient) => {
-			return resolveRecipientInfo(this.worker.mailFacade, recipient)
+			return resolveRecipientInfo(this._mailFacade, recipient)
 				.then(r => {
 					if (r.type !== RecipientInfoType.INTERNAL) {
 						externalRecipients.push(r.mailAddress)
@@ -127,7 +143,7 @@ export class GroupSharingModel {
 				throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
 					+ externalRecipients.join("\n"))
 			}
-			return this.worker.shareFacade.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients.map(r => r.mailAddress), capability)
+			return this._shareFacade.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients.map(r => r.mailAddress), capability)
 			           .then((groupInvitationReturn) => {
 				           if (groupInvitationReturn.existingMailAddresses.length > 0
 					           || groupInvitationReturn.invalidMailAddresses.length > 0) {

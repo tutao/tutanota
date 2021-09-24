@@ -55,7 +55,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
-import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
+import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
 // $FlowIgnore[untyped-import]
 import murmurHash from "../crypto/lib/murmurhash3_32"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"

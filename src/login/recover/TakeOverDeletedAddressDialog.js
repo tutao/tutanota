@@ -15,8 +15,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {assertMainOrNode} from "../../api/common/Env"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
-import {worker} from "../../api/main/WorkerClient"
-import {CancelledError} from "../../api/common/error/CancelledError"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -58,13 +57,12 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 				Dialog.error("mailAddressInvalid_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg",
-					worker.initialized
-					      .then(() => worker.loginFacade.takeOverDeletedAddress(
-						      cleanMailAddress,
-						      password,
-						      cleanRecoveryCode,
-						      cleanTargetAccountAddress,
-					      )))
+					locator.loginFacade.takeOverDeletedAddress(
+						cleanMailAddress,
+						password,
+						cleanRecoveryCode,
+						cleanTargetAccountAddress,
+					))
 					.then(() => Dialog.error("takeoverSuccess_msg"))
 					.then(() => {
 						takeoverDialog.close()

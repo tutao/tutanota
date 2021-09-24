@@ -12,7 +12,6 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
 import type {TableAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
@@ -37,6 +36,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -170,17 +170,17 @@ export class GroupViewer implements UpdatableSettingsViewer {
 								           if (confirmed) {
 									           return this._group.getAsync()
 									                      .then(group =>
-										                      worker.groupManagementFacade.deactivateGroup(group, !deactivate)
-										                            .catch(ofClass(PreconditionFailedError, e => {
-												                            if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-													                            Dialog.error("localAdminGroupAssignedError_msg")
-												                            } else if (!deactivate) {
-													                            Dialog.error("emailAddressInUse_msg")
-												                            } else {
-													                            Dialog.error("stillReferencedFromContactForm_msg")
-												                            }
-											                            }
-										                            )))
+										                      locator.groupManagementFacade.deactivateGroup(group, !deactivate)
+										                             .catch(ofClass(PreconditionFailedError, e => {
+												                             if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+													                             Dialog.error("localAdminGroupAssignedError_msg")
+												                             } else if (!deactivate) {
+													                             Dialog.error("emailAddressInUse_msg")
+												                             } else {
+													                             Dialog.error("stillReferencedFromContactForm_msg")
+												                             }
+											                             }
+										                             )))
 								           }
 							           })
 					           )
@@ -219,7 +219,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 						let newAdminGroupId = id
 							? id
 							: neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
-						return worker.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
+						return locator.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
 					}))
 				}
 			}
@@ -300,7 +300,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 	_addUserToGroup(group: Id): Promise<*> {
 		return this._entityClient.load(GroupTypeRef, group)
 		           .then(userGroup => this._entityClient.load(UserTypeRef, neverNull(userGroup.user)))
-		           .then(user => worker.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
+		           .then(user => locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
 	}
 
 	_updateMembers(): void {
@@ -323,10 +323,10 @@ export class GroupViewer implements UpdatableSettingsViewer {
 
 	async _updateUsedStorage(): Promise<void> {
 		if (this._isMailGroup()) {
-			const usedStorage = await worker.groupManagementFacade.readUsedGroupStorage(this.groupInfo.group)
-			                                .catch(ofClass(BadRequestError, e => {
-				                                // may happen if the user gets the admin flag removed
-			                                }))
+			const usedStorage = await locator.groupManagementFacade.readUsedGroupStorage(this.groupInfo.group)
+			                                 .catch(ofClass(BadRequestError, e => {
+				                                 // may happen if the user gets the admin flag removed
+			                                 }))
 			if (usedStorage) this._usedStorageInBytes = usedStorage
 		} else {
 			this._usedStorageInBytes = 0
@@ -378,7 +378,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 						showProgressDialog("pleaseWait_msg",
 							this._entityClient.load(GroupTypeRef, userGroupInfo.group)
 							    .then(userGroup =>
-								    worker.groupManagementFacade.removeUserFromGroup(
+								    locator.groupManagementFacade.removeUserFromGroup(
 									    neverNull(userGroup.user),
 									    this.groupInfo.group))
 						)
@@ -417,7 +417,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 							                                   .user
 							                                   .memberships
 							                                   .find(m => m.groupType === GroupType.Admin)).group
-							showProgressDialog("pleaseWait_msg", worker.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
+							showProgressDialog("pleaseWait_msg", locator.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
 						},
 						icon: () => Icons.Cancel
 					}

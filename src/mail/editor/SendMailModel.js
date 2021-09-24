@@ -61,8 +61,6 @@ import type {Language, TranslationKey, TranslationText} from "../../misc/Languag
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
 import type {IUserController} from "../../api/main/UserController"
 import {cleanMatch} from "../../api/common/utils/StringUtils"
-import type {WorkerClient} from "../../api/main/WorkerClient"
-import {worker} from "../../api/main/WorkerClient"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -1031,5 +1029,5 @@ export class SendMailModel {
 }
 
 export function defaultSendMailModel(mailboxDetails: MailboxDetail): SendMailModel {
-	return new SendMailModel(worker.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
+	return new SendMailModel(locator.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 }

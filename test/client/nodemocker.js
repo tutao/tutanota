@@ -45,6 +45,9 @@ export function spyify<T>(obj: T): T {
 			if (Array.isArray(anyObj)) {
 				// TODO: use proxy to sync spyified array?
 				return anyObj
+			} else if (anyObj instanceof Map) {
+				const entries = Array.from(anyObj.entries()).map(([k, v]) => [k, spyify(v)])
+				return downcast(new Map(entries))
 			} else {
 				if (anyObj == null) {
 					return anyObj

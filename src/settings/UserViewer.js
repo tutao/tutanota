@@ -7,7 +7,6 @@ import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -50,6 +49,7 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -97,7 +97,7 @@ export class UserViewer {
 				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync()
-				                                         .then(user => worker.userManagementFacade.changeAdminFlag(user, makeAdmin)))
+				                                         .then(user => locator.userManagementFacade.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -148,7 +148,7 @@ export class UserViewer {
 								                                                                    .memberships
 								                                                                    .find(gm => gm.groupType
 									                                                                    === GroupType.Admin)).group
-								return worker.userManagementFacade.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
+								return locator.userManagementFacade.updateAdminship(this.userGroupInfo.group, newAdminGroupId)
 							}))
 						}
 					})
@@ -286,7 +286,7 @@ export class UserViewer {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
-								showProgressDialog("pleaseWait_msg", worker.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group))
+								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group))
 									.catch(ofClass(NotAuthorizedError, e => {
 										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
 									}))
@@ -362,7 +362,7 @@ export class UserViewer {
 					}), stream(availableGroupInfos[0]), 250)
 
 					let addUserToGroupOkAction = (dialog) => {
-						showProgressDialog("pleaseWait_msg", worker.groupManagementFacade.addUserToGroup(user, dropdown.selectedValue().group))
+						showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.addUserToGroup(user, dropdown.selectedValue().group))
 						dialog.close()
 					}
 
@@ -415,7 +415,7 @@ export class UserViewer {
 			let isAdmin = this._isAdmin(user)
 			this._adminStatusSelector.selectedValue(isAdmin)
 
-			return worker.userManagementFacade.readUsedUserStorage(user).then(usedStorage => {
+			return locator.userManagementFacade.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage = usedStorage
 				m.redraw()
 			}).catch(ofClass(BadRequestError, e => {
@@ -437,7 +437,7 @@ export class UserViewer {
 			showBuyDialog(BookingItemFeatureType.Users, (restore) ? 1 : -1, 0, restore).then(confirmed => {
 				if (confirmed) {
 					return this._user.getAsync().then(user => {
-						return worker.userManagementFacade.deleteUser(user, restore)
+						return locator.userManagementFacade.deleteUser(user, restore)
 					})
 				}
 			})

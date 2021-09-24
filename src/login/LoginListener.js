@@ -4,8 +4,7 @@ import type {LoggedInEvent, LoginEventHandler} from "../api/main/LoginController
 import {logins, SessionType} from "../api/main/LoginController"
 import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import {windowFacade} from "../misc/WindowFacade"
-import {worker} from "../api/main/WorkerClient"
-import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
+import {isAdminClient, isAndroidApp, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {secondFactorHandler} from "../misc/SecondFactorHandler"
 import {locator} from "../api/main/MainLocator"
@@ -29,28 +28,37 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {LockedError} from "../api/common/error/RestError"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import {showCredentialsEncryptionDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 
-export async function registerLoginListener() {
-	logins.registerHandler(new LoginListener())
+export async function registerLoginListener(credentialsProvider: ICredentialsProvider) {
+	logins.registerHandler(new LoginListener(credentialsProvider))
 }
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 class LoginListener implements LoginEventHandler {
-	async onLoginSuccess(loggedInEvent: LoggedInEvent): mixed {
+	+_credentialsProvider: ICredentialsProvider
+
+
+	constructor(credentialsProvider: ICredentialsProvider) {
+		this._credentialsProvider = credentialsProvider
+	}
+
+	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
 			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
-			worker.tryReconnectEventBus(true, true, 2000)
+			locator.worker.tryReconnectEventBus(true, true, 2000)
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log(new Date().toISOString(), "offline - pause event bus")
-			worker.closeEventBus(CloseEventBusOption.Pause)
+			locator.worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 
-		if (loggedInEvent.sessionType !== SessionType.Login) {
+		if (loggedInEvent.sessionType === SessionType.Temporary) {
 			return
 		}
 
@@ -66,9 +74,18 @@ class LoginListener implements LoginEventHandler {
 		}
 
 		notifications.requestPermission()
-		if ((env.mode === Mode.App || env.mode === Mode.Desktop) && !isAdminClient()) {
-			import("../native/main/PushServiceApp").then(({pushServiceApp}) => pushServiceApp.register())
+
+
+		if (isAndroidApp() && loggedInEvent.sessionType === SessionType.Persistent && this._credentialsProvider.getCredentialsEncryptionMode()
+			== null) {
+			await showCredentialsEncryptionDialog(this._credentialsProvider)
 		}
+
+		// Do not wait
+		this.asyncActions()
+	}
+
+	async asyncActions() {
 		await checkApprovalStatus(logins, true)
 
 		await this._showUpgradeReminder()
@@ -84,6 +101,8 @@ class LoginListener implements LoginEventHandler {
 			import("../native/common/FileApp")
 				.then(({fileApp}) => fileApp.clearFileData())
 				.catch((e) => console.log("Failed to clean file data", e))
+
+			import("../native/main/PushServiceApp").then(({pushServiceApp}) => pushServiceApp.register())
 
 			await this._maybeSetCustomTheme()
 		}
@@ -149,9 +168,9 @@ class LoginListener implements LoginEventHandler {
 			return Promise.resolve()
 		}
 		const customerId = assertNotNull(logins.getUserController().user.customer)
-		return worker.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
+		return locator.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
 			if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
-				return worker.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
+				return locator.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
 					if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
 						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 					}

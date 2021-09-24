@@ -9,7 +9,7 @@ import type {Config} from "./ConfigCommon"
 import type {BuildConfigKeyEnum, DesktopConfigEncKeyEnum, DesktopConfigKeyEnum} from "./ConfigKeys"
 import {DesktopConfigEncKeyValues, DesktopConfigKeyValues} from "./ConfigKeys"
 import type {App} from "electron"
-import type {DeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
@@ -27,13 +27,13 @@ export class DesktopConfig {
 	_buildConfig: DeferredObject<Config>;
 	_desktopConfig: DeferredObject<Config>; // user preferences as set for this installation
 	_desktopConfigPath: string;
-	_deviceKeyProvider: DeviceKeyProvider
+	_deviceKeyProvider: DesktopDeviceKeyProvider
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
 	_onValueSetListeners: {[AllConfigKeysEnum]: Array<(val: ?ConfigValue) => void>}
 
-	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
+	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DesktopDeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
 		this._deviceKeyProvider = deviceKeyProvider
 		this._cryptoFacade = cryptFacade
 		this._app = app

@@ -26,6 +26,8 @@ import {GiftCardFacadeImpl} from "./facades/GiftCardFacade"
 import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
 import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import {ContactFormFacadeImpl} from "./facades/ContactFormFacade"
+import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
+import {DeviceEncryptionFacadeImpl} from "./facades/DeviceEncryptionFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -51,6 +53,7 @@ type WorkerLocatorType = {
 	giftCards: GiftCardFacadeImpl;
 	configFacade: ConfigurationDatabase,
 	contactFormFacade: ContactFormFacade,
+	deviceEncryptionFacade: DeviceEncryptionFacade,
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -92,6 +95,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.giftCards = new GiftCardFacadeImpl(locator.login)
 	locator.configFacade = new ConfigurationDatabase(locator.login)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient)
+	locator.deviceEncryptionFacade = new DeviceEncryptionFacadeImpl()
 }
 
 export function resetLocator(): Promise<void> {
@@ -101,25 +105,3 @@ export function resetLocator(): Promise<void> {
 if (typeof self !== "undefined") {
 	self.locator = locator // export in worker scope
 }
-// // hot reloading
-// if (replaced) {
-// 	if (replaced.locator.login) {
-// 		Object.assign(locator.login, replaced.locator.login)
-// 		// close the websocket, but do not reset the state
-// 		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
-// 			locator.login._eventBusClient.close(CloseEventBusOption.Reconnect);
-// 		}
-// 		if (locator.login.isLoggedIn()) {
-// 			locator.login._eventBusClient.connect(false)
-// 		}
-// 	}
-//
-//
-// 	if (replaced.locator.indexer) {
-// 		Object.assign(locator.indexer, replaced.locator.indexer)
-// 	}
-//
-// 	if (replaced.locator.search) {
-// 		Object.assign(locator.search, replaced.locator.search)
-// 	}
-// }

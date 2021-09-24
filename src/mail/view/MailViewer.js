@@ -88,7 +88,6 @@ import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {styles} from "../../gui/styles"
-import {worker} from "../../api/main/WorkerClient"
 import {createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
@@ -119,11 +118,12 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {locator} from "../../api/main/MainLocator"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent, createMoreSecondaryButtonAttrs, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
+import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 
 assertMainOrNode()
 
@@ -190,18 +190,20 @@ export class MailViewer {
 	_mailModel: MailModel;
 	_contactModel: ContactModel;
 	_delayBodyRenderingUntil: Promise<*>
+	_configFacade: ConfigurationDatabase
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
-	            delayBodyRenderingUntil: Promise<*>) {
+	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>) {
+		this.mail = mail
+		this._contactModel = contactModel
+		this._configFacade = configFacade
+		this._entityClient = entityClient
+		this._mailModel = mailModel
 		this._delayBodyRenderingUntil = delayBodyRenderingUntil
 		if (isDesktop()) {
 			import("../../native/common/NativeWrapper").then(({nativeApp}) =>
 				nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}])))
 		}
-		this._contactModel = contactModel
-		this.mail = mail
-		this._entityClient = entityClient
-		this._mailModel = mailModel
 		this._folderText = null
 		this._filesExpanded = stream(false)
 		this._domBodyDeferred = defer()
@@ -285,10 +287,10 @@ export class MailViewer {
 									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
-											this._tutaoBadge(),
-											getSenderOrRecipientHeading(this.mail, false)
-										]),
+											{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
+												this._tutaoBadge(),
+												getSenderOrRecipientHeading(this.mail, false)
+											]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								!this._isAnnouncement() && styles.isUsingBottomNavigation()
@@ -679,7 +681,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, worker.fileFacade)),
+							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, locator.fileFacade)),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -906,11 +908,11 @@ export class MailViewer {
 			throw e
 		}
 
-		const externalImageRule = await worker.configFacade.getExternalImageRule(mail.sender.address)
-		                                      .catch(e => {
-			                                      console.log("Error getting external image rule:", e)
-			                                      return ExternalImageRule.None
-		                                      })
+		const externalImageRule = await locator.configFacade.getExternalImageRule(mail.sender.address)
+		                                       .catch(e => {
+			                                       console.log("Error getting external image rule:", e)
+			                                       return ExternalImageRule.None
+		                                       })
 		const isAllowedAndAuthenticatedExternalSender = externalImageRule === ExternalImageRule.Allow
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
@@ -925,8 +927,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+						? ContentBlockingStatus.AlwaysShow
+						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -949,7 +951,7 @@ export class MailViewer {
 					           this._attachments = files
 					           this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
 					           this._loadingAttachments = false
-					           const inlineImages = await loadInlineImages(worker, files, inlineCids)
+					           const inlineImages = await loadInlineImages(locator.fileFacade, files, inlineCids)
 					           m.redraw()
 					           return inlineImages
 				           })
@@ -1258,7 +1260,7 @@ export class MailViewer {
 	}
 
 	_editDraft(): Promise<void> {
-		return checkApprovalStatus(logins,false).then(sendAllowed => {
+		return checkApprovalStatus(logins, false).then(sendAllowed => {
 			if (sendAllowed) {
 				// check if to be opened draft has already been minimized, iff that is the case, re-open it
 				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.mail)
@@ -1286,7 +1288,7 @@ export class MailViewer {
 		if (this._isAnnouncement()) {
 			return Promise.resolve()
 		}
-		const sendAllowed = await checkApprovalStatus(logins,false)
+		const sendAllowed = await checkApprovalStatus(logins, false)
 		if (sendAllowed) {
 			const mailboxDetails = await this._mailModel.getMailboxDetailsForMail(this.mail)
 			let prefix = "Re: "
@@ -1734,12 +1736,12 @@ export class MailViewer {
 		}
 
 		if (status === ContentBlockingStatus.AlwaysShow) {
-			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
+			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
+			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
 		} else {
 			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			worker.configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
+			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
 		}
 		this._contentBlockingStatus = status
 
@@ -1769,7 +1771,7 @@ export class MailViewer {
 			     .some(s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"))
 			|| html.querySelectorAll('font[color]').length > 0
 
-		this._sanitizedMailBody = await worker.urlify(stringifyFragment(html))
+		this._sanitizedMailBody = await locator.worker.urlify(stringifyFragment(html))
 
 		m.redraw()
 

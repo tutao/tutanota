@@ -34,6 +34,9 @@ import java.util.Objects;
 
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+import de.tutao.tutanota.credentials.CredentialEncryptionMode;
+import de.tutao.tutanota.credentials.CredentialsEncryptionFactory;
+import de.tutao.tutanota.credentials.ICredentialsEncryption;
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -44,6 +47,7 @@ public final class Native {
 	private static final String JS_NAME = "nativeApp";
 	private final static String TAG = "Native";
 
+
 	private static int requestId = 0;
 	private final Crypto crypto;
 	private final FileUtil files;
@@ -53,6 +57,7 @@ public final class Native {
 	private final MainActivity activity;
 	private final AlarmNotificationsManager alarmNotificationsManager;
 	public final ThemeManager themeManager;
+	private final ICredentialsEncryption credentialsEncryption;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
 
 
@@ -64,6 +69,7 @@ public final class Native {
 		this.alarmNotificationsManager = alarmNotificationsManager;
 		this.sseStorage = sseStorage;
 		this.themeManager = new ThemeManager(activity);
+		this.credentialsEncryption = CredentialsEncryptionFactory.create(activity);
 	}
 
 	public void setup() {
@@ -304,6 +310,31 @@ public final class Native {
 					scheduleAlarms(args.getJSONArray(0));
 					promise.resolve(null);
 					break;
+				case "encryptUsingKeychain": {
+					String encryptionMode = args.getString(0);
+					String dataToEncrypt = args.getString(1);
+					CredentialEncryptionMode mode = CredentialEncryptionMode.fromName(encryptionMode);
+					String encryptedData = credentialsEncryption.encryptUsingKeychain(dataToEncrypt, mode);
+					promise.resolve(encryptedData);
+					break;
+				}
+				case "decryptUsingKeychain": {
+					String encryptionMode = args.getString(0);
+					String dataToDecrypt = args.getString(1);
+					CredentialEncryptionMode mode = CredentialEncryptionMode.fromName(encryptionMode);
+					String decryptedData = credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode);
+					promise.resolve(decryptedData);
+					break;
+				}
+				case "getSupportedEncryptionModes": {
+					List<CredentialEncryptionMode> modes = credentialsEncryption.getSupportedEncryptionModes();
+					JSONArray jsonArray = new JSONArray();
+					for (CredentialEncryptionMode mode : modes) {
+						jsonArray.put(mode.name);
+					}
+					promise.resolve(jsonArray);
+					break;
+				}
 				default:
 					throw new Exception("unsupported method: " + method);
 			}

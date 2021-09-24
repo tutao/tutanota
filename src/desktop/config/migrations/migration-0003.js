@@ -3,10 +3,10 @@
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {Config} from "../ConfigCommon"
 import {downcast} from "../../../api/common/utils/Utils"
-import type {DeviceKeyProvider} from "../../DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
 import {log} from "../../DesktopLog"
 
-async function migrate(oldConfig: Config, crypto: DesktopCryptoFacade, deviceKeyProvider: DeviceKeyProvider): Promise<void> {
+async function migrate(oldConfig: Config, crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider): Promise<void> {
 	Object.assign(oldConfig, {
 		"desktopConfigVersion": 3,
 	})

@@ -23,7 +23,6 @@ import {Dialog} from "../../gui/base/Dialog"
 import {MonitorService} from "../../api/entities/monitor/Services"
 import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
 import {assertNotNull, debounce, downcast, neverNull} from "../../api/common/utils/Utils"
-import {worker} from "../../api/main/WorkerClient"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
@@ -243,7 +242,7 @@ export class MailListView implements MComponent<void> {
 							const key = mapKey(mail)
 							const downloadPromise =
 								import("../../misc/HtmlSanitizer")
-									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, worker.fileFacade, htmlSanitizer))
+									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, locator.fileFacade, htmlSanitizer))
 									.then(tap(() => progressMonitor.workDone(1)))
 									.then(bundle => generateMailFile(bundle, name, exportMode))
 									.then(tap(() => progressMonitor.workDone(1)))
@@ -264,7 +263,7 @@ export class MailListView implements MComponent<void> {
 	_fixCounterIfNeeded: ((listId: Id, listLength: number) => void) = debounce(2000, (listId: Id, listLength: number) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
-		if (this.listId !== listId || worker.wsConnection()() !== "connected") {
+		if (this.listId !== listId || locator.worker.wsConnection()() !== "connected") {
 			return
 		}
 		// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
@@ -374,7 +373,7 @@ export class MailListView implements MComponent<void> {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return promiseFilter(mails, (mail) => {
-						return findAndApplyMatchingRule(worker, locator.entityClient, mailboxDetail, mail, true)
+						return findAndApplyMatchingRule(locator.worker, locator.entityClient, mailboxDetail, mail, true)
 							.then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {

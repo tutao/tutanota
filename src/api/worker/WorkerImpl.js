@@ -40,6 +40,7 @@ import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {exposeLocal} from "../common/WorkerProxy"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
 import {delay} from "../common/utils/PromiseUtils"
+import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 
 
 assertWorkerOrNode()
@@ -62,6 +63,7 @@ export interface WorkerInterface {
 	+fileFacade: FileFacade,
 	+userManagementFacade: UserManagementFacade;
 	+contactFormFacade: ContactFormFacade;
+	+deviceEncryptionFacade: DeviceEncryptionFacade;
 }
 
 export class WorkerImpl {
@@ -130,6 +132,9 @@ export class WorkerImpl {
 			get contactFormFacade() {
 				return locator.contactFormFacade
 			},
+			get deviceEncryptionFacade() {
+				return locator.deviceEncryptionFacade
+			}
 		}
 
 		this._queue.setCommands({

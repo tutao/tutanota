@@ -1,11 +1,22 @@
 // @flow
 
+import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
+import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
+import {assertNotNull, typedValues} from "../../api/common/utils/Utils"
+import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
+
+/**
+ * Type for persistent credentials, that contain the full credentials data.
+ */
 export type PersistentCredentials = {|
 	credentialInfo: CredentialsInfo,
 	accessToken: Base64,
 	encryptedPassword: Base64Url,
 |}
 
+/**
+ * Credentials type that does not contain the actual credentials, but only meta information.
+ */
 export type CredentialsInfo = {|
 	login: string,
 	userId: Id,
@@ -17,22 +28,72 @@ export type CredentialsInfo = {|
  * be decided by the platform-specific implementation of this interface.
  */
 export interface CredentialsEncryption {
+	/**
+	 * Encrypts {@param credentials} using the encryption mode set for the device.
+	 * @param credentials
+	 */
 	encrypt(credentials: Credentials): Promise<PersistentCredentials>;
 
+	/**
+	 * Decrypts {@param encryptedCredentials} using the encryption mode set for the device.
+	 * @param encryptedCredentials
+	 */
 	decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials>;
+
+	/**
+	 * Returns all credentials encryption modes that are supported by the device.
+	 */
+	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionModeEnum>>;
 }
 
 /**
- * Interface for storing credentials.
+ * Interface for storing credentials on a device.
  */
 export interface CredentialsStorage {
-	store(encryptedCredentials: PersistentCredentials): void;
+	/**
+	 * Stores {@param encryptedCredentials}. If another set of credentials exists for the same userId, it will be overwritten.
+	 * @param encryptedCredentials
+	 */
+	store(persistentCredentials: PersistentCredentials): void;
 
+	/**
+	 * Loads the credentials for {@param userId}.
+	 * @param userId
+	 */
 	loadByUserId(userId: Id): PersistentCredentials | null;
 
+	/**
+	 * Loads all credentials stored on the device.
+	 */
 	loadAll(): Array<PersistentCredentials>;
 
+	/**
+	 * Deletes any stored credentials for {@param userId}.
+	 * @param userId
+	 */
 	deleteByUserId(userId: Id): void;
+
+	/**
+	 * Returns the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is encrypted on the device.
+	 */
+	getCredentialEncryptionMode(): ?CredentialEncryptionModeEnum;
+
+	/**
+	 * Sets the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is encrypted on the device.
+	 * @param encryptionMode
+	 */
+	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionModeEnum | null): void;
+
+	/**
+	 * Returns the (encrypted) key used for encrypting credentials.
+	 */
+	getCredentialsEncryptionKey(): ?Uint8Array;
+
+	/**
+	 * Sets the (encrypted) key used for encrypting credentials.
+	 * @param credentialsEncryptionKey
+	 */
+	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): void
 }
 
 /**
@@ -44,6 +105,8 @@ export interface ICredentialsProvider {
 	 * @param credentials
 	 */
 	store(credentials: Credentials): Promise<void>;
+
+	getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null>;
 
 	/**
 	 * Returns the full credentials for the userId passed in.
@@ -67,20 +130,51 @@ export interface ICredentialsProvider {
 	 * No-op if credentials are not there.
 	 */
 	deleteByUserId(userId: Id): Promise<void>;
+
+	/**
+	 * Sets the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is protected.
+	 * @param encryptionMode
+	 */
+	setCredentialsEncryptionMode(encryptionMode: CredentialEncryptionModeEnum): Promise<void>;
+
+	/**
+	 * Returns the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is protected.
+	 */
+	getCredentialsEncryptionMode(): ?CredentialEncryptionModeEnum;
+
+	/**
+	 * Returns all credentials encryption modes that are supported by the device.
+	 */
+	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionModeEnum>>;
+
+	/**
+	 * Removes all stored credentials as well as any settings associated with credentials encryption.
+	 */
+	clearCredentials(): Promise<void>;
 }
 
+/**
+ * Platoform-independent implementation for ICredentialsProvider.
+ */
 export class CredentialsProvider implements ICredentialsProvider {
 	+_credentialsEncryption: CredentialsEncryption
 	+_credentialsStorage: CredentialsStorage
+	+_keyMigrator: ICredentialsKeyMigrator
 
-	constructor(credentialsEncryption: CredentialsEncryption, storage: CredentialsStorage) {
+	constructor(credentialsEncryption: CredentialsEncryption, storage: CredentialsStorage, keyMigrator: ICredentialsKeyMigrator) {
 		this._credentialsEncryption = credentialsEncryption
 		this._credentialsStorage = storage
+		this._keyMigrator = keyMigrator
 	}
 
 	async store(credentials: Credentials): Promise<void> {
 		const encryptedCredentials = await this._credentialsEncryption.encrypt(credentials)
 		this._credentialsStorage.store(encryptedCredentials)
+	}
+
+	async getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null> {
+		const persistentCredentials = this._credentialsStorage.loadByUserId(userId)
+		return persistentCredentials?.credentialInfo ?? null
 	}
 
 	async getCredentialsByUserId(userId: Id): Promise<Credentials | null> {
@@ -106,5 +200,33 @@ export class CredentialsProvider implements ICredentialsProvider {
 		this._credentialsStorage.deleteByUserId(userId)
 	}
 
-}
+	async setCredentialsEncryptionMode(encryptionMode: CredentialEncryptionModeEnum): Promise<void> {
+		const oldKeyEncrypted = this._credentialsStorage.getCredentialsEncryptionKey()
 
+		if (oldKeyEncrypted) {
+			// if we have a key we must have a method
+			const oldEncryptionMode = assertNotNull(this._credentialsStorage.getCredentialEncryptionMode())
+			const newlyEncryptedKey = await this._keyMigrator.migrateCredentialsKey(oldKeyEncrypted, oldEncryptionMode, encryptionMode)
+			this._credentialsStorage.setCredentialsEncryptionKey(newlyEncryptedKey)
+		}
+
+		this._credentialsStorage.setCredentialEncryptionMode(encryptionMode)
+	}
+
+	getCredentialsEncryptionMode(): ?CredentialEncryptionModeEnum {
+		return this._credentialsStorage.getCredentialEncryptionMode()
+	}
+
+	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionModeEnum>> {
+		return await this._credentialsEncryption.getSupportedEncryptionModes()
+	}
+
+	async clearCredentials(): Promise<void> {
+		const storedCredentials = this._credentialsStorage.loadAll()
+		for (let storedCredential of storedCredentials) {
+			await this.deleteByUserId(storedCredential.credentialInfo.userId)
+		}
+		this._credentialsStorage.setCredentialsEncryptionKey(null)
+		this._credentialsStorage.setCredentialEncryptionMode(null)
+	}
+}

@@ -1,6 +1,5 @@
 //@flow
 import {parseCalendarFile} from "../export/CalendarImporter"
-import {worker} from "../../api/main/WorkerClient"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {locator} from "../../api/main/MainLocator"
@@ -56,7 +55,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 }
 
 export function getEventFromFile(file: TutanotaFile): Promise<?CalendarEvent> {
-	return worker.fileFacade.downloadFileContent(file).then((fileData) => {
+	return locator.fileFacade.downloadFileContent(file).then((fileData) => {
 		const parsedEvent = getParsedEvent(fileData)
 		return parsedEvent && parsedEvent.event
 	})
@@ -69,7 +68,7 @@ export function getEventFromFile(file: TutanotaFile): Promise<?CalendarEvent> {
 export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 	if (uid) {
-		return worker.calendarFacade.getEventByUid(uid).then((existingEvent) => {
+		return locator.calendarFacade.getEventByUid(uid).then((existingEvent) => {
 			if (existingEvent) {
 				// If the file we are opening is newer than the one which we have on the server, update server version.
 				// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
@@ -107,7 +106,7 @@ export function replyToEventInvitation(
 	]).then(([calendar, mailboxDetails]) => {
 
 		return import("../../mail/editor/SendMailModel").then(({SendMailModel}) => {
-			const sendMailModel = new SendMailModel(worker.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
+			const sendMailModel = new SendMailModel(locator.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
 				.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))

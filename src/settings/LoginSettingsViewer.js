@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../api/common/Env"
+import {assertMainOrNode, isApp} from "../api/common/Env"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {lang} from "../misc/LanguageViewModel"
@@ -29,6 +29,11 @@ import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {CredentialEncryptionModeEnum} from "../misc/credentials/CredentialEncryptionMode"
+import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
+import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
 
@@ -39,15 +44,22 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	_activeSessionsTableLines: Stream<Array<TableLineAttrs>>;
 	_closedSessionsTableLines: Stream<Array<TableLineAttrs>>;
 	_secondFactorsForm: EditSecondFactorsForm;
+	_credentialsProvider: ICredentialsProvider
+	_supportedCredentialEncryptionModes: $ReadOnlyArray<CredentialEncryptionModeEnum>
 
-	constructor() {
+	constructor(credentialsProvider: ICredentialsProvider) {
+		this._credentialsProvider = credentialsProvider
 		this._mailAddress = stream(neverNull(logins.getUserController().userGroupInfo.mailAddress))
 		this._stars = stream("***")
 		this._closedSessionsExpanded = stream(false)
 		this._activeSessionsTableLines = stream([])
 		this._closedSessionsTableLines = stream([])
 		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
-
+		this._supportedCredentialEncryptionModes = []
+		this._credentialsProvider.getSupportedEncryptionModes().then((modes) => {
+			this._supportedCredentialEncryptionModes = modes
+			m.redraw()
+		})
 		stream.merge([this._closedSessionsTableLines, this._activeSessionsTableLines]).map(m.redraw)
 		this._updateSessions()
 	}
@@ -130,12 +142,24 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		// Might be not there when we are logging out
 		if (logins.isUserLoggedIn()) {
 			const user = logins.getUserController()
+			const credentialsEncryptionModeAttrs: DropDownSelectorAttrs<CredentialEncryptionModeEnum> = {
+				label: "credentialsEncryptionMode_label",
+				items: this._supportedCredentialEncryptionModes.map((mode) => {
+					return {name: this._credentialsEncryptionModeName(mode), value: mode}
+				}),
+				selectedValue: stream(this._credentialsProvider.getCredentialsEncryptionMode()),
+				selectionChangedHandler: (newValue) => {
+					this._credentialsProvider.setCredentialsEncryptionMode(newValue).then(m.redraw)
+				},
+				dropdownWidth: 300,
+			}
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
 					m(TextFieldN, mailAddressAttrs),
 					m(TextFieldN, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
+					isApp() ? m(DropDownSelectorN, credentialsEncryptionModeAttrs) : null,
 					m(this._secondFactorsForm),
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(TableN, activeSessionTableAttrs),
@@ -202,5 +226,14 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				return this._secondFactorsForm.entityEventReceived(update)
 			})
 		}).then(noOp)
+	}
+
+	_credentialsEncryptionModeName(credentialsEncryptionMode: CredentialEncryptionModeEnum): string {
+		const mapping = {
+			[CredentialEncryptionMode.DEVICE_LOCK]: "credentialsEncryptionModeDeviceLock_label",
+			[CredentialEncryptionMode.SYSTEM_PASSWORD]: "credentialsEncryptionModeDeviceCredentials_label",
+			[CredentialEncryptionMode.BIOMETRICS]: "credentialsEncryptionModeBiometrics_label"
+		}
+		return lang.get(mapping[credentialsEncryptionMode])
 	}
 }

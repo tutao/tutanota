@@ -1,18 +1,22 @@
 // @flow
 import o from "ospec"
-import {worker} from "../../../src/api/main/WorkerClient"
+import type {WorkerClient} from "../../../src/api/main/WorkerClient"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {Request} from "../../../src/api/common/WorkerProtocol"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {logins, SessionType} from "../../../src/api/main/LoginController"
 import {assertThrows} from "../TestUtils"
+import {locator} from "../../../src/api/main/MainLocator"
 
 o.spec("WorkerTest request / response", node(function () {
-
+	let worker: WorkerClient
 	o.before(async function () {
 		o.timeout(2000)
+		locator.init()
+		worker = locator.worker
 		await worker.initialized
+
 	})
 
 
@@ -23,7 +27,7 @@ o.spec("WorkerTest request / response", node(function () {
 
 	o("login", async function () {
 		o.timeout(5000)
-		await logins.createSession("map-free@tutanota.de", "map", false, SessionType.Login)
+		await logins.createSession("map-free@tutanota.de", "map", SessionType.Login)
 	})
 
 	o("programming error handling", async function () {

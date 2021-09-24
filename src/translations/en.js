@@ -1412,6 +1412,12 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"credentialsEncryptionMode_label": "Credentials encryption mode",
+		"credentialsEncryptionModeBiometrics_label": "Biometrics",
+		"credentialsEncryptionModeDeviceCredentials_label": "Device credentials",
+		"credentialsEncryptionModeDeviceLock_label": "Device lock",
+		"credentialsKeyInvalidated_msg": "System keychain has been invalidated. Deleting stored credentials.",
+		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}"
 	}
 }

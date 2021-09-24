@@ -32,7 +32,7 @@ export type DropDownSelectorAttrs<T> = {
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
 	 */
-	selectionChangedHandler?: ?((T) => mixed),
+	selectionChangedHandler?: ?((newValue: T) => mixed),
 	helpLabel?: lazy<Children>,
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,

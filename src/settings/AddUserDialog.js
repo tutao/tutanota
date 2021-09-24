@@ -12,13 +12,13 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll} from "../api/common/utils/ArrayUtils"
 import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
-import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 
 assertMainOrNode()
@@ -77,8 +77,8 @@ export function show(): Promise<void> {
 				showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.Users, 1, 0, false))
 					.then(accepted => {
 						if (accepted) {
-							let p = worker.userManagementFacade.createUser(userName, emailAddress, passwordForm.getNewPassword(), 0, 1)
-							showWorkerProgressDialog(worker, () => lang.get("createActionStatus_msg", {
+							let p = locator.userManagementFacade.createUser(userName, emailAddress, passwordForm.getNewPassword(), 0, 1)
+							showWorkerProgressDialog(locator.worker, () => lang.get("createActionStatus_msg", {
 								"{index}": 0,
 								"{count}": 1
 							}), p)

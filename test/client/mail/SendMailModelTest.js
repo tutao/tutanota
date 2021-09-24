@@ -171,7 +171,8 @@ o.spec("SendMailModel", function () {
 
 		const workerMock = mockWorker()
 		mailFacade = mockMailFacade()
-		locator.init(workerMock) // because it is used in certain parts of the code
+		// TODO
+		// locator.init() // because it is used in certain parts of the code
 
 		entity = new EntityClient(workerMock)
 		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {

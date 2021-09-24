@@ -24,7 +24,6 @@ import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
@@ -203,7 +202,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		if (error) {
 			return Dialog.error(error).then(() => false)
 		} else {
-			return showProgressDialog("pleaseWait_msg", worker
+			return showProgressDialog("pleaseWait_msg", locator
 				.mailAddressFacade
 				.addMailAlias(this.data.editAliasFormAttrs.userGroupInfo.group, this.mailAddress))
 				.then(() => {

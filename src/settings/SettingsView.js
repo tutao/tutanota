@@ -52,7 +52,6 @@ import {flat, partition} from "../api/common/utils/ArrayUtils"
 import {SidebarSection} from "../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../sharing/model/ReceivedGroupInvitationsModel"
 import {getDefaultGroupName, getSharedGroupName, isSharedGroupOwner} from "../sharing/GroupUtils"
-import {worker} from "../api/main/WorkerClient"
 import {DummyTemplateListView} from "./DummyTemplateListView"
 import {SettingsFolderRow} from "./SettingsFolderRow"
 import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
@@ -96,7 +95,7 @@ export class SettingsView implements CurrentView {
 
 	constructor() {
 		this._userFolders = [
-			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
+			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer(locator.credentialsProvider)),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
@@ -270,7 +269,7 @@ export class SettingsView implements CurrentView {
 						label: "leaveGroup_action",
 						click: () =>
 							getConfirmation("confirmLeaveTemplateGroup_msg")
-								.confirmed(() => worker.groupManagementFacade.removeUserFromGroup(getEtId(logins.getUserController().user), folder.data.groupInfo.group)),
+								.confirmed(() => locator.groupManagementFacade.removeUserFromGroup(getEtId(logins.getUserController().user), folder.data.groupInfo.group)),
 						icon: () => Icons.Trash
 					},
 				{

@@ -7,7 +7,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
 import {erase, update} from "../../api/main/Entity"
-import type {MailboxDetail} from "../../mail/model/MailModel"
 import {NotFoundError} from "../../api/common/error/RestError"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
@@ -31,9 +30,7 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import {moveMails} from "../../mail/view/MailGuiUtils"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMails} from "../../mail/export/Exporter"
-import {worker} from "../../api/main/WorkerClient"
-import {makeMailBundle} from "../../mail/export/Bundler"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -204,7 +201,7 @@ export class MultiSearchViewer {
 					click: () =>
 						showProgressDialog(
 							"pleaseWait_msg",
-							exportMails(this.getSelectedMails(), locator.entityClient, worker.fileFacade)
+							exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)
 						),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,

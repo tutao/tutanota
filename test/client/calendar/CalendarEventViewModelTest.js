@@ -29,7 +29,7 @@ import {EventController} from "../../../src/api/main/EventController"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail} from "../../../src/api/entities/tutanota/Mail"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {worker} from "../../../src/api/main/WorkerClient"
+import {createCustomer} from "../../../src/api/entities/sys/Customer"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
@@ -37,6 +37,7 @@ import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatur
 import {assertThrows, unmockAttribute} from "../../api/TestUtils"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {EntityRestClientMock} from "../../api/worker/EntityRestClientMock"
 import {Time} from "../../../src/api/common/utils/Time"
 import {
 	accountMailAddress,
@@ -98,7 +99,7 @@ o.spec("CalendarEventViewModel", function () {
 			addEntityListener: noOp,
 			removeEntityListener: noOp,
 		})
-		const entityClient = new EntityClient(worker)
+		const entityClient = new EntityClient(new EntityRestClientMock())
 		const mailFacadeMock = downcast<MailFacade>({
 			async getRecipientKeyData(mailAddress: string) {
 				await delay(resolveRecipientMs)
