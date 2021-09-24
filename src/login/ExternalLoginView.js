@@ -1,15 +1,12 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {worker} from "../api/main/WorkerClient"
-import {deviceConfig} from "../misc/DeviceConfig"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
 	BadRequestError,
 	NotAuthenticatedError,
-	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
@@ -17,9 +14,8 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
-import {windowFacade} from "../misc/WindowFacade"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {CloseEventBusOption, Keys} from "../api/common/TutanotaConstants"
+import {Keys} from "../api/common/TutanotaConstants"
 import {progressIcon} from "../gui/base/Icon"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
@@ -27,17 +23,18 @@ import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
-import {assertMainOrNode, LOGIN_TITLE} from "../api/common/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {header} from "../gui/base/Header"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 import {getLoginErrorMessage} from "../misc/LoginUtils"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
+import type {CredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
 
 export class ExternalLoginView {
-
+	+_credentialsProvider: CredentialsProvider
 	_password: Stream<string>;
 	_savePassword: Stream<boolean>;
 	_helpText: TranslationKey;
@@ -59,6 +56,7 @@ export class ExternalLoginView {
 		this._savePassword = stream(false)
 		this._symKeyForPasswordTransmission = null
 
+		this._credentialsProvider = locator.credentialsProvider
 
 		this._setupShortcuts()
 
@@ -99,7 +97,9 @@ export class ExternalLoginView {
 		let shortcuts = [
 			{
 				key: Keys.RETURN,
-				exec: () => this._formLogin(),
+				exec: () => {
+					this._formLogin()
+				},
 				help: "login_label"
 			},
 		]
@@ -118,12 +118,13 @@ export class ExternalLoginView {
 			this._userId = id.substring(0, userIdLength)
 			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
 
-			let credentials = deviceConfig.getSavedCredentialsByMailAddress(this._userId)
-			if (credentials && args.noAutoLogin !== true) {
-				this._autologin(credentials)
-			} else {
-				m.redraw()
-			}
+			this._credentialsProvider.getCredentialsByUserId(this._userId).then((credentials) => {
+				if (credentials && args.noAutoLogin !== true) {
+					this._autologin(credentials)
+				} else {
+					m.redraw()
+				}
+			})
 		} catch (e) {
 			this._errorMessageId = "invalidLink_msg"
 			m.redraw()
@@ -132,43 +133,45 @@ export class ExternalLoginView {
 
 	_autologin(credentials: Credentials): void {
 		this._autologinInProgress = true
-		showProgressDialog("login_msg", worker.initialized.then(() => {
-			return this._handleSession(logins.resumeSession(credentials, this._salt), () => {
+		showProgressDialog("login_msg",
+			this._handleSession(logins.resumeSession(credentials, this._salt), () => {
 				this._autologinInProgress = false
 				m.redraw()
 			})
-		}))
+		)
 	}
 
-	_formLogin() {
-		let pw = this._password()
-		if (pw === "") {
+	async _formLogin() {
+		if (this._password() === "") {
 			this._helpText = 'loginFailed_msg'
 		} else {
 			this._helpText = 'login_msg'
-			let clientIdentifier = client.browser + " " + client.device
-			let persistentSession = this._savePassword()
-			let createSessionPromise = logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
-			                                 .then(newCredentials => {
-				                                 this._password("")
-				                                 // For external users userId is used instead of email address
-				                                 let storedCredentials = deviceConfig.getSavedCredentialsByMailAddress(this._userId)
-				                                 if (persistentSession) {
-					                                 deviceConfig.set(newCredentials)
-				                                 }
-				                                 if (storedCredentials) { // delete persistent session (saved in deviceConfig) if a new session is created
-					                                 return worker.loginFacade.deleteSession(storedCredentials.accessToken)
-					                                              .then(() => {
-						                                              if (!persistentSession) {
-							                                              deviceConfig.delete(this._userId)
-						                                              }
-					                                              })
-					                                              .catch(ofClass(NotFoundError, e => console.log("session already deleted")))
-				                                 }
-			                                 })
+
+			const createSessionPromise = this._doFormLogin()
+
 			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
 				// don't do anything additionally on errors
 			})
+		}
+	}
+
+	async _doFormLogin() {
+		const pw = this._password()
+		let clientIdentifier = client.browser + " " + client.device
+		let persistentSession = this._savePassword()
+		const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
+		this._password("")
+		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(this._userId)
+		// For external users userId is used instead of email address
+		if (persistentSession) {
+			await this._credentialsProvider.store(newCredentials)
+		}
+		if (storedCredentials) { // delete persistent session if a new session is created
+			await logins.deleteOldSession(storedCredentials.accessToken)
+
+			if (!persistentSession) {
+				await this._credentialsProvider.deleteByUserId(this._userId)
+			}
 		}
 	}
 

@@ -11,7 +11,6 @@ import {TextFieldN, Type} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
-import {deviceConfig} from "../../misc/DeviceConfig"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {assertMainOrNode} from "../../api/common/Env"
 import {secondFactorHandler} from "../../misc/SecondFactorHandler"
@@ -19,11 +18,13 @@ import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {worker} from "../../api/main/WorkerClient"
 import {client} from "../../misc/ClientDetector"
 import {CancelledError} from "../../api/common/error/CancelledError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
 export type ResetAction = "password" | "secondFactor"
+
 
 export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<?ResetAction> = stream(resetAction)
@@ -119,10 +120,10 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 								passwordForm.getNewPassword(),
 								client.getIdentifier())
 						}))
-						.then(() => {
+						.then(async () => {
 							recoverDialog.close()
-							deviceConfig.delete(cleanMailAddress)
-							m.route.set("/login", {loginWith: cleanMailAddress, noAutoLogin: true})
+							await deleteCredentialsByMailAddress(cleanMailAddress)
+							windowFacade.reload({})
 						})
 						.catch(e => handleError(e))
 						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
@@ -132,10 +133,10 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 				showProgressDialog("pleaseWait_msg",
 					worker.initialized
 					      .then(() => worker.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
-					.then(() => {
+					.then(async () => {
 						recoverDialog.close()
-						deviceConfig.delete(cleanMailAddress)
-						m.route.set("/login", {loginWith: cleanMailAddress, noAutoLogin: true})
+						await deleteCredentialsByMailAddress(cleanMailAddress)
+						windowFacade.reload({})
 					})
 					.catch(e => handleError(e))
 			}
@@ -143,6 +144,14 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 		cancelAction: () => m.route.set("/login", {noAutoLogin: true})
 	})
 	return recoverDialog
+}
+
+async function deleteCredentialsByMailAddress(cleanMailAddress) {
+	const allCredentials = await locator.credentialsProvider.getAllInternal()
+	const credentials = allCredentials.find((c) => c.mailAddress === cleanMailAddress)
+	if (credentials) {
+		await locator.credentialsProvider.deleteByUserId(credentials.userId)
+	}
 }
 
 function handleError(e: Error) {
