@@ -16,6 +16,8 @@ import {defer} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../../misc/Scheduler"
+import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider"
+import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
 
 assertMainOrNode()
 
@@ -30,7 +32,8 @@ export type MainLocatorType = {|
 	contactModel: ContactModel;
 	entityClient: EntityClient;
 	progressTracker: ProgressTracker;
-	initializedWorker: Promise<WorkerClient>
+	initializedWorker: Promise<WorkerClient>;
+	credentialsProvider: CredentialsProvider
 |}
 
 const workerDeferred = defer<WorkerClient>()
@@ -43,6 +46,7 @@ export const locator: MainLocatorType = ({
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(worker)
 		this.entityClient = new EntityClient(worker)
+		this.credentialsProvider = createCredentialsProvider()
 
 		this.mailModel = new MailModel(notifications, this.eventController, worker, this.entityClient)
 		const lazyScheduler = async () => {

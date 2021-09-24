@@ -45,7 +45,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
-import {defer, neverNull, noOp} from "../../common/utils/Utils"
+import {assertNotNull, defer, neverNull, noOp} from "../../common/utils/Utils"
 import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {hash} from "../crypto/Sha256"
@@ -127,8 +127,6 @@ export interface LoginFacade {
 	resetSession(): Promise<void>;
 
 	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: ?Hex, targetAccountMailAddress: string): Promise<void>;
-
-	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
 
 	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
 
@@ -226,8 +224,9 @@ export class LoginFacadeImpl implements LoginFacade {
 							           credentials: {
 								           mailAddress,
 								           accessToken: neverNull(this._accessToken),
-								           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-								           userId: sessionData.userId
+								           encryptedPassword: persistentSession ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+								           userId: sessionData.userId,
+								           type: "internal",
 							           }
 						           }
 					           })
@@ -317,15 +316,17 @@ export class LoginFacadeImpl implements LoginFacade {
 				]
 				return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, true)
 				           .then(() => {
+					           const userGroupInfo = neverNull(this._userGroupInfo)
 					           return {
 						           user: neverNull(this._user),
-						           userGroupInfo: neverNull(this._userGroupInfo),
+						           userGroupInfo,
 						           sessionId,
 						           credentials: {
-							           mailAddress: userId, // we set the external user id because we do not have the mail address
+							           mailAddress: assertNotNull(userGroupInfo.mailAddress),
 							           accessToken: neverNull(this._accessToken),
 							           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
-							           userId
+							           userId,
+							           type: "external",
 						           }
 					           }
 				           })

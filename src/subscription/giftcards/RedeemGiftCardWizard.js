@@ -11,10 +11,8 @@ import {Dialog} from "../../gui/base/Dialog"
 import {LoginForm} from "../../login/LoginForm"
 import type {CredentialsSelectorAttrs} from "../../login/CredentialsSelector"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
-import {deviceConfig} from "../../misc/DeviceConfig"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
-import {client} from "../../misc/ClientDetector"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {SignupFormAttrs} from "../SignupForm"
 import {SignupForm} from "../SignupForm"
@@ -114,10 +112,16 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 	_domElement: HTMLElement
 	_loginFormHelpText: string
 	+_password: Stream<string>
+	_storedCredentials: Array<Credentials>
 
 	constructor() {
 		this._loginFormHelpText = lang.get("emptyString_msg")
 		this._password = stream("")
+		this._storedCredentials = []
+		locator.credentialsProvider.getAllInternal().then((credentials) => {
+			this._storedCredentials = credentials
+			m.redraw()
+		})
 	}
 
 	oncreate(vnode: Vnode<GiftCardRedeemAttrs>) {
@@ -176,16 +180,16 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			}
 		}
 
-		const credentials = deviceConfig.getAllInternal()
+
 		const credentialsSelectorAttrs: CredentialsSelectorAttrs = {
-			credentials: credentials,
+			credentials: this._storedCredentials,
 			onCredentialsSelected,
 		}
 
 		return [
 			m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", [
 					m(LoginForm, loginFormAttrs),
-					credentials.length > 0
+					this._storedCredentials.length > 0
 						? m(CredentialsSelector, credentialsSelectorAttrs)
 						: null
 				])
@@ -293,7 +297,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 		return m("", [
 			data.newAccountData()
 				? m(".pt-l.plr-l",
-				m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode}))
+					m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode}))
 				: null,
 			wasFree ? [
 					m(".pt-l.plr-l",
