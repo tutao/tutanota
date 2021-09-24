@@ -175,7 +175,8 @@ type Credentials = {
 	mailAddress: string,
 	encryptedPassword: ?Base64, // only set for persistent sessions
 	accessToken: Base64Url,
-	userId: Id
+	userId: Id,
+	type: "internal" | "external",
 }
 
 declare function browser(f: Function): Function

@@ -285,11 +285,15 @@ export class LoginView {
 			this._requestedPath = "/mail"
 		}
 
+		this._handleLoginArguments(args)
+	}
+
+	async _handleLoginArguments(args: Object) {
 		const autoLogin = args.noAutoLogin == null || args.noAutoLogin === false
 
 		if (autoLogin) {
 			if (args.userId) {
-				this._viewModel.useUserId(args.userId)
+				await this._viewModel.useUserId(args.userId)
 			}
 			if (this._viewModel.canLogin()) {
 				this._loginWithProgressDialog()

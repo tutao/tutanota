@@ -7,17 +7,18 @@ import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
+import type {Status} from "../gui/base/StatusField"
 import {StatusField} from "../gui/base/StatusField"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
-import type {Status} from "../gui/base/StatusField"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {getEtId} from "../api/common/utils/EntityUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -139,7 +140,7 @@ export class PasswordForm {
 				showProgressDialog("pleaseWait_msg",
 					worker.loginFacade.changePassword(form.getOldPassword(), form.getNewPassword()))
 					.then(() => {
-						deviceConfig.deleteByAccessToken(logins.getUserController().accessToken)
+						locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
 						Dialog.error("pwChangeValid_msg")
 						dialog.close()
 					})

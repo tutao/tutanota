@@ -7,6 +7,7 @@ import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
+import type {lazy} from "./api/common/utils/Utils"
 import {downcast, neverNull} from "./api/common/utils/Utils"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
@@ -16,7 +17,6 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
-import type {lazy} from "./api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -168,8 +168,9 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 			const {LoginView} = await import("./login/LoginView.js")
 			const {LoginViewModel} = await import("./login/LoginViewModel.js")
 			const {secondFactorHandler} = await import("./misc/SecondFactorHandler")
-			const loginViewModel = new LoginViewModel(logins, deviceConfig, secondFactorHandler)
-			loginViewModel.init()
+			const {locator} = await import ("./api/main/MainLocator")
+			const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, secondFactorHandler)
+			await loginViewModel.init()
 			const loginListener = await import("./login/LoginListener")
 			await loginListener.registerLoginListener()
 			return new LoginView(loginViewModel)

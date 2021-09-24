@@ -9,7 +9,6 @@ import {
 } from "../api/common/error/RestError"
 import {assertMainOrNode} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {DeviceConfig} from "../misc/DeviceConfig"
 import {SecondFactorHandler} from "../misc/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
@@ -17,6 +16,7 @@ import type {LoginController} from "../api/main/LoginController"
 import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {CredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
 
@@ -58,7 +58,7 @@ export interface ILoginViewModel {
 	 * the viewmodel for an automatic login without user interaction.
 	 * @param userId
 	 */
-	useUserId(userId: string): void;
+	useUserId(userId: string): Promise<void>;
 
 	/**
 	 * Instructs the viewmodel to use the credentials passed for the next login attempt. Changes displayMode to DisplayMode.Credentials.
@@ -101,7 +101,7 @@ export interface ILoginViewModel {
 
 export class LoginViewModel implements ILoginViewModel {
 	+_loginController: LoginController
-	+_deviceConfig: DeviceConfig
+	+_credentialsProvider: CredentialsProvider
 	+_secondFactorHandler: SecondFactorHandler
 	+mailAddress: Stream<string>;
 	+password: Stream<string>;
@@ -109,11 +109,12 @@ export class LoginViewModel implements ILoginViewModel {
 	state: LoginStateEnum
 	helpText: TranslationKey
 	+savePassword: Stream<boolean>;
+	_savedInteralCredentials: Array<Credentials>
 	_autoLoginCredentials: ?Credentials
 
-	constructor(loginController: LoginController, deviceConfig: DeviceConfig, secondFactorHandler: SecondFactorHandler) {
+	constructor(loginController: LoginController, credentialsProvider: CredentialsProvider, secondFactorHandler: SecondFactorHandler) {
 		this._loginController = loginController
-		this._deviceConfig = deviceConfig
+		this._credentialsProvider = credentialsProvider
 		this._secondFactorHandler = secondFactorHandler
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -122,16 +123,15 @@ export class LoginViewModel implements ILoginViewModel {
 		this.password = stream("")
 		this._autoLoginCredentials = null
 		this.savePassword = stream(false)
+		this._savedInteralCredentials = []
 	}
 
-	init(): void {
-		if (this._deviceConfig.getAllInternal().length > 0) {
-			this.displayMode = DisplayMode.Credentials
-		}
+	async init(): Promise<void> {
+		await this._updateCachedCredentials()
 	}
 
-	useUserId(userId: string): void {
-		this._autoLoginCredentials = this._deviceConfig.getSavedCredentialsByUserId(userId)
+	async useUserId(userId: string): Promise<void> {
+		this._autoLoginCredentials = await this._credentialsProvider.getCredentialsByUserId(userId)
 		if (this._autoLoginCredentials) {
 			this.displayMode = DisplayMode.Credentials
 		} else {
@@ -142,7 +142,7 @@ export class LoginViewModel implements ILoginViewModel {
 	canLogin(): boolean {
 		if (this.displayMode === DisplayMode.Credentials) {
 			return this._autoLoginCredentials != null
-				|| this._deviceConfig.getAllInternal().length === 1
+				|| this._savedInteralCredentials.length === 1
 		} else if (this.displayMode === DisplayMode.Form) {
 			return Boolean(this.mailAddress() && this.password())
 		} else {
@@ -167,14 +167,12 @@ export class LoginViewModel implements ILoginViewModel {
 
 	async deleteCredentials(credentials: Credentials): Promise<void> {
 		await this._loginController.deleteOldSession(credentials.accessToken)
-		await this._deviceConfig.delete(credentials.mailAddress)
-		if (this.getSavedCredentials().length === 0) {
-			this.displayMode = DisplayMode.Form
-		}
+		await this._credentialsProvider.deleteByUserId(credentials.userId)
+		await this._updateCachedCredentials()
 	}
 
 	getSavedCredentials(): $ReadOnlyArray<Credentials> {
-		return this._deviceConfig.getAllInternal()
+		return this._savedInteralCredentials
 	}
 
 	switchDeleteState() {
@@ -195,10 +193,19 @@ export class LoginViewModel implements ILoginViewModel {
 		this.displayMode = DisplayMode.Credentials
 	}
 
+	async _updateCachedCredentials() {
+		this._savedInteralCredentials = await this._credentialsProvider.getAllInternal()
+		if (this._savedInteralCredentials.length > 0) {
+			this.displayMode = DisplayMode.Credentials
+		} else {
+			this.displayMode = DisplayMode.Form
+		}
+	}
+
 	async _autologin(): Promise<void> {
 		try {
 			if (!this._autoLoginCredentials) {
-				this._autoLoginCredentials = this._deviceConfig.getAllInternal()[0]
+				this._autoLoginCredentials = (await this._credentialsProvider.getAllInternal())[0]
 			}
 			await this._loginController.resumeSession(this._autoLoginCredentials)
 			await this._onLogin()
@@ -216,7 +223,7 @@ export class LoginViewModel implements ILoginViewModel {
 		const mailAddress = this.mailAddress()
 		const password = this.password()
 		const savePassword = this.savePassword()
-		
+
 		if (mailAddress === "" || password === "") {
 			this.helpText = 'loginFailed_msg'
 		} else {
@@ -225,14 +232,14 @@ export class LoginViewModel implements ILoginViewModel {
 			try {
 				const newCredentials = await this._loginController.createSession(mailAddress, password, savePassword, SessionType.Login)
 				await this._onLogin()
-				const storedCredentials = this._deviceConfig.getSavedCredentialsByMailAddress(mailAddress)
+				const storedCredentials = await this._credentialsProvider.getCredentialsByUserId(newCredentials.userId)
 				if (savePassword) {
-					this._deviceConfig.set(newCredentials)
+					await this._credentialsProvider.store(newCredentials)
 				}
 				if (storedCredentials) {
 					await this._loginController.deleteOldSession(storedCredentials.accessToken)
 					if (!savePassword) {
-						this._deviceConfig.delete(mailAddress)
+						await this._credentialsProvider.deleteByUserId(storedCredentials.userId)
 					}
 				}
 			} catch (e) {

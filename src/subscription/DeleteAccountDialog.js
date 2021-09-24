@@ -5,13 +5,12 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
-import {Type} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {neverNull} from "../api/common/utils/Utils"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import {deviceConfig} from "../misc/DeviceConfig"
 import {logins} from "../api/main/LoginController"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 export function showDeleteAccountDialog() {
 	let why = ""
@@ -87,8 +86,5 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 }
 
 function deleteSavedCredentials() {
-	const credentials = deviceConfig.getSavedCredentialsByUserId(logins.getUserController().user._id)
-	if (credentials) {
-		deviceConfig.delete(credentials.mailAddress)
-	}
+	locator.credentialsProvider.deleteByUserId(logins.getUserController().user._id)
 }

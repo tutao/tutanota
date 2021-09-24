@@ -9,27 +9,23 @@ import {createUser} from "../../../src/api/entities/sys/User"
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
-import {DeviceConfig} from "../../../src/misc/DeviceConfig"
 import {SecondFactorHandler} from "../../../src/misc/SecondFactorHandler"
 import {assertThrows} from "../../api/TestUtils"
+import {CredentialsProvider} from "../../../src/misc/credentials/CredentialsProvider"
 
-class DeviceConfigStub {
+class CredentialsProviderStub {
 	credentials = new Map<string, Credentials>()
 
-	getSavedCredentialsByMailAddress(mailAddress: string) {
-		return this.credentials.get(mailAddress) || null
-	}
-
-	getSavedCredentialsByUserId(userId: string) {
+	getCredentialsByUserId(userId: string) {
 		return this.credentials.get(userId) || null
 	}
 
-	set(credentials: Credentials) {
-		this.credentials.set(credentials.mailAddress, credentials)
+	store(credentials: Credentials) {
+		this.credentials.set(credentials.userId, credentials)
 	}
 
-	delete(mailAddress: string) {
-		this.credentials.delete(mailAddress)
+	deleteByUserId(userId: string) {
+		this.credentials.delete(userId)
 	}
 
 	getAllInternal() {
@@ -38,27 +34,28 @@ class DeviceConfigStub {
 }
 
 o.spec("LoginViewModelTest", () => {
-	const testCredentials: Credentials = {
-		userId: "user-id-1",
-		mailAddress: "test@example.com",
-		encryptedPassword: "encryptedPassword",
-		accessToken: "accessToken"
-	}
-
+	const testCredentials: Credentials = Object.freeze({
+			userId: "user-id-1",
+			mailAddress: "test@example.com",
+			encryptedPassword: "encryptedPassword",
+			accessToken: "accessToken",
+			type: "internal"
+		}
+	)
 	let loginControllerBuilder: MockBuilder<LoginController>
-	let deviceConfig: DeviceConfig
+	let credentialsProvider: CredentialsProvider
 	let secondFactorHandler: SecondFactorHandler
 
 	o.beforeEach(() => {
 		loginControllerBuilder = createLoginController()
-		deviceConfig = downcast<DeviceConfig>(new DeviceConfigStub())
+		credentialsProvider = downcast<CredentialsProvider>(new CredentialsProviderStub())
 		secondFactorHandler = nodemocker.mock("second", {
 			closeWaitingForSecondFactorDialog: noOp
 		}).set()
 	})
 
 	function createViewModel({loginController}: {loginController: LoginController}) {
-		return new LoginViewModel(loginController, deviceConfig, secondFactorHandler)
+		return new LoginViewModel(loginController, credentialsProvider, secondFactorHandler)
 	}
 
 	function createLoginController(): MockBuilder<LoginController> {
@@ -93,12 +90,12 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 
-		o("Should switch to credentials mode if stored credentials can be found", function () {
+		o("Should switch to credentials mode if stored credentials can be found", async function () {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = createViewModel({loginController})
 
-			downcast<DeviceConfigStub>(deviceConfig).credentials.set(testCredentials.userId, testCredentials)
-			viewModel.useUserId(testCredentials.userId)
+			downcast<CredentialsProviderStub>(credentialsProvider).store(testCredentials)
+			await viewModel.useUserId(testCredentials.userId)
 
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
@@ -125,7 +122,7 @@ o.spec("LoginViewModelTest", () => {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = createViewModel({loginController})
 
-			deviceConfig.set(testCredentials)
+			await credentialsProvider.store(testCredentials)
 			viewModel.displayMode = DisplayMode.Credentials
 
 			await viewModel.deleteCredentials(testCredentials)
@@ -220,7 +217,8 @@ o.spec("LoginViewModelTest", () => {
 			mailAddress: testCredentials.mailAddress,
 			encryptedPassword: null,
 			accessToken: testCredentials.accessToken,
-			userId: testCredentials.userId
+			userId: testCredentials.userId,
+			type: "internal"
 		}
 		const password = "password"
 
@@ -240,7 +238,7 @@ o.spec("LoginViewModelTest", () => {
 
 			o(loginController.createSession.args).deepEquals([testCredentials.mailAddress, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(deviceConfig.getSavedCredentialsByMailAddress(testCredentials.mailAddress)).equals(null)
+			o(credentialsProvider.getCredentialsByUserId(testCredentials.userId)).equals(null)
 		})
 
 		o("should login and store password", async function () {
@@ -259,7 +257,7 @@ o.spec("LoginViewModelTest", () => {
 
 			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(deviceConfig.getSavedCredentialsByMailAddress(credentialsWithoutPassword.mailAddress)).deepEquals(credentialsWithoutPassword)
+			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
 		})
 
 		o("should login and overwrite existing stored credentials", async function () {
@@ -272,9 +270,10 @@ o.spec("LoginViewModelTest", () => {
 				mailAddress: credentialsWithoutPassword.mailAddress,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
-				userId: credentialsWithoutPassword.userId
+				userId: credentialsWithoutPassword.userId,
+				type: "internal",
 			}
-			deviceConfig.set(oldCredentials)
+			credentialsProvider.store(oldCredentials)
 			const viewModel = createViewModel({loginController})
 
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
@@ -285,7 +284,7 @@ o.spec("LoginViewModelTest", () => {
 
 			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(deviceConfig.getSavedCredentialsByMailAddress(credentialsWithoutPassword.mailAddress)).deepEquals(credentialsWithoutPassword)
+			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials.accessToken])
 		})
 
@@ -299,9 +298,10 @@ o.spec("LoginViewModelTest", () => {
 				mailAddress: credentialsWithoutPassword.mailAddress,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
-				userId: credentialsWithoutPassword.userId
+				userId: credentialsWithoutPassword.userId,
+				type: "internal",
 			}
-			deviceConfig.set(oldCredentials)
+			credentialsProvider.store(oldCredentials)
 			const viewModel = createViewModel({loginController})
 
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
@@ -312,7 +312,7 @@ o.spec("LoginViewModelTest", () => {
 
 			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(deviceConfig.getSavedCredentialsByMailAddress(credentialsWithoutPassword.mailAddress)).deepEquals(null)
+			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials.accessToken])
 		})
 
