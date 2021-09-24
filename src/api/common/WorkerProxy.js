@@ -39,7 +39,15 @@ export function exposeLocal<T>(impls: T): ((message: Request) => Promise<*>) {
 function facadeProxy(queue: Queue, facadeName: string) {
 	return new Proxy({}, {
 		get: (target: {}, property: string, receiver: Proxy<{}>) => {
-			return (...args) => queue.postMessage(new Request("facade", [facadeName, property, args]))
+			// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system
+			// but runtime also tests for certain peroperties e.g. when returning a value from a promise it will try to test whether it
+			// is "promisable". It is doing so by checking whether there's a "then" function. So we explicitly say we don't have such
+			// a function.
+			if (property === "then") {
+				return undefined
+			} else {
+				return (...args) => queue.postMessage(new Request("facade", [facadeName, property, args]))
+			}
 		}
 	})
 }
