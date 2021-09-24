@@ -16,7 +16,6 @@ import {Icon, progressIcon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../misc/SecondFactorHandler"
 import {contains} from "../api/common/utils/ArrayUtils"
-import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -38,6 +37,7 @@ import type {User} from "../api/entities/sys/User"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -141,7 +141,7 @@ export class EditSecondFactorsForm {
 
 	_showAddSecondFactorDialog() {
 		let u2f = new U2fClient()
-		let totpPromise = worker.loginFacade.generateTotpSecret()
+		let totpPromise = locator.loginFacade.generateTotpSecret()
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
 		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise]))
@@ -375,7 +375,7 @@ export class EditSecondFactorsForm {
 	}
 
 	async _tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatusEnum> {
-		const {loginFacade} = worker
+		const {loginFacade} = locator
 		const time = Math.floor(new Date().getTime() / 1000 / 30)
 
 		// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.

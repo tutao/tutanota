@@ -16,7 +16,6 @@ import {locator} from "../../api/main/MainLocator"
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
-import {worker} from "../../api/main/WorkerClient"
 import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
 import {Dialog} from "../../gui/base/Dialog"
@@ -217,7 +216,7 @@ export class SearchListView {
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
 		if (getMoreFromSearch && hasMoreResults(currentResult)) {
-			loadingResultsPromise = worker.searchFacade.getMoreSearchResults(currentResult, count)
+			loadingResultsPromise = locator.searchFacade.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
 			.then((moreResults) => {

@@ -3,6 +3,7 @@ import m from "mithril"
 import {px} from "../gui/size"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
+import type {lazy} from "../api/common/utils/Utils"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
@@ -10,10 +11,9 @@ import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
-import type {WorkerClient} from "../api/main/WorkerClient"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
-import type {lazy} from "../api/common/utils/Utils"
+import type {BookingFacade} from "../api/worker/facades/BookingFacade"
 
 const PaymentIntervalItems: SegmentControlItem<number>[] = [
 	{name: lang.get("pricing.yearly_label"), value: 12},
@@ -96,8 +96,8 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 							right: px(10)
 						}
 					}, (typeof vnode.attrs.actionButton === "function"
-					? m(ButtonN, vnode.attrs.actionButton())
-					: m(neverNull(vnode.attrs.actionButton))))
+						? m(ButtonN, vnode.attrs.actionButton())
+						: m(neverNull(vnode.attrs.actionButton))))
 					: null
 			]), m("div.mt.pl", vnode.attrs.features().map(f => m(".flex",
 				[
@@ -122,8 +122,8 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 /**
  * Loads the price information for the given feature type/amount and updates the price information on the BuyOptionBox.
  */
-export async function updateBuyOptionBoxPriceInformation(worker: WorkerClient, featureType: BookingItemFeatureTypeEnum, amount: number, attrs: BuyOptionBoxAttr): Promise<void> {
-	const newPrice = await worker.bookingFacade.getPrice(featureType, amount, false)
+export async function updateBuyOptionBoxPriceInformation(bookingFacade: BookingFacade, featureType: BookingItemFeatureTypeEnum, amount: number, attrs: BuyOptionBoxAttr): Promise<void> {
+	const newPrice = await bookingFacade.getPrice(featureType, amount, false)
 	if (amount === getCountFromPriceData(newPrice.currentPriceNextPeriod, featureType)) {
 		attrs.actionButton = getActiveSubscriptionActionButtonReplacement()
 	}

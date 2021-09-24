@@ -3,7 +3,6 @@ import {CustomDomainValidationResult} from "../../api/common/TutanotaConstants"
 import m from "mithril"
 import type {AddDomainData} from "./AddDomainWizard"
 import {createDnsRecordTable} from "./AddDomainWizard"
-import {worker} from "../../api/main/WorkerClient"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
@@ -15,6 +14,7 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -30,7 +30,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		// We expect that the page is created again each time when domain is changed so we only need to load it in oncreate.
 		const {data} = vnode.attrs
-		worker.customerFacade.getDomainValidationRecord(data.domain()).then((recordValue) => {
+		locator.customerFacade.getDomainValidationRecord(data.domain()).then((recordValue) => {
 			data.expectedVerificationRecord.value = recordValue
 			m.redraw()
 		})
@@ -67,7 +67,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		return showProgressDialog("pleaseWait_msg", worker.customerFacade.addDomain(this.data.domain()).then((result) => {
+		return showProgressDialog("pleaseWait_msg", locator.customerFacade.addDomain(this.data.domain()).then((result) => {
 				if (result.validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_OK) {
 					return null
 				} else if (result.validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_AVAILABLE) {

@@ -19,7 +19,6 @@ import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroup
 import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {SysService} from "../entities/sys/Services"
 import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
-import {worker} from "./WorkerClient"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
 import type {CustomerInfo} from "../entities/sys/CustomerInfo"
@@ -207,8 +206,8 @@ export class UserController implements IUserController {
 			// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
 			return this.persistentSession ? Promise.resolve() : this.deleteSessionSync()
 		} else {
-			const deletePromise = this.persistentSession ? Promise.resolve() : worker.loginFacade.deleteSession(this.accessToken)
-			return deletePromise.then(() => worker.reset())
+			const deletePromise = this.persistentSession ? Promise.resolve() : locator.loginFacade.deleteSession(this.accessToken)
+			return deletePromise.then(() => locator.worker.reset())
 		}
 	}
 

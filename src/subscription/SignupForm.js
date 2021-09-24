@@ -19,7 +19,6 @@ import {lang} from "../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {worker} from "../api/main/WorkerClient"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -32,6 +31,7 @@ import {createRegistrationCaptchaServiceData} from "../api/entities/sys/Registra
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import type {lazy} from "../api/common/utils/Utils"
+import {locator} from "../api/main/MainLocator"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -174,8 +174,8 @@ function renderTermsLabel(): Children {
  * @return Signs the user up, if no captcha is needed or it has been solved correctly
  */
 function signup(mailAddress: string, pw: string, registrationCode: string, isBusinessUse: boolean, isPaidSubscription: boolean, campaign: ?string): Promise<?NewAccountData> {
-	const {customerFacade} = worker
-	return showWorkerProgressDialog(worker, "createAccountRunning_msg", customerFacade.generateSignupKeys().then(keyPairs => {
+	const {customerFacade} = locator
+	return showWorkerProgressDialog(locator.worker, "createAccountRunning_msg", customerFacade.generateSignupKeys().then(keyPairs => {
 		return runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(regDataId => {
 			if (regDataId) {
 				return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)

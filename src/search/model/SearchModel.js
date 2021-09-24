@@ -4,11 +4,11 @@ import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../../api/common/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../../api/common/TutanotaConstants"
 import {DbError} from "../../api/common/error/DbError"
-import type {WorkerClient} from "../../api/main/WorkerClient"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
 import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {arrayEquals} from "../../api/common/utils/ArrayUtils"
+import type {SearchFacade} from "../../api/worker/search/SearchFacade"
 
 assertMainOrNode()
 
@@ -20,16 +20,16 @@ export type SearchQuery = {
 }
 
 export class SearchModel {
-	_worker: WorkerClient;
 	result: Stream<?SearchResult>;
 	indexState: Stream<SearchIndexStateInfo>;
 	lastQuery: Stream<?string>;
 	indexingSupported: boolean;
+	_searchFacade: SearchFacade
 	_lastQuery: ?SearchQuery
 	_lastSearchPromise: Promise<?SearchResult>
 
-	constructor(worker: WorkerClient) {
-		this._worker = worker
+	constructor(searchFacade: SearchFacade) {
+		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQuery = stream("")
 		this.indexingSupported = true
@@ -78,7 +78,7 @@ export class SearchModel {
 			this.result(result)
 			this._lastSearchPromise = Promise.resolve(result)
 		} else {
-			this._lastSearchPromise = this._worker.searchFacade.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+			this._lastSearchPromise = this._searchFacade.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
 			}).catch(ofClass(DbError, (e) => {

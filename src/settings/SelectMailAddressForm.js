@@ -6,7 +6,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {isMailAddress} from "../misc/FormatValidator"
-import {worker} from "../api/main/WorkerClient"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -20,6 +19,7 @@ import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -158,7 +158,7 @@ export class SelectMailAddressForm implements MComponent<SelectMailAddressFormAt
 		this._onBusyStateChanged(true, onBusyStateChanged)
 		this._checkAddressTimeout = setTimeout(() => {
 			if (this.cleanMailAddress() !== cleanMailAddress) return
-			worker.initialized.then(() => worker.mailAddressFacade.isMailAddressAvailable(cleanMailAddress))
+			locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
 			      .then(available => {
 				      if (this.cleanMailAddress() === cleanMailAddress) {
 					      if (available) {

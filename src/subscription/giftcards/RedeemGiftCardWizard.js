@@ -12,7 +12,6 @@ import {LoginForm} from "../../login/LoginForm"
 import type {CredentialsSelectorAttrs} from "../../login/CredentialsSelector"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {SignupFormAttrs} from "../SignupForm"
 import {SignupForm} from "../SignupForm"
@@ -150,9 +149,9 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 				} else {
 					const loginPromise =
 						logins.logout(false)
-						      .then(() => logins.createSession(mailAddress, password, false, SessionType.Temporary))
+						      .then(() => logins.createSession(mailAddress, password, SessionType.Temporary))
 						      .then(() => this._postLogin())
-						      .catch(e => { this._loginFormHelpText = lang.get(getLoginErrorMessage(e, false))})
+						      .catch(e => { this._loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))})
 					// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
 					showProgressDialog("pleaseWait_msg", loginPromise)
 				}
@@ -168,7 +167,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
 				this._postLogin()
 			} else {
-				showProgressDialog("pleaseWait_msg", worker.initialized.then(() => {
+				showProgressDialog("pleaseWait_msg",
 					logins.logout(false)
 					      .then(async () => {
 						      const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
@@ -180,7 +179,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					      .catch(ofClass(NotAuthorizedError, e => {
 						      Dialog.error("savedCredentialsError_msg")
 					      }))
-				}))
+				)
 
 			}
 		}
@@ -217,7 +216,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					const {mailAddress, password, recoverCode} = neverNull(newAccountData || existingAccountData)
 					this._password(password)
 					data.mailAddress(mailAddress)
-					logins.createSession(mailAddress, password, false, SessionType.Temporary)
+					logins.createSession(mailAddress, password, SessionType.Temporary)
 					      .then(() => {
 						      emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)
 						      m.redraw()

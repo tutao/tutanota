@@ -36,6 +36,7 @@ import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import {NotFoundError} from "../../api/common/error/RestError"
+import type {MailFacade} from "../../api/worker/facades/MailFacade"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -61,15 +62,17 @@ export class MailModel {
 	_notifications: Notifications
 	_eventController: EventController
 	_worker: WorkerClient;
+	_mailFacade: MailFacade;
 	_entityClient: EntityClient;
 
-	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, entityClient: EntityClient) {
+	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, mailFacade: MailFacade, entityClient: EntityClient) {
 		this.mailboxDetails = stream()
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
 		this._eventController = eventController
 		this._worker = worker
+		this._mailFacade = mailFacade
 		this._entityClient = entityClient
 	}
 
@@ -338,7 +341,7 @@ export class MailModel {
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
-		return this._worker.mailFacade.checkMailForPhishing(mail, links)
+		return this._mailFacade.checkMailForPhishing(mail, links)
 	}
 
 	getTrashFolder(folders: MailFolder[]): MailFolder {

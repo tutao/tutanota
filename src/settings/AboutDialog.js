@@ -3,7 +3,6 @@ import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
-import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
@@ -64,7 +63,7 @@ export class AboutDialog implements MComponent<void> {
 			const mainEntries = global.logger.getEntries()
 			p = createLogFile(timestamp.getTime(), mainEntries, "main")
 				.then((mainLogFile) => attachments.push(mainLogFile))
-				.then(() => worker.getLog())
+				.then(() => locator.worker.getLog())
 				.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
 				.then((workerLogFile) => attachments.push(workerLogFile))
 		}

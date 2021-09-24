@@ -7,7 +7,6 @@ import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
 import {noOp} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
@@ -26,6 +25,7 @@ import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -194,7 +194,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 	}
 	promise.then(confirmed => {
 		if (confirmed) {
-			let p = worker.mailAddressFacade.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
+			let p = locator.mailAddressFacade.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
 			              .catch(ofClass(LimitReachedError, e => {
 				              Dialog.error("adminMaxNbrOfAliasesReached_msg")
 			              }))
@@ -206,7 +206,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 
 
 export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", worker.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
+	return showProgressDialog("pleaseWait_msg", locator.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
 		.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg")))
 		.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg")))
 		.catch(ofClass(PreconditionFailedError, e => {
@@ -221,7 +221,7 @@ export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): P
 
 
 export function updateNbrOfAliases(attrs: EditAliasesFormAttrs): Promise<AliasCount> {
-	return worker.mailAddressFacade.getAliasCounters().then(mailAddressAliasServiceReturn => {
+	return locator.mailAddressFacade.getAliasCounters().then(mailAddressAliasServiceReturn => {
 		const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
 			- Number(mailAddressAliasServiceReturn.usedAliases))
 		const newNbrToEnable = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)

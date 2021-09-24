@@ -4,7 +4,7 @@ import type {EncryptedAlarmNotification} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
-import type {DeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
 import {findAllAndRemove} from "../../api/common/utils/ArrayUtils"
 
 
@@ -12,12 +12,12 @@ import {findAllAndRemove} from "../../api/common/utils/ArrayUtils"
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
  */
 export class DesktopAlarmStorage {
-	_deviceKeyProvider: DeviceKeyProvider
+	_deviceKeyProvider: DesktopDeviceKeyProvider
 	_conf: DesktopConfig;
 	_crypto: DesktopCryptoFacade
 	_sessionKeysB64: {[pushIdentifierId: string]: string};
 
-	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, deviceKeyProvider: DeviceKeyProvider) {
+	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider) {
 		this._deviceKeyProvider = deviceKeyProvider
 		this._conf = conf
 		this._crypto = desktopCryptoFacade

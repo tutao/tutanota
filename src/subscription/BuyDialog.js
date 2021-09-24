@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {worker} from "../api/main/WorkerClient"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -25,6 +24,7 @@ import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -39,7 +39,7 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 		if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 			return Dialog.error("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
-			return worker.bookingFacade.getPrice(featureType, count, reactivate).then(price => {
+			return locator.bookingFacade.getPrice(featureType, count, reactivate).then(price => {
 				if (!_isPriceChange(price, featureType)) {
 					return Promise.resolve(true)
 				} else {

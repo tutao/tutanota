@@ -10,7 +10,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
-import type {TranslationKey} from "../misc/LanguageViewModel"
+import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
@@ -21,7 +21,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {logins} from "../api/main/LoginController"
+import {logins, SessionType} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {assertMainOrNode} from "../api/common/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
@@ -37,8 +37,8 @@ export class ExternalLoginView {
 	+_credentialsProvider: ICredentialsProvider
 	_password: Stream<string>;
 	_savePassword: Stream<boolean>;
-	_helpText: TranslationKey;
-	_errorMessageId: ?TranslationKey;
+	_helpText: TranslationText;
+	_errorMessageId: ?TranslationText;
 	_userId: Id;
 	_salt: Uint8Array;
 	view: Function;
@@ -72,7 +72,7 @@ export class ExternalLoginView {
 		if (this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {
-			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.get(this._errorMessageId)))
+			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.getMaybeLazy(this._errorMessageId)))
 		} else {
 			return [
 				m(TextFieldN, {
@@ -87,7 +87,7 @@ export class ExternalLoginView {
 					checked: this._savePassword
 				}),
 				m(".pt", m(ButtonN, {label: 'showMail_action', click: () => this._formLogin(), type: ButtonType.Login})),
-				m("p.center.statusTextColor", m("small", lang.get(this._helpText))),
+				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this._helpText))),
 				renderPrivacyAndImprintLinks()
 			]
 		}
@@ -159,7 +159,8 @@ export class ExternalLoginView {
 		const pw = this._password()
 		let clientIdentifier = client.browser + " " + client.device
 		let persistentSession = this._savePassword()
-		const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
+		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
+		const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, sessionType)
 		this._password("")
 		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(this._userId)
 		// For external users userId is used instead of email address
@@ -168,7 +169,6 @@ export class ExternalLoginView {
 		}
 		if (storedCredentials) { // delete persistent session if a new session is created
 			await logins.deleteOldSession(storedCredentials)
-
 			if (!persistentSession) {
 				await this._credentialsProvider.deleteByUserId(this._userId)
 			}

@@ -1,17 +1,22 @@
 //@flow
 import m from "mithril"
-import {worker} from "../api/main/WorkerClient"
 import {show as showNotificationOverlay} from "./base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
-worker.infoMessages.map((message) => {
-	showNotificationOverlay(
-		{
-			view: () => m("", lang.get(message.translationKey, message.args))
-		},
-		{label: "close_alt"},
-		[])
-})
+export function registerInfoMessageHandler() {
+	locator.initializedWorker.then((worker) => {
+		worker.infoMessages.map((message) => {
+			showNotificationOverlay(
+				{
+					view: () => m("", lang.get(message.translationKey, message.args))
+				},
+				{label: "close_alt"},
+				[])
+		})
+	})
+}
+

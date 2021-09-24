@@ -1,7 +1,6 @@
 //@flow
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
-import type {WorkerClient} from "../../api/main/WorkerClient"
 import {createRestriction} from "../../search/model/SearchUtils"
 import {asyncFindAndMap} from "../../api/common/utils/Utils"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
@@ -15,6 +14,7 @@ import {ContactListTypeRef} from "../../api/entities/tutanota/ContactList"
 import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils";
 import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {SearchFacade} from "../../api/worker/search/SearchFacade"
 
 assertMainOrNode()
 
@@ -31,12 +31,12 @@ export interface ContactModel {
 }
 
 export class ContactModelImpl implements ContactModel {
-	_worker: WorkerClient;
 	_entityClient: EntityClient
+	_searchFacade: SearchFacade
 	_contactListId: LazyLoaded<?Id>;
 
-	constructor(worker: WorkerClient, entityClient: EntityClient, loginController: LoginController) {
-		this._worker = worker
+	constructor(searchFacade: SearchFacade, entityClient: EntityClient, loginController: LoginController) {
+		this._searchFacade = searchFacade
 		this._entityClient = entityClient
 		this._contactListId = lazyContactListId(loginController, this._entityClient)
 	}
@@ -47,7 +47,7 @@ export class ContactModelImpl implements ContactModel {
 
 	searchForContact(mailAddress: string): Promise<?Contact> {
 		const cleanMailAddress = mailAddress.trim().toLowerCase()
-		return this._worker.searchFacade.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0)
+		return this._searchFacade.search("\"" + cleanMailAddress + "\"", createRestriction("contact", null, null, "mailAddress", null), 0)
 		           .then(result => {
 			           // the result is sorted from newest to oldest, but we want to return the oldest first like before
 			           result.results.sort(compareOldestFirst)
@@ -78,7 +78,7 @@ export class ContactModelImpl implements ContactModel {
 	 * @pre locator.search.indexState().indexingSupported
 	 */
 	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-		const result = await this._worker.searchFacade.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
+		const result = await this._searchFacade.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
 		const resultsByListId = groupBy(result.results, listIdPart)
 		const loadedContacts = await promiseMap(resultsByListId, ([listId, idTuples]) => {
 			// we try to load all contacts from the same list in one request

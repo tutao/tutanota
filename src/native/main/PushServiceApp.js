@@ -10,12 +10,12 @@ import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common
 import {nativeApp} from "../common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {logins} from "../../api/main/LoginController"
-import {worker} from "../../api/main/WorkerClient"
 import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {getElementId} from "../../api/common/utils/EntityUtils";
 import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -45,13 +45,13 @@ class PushServiceApp {
 						           }
 					           })
 				           } else {
-					           return worker.generateSsePushIdentifer()
-					                        .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-					                        .then(pushIdentifier => {
-						                        this._currentIdentifier = pushIdentifier.identifier
-						                        return this._storePushIdentifierLocally(pushIdentifier)
-						                                   .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
-					                        })
+					           return locator.worker.generateSsePushIdentifer()
+					                         .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
+					                         .then(pushIdentifier => {
+						                         this._currentIdentifier = pushIdentifier.identifier
+						                         return this._storePushIdentifierLocally(pushIdentifier)
+						                                    .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+					                         })
 				           }
 			           })
 			           .then(this._initPushNotifications)
@@ -105,7 +105,7 @@ class PushServiceApp {
 
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = logins.getUserController().user._id
-		return worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
+		return locator.worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
 			return nativeApp.invokeNative(new Request("storePushIdentifierLocally", [
 				pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64
 			]))
@@ -170,8 +170,8 @@ class PushServiceApp {
 		const userId = logins.getUserController().user._id
 		if (!deviceConfig.hasScheduledAlarmsForUser(userId)) {
 			console.log("Alarms not scheduled for user, scheduling!")
-			return worker.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
-			             .then(() => deviceConfig.setAlarmsScheduledForUser(userId, true))
+			return locator.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
+			              .then(() => deviceConfig.setAlarmsScheduledForUser(userId, true))
 		} else {
 			return Promise.resolve()
 		}

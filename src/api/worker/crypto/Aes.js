@@ -27,6 +27,10 @@ export function aes256RandomKey(): Aes256Key {
 	return uint8ArrayToBitArray(random.generateRandomData(KEY_LENGTH_BYTES_AES_256))
 }
 
+export function generateIV(): Uint8Array {
+	return random.generateRandomData(IV_BYTE_LENGTH)
+}
+
 /**
  * Encrypts bytes with AES 256 in CBC mode.
  * @param key The key to use for the encryption.
@@ -205,86 +209,3 @@ function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey: ?Aes256Key, cKey
 		}
 	}
 }
-
-/************************ Webcrypto AES256 ************************/
-
-
-/**
- * Encrypts bytes with AES in GCM mode using the webcrypto API.
- * @param key The key to use for the encryption.
- * @param bytes The plain text.
- * @param iv The initialization vector.
- * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @param useMac Not used because gcm always contains a mac. Just exists for interface compatibility with AES 128
- * @return The encrypted text as words (sjcl internal structure)..
- */
-// export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Promise<Uint8Array> {
-// 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-// 	if (usePadding) {
-// 		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.
-// 	}
-// 	if (iv.length !== IV_BYTE_LENGTH) {
-// 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
-// 	}
-// 	return importAesKey(key).then(cryptoKey => {
-// 		return crypto.subtle.encrypt(
-// 			{
-// 				name: "AES-GCM",
-// 				iv: iv,
-// 				tagLength: TAG_BIT_LENGTH
-// 			},
-// 			cryptoKey,
-// 			bytes
-// 		).then(function (encrypted) {
-// 			return concat(iv, new Uint8Array(encrypted))
-// 		})
-// 	}).catch(e => {
-// 		throw new CryptoError("aes encryption failed (webcrypto)", e)
-// 	})
-// }
-
-/**
- * Decrypts the given words with AES in GCM mode using the webcrypto API.
- * @param key The key to use for the decryption.
- * @param words The ciphertext encoded as words.
- * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @return The decrypted bytes.
- */
-// export function aes256DecryptFile(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Promise<Uint8Array> {
-// 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
-// 	// take the iv from the front of the encrypted data
-// 	let iv = encryptedBytes.slice(0, IV_BYTE_LENGTH)
-// 	let ciphertext = encryptedBytes.slice(IV_BYTE_LENGTH)
-//
-// 	return importAesKey(key).then(cryptoKey => {
-// 		return crypto.subtle.decrypt(
-// 			{
-// 				name: "AES-GCM",
-// 				iv: iv,
-// 				tagLength: TAG_BIT_LENGTH
-// 			},
-// 			cryptoKey,
-// 			ciphertext
-// 		).then(function (decrypted) {
-// 			let decryptedBytes = new Uint8Array(decrypted)
-// 			if (usePadding) {
-// 				decryptedBytes = unpad(decryptedBytes)
-// 			}
-// 			return decryptedBytes
-// 		})
-// 	}).catch(e => {
-// 		throw new CryptoError("aes decryption failed (webcrypto)", e)
-// 	})
-// }
-
-// function importAesKey(key: Aes128Key|Aes256Key): Promise<CryptoKey> {
-// 	// convert native promise into bluebird promise
-// 	var keyArray = bitArrayToUint8Array(key);
-// 	return Promise.resolve(crypto.subtle.importKey(
-// 		"raw",
-// 		keyArray,
-// 		keyArray.length === 128 ? "AES-CBC" : "AES-GCM",
-// 		false,
-// 		["encrypt", "decrypt"]
-// 	))
-// }

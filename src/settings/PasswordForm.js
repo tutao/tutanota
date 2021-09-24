@@ -11,7 +11,6 @@ import type {Status} from "../gui/base/StatusField"
 import {StatusField} from "../gui/base/StatusField"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
-import {worker} from "../api/main/WorkerClient"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {User} from "../api/entities/sys/User"
@@ -138,7 +137,7 @@ export class PasswordForm {
 				Dialog.error(error)
 			} else {
 				showProgressDialog("pleaseWait_msg",
-					worker.loginFacade.changePassword(form.getOldPassword(), form.getNewPassword()))
+					locator.loginFacade.changePassword(form.getOldPassword(), form.getNewPassword()))
 					.then(() => {
 						locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
 						Dialog.error("pwChangeValid_msg")
@@ -167,7 +166,7 @@ export class PasswordForm {
 	static showChangeUserPasswordAsAdminDialog(user: User): void {
 		let form = new PasswordForm(false, false, true)
 		let changeUserPasswordAsAdminOkAction = (dialog) => {
-			let p = worker.userManagementFacade.changeUserPassword(user, form.getNewPassword()).then(() => {
+			let p = locator.userManagementFacade.changeUserPassword(user, form.getNewPassword()).then(() => {
 				Dialog.error("pwChangeValid_msg")
 				dialog.close()
 			}).catch(e => {

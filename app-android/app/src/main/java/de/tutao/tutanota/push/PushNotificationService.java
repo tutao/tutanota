@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
+import de.tutao.tutanota.AndroidKeyStoreFacadeFactory;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.LifecycleJobService;
 import de.tutao.tutanota.MainActivity;
@@ -41,7 +42,7 @@ public final class PushNotificationService extends LifecycleJobService {
 		super.onCreate();
 		AppDatabase appDatabase = AppDatabase.getDatabase(this, /*allowMainThreadAccess*/true);
 
-		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
+		AndroidKeyStoreFacade keyStoreFacade = AndroidKeyStoreFacadeFactory.create(this);;
 		SseStorage sseStorage = new SseStorage(appDatabase, keyStoreFacade);
 
 		localNotificationsFacade = new LocalNotificationsFacade(this);

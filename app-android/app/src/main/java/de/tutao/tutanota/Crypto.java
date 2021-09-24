@@ -54,7 +54,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class Crypto {
 	public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
 	public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
-	public static final byte[] FIXED_IV = new byte[16];
+	public static final int AES_BLOCK_SIZE_BYTES = 16;
+	public static final byte[] FIXED_IV = new byte[AES_BLOCK_SIZE_BYTES];
 
 	private final static int RSA_KEY_LENGTH_IN_BITS = 2048;
 	public static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";

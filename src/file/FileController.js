@@ -1,6 +1,5 @@
 // @flow
 import {Dialog} from "../gui/base/Dialog"
-import {worker} from "../api/main/WorkerClient"
 import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
@@ -15,6 +14,7 @@ import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -26,9 +26,10 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
+		const fileFacade = locator.fileFacade
 		let downloadPromise
 		if (isApp()) {
-			downloadPromise = worker.fileFacade.downloadFileContentNative(tutanotaFile)
+			downloadPromise = fileFacade.downloadFileContentNative(tutanotaFile)
 			                        .then((file) => {
 				                        return (isAndroidApp() && !open
 					                        ? import("../native/common/FileApp")
@@ -38,11 +39,11 @@ export class FileController {
 			                        })
 		} else if (isDesktop()) {
 			downloadPromise = (open
-					? worker.fileFacade.downloadFileContentNative(tutanotaFile)
-					: worker.fileFacade.downloadFileContent(tutanotaFile)
+					? fileFacade.downloadFileContentNative(tutanotaFile)
+					: fileFacade.downloadFileContent(tutanotaFile)
 			).then(file => this.open(file))
 		} else {
-			downloadPromise = worker.fileFacade.downloadFileContent(tutanotaFile)
+			downloadPromise = fileFacade.downloadFileContent(tutanotaFile)
 			                        .then((file) => this.open(file))
 		}
 
@@ -61,18 +62,19 @@ export class FileController {
 	 */
 	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
 		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).then(() => null)
+		const fileFacade = locator.fileFacade
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
-			downloadContent = f => worker.fileFacade.downloadFileContentNative(f)
+			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file =>
 				import("../native/common/FileApp").then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))))
 		} else if (isApp()) {
-			downloadContent = f => worker.fileFacade.downloadFileContentNative(f)
+			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file => this.openFileReference(file).finally(() => this._deleteFile(file.location))))
 		} else {
-			downloadContent = f => worker.fileFacade.downloadFileContent(f)
+			downloadContent = f => fileFacade.downloadFileContent(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip)))
 		}

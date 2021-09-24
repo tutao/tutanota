@@ -5,6 +5,7 @@ import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
+import type {Indexer} from "../api/worker/search/Indexer"
 
 assertMainOrNodeBoot()
 
@@ -18,6 +19,7 @@ class WindowFacade {
 	_windowCloseListeners: Set<(e: Event) => mixed>;
 	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
 	_worker: WorkerClient;
+	_indexerFacade: Indexer;
 	// following two properties are for the iOS
 	_keyboardSize: number = 0;
 	_keyboardSizeListeners: KeyboardSizeListener[] = [];
@@ -29,10 +31,11 @@ class WindowFacade {
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
 		import("../api/main/MainLocator")
-			.then(locatorModule => locatorModule.locator.initializedWorker)
-			.then(worker => {
+			.then((locatorModule) => {
 				// load async to reduce size of boot bundle
-				this._worker = worker
+				this._worker = locatorModule.locator.worker
+				this._indexerFacade = locatorModule.locator.indexerFacade
+
 				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
 					return import("../native/common/NativeWrapper").then(({nativeApp}) => {
 						return nativeApp.initialized().then(() => this.addPageInBackgroundListener())
@@ -228,7 +231,7 @@ class WindowFacade {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				this._worker.indexerFacade.onVisibilityChanged(!document.hidden)
+				this._indexerFacade.onVisibilityChanged(!document.hidden)
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground
 					// so we try to reconnect with a delay to receive _close event first. Otherwise

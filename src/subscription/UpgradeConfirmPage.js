@@ -11,7 +11,6 @@ import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaCo
 import {SysService} from "../api/entities/sys/Services"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {worker} from "../api/main/WorkerClient"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {deleteCampaign} from "./UpgradeSubscriptionWizard"
@@ -26,6 +25,7 @@ import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -68,7 +68,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			serviceData.campaign = attrs.data.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
 				.then(() => {
-					return worker.customerFacade.switchFreeToPremiumGroup()
+					return locator.customerFacade.switchFreeToPremiumGroup()
 				}))
 				.then(() => {
 					deleteCampaign()

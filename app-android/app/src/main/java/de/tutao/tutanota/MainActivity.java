@@ -37,6 +37,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -64,7 +65,7 @@ import de.tutao.tutanota.push.SseStorage;
 
 import static de.tutao.tutanota.Utils.parseColor;
 
-public class MainActivity extends ComponentActivity {
+public class MainActivity extends FragmentActivity {
 
 	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
 	public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
@@ -87,7 +88,7 @@ public class MainActivity extends ComponentActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.d(TAG, "App started");
-		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
+		AndroidKeyStoreFacade keyStoreFacade = AndroidKeyStoreFacadeFactory.create(this);
 		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false),
 				keyStoreFacade);
 		AlarmNotificationsManager alarmNotificationsManager = new AlarmNotificationsManager(sseStorage,

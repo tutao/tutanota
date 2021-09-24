@@ -8,8 +8,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {assertMainOrNode} from "../api/common/Env"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {DeviceConfig} from "../misc/DeviceConfig"
+import type {TranslationText} from "../misc/LanguageViewModel"
 import {SecondFactorHandler} from "../misc/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
@@ -17,34 +16,58 @@ import type {LoginController} from "../api/main/LoginController"
 import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {CredentialsInfo, CredentialsProvider, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
+import {first} from "../api/common/utils/ArrayUtils"
+import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 
 assertMainOrNode()
 
+/**
+ * Defines what the view should currently render.
+ * @type {{Form: string, DeleteCredentials: string, Credentials: string}}
+ */
 export const DisplayMode = Object.freeze({
+	/* Display the stored credentials */
 	Credentials: "credentials",
+	/* Display login form (username, password) */
 	Form: "form",
+	/* Display the stored credentials and options to delete them */
 	DeleteCredentials: "deleteCredentials",
 })
 export type DisplayModeEnum = $Values<typeof DisplayMode>
 
+/**
+ * Reflects which state the current login process has.
+ * @type {{LogginIn: string, UnknownError: string, AccessExpired: string, InvalidCredentials: string, LoggedIn: string, NotAuthenticated: string}}
+ */
 export const LoginState = Object.freeze({
+	/* Log in in process. */
 	LogginIn: "LogginIn",
+	/* Some unknown error occured during login. */
 	UnknownError: "UnknownError",
+	/* The credentials used for the last login attempt where invalid (e.g. bad password). */
 	InvalidCredentials: "InvalidCredentials",
+	/* The access token used for login has expired. */
 	AccessExpired: "AccessExpired",
+	/* Default state - the user is not logged in nor has login been attempted yet. */
 	NotAuthenticated: "NotAuthenticated",
+	/* The user has successfully logged in. */
 	LoggedIn: "LoggedIn",
 })
 
 export type LoginStateEnum = $Values<typeof LoginState>
 
+/**
+ * Interface for the view model used on the login page. There is no real technical reason for extracting an interface for the view model
+ * other than making it easier to document its methods and for some additional checks when mocking this.
+ */
 export interface ILoginViewModel {
 	+state: LoginStateEnum;
 	+displayMode: DisplayModeEnum;
 	+mailAddress: Stream<string>;
 	+password: Stream<string>;
-	+helpText: TranslationKey;
+	+helpText: TranslationText;
 	+savePassword: Stream<boolean>;
 
 	/**
@@ -108,10 +131,10 @@ export class LoginViewModel implements ILoginViewModel {
 	+password: Stream<string>;
 	displayMode: DisplayModeEnum
 	state: LoginStateEnum
-	helpText: TranslationKey
+	helpText: TranslationText
 	+savePassword: Stream<boolean>;
 	_savedInternalCredentials: Array<CredentialsInfo>
-	_autoLoginCredentials: ?Credentials
+	_autoLoginCredentials: ?CredentialsInfo
 
 	constructor(loginController: LoginController, credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
 		this._loginController = loginController
@@ -127,12 +150,17 @@ export class LoginViewModel implements ILoginViewModel {
 		this._savedInternalCredentials = []
 	}
 
+	/**
+	 * This method should be called right after creation of the view model by whoever created the viewmodel. The view model will not be
+	 * fully functional before this method has been called!
+	 * @returns {Promise<void>}
+	 */
 	async init(): Promise<void> {
 		await this._updateCachedCredentials()
 	}
 
 	async useUserId(userId: string): Promise<void> {
-		this._autoLoginCredentials = await this._credentialsProvider.getCredentialsByUserId(userId)
+		this._autoLoginCredentials = await this._credentialsProvider.getCredentialsInfoByUserId(userId)
 		if (this._autoLoginCredentials) {
 			this.displayMode = DisplayMode.Credentials
 		} else {
@@ -152,7 +180,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async useCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
-		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		const credentials = await this._credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
 		if (credentials) {
 			this._autoLoginCredentials = credentials
 			this.displayMode = DisplayMode.Credentials
@@ -172,7 +200,23 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async deleteCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
-		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		let credentials
+		try {
+			credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		} catch (e) {
+			if (e instanceof KeyPermanentlyInvalidatedError) {
+				await this._credentialsProvider.clearCredentials()
+				await this._updateCachedCredentials()
+				this.state = LoginState.NotAuthenticated
+				return
+			} else if (e instanceof CredentialAuthenticationError) {
+				this.helpText = getLoginErrorMessage(e, false)
+				return
+			} else {
+				throw e
+			}
+		}
+
 		if (credentials) {
 			await this._loginController.deleteOldSession(credentials)
 			await this._credentialsProvider.deleteByUserId(credentials.userId)
@@ -196,14 +240,17 @@ export class LoginViewModel implements ILoginViewModel {
 
 	showLoginForm() {
 		this.displayMode = DisplayMode.Form
+		this.helpText = "emptyString_msg"
 	}
 
 	showCredentials() {
 		this.displayMode = DisplayMode.Credentials
+		this.helpText = "emptyString_msg"
 	}
 
 	async _updateCachedCredentials() {
 		this._savedInternalCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
+		this._autoLoginCredentials = null
 		if (this._savedInternalCredentials.length > 0) {
 			if (this.displayMode !== DisplayMode.DeleteCredentials) {
 				this.displayMode = DisplayMode.Credentials
@@ -215,19 +262,30 @@ export class LoginViewModel implements ILoginViewModel {
 
 	async _autologin(): Promise<void> {
 		try {
-			if (!this._autoLoginCredentials) {
+			if (this._autoLoginCredentials == null) {
 				const allCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
-				const firstEncryptedCredentials = allCredentials[0]
-				if (firstEncryptedCredentials) {
-					this._autoLoginCredentials = await this._credentialsProvider.getCredentialsByUserId(firstEncryptedCredentials.userId)
-				}
+				this._autoLoginCredentials = first(allCredentials)
 			}
 			if (this._autoLoginCredentials) {
-				await this._loginController.resumeSession(this._autoLoginCredentials)
-				await this._onLogin()
+				const credentials = await this._credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
+				if (credentials) {
+					await this._loginController.resumeSession(credentials)
+					await this._onLogin()
+				}
 			}
 		} catch (e) {
-			await this._onLoginFailed(e)
+			if (e instanceof NotAuthenticatedError && this._autoLoginCredentials) {
+				await this._credentialsProvider.deleteByUserId(this._autoLoginCredentials.userId)
+				await this._updateCachedCredentials()
+				await this._onLoginFailed(e)
+			} else if (e instanceof KeyPermanentlyInvalidatedError) {
+				await this._credentialsProvider.clearCredentials()
+				await this._updateCachedCredentials()
+				this.state = LoginState.NotAuthenticated
+				this.helpText = "credentialsKeyInvalidated_msg"
+			} else {
+				await this._onLoginFailed(e)
+			}
 		}
 
 		if (this.state === LoginState.AccessExpired || this.state === LoginState.InvalidCredentials) {
@@ -249,7 +307,8 @@ export class LoginViewModel implements ILoginViewModel {
 		this.state = LoginState.LogginIn
 		try {
 
-			const newCredentials = await this._loginController.createSession(mailAddress, password, savePassword, SessionType.Login)
+			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
+			const newCredentials = await this._loginController.createSession(mailAddress, password, sessionType)
 			await this._onLogin()
 
 			// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
@@ -265,7 +324,16 @@ export class LoginViewModel implements ILoginViewModel {
 			}
 
 			if (savePassword) {
-				await this._credentialsProvider.store(newCredentials)
+				try {
+					await this._credentialsProvider.store(newCredentials)
+				} catch (e) {
+					if (e instanceof KeyPermanentlyInvalidatedError) {
+						await this._credentialsProvider.clearCredentials()
+						await this._updateCachedCredentials()
+					} else {
+						throw e
+					}
+				}
 			}
 
 		} catch (e) {
@@ -295,7 +363,9 @@ export class LoginViewModel implements ILoginViewModel {
 			|| error instanceof AccessBlockedError
 			|| error instanceof AccessDeactivatedError
 			|| error instanceof TooManyRequestsError
-			|| error instanceof CancelledError) {
+			|| error instanceof CancelledError
+			|| error instanceof CredentialAuthenticationError
+		) {
 		} else {
 			throw error
 		}

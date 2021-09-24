@@ -4,7 +4,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {defer, mapNullable, objToError} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'

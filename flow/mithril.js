@@ -102,6 +102,8 @@ declare interface Mithril {
 
 	parseQueryString(queryString: string): {[string]: string};
 
+	mount(element: HTMLElement, MComponent<void> | Class<MComponent<void>> | null): void;
+
 	render(element: HTMLElement, vnodes: Children): void;
 }
 

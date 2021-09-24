@@ -37,6 +37,9 @@ export function exposeLocal<T>(impls: T): ((message: Request) => Promise<*>) {
  * Generates proxy which will generate methods which will simulate methods of the facade.
  */
 function facadeProxy(queue: Queue, facadeName: string) {
+	if (queue == null) {
+		throw new Error("Queue is null")
+	}
 	return new Proxy({}, {
 		get: (target: {}, property: string, receiver: Proxy<{}>) => {
 			// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system

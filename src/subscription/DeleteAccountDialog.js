@@ -4,7 +4,6 @@ import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
@@ -75,7 +74,7 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 		return Dialog.confirm(messageFn)
 		             .then(ok => {
 			             if (ok) {
-				             return worker.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover)).then(() => true)
+				             return locator.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover)).then(() => true)
 				                          .catch(ofClass(PreconditionFailedError, () => Dialog.error("passwordWrongInvalid_msg").then(() => false)))
 				                          .catch(ofClass(InvalidDataError, () => Dialog.error("takeoverAccountInvalid_msg").then(() => false)))
 				                          .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg").then(() => false)))

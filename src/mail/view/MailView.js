@@ -12,7 +12,6 @@ import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {load, serviceRequestVoid, update} from "../../api/main/Entity"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
-import {worker} from "../../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
 import {CurrentView} from "../../gui/base/Header"
@@ -21,6 +20,7 @@ import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMail
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
+import type {lazy} from "../../api/common/utils/Utils"
 import {defer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
@@ -65,7 +65,6 @@ import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
-import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -172,8 +171,8 @@ export class MailView implements CurrentView {
 							.then(([mailbox, dataFiles, {appendEmailSignature}, {newMailEditorFromTemplate}]) => {
 								newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(dialog => dialog.show())
 							})
-								.catch(ofClass(PermissionError, noOp))
-								.catch(ofClass(UserError, showUserError))
+							.catch(ofClass(PermissionError, noOp))
+							.catch(ofClass(UserError, showUserError))
 					}
 					// prevent in any case because firefox tries to open
 					// dataTransfer as a URL otherwise.
@@ -241,7 +240,7 @@ export class MailView implements CurrentView {
 	headerRightView(): Children {
 		const openMailButtonAttrs = {
 			label: "newMail_action",
-				click: () => this._showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+			click: () => this._showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 			type: ButtonType.Action,
 			icon: () => Icons.PencilSquare,
 			colors: ButtonColors.Header
@@ -614,7 +613,7 @@ export class MailView implements CurrentView {
 				             .then((name) =>
 					             locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
 					                    .then((mailboxDetails) =>
-						                    worker.mailFacade.createMailFolder(name,
+						                    locator.mailFacade.createMailFolder(name,
 							                    getInboxFolder(mailboxDetails.folders)._id,
 							                    mailGroupId)))
 			},
@@ -707,7 +706,7 @@ export class MailView implements CurrentView {
 
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel, animationOverDeferred.promise)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel, locator.configFacade, animationOverDeferred.promise)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -780,6 +779,7 @@ export class MailView implements CurrentView {
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
 						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel,
+							locator.configFacade,
 							Promise.resolve())
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent

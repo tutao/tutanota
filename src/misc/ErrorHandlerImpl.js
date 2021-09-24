@@ -11,7 +11,6 @@ import {
 	SessionExpiredError
 } from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {worker} from "../api/main/WorkerClient"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
@@ -106,14 +105,14 @@ export function handleUncaughtError(e: Error) {
 		}
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
-			worker.loginFacade.resetSession()
+			locator.loginFacade.resetSession()
 			loginDialogActive = true
 			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
 			Dialog.showRequestPasswordDialog(errorMessage, {allowCancel: false})
 			      .map(pw => {
 					      // SessionType is Login because it can (seemingly) only happen for long-running (normal) sessions.
 					      showProgressDialog("pleaseWait_msg",
-						      logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, false, SessionType.Login))
+						      logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, SessionType.Login))
 						      .then(() => {
 							      errorMessage("")
 							      loginDialogActive = false
@@ -314,7 +313,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const name = ""
 	const mailAddress = "reports@tutao.de"
 
-	const draft = await worker.mailFacade.createDraft(
+	const draft = await locator.mailFacade.createDraft(
 		content.subject,
 		content.message.split("\n").join("<br>"),
 		neverNull(logins.getUserController().userGroupInfo.mailAddress),
@@ -329,7 +328,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 		[],
 		MailMethod.NONE,
 	)
-	await worker.mailFacade.sendDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
+	await locator.mailFacade.sendDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
 }
 
 export function loggingOut() {

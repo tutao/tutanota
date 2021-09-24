@@ -1,13 +1,14 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {client} from "./ClientDetector"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider"
 import {typedEntries} from "../api/common/utils/Utils"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import type {CredentialEncryptionModeEnum} from "./credentials/CredentialEncryptionMode"
 
 assertMainOrNodeBoot()
 
@@ -28,6 +29,8 @@ export class DeviceConfig implements CredentialsStorage {
 	_defaultCalendarView: {[userId: Id]: ?CalendarViewTypeEnum};
 	_hiddenCalendars: {[userId: Id]: Id[]}
 	_signupToken: string;
+	_credentialEncryptionMode: ?CredentialEncryptionModeEnum;
+	_encryptedCredentialsKey: ?Base64;
 
 	constructor() {
 		this._version = ConfigVersion
@@ -69,6 +72,9 @@ export class DeviceConfig implements CredentialsStorage {
 			} else {
 				this._credentials = new Map(typedEntries(loadedConfig._credentials))
 			}
+
+			this._credentialEncryptionMode = loadedConfig._credentialEncryptionMode
+			this._encryptedCredentialsKey = loadedConfig._encryptedCredentialsKey
 		}
 		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 		this._language = loadedConfig && loadedConfig._language
@@ -176,6 +182,28 @@ export class DeviceConfig implements CredentialsStorage {
 			this._hiddenCalendars[user] = calendars
 			this._writeToStorage()
 		}
+	}
+
+	getCredentialEncryptionMode(): ?CredentialEncryptionModeEnum {
+		return this._credentialEncryptionMode
+	}
+
+	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionModeEnum | null) {
+		this._credentialEncryptionMode = encryptionMode
+		this._writeToStorage()
+	}
+
+	getCredentialsEncryptionKey(): ?Uint8Array {
+		return this._encryptedCredentialsKey ? base64ToUint8Array(this._encryptedCredentialsKey) : null
+	}
+
+	setCredentialsEncryptionKey(value: Uint8Array | null) {
+		if (value) {
+			this._encryptedCredentialsKey = uint8ArrayToBase64(value)
+		} else {
+			this._encryptedCredentialsKey = null
+		}
+		this._writeToStorage()
 	}
 }
 

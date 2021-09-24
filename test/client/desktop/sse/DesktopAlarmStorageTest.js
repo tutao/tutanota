@@ -7,7 +7,7 @@ import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStora
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
-import type {DeviceKeyProvider} from "../../../../src/desktop/DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../../../../src/desktop/DeviceKeyProviderImpl"
 import {makeDeviceKeyProvider} from "../../../api/TestUtils"
 
 o.spec("DesktopAlarmStorageTest", function () {
@@ -76,7 +76,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		}
 	}
 
-	const deviceKeyProvider: DeviceKeyProvider = makeDeviceKeyProvider(new Uint8Array([1, 2, 3]))
+	const deviceKeyProvider: DesktopDeviceKeyProvider = makeDeviceKeyProvider(new Uint8Array([1, 2, 3]))
 
 	o("resolvePushIdentifierSessionKey with uncached sessionKey", async function () {
 		const {confMock, cryptoMock, secretStorageMock} = standardMocks()

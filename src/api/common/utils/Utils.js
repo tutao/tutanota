@@ -50,6 +50,8 @@ import {FileNotFoundError} from "../error/FileNotFoundError"
 import type {Customer} from "../../entities/sys/Customer"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
 import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
+import {CredentialAuthenticationError} from "../error/CredentialAuthenticationError"
+import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidatedError"
 
 export type lazy<T> = () => T;
 export type lazyAsync<T> = () => Promise<T>;
@@ -518,7 +520,9 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.TutCrypto": CryptoError, // iOS app crypto error domain
 	"android.content.ActivityNotFoundException": FileOpenError,
 	"de.tutao.tutanota.TutFileViewer": FileOpenError,
-	"NSURLErrorDomain": ConnectionError
+	"NSURLErrorDomain": ConnectionError,
+	"de.tutao.tutanota.CredentialAuthenticationException": CredentialAuthenticationError,
+	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureTypeEnum): boolean {

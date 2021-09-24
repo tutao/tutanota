@@ -3,7 +3,7 @@ import o from "ospec"
 import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginViewModel"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {SessionType} from "../../../src/api/main/LoginController"
-import nodemocker, {MockBuilder} from "../nodemocker"
+import nodemocker, {MockBuilder, spyify} from "../nodemocker"
 import {assertNotNull, downcast, noOp} from "../../../src/api/common/utils/Utils"
 import {createUser} from "../../../src/api/entities/sys/User"
 import type {IUserController} from "../../../src/api/main/UserController"
@@ -11,10 +11,17 @@ import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {SecondFactorHandler} from "../../../src/misc/SecondFactorHandler"
 import {assertThrows} from "../../api/TestUtils"
-import type {CredentialsProvider, ICredentialsProvider, PersistentCredentials} from "../../../src/misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, ICredentialsProvider, PersistentCredentials} from "../../../src/misc/credentials/CredentialsProvider"
+import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError"
+import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError"
 
 class CredentialsProviderStub implements ICredentialsProvider {
 	credentials = new Map<string, PersistentCredentials>()
+
+	async getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null> {
+		const persistentCredentials = this.credentials.get(userId)
+		return persistentCredentials?.credentialInfo ?? null
+	}
 
 	async getCredentialsByUserId(userId: string) {
 		const storedCredentials = this.credentials.get(userId)
@@ -52,6 +59,21 @@ class CredentialsProviderStub implements ICredentialsProvider {
 	async getCredentialsInfos() {
 		throw new Error("Not implemented in stub")
 	}
+
+	getCredentialsEncryptionMode() {
+		throw new Error("stub!")
+	}
+
+	async setCredentialsEncryptionMode() {
+	}
+
+	async getSupportedEncryptionModes() {
+		return []
+	}
+
+	async clearCredentials() {
+		this.credentials = new Map()
+	}
 }
 
 o.spec("LoginViewModelTest", () => {
@@ -74,12 +96,12 @@ o.spec("LoginViewModelTest", () => {
 		}
 	)
 	let loginControllerBuilder: MockBuilder<LoginController>
-	let credentialsProvider: CredentialsProvider
+	let credentialsProvider: ICredentialsProvider
 	let secondFactorHandler: SecondFactorHandler
 
 	o.beforeEach(() => {
 		loginControllerBuilder = createLoginController()
-		credentialsProvider = downcast<CredentialsProvider>(new CredentialsProviderStub())
+		credentialsProvider = spyify(new CredentialsProviderStub())
 		secondFactorHandler = nodemocker.mock("second", {
 			closeWaitingForSecondFactorDialog: noOp
 		}).set()
@@ -109,7 +131,7 @@ o.spec("LoginViewModelTest", () => {
 			},
 			async deleteOldSession() {
 
-			}
+			},
 		})
 	}
 
@@ -152,18 +174,6 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
 
-		o("Should switch to form mode if last stored credential is deleted", async function () {
-			const loginController = loginControllerBuilder.set()
-			const viewModel = await createViewModel({loginController})
-
-			await credentialsProvider.store(testCredentials)
-			viewModel.displayMode = DisplayMode.Credentials
-
-			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
-
-			o(viewModel.displayMode).equals(DisplayMode.Form)
-		})
-
 		o("Should switch to credentials mode", async function () {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = await createViewModel({loginController})
@@ -198,11 +208,59 @@ o.spec("LoginViewModelTest", () => {
 		})
 	})
 
+	o.spec("deleteCredentials", function() {
+		o("Should switch to form mode if last stored credential is deleted", async function () {
+			const loginController = loginControllerBuilder.set()
+			const viewModel = await createViewModel({loginController})
+
+			await credentialsProvider.store(testCredentials)
+			viewModel.displayMode = DisplayMode.Credentials
+
+			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
+
+			o(viewModel.displayMode).equals(DisplayMode.Form)
+		})
+
+		o("Should handle CredentialAuthenticationError", async function() {
+			await credentialsProvider.store(testCredentials)
+			downcast(credentialsProvider).getCredentialsByUserId = () => {
+				throw new CredentialAuthenticationError("test")
+			}
+			const loginController = loginControllerBuilder.set()
+			const viewModel = await createViewModel({loginController})
+			viewModel.displayMode = DisplayMode.DeleteCredentials
+
+			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
+
+			o(viewModel.state).equals(LoginState.NotAuthenticated)
+			o(viewModel.displayMode).equals(DisplayMode.DeleteCredentials)
+			o(viewModel.getSavedCredentials()).deepEquals([encryptedTestCredentials.credentialInfo])
+			o(credentialsProvider.clearCredentials.callCount).equals(0)
+		})
+
+		o("Should handle KeyPermanentlyInvalidatedError", async function() {
+			await credentialsProvider.store(testCredentials)
+			downcast(credentialsProvider).getCredentialsByUserId = () => {
+				throw new KeyPermanentlyInvalidatedError("test")
+			}
+			const loginController = loginControllerBuilder.set()
+			const viewModel = await createViewModel({loginController})
+			viewModel.displayMode = DisplayMode.DeleteCredentials
+
+			await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
+
+			o(viewModel.state).equals(LoginState.NotAuthenticated)
+			o(viewModel.displayMode).equals(DisplayMode.Form)
+			o(viewModel.getSavedCredentials()).deepEquals([])
+			o(credentialsProvider.clearCredentials.callCount).equals(1)
+		})
+	})
+
 	o.spec("Login with stored credentials", function () {
 		o("login should succeed with valid stored credentials", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = await createViewModel({loginController})
 			credentialsProvider.store(testCredentials)
+			const viewModel = await createViewModel({loginController})
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 
@@ -214,8 +272,8 @@ o.spec("LoginViewModelTest", () => {
 
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = await createViewModel({loginController})
 			credentialsProvider.store(testCredentials)
+			const viewModel = await createViewModel({loginController})
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			viewModel.switchDeleteState()
@@ -232,8 +290,9 @@ o.spec("LoginViewModelTest", () => {
 					throw new NotAuthenticatedError("test")
 				},
 			}).set()
-			const viewModel = await createViewModel({loginController})
 			await credentialsProvider.store(testCredentials)
+			const viewModel = await createViewModel({loginController})
+
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 
@@ -242,6 +301,9 @@ o.spec("LoginViewModelTest", () => {
 			o(loginController.resumeSession.args).deepEquals([testCredentials])
 			o(viewModel.state).equals(LoginState.InvalidCredentials)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
+			o(await credentialsProvider.getCredentialsInfoByUserId(testCredentials.userId)).equals(null)
+			o(viewModel.getSavedCredentials()).deepEquals([])
+			o(viewModel._autoLoginCredentials).deepEquals(null)
 		})
 
 		o("login should fail for expired stored credentials", async function () {
@@ -250,8 +312,8 @@ o.spec("LoginViewModelTest", () => {
 					throw new AccessExpiredError("test")
 				},
 			}).set()
-			const viewModel = await createViewModel({loginController})
 			await credentialsProvider.store(testCredentials)
+			const viewModel = await createViewModel({loginController})
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 
@@ -260,6 +322,24 @@ o.spec("LoginViewModelTest", () => {
 			o(loginController.resumeSession.args).deepEquals([testCredentials])
 			o(viewModel.state).equals(LoginState.AccessExpired)
 			o(viewModel.displayMode).equals(DisplayMode.Form)
+		})
+
+		o("should handle KeyPermanentlyInvalidatedError and clear credentials", async function () {
+			await credentialsProvider.store(testCredentials)
+			downcast(credentialsProvider).getCredentialsByUserId = () => {
+				throw new KeyPermanentlyInvalidatedError("test")
+			}
+			const loginController = loginControllerBuilder.set()
+			const viewModel = await createViewModel({loginController: loginController})
+
+			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
+
+			await viewModel.login()
+
+			o(viewModel.state).equals(LoginState.NotAuthenticated)
+			o(viewModel.displayMode).equals(DisplayMode.Form)
+			o(viewModel.getSavedCredentials()).deepEquals([])
+			o(credentialsProvider.clearCredentials.callCount).equals(1)
 		})
 	})
 
@@ -288,7 +368,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([testCredentials.login, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(testCredentials.userId)).equals(null)
 		})
@@ -308,7 +388,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([testCredentials.login, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, SessionType.Persistent])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(testCredentials.userId)).deepEquals(testCredentials)
 		})
@@ -336,7 +416,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([testCredentials.login, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, SessionType.Persistent])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(testCredentials.userId)).deepEquals(testCredentials)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -365,7 +445,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -394,7 +474,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -415,6 +495,30 @@ o.spec("LoginViewModelTest", () => {
 				await viewModel.login()
 			})
 			o(viewModel.state).equals(LoginState.UnknownError)
+		})
+
+		o("should handle KeyPermanentlyInvalidatedError and clear credentials", async function () {
+			await credentialsProvider.store(testCredentials)
+			downcast(credentialsProvider).store = () => {
+				throw new KeyPermanentlyInvalidatedError("test")
+			}
+			const loginController = loginControllerBuilder.with({
+				async createSession(username, password, persistentSession, permanentLogin) {
+					return testCredentials
+				}
+			}).set()
+			const viewModel = await createViewModel({loginController})
+
+			viewModel.showLoginForm()
+			viewModel.mailAddress(testCredentials.login)
+			viewModel.password(password)
+			viewModel.savePassword(true)
+
+			await viewModel.login()
+
+			o(viewModel.state).equals(LoginState.LoggedIn)
+			o(viewModel.getSavedCredentials()).deepEquals([])
+			o(credentialsProvider.clearCredentials.callCount).equals(1)
 		})
 	})
 })

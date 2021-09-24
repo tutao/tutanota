@@ -2,7 +2,7 @@
 import type {LoginController} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
-import type {TranslationKey} from "./LanguageViewModel"
+import type {TranslationText} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
 import {getHttpOrigin} from "../api/common/Env"
 import {
@@ -21,10 +21,12 @@ import type {ApprovalStatusEnum} from "../api/common/TutanotaConstants"
 import {ApprovalStatus} from "../api/common/TutanotaConstants"
 import type {ResetAction} from "../login/recover/RecoverLoginDialog"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {worker} from "../api/main/WorkerClient"
 import {UserError} from "../api/main/UserError"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import {showUserError} from "./ErrorHandlerImpl"
+import {locator} from "../api/main/MainLocator"
+import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
+import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -87,7 +89,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 	})
 }
 
-export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): TranslationKey {
+export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): TranslationText {
 	switch (error.constructor) {
 		case BadRequestError:
 		case NotAuthenticatedError:
@@ -101,6 +103,8 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 			return "tooManyAttempts_msg"
 		case CancelledError:
 			return "emptyString_msg"
+		case CredentialAuthenticationError:
+			return () => lang.get("couldNotUnlockCredentials_msg", {"{reason}": error.message})
 		case ConnectionError:
 		default:
 			return "emptyString_msg"
@@ -108,9 +112,9 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 }
 
 export async function showSignupDialog() {
-	showProgressDialog('loading_msg', worker.initialized
-	                                        .then(() => import("../subscription/UpgradeSubscriptionWizard")
-		                                        .then((wizard) => wizard.loadSignupWizard())))
+	showProgressDialog('loading_msg', locator.worker.initialized
+	                                         .then(() => import("../subscription/UpgradeSubscriptionWizard")
+		                                         .then((wizard) => wizard.loadSignupWizard())))
 		.then(dialog => dialog.show())
 
 }
@@ -120,10 +124,9 @@ export async function showGiftCardDialog(urlHash: string) {
 		import("../subscription/giftcards/GiftCardUtils")
 			.then(({getTokenFromUrl}) => getTokenFromUrl(urlHash))
 			.then(async ([id, key]) => {
-				return worker.initialized
-				             .then(() => worker.giftCardFacade.getGiftCardInfo(id, key))
-				             .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
-					             .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
+				return locator.giftCardFacade.getGiftCardInfo(id, key)
+				              .then(giftCardInfo => import("../subscription/giftcards/RedeemGiftCardWizard")
+					              .then((wizard) => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)))
 			})
 	showProgressDialog("loading_msg", showWizardPromise)
 		.then(dialog => dialog.show())

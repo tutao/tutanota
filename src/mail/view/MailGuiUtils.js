@@ -12,12 +12,12 @@ import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer";
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File";
 import {isApp, isDesktop} from "../../api/common/Env";
-import type {WorkerClient} from "../../api/main/WorkerClient"
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {MailFolderType, MailReportType} from "../../api/common/TutanotaConstants"
 import {getElementId} from "../../api/common/utils/EntityUtils"
 import {reportMailsAutomatically} from "./MailReportDialog"
+import type {FileFacade} from "../../api/worker/facades/FileFacade"
 
 export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
@@ -219,11 +219,11 @@ export function revokeInlineImages(inlineImages: InlineImages): void {
 	})
 }
 
-export async function loadInlineImages(worker: WorkerClient, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {
+export async function loadInlineImages(fileFacade: FileFacade, attachments: Array<TutanotaFile>, referencedCids: Array<string>): Promise<InlineImages> {
 	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
-		const dataFile = await worker.fileFacade.downloadFileContent(file)
+		const dataFile = await fileFacade.downloadFileContent(file)
 		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
 		inlineImages.set(inlineImageReference.cid, inlineImageReference)
 	}).then(() => inlineImages)

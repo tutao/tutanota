@@ -2,9 +2,29 @@
 import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
+import {isAdminClient, isAndroidApp, isDesktop} from "../../api/common/Env"
+import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
+import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
+import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
+import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
 
-export function createCredentialsProvider(): ICredentialsProvider {
-	return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig)
+/**
+ * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
+ * @param deviceEncryptionFacade
+ * @returns {Promise<CredentialsProvider>}
+ */
+export async function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade): Promise<ICredentialsProvider> {
+	if (isAndroidApp()) {
+		const {nativeApp} = await import("../../native/common/NativeWrapper")
+		const credentialsKeyProvider = new CredentialsKeyProvider(nativeApp, deviceConfig, deviceEncryptionFacade)
+		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeApp)
+		const credentialsKeyMigrator = new CredentialsKeyMigrator(nativeApp)
+		return new CredentialsProvider(credentialsEncryption, deviceConfig, credentialsKeyMigrator)
+	} else if (isAdminClient() || isDesktop()) {
+		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub())
+	} else {
+		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub())
+	}
 }
 
 /**
@@ -37,5 +57,9 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 			userId: encryptedCredentials.credentialInfo.userId,
 			type: encryptedCredentials.credentialInfo.type,
 		}
+	}
+
+	async getSupportedEncryptionModes() {
+		return []
 	}
 }

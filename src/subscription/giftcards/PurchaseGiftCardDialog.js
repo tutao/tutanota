@@ -6,7 +6,6 @@ import {Dialog} from "../../gui/base/Dialog"
 import {serviceRequest} from "../../api/main/Entity"
 import {logins} from "../../api/main/LoginController"
 import type {AccountingInfo} from "../../api/entities/sys/AccountingInfo"
-import {worker} from "../../api/main/WorkerClient"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {GiftCardTypeRef} from "../../api/entities/sys/GiftCard"
 import {locator} from "../../api/main/MainLocator"
@@ -142,7 +141,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 		}
 
 		showProgressDialog("loading_msg",
-			worker.giftCardFacade.generateGiftCard(message, value, country.a)
+			locator.giftCardFacade.generateGiftCard(message, value, country.a)
 			      .then(createdGiftCardId => locator.entityClient.load(GiftCardTypeRef, createdGiftCardId)))
 			.then(giftCard => {
 				attrs.outerDialog().close()

@@ -11,7 +11,6 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {fileController} from "../../file/FileController"
 import {remove} from "../../api/common/utils/ArrayUtils"
 import {windowFacade} from "../../misc/WindowFacade"
-import {worker} from "../../api/main/WorkerClient"
 import {progressIcon} from "../../gui/base/Icon"
 import {AccessDeactivatedError} from "../../api/common/error/RestError"
 import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
@@ -36,6 +35,7 @@ import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -92,7 +92,7 @@ export class ContactFormRequestDialog {
 			                     help: "send_action"
 		                     }).setCloseHandler(() => this._close())
 
-		worker.customerFacade.createContactFormUserGroupData()
+		locator.customerFacade.createContactFormUserGroupData()
 	}
 
 	view: Function = () => {
@@ -232,7 +232,7 @@ export class ContactFormRequestDialog {
 	}
 
 	async send(): Promise<void> {
-		const {mailFacade, customerFacade} = worker
+		const {mailFacade, customerFacade} = locator
 		const passwordErrorId = this._passwordForm.getErrorMessageId()
 		if (passwordErrorId) {
 			Dialog.error(passwordErrorId)
@@ -254,7 +254,7 @@ export class ContactFormRequestDialog {
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
 				const userEmailAddress = contactFormResult.responseMailAddress
-				await logins.createSession(userEmailAddress, password, false, SessionType.Temporary)
+				await logins.createSession(userEmailAddress, password, SessionType.Temporary)
 
 				try {
 					if (cleanedNotificationMailAddress) {
@@ -267,7 +267,7 @@ export class ContactFormRequestDialog {
 							_owner: logins.getUserController().userGroupInfo.group, // legacy
 							_area: "0", // legacy
 						})
-						await worker.entityRequest(PushIdentifierTypeRef,
+						await locator.worker.entityRequest(PushIdentifierTypeRef,
 							HttpMethodEnum.POST,
 							neverNull(logins.getUserController().user.pushIdentifierList).list,
 							null, pushIdentifier);

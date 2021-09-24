@@ -12,17 +12,17 @@ import * as migration0005 from "./migration-0005"
 
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
-import type {DeviceKeyProvider} from "../../DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
 
 export type MigrationKind = "migrateClient" | "migrateAdmin"
 
 
 export class DesktopConfigMigrator {
 	+crypto: DesktopCryptoFacade;
-	_deviceKeyProvider: DeviceKeyProvider
+	_deviceKeyProvider: DesktopDeviceKeyProvider
 	_electron: $Exports<"electron">
 
-	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DeviceKeyProvider, electron: $Exports<"electron">) {
+	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: $Exports<"electron">) {
 		this.crypto = crypto
 		this._deviceKeyProvider = deviceKeyProvider
 		this._electron = electron

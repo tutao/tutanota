@@ -9,7 +9,6 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
 import {AccountType, BookingItemFeatureByCode, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
-import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -45,13 +44,14 @@ import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Booking} from "../api/entities/sys/Booking"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  */
 export function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
 
-	const model = new SwitchSubscriptionDialogModel(worker.bookingFacade, customer, customerInfo, accountingInfo, lastBooking)
+	const model = new SwitchSubscriptionDialogModel(locator.bookingFacade, customer, customerInfo, accountingInfo, lastBooking)
 
 	return showProgressDialog("pleaseWait_msg", model.loadSwitchSubscriptionPrices())
 		.then(prices => {
@@ -138,7 +138,7 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 						return
 					}
 					return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
-						.then(() => worker.customerFacade.switchPremiumToFreeGroup())
+						.then(() => locator.customerFacade.switchPremiumToFreeGroup())
 						.catch(ofClass(PreconditionFailedError, (e) => {
 							const reason = e.data
 							if (reason == null) {

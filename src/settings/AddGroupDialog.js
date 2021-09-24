@@ -6,7 +6,6 @@ import {BookingItemFeatureType, FeatureType, GroupType} from "../api/common/Tuta
 import {Dialog} from "../gui/base/Dialog"
 import type {ValidationResult} from "./SelectMailAddressForm"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {worker} from "../api/main/WorkerClient"
 import {getGroupTypeName} from "./GroupViewer"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {logins} from "../api/main/LoginController"
@@ -22,6 +21,8 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import type {GroupManagementFacade} from "../api/worker/facades/GroupManagementFacade"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -75,9 +76,11 @@ export class AddGroupDialogViewModel {
 	availableDomains: Array<string>
 	groupType: GroupTypeEnum
 	isVerifactionBusy: boolean
+	_groupManagementFacade: GroupManagementFacade
 
-	constructor(availableDomains: Array<string>) {
+	constructor(availableDomains: Array<string>, groupManagementFacade: GroupManagementFacade) {
 		this.availableDomains = availableDomains
+		this._groupManagementFacade = groupManagementFacade
 
 		this.groupTypes = this.getAvailableGroupTypes()
 		this.groupType = firstThrow(this.groupTypes)
@@ -88,11 +91,11 @@ export class AddGroupDialogViewModel {
 	}
 
 	createMailGroup(): Promise<void> {
-		return worker.groupManagementFacade.createMailGroup(this.groupName, this.mailAddress)
+		return this._groupManagementFacade.createMailGroup(this.groupName, this.mailAddress)
 	}
 
 	createLocalAdminGroup(): Promise<void> {
-		return worker.groupManagementFacade.createLocalAdminGroup(this.groupName)
+		return this._groupManagementFacade.createLocalAdminGroup(this.groupName)
 	}
 
 	validateAddGroupInput(): ?TranslationKey {
@@ -127,7 +130,7 @@ export class AddGroupDialogViewModel {
 
 export function show(): mixed {
 	AddUserDialog.getAvailableDomains().then((availableDomains) => {
-		const viewModel = new AddGroupDialogViewModel(availableDomains)
+		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.error("selectionNotAvailable_msg")
 
@@ -194,7 +197,7 @@ export function show(): mixed {
  */
 function addTemplateGroup(name: string): Promise<boolean> {
 	return showProgressDialog("pleaseWait_msg",
-		worker.groupManagementFacade.createTemplateGroup(name)
+		locator.groupManagementFacade.createTemplateGroup(name)
 		      .then(() => true)
 		      .catch(ofClass(PreconditionFailedError, (e) => {
 			      if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {

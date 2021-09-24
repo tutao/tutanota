@@ -16,7 +16,6 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {logins} from "../api/main/LoginController"
 import {getDefaultSenderFromUser, getFolderName} from "../mail/model/MailUtils"
 import {Icons} from "../gui/base/icons/Icons"
-import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import {locator} from "../api/main/MainLocator"
@@ -226,12 +225,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._enableMailIndexing,
 			selectionChangedHandler: mailIndexEnabled => {
 				if (mailIndexEnabled) {
-					showProgressDialog("pleaseWait_msg", worker.indexerFacade.enableMailIndexing())
+					showProgressDialog("pleaseWait_msg", locator.indexerFacade.enableMailIndexing())
 						.catch(ofClass(IndexingNotSupportedError, () => {
 							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}))
 				} else {
-					showProgressDialog("pleaseWait_msg", worker.indexerFacade.disableMailIndexing("Disabled by user"))
+					showProgressDialog("pleaseWait_msg", locator.indexerFacade.disableMailIndexing("Disabled by user"))
 				}
 			},
 			dropdownWidth: 250

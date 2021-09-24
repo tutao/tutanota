@@ -127,16 +127,16 @@ let disconnectTimeoutId: ?TimeoutID
 
 function visibilityChange(msg: Request): Promise<void> {
 	console.log("native visibility change", msg.args[0])
-	return import('../../api/main/WorkerClient.js').then(({worker}) => {
+	return import('../../api/main/MainLocator.js').then(({locator}) => {
 		if (msg.args[0]) {
 			if (disconnectTimeoutId != null) {
 				clearTimeout(disconnectTimeoutId)
 				disconnectTimeoutId = null
 			}
-			worker.tryReconnectEventBus(false, true)
+			locator.worker.tryReconnectEventBus(false, true)
 		} else {
 			disconnectTimeoutId = setTimeout(() => {
-				worker.closeEventBus(CloseEventBusOption.Pause)
+				locator.worker.closeEventBus(CloseEventBusOption.Pause)
 			}, 30 * SECOND_MS)
 		}
 	})

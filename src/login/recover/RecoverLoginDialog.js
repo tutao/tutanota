@@ -15,7 +15,6 @@ import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {assertMainOrNode} from "../../api/common/Env"
 import {secondFactorHandler} from "../../misc/SecondFactorHandler"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
-import {worker} from "../../api/main/WorkerClient"
 import {client} from "../../misc/ClientDetector"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {locator} from "../../api/main/MainLocator"
@@ -113,13 +112,13 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 					Dialog.error(errorMessageId)
 				} else {
 					showProgressDialog("pleaseWait_msg",
-						worker.initialized.then(() => {
-							return worker.loginFacade.recoverLogin(
-								cleanMailAddress,
-								cleanRecoverCodeValue,
-								passwordForm.getNewPassword(),
-								client.getIdentifier())
-						}))
+						locator.loginFacade.recoverLogin(
+							cleanMailAddress,
+							cleanRecoverCodeValue,
+							passwordForm.getNewPassword(),
+							client.getIdentifier()
+						)
+					)
 						.then(async () => {
 							recoverDialog.close()
 							await deleteCredentialsByMailAddress(cleanMailAddress)
@@ -131,8 +130,8 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 			} else if (selectedAction() === "secondFactor") {
 				const passwordValue = passwordValueStream()
 				showProgressDialog("pleaseWait_msg",
-					worker.initialized
-					      .then(() => worker.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)))
+					locator.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue)
+				)
 					.then(async () => {
 						recoverDialog.close()
 						await deleteCredentialsByMailAddress(cleanMailAddress)

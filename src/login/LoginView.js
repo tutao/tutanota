@@ -13,7 +13,7 @@ import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {header} from "../gui/base/Header"
-import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
+import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
 import {DisplayMode, LoginState} from "./LoginViewModel"
 import {LoginForm} from "./LoginForm"
@@ -211,7 +211,7 @@ export class LoginView {
 			mailAddress: this._viewModel.mailAddress,
 			password: this._viewModel.password,
 			savePassword: this._viewModel.savePassword,
-			helpText: lang.get(this._viewModel.helpText),
+			helpText: lang.getMaybeLazy(this._viewModel.helpText),
 			invalidCredentials: this._viewModel.state === LoginState.InvalidCredentials,
 			showRecoveryOption: this._recoverLoginVisible(),
 			accessExpired: this._viewModel.state === LoginState.AccessExpired,
@@ -230,19 +230,22 @@ export class LoginView {
 	}
 
 	_renderCredentialsSelector(): Children {
-		return m(CredentialsSelector, {
-			credentials: this._viewModel.getSavedCredentials(),
-			onCredentialsSelected: async c => {
-				await this._viewModel.useCredentials(c)
-				await this._loginWithProgressDialog()
-			},
-			onCredentialsDeleted: this._viewModel.displayMode === DisplayMode.DeleteCredentials
-				? (credentials) => {
-					this._viewModel.deleteCredentials(credentials)
-					    .then(() => m.redraw())
-				}
-				: null
-		})
+		return [
+			m(".small.center.statusTextColor" + liveDataAttrs(), lang.getMaybeLazy(this._viewModel.helpText)),
+			m(CredentialsSelector, {
+				credentials: this._viewModel.getSavedCredentials(),
+				onCredentialsSelected: async c => {
+					await this._viewModel.useCredentials(c)
+					await this._loginWithProgressDialog()
+				},
+				onCredentialsDeleted: this._viewModel.displayMode === DisplayMode.DeleteCredentials
+					? (credentials) => {
+						this._viewModel.deleteCredentials(credentials)
+						    .then(() => m.redraw())
+					}
+					: null
+			})
+		]
 	}
 
 	_renderAppButtons(): Children {

@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {worker} from "../../api/main/WorkerClient"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {downcast, neverNull} from "../../api/common/utils/Utils"
@@ -19,6 +18,7 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -113,7 +113,7 @@ class ContactFormView {
 		if (this._formId !== args.formId) {
 			this._formId = args.formId
 			this._loading = true
-			worker.initialized.then(() => worker.contactFormFacade.loadContactForm(args.formId).then(contactForm => {
+			locator.contactFormFacade.loadContactForm(args.formId).then(contactForm => {
 				this._contactForm = contactForm
 				lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
 					let language = getDefaultContactFormLanguage(contactForm.languages)
@@ -130,7 +130,7 @@ class ContactFormView {
 				this._loading = false
 				this._contactForm = null
 				m.redraw()
-			})))
+			}))
 		}
 	}
 }

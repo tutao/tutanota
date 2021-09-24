@@ -5,7 +5,6 @@ import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
 import {load} from "../api/main/Entity"
-import {worker} from "../api/main/WorkerClient"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -13,6 +12,7 @@ import {logins} from "../api/main/LoginController"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showBuyDialogToBookItem} from "./BuyDialog"
+import {locator} from "../api/main/MainLocator"
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -72,6 +72,6 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 		showReferenceDiscount: false
 	}
 
-	updateBuyOptionBoxPriceInformation(worker, BookingItemFeatureType.Alias, amount, attrs)
+	updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Alias, amount, attrs)
 	return {amount, buyOptionBoxAttr: attrs}
 }

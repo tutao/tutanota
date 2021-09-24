@@ -15,7 +15,6 @@ import {Button} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {worker} from "../api/main/WorkerClient"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -486,7 +485,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		if (!this._showPriceData()) {
 			return Promise.resolve();
 		} else {
-			return worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
+			return locator.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 				if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
 					if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
 						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
@@ -559,7 +558,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
-		return worker.customerFacade.readUsedCustomerStorage(getEtId(customer)).then(usedStorage => {
+		return locator.customerFacade.readUsedCustomerStorage(getEtId(customer)).then(usedStorage => {
 			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
 			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this._lastBooking)
 				* Const.MEMORY_GB_FACTOR)
@@ -691,7 +690,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 		Dialog.confirm(confirmationMessage).then((confirmed) => {
 			if (confirmed) {
 				const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-				worker.customerFacade.updatePaymentData(paymentInterval, {
+				locator.customerFacade.updatePaymentData(paymentInterval, {
 						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 						country: invoiceCountry,
 						vatNumber: accountingInfo.invoiceVatIdNo

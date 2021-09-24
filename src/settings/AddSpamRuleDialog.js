@@ -14,7 +14,6 @@ import {
 } from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
-import {worker} from "../api/main/WorkerClient"
 import {load} from "../api/main/Entity"
 import {neverNull, objectEntries} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -25,13 +24,14 @@ import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
 export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 	let existingSpamRules: ?EmailSenderListElement[] = null
 	let customDomains: ?string[]
-	worker.customerFacade.loadCustomerServerProperties().then(props => {
+	locator.customerFacade.loadCustomerServerProperties().then(props => {
 		existingSpamRules = props.emailSenderList
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
@@ -67,13 +67,13 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderLi
 	]
 	let addSpamRuleOkAction = (dialog) => {
 		if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
-			worker.customerFacade.editSpamRule(Object.assign({}, existingSpamRuleOrTemplate, {
+			locator.customerFacade.editSpamRule(Object.assign({}, existingSpamRuleOrTemplate, {
 				value: valueFieldValue(),
 				field: selectedField(),
 				type: selectedType()
 			}))
 		} else {
-			worker.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
+			locator.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
 		}
 		dialog.close()
 	}

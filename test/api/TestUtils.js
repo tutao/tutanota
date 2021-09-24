@@ -8,7 +8,7 @@ import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbTransaction} from "../../src/api/worker/search/DbFacade"
 import {fixedIv, uint8ArrayToKey} from "../../src/api/worker/crypto/CryptoUtils"
 import {assertNotNull, downcast, neverNull} from "../../src/api/common/utils/Utils"
-import type {DeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
 import {delay} from "../../src/api/common/utils/PromiseUtils"
 
 /**
@@ -175,7 +175,7 @@ export function reportTest(results: mixed, stats: mixed) {
 	})()
 }
 
-export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DeviceKeyProvider {
+export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DesktopDeviceKeyProvider {
 	return {
 		getDeviceKey() {
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))

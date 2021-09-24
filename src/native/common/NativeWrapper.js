@@ -42,7 +42,7 @@ export class NativeWrapper {
 		const queue = this._nativeQueue = new Queue(({postMessage}: any))
 		import("../main/NativeWrapperCommands").then(({appCommands, desktopCommands}) => {
 			queue.setCommands(env.mode === Mode.App ? appCommands : desktopCommands)
-			return this.invokeNative(new Request("init", []))
+			return this._invokeNative(new Request("init", []))
 			           .then(platformId => {
 				           env.platformId = platformId
 				           this._initialized.resolve()
@@ -65,7 +65,12 @@ export class NativeWrapper {
 		this._appUpdateListener && this._appUpdateListener()
 	}
 
-	invokeNative(msg: Request): Promise<any> {
+	async invokeNative(msg: Request): Promise<any> {
+		await this.initialized()
+		return this._invokeNative(msg)
+	}
+
+	_invokeNative(msg: Request): Promise<any> {
 		if (this._workerQueue) {
 			// worker queue is only set in worker scope
 			return this._workerQueue.postMessage(new Request("execNative", [msg.type, msg.args]))

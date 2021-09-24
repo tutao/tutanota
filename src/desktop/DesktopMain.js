@@ -31,7 +31,7 @@ import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
 import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
-import type {DeviceKeyProvider} from "./DeviceKeyProviderImpl"
+import type {DesktopDeviceKeyProvider} from "./DeviceKeyProviderImpl"
 import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../misc/Scheduler"
@@ -46,7 +46,7 @@ type Components = {
 	+dl: DesktopDownloadManager,
 	+sse: DesktopSseClient,
 	+conf: DesktopConfig,
-	+deviceKeyProvider: DeviceKeyProvider,
+	+deviceKeyProvider: DesktopDeviceKeyProvider,
 	+notifier: DesktopNotifier,
 	+sock: Socketeer,
 	+updater: ElectronUpdater,
@@ -124,7 +124,9 @@ async function createComponents(): Promise<Components> {
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
-	const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator, desktopAlarmScheduler, themeManager)
+
+	const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator,
+		desktopAlarmScheduler, themeManager)
 	wm.setIPC(ipc)
 
 	conf.getConst("appUserModelId")

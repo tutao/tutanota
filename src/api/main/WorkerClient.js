@@ -2,14 +2,14 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
-import {assertMainOrNode, isMain} from "../common/Env"
+import {assertMainOrNode} from "../common/Env"
 import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
-import {locator} from "./MainLocator"
+import {EntropySrc} from "../common/TutanotaConstants"
+import type {MainLocatorType} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity, objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
-import type {CalendarFacade} from "../worker/facades/CalendarFacade"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
@@ -17,24 +17,9 @@ import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {TypeRef} from "../common/utils/TypeRef"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
-import type {GiftCardFacade} from "../worker/facades/GiftCardFacade"
-import type {CustomerFacade} from "../worker/facades/CustomerFacade"
 import type {WorkerInterface} from "../worker/WorkerImpl"
-import type {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
-import type {ConfigurationDatabase} from "../worker/facades/ConfigurationDatabase"
-import type {MailFacade} from "../worker/facades/MailFacade"
-import type {ShareFacade} from "../worker/facades/ShareFacade"
-import type {CounterFacade} from "../worker/facades/CounterFacade"
-import type {Indexer} from "../worker/search/Indexer"
-import type {MailAddressFacade} from "../worker/facades/MailAddressFacade"
-import type {FileFacade} from "../worker/facades/FileFacade"
-import type {SearchFacade} from "../worker/search/SearchFacade"
-import type {BookingFacade} from "../worker/facades/BookingFacade"
-import type {UserManagementFacade} from "../worker/facades/UserManagementFacade"
-import type {ContactFormFacade} from "../worker/facades/ContactFormFacade"
 import {exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
-import type {LoginFacade} from "../worker/facades/LoginFacade"
 
 assertMainOrNode()
 
@@ -46,7 +31,7 @@ interface Message {
 
 type progressUpdater = (number) => mixed;
 
-export class WorkerClient implements EntityRestInterface, WorkerInterface {
+export class WorkerClient implements EntityRestInterface {
 	initialized: Promise<void>;
 	_isInitialized: boolean = false
 
@@ -56,27 +41,10 @@ export class WorkerClient implements EntityRestInterface, WorkerInterface {
 	+infoMessages: Stream<InfoMessage>;
 	_leaderStatus: WebsocketLeaderStatus
 
-	+loginFacade: LoginFacade;
-	+customerFacade: CustomerFacade;
-	+giftCardFacade: GiftCardFacade;
-	+groupManagementFacade: GroupManagementFacade;
-	+configFacade: ConfigurationDatabase;
-	+calendarFacade: CalendarFacade;
-	+mailFacade: MailFacade;
-	+shareFacade: ShareFacade;
-	+counterFacade: CounterFacade;
-	+indexerFacade: Indexer;
-	+searchFacade: SearchFacade;
-	+bookingFacade: BookingFacade;
-	+mailAddressFacade: MailAddressFacade;
-	+fileFacade: FileFacade;
-	+userManagementFacade: UserManagementFacade;
-	+contactFormFacade: ContactFormFacade;
 
-	constructor() {
+	constructor(locator: MainLocatorType) {
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
-		locator.init(this)
 		this._initWorker()
 
 		this.initialized.then(() => {
@@ -140,42 +108,10 @@ export class WorkerClient implements EntityRestInterface, WorkerInterface {
 				return Promise.resolve()
 			}
 		})
+	}
 
-		const {
-			loginFacade,
-			customerFacade,
-			giftCardFacade,
-			groupManagementFacade,
-			configFacade,
-			calendarFacade,
-			mailFacade,
-			shareFacade,
-			counterFacade,
-			indexerFacade,
-			searchFacade,
-			bookingFacade,
-			mailAddressFacade,
-			fileFacade,
-			userManagementFacade,
-			contactFormFacade
-		} = exposeRemote<WorkerInterface>(this._queue)
-
-		this.loginFacade = loginFacade
-		this.customerFacade = customerFacade
-		this.giftCardFacade = giftCardFacade
-		this.groupManagementFacade = groupManagementFacade
-		this.configFacade = configFacade
-		this.calendarFacade = calendarFacade
-		this.mailFacade = mailFacade
-		this.shareFacade = shareFacade
-		this.counterFacade = counterFacade
-		this.indexerFacade = indexerFacade
-		this.searchFacade = searchFacade
-		this.bookingFacade = bookingFacade
-		this.mailAddressFacade = mailAddressFacade
-		this.fileFacade = fileFacade
-		this.userManagementFacade = userManagementFacade
-		this.contactFormFacade = contactFormFacade
+	getWorkerInterfaceBlah(): WorkerInterface {
+		return exposeRemote<WorkerInterface>(this._queue)
 	}
 
 	_initWorker() {
@@ -192,7 +128,9 @@ export class WorkerClient implements EntityRestInterface, WorkerInterface {
 			let start = new Date().getTime()
 			this.initialized = this._queue
 			                       .postMessage(new Request('setup', [
-				                       window.env, locator.entropyCollector.getInitialEntropy(), client.browserData()
+				                       window.env,
+				                       this._getInitialEntropy(),
+				                       client.browserData()
 			                       ]))
 			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
@@ -217,9 +155,6 @@ export class WorkerClient implements EntityRestInterface, WorkerInterface {
 	}
 
 	_initServices() {
-		if (isMain()) {
-			locator.entropyCollector.start()
-		}
 		import("../../native/common/NativeWrapper").then(({nativeApp}) => nativeApp.init())
 	}
 
@@ -297,6 +232,23 @@ export class WorkerClient implements EntityRestInterface, WorkerInterface {
 	urlify(html: string): Promise<string> {
 		return this._postRequest(new Request('urlify', arguments))
 	}
+
+
+	/**
+	 * Add data from either secure random source or Math.random as entropy.
+	 */
+	_getInitialEntropy(): Array<{source: EntropySrcEnum, entropy: number, data: number}> {
+		const valueList = new Uint32Array(16)
+		crypto.getRandomValues(valueList)
+		const entropy: Array<{source: EntropySrcEnum, entropy: number, data: number}> = []
+		for (let i = 0; i < valueList.length; i++) {
+			// 32 because we have 32-bit values Uint32Array
+			entropy.push({source: EntropySrc.random, entropy: 32, data: valueList[i]})
+		}
+		return entropy
+	}
 }
 
-export const worker: WorkerClient = new WorkerClient()
+export function bootstrapWorker(locator: MainLocatorType): WorkerClient {
+	return new WorkerClient(locator)
+}

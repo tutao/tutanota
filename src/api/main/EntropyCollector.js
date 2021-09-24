@@ -98,14 +98,6 @@ export class EntropyCollector {
 		this.stopped = false
 	}
 
-	getInitialEntropy(): {source: EntropySrcEnum, entropy: number, data: number}[] {
-		// send initial values to the worker because on windows getRandomValues() is not available in the worker
-		this._addNativeRandomValues(16)
-		let cache = this._entropyCache
-		this._entropyCache = []
-		return cache
-	}
-
 	/**
 	 * Add data from either secure random source or Math.random as entropy.
 	 */

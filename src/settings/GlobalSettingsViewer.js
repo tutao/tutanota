@@ -8,7 +8,6 @@ import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleT
 import {getCustomMailDomains, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
-import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -52,6 +51,7 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getDomainPart} from "../misc/parsing/MailAddressParser";
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -212,7 +212,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateCustomerServerProperties(): Promise<void> {
-		return worker.customerFacade.loadCustomerServerProperties().then(props => {
+		return locator.customerFacade.loadCustomerServerProperties().then(props => {
 			this._props(props)
 			const fieldToName = getSpamRuleFieldToName()
 			this._spamRuleLines(props.emailSenderList.map((rule, index) => {
@@ -511,7 +511,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 			return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
 			             .then(selectedMailGroupId => {
-				             return worker.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+				             return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 			             })
 		})
 	}
@@ -520,18 +520,18 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		Dialog.confirm(() => lang.get("confirmCustomDomainDeletion_msg", {"{domain}": domainInfo.domain}))
 		      .then(confirmed => {
 			      if (confirmed) {
-				      worker.customerFacade.removeDomain(domainInfo.domain)
-				            .catch(ofClass(PreconditionFailedError, e => {
-					            let registrationDomains = this._props() != null ? this._props()
-					                                                                  .whitelabelRegistrationDomains
-					                                                                  .map(domainWrapper => domainWrapper.value) : []
-					            if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-						            Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
-					            } else {
-						            Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
-					            }
-				            }))
-				            .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+				      locator.customerFacade.removeDomain(domainInfo.domain)
+				             .catch(ofClass(PreconditionFailedError, e => {
+					             let registrationDomains = this._props() != null ? this._props()
+					                                                                   .whitelabelRegistrationDomains
+					                                                                   .map(domainWrapper => domainWrapper.value) : []
+					             if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
+						             Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+					             } else {
+						             Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+					             }
+				             }))
+				             .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
 			      }
 		      })
 	}

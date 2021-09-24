@@ -11,7 +11,6 @@ import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -29,6 +28,7 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {ofClass} from "../api/common/utils/PromiseUtils"
+import {locator} from "../api/main/MainLocator"
 
 type IdentifierRowAttrs = {|
 	name: string,
@@ -204,7 +204,7 @@ export class IdentifierListViewer {
 				pushIdentifier._ownerGroup = user.userGroup.group
 				pushIdentifier._owner = user.userGroup.group // legacy
 				pushIdentifier._area = "0" // legacy
-				let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
+				let p = locator.worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
 					neverNull(user.pushIdentifierList).list, null, pushIdentifier);
 				showProgressDialog("pleaseWait_msg", p)
 				dialog.close()

@@ -49,7 +49,6 @@ import type {CurrentView} from "../../gui/base/Header"
 import {header} from "../../gui/base/Header"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {worker} from "../../api/main/WorkerClient"
 import {getStartOfTheWeekOffsetForUser} from "../../calendar/date/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PermissionError} from "../../api/common/error/PermissionError"
@@ -338,7 +337,7 @@ export class SearchView implements CurrentView {
 			if (startDate && startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
-						worker.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
+						locator.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
 							setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
 						})
 					}

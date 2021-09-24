@@ -8,7 +8,6 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent";
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo";
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils";
-import {worker} from "../../api/main/WorkerClient";
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog";
 import {ParserError} from "../../misc/parsing/ParserCombinator";
 import {Dialog} from "../../gui/base/Dialog";
@@ -22,6 +21,7 @@ import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
 import {delay, ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {locator} from "../../api/main/MainLocator"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -60,7 +60,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
 							              assignEventId(event, zone, calendarGroupRoot)
-							              return worker.calendarFacade.createCalendarEvent(event, alarms, null)
+							              return locator.calendarFacade.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .then(() => delay(100))
 						              })

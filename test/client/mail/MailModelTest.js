@@ -11,8 +11,9 @@ import {MailFolderType, OperationType} from "../../../src/api/common/TutanotaCon
 import {MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {createMailFolder} from "../../../src/api/entities/tutanota/MailFolder"
 import type {EntityUpdateData} from "../../../src/api/main/EventController"
-import {worker} from "../../../src/api/main/WorkerClient"
 import {EntityClient} from "../../../src/api/common/EntityClient"
+import {EntityRestClientMock} from "../../api/worker/EntityRestClientMock"
+import nodemocker from "../nodemocker"
 
 o.spec("MailModelTest", function () {
 	let notifications: $Shape<Notifications>
@@ -36,7 +37,10 @@ o.spec("MailModelTest", function () {
 	o.beforeEach(function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
-		model = new MailModel(downcast(notifications), downcast({}), worker, new EntityClient(worker))
+		const restClient = new EntityRestClientMock()
+		const workerClient = nodemocker.mock("worker", {}).set()
+		const mailFacade = nodemocker.mock("mailFacade", {}).set()
+		model = new MailModel(downcast(notifications), downcast({}), workerClient, mailFacade, new EntityClient(restClient))
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails)
 	})
