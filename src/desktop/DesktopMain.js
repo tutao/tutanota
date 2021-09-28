@@ -56,7 +56,7 @@ type Components = {
 }
 
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
-const desktopUtils = new DesktopUtils(fs, desktopCrypto)
+const desktopUtils = new DesktopUtils(fs, electron, desktopCrypto)
 
 const opts = {
 	registerAsMailHandler: process.argv.some(arg => arg === "-r"),
@@ -149,10 +149,15 @@ async function createComponents(): Promise<Components> {
 
 async function startupInstance(components: Components) {
 	const {dl, wm, sse} = components
-	// Delete the temp directory on startup, because we may not always be able to do it on shutdown
-	dl.deleteTutanotaTempDirectory()
 
 	if (!await desktopUtils.makeSingleInstance()) return
+
+	// Delete the temp directory on startup because we may not always be able to do it on shutdown.
+	//
+	// don't do it if:
+	// * we're a second instance, the main instance may be using the tmp
+	// * there's a mailto link, attachments may be located in the tmp
+	if (opts.mailTo == null) dl.deleteTutanotaTempDirectory()
 
 	sse.start().catch(e => log.warn("unable to start sse client", e))
 

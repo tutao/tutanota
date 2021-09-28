@@ -5,12 +5,15 @@
  * @param execPath path to the executable that should be registered
  * @param dllPath path to the mapi dll that handles "Send as Mail..." requests
  * @param logPath path to the directory the mapi dll should put logs in
+ * @param tmpPath path to the tmp dir that's managed by tutanota
  * @returns {string} registry script
  */
-module.exports.registerKeys = (execPath: string, dllPath: string, logPath: string): string => {
-	execPath = execPath.replace(/\\/g, '\\\\')
-	dllPath = dllPath.replace(/\\/g, '\\\\')
-	logPath = logPath.replace(/\\/g, '\\\\')
+module.exports.registerKeys = (execPath: string, dllPath: string, logPath: string, tmpPath: string): string => {
+	const esc = s => s.replace(/\\/g, '\\\\')
+	execPath = esc(execPath)
+	dllPath = esc(dllPath)
+	logPath = esc(logPath)
+	tmpPath = esc(tmpPath)
 	return `Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\\mailto]
@@ -56,6 +59,7 @@ module.exports.registerKeys = (execPath: string, dllPath: string, logPath: strin
 "DLLPath"="${dllPath}"
 "EXEPath"="${execPath}"
 "LOGPath"="${logPath}"
+"TMPPath"="${tmpPath}"
 
 [HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\Mail]
 @="tutanota"

@@ -24,7 +24,6 @@ export class DesktopDownloadManager {
 	_desktopUtils: DesktopUtils;
 	_fs: $Exports<"fs">;
 	_electron: $Exports<"electron">
-	_topLevelDownloadDir: string
 
 	constructor(
 		conf: DesktopConfig,
@@ -41,7 +40,6 @@ export class DesktopDownloadManager {
 		this._desktopUtils = desktopUtils
 		this._fs = fs
 		this._electron = electron
-		this._topLevelDownloadDir = "tutanota"
 	}
 
 	manageDownloadsForSession(session: ElectronSession, dictUrl: string) {
@@ -157,23 +155,14 @@ export class DesktopDownloadManager {
 	 * @param subdirs
 	 */
 	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
-		const dirPath = this.getTutanotaTempPath(...subdirs)
+		const dirPath = this._desktopUtils.getTutanotaTempPath(...subdirs)
 		await this._fs.promises.mkdir(dirPath, {recursive: true})
 		return dirPath
-	}
-
-	/**
-	 * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
-	 * @param subdirs
-	 * @returns {string}
-	 */
-	getTutanotaTempPath(...subdirs: string[]): string {
-		return path.join(this._electron.app.getPath("temp"), this._topLevelDownloadDir, ...subdirs)
 	}
 
 	deleteTutanotaTempDirectory() {
 		// TODO Flow doesn't know about the options param, we should update it and then remove this downcast
 		// Using sync version because this could get called on app shutdown and it may not complete if async
-		downcast(this._fs.rmdirSync)(this.getTutanotaTempPath(), {recursive: true})
+		downcast(this._fs.rmdirSync)(this._desktopUtils.getTutanotaTempPath(), {recursive: true})
 	}
 }
