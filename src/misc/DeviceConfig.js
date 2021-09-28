@@ -7,6 +7,7 @@ import type {ThemeId} from "../gui/theme"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CredentialsStorage} from "./credentials/CredentialsProvider"
+import type {EncryptedCredentials} from "./credentials/CredentialsProvider"
 import {typedEntries} from "../api/common/utils/Utils"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
@@ -35,18 +36,20 @@ export class DeviceConfig implements CredentialsStorage {
 		this._load()
 	}
 
-	store(userId: Id, encryptedCredentials: Base64): void {
-		this._credentials.set(userId, encryptedCredentials)
+	store(encryptedCredentials: EncryptedCredentials): void {
+		this._credentials.set(encryptedCredentials.userId, encryptedCredentials.encryptedCredentials)
 		this._writeToStorage()
 	}
 
-	loadByUserId(userId: Id): [Id, Base64] | null {
+	loadByUserId(userId: Id): EncryptedCredentials | null {
 		const encryptedCredentials = this._credentials.get(userId)
-		return encryptedCredentials ? [userId, encryptedCredentials] : null
+		return encryptedCredentials ? {userId, encryptedCredentials} : null
 	}
 
-	loadAll(): Array<[Id, Base64]> {
-		return Array.from(this._credentials.entries())
+	loadAll(): Array<EncryptedCredentials> {
+		return Array.from(this._credentials.entries()).map(([userId, encryptedCredentials]) => {
+			return {userId, encryptedCredentials}
+		})
 	}
 
 	deleteByUserId(userId: Id): void {

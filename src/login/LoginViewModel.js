@@ -158,15 +158,17 @@ export class LoginViewModel implements ILoginViewModel {
 	async login() {
 		if (this.state === LoginState.LogginIn) return
 		this.state = LoginState.LogginIn
-		if (this.displayMode === DisplayMode.Credentials) {
+		if (this.displayMode === DisplayMode.Credentials || this.displayMode === DisplayMode.DeleteCredentials) {
 			await this._autologin()
-		} else {
+		} else if (this.displayMode === DisplayMode.Form) {
 			await this._formLogin()
+		} else {
+			throw new ProgrammingError(`Cannot login with current display mode: ${this.displayMode}`)
 		}
 	}
 
 	async deleteCredentials(credentials: Credentials): Promise<void> {
-		await this._loginController.deleteOldSession(credentials.accessToken)
+		await this._loginController.deleteOldSession(credentials)
 		await this._credentialsProvider.deleteByUserId(credentials.userId)
 		await this._updateCachedCredentials()
 	}
@@ -205,7 +207,8 @@ export class LoginViewModel implements ILoginViewModel {
 	async _autologin(): Promise<void> {
 		try {
 			if (!this._autoLoginCredentials) {
-				this._autoLoginCredentials = (await this._credentialsProvider.getAllInternal())[0]
+				const credentials = await this._credentialsProvider.getAllInternal()
+				this._autoLoginCredentials = credentials[0]
 			}
 			await this._loginController.resumeSession(this._autoLoginCredentials)
 			await this._onLogin()
@@ -230,18 +233,30 @@ export class LoginViewModel implements ILoginViewModel {
 			this.helpText = 'login_msg'
 			this.state = LoginState.LogginIn
 			try {
+
 				const newCredentials = await this._loginController.createSession(mailAddress, password, savePassword, SessionType.Login)
 				await this._onLogin()
-				const storedCredentials = await this._credentialsProvider.getCredentialsByUserId(newCredentials.userId)
-				if (savePassword) {
-					await this._credentialsProvider.store(newCredentials)
+
+				// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
+				// stored session belongs to another user. This can happen e.g. when email address alias is moved to another user.
+				const storedCredentialsForMailAddress = this._savedInteralCredentials.find(c => c.mailAddress === mailAddress)
+				if (storedCredentialsForMailAddress != null) {
+					await this._loginController.deleteOldSession(storedCredentialsForMailAddress)
+					await this._credentialsProvider.deleteByUserId(storedCredentialsForMailAddress.userId)
 				}
+
+				const storedCredentials = await this._credentialsProvider.getCredentialsByUserId(newCredentials.userId)
 				if (storedCredentials) {
-					await this._loginController.deleteOldSession(storedCredentials.accessToken)
+					await this._loginController.deleteOldSession(storedCredentials)
 					if (!savePassword) {
 						await this._credentialsProvider.deleteByUserId(storedCredentials.userId)
 					}
 				}
+
+				if (savePassword) {
+					await this._credentialsProvider.store(newCredentials)
+				}
+
 			} catch (e) {
 				await this._onLoginFailed(e)
 			} finally {

@@ -34,6 +34,9 @@ export async function registerLoginListener() {
 	logins.registerHandler(new LoginListener())
 }
 
+/**
+ * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
+ */
 class LoginListener implements LoginEventHandler {
 	async onLoginSuccess(loggedInEvent: LoggedInEvent): mixed {
 		if (loggedInEvent.sessionType !== SessionType.Login) {
@@ -91,14 +94,6 @@ class LoginListener implements LoginEventHandler {
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
 		})
 		this._enforcePasswordChange()
-	}
-
-	onLoginFailure(): mixed {
-		// no-op
-	}
-
-	onLogout() {
-		// no-op
 	}
 
 	_deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {

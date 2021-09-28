@@ -254,7 +254,7 @@ export class ContactFormRequestDialog {
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
 				const userEmailAddress = contactFormResult.responseMailAddress
-				await logins.createSession(userEmailAddress, password, false, SessionType.ContactForm)
+				await logins.createSession(userEmailAddress, password, false, SessionType.Temporary)
 
 				try {
 					if (cleanedNotificationMailAddress) {

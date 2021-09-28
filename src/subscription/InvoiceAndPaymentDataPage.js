@@ -68,8 +68,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 		let login = Promise.resolve()
 		if (!logins.isUserLoggedIn()) {
-			// This should be signup
-			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, false, SessionType.SignUp)
+			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, false, SessionType.Temporary)
 		}
 		login.then(() => {
 			if (!data.accountingInfo || !data.customer) {

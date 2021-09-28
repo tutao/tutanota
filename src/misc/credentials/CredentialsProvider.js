@@ -1,22 +1,36 @@
 // @flow
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
+export type EncryptedCredentials = {|
+	+userId: Id,
+	+encryptedCredentials: Base64,
+|}
+
+/**
+ * Interface for encrypting credentials.
+ */
 export interface CredentialsEncryption {
 	encrypt(credentials: Credentials): Promise<Base64>;
 
 	decrypt(encryptedCredentials: Base64): Promise<Credentials>;
 }
 
+/**
+ * Interface for storing credentials.
+ */
 export interface CredentialsStorage {
-	store(userId: Id, encryptedCredentials: Base64): void;
+	store(EncryptedCredentials): void;
 
-	loadByUserId(userId: Id): [Id, Base64] | null;
+	loadByUserId(userId: Id): EncryptedCredentials | null;
 
-	loadAll(): Array<[Id, Base64]>;
+	loadAll(): Array<EncryptedCredentials>;
 
 	deleteByUserId(userId: Id): void;
 }
 
+/**
+ * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
+ */
 export class CredentialsProvider {
 	+_credentialsEncryption: CredentialsEncryption
 	+_credentialsStorage: CredentialsStorage
@@ -32,20 +46,20 @@ export class CredentialsProvider {
 	 */
 	async store(credentials: Credentials): Promise<void> {
 		const encryptedCredentials = await this._credentialsEncryption.encrypt(credentials)
-		this._credentialsStorage.store(credentials.userId, encryptedCredentials)
+		this._credentialsStorage.store({userId: credentials.userId, encryptedCredentials})
 	}
 
 	async getCredentialsByUserId(userId: Id): Promise<Credentials | null> {
 		const userIdAndCredentials = this._credentialsStorage.loadByUserId(userId)
-		if (!Array.isArray(userIdAndCredentials)) {
+		if (userIdAndCredentials == null) {
 			return null
 		}
-		return this._credentialsEncryption.decrypt(userIdAndCredentials[1])
+		return this._credentialsEncryption.decrypt(userIdAndCredentials.encryptedCredentials)
 	}
 
 	async getAllCredentials(): Promise<Array<Credentials>> {
 		const encrypted = this._credentialsStorage.loadAll()
-		return promiseMap(encrypted, (encryptedItem) => this._credentialsEncryption.decrypt(encryptedItem[1]))
+		return promiseMap(encrypted, (encryptedItem) => this._credentialsEncryption.decrypt(encryptedItem.encryptedCredentials))
 	}
 
 	/**

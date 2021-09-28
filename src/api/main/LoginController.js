@@ -3,7 +3,6 @@ import type {DeferredObject} from "../common/utils/Utils"
 import {assertNotNull, defer} from "../common/utils/Utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
-import {AccountType} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
@@ -16,17 +15,11 @@ assertMainOrNodeBoot()
 
 export interface LoginEventHandler {
 	onLoginSuccess(loggedInEvent: LoggedInEvent): mixed;
-
-	onLoginFailure(): mixed;
-
-	onLogout(): mixed;
 }
 
 export const SessionType = Object.freeze({
-	ContactForm: "ContactForm",
-	SignUp: "SignUp",
 	Login: "Login",
-	GiftCard: "GiftCard",
+	Temporary: "Temporary",
 })
 export type SessionTypeEnum = $Values<typeof SessionType>
 
@@ -64,7 +57,7 @@ export interface LoginController {
 
 	logout(sync: boolean): Promise<void>;
 
-	deleteOldSession(accessToken: string): Promise<void>;
+	deleteOldSession(credentials: Credentials): Promise<void>;
 
 	registerHandler(handler: LoginEventHandler): void;
 
@@ -97,7 +90,6 @@ export class LoginControllerImpl implements LoginController {
 		}
 		const permanentLogin = sessionType === SessionType.Login
 		const loginFacade = await this._getLoginFacade()
-		try {
 			const {
 				user,
 				credentials,
@@ -115,10 +107,6 @@ export class LoginControllerImpl implements LoginController {
 				sessionType
 			)
 			return credentials
-		} catch (e) {
-			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
-			throw e
-		}
 	}
 
 	registerHandler(handler: LoginEventHandler) {
@@ -148,7 +136,6 @@ export class LoginControllerImpl implements LoginController {
 		persistentSession: boolean
 	): Promise<Credentials> {
 		const worker = await this._getLoginFacade()
-		try {
 			const {
 				user,
 				credentials,
@@ -166,14 +153,9 @@ export class LoginControllerImpl implements LoginController {
 				SessionType.Login,
 			)
 			return credentials
-		} catch (e) {
-			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
-			throw e
-		}
 	}
 
 	async resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
-		try {
 			const loginFacade = await this._getLoginFacade()
 			const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt)
 			await this._initUserController(
@@ -186,10 +168,6 @@ export class LoginControllerImpl implements LoginController {
 				},
 				SessionType.Login,
 			)
-		} catch (e) {
-			this._loginEventHandlers.forEach((handler) => {handler.onLoginFailure()})
-			throw e
-		}
 	}
 
 	isUserLoggedIn(): boolean {
@@ -239,7 +217,6 @@ export class LoginControllerImpl implements LoginController {
 			await this._userController.deleteSession(sync)
 			this._userController = null
 			this.waitForLogin = defer()
-			this._loginEventHandlers.forEach((handler) => handler.onLogout())
 		} else {
 			console.log("No session to delete")
 		}
@@ -253,10 +230,10 @@ export class LoginControllerImpl implements LoginController {
 		return this._isWhitelabel
 	}
 
-	async deleteOldSession(accessToken: string): Promise<void> {
+	async deleteOldSession(credentials: Credentials): Promise<void> {
 		const loginFacade = await this._getLoginFacade()
 		try {
-			await loginFacade.deleteSession(accessToken)
+			await loginFacade.deleteSession(credentials.accessToken)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("session already deleted")

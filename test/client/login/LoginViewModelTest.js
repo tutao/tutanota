@@ -54,8 +54,10 @@ o.spec("LoginViewModelTest", () => {
 		}).set()
 	})
 
-	function createViewModel({loginController}: {loginController: LoginController}) {
-		return new LoginViewModel(loginController, credentialsProvider, secondFactorHandler)
+	async function createViewModel({loginController}: {loginController: LoginController}) {
+		const viewModel = new LoginViewModel(loginController, credentialsProvider, secondFactorHandler)
+		await viewModel.init()
+		return viewModel
 	}
 
 	function createLoginController(): MockBuilder<LoginController> {
@@ -81,18 +83,18 @@ o.spec("LoginViewModelTest", () => {
 	}
 
 	o.spec("Display mode transitions", function () {
-		o("Should switch to form mode if no stored credentials can be found", function () {
+		o("Should switch to form mode if no stored credentials can be found", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
-			viewModel.useUserId(testCredentials.userId)
+			await viewModel.useUserId(testCredentials.userId)
 
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 
 		o("Should switch to credentials mode if stored credentials can be found", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			downcast<CredentialsProviderStub>(credentialsProvider).store(testCredentials)
 			await viewModel.useUserId(testCredentials.userId)
@@ -100,18 +102,18 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
 
-		o("Should switch to form mode if stored credentials cannot be found", function () {
+		o("Should switch to form mode if stored credentials cannot be found", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
-			viewModel.useUserId(testCredentials.userId)
+			await viewModel.useUserId(testCredentials.userId)
 
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 
-		o("Should switch to credentials mode if credentials are set", function () {
+		o("Should switch to credentials mode if credentials are set", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.useCredentials(testCredentials)
 
@@ -120,7 +122,7 @@ o.spec("LoginViewModelTest", () => {
 
 		o("Should switch to form mode if last stored credential is deleted", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			await credentialsProvider.store(testCredentials)
 			viewModel.displayMode = DisplayMode.Credentials
@@ -130,9 +132,9 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
 
-		o("Should switch to credentials mode", function () {
+		o("Should switch to credentials mode", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.displayMode = DisplayMode.DeleteCredentials
 
@@ -141,9 +143,9 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
 
-		o("Should switch to delete credentials mode", function () {
+		o("Should switch to delete credentials mode", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.displayMode = DisplayMode.Credentials
 
@@ -154,7 +156,7 @@ o.spec("LoginViewModelTest", () => {
 
 		o("Should throw if in invalid state", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.displayMode = DisplayMode.Form
 
@@ -167,9 +169,22 @@ o.spec("LoginViewModelTest", () => {
 	o.spec("Login with stored credentials", function () {
 		o("login should succeed with valid stored credentials", async function () {
 			const loginController = loginControllerBuilder.set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.useCredentials(testCredentials)
+
+			await viewModel.login()
+
+			o(loginController.resumeSession.args).deepEquals([testCredentials])
+			o(viewModel.state).equals(LoginState.LoggedIn)
+		})
+
+		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
+			const loginController = loginControllerBuilder.set()
+			const viewModel = await createViewModel({loginController})
+
+			viewModel.useCredentials(testCredentials)
+			viewModel.switchDeleteState()
 
 			await viewModel.login()
 
@@ -183,7 +198,7 @@ o.spec("LoginViewModelTest", () => {
 					throw new NotAuthenticatedError("test")
 				},
 			}).set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.useCredentials(testCredentials)
 
@@ -200,7 +215,7 @@ o.spec("LoginViewModelTest", () => {
 					throw new AccessExpiredError("test")
 				},
 			}).set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.useCredentials(testCredentials)
 
@@ -228,8 +243,9 @@ o.spec("LoginViewModelTest", () => {
 					return credentialsWithoutPassword
 				}
 			}).set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
+			viewModel.showLoginForm()
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
 			viewModel.password(password)
 			viewModel.savePassword(false)
@@ -247,8 +263,9 @@ o.spec("LoginViewModelTest", () => {
 					return credentialsWithoutPassword
 				}
 			}).set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
+			viewModel.showLoginForm()
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
 			viewModel.password(password)
 			viewModel.savePassword(true)
@@ -274,8 +291,9 @@ o.spec("LoginViewModelTest", () => {
 				type: "internal",
 			}
 			credentialsProvider.store(oldCredentials)
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
+			viewModel.showLoginForm()
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
 			viewModel.password(password)
 			viewModel.savePassword(true)
@@ -285,7 +303,7 @@ o.spec("LoginViewModelTest", () => {
 			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
-			o(loginController.deleteOldSession.args).deepEquals([oldCredentials.accessToken])
+			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
 		})
 
 		o("should login and delete old stored credentials", async function () {
@@ -302,8 +320,9 @@ o.spec("LoginViewModelTest", () => {
 				type: "internal",
 			}
 			credentialsProvider.store(oldCredentials)
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
+			viewModel.showLoginForm()
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
 			viewModel.password(password)
 			viewModel.savePassword(false)
@@ -313,7 +332,36 @@ o.spec("LoginViewModelTest", () => {
 			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
-			o(loginController.deleteOldSession.args).deepEquals([oldCredentials.accessToken])
+			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
+		})
+
+		o("should login and delete old stored credentials with same email address but different user id", async function () {
+			const loginController = loginControllerBuilder.with({
+				async createSession(username, password, persistentSession, permanentLogin) {
+					return credentialsWithoutPassword
+				}
+			}).set()
+			const oldCredentials = {
+				mailAddress: credentialsWithoutPassword.mailAddress,
+				encryptedPassword: "encPw",
+				accessToken: "oldAccessToken",
+				userId: "anotherUserId",
+				type: "internal",
+			}
+			await credentialsProvider.store(oldCredentials)
+			const viewModel = await createViewModel({loginController})
+
+			viewModel.showLoginForm()
+			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.password(password)
+			viewModel.savePassword(false)
+
+			await viewModel.login()
+
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, false, SessionType.Login])
+			o(viewModel.state).equals(LoginState.LoggedIn)
+			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
+			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
 		})
 
 		o("Should throw if login controller throws", async function () {
@@ -322,7 +370,7 @@ o.spec("LoginViewModelTest", () => {
 					throw new Error("")
 				}
 			}).set()
-			const viewModel = createViewModel({loginController})
+			const viewModel = await createViewModel({loginController})
 
 			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
 			viewModel.password(password)
