@@ -167,7 +167,7 @@ export class ExternalLoginView {
 			await this._credentialsProvider.store(newCredentials)
 		}
 		if (storedCredentials) { // delete persistent session if a new session is created
-			await logins.deleteOldSession(storedCredentials.accessToken)
+			await logins.deleteOldSession(storedCredentials)
 
 			if (!persistentSession) {
 				await this._credentialsProvider.deleteByUserId(this._userId)

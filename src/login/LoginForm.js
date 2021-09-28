@@ -123,6 +123,7 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 						}, lang.get("recoverAccountAccess_action"))
 						: (a.accessExpired && a.accessExpired
 							? m('a', {
+								// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
 								href: '#',
 								onclick: e => {
 									import("./recover/TakeOverDeletedAddressDialog")

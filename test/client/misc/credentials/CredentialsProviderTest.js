@@ -1,26 +1,28 @@
 // @flow
 import o from "ospec"
-import type {CredentialsEncryption, CredentialsStorage} from "../../../../src/misc/credentials/CredentialsProvider"
+import type {CredentialsEncryption, CredentialsStorage, EncryptedCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
 
 class CredentialsStorageStub implements CredentialsStorage {
 	values = new Map<Id, Base64>()
 
-	store(userId: Id, encryptedCredentials: Base64) {
-		this.values.set(userId, encryptedCredentials)
+	store(encryptedCredentials: EncryptedCredentials) {
+		this.values.set(encryptedCredentials.userId, encryptedCredentials.encryptedCredentials)
 	}
 
-	loadByUserId(userId: Id): [Id, Base64] | null {
+	loadByUserId(userId: Id): EncryptedCredentials | null {
 		const value = this.values.get(userId);
 		if (value) {
-			return [userId, value]
+			return {userId, encryptedCredentials: value}
 		} else {
 			return null
 		}
 	}
 
-	loadAll(): Array<[Id, Base64]> {
-		return Array.from(this.values.entries());
+	loadAll(): Array<EncryptedCredentials> {
+		return Array.from(this.values.entries()).map(([userId, encryptedCredentials]) => {
+			return {userId, encryptedCredentials}
+		})
 	}
 
 	deleteByUserId(userId: Id) {
@@ -71,14 +73,17 @@ o.spec("CredentialsProvider", function () {
 			await credentialsProvider.store(internalCredentials)
 
 			const expectedEncrypted = await encryption.encrypt(internalCredentials)
-			o(storage.loadByUserId(internalCredentials.userId)).deepEquals([internalCredentials.userId, expectedEncrypted])
+			o(storage.loadByUserId(internalCredentials.userId)).deepEquals({
+				userId: internalCredentials.userId,
+				encryptedCredentials: expectedEncrypted
+			})
 		})
 	})
 
 	o.spec("Reading Credentials", function () {
 		o.beforeEach(async function () {
-			await storage.store(internalCredentials.userId, JSON.stringify(internalCredentials))
-			await storage.store(externalCredentials.userId, JSON.stringify(externalCredentials))
+			await storage.store({userId: internalCredentials.userId, encryptedCredentials: JSON.stringify(internalCredentials)})
+			await storage.store({userId: externalCredentials.userId, encryptedCredentials: JSON.stringify(externalCredentials)})
 		})
 		o("Should return Credentials", async function () {
 			const retrievedCredentials = await credentialsProvider.getCredentialsByUserId(internalCredentials.userId)
@@ -101,7 +106,7 @@ o.spec("CredentialsProvider", function () {
 
 	o.spec("Deleting credentials", function () {
 		o("Should delete credentials when they are there", async function () {
-			await storage.store(internalCredentials.userId, JSON.stringify(internalCredentials))
+			await storage.store({userId: internalCredentials.userId, encryptedCredentials: JSON.stringify(internalCredentials)})
 
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
 			o(storage.loadByUserId(internalCredentials.userId)).equals(null)
