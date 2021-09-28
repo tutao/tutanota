@@ -20,8 +20,8 @@ import {px, size} from "../../gui/size"
 import {lastThrow} from "../../api/common/utils/ArrayUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import type {CalendarEventBubbleClickHandler} from "./CalendarView"
 import type {GroupColors} from "./CalendarView"
+import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
 
 type Attrs = {
 	/**
@@ -30,7 +30,7 @@ type Attrs = {
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onEventClicked: CalendarEventBubbleClickHandler,
 	groupColors: GroupColors,
-	hiddenCalendars: Set<Id>,
+	hiddenCalendars: $ReadOnlySet<Id>,
 	onDateSelected: (date: Date) => mixed,
 }
 

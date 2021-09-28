@@ -1,5 +1,4 @@
 //@flow
-import type {CalendarInfo} from "../view/CalendarView"
 import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, EndTypeEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
 import {
 	AccountType,
@@ -37,6 +36,7 @@ import {
 } from "./CalendarUtils"
 import {assertNotNull, clone, downcast, isCustomizationEnabledForCustomer, neverNull, noOp} from "../../api/common/utils/Utils"
 import {generateEventElementId, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
+import type {CalendarInfo} from "../model/CalendarModel"
 import {CalendarModel} from "../model/CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
@@ -62,7 +62,6 @@ import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -110,7 +109,7 @@ export class CalendarEventViewModel {
 
 	+allDay: Stream<boolean>;
 	repeat: ?RepeatData
-	calendars: Map<Id, CalendarInfo>
+	calendars: $ReadOnlyMap<Id, CalendarInfo>
 	+attendees: Stream<$ReadOnlyArray<Guest>>;
 	organizer: ?EncryptedMailAddress;
 	+possibleOrganizers: $ReadOnlyArray<EncryptedMailAddress>;
@@ -156,7 +155,7 @@ export class CalendarEventViewModel {
 		sendMailModelFactory: SendMailModelFactory,
 		date: Date,
 		zone: string,
-		calendars: Map<Id, CalendarInfo>,
+		calendars: $ReadOnlyMap<Id, CalendarInfo>,
 		existingEvent?: ?CalendarEvent,
 		responseTo: ?Mail,
 		resolveRecipientsLazily: boolean,
@@ -249,7 +248,7 @@ export class CalendarEventViewModel {
 		this.endTime = Time.fromDate(newEndDate)
 	}
 
-	async _applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): Promise<void> {
+	async _applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: $ReadOnlyMap<Id, CalendarInfo>): Promise<void> {
 		this.summary(existingEvent.summary)
 		const calendarForGroup = calendars.get(neverNull(existingEvent._ownerGroup))
 		if (calendarForGroup) {
@@ -314,7 +313,7 @@ export class CalendarEventViewModel {
 	 *
 	 *   *** depends on share capability. Cannot edit if it's not a copy and there are attendees.
 	 */
-	_initEventType(existingEvent: ?CalendarEvent, calendars: Map<Id, CalendarInfo>): EventTypeEnum {
+	_initEventType(existingEvent: ?CalendarEvent, calendars: $ReadOnlyMap<Id, CalendarInfo>): EventTypeEnum {
 		if (!existingEvent) {
 			return EventType.OWN
 		} else {
@@ -1067,7 +1066,7 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 }
 
 
-export function createCalendarEventViewModel(date: Date, calendars: Map<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
+export function createCalendarEventViewModel(date: Date, calendars: $ReadOnlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
                                              existingEvent: ?CalendarEvent, previousMail: ?Mail, resolveRecipientsLazily: boolean,
 ): Promise<CalendarEventViewModel> {
 	return import("../../mail/editor/SendMailModel").then((model) => {

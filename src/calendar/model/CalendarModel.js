@@ -19,14 +19,15 @@ import {client} from "../../misc/ClientDetector"
 import type {User} from "../../api/entities/sys/User"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import {CalendarGroupRootTypeRef} from "../../api/entities/tutanota/CalendarGroupRoot"
+import type {GroupInfo} from "../../api/entities/sys/GroupInfo";
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
-import type {CalendarInfo} from "../view/CalendarView"
 import type {ParsedCalendarData} from "../export/CalendarImporter"
 import type {CalendarEventUpdate} from "../../api/entities/tutanota/CalendarEventUpdate"
 import {CalendarEventUpdateTypeRef} from "../../api/entities/tutanota/CalendarEventUpdate"
 import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import {createMembershipRemoveData} from "../../api/entities/sys/MembershipRemoveData"
 import {SysService} from "../../api/entities/sys/Services"
+import type {Group} from "../../api/entities/sys/Group";
 import {GroupTypeRef} from "../../api/entities/sys/Group"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
@@ -43,6 +44,17 @@ import m from "mithril"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 
+
+export type CalendarInfo = {
+	groupRoot: CalendarGroupRoot,
+	// We use LazyLoaded so that we don't get races for loading these events which is
+	// 1. Good because loading them twice is not optimal
+	// 2. Event identity is required by some functions (e.g. when determining week events)
+	longEvents: LazyLoaded<Array<CalendarEvent>>,
+	groupInfo: GroupInfo,
+	group: Group,
+	shared: boolean
+}
 
 // Complete as needed
 export interface CalendarModel {

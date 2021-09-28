@@ -32,13 +32,14 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../../api/entities/sys/User"
 import {isColorLight} from "../../gui/base/Color"
-import type {CalendarInfo, GroupColors} from "../view/CalendarView"
+import type {GroupColors} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import {insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import type {Time} from "../../api/common/utils/Time"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
+import type {CalendarInfo} from "../model/CalendarModel";
 
 assertMainOrNode()
 

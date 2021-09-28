@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
-import {load, serviceRequestVoid, update} from "../../api/main/Entity"
-import stream from "mithril/stream/stream.js"
+import {serviceRequestVoid, update} from "../../api/main/Entity"
 import type {CurrentView} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang} from "../../misc/LanguageViewModel"
@@ -9,54 +8,23 @@ import {ViewSlider} from "../../gui/base/ViewSlider"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
+import {incrementDate} from "../../api/common/utils/DateUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
-import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../../api/main/LoginController"
 import {HttpMethod} from "../../api/common/EntityFunctions"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {
-	defaultCalendarColor,
-	GroupType,
-	Keys,
-	OperationType,
-	reverse,
-	ShareCapability,
-	TimeFormat
-} from "../../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, Keys, reverse, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
-import {downcast, freezeMap, memoized, neverNull, noOp} from "../../api/common/utils/Utils"
-import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
-import {
-	addDaysForEvent,
-	addDaysForLongEvent,
-	addDaysForRecurringEvent,
-	DEFAULT_HOUR_OF_DAY,
-	getEventStart,
-	getMonth,
-	getNextHalfHour,
-	getStartOfTheWeekOffset,
-	getStartOfWeek,
-	getTimeZone,
-	isSameEvent,
-	shouldDefaultToAmPmTimeFormat,
-} from "../date/CalendarUtils"
-import {showCalendarEventDialog} from "./CalendarEventEditDialog"
+import {downcast, memoized} from "../../api/common/utils/Utils"
+import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat,} from "../date/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
 import {NavButtonN} from "../../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
-import {geEventElementMaxId, getEventElementMinId} from "../../api/common/utils/CommonCalendarUtils"
-import {UserTypeRef} from "../../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
-import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import type {GroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
@@ -66,65 +34,38 @@ import {styles} from "../../gui/styles"
 import {MultiDayCalendarView} from "./MultiDayCalendarView"
 import {Dialog} from "../../gui/base/Dialog"
 import {isApp} from "../../api/common/Env"
-import type {Group} from "../../api/entities/sys/Group"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
-import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {deviceConfig} from "../../misc/DeviceConfig"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
-import {CalendarEventPopup} from "./CalendarEventPopup"
-import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "../export/CalendarImporterDialog"
-import type {EventCreateResult} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers} from "../../sharing/GroupUtils"
 import {showGroupSharingDialog} from "../../sharing/view/GroupSharingDialog"
 import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolderRow"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
-import {
-	askIfShouldSendCalendarUpdatesToAttendees,
-	renderCalendarSwitchLeftButton,
-	renderCalendarSwitchRightButton
-} from "./CalendarGuiUtils"
+import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
+import type {CalendarViewTypeEnum, MouseOrPointerEvent} from "./CalendarViewModel"
+import {CalendarViewModel, CalendarViewType} from "./CalendarViewModel"
+import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
+import {showCalendarEventDialog} from "./CalendarEventEditDialog"
+import {CalendarEventPopup} from "./CalendarEventPopup"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
+import type {CalendarInfo} from "../model/CalendarModel"
+import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
-export const LIMIT_PAST_EVENTS_YEARS = 100
 
-export type EventDateUpdateHandler = (event: CalendarEvent, newStartDate: Date) => Promise<EventCreateResult>
+export type EventDateUpdateHandler = (diff: number) => *
 
-type MouseOrPointerEvent = MouseEvent | PointerEvent
-export type CalendarEventBubbleClickHandler = (CalendarEvent, MouseOrPointerEvent) => mixed
+
 export type GroupColors = Map<Id, string>
-
-export type CalendarInfo = {
-	groupRoot: CalendarGroupRoot,
-	// We use LazyLoaded so that we don't get races for loading these events which is
-	// 1. Good because loading them twice is not optimal
-	// 2. Event identity is required by some functions (e.g. when determining week events)
-	longEvents: LazyLoaded<Array<CalendarEvent>>,
-	groupInfo: GroupInfo,
-	group: Group,
-	shared: boolean
-}
-
-export const CalendarViewType = Object.freeze({
-	DAY: "day",
-	WEEK: "week",
-	MONTH: "month",
-	AGENDA: "agenda"
-})
 const CalendarViewTypeByValue = reverse(CalendarViewType)
-
-export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
-type EventsForDays = Map<number, Array<CalendarEvent>>
 
 // noinspection JSUnusedGlobalSymbols
 export class CalendarView implements CurrentView {
@@ -132,16 +73,8 @@ export class CalendarView implements CurrentView {
 	sidebarColumn: ViewColumn
 	contentColumn: ViewColumn
 	viewSlider: ViewSlider
-	// Should not be changed directly but only through the URL
-	selectedDate: Stream<Date>
-	/** Mmap from group/groupRoot ID to the calendar info */
-	_calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>
-	_eventsForDays: EventsForDays
-	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
-	_hiddenCalendars: Set<Id>
-
-	_calendarInvitations: ReceivedGroupInvitationsModel
+	_calendarViewModel: CalendarViewModel
 
 	// For sanitizing event descriptions, which get rendered as html in the CalendarEventPopup
 	+_htmlSanitizer: Promise<HtmlSanitizer>
@@ -150,15 +83,11 @@ export class CalendarView implements CurrentView {
 
 	constructor() {
 		const userId = logins.getUserController().user._id
+		const calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, locator.eventController, locator.entityClient, logins)
+		calendarInvitations.init()
+		this._calendarViewModel = new CalendarViewModel(logins, this._createCalendarEventViewModel, locator.calendarModel, locator.entityClient, locator.eventController, locator.progressTracker, deviceConfig, calendarInvitations)
 		this._currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
-		this._loadedMonths = new Set()
-		this._eventsForDays = freezeMap(new Map())
-		this._hiddenCalendars = new Set(deviceConfig.getHiddenCalendars(userId))
-		this.selectedDate = stream(getStartOfDay(new Date()))
 		this._htmlSanitizer = import("../../misc/HtmlSanitizer").then(m => m.htmlSanitizer)
-
-		this._calendarInvitations = new ReceivedGroupInvitationsModel(GroupType.Calendar, locator.eventController, locator.entityClient, logins)
-		this._calendarInvitations.init()
 
 		this.sidebarColumn = new ViewColumn({
 				view: () => m(FolderColumnView, {
@@ -166,7 +95,7 @@ export class CalendarView implements CurrentView {
 						? null
 						: {
 							label: 'newEvent_action',
-							click: () => this._newEvent(this.selectedDate()),
+							click: () => this._createNewEventDialog(),
 						},
 					content: [
 						m(SidebarSection, {
@@ -192,10 +121,10 @@ export class CalendarView implements CurrentView {
 							}
 						}, this._renderCalendars(false)),
 						m(SidebarSection, {name: "otherCalendars_label"}, this._renderCalendars(true)),
-						this._calendarInvitations.invitations().length > 0
+						this._calendarViewModel.calendarInvitations().length > 0
 							? m(SidebarSection, {
 								name: "calendarInvitations_label"
-							}, this._calendarInvitations.invitations().map((invitation) => m(GroupInvitationFolderRow, {invitation})))
+							}, this._calendarViewModel.calendarInvitations().map((invitation) => m(GroupInvitationFolderRow, {invitation})))
 							: null,
 					],
 					ariaLabel: "calendar_label"
@@ -221,12 +150,15 @@ export class CalendarView implements CurrentView {
 				switch (this._currentViewType) {
 					case CalendarViewType.MONTH:
 						return m(CalendarMonthView, {
-							eventsForDays: this._eventsForDays,
-							onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent),
+							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
+							temporaryEvents: this._calendarViewModel.temporaryEvents,
+							eventsForDays: this._calendarViewModel.eventsForDays,
+							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
+							onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this._htmlSanitizer),
 							onNewEvent: (date) => {
-								this._newEvent(date)
+								this._createNewEventDialog(date)
 							},
-							selectedDate: this.selectedDate(),
+							selectedDate: this._calendarViewModel.selectedDate(),
 							onDateSelected: (date, calendarViewType) => {
 								this._setUrl(calendarViewType, date)
 							},
@@ -234,39 +166,38 @@ export class CalendarView implements CurrentView {
 							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
-							hiddenCalendars: this._hiddenCalendars,
-							onEventMoved: async (event, newDate) => {
-								const newDateWithOriginalTime = new Date(
-									newDate.getFullYear(), newDate.getMonth(), newDate.getDate(),
-									event.startTime.getHours(), event.startTime.getMinutes(), event.startTime.getSeconds()
-								)
-								return this._moveEvent(event, newDateWithOriginalTime)
-							}
+							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
+							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
+
 						})
 					case CalendarViewType.DAY:
 						return m(MultiDayCalendarView, {
-							eventsForDays: this._eventsForDays,
+							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
+							temporaryEvents: this._calendarViewModel.temporaryEvents,
+							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 							renderHeaderText: formatDateWithWeekdayAndYearLong,
 							daysInPeriod: 1,
-							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 							onNewEvent: (date) => {
-								this._newEvent(date)
+								this._createNewEventDialog(date)
 							},
-							selectedDate: this.selectedDate(),
+							selectedDate: this._calendarViewModel.selectedDate(),
 							onDateSelected: (date) => {
-								this.selectedDate(date)
+								this._calendarViewModel.selectedDate(date)
 								m.redraw()
 								this._setUrl(CalendarViewType.DAY, date)
 							},
 							groupColors,
-							hiddenCalendars: this._hiddenCalendars,
+							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-							onEventMoved: this._moveEvent.bind(this)
+							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
 						})
 					case CalendarViewType.WEEK:
 						return m(MultiDayCalendarView, {
-							eventsForDays: this._eventsForDays,
+							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
+							temporaryEvents: this._calendarViewModel.temporaryEvents,
+							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 							daysInPeriod: 7,
 							renderHeaderText: date => {
 								const startOfTheWeekOffset = getStartOfTheWeekOffset(downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek))
@@ -278,27 +209,27 @@ export class CalendarView implements CurrentView {
 									return `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)}`
 								}
 							},
-							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 							onNewEvent: (date) => {
-								this._newEvent(date)
+								this._createNewEventDialog(date)
 							},
-							selectedDate: this.selectedDate(),
+							selectedDate: this._calendarViewModel.selectedDate(),
 							onDateSelected: (date, viewType) => {
 								this._setUrl(viewType ?? CalendarViewType.WEEK, date)
 							},
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
-							hiddenCalendars: this._hiddenCalendars,
+							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
-							onEventMoved: this._moveEvent.bind(this)
+							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
-							eventsForDays: this._eventsForDays,
+							eventsForDays: this._calendarViewModel.eventsForDays,
 							amPmFormat: shouldDefaultToAmPmTimeFormat(),
-							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 							groupColors,
-							hiddenCalendars: this._hiddenCalendars,
+							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
 							onDateSelected: (date) => {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
@@ -315,14 +246,14 @@ export class CalendarView implements CurrentView {
 			return {
 				[CalendarViewType.DAY]: {
 					left: left("prevDay_label"),
-					middle: formatDateWithWeekday(this.selectedDate()),
+					middle: formatDateWithWeekday(this._calendarViewModel.selectedDate()),
 					right: right("nextDay_label")
 				},
 				// week view doesn't exist on mobile so we don't bother making buttons/title
 				[CalendarViewType.WEEK]: "",
 				[CalendarViewType.MONTH]: {
 					left: left("prevMonth_label"),
-					middle: formatMonthWithFullYear(this.selectedDate()),
+					middle: formatMonthWithFullYear(this._calendarViewModel.selectedDate()),
 					right: right("nextMonth_label")
 				},
 				[CalendarViewType.AGENDA]: lang.get("agenda_label")
@@ -330,54 +261,16 @@ export class CalendarView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
-		// load all calendars. if there is no calendar yet, create one
-
-
-		// we load three instances per calendar / CalendarGroupRoot / GroupInfo / Group + 3
-		// for each calendar we load short events for three months +3
-		const workPerCalendar = 3 + 3
-		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
-		const monitorHandle = locator.progressTracker.registerMonitor(totalWork)
-		let progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
-		this._calendarInfos = new LazyLoaded(() => locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).then((it) => {
-				m.redraw()
-				return it
-			})
-		).load()
-		this.selectedDate.map((d) => {
-			const thisMonthStart = getMonth(d, getTimeZone()).start
-
-			const previousMonthDate = new Date(thisMonthStart)
-			previousMonthDate.setMonth(thisMonthStart.getMonth() - 1)
-
-			const nextMonthDate = new Date(thisMonthStart)
-			nextMonthDate.setMonth(thisMonthStart.getMonth() + 1)
-
-			this._loadMonthIfNeeded(thisMonthStart)
-			    .then(() => progressMonitor.workDone(1))
-			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
-			    .then(() => progressMonitor.workDone(1))
-			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
-			    .finally(() => {
-				    progressMonitor.completed()
-				    // We don't want to report progress after initial month, it shows completed progress bar for a second every time the
-				    // month is switched. Doesn't make sense to report more than 100% completion anyway.
-				    progressMonitor = new NoopProgressMonitor()
-			    })
-		})
 
 		const shortcuts = this._setupShortcuts();
-
-		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
-			return this.entityEventReceived(updates, eventOwnerGroupId)
-		})
 
 		const streamListeners = []
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
-			streamListeners.push(this._calendarInvitations.invitations.map(invitations => {
+			streamListeners.push(this._calendarViewModel.calendarInvitations.map(invitations => {
 				m.redraw()
 			}))
+			streamListeners.push(this._calendarViewModel.redraw.map(m.redraw))
 		}
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
@@ -388,33 +281,21 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	async _moveEvent(event: CalendarEvent, newStartDate: Date): Promise<EventCreateResult> {
-		const viewModel: CalendarEventViewModel = await this._createCalendarEventViewModel(event)
-		viewModel.rescheduleEvent(newStartDate)
-
-		// Errors are handled in the individual views
-		return viewModel.saveAndSend({
-			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
-			askInsecurePassword: async () => true,
-			showProgress: noOp,
-		})
-	}
-
 	_setupShortcuts(): Shortcut[] {
 		return [
 			{
 				key: Keys.ONE,
-				exec: () => this._setUrl(CalendarViewType.WEEK, this.selectedDate()),
+				exec: () => this._setUrl(CalendarViewType.WEEK, this._calendarViewModel.selectedDate()),
 				help: "switchWeekView_action"
 			},
 			{
 				key: Keys.TWO,
-				exec: () => this._setUrl(CalendarViewType.MONTH, this.selectedDate()),
+				exec: () => this._setUrl(CalendarViewType.MONTH, this._calendarViewModel.selectedDate()),
 				help: "switchMonthView_action"
 			},
 			{
 				key: Keys.THREE,
-				exec: () => this._setUrl(CalendarViewType.AGENDA, this.selectedDate()),
+				exec: () => this._setUrl(CalendarViewType.AGENDA, this._calendarViewModel.selectedDate()),
 				help: "switchAgendaView_action"
 			},
 			{
@@ -436,12 +317,43 @@ export class CalendarView implements CurrentView {
 			},
 			{
 				key: Keys.N,
-				exec: () => this._newEvent(this.selectedDate()),
+				exec: () => {
+					this._createNewEventDialog()
+				},
 				help: "newEvent_action"
 			}
 		]
 	}
 
+
+	_createNewEventDialog(date?: ?Date) {
+		const dateToUse = date ?? this._calendarViewModel.selectedDate()
+		// Disallow creation of events when there is no existing calendar
+		let calendarInfos = this._calendarViewModel.getCalendarInfosCreateIfNeeded()
+		if (calendarInfos instanceof Promise) {
+			calendarInfos = showProgressDialog("pleaseWait_msg", calendarInfos)
+		}
+		Promise.all([
+			calendarInfos,
+			locator.mailModel.getUserMailboxDetails()
+		]).then(([calendars, mailboxDetails]) => showCalendarEventDialog(dateToUse, calendars, mailboxDetails))
+	}
+
+
+	_editEventDialog(event: CalendarEvent) {
+		Promise.all([this._calendarViewModel.calendarInfos.getAsync(), locator.mailModel.getUserMailboxDetails()])
+		       .then(([calendarInfos, mailboxDetails]) => {
+			       let p = Promise.resolve(event)
+			       if (event.repeatRule) {
+				       // in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
+				       p = locator.entityClient.load(CalendarEventTypeRef, event._id)
+			       }
+			       p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e))
+			        .catch(ofClass(NotFoundError, () => {
+				        console.log("calendar event not found when clicking on the event")
+			        }))
+		       })
+	}
 
 	_viewPeriod(next: boolean, viewType: CalendarViewTypeEnum) {
 
@@ -463,12 +375,11 @@ export class CalendarView implements CurrentView {
 				throw new ProgrammingError("Invalid CalendarViewType: " + viewType)
 		}
 
-		const dateTime = DateTime.fromJSDate(this.selectedDate())
+		const dateTime = DateTime.fromJSDate(this._calendarViewModel.selectedDate())
 		const newDate = next
 			? dateTime.plus(duration).startOf(unit).toJSDate()
 			: dateTime.minus(duration).startOf(unit).toJSDate()
-
-		this.selectedDate(newDate)
+		this._calendarViewModel.selectedDate(newDate)
 		m.redraw()
 		this._setUrl(viewType, newDate)
 	}
@@ -496,7 +407,7 @@ export class CalendarView implements CurrentView {
 				colors: ButtonColors.Nav,
 				// Close side menu
 				click: () => {
-					this._setUrl(viewType.value, this.selectedDate())
+					this._setUrl(viewType.value, this._calendarViewModel.selectedDate())
 					this.viewSlider.focus(this.contentColumn)
 				}
 			}))
@@ -506,9 +417,7 @@ export class CalendarView implements CurrentView {
 	headerRightView(): Children {
 		return m(ButtonN, {
 			label: 'newEvent_action',
-			click: () => {
-				this._newEvent(this.selectedDate())
-			},
+			click: () => this._createNewEventDialog(),
 			icon: () => Icons.Add,
 			type: ButtonType.Action,
 			colors: ButtonColors.Header
@@ -554,8 +463,8 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderCalendars(shared: boolean): Children {
-		return this._calendarInfos.isLoaded() ?
-			Array.from(this._calendarInfos.getLoaded().values())
+		return this._calendarViewModel.calendarInfos.isLoaded() ?
+			Array.from(this._calendarViewModel.calendarInfos.getLoaded().values())
 			     .filter(calendarInfo => calendarInfo.shared === shared)
 			     .map((calendarInfo) => {
 				     const {userSettingsGroupRoot} = logins.getUserController()
@@ -569,15 +478,15 @@ export class CalendarView implements CurrentView {
 						     m(".flex.flex-grow.center-vertically.button-height", [
 							     m(".calendar-checkbox", {
 								     onclick: () => {
-									     const newHiddenCalendars = new Set(this._hiddenCalendars)
-									     this._hiddenCalendars.has(groupRootId)
+									     const newHiddenCalendars = new Set(this._calendarViewModel.hiddenCalendars)
+									     this._calendarViewModel.hiddenCalendars.has(groupRootId)
 										     ? newHiddenCalendars.delete(groupRootId)
 										     : newHiddenCalendars.add(groupRootId)
-									     this._setHiddenCalendars(newHiddenCalendars)
+									     this._calendarViewModel.setHiddenCalendars(newHiddenCalendars)
 								     },
 								     style: {
 									     "border-color": colorValue,
-									     "background": this._hiddenCalendars.has(groupRootId) ? "" : colorValue,
+									     "background": this._calendarViewModel.hiddenCalendars.has(groupRootId) ? "" : colorValue,
 									     "transition": "all 0.3s",
 									     "cursor": "pointer",
 								     }
@@ -590,10 +499,6 @@ export class CalendarView implements CurrentView {
 			: null
 	}
 
-	_setHiddenCalendars(newHiddenCalendars: Set<Id>) {
-		this._hiddenCalendars = newHiddenCalendars
-		deviceConfig.setHiddenCalendars(logins.getUserController().user._id, [...newHiddenCalendars])
-	}
 
 	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
 		const {group, groupInfo, groupRoot} = calendarInfo
@@ -694,7 +599,54 @@ export class CalendarView implements CurrentView {
 		}, "save_action")
 	}
 
-	async _onEventSelected(calendarEvent: CalendarEvent, domEvent: MouseOrPointerEvent) {
+
+	view(): Children {
+		return m(".main-view", m(this.viewSlider))
+	}
+
+	updateUrl(args: Object) {
+		if (!args.view) {
+			this._setUrl(this._currentViewType, this._calendarViewModel.selectedDate(), true)
+		} else {
+			this._currentViewType = CalendarViewTypeByValue[args.view]
+				? args.view
+				: CalendarViewType.MONTH
+			const urlDateParam = args.date
+			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
+				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
+				const luxonDate = DateTime.fromISO(urlDateParam)
+				let date = new Date()
+				if (luxonDate.isValid) {
+					date = luxonDate.toJSDate()
+				}
+				if (this._calendarViewModel.selectedDate().getTime() !== date.getTime()) {
+					this._calendarViewModel.selectedDate(date)
+					m.redraw()
+				}
+			}
+			deviceConfig.setDefaultCalendarView(logins.getUserController().user._id, this._currentViewType)
+		}
+	}
+
+	getViewSlider(): ViewSlider {
+		return this.viewSlider
+	}
+
+	_setUrl(view: string, date: Date, replace: boolean = false) {
+		const dateString = DateTime.fromJSDate(date).toISODate()
+		m.route.set("/calendar/:view/:date", {view, date: dateString}, {replace})
+	}
+
+	async _createCalendarEventViewModel(event: CalendarEvent, calendarInfo: LazyLoaded<Map<Id, CalendarInfo>>): Promise<CalendarEventViewModel> {
+		const [mailboxDetails, calendarInfos] = await Promise.all([
+			locator.mailModel.getUserMailboxDetails(),
+			calendarInfo.getAsync(),
+		])
+		return createCalendarEventViewModel(getEventStart(event, getTimeZone()), calendarInfos, mailboxDetails,
+			event, null, false)
+	}
+
+	async _onEventSelected(calendarEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 
 		const domTarget = domEvent.currentTarget
 		if (domTarget == null || !(domTarget instanceof HTMLElement)) {
@@ -705,8 +657,8 @@ export class CalendarView implements CurrentView {
 		const y = domEvent.clientY
 
 		const [viewModel, htmlSanitizer] = await Promise.all([
-			this._createCalendarEventViewModel(calendarEvent),
-			this._htmlSanitizer
+			this._createCalendarEventViewModel(calendarEvent, this._calendarViewModel.calendarInfos),
+			htmlSanitizerPromise
 		])
 
 		// We want the popup to show at the users mouse
@@ -723,363 +675,9 @@ export class CalendarView implements CurrentView {
 			calendarEvent,
 			rect,
 			htmlSanitizer,
-			() => this._editEvent(calendarEvent),
+			() => this._editEventDialog(calendarEvent),
 			viewModel
 		).show()
 	}
 
-	async _createCalendarEventViewModel(event: CalendarEvent): Promise<CalendarEventViewModel> {
-		const [mailboxDetails, calendarInfos] = await Promise.all([
-			locator.mailModel.getUserMailboxDetails(),
-			this._calendarInfos.getAsync(),
-		])
-		return createCalendarEventViewModel(getEventStart(event, getTimeZone()), calendarInfos, mailboxDetails,
-			event, null, false)
-	}
-
-	_editEvent(event: CalendarEvent) {
-		Promise.all([this._calendarInfos.getAsync(), locator.mailModel.getUserMailboxDetails()])
-		       .then(([calendarInfos, mailboxDetails]) => {
-			       let p = Promise.resolve(event)
-			       if (event.repeatRule) {
-				       // in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
-				       p = load(CalendarEventTypeRef, event._id)
-			       }
-			       p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e))
-			        .catch(ofClass(NotFoundError, () => {
-				        console.log("calendar event not found when clicking on the event")
-			        }))
-		       })
-	}
-
-	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		const month = getMonth(dayInMonth, getTimeZone())
-		if (!this._loadedMonths.has(month.start.getTime())) {
-			this._loadedMonths.add(month.start.getTime())
-			try {
-				await this._loadEvents(month)
-			} catch (e) {
-				this._loadedMonths.delete(month.start.getTime())
-				throw e
-			} finally {
-				m.redraw()
-			}
-		}
-	}
-
-
-	_newEvent(date?: ?Date) {
-		let dateToUse: Date
-		if (date == null) {
-			switch (this._currentViewType) {
-				case CalendarViewType.AGENDA:
-					dateToUse = getNextHalfHour()
-					break
-				case CalendarViewType.MONTH:
-					// use the current day if it is visible in the displayed month, otherwise use the start of the month
-					let currentDayStartOfMonth = getMonth(new Date(), getTimeZone()).start
-					let visibleStartOfMonth = getMonth(this.selectedDate(), getTimeZone()).start
-					dateToUse = this._getNewEventStartDate(currentDayStartOfMonth, visibleStartOfMonth)
-					break
-				case CalendarViewType.WEEK:
-					// use the current day if it is visible in the displayed week, otherwise use the start of the week
-					const startOfTheWeekOffset = getStartOfTheWeekOffset(downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek))
-					let currentDayStartOfTheWeek = getStartOfWeek(new Date(), startOfTheWeekOffset)
-					let visibleStartOfTheWeek = getStartOfWeek(this.selectedDate(), startOfTheWeekOffset)
-					dateToUse = this._getNewEventStartDate(currentDayStartOfTheWeek, visibleStartOfTheWeek)
-					break
-				default: // DAY
-					dateToUse = this._getNewEventStartDate(new Date(), this.selectedDate())
-					break
-			}
-		} else {
-			dateToUse = date
-		}
-
-		// Disallow creation of events when there is no existing calendar
-		const calendarInfos = this._calendarInfos.isLoaded() && this._calendarInfos.getLoaded().size > 0
-			? this._calendarInfos.getLoaded()
-			: showProgressDialog("pleaseWait_msg",
-				locator.calendarModel.createCalendar("", null)
-				       .then(() => locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
-				       .then((infos) => {
-					      this._calendarInfos = new LazyLoaded(() => Promise.resolve(infos)).load()
-					      return infos
-				      })
-			)
-		Promise.all([
-			calendarInfos,
-			locator.mailModel.getUserMailboxDetails()
-		]).then(([calendars, mailboxDetails]) => showCalendarEventDialog(dateToUse, calendars, mailboxDetails))
-	}
-
-	/**
-	 * Provides the start date for a new event created with the new date button (no pre-selected time). Provides the next half hour if
-	 * that time is on the current day and if the current day is visible in the current view, otherwise provides 6:00 on the first day of
-	 * the visible view.
-	 * @param currentDayStartOfView The start of the visible time period type (month, week, day) for the current day,
-	 * e.g. if the month view is visible, the start of the current day's month
-	 * @param visibleStartOfView The start of the visible time period
-	 */
-	_getNewEventStartDate(currentDayStartOfView: Date, visibleStartOfView: Date): Date {
-		if (isSameDay(currentDayStartOfView, visibleStartOfView)) {
-			let nextHalfHour = getNextHalfHour()
-			// only use the next half hour if it is not already on the next day, i.e. the current time is <= 23:30
-			if (isSameDay(nextHalfHour, new Date())) {
-				return nextHalfHour
-			}
-		}
-		return getHourOfDay(visibleStartOfView, DEFAULT_HOUR_OF_DAY)
-	}
-
-	view(): Children {
-		return m(".main-view", m(this.viewSlider))
-	}
-
-	updateUrl(args: Object) {
-		if (!args.view) {
-			this._setUrl(this._currentViewType, this.selectedDate(), true)
-		} else {
-			this._currentViewType = CalendarViewTypeByValue[args.view]
-				? args.view
-				: CalendarViewType.MONTH
-			const urlDateParam = args.date
-			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
-				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
-				const luxonDate = DateTime.fromISO(urlDateParam)
-				let date = new Date()
-				if (luxonDate.isValid) {
-					date = luxonDate.toJSDate()
-				}
-				if (this.selectedDate().getTime() !== date.getTime()) {
-					this.selectedDate(date)
-					m.redraw()
-				}
-			}
-			deviceConfig.setDefaultCalendarView(logins.getUserController().user._id, this._currentViewType)
-		}
-	}
-
-	_loadEvents(month: CalendarMonthTimeRange): Promise<*> {
-		return this._calendarInfos.getAsync().then((calendarInfos) => {
-			// Because of the timezones and all day events, we might not load an event which we need to display.
-			// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
-			// events anyway.
-			const startId = getEventElementMinId(month.start.getTime() - DAY_IN_MILLIS)
-			const endId = geEventElementMaxId(month.end.getTime() + DAY_IN_MILLIS)
-			// We collect events from all calendars together and then replace map synchronously.
-			// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.
-			// We could replace map more often instead of aggregating events but this would mean creating even more (cals * months) maps.
-			//
-			// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
-			// take care of this now.
-			const aggregateShortEvents = []
-			const aggregateLongEvents = []
-			return promiseMap(calendarInfos.values(), (calendarInfo) => {
-				const {groupRoot, longEvents} = calendarInfo
-				return Promise.all([
-					locator.entityClient.loadReverseRangeBetween(CalendarEventTypeRef,groupRoot.shortEvents, endId, startId, 200),
-					longEvents.getAsync(),
-				]).then(([shortEventsResult, longEvents]) => {
-					aggregateShortEvents.push(...shortEventsResult.elements)
-					aggregateLongEvents.push(...longEvents)
-				})
-			}).then(() => {
-				const newEvents = this._cloneEvents()
-				aggregateShortEvents
-					.filter(e => {
-						const eventStart = getEventStart(e, getTimeZone()).getTime()
-						return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
-					}) // only events for the loaded month
-					.forEach((e) => {
-						addDaysForEvent(newEvents, e, month)
-					})
-				const zone = getTimeZone()
-				aggregateLongEvents.forEach((e) => {
-					if (e.repeatRule) {
-						addDaysForRecurringEvent(newEvents, e, month, zone)
-					} else {
-						// Event through we get the same set of long events for each month we have to invoke this for each month
-						// because addDaysForLongEvent adds days only for the specified month.
-						addDaysForLongEvent(newEvents, e, month, zone)
-					}
-				})
-				this._replaceEvents(newEvents)
-			})
-		})
-	}
-
-	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		return this._calendarInfos.getAsync().then((calendarEvents) => {
-			return promiseMap(updates, update => {
-				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-					m.redraw()
-				}
-
-				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
-					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
-						return load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
-							.then((event) => {
-								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
-								m.redraw()
-							})
-							.catch(ofClass(NotFoundError, (e) => {
-								console.log("Not found event in entityEventsReceived of view", e)
-							}))
-					} else if (update.operation === OperationType.DELETE) {
-						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
-						m.redraw()
-					}
-				} else if (isUpdateForTypeRef(UserTypeRef, update) 	// only process update event received for the user group - to not process user update from admin membership.
-					&& isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)) {
-					if (update.operation === OperationType.UPDATE) {
-						const calendarMemberships = logins.getUserController().getCalendarMemberships()
-						return this._calendarInfos.getAsync().then(calendarInfos => {
-							// Remove calendars we no longer have membership in
-							calendarInfos.forEach((ci, group) => {
-								if (calendarMemberships.every((mb) => group !== mb.group)) {
-									this._hiddenCalendars.delete(group)
-								}
-							})
-							const oldGroupIds = new Set(calendarInfos.keys())
-							const newGroupIds = new Set(calendarMemberships.map(m => m.group))
-							const diff = symmetricDifference(oldGroupIds, newGroupIds)
-							if (diff.size !== 0) {
-								this._loadedMonths.clear()
-								this._replaceEvents(new Map())
-								this._calendarInfos = new LazyLoaded(() =>
-									locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
-								).load()
-								return this._calendarInfos.getAsync().then(() => {
-									const selectedDate = this.selectedDate()
-									const previousMonthDate = new Date(selectedDate)
-									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
-
-									const nextMonthDate = new Date(selectedDate)
-									nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-									return this._loadMonthIfNeeded(selectedDate)
-									           .then(() => this._loadMonthIfNeeded(nextMonthDate))
-									           .then(() => this._loadMonthIfNeeded(previousMonthDate))
-								}).then(() => m.redraw())
-							}
-						})
-					}
-				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
-					this._calendarInfos.getAsync().then(calendarInfos => {
-						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.
-						if (calendarInfo) {
-							return load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then(groupInfo => {
-								calendarInfo.groupInfo = groupInfo;
-								m.redraw()
-							})
-						}
-					})
-
-				}
-			}).then(noOp)
-		})
-	}
-
-	addOrUpdateEvent(calendarInfo: ?CalendarInfo, event: CalendarEvent) {
-		const zone = getTimeZone()
-		if (calendarInfo) {
-			const eventListId = getListId(event)
-			const eventMonth = getMonth(getEventStart(event, zone), zone)
-			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
-				// If the month is not loaded, we don't want to put it into events.
-				// We will put it there when we load the month
-				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
-					return
-				}
-				this._addDaysForEvent(event, eventMonth)
-			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-				this._removeExistingEvent(calendarInfo.longEvents.getLoaded(), event)
-				calendarInfo.longEvents.getLoaded().push(event)
-				this._loadedMonths.forEach(firstDayTimestamp => {
-					const loadedMonth = getMonth(new Date(firstDayTimestamp), zone)
-					if (event.repeatRule) {
-						this._addDaysForRecurringEvent(event, loadedMonth)
-					} else {
-						this._addDaysForLongEvent(event, loadedMonth)
-					}
-				})
-			}
-		}
-	}
-
-	/**
-	 * Removes existing event from {@param events} and also from {@code this._eventsForDays} if end time does not match
-	 */
-	_removeExistingEvent(events: Array<CalendarEvent>, newEvent: CalendarEvent) {
-		const indexOfOldEvent = events.findIndex((el) => isSameEvent(el, newEvent))
-		if (indexOfOldEvent !== -1) {
-			const oldEvent = events[indexOfOldEvent]
-			// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
-			// occurrences of new event won't replace all occurrences of old event. Changes of start or repeat rule already change
-			// ID of the event so it is not a problem.
-			if (oldEvent.endTime.getTime() !== newEvent.endTime.getTime()) {
-				const newMap = this._cloneEvents()
-				newMap.forEach((dayEvents) =>
-					// finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
-					findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)))
-				this._replaceEvents(newMap)
-			}
-			events.splice(indexOfOldEvent, 1)
-		}
-	}
-
-	_addDaysForEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		const newMap = this._cloneEvents()
-		addDaysForEvent(newMap, event, month)
-		this._replaceEvents(newMap)
-	}
-
-	_replaceEvents(newMap: EventsForDays) {
-		this._eventsForDays = freezeMap(newMap)
-	}
-
-	_cloneEvents(): EventsForDays {
-		return new Map(this._eventsForDays)
-	}
-
-	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
-			console.log("repeating event is too far into the past", event)
-			return
-		}
-		const newMap = this._cloneEvents()
-		addDaysForRecurringEvent(newMap, event, month, getTimeZone())
-		this._replaceEvents(newMap)
-	}
-
-	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {
-		const newMap = this._cloneEvents()
-		newMap.forEach((dayEvents) =>
-			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
-		this._replaceEvents(newMap)
-		if (this._calendarInfos.isLoaded()) {
-			const infos = this._calendarInfos.getLoaded()
-			const info = infos.get(ownerGroupId)
-			if (info) {
-				if (isSameId(listIdPart(id), info.groupRoot.longEvents)) {
-					findAndRemove(info.longEvents.getLoaded(), (e) => isSameId(e._id, id))
-				}
-			}
-		}
-	}
-
-	_addDaysForLongEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		const newMap = this._cloneEvents()
-		addDaysForLongEvent(newMap, event, month)
-		this._replaceEvents(newMap)
-	}
-
-	getViewSlider(): ViewSlider {
-		return this.viewSlider
-	}
-
-	_setUrl(view: string, date: Date, replace: boolean = false) {
-		const dateString = DateTime.fromJSDate(date).toISODate()
-		m.route.set("/calendar/:view/:date", {view, date: dateString}, {replace})
-	}
 }

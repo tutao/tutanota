@@ -23,7 +23,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY
 } from "../date/CalendarUtils"
-import {incrementDate, incrementMont, isSameDay} from "../../api/common/utils/DateUtils"
+import {incrementDate, incrementMonth, isSameDay} from "../../api/common/utils/DateUtils"
 import {flat, lastThrow} from "../../api/common/utils/ArrayUtils"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../../gui/styles"
@@ -33,30 +33,36 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, EventDateUpdateHandler, GroupColors} from "./CalendarView"
-import {CalendarViewType, SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
+import type {EventDateUpdateHandler, GroupColors} from "./CalendarView"
+import {SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
 import type {MousePos} from "./EventDragHandler"
 import {EventDragHandler} from "./EventDragHandler"
 import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
-import {locator} from "../../api/main/MainLocator"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {theme} from "../../gui/theme"
 import {getDateFromMousePos, renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
+import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, DraggedEvent, EventsOnDays} from "./CalendarViewModel"
+import {CalendarViewType} from "./CalendarViewModel"
+import {Time} from "../../api/common/utils/Time"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
 	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewTypeEnum) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
+	getEventsOnDays: (range: Array<Date>) => EventsOnDays,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: CalendarEventBubbleClickHandler,
 	onChangeMonth: (next: boolean) => mixed,
 	amPmFormat: boolean,
 	startOfTheWeek: WeekStartEnum,
 	groupColors: GroupColors,
-	hiddenCalendars: Set<Id>,
-	onEventMoved: EventDateUpdateHandler
+	hiddenCalendars: $ReadOnlySet<Id>,
+	onEventMoved: EventDateUpdateHandler,
+	temporaryEvents: Array<CalendarEvent>,
+	setDraggedEvent: (DraggedEvent) => mixed
+
 }
 
 type SimplePosRect = {top: number, left: number, right: number}
@@ -80,7 +86,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 		this._zone = getTimeZone()
 		this._lastHeight = 0
 		this._lastHeight = 0
-		this._eventDragHandler = new EventDragHandler(locator.entityClient)
+		this._eventDragHandler = new EventDragHandler()
 	}
 
 	oncreate() {
@@ -104,8 +110,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
 		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, false)
 
-		let lastMontDate = incrementMont(attrs.selectedDate, -1)
-		let nextMontDate = incrementMont(attrs.selectedDate, 1)
+		let lastMontDate = incrementMonth(attrs.selectedDate, -1)
+		let nextMontDate = incrementMonth(attrs.selectedDate, 1)
 		return m(PageView, {
 			previousPage: {
 				key: getFirstDayOfMonth(lastMontDate).getTime(),
@@ -171,7 +177,11 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 					this._lastMousePos = posAndBoundsFromMouseEvent
 					const currentDate = getDateFromMousePos(posAndBoundsFromMouseEvent, weeks.map(week => week.map(day => day.date)))
 					this._dayUnderMouse = currentDate
-					this._eventDragHandler.handleDrag(currentDate, posAndBoundsFromMouseEvent)
+					//make sure the date we move to also gets a time
+					const dateToMoveTo = this._eventDragHandler.originalEvent
+						? Time.fromDate(this._eventDragHandler.originalEvent?.startTime).toDate(currentDate,)
+						: currentDate
+					this._eventDragHandler.handleDrag(dateToMoveTo, posAndBoundsFromMouseEvent, attrs.setDraggedEvent)
 				},
 				onmouseup: () => this._endDrag(attrs.onEventMoved),
 				onmouseleave: () => this._endDrag(attrs.onEventMoved),
@@ -188,8 +198,12 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 
 	_endDrag(callback: EventDateUpdateHandler) {
 		this._monthDom && this._monthDom.classList.remove("dragging-mod-key")
-		if (this._dayUnderMouse) {
-			this._eventDragHandler.endDrag(this._dayUnderMouse, callback)
+		const dayUnderMouse = this._dayUnderMouse
+		const originalDate = this._eventDragHandler.originalEvent?.startTime
+		if (dayUnderMouse && originalDate) {
+			//make sure the date we move to also gets a time
+			const dateUnderMouse = Time.fromDate(originalDate).toDate(dayUnderMouse)
+			this._eventDragHandler.endDrag(dateUnderMouse, callback)
 			    .catch(ofClass(UserError, showUserError))
 		}
 	}
@@ -258,7 +272,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 
 	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>, zone: string): Children {
 
-		const eventsOnDays = this._eventDragHandler.getEventsOnDays(week.map(day => day.date), attrs.eventsForDays, attrs.hiddenCalendars)
+		const eventsOnDays = attrs.getEventsOnDays(week.map(day => day.date))
 		const events = new Set(eventsOnDays.longEvents.concat(flat(eventsOnDays.shortEvents)))
 
 		const firstDayOfWeek = week[0].date
@@ -321,7 +335,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 
 	renderEvent(event: CalendarEvent, position: SimplePosRect, eventStart: Date, firstDayOfWeek: Date, firstDayOfNextWeek: Date, eventEnd: Date, attrs: CalendarMonthAttrs): Children {
 
-		const isTemporary = this._eventDragHandler.isTemporaryEvent(event)
+		const isTemporary = attrs.temporaryEvents.includes(event)
 		return m(".abs.overflow-hidden", {
 			key: event._id[0] + event._id[1] + event.startTime.getTime(),
 			style: {
@@ -332,9 +346,13 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 				pointerEvents: !styles.isUsingBottomNavigation() ? "auto" : "none"
 			},
 			onmousedown: () => {
-				if (this._dayUnderMouse && this._lastMousePos && !isTemporary) {
+				let dayUnderMouse = this._dayUnderMouse
+				let lastMousePos = this._lastMousePos
+				if (dayUnderMouse && lastMousePos && !isTemporary) {
 					this._monthDom && this._monthDom.classList.add("dragging-mod-key")
-					this._eventDragHandler.prepareDrag(event, this._dayUnderMouse, this._lastMousePos)
+					//make sure the date we move to also gets a time
+					const originalDateUnderMouse = Time.fromDate(event.startTime).toDate(dayUnderMouse)
+					this._eventDragHandler.prepareDrag(event, originalDateUnderMouse, lastMousePos)
 				}
 			},
 		}, m(ContinuingCalendarEventBubble, {

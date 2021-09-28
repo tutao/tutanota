@@ -6,37 +6,21 @@ import type {Guest} from "../../../src/calendar/date/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../../../src/calendar/date/CalendarEventViewModel"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {clone, downcast, noOp} from "../../../src/api/common/utils/Utils"
-import {LazyLoaded} from "../../../src/api/common/utils/LazyLoaded"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel"
 import {MailModel} from "../../../src/mail/model/MailModel"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
-import type {AccountTypeEnum, ShareCapabilityEnum} from "../../../src/api/common/TutanotaConstants"
-import {
-	AccountType,
-	AlarmInterval,
-	CalendarAttendeeStatus,
-	FeatureType,
-	GroupType,
-	ShareCapability,
-	TimeFormat
-} from "../../../src/api/common/TutanotaConstants"
-import type {CalendarInfo} from "../../../src/calendar/view/CalendarView"
+import type {ShareCapabilityEnum} from "../../../src/api/common/TutanotaConstants"
+import {AccountType, AlarmInterval, CalendarAttendeeStatus, ShareCapability} from "../../../src/api/common/TutanotaConstants"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import type {User} from "../../../src/api/entities/sys/User"
-import {createUser} from "../../../src/api/entities/sys/User"
 import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
-import {createMailBox} from "../../../src/api/entities/tutanota/MailBox"
-import {createGroup} from "../../../src/api/entities/sys/Group"
-import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/MailboxGroupRoot"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor"
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils"
 import {DateTime} from "luxon"
-import {createMailAddressAlias} from "../../../src/api/entities/sys/MailAddressAlias"
 import {RecipientInfoType} from "../../../src/api/common/RecipientInfo"
 import {SendMailModel} from "../../../src/mail/editor/SendMailModel"
 import type {LoginController} from "../../../src/api/main/LoginController"
@@ -44,31 +28,34 @@ import type {ContactModel} from "../../../src/contacts/model/ContactModel"
 import {EventController} from "../../../src/api/main/EventController"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail} from "../../../src/api/entities/tutanota/Mail"
-import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {worker} from "../../../src/api/main/WorkerClient"
-import {createCustomer} from "../../../src/api/entities/sys/Customer"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
-import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
-import {createCustomerInfo} from "../../../src/api/entities/sys/CustomerInfo"
-import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
-import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
-import {createFeature} from "../../../src/api/entities/sys/Feature"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
 import {assertThrows, unmockAttribute} from "../../api/TestUtils"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {delay} from "../../../src/api/common/utils/PromiseUtils"
 import {Time} from "../../../src/api/common/utils/Time"
+import {
+	accountMailAddress,
+	calendarGroupId,
+	makeCalendarInfo,
+	makeCalendarModel,
+	makeCalendars,
+	makeContactModel,
+	makeDistributor,
+	makeMailboxDetail,
+	makeUserController
+} from "./CalendarTestUtils"
+import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel";
 
-const calendarGroupId = "0"
+
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()
 const wrapEncIntoMailAddress = (address) => createEncryptedMailAddress({address})
-const accountMailAddress = "address@tutanota.com"
 const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
-const userId = "12356"
 const getAddress = a => a.mailAddress
 let internalAddresses = []
 let resolveRecipientMs = 100
@@ -1699,54 +1686,6 @@ o.spec("CalendarEventViewModel", function () {
 	})
 })
 
-function makeCalendarInfo(type: "own" | "shared", id: string): CalendarInfo {
-	return {
-		groupRoot: downcast({}),
-		longEvents: new LazyLoaded(() => Promise.resolve([])),
-		groupInfo: downcast({}),
-		group: createGroup({
-			_id: id,
-			type: GroupType.Calendar,
-			user: type === "own" ? userId : "anotherUserId",
-		}),
-		shared: type === "shared"
-	}
-}
-
-function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Map<string, CalendarInfo> {
-	const calendarInfo = makeCalendarInfo(type, id)
-	return new Map([[id, calendarInfo]])
-}
-
-function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string, businessFeatureOrdered: boolean = false): IUserController {
-	const bookingsRef = createBookingsRef({items: GENERATED_MAX_ID})
-	const customizations = []
-	if (businessFeatureOrdered) {
-		customizations.push(createFeature({feature: FeatureType.BusinessFeatureEnabled}))
-	}
-	return downcast({
-		user: createUser({
-			_id: userId,
-			memberships: [createGroupMembership({groupType: GroupType.Mail}), createGroupMembership({groupType: GroupType.Contact})],
-			accountType,
-		}),
-		props: createTutanotaProperties({
-			defaultSender: defaultSender || accountMailAddress,
-		}),
-		userGroupInfo: createGroupInfo({
-			mailAddressAliases: aliases.map((address) => createMailAddressAlias({mailAddress: address, enabled: true})),
-			mailAddress: accountMailAddress,
-		}),
-		userSettingsGroupRoot: {
-			timeFormat: TimeFormat.TWENTY_FOUR_HOURS,
-		},
-		isInternalUser: () => true,
-		isFreeAccount: () => true,
-		loadCustomer: () => Promise.resolve(createCustomer({customizations: customizations})),
-		loadCustomerInfo: () => Promise.resolve(createCustomerInfo({bookings: bookingsRef}))
-	})
-}
-
 function addCapability(user: User, groupId: Id, capability: ShareCapabilityEnum) {
 	user.memberships.push(createGroupMembership({
 		group: groupId,
@@ -1762,38 +1701,3 @@ function makeAttendee(address: string = "attendee@example.com") {
 	})
 }
 
-function makeMailboxDetail(): MailboxDetail {
-	return {
-		mailbox: createMailBox(),
-		folders: [],
-		mailGroupInfo: createGroupInfo(),
-		mailGroup: createGroup({user: userId}),
-		mailboxGroupRoot: createMailboxGroupRoot(),
-	}
-}
-
-function makeDistributor(): CalendarUpdateDistributor {
-	return {
-		sendInvite: o.spy(() => Promise.resolve()),
-		sendUpdate: o.spy(() => Promise.resolve()),
-		sendCancellation: o.spy(() => Promise.resolve()),
-		sendResponse: o.spy(() => Promise.resolve()),
-	}
-}
-
-function makeCalendarModel(): CalendarModel {
-	return downcast({
-		createEvent: o.spy(() => Promise.resolve()),
-		updateEvent: o.spy(() => Promise.resolve()),
-		deleteEvent: o.spy(() => Promise.resolve()),
-		loadAlarms: o.spy(() => Promise.resolve([]))
-	})
-}
-
-function makeContactModel(contacts: Array<Contact> = []): ContactModel {
-	const findContact = (address) => contacts.find((c) => c.mailAddresses.find(a => a.address === address))
-
-	return downcast({
-		searchForContact: (address) => Promise.resolve(findContact(address)),
-	})
-}

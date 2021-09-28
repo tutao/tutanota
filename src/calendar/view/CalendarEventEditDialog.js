@@ -3,7 +3,6 @@ import {px, size} from "../../gui/size"
 import stream from "mithril/stream/stream.js"
 import {DatePicker} from "../../gui/date/DatePicker"
 import {Dialog} from "../../gui/base/Dialog"
-import type {CalendarInfo} from "./CalendarView"
 import m from "mithril"
 import {TextFieldN, Type as TextFieldType} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
@@ -50,6 +49,7 @@ import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
+import type {CalendarInfo} from "../model/CalendarModel";
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -71,7 +71,7 @@ const alarmIntervalItems = [
 	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
 ]
 
-export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
+export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail,
                                         existingEvent: ?CalendarEvent, responseMail: ?Mail) {
 	Promise.all([
 		import("../../gui/editor/HtmlEditor"),

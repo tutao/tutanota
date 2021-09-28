@@ -1,10 +1,10 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import {client} from "./ClientDetector"
-import type {CalendarViewTypeEnum} from "../calendar/view/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {LanguageCode} from "./LanguageViewModel"
-import type {Theme, ThemeId} from "../gui/theme"
+import type {ThemeId} from "../gui/theme"
+import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 
 assertMainOrNodeBoot()
 

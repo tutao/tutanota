@@ -23,8 +23,9 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"
 import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
-import type {CalendarEventBubbleClickHandler, GroupColors} from "./CalendarView"
 import {getTimeFromMousePos} from "./CalendarGuiUtils"
+import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
+import type {GroupColors} from "./CalendarView"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler,
@@ -34,9 +35,9 @@ export type Attrs = {
 	onTimePressed: (hours: number, minutes: number) => mixed,
 	onTimeContextPressed: (hours: number, minutes: number) => mixed,
 	day: Date,
-	setCurrentDraggedEvent: (ev: CalendarEvent) => *,
-	setTimeUnderMouse: (time: Time) => *,
-	temporaryEvents: $ReadOnlyArray<CalendarEvent>,
+	setCurrentDraggedEvent: (ev: CalendarEvent) => mixed,
+	setTimeUnderMouse: (time: Time) => mixed,
+	isTemporaryEvent: (event: CalendarEvent) => boolean,
 	fullViewWidth?: number
 }
 
@@ -139,7 +140,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				height: px(height)
 			},
 			onmousedown: () => {
-				if (!attrs.temporaryEvents.includes(ev)) {
+				if (!attrs.isTemporaryEvent(ev)) {
 					attrs.setCurrentDraggedEvent(ev)
 				}
 			},
@@ -151,11 +152,11 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			height: height - padding,
 			hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
 			verticalPadding: padding,
-			fadeIn: !attrs.temporaryEvents.includes(ev),
-			opacity: attrs.temporaryEvents.includes(ev)
+			fadeIn: !attrs.isTemporaryEvent(ev),
+			opacity: attrs.isTemporaryEvent(ev)
 				? TEMPORARY_EVENT_OPACITY
 				: 1,
-			enablePointerEvents: !attrs.temporaryEvents.includes(ev)
+			enablePointerEvents: !attrs.isTemporaryEvent(ev)
 		}))
 	}
 

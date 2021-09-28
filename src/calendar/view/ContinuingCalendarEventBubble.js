@@ -6,7 +6,7 @@ import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {User} from "../../api/entities/sys/User"
 import type {EventTextTimeOptionEnum} from "../../api/common/TutanotaConstants"
-import type {CalendarEventBubbleClickHandler} from "./CalendarView"
+import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
 
 type ContinuingCalendarEventBubbleAttrs = {|
 	event: CalendarEvent,

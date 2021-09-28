@@ -45,7 +45,7 @@ import "./misc/parsing/MailAddressParserTest"
 import "./misc/FormatValidatorTest"
 import "./calendar/EventDragHandlerTest"
 import "./calendar/CalendarGuiUtilsTest"
-
+import "./calendar/CalendarViewModelTest"
 import o from "ospec"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
