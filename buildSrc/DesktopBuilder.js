@@ -166,7 +166,7 @@ async function maybeGetKeytar(targets, napiVersion = 3) {
 async function getMapirs(distDir) {
 	const dllName = "mapirs.dll"
 	const dllSrc = process.platform === "win32"
-		? path.join('../mapirs/target/release', dllName)
+		? path.join('../mapirs/target/x86_64-pc-windows-msvc/release', dllName)
 		: path.join('../mapirs/target/x86_64-pc-windows-gnu/release', dllName)
 	const dllTrg = path.join(distDir, dllName)
 	console.log("trying to copy", dllName, "from", dllSrc, "to", dllTrg)

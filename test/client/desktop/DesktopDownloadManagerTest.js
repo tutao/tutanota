@@ -51,7 +51,6 @@ o.spec("DesktopDownloadManagerTest", function () {
 			},
 			app: {
 				getPath: () => "/some/path/"
-
 			}
 		}
 
@@ -158,6 +157,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		}
 		const desktopUtils = {
 			touch: (path) => {},
+			getTutanotaTempPath: (...subdirs) => "/tutanota/tmp/path/" + subdirs.join("/")
 		}
 		dateProvider = {
 			now: () => time,
@@ -284,7 +284,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o(mocks.netMock.ClientRequest.mockedInstances.length).equals(1)
 		o(mocks.fsMock.createWriteStream.callCount).equals(1)
 		o(mocks.fsMock.createWriteStream.args.length).equals(2)
-		o(mocks.fsMock.createWriteStream.args[0]).equals('/some/path/tutanota/download/nativelyDownloadedFile')
+		o(mocks.fsMock.createWriteStream.args[0]).equals('/tutanota/tmp/path/download/nativelyDownloadedFile')
 		o(mocks.fsMock.createWriteStream.args[1]).deepEquals({emitClose: true})
 
 		o(res.pipe.callCount).equals(1)

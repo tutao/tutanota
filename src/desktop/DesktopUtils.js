@@ -16,10 +16,13 @@ import url from "url"
 export class DesktopUtils {
 
 	+_fs: $Exports<"fs">
+	+_electron: $Exports<"electron">
 	+_desktopCrypto: DesktopCryptoFacade
+	+_topLevelDownloadDir: string = "tutanota"
 
-	constructor(fs: $Exports<"fs">, desktopCrypto: DesktopCryptoFacade) {
+	constructor(fs: $Exports<"fs">, electron: $Exports<"electron">, desktopCrypto: DesktopCryptoFacade) {
 		this._fs = fs
+		this._electron = electron
 		this._desktopCrypto = desktopCrypto
 	}
 
@@ -224,7 +227,13 @@ export class DesktopUtils {
 		const execPath = process.execPath
 		const dllPath = swapFilename(execPath, "mapirs.dll")
 		const logPath = path.join(app.getPath('userData'), 'logs')
-		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(execPath, dllPath, logPath)
+		const tmpPath = this.getTutanotaTempPath('attach')
+		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(
+			execPath,
+			dllPath,
+			logPath,
+			tmpPath
+		)
 		return this._executeRegistryScript(tmpRegScript)
 		           .then(() => {
 			           app.setAsDefaultProtocolClient('mailto')
@@ -235,6 +244,15 @@ export class DesktopUtils {
 		app.removeAsDefaultProtocolClient('mailto')
 		const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
 		return this._executeRegistryScript(tmpRegScript)
+	}
+
+	/**
+	 * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
+	 * @param subdirs
+	 * @returns {string}
+	 */
+	getTutanotaTempPath(...subdirs: string[]): string {
+		return path.join(this._electron.app.getPath("temp"), this._topLevelDownloadDir, ...subdirs)
 	}
 }
 
