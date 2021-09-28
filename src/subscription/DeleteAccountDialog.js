@@ -11,6 +11,7 @@ import {logins} from "../api/main/LoginController"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import {locator} from "../api/main/MainLocator"
+import {getEtId} from "../api/common/utils/EntityUtils"
 
 export function showDeleteAccountDialog() {
 	let why = ""
@@ -86,5 +87,5 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 }
 
 function deleteSavedCredentials() {
-	locator.credentialsProvider.deleteByUserId(logins.getUserController().user._id)
+	locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
 }

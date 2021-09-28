@@ -65,8 +65,6 @@ export class DeviceConfig implements CredentialsStorage {
 			} else if (loadedConfig._theme) {
 				this._themeId = loadedConfig._theme
 			}
-		}
-		if (loadedConfig) {
 			if (loadedConfig._version !== ConfigVersion) {
 				this._credentials = migrateCredentials(loadedConfig)
 				this._writeToStorage()
