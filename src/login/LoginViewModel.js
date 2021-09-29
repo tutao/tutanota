@@ -218,7 +218,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 		if (this.state === LoginState.AccessExpired || this.state === LoginState.InvalidCredentials) {
 			this.displayMode = DisplayMode.Form
-			this.mailAddress(this._autoLoginCredentials?.mailAddress ?? "")
+			this.mailAddress(this._autoLoginCredentials?.login ?? "")
 		}
 	}
 
@@ -239,7 +239,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 				// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
 				// stored session belongs to another user. This can happen e.g. when email address alias is moved to another user.
-				const storedCredentialsForMailAddress = this._savedInteralCredentials.find(c => c.mailAddress === mailAddress)
+				const storedCredentialsForMailAddress = this._savedInteralCredentials.find(c => c.login === mailAddress)
 				if (storedCredentialsForMailAddress != null) {
 					await this._loginController.deleteOldSession(storedCredentialsForMailAddress)
 					await this._credentialsProvider.deleteByUserId(storedCredentialsForMailAddress.userId)

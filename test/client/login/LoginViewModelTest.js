@@ -36,7 +36,7 @@ class CredentialsProviderStub {
 o.spec("LoginViewModelTest", () => {
 	const testCredentials: Credentials = Object.freeze({
 			userId: "user-id-1",
-			mailAddress: "test@example.com",
+			login: "test@example.com",
 			encryptedPassword: "encryptedPassword",
 			accessToken: "accessToken",
 			type: "internal"
@@ -229,7 +229,7 @@ o.spec("LoginViewModelTest", () => {
 
 	o.spec("Login with email and password", function () {
 		const credentialsWithoutPassword: Credentials = {
-			mailAddress: testCredentials.mailAddress,
+			login: testCredentials.login,
 			encryptedPassword: null,
 			accessToken: testCredentials.accessToken,
 			userId: testCredentials.userId,
@@ -246,13 +246,13 @@ o.spec("LoginViewModelTest", () => {
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 			viewModel.savePassword(false)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([testCredentials.mailAddress, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(testCredentials.userId)).equals(null)
 		})
@@ -266,13 +266,13 @@ o.spec("LoginViewModelTest", () => {
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 			viewModel.savePassword(true)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
 		})
@@ -284,7 +284,7 @@ o.spec("LoginViewModelTest", () => {
 				}
 			}).set()
 			const oldCredentials = {
-				mailAddress: credentialsWithoutPassword.mailAddress,
+				login: credentialsWithoutPassword.login,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
 				userId: credentialsWithoutPassword.userId,
@@ -294,13 +294,13 @@ o.spec("LoginViewModelTest", () => {
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 			viewModel.savePassword(true)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -313,7 +313,7 @@ o.spec("LoginViewModelTest", () => {
 				}
 			}).set()
 			const oldCredentials = {
-				mailAddress: credentialsWithoutPassword.mailAddress,
+				login: credentialsWithoutPassword.login,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
 				userId: credentialsWithoutPassword.userId,
@@ -323,13 +323,13 @@ o.spec("LoginViewModelTest", () => {
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 			viewModel.savePassword(false)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -342,7 +342,7 @@ o.spec("LoginViewModelTest", () => {
 				}
 			}).set()
 			const oldCredentials = {
-				mailAddress: credentialsWithoutPassword.mailAddress,
+				login: credentialsWithoutPassword.login,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
 				userId: "anotherUserId",
@@ -352,13 +352,13 @@ o.spec("LoginViewModelTest", () => {
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 			viewModel.savePassword(false)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.mailAddress, password, false, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, false, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
@@ -372,7 +372,7 @@ o.spec("LoginViewModelTest", () => {
 			}).set()
 			const viewModel = await createViewModel({loginController})
 
-			viewModel.mailAddress(credentialsWithoutPassword.mailAddress)
+			viewModel.mailAddress(credentialsWithoutPassword.login)
 			viewModel.password(password)
 
 			await assertThrows(Error, async () => {

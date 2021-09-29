@@ -17,7 +17,7 @@ export class CredentialsSelector implements MComponent<CredentialsSelectorAttrs>
 			const buttons = []
 			const onCredentialsDeleted = a.onCredentialsDeleted
 			buttons.push(m(ButtonN, {
-				label: () => c.mailAddress,
+				label: () => c.login,
 				click: () => a.onCredentialsSelected(c),
 				type: ButtonType.Login
 			}))
