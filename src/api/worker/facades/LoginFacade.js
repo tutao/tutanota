@@ -45,7 +45,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
-import {assertNotNull, defer, neverNull, noOp} from "../../common/utils/Utils"
+import {defer, neverNull, noOp} from "../../common/utils/Utils"
 import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {hash} from "../crypto/Sha256"
@@ -222,7 +222,7 @@ export class LoginFacadeImpl implements LoginFacade {
 							           userGroupInfo: neverNull(this._userGroupInfo),
 							           sessionId: sessionData.sessionId,
 							           credentials: {
-								           mailAddress,
+								           login: mailAddress,
 								           accessToken: neverNull(this._accessToken),
 								           encryptedPassword: persistentSession ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
 								           userId: sessionData.userId,
@@ -322,7 +322,7 @@ export class LoginFacadeImpl implements LoginFacade {
 						           userGroupInfo,
 						           sessionId,
 						           credentials: {
-							           mailAddress: assertNotNull(userGroupInfo.mailAddress),
+							           login: userId,
 							           accessToken: neverNull(this._accessToken),
 							           encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
 							           userId,
@@ -351,7 +351,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			if (externalUserSalt) {
 				passphraseKeyPromise = Promise.resolve(generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128))
 			} else {
-				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.mailAddress, passphrase)
+				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.login, passphrase)
 			}
 			return passphraseKeyPromise.then(userPassphraseKey => {
 				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, true)

@@ -6,8 +6,7 @@ import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 import type {ThemeId} from "../gui/theme"
-import type {CredentialsStorage} from "./credentials/CredentialsProvider"
-import type {EncryptedCredentials} from "./credentials/CredentialsProvider"
+import type {CredentialsStorage, EncryptedCredentials} from "./credentials/CredentialsProvider"
 import {typedEntries} from "../api/common/utils/Utils"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
@@ -192,17 +191,26 @@ export function migrateCredentials(loadedConfig: any): Map<Id, Base64> {
 		const oldCredentialsArray = loadedConfig._credentials
 		const newCredentials = new Map()
 		for (const oldCredential of oldCredentialsArray) {
+			let newCredential: Credentials
 			// in version 2 external users had userId as their email address
 			if (oldCredential.mailAddress.includes("@")) {
-				const newCredential: Credentials = {
-					mailAddress: oldCredential.mailAddress,
+				newCredential = {
+					login: oldCredential.mailAddress,
 					encryptedPassword: oldCredential.encryptedPassword,
 					accessToken: oldCredential.accessToken,
 					userId: oldCredential.userId,
 					type: "internal",
 				}
-				newCredentials.set(newCredential.userId, JSON.stringify(newCredential))
+			} else {
+				newCredential = {
+					login: oldCredential.userId,
+					encryptedPassword: oldCredential.encryptedPassword,
+					accessToken: oldCredential.accessToken,
+					userId: oldCredential.userId,
+					type: "external",
+				}
 			}
+			newCredentials.set(newCredential.userId, JSON.stringify(newCredential))
 		}
 		return newCredentials
 	} else {

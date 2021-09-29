@@ -171,9 +171,15 @@ type EnvType = {
 
 declare var env: EnvType
 
+/** Data obtained after logging in. */
 type Credentials = {
-	mailAddress: string,
-	encryptedPassword: ?Base64, // only set for persistent sessions
+	/**
+	 * Identifier which we use for logging in.
+	 * Email address used to log in for internal users, userId for external users.
+	 * */
+	login: string,
+	/** Password encrypted with Session#accessKey in case the session is persisted. */
+	encryptedPassword: ?Base64,
 	accessToken: Base64Url,
 	userId: Id,
 	type: "internal" | "external",

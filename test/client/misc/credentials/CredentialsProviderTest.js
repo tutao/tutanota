@@ -49,14 +49,14 @@ o.spec("CredentialsProvider", function () {
 	let externalCredentials: Credentials
 	o.beforeEach(function () {
 		internalCredentials = {
-			mailAddress: "test@example.com",
+			login: "test@example.com",
 			encryptedPassword: "123",
 			accessToken: "456",
 			userId: "789",
 			type: "internal",
 		}
 		externalCredentials = {
-			mailAddress: "test2@example.com",
+			login: "test2@example.com",
 			encryptedPassword: "1232",
 			accessToken: "4562",
 			userId: "7892",
