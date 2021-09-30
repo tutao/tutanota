@@ -4,6 +4,9 @@ import {getFilesMetaData} from "../common/FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
+import {CancelledError} from "../../api/common/error/CancelledError"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {noOp} from "../../api/common/utils/Utils"
 
 /**
  * create a mail editor as requested from the native side, ie because a
@@ -33,7 +36,8 @@ async function createMailEditor(msg: Request): Promise<void> {
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 	let editor
 	if (mailToUrl) {
-		editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
+		editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
+		if (!editor) return
 	} else {
 		const files = await getFilesMetaData(filesUris)
 		const address = addresses && addresses[0] || ""

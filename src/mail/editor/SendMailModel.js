@@ -23,6 +23,7 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {assertMainOrNode} from "../../api/common/Env"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import {
 	checkAttachmentSize,
@@ -74,7 +75,6 @@ import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
-import type {lazy} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -642,7 +642,7 @@ export class SendMailModel {
 		this._attachments.push(...sizeCheckResult.attachableFiles)
 		this.setMailChanged(true)
 		if (sizeCheckResult.tooBigFiles.length > 0) {
-			throw new UserError(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
+			throw new UserError(() => lang.get("tooBigAttachment_msg") + "\n" + sizeCheckResult.tooBigFiles.join("\n"))
 		}
 	}
 

@@ -63,6 +63,7 @@ import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
 import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser";
+import {CancelledError} from "../../api/common/error/CancelledError"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -668,10 +669,10 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 			const sizeCheckResult = checkAttachmentSize(dataFiles)
 			dataFiles = sizeCheckResult.attachableFiles
 			if (sizeCheckResult.tooBigFiles.length > 0) {
-				await Dialog.error(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
+				await Dialog.error(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
 			}
 		} else {
-			dataFiles = []
+			throw new CancelledError("user cancelled opening mail editor with attachments")
 		}
 	}
 
