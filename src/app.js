@@ -174,7 +174,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 			const loginListener = await import("./login/LoginListener")
 			await loginListener.registerLoginListener()
 			return new LoginView(loginViewModel)
-		}, false),
+		}, false, true),
 		contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js")
 			.then(module => new module.ContactView())),
 		externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js")
