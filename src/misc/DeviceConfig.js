@@ -22,7 +22,7 @@ export const defaultThemeId: ThemeId = 'light'
  */
 export class DeviceConfig implements CredentialsStorage {
 	_version: number;
-	_credentials: Map<Id, Base64>;
+	_credentials: Map<Id, EncryptedCredentials>;
 	_scheduledAlarmUsers: Id[];
 	_themeId: ThemeId;
 	_language: ?LanguageCode;
@@ -36,19 +36,16 @@ export class DeviceConfig implements CredentialsStorage {
 	}
 
 	store(encryptedCredentials: EncryptedCredentials): void {
-		this._credentials.set(encryptedCredentials.userId, encryptedCredentials.encryptedCredentials)
+		this._credentials.set(encryptedCredentials.userId, encryptedCredentials)
 		this._writeToStorage()
 	}
 
 	loadByUserId(userId: Id): EncryptedCredentials | null {
-		const encryptedCredentials = this._credentials.get(userId)
-		return encryptedCredentials ? {userId, encryptedCredentials} : null
+		return this._credentials.get(userId) ?? null
 	}
 
 	loadAll(): Array<EncryptedCredentials> {
-		return Array.from(this._credentials.entries()).map(([userId, encryptedCredentials]) => {
-			return {userId, encryptedCredentials}
-		})
+		return Array.from(this._credentials.values())
 	}
 
 	deleteByUserId(userId: Id): void {
@@ -183,21 +180,22 @@ export class DeviceConfig implements CredentialsStorage {
 	}
 }
 
-export function migrateCredentials(loadedConfig: any): Map<Id, Base64> {
+export function migrateCredentials(loadedConfig: any): Map<Id, EncryptedCredentials> {
 	if (loadedConfig === ConfigVersion) {
 		throw new ProgrammingError("Should not migrate credentials, current version")
 	}
 	if (loadedConfig._version === 2) {
 		const oldCredentialsArray = loadedConfig._credentials
-		const newCredentials = new Map()
+		const newCredentials = new Map<Id, EncryptedCredentials>()
 		for (const oldCredential of oldCredentialsArray) {
-			let newCredential: Credentials
+			let newCredential: EncryptedCredentials
 			// in version 2 external users had userId as their email address
+			// We use encryption stub in this version
 			if (oldCredential.mailAddress.includes("@")) {
 				newCredential = {
 					login: oldCredential.mailAddress,
 					encryptedPassword: oldCredential.encryptedPassword,
-					accessToken: oldCredential.accessToken,
+					encryptedAccessToken: oldCredential.accessToken,
 					userId: oldCredential.userId,
 					type: "internal",
 				}
@@ -205,12 +203,12 @@ export function migrateCredentials(loadedConfig: any): Map<Id, Base64> {
 				newCredential = {
 					login: oldCredential.userId,
 					encryptedPassword: oldCredential.encryptedPassword,
-					accessToken: oldCredential.accessToken,
+					encryptedAccessToken: oldCredential.accessToken,
 					userId: oldCredential.userId,
 					type: "external",
 				}
 			}
-			newCredentials.set(newCredential.userId, JSON.stringify(newCredential))
+			newCredentials.set(newCredential.userId, newCredential)
 		}
 		return newCredentials
 	} else {

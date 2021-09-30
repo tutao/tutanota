@@ -2,24 +2,27 @@
 import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export type EncryptedCredentials = {|
+	login: string,
+	encryptedPassword: Base64,
+	encryptedAccessToken: Base64Url,
 	+userId: Id,
-	+encryptedCredentials: Base64,
+	type: "internal" | "external"
 |}
 
 /**
  * Interface for encrypting credentials.
  */
 export interface CredentialsEncryption {
-	encrypt(credentials: Credentials): Promise<Base64>;
+	encrypt(credentials: Credentials): Promise<EncryptedCredentials>;
 
-	decrypt(encryptedCredentials: Base64): Promise<Credentials>;
+	decrypt(encryptedCredentials: EncryptedCredentials): Promise<Credentials>;
 }
 
 /**
  * Interface for storing credentials.
  */
 export interface CredentialsStorage {
-	store(EncryptedCredentials): void;
+	store(encryptedCredentials: EncryptedCredentials): void;
 
 	loadByUserId(userId: Id): EncryptedCredentials | null;
 
@@ -46,7 +49,7 @@ export class CredentialsProvider {
 	 */
 	async store(credentials: Credentials): Promise<void> {
 		const encryptedCredentials = await this._credentialsEncryption.encrypt(credentials)
-		this._credentialsStorage.store({userId: credentials.userId, encryptedCredentials})
+		this._credentialsStorage.store(encryptedCredentials)
 	}
 
 	async getCredentialsByUserId(userId: Id): Promise<Credentials | null> {
@@ -54,20 +57,19 @@ export class CredentialsProvider {
 		if (userIdAndCredentials == null) {
 			return null
 		}
-		return this._credentialsEncryption.decrypt(userIdAndCredentials.encryptedCredentials)
+		return this._credentialsEncryption.decrypt(userIdAndCredentials)
 	}
 
-	async getAllCredentials(): Promise<Array<Credentials>> {
-		const encrypted = this._credentialsStorage.loadAll()
-		return promiseMap(encrypted, (encryptedItem) => this._credentialsEncryption.decrypt(encryptedItem.encryptedCredentials))
+	async getAllEncryptedCredentials(): Promise<Array<EncryptedCredentials>> {
+		return this._credentialsStorage.loadAll()
 	}
 
 	/**
 	 * Returns the stored credentials of all internal users, i.e. users that have a "real" tutanota account and not the ones that have a
 	 * secure external mailbox.
 	 */
-	async getAllInternal(): Promise<Array<Credentials>> {
-		const allCredentials = await this.getAllCredentials()
+	async getAllInternalEncryptedCredentials(): Promise<Array<EncryptedCredentials>> {
+		const allCredentials = await this.getAllEncryptedCredentials()
 		return allCredentials.filter((credential) => {
 			return credential.type === "internal"
 		})

@@ -19,23 +19,25 @@ o.spec("DeviceConfig", function () {
 						mailAddress: "externalUserId",
 						userId: "externalUserId",
 						accessToken: "externalAccessToken",
+						encryptedPassword: "externalEncPassword",
 					},
 				]
 			}
 			const migratedCredentials = migrateCredentials(oldConfig)
 			o(Array.from(migratedCredentials.keys())).deepEquals(["internalUserId", "externalUserId"])
-			o(JSON.parse(assertNotNull(migratedCredentials.get("internalUserId")))).deepEquals({
+			o(assertNotNull(migratedCredentials.get("internalUserId"))).deepEquals({
 				login: "internal@example.com",
 				userId: "internalUserId",
-				accessToken: "internalAccessToken",
+				encryptedAccessToken: "internalAccessToken",
 				type: "internal",
 				encryptedPassword: "internalEncPassword",
 			})
-			o(JSON.parse(assertNotNull(migratedCredentials.get("externalUserId")))).deepEquals({
+			o(assertNotNull(migratedCredentials.get("externalUserId"))).deepEquals({
 				login: "externalUserId",
 				userId: "externalUserId",
-				accessToken: "externalAccessToken",
+				encryptedAccessToken: "externalAccessToken",
 				type: "external",
+				encryptedPassword: "externalEncPassword",
 			})
 		})
 	})

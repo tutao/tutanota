@@ -16,6 +16,7 @@ import type {LoginController} from "../api/main/LoginController"
 import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import type {EncryptedCredentials} from "../misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
@@ -64,12 +65,12 @@ export interface ILoginViewModel {
 	 * Instructs the viewmodel to use the credentials passed for the next login attempt. Changes displayMode to DisplayMode.Credentials.
 	 * @param credentials
 	 */
-	useCredentials(credentials: Credentials): void;
+	useCredentials(credentials: EncryptedCredentials): Promise<void>;
 
 	/**
 	 * Returns all credentials stored on the device.
 	 */
-	getSavedCredentials(): $ReadOnlyArray<Credentials>;
+	getSavedCredentials(): $ReadOnlyArray<EncryptedCredentials>;
 
 	/**
 	 * Attempts to log in. How the login will be performed (using stored credentials/using email and password) depends on the current
@@ -81,7 +82,7 @@ export interface ILoginViewModel {
 	 * Deletes stored credentials from the device.
 	 * @param credentials
 	 */
-	deleteCredentials(credentials: Credentials): Promise<void>;
+	deleteCredentials(credentials: EncryptedCredentials): Promise<void>;
 
 	/**
 	 * Changes the display mode to DisplayMode.Form.
@@ -109,7 +110,7 @@ export class LoginViewModel implements ILoginViewModel {
 	state: LoginStateEnum
 	helpText: TranslationKey
 	+savePassword: Stream<boolean>;
-	_savedInteralCredentials: Array<Credentials>
+	_savedInternalCredentials: Array<EncryptedCredentials>
 	_autoLoginCredentials: ?Credentials
 
 	constructor(loginController: LoginController, credentialsProvider: CredentialsProvider, secondFactorHandler: SecondFactorHandler) {
@@ -123,7 +124,7 @@ export class LoginViewModel implements ILoginViewModel {
 		this.password = stream("")
 		this._autoLoginCredentials = null
 		this.savePassword = stream(false)
-		this._savedInteralCredentials = []
+		this._savedInternalCredentials = []
 	}
 
 	async init(): Promise<void> {
@@ -142,7 +143,7 @@ export class LoginViewModel implements ILoginViewModel {
 	canLogin(): boolean {
 		if (this.displayMode === DisplayMode.Credentials) {
 			return this._autoLoginCredentials != null
-				|| this._savedInteralCredentials.length === 1
+				|| this._savedInternalCredentials.length === 1
 		} else if (this.displayMode === DisplayMode.Form) {
 			return Boolean(this.mailAddress() && this.password())
 		} else {
@@ -150,9 +151,12 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	useCredentials(credentials: Credentials): void {
-		this._autoLoginCredentials = credentials
-		this.displayMode = DisplayMode.Credentials
+	async useCredentials(encryptedCredentials: EncryptedCredentials): Promise<void> {
+		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		if (credentials) {
+			this._autoLoginCredentials = credentials
+			this.displayMode = DisplayMode.Credentials
+		}
 	}
 
 	async login() {
@@ -167,14 +171,17 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async deleteCredentials(credentials: Credentials): Promise<void> {
-		await this._loginController.deleteOldSession(credentials)
-		await this._credentialsProvider.deleteByUserId(credentials.userId)
-		await this._updateCachedCredentials()
+	async deleteCredentials(encryptedCredentials: EncryptedCredentials): Promise<void> {
+		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		if (credentials) {
+			await this._loginController.deleteOldSession(credentials)
+			await this._credentialsProvider.deleteByUserId(credentials.userId)
+			await this._updateCachedCredentials()
+		}
 	}
 
-	getSavedCredentials(): $ReadOnlyArray<Credentials> {
-		return this._savedInteralCredentials
+	getSavedCredentials(): $ReadOnlyArray<EncryptedCredentials> {
+		return this._savedInternalCredentials
 	}
 
 	switchDeleteState() {
@@ -196,8 +203,8 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async _updateCachedCredentials() {
-		this._savedInteralCredentials = await this._credentialsProvider.getAllInternal()
-		if (this._savedInteralCredentials.length > 0) {
+		this._savedInternalCredentials = await this._credentialsProvider.getAllInternalEncryptedCredentials()
+		if (this._savedInternalCredentials.length > 0) {
 			this.displayMode = DisplayMode.Credentials
 		} else {
 			this.displayMode = DisplayMode.Form
@@ -207,11 +214,16 @@ export class LoginViewModel implements ILoginViewModel {
 	async _autologin(): Promise<void> {
 		try {
 			if (!this._autoLoginCredentials) {
-				const credentials = await this._credentialsProvider.getAllInternal()
-				this._autoLoginCredentials = credentials[0]
+				const allCredentials = await this._credentialsProvider.getAllInternalEncryptedCredentials()
+				const firstEncryptedCredentials = allCredentials[0]
+				if (firstEncryptedCredentials) {
+					this._autoLoginCredentials = await this._credentialsProvider.getCredentialsByUserId(firstEncryptedCredentials.userId)
+				}
 			}
-			await this._loginController.resumeSession(this._autoLoginCredentials)
-			await this._onLogin()
+			if (this._autoLoginCredentials) {
+				await this._loginController.resumeSession(this._autoLoginCredentials)
+				await this._onLogin()
+			}
 		} catch (e) {
 			await this._onLoginFailed(e)
 		}
@@ -229,39 +241,42 @@ export class LoginViewModel implements ILoginViewModel {
 
 		if (mailAddress === "" || password === "") {
 			this.helpText = 'loginFailed_msg'
-		} else {
-			this.helpText = 'login_msg'
-			this.state = LoginState.LogginIn
-			try {
+			return
+		}
+		this.helpText = 'login_msg'
+		this.state = LoginState.LogginIn
+		try {
 
-				const newCredentials = await this._loginController.createSession(mailAddress, password, savePassword, SessionType.Login)
-				await this._onLogin()
+			const newCredentials = await this._loginController.createSession(mailAddress, password, savePassword, SessionType.Login)
+			await this._onLogin()
 
-				// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
-				// stored session belongs to another user. This can happen e.g. when email address alias is moved to another user.
-				const storedCredentialsForMailAddress = this._savedInteralCredentials.find(c => c.login === mailAddress)
-				if (storedCredentialsForMailAddress != null) {
-					await this._loginController.deleteOldSession(storedCredentialsForMailAddress)
-					await this._credentialsProvider.deleteByUserId(storedCredentialsForMailAddress.userId)
+			// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
+			// stored session belongs to another user. This can happen e.g. when email address alias is moved to another user.
+			const storedCredentialsForMailAddress = this._savedInternalCredentials.find(c => c.login === mailAddress)
+			if (storedCredentialsForMailAddress != null) {
+				const credentials = await this._credentialsProvider.getCredentialsByUserId(storedCredentialsForMailAddress.userId)
+				if (credentials) {
+					await this._loginController.deleteOldSession(credentials)
+					await this._credentialsProvider.deleteByUserId(credentials.userId)
 				}
-
-				const storedCredentials = await this._credentialsProvider.getCredentialsByUserId(newCredentials.userId)
-				if (storedCredentials) {
-					await this._loginController.deleteOldSession(storedCredentials)
-					if (!savePassword) {
-						await this._credentialsProvider.deleteByUserId(storedCredentials.userId)
-					}
-				}
-
-				if (savePassword) {
-					await this._credentialsProvider.store(newCredentials)
-				}
-
-			} catch (e) {
-				await this._onLoginFailed(e)
-			} finally {
-				await this._secondFactorHandler.closeWaitingForSecondFactorDialog()
 			}
+
+			const storedCredentials = await this._credentialsProvider.getCredentialsByUserId(newCredentials.userId)
+			if (storedCredentials) {
+				await this._loginController.deleteOldSession(storedCredentials)
+				if (!savePassword) {
+					await this._credentialsProvider.deleteByUserId(storedCredentials.userId)
+				}
+			}
+
+			if (savePassword) {
+				await this._credentialsProvider.store(newCredentials)
+			}
+
+		} catch (e) {
+			await this._onLoginFailed(e)
+		} finally {
+			await this._secondFactorHandler.closeWaitingForSecondFactorDialog()
 		}
 	}
 

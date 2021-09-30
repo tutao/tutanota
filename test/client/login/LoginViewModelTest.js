@@ -4,7 +4,7 @@ import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginV
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {SessionType} from "../../../src/api/main/LoginController"
 import nodemocker, {MockBuilder} from "../nodemocker"
-import {downcast, noOp} from "../../../src/api/common/utils/Utils"
+import {assertNotNull, downcast, noOp} from "../../../src/api/common/utils/Utils"
 import {createUser} from "../../../src/api/entities/sys/User"
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
@@ -12,28 +12,53 @@ import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common
 import {SecondFactorHandler} from "../../../src/misc/SecondFactorHandler"
 import {assertThrows} from "../../api/TestUtils"
 import {CredentialsProvider} from "../../../src/misc/credentials/CredentialsProvider"
+import type {EncryptedCredentials} from "../../../src/misc/credentials/CredentialsProvider"
 
 class CredentialsProviderStub {
-	credentials = new Map<string, Credentials>()
+	credentials = new Map<string, EncryptedCredentials>()
 
 	getCredentialsByUserId(userId: string) {
-		return this.credentials.get(userId) || null
+		const storedCredentials = this.credentials.get(userId)
+		if (!storedCredentials) return null
+		return {
+			userId: storedCredentials.userId,
+			login: storedCredentials.login,
+			accessToken: storedCredentials.encryptedAccessToken,
+			encryptedPassword: storedCredentials.encryptedPassword,
+			type: storedCredentials.type,
+		}
 	}
 
 	store(credentials: Credentials) {
-		this.credentials.set(credentials.userId, credentials)
+		this.credentials.set(credentials.userId,
+			{
+				userId: credentials.userId,
+				login: credentials.login,
+				encryptedPassword: assertNotNull(credentials.encryptedPassword),
+				encryptedAccessToken: credentials.accessToken,
+				type: credentials.type
+
+			})
 	}
 
 	deleteByUserId(userId: string) {
 		this.credentials.delete(userId)
 	}
 
-	getAllInternal() {
+	getAllInternalEncryptedCredentials() {
 		return Array.from(this.credentials.values())
 	}
 }
 
 o.spec("LoginViewModelTest", () => {
+	const encryptedTestCredentials: EncryptedCredentials = Object.freeze({
+			userId: "user-id-1",
+			login: "test@example.com",
+			encryptedPassword: "encryptedPassword",
+			encryptedAccessToken: "accessToken",
+			type: "internal"
+		}
+	)
 	const testCredentials: Credentials = Object.freeze({
 			userId: "user-id-1",
 			login: "test@example.com",
@@ -114,8 +139,9 @@ o.spec("LoginViewModelTest", () => {
 		o("Should switch to credentials mode if credentials are set", async function () {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = await createViewModel({loginController})
+			credentialsProvider.store(testCredentials)
 
-			viewModel.useCredentials(testCredentials)
+			await viewModel.useCredentials(encryptedTestCredentials)
 
 			o(viewModel.displayMode).equals(DisplayMode.Credentials)
 		})
@@ -127,7 +153,7 @@ o.spec("LoginViewModelTest", () => {
 			await credentialsProvider.store(testCredentials)
 			viewModel.displayMode = DisplayMode.Credentials
 
-			await viewModel.deleteCredentials(testCredentials)
+			await viewModel.deleteCredentials(encryptedTestCredentials)
 
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 		})
@@ -170,8 +196,9 @@ o.spec("LoginViewModelTest", () => {
 		o("login should succeed with valid stored credentials", async function () {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = await createViewModel({loginController})
+			credentialsProvider.store(testCredentials)
 
-			viewModel.useCredentials(testCredentials)
+			await viewModel.useCredentials(encryptedTestCredentials)
 
 			await viewModel.login()
 
@@ -182,8 +209,9 @@ o.spec("LoginViewModelTest", () => {
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			const loginController = loginControllerBuilder.set()
 			const viewModel = await createViewModel({loginController})
+			credentialsProvider.store(testCredentials)
 
-			viewModel.useCredentials(testCredentials)
+			await viewModel.useCredentials(encryptedTestCredentials)
 			viewModel.switchDeleteState()
 
 			await viewModel.login()
@@ -199,8 +227,9 @@ o.spec("LoginViewModelTest", () => {
 				},
 			}).set()
 			const viewModel = await createViewModel({loginController})
+			await credentialsProvider.store(testCredentials)
 
-			viewModel.useCredentials(testCredentials)
+			await viewModel.useCredentials(encryptedTestCredentials)
 
 			await viewModel.login()
 
@@ -216,8 +245,9 @@ o.spec("LoginViewModelTest", () => {
 				},
 			}).set()
 			const viewModel = await createViewModel({loginController})
+			await credentialsProvider.store(testCredentials)
 
-			viewModel.useCredentials(testCredentials)
+			await viewModel.useCredentials(encryptedTestCredentials)
 
 			await viewModel.login()
 
@@ -260,49 +290,49 @@ o.spec("LoginViewModelTest", () => {
 		o("should login and store password", async function () {
 			const loginController = loginControllerBuilder.with({
 				async createSession(username, password, persistentSession, permanentLogin) {
-					return credentialsWithoutPassword
+					return testCredentials
 				}
 			}).set()
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.login)
+			viewModel.mailAddress(testCredentials.login)
 			viewModel.password(password)
 			viewModel.savePassword(true)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
+			o(credentialsProvider.getCredentialsByUserId(testCredentials.userId)).deepEquals(testCredentials)
 		})
 
 		o("should login and overwrite existing stored credentials", async function () {
 			const loginController = loginControllerBuilder.with({
 				async createSession(username, password, persistentSession, permanentLogin) {
-					return credentialsWithoutPassword
+					return testCredentials
 				}
 			}).set()
 			const oldCredentials = {
-				login: credentialsWithoutPassword.login,
+				login: testCredentials.login,
 				encryptedPassword: "encPw",
 				accessToken: "oldAccessToken",
-				userId: credentialsWithoutPassword.userId,
+				userId: testCredentials.userId,
 				type: "internal",
 			}
 			credentialsProvider.store(oldCredentials)
 			const viewModel = await createViewModel({loginController})
 
 			viewModel.showLoginForm()
-			viewModel.mailAddress(credentialsWithoutPassword.login)
+			viewModel.mailAddress(testCredentials.login)
 			viewModel.password(password)
 			viewModel.savePassword(true)
 
 			await viewModel.login()
 
-			o(loginController.createSession.args).deepEquals([credentialsWithoutPassword.login, password, true, SessionType.Login])
+			o(loginController.createSession.args).deepEquals([testCredentials.login, password, true, SessionType.Login])
 			o(viewModel.state).equals(LoginState.LoggedIn)
-			o(credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).deepEquals(credentialsWithoutPassword)
+			o(credentialsProvider.getCredentialsByUserId(testCredentials.userId)).deepEquals(testCredentials)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
 		})
 
