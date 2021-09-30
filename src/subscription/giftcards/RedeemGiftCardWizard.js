@@ -37,6 +37,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import type {EncryptedCredentials} from "../../misc/credentials/CredentialsProvider"
 
 type GetCredentialsMethod = "login" | "signup"
 
@@ -45,7 +46,6 @@ type RedeemGiftCardWizardData = {
 	giftCardInfo: GiftCardRedeemGetReturn,
 
 	credentialsMethod: GetCredentialsMethod,
-	credentials: Stream<?Credentials>,
 	newAccountData: Stream<?NewAccountData>,
 
 	key: string,
@@ -112,13 +112,13 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 	_domElement: HTMLElement
 	_loginFormHelpText: string
 	+_password: Stream<string>
-	_storedCredentials: Array<Credentials>
+	_storedCredentials: Array<EncryptedCredentials>
 
 	constructor() {
 		this._loginFormHelpText = lang.get("emptyString_msg")
 		this._password = stream("")
 		this._storedCredentials = []
-		locator.credentialsProvider.getAllInternal().then((credentials) => {
+		locator.credentialsProvider.getAllInternalEncryptedCredentials().then((credentials) => {
 			this._storedCredentials = credentials
 			m.redraw()
 		})
@@ -151,7 +151,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					const loginPromise =
 						logins.logout(false)
 						      .then(() => logins.createSession(mailAddress, password, false, SessionType.Temporary))
-						      .then(credentials => this._postLogin(data, credentials))
+						      .then(() => this._postLogin())
 						      .catch(e => { this._loginFormHelpText = lang.get(getLoginErrorMessage(e, false))})
 					// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
 					showProgressDialog("pleaseWait_msg", loginPromise)
@@ -162,16 +162,21 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			helpText: this._loginFormHelpText
 		}
 
-		const onCredentialsSelected = credentials => {
-			// If the user is loggedin already (because they selected credentials and then went back) we dont have to do
-			// anthing, so just move on
-			if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, credentials.userId)) {
-				this._postLogin(data, credentials)
+		const onCredentialsSelected = encryptedCredentials => {
+			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
+			// anything, so just move on
+			if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
+				this._postLogin()
 			} else {
 				showProgressDialog("pleaseWait_msg", worker.initialized.then(() => {
 					logins.logout(false)
-					      .then(() => logins.resumeSession(credentials))
-					      .then(() => this._postLogin(data, credentials))
+					      .then(async () => {
+						      const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+						      if (credentials) {
+							      await logins.resumeSession(credentials)
+						      }
+					      })
+					      .then(() => this._postLogin())
 					      .catch(ofClass(NotAuthorizedError, e => {
 						      Dialog.error("savedCredentialsError_msg")
 					      }))
@@ -213,8 +218,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					this._password(password)
 					data.mailAddress(mailAddress)
 					logins.createSession(mailAddress, password, false, SessionType.Temporary)
-					      .then(credentials => {
-						      data.credentials(credentials)
+					      .then(() => {
 						      emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)
 						      m.redraw()
 					      })
@@ -235,8 +239,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 		return m(SignupForm, signupFormAttrs)
 	}
 
-	_postLogin(data: RedeemGiftCardWizardData, credentials: Credentials): Promise<void> {
-		data.credentials(credentials)
+	_postLogin(): Promise<void> {
 		return Promise.resolve()
 		              .then(() => {
 			              if (!logins.getUserController().isGlobalAdmin()) throw new UserError("onlyAccountAdminFeature_msg");

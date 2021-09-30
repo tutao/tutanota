@@ -1,5 +1,5 @@
 // @flow
-import type {CredentialsEncryption} from "./CredentialsProvider"
+import type {CredentialsEncryption, EncryptedCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
 
@@ -13,11 +13,27 @@ export function createCredentialsProvider(): CredentialsProvider {
  * additional mechanism for credentials encryption using an access key stored server side. This is done in LoginFacade.
  */
 class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt(credentials: Credentials): Promise<Base64> {
-		return JSON.stringify(credentials)
+	async encrypt(credentials: Credentials): Promise<EncryptedCredentials> {
+		const {encryptedPassword} = credentials
+		if (encryptedPassword == null) {
+			throw new Error("Trying to encrypt non-persistent credentials")
+		}
+		return {
+			login: credentials.login,
+			encryptedPassword,
+			encryptedAccessToken: credentials.accessToken,
+			userId: credentials.userId,
+			type: credentials.type,
+		}
 	}
 
-	async decrypt(encryptedCredentials: Base64): Promise<Credentials> {
-		return JSON.parse(encryptedCredentials)
+	async decrypt(encryptedCredentials: EncryptedCredentials): Promise<Credentials> {
+		return {
+			login: encryptedCredentials.login,
+			encryptedPassword: encryptedCredentials.encryptedPassword,
+			accessToken: encryptedCredentials.encryptedAccessToken,
+			userId: encryptedCredentials.userId,
+			type: encryptedCredentials.type,
+		}
 	}
 }
