@@ -200,7 +200,7 @@ export class ContactFormRequestDialog {
 		this._attachments.push(...sizeCheckResult.attachableFiles)
 		this._updateAttachmentButtons()
 		if (sizeCheckResult.tooBigFiles.length > 0) {
-			Dialog.error(() => lang.get("tooBigAttachment_msg") + sizeCheckResult.tooBigFiles.join(", "))
+			Dialog.error(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
 		}
 	}
 

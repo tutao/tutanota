@@ -123,6 +123,7 @@ import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {CancelledError} from "../../api/common/error/CancelledError"
 import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 
 assertMainOrNode()
@@ -1491,6 +1492,7 @@ export class MailViewer {
 					import("../editor/MailEditor").then(({newMailtoUrlMailEditor}) => {
 						newMailtoUrlMailEditor(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
 							.then(editor => editor.show())
+							.catch(ofClass(CancelledError, noOp))
 					})
 				}
 			}

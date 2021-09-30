@@ -65,6 +65,7 @@ import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {CancelledError} from "../../api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -490,7 +491,7 @@ export class MailView implements CurrentView {
 				let decodedUrl = decodeURIComponent(url)
 				Promise.all([locator.mailModel.getUserMailboxDetails(), import("../editor/MailEditor")])
 				       .then(([mailboxDetails, {newMailtoUrlMailEditor}]) => {
-					       newMailtoUrlMailEditor(decodedUrl, false, mailboxDetails).then(editor => editor.show())
+					       newMailtoUrlMailEditor(decodedUrl, false, mailboxDetails).then(editor => editor.show()).catch(ofClass(CancelledError, noOp))
 					       history.pushState("", document.title, window.location.pathname) // remove # from url
 				       })
 			}

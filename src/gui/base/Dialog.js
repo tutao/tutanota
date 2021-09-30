@@ -310,9 +310,12 @@ export class Dialog implements ModalComponent {
 
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line))
-					     .concat(typeof infoToAppend == "function" ? infoToAppend() : null)
-					     .concat(m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs)))
+					[
+						m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll",
+							lines.map(line => m(".text-break.selectable", line))
+							     .concat(typeof infoToAppend == "function" ? infoToAppend() : null)),
+						m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs))
+					]
 			}).setCloseHandler(closeAction)
 			  .addShortcut({
 				  key: Keys.RETURN,
@@ -430,7 +433,7 @@ export class Dialog implements ModalComponent {
 
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", getContent()),
+				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
 				m(".flex-center.dialog-buttons", buttons.map(a => m(ButtonN, a)))
 			]
 		}).setCloseHandler(() => closeAction(false))
