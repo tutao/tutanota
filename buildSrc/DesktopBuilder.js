@@ -163,6 +163,13 @@ async function maybeGetKeytar(targets, napiVersion = 3) {
 	)))
 }
 
+/**
+ * get the DLL that's needed for the windows client to handle "Send as Mail..." context
+ * menu actions.
+ * Tries to get a locally built version before delegating to downloadLatestMapirs
+ * @param distDir the directory to put the DLL
+ * @returns {Promise<void>}
+ */
 async function getMapirs(distDir) {
 	const dllName = "mapirs.dll"
 	const dllSrc = process.platform === "win32"
@@ -178,6 +185,12 @@ async function getMapirs(distDir) {
 	}
 }
 
+/**
+ * get the latest mapirs.dll release from github.
+ * @param dllName {string} name of the file that should be downloaded from the latest release
+ * @param dllTrg {string} path to put the downloaded file
+ * @returns {Promise<void>}
+ */
 async function downloadLatestMapirs(dllName, dllTrg) {
 	const {Octokit} = await import("@octokit/rest")
 	const octokit = new Octokit();
