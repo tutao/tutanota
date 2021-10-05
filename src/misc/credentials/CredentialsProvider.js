@@ -1,12 +1,11 @@
 // @flow
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
 
 export type EncryptedCredentials = {|
-	login: string,
-	encryptedPassword: Base64,
-	encryptedAccessToken: Base64Url,
+	+login: string,
+	+encryptedPassword: Base64,
+	+encryptedAccessToken: Base64Url,
 	+userId: Id,
-	type: "internal" | "external"
+	+type: "internal" | "external"
 |}
 
 /**
