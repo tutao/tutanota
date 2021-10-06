@@ -46,6 +46,7 @@ import {getDateFromMousePos, renderCalendarSwitchLeftButton, renderCalendarSwitc
 import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, DraggedEvent, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {Time} from "../../api/common/utils/Time"
+import {neverNull} from "../../api/common/utils/Utils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -86,7 +87,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 		this._zone = getTimeZone()
 		this._lastHeight = 0
 		this._lastHeight = 0
-		this._eventDragHandler = new EventDragHandler()
+		this._eventDragHandler = new EventDragHandler(neverNull(document.body))
 	}
 
 	oncreate() {
@@ -197,7 +198,6 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 	}
 
 	_endDrag(callback: EventDateUpdateHandler) {
-		this._monthDom && this._monthDom.classList.remove("dragging-mod-key")
 		const dayUnderMouse = this._dayUnderMouse
 		const originalDate = this._eventDragHandler.originalEvent?.startTime
 		if (dayUnderMouse && originalDate) {
@@ -211,8 +211,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 	_renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, today: Date, weekDayNumber: number): Children {
 		const {selectedDate} = attrs
 		const isSelectedDate = isSameDay(selectedDate, day.date)
-		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute"
-			+ (day.paddingDay ? ".calendar-alternate-background" : ""), {
+		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer"
+			+ (day.paddingDay ? ".calendar-alternate-background" : ""),
+			{
 				key: day.date.getTime(),
 				onclick: (e) => {
 					if (styles.isDesktopLayout()) {
@@ -349,7 +350,6 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 				let dayUnderMouse = this._dayUnderMouse
 				let lastMousePos = this._lastMousePos
 				if (dayUnderMouse && lastMousePos && !isTemporary) {
-					this._monthDom && this._monthDom.classList.add("dragging-mod-key")
 					//make sure the date we move to also gets a time
 					const originalDateUnderMouse = Time.fromDate(event.startTime).toDate(dayUnderMouse)
 					this._eventDragHandler.prepareDrag(event, originalDateUnderMouse, lastMousePos)

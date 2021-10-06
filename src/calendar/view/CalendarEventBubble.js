@@ -39,7 +39,8 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 		// This helps us stop flickering in certain cases where we want to disable and re-enable fade in (ie. when dragging events)
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		const doFadeIn = !this._hasFinishedInitialRender && attrs.fadeIn
-		return m(".calendar-event.small.overflow-hidden.flex"
+		let enablePointerEvents = attrs.enablePointerEvents
+		return m(".calendar-event.small.overflow-hidden.flex.cursor-pointer"
 			+ (doFadeIn ? ".fade-in" : "")
 			+ (attrs.noBorderLeft ? ".event-continues-left" : "")
 			+ (attrs.noBorderRight ? ".event-continues-right" : "")
@@ -51,7 +52,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					height: px(attrs.height ? Math.max(attrs.height, 0) : lineHeight),
 					"padding-top": px(attrs.verticalPadding || 0),
 					opacity: attrs.opacity,
-					pointerEvents: attrs.enablePointerEvents ? "auto" : "none"
+					pointerEvents: enablePointerEvents ? "auto" : "none"
 				},
 				onclick: (e) => {
 					e.stopPropagation()

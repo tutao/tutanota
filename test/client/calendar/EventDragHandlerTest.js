@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {EventDragHandler} from "../../../src/calendar/view/EventDragHandler"
-import {defer} from "../../../src/api/common/utils/Utils"
+import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import type {DraggedEvent} from "../../../src/calendar/view/CalendarViewModel"
 import {assertThrows} from "../../api/TestUtils"
 import {makeEvent} from "./CalendarTestUtils"
@@ -14,9 +14,15 @@ const DRAG_MOUSE_POS = {x: 100, y: 0}
 o.spec("Event Drag Handler", function () {
 
 	o.spec("Dragging", function () {
+		const body: HTMLBodyElement = downcast({
+			classList: {
+				add: () => {},
+				remove: () => {}
+			}
+		})
 
 		o("Noop move drag", function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const callback = o.spy((draggedEvent: DraggedEvent) => Promise.resolve())
 			handler.handleDrag(new Date(2021, 8, 22), {x: 0, y: 0}, callback)
 			o(handler.isDragging).equals(false)
@@ -25,7 +31,7 @@ o.spec("Event Drag Handler", function () {
 
 
 		o("Start then drag then change mind is noop", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const event = makeEvent("event", new Date(2021, 8, 22), new Date(2021, 8, 23))
 			const callback = o.spy(() => Promise.resolve(true))
 
@@ -46,7 +52,7 @@ o.spec("Event Drag Handler", function () {
 		})
 
 		o("Not moving mouse past 10px threshhold is noop", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const event = makeEvent("event", new Date(2021, 8, 22), new Date(2021, 8, 23))
 			const callback = o.spy(() => Promise.resolve(true))
 
@@ -66,7 +72,7 @@ o.spec("Event Drag Handler", function () {
 		})
 
 		o("A good drag and drop run", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			let originalDate = new Date(2021, 8, 22)
 			const event = makeEvent("event", originalDate, new Date(2021, 8, 23))
 
@@ -100,7 +106,7 @@ o.spec("Event Drag Handler", function () {
 		})
 
 		o("Complete drag and drop and callback returns false", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const event = makeEvent("event", new Date(2021, 8, 22), new Date(2021, 8, 23))
 
 			handler.prepareDrag(event, new Date(2021, 8, 22), INIT_MOUSE_POS)
@@ -119,7 +125,7 @@ o.spec("Event Drag Handler", function () {
 		})
 
 		o("Complete drag and drop and callback does an error", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const event = makeEvent("event", new Date(2021, 8, 22), new Date(2021, 8, 23))
 
 			handler.prepareDrag(event, new Date(2021, 8, 22), INIT_MOUSE_POS)
@@ -140,7 +146,7 @@ o.spec("Event Drag Handler", function () {
 
 
 		o("Drag while having temporary events should still work", async function () {
-			const handler = new EventDragHandler()
+			const handler = new EventDragHandler(body)
 			const event1 = makeEvent("event1", new Date(2021, 8, 22), new Date(2021, 8, 23))
 			const event2 = makeEvent("event2", new Date(2021, 8, 22), new Date(2021, 8, 23))
 

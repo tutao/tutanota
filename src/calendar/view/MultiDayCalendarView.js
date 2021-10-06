@@ -46,6 +46,7 @@ import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from ".
 import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, DraggedEvent, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
+import {neverNull} from "../../api/common/utils/Utils"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -74,11 +75,10 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 	_viewDom: ?HTMLElement = null
 	_lastMousePos: ?MousePos = null
 	_isHeaderEventBeingDragged: boolean = false
-	_daysDom: ?HTMLElement = null
 
 	constructor() {
 		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
-		this._eventDragHandler = new EventDragHandler()
+		this._eventDragHandler = new EventDragHandler(neverNull(document.body))
 	}
 
 	oncreate(vnode: Vnode<Attrs>) {
@@ -123,15 +123,6 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: (vnode) => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
-				if (thisWeek === mainWeek) {
-					this._daysDom = vnode.dom
-					m.redraw()
-				}
-			},
-			onupdate: (vnode) => {
-				if (thisWeek === mainWeek) {
-					this._daysDom = vnode.dom
-				}
 			},
 			onremove: () => {
 				if (this._redrawIntervalId != null) {
@@ -177,7 +168,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 							? size.calendar_hour_width
 							: size.calendar_hour_width_mobile
 
-						return m(".calendar-hour.flex",
+						return m(".calendar-hour.flex.cursor-pointer",
 							{
 								onclick: (e) => {
 									e.stopPropagation()
@@ -218,7 +209,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 							setCurrentDraggedEvent: (event) => this.startEventDrag(event),
 							setTimeUnderMouse: (time) => this._dateUnderMouse = combineDateWithTime(weekday, time),
 							isTemporaryEvent: (event) => attrs.temporaryEvents.includes(event),
-							fullViewWidth: this._viewDom?.getBoundingClientRect().width
+							fullViewWidth: this._viewDom?.getBoundingClientRect().width,
 						}))
 					})
 				)
@@ -227,7 +218,6 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 	}
 
 	startEventDrag(event: CalendarEvent) {
-		this._daysDom && this._daysDom.classList.add("dragging-mod-key")
 		const lastMousePos = this._lastMousePos
 		const dateUnderMouse = this.getDateUnderMouse()
 		if (dateUnderMouse && lastMousePos) {
@@ -449,7 +439,6 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 							},
 							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							onmousedown: () => {
-								this._daysDom && this._daysDom.classList.add("dragging-mod-key")
 								this._isHeaderEventBeingDragged = true
 								this.startEventDrag(event)
 							}
@@ -480,7 +469,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 		const opacity = isTemporary
 			? TEMPORARY_EVENT_OPACITY
 			: 1
-		const enablePointerEvents = !isTemporary
+		const enablePointerEvents = !this._eventDragHandler.isDragging && !isTemporary
 
 		return m(ContinuingCalendarEventBubble, {
 			event,
@@ -527,7 +516,6 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 	}
 
 	_endDrag(onEventMovedCallback: EventDateUpdateHandler) {
-		this._daysDom && this._daysDom.classList.remove("dragging-mod-key")
 		this._isHeaderEventBeingDragged = false
 		const dateUnderMouse = this.getDateUnderMouse()
 		if (dateUnderMouse) {

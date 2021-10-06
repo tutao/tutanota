@@ -24,7 +24,7 @@ type ContinuingCalendarEventBubbleAttrs = {|
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
 
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
-		return m(".flex.calendar-event-cont.darker-hover", [
+		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore
 				? m(".event-continues-right-arrow", {
 					style: {

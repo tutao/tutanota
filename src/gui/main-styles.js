@@ -1119,7 +1119,6 @@ styles.registerStyle('main', () => {
 
 
 		'.calendar-hour': {
-			'cursor': 'pointer',
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.calendar_hour_height),
 			flex: '1 0 auto',
@@ -1144,7 +1143,9 @@ styles.registerStyle('main', () => {
 		'.calendar-day': {
 			'border-top': `1px solid ${theme.content_border}`,
 			'transition': 'background 0.4s',
-			'background': theme.list_bg,
+			'background': theme.list_bg
+		},
+		'.cursor-pointer': {
 			'cursor': 'pointer'
 		},
 
@@ -1171,7 +1172,6 @@ styles.registerStyle('main', () => {
 			'padding-left': '4px',
 			'font-weight': '600',
 			'box-sizing': 'content-box',
-			'cursor': 'pointer',
 		},
 		'.fade-in': {
 			opacity: 1,
@@ -1407,9 +1407,11 @@ styles.registerStyle('main', () => {
 				left: "3px",
 			},
 		},
-		'.dragging-mod-key *': {
+
+		'.cursor-grabbing *': {
 			cursor: "grabbing !important"
 		},
+
 		// This is applied to elements that should indicate they will be draggable when some key is pressed.
 		// Ideally we would use cursor: grab here, but it doesn't seem to be supported in electron
 		'.drag-mod-key *': {

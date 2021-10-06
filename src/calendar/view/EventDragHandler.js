@@ -29,6 +29,12 @@ export class EventDragHandler {
 	_isDragging: boolean = false
 	_lastMouseDiff: ?number = null
 	_hasChanged: boolean = false
+	_draggingArea: HTMLBodyElement
+
+
+	constructor(draggingArea: HTMLBodyElement) {
+		this._draggingArea = draggingArea
+	}
 
 	get isDragging(): boolean {
 		return this._isDragging
@@ -53,6 +59,7 @@ export class EventDragHandler {
 	 * Doesn't start the drag yet, because we want to wait until the mouse has moved beyond some threshhold
 	 */
 	prepareDrag(calendarEvent: CalendarEvent, dateUnderMouse: Date, mousePos: MousePos) {
+		this._draggingArea.classList.add("cursor-grabbing")
 		this._data = {
 			originalEvent: calendarEvent,
 			originalDateUnderMouse: dateUnderMouse,
@@ -70,7 +77,6 @@ export class EventDragHandler {
 	 * The dragging doesn't actually begin until the distance between the mouse and it's original location is greater than some threshhold
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos, setDraggedEventCallback: (DraggedEvent, number) => mixed) {
-
 		if (this._data) {
 			const {originalEvent, originalDateUnderMouse, eventClone} = this._data
 
@@ -102,10 +108,9 @@ export class EventDragHandler {
 	 * This function will only trigger when prepareDrag has been called
 	 */
 	async endDrag(dateUnderMouse: Date, updateEventCallback: EventDateUpdateHandler): Promise<void> {
-
+		this._draggingArea.classList.remove("cursor-grabbing")
 		if (this._isDragging && this._data) {
 			const {originalDateUnderMouse} = this._data
-
 			// We update our state first because the updateCallback might take some time, and
 			// we want the UI to be able to react to the drop having happened before we get the result
 			this._hasChanged = true

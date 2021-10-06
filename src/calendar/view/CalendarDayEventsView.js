@@ -38,7 +38,7 @@ export type Attrs = {
 	setCurrentDraggedEvent: (ev: CalendarEvent) => mixed,
 	setTimeUnderMouse: (time: Time) => mixed,
 	isTemporaryEvent: (event: CalendarEvent) => boolean,
-	fullViewWidth?: number
+	fullViewWidth?: number,
 }
 
 export const calendarDayTimes: Array<Time> = numberRange(0, 23).map(number => new Time(number, 0))
@@ -60,7 +60,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				}
 			},
 			[
-				calendarDayTimes.map(time => m(".calendar-hour.flex", {
+				calendarDayTimes.map(time => m(".calendar-hour.flex.cursor-pointer", {
 						onclick: (e) => {
 							e.stopPropagation()
 							attrs.onTimePressed(time.hours, time.minutes)
