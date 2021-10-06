@@ -61,9 +61,6 @@ import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupIn
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 
-export type EventDateUpdateHandler = (diff: number) => *
-
-
 export type GroupColors = Map<Id, string>
 const CalendarViewTypeByValue = reverse(CalendarViewType)
 
@@ -150,7 +147,6 @@ export class CalendarView implements CurrentView {
 				switch (this._currentViewType) {
 					case CalendarViewType.MONTH:
 						return m(CalendarMonthView, {
-							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
 							temporaryEvents: this._calendarViewModel.temporaryEvents,
 							eventsForDays: this._calendarViewModel.eventsForDays,
 							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
@@ -167,12 +163,10 @@ export class CalendarView implements CurrentView {
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
-							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
-
+							dragHandlerCallbacks: this._calendarViewModel
 						})
 					case CalendarViewType.DAY:
 						return m(MultiDayCalendarView, {
-							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
 							temporaryEvents: this._calendarViewModel.temporaryEvents,
 							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 							renderHeaderText: formatDateWithWeekdayAndYearLong,
@@ -191,11 +185,10 @@ export class CalendarView implements CurrentView {
 							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.DAY),
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
+							dragHandlerCallbacks: this._calendarViewModel
 						})
 					case CalendarViewType.WEEK:
 						return m(MultiDayCalendarView, {
-							setDraggedEvent: this._calendarViewModel.setDraggedEvent.bind(this._calendarViewModel),
 							temporaryEvents: this._calendarViewModel.temporaryEvents,
 							getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 							daysInPeriod: 7,
@@ -221,7 +214,7 @@ export class CalendarView implements CurrentView {
 							groupColors,
 							hiddenCalendars: this._calendarViewModel.hiddenCalendars,
 							onChangeViewPeriod: (next) => this._viewPeriod(next, CalendarViewType.WEEK),
-							onEventMoved: this._calendarViewModel.updateDraggedEvent.bind(this._calendarViewModel)
+							dragHandlerCallbacks: this._calendarViewModel
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {

@@ -4,7 +4,7 @@ import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {freezeMap, neverNull, noOp} from "../../api/common/utils/Utils"
+import {clone, freezeMap, neverNull, noOp} from "../../api/common/utils/Utils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
@@ -41,6 +41,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {ProgressTracker} from "../../api/main/ProgressTracker"
 import {DeviceConfig} from "../../misc/DeviceConfig"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
+import type {EventDragHandlerCallbacks} from "./EventDragHandler"
 
 
 export type EventsOnDays = {
@@ -72,7 +73,7 @@ export const LIMIT_PAST_EVENTS_YEARS = 100
 
 export type CreateCalendarEventViewModelFunction = (event: CalendarEvent, calendarInfos: LazyLoaded<Map<Id, CalendarInfo>>) => Promise<CalendarEventViewModel>
 
-export class CalendarViewModel {
+export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
 	+selectedDate: Stream<Date>
 	/** Mmap from group/groupRoot ID to the calendar info */
@@ -171,9 +172,52 @@ export class CalendarViewModel {
 		return this._redraw
 	}
 
-	setDraggedEvent(draggedEvent: DraggedEvent, diff: number) {
-		updateTemporaryEventWithDiff(draggedEvent.eventClone, draggedEvent.originalEvent, diff)
-		this._draggedEvent = draggedEvent
+	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
+		let eventClone = clone(originalEvent)
+		updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+		this._draggedEvent = {originalEvent, eventClone}
+	}
+
+	onDragUpdate(timeToMoveBy: number) {
+		if (this._draggedEvent) {
+			updateTemporaryEventWithDiff(this._draggedEvent.eventClone, this._draggedEvent.originalEvent, timeToMoveBy)
+		}
+	}
+
+	/**
+	 * This is called when the event is dropped.
+	 */
+	async onDragEnd(timeToMoveBy: number): Promise<void> {
+		//if the time of the dragged event is the same as of the original we only cancel the drag
+		if (timeToMoveBy !== 0) {
+			if (this._draggedEvent) {
+				const {originalEvent, eventClone} = this._draggedEvent
+				this._draggedEvent = null
+				updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
+
+				this._addTransientEvent(eventClone)
+				let startTime
+				if (originalEvent.repeatRule) {
+					// In case we have a repeat rule we want to move all the events relative to the drag operation.
+					// Therefore we load the first event and modify the start time of that event.
+					const firstOccurrence = await this._entityClient.load(CalendarEventTypeRef, originalEvent._id)
+					startTime = new Date(firstOccurrence.startTime.getTime() + timeToMoveBy)
+				} else {
+					startTime = eventClone.startTime
+				}
+				try {
+					const didUpdate = await this._moveEvent(originalEvent, startTime)
+					if (!didUpdate) {
+						this._removeTransientEvent(eventClone)
+					}
+				} catch (e) {
+					this._removeTransientEvent(eventClone)
+					throw e
+				}
+			}
+		} else {
+			this._draggedEvent = null
+		}
 	}
 
 	get temporaryEvents(): Array<CalendarEvent> {
@@ -197,40 +241,6 @@ export class CalendarViewModel {
 			      })
 	}
 
-
-	/**
-	 * This is called when the event is dropped.
-	 */
-	async updateDraggedEvent(timeToMoveBy: number): Promise<void> {
-		//if the time of the dragged event is the same as of the original we only cancel the drag
-		if (timeToMoveBy !== 0) {
-			if (this._draggedEvent) {
-				const {originalEvent, eventClone} = this._draggedEvent
-				this._draggedEvent = null
-				updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
-
-				this._addTransientEvent(eventClone)
-				let startTime
-				if (originalEvent.repeatRule) {
-					const firstOccurrence = await this._entityClient.load(CalendarEventTypeRef, originalEvent._id)
-					startTime = new Date(firstOccurrence.startTime.getTime() + timeToMoveBy)
-				} else {
-					startTime = eventClone.startTime
-				}
-				try {
-					const didUpdate = await this._moveEvent(originalEvent, startTime)
-					if (!didUpdate) {
-						this._removeTransientEvent(eventClone)
-					}
-				} catch (e) {
-					this._removeTransientEvent(eventClone)
-					throw e
-				}
-			}
-		} else {
-			this._draggedEvent = null
-		}
-	}
 
 	/**
 	 * Given a events and days, return the long and short events of that range of days

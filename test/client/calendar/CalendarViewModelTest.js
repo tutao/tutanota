@@ -2,7 +2,7 @@
 import o from "ospec"
 import {accountMailAddress, calendarGroupId, makeCalendarModel, makeEvent, makeUserController} from "./CalendarTestUtils"
 import type {LoginController} from "../../../src/api/main/LoginController"
-import {assertNotNull, clone, downcast} from "../../../src/api/common/utils/Utils"
+import {assertNotNull, downcast} from "../../../src/api/common/utils/Utils"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {_TypeModel as CalendarEventTypeModel, createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {DateTime} from "luxon"
@@ -150,7 +150,7 @@ o.spec("CalendarViewModel", async function () {
 			const temporaryEvent = viewModel._draggedEvent?.eventClone
 
 			let diff = new Date(2021, 8, 25) - originalDate
-			const endDragPromise = viewModel.updateDraggedEvent(diff)
+			const endDragPromise = viewModel.onDragEnd(diff)
 
 			o(viewModel._draggedEvent?.eventClone).equals(undefined)
 			o(viewModel._transientEvents).deepEquals([temporaryEvent])
@@ -187,7 +187,7 @@ o.spec("CalendarViewModel", async function () {
 			simulateDrag(event, new Date(2021, 8, 24), viewModel)
 
 			let diff = new Date(2021, 8, 25) - originalDate
-			const endDragPromise = viewModel.updateDraggedEvent(diff)
+			const endDragPromise = viewModel.onDragEnd(diff)
 
 			await assertThrows(Error, () => endDragPromise)
 
@@ -210,7 +210,7 @@ o.spec("CalendarViewModel", async function () {
 
 			//star first drop
 			let diff = new Date(2021, 8, 25) - origStartDate1
-			const endDragPromise1 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise1 = viewModel.onDragEnd(diff)
 
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
@@ -222,7 +222,7 @@ o.spec("CalendarViewModel", async function () {
 
 			//start second drop
 			diff = new Date(2021, 8, 25) - origStartDate2
-			const endDragPromise2 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise2 = viewModel.onDragEnd(diff)
 
 			// Now we have two transient events
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
@@ -253,7 +253,7 @@ o.spec("CalendarViewModel", async function () {
 
 			//star first drop
 			let diff = new Date(2021, 8, 25) - origStartDate1
-			const endDragPromise1 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise1 = viewModel.onDragEnd(diff)
 
 			//End first drop
 			await endDragPromise1
@@ -270,7 +270,7 @@ o.spec("CalendarViewModel", async function () {
 			diff = new Date(2021, 8, 25) - origStartDate2
 			//this will fail
 			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModelThatFailsSaving
-			const endDragPromise2 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise2 = viewModel.onDragEnd(diff)
 
 			// Now we have two transient events
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
@@ -298,7 +298,7 @@ o.spec("CalendarViewModel", async function () {
 			let diff = new Date(2021, 8, 25) - origStartDate1
 			//this will fail
 			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModelThatFailsSaving
-			const endDragPromise1 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise1 = viewModel.onDragEnd(diff)
 
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
@@ -313,7 +313,7 @@ o.spec("CalendarViewModel", async function () {
 			diff = new Date(2021, 8, 25) - origStartDate1
 			//this will not fail
 			viewModel._createCalendarEventViewModelCallback = makeCalendarEventViewModel
-			const endDragPromise2 = viewModel.updateDraggedEvent(diff)
+			const endDragPromise2 = viewModel.onDragEnd(diff)
 
 			// Now we have two temporary events and we are not dragging anymore
 			o(viewModel._draggedEvent?.originalEvent).equals(undefined)
@@ -468,16 +468,15 @@ o.spec("CalendarViewModel", async function () {
 
 
 function simulateDrag(originalEvent: CalendarEvent, newDate: Date, viewModel: CalendarViewModel) {
-	const eventClone = clone(originalEvent)
 	let diff = newDate - originalEvent.startTime
-	viewModel.setDraggedEvent({originalEvent, eventClone}, diff)
+	viewModel.onDragStart(originalEvent, diff)
 	return diff
 }
 
 
 async function simulateEndDrag(originalDate: Date, newDate: Date, viewModel: CalendarViewModel) {
 	let diff = newDate - originalDate
-	await viewModel.updateDraggedEvent(diff)
+	await viewModel.onDragEnd(diff)
 }
 
 function makeTestEvent(): CalendarEvent {

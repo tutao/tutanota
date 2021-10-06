@@ -242,8 +242,8 @@ export class CalendarEventViewModel {
 		const diff = newStartDate.getTime() - oldStartDate.getTime()
 		const newEndDate = new Date(oldEndDate.getTime() + diff)
 
-		this.startDate = newStartDate
-		this.endDate = newEndDate
+		this.startDate = getStartOfDayWithZone(newStartDate, this._zone)
+		this.endDate = getStartOfDayWithZone(newEndDate, this._zone)
 		this.startTime = Time.fromDate(newStartDate)
 		this.endTime = Time.fromDate(newEndDate)
 	}
