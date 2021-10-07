@@ -1,31 +1,36 @@
 // @flow
 
-export type EncryptedCredentials = {|
-	+login: string,
-	+encryptedPassword: Base64,
-	+encryptedAccessToken: Base64Url,
-	+userId: Id,
-	+type: "internal" | "external"
+export type PersistentCredentials = {|
+	credentialInfo: CredentialsInfo,
+	accessToken: Base64,
+	encryptedPassword: Base64Url,
+|}
+
+export type CredentialsInfo = {|
+	login: string,
+	userId: Id,
+	type: "internal" | "external"
 |}
 
 /**
- * Interface for encrypting credentials.
+ * Interface for encrypting credentials. If and how credentials are encrypted with an additional layer is platform-dependent and will
+ * be decided by the platform-specific implementation of this interface.
  */
 export interface CredentialsEncryption {
-	encrypt(credentials: Credentials): Promise<EncryptedCredentials>;
+	encrypt(credentials: Credentials): Promise<PersistentCredentials>;
 
-	decrypt(encryptedCredentials: EncryptedCredentials): Promise<Credentials>;
+	decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials>;
 }
 
 /**
  * Interface for storing credentials.
  */
 export interface CredentialsStorage {
-	store(encryptedCredentials: EncryptedCredentials): void;
+	store(encryptedCredentials: PersistentCredentials): void;
 
-	loadByUserId(userId: Id): EncryptedCredentials | null;
+	loadByUserId(userId: Id): PersistentCredentials | null;
 
-	loadAll(): Array<EncryptedCredentials>;
+	loadAll(): Array<PersistentCredentials>;
 
 	deleteByUserId(userId: Id): void;
 }
@@ -33,7 +38,38 @@ export interface CredentialsStorage {
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
  */
-export class CredentialsProvider {
+export interface ICredentialsProvider {
+	/**
+	 * Stores credentials. If credentials already exist for login, they will be overwritten.
+	 * @param credentials
+	 */
+	store(credentials: Credentials): Promise<void>;
+
+	/**
+	 * Returns the full credentials for the userId passed in.
+	 * @param userId
+	 */
+	getCredentialsByUserId(userId: Id): Promise<Credentials | null>;
+
+	/**
+	 * Returns all credential infos stored on the device.
+	 */
+	getCredentialsInfos(): Promise<Array<CredentialsInfo>>;
+
+	/**
+	 * Returns the stored credentials infos of all internal users, i.e. users that have a "real" tutanota account and not the ones that
+	 * have a secure external mailbox.
+	 */
+	getInternalCredentialsInfos(): Promise<Array<CredentialsInfo>>;
+
+	/**
+	 * Deletes stored credentials with specified userId.
+	 * No-op if credentials are not there.
+	 */
+	deleteByUserId(userId: Id): Promise<void>;
+}
+
+export class CredentialsProvider implements ICredentialsProvider {
 	+_credentialsEncryption: CredentialsEncryption
 	+_credentialsStorage: CredentialsStorage
 
@@ -42,10 +78,6 @@ export class CredentialsProvider {
 		this._credentialsStorage = storage
 	}
 
-	/**
-	 * Stores credentials. If credentials already exist for emailAddress or userId, they will be overwritten.
-	 * @param credentials
-	 */
 	async store(credentials: Credentials): Promise<void> {
 		const encryptedCredentials = await this._credentialsEncryption.encrypt(credentials)
 		this._credentialsStorage.store(encryptedCredentials)
@@ -59,25 +91,17 @@ export class CredentialsProvider {
 		return this._credentialsEncryption.decrypt(userIdAndCredentials)
 	}
 
-	async getAllEncryptedCredentials(): Promise<Array<EncryptedCredentials>> {
-		return this._credentialsStorage.loadAll()
+	async getCredentialsInfos(): Promise<Array<CredentialsInfo>> {
+		return this._credentialsStorage.loadAll().map((persistentCredentials) => persistentCredentials.credentialInfo)
 	}
 
-	/**
-	 * Returns the stored credentials of all internal users, i.e. users that have a "real" tutanota account and not the ones that have a
-	 * secure external mailbox.
-	 */
-	async getAllInternalEncryptedCredentials(): Promise<Array<EncryptedCredentials>> {
-		const allCredentials = await this.getAllEncryptedCredentials()
+	async getInternalCredentialsInfos(): Promise<Array<CredentialsInfo>> {
+		const allCredentials = await this.getCredentialsInfos()
 		return allCredentials.filter((credential) => {
 			return credential.type === "internal"
 		})
 	}
 
-	/**
-	 * Deletes stored credentials with specified userId.
-	 * No-op if credentials are not there.
-	 */
 	async deleteByUserId(userId: Id): Promise<void> {
 		this._credentialsStorage.deleteByUserId(userId)
 	}

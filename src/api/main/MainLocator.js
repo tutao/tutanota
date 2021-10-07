@@ -16,7 +16,7 @@ import {defer} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../../misc/Scheduler"
-import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider"
+import type {CredentialsProvider, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
 import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
 
 assertMainOrNode()
@@ -33,7 +33,7 @@ export type MainLocatorType = {|
 	entityClient: EntityClient;
 	progressTracker: ProgressTracker;
 	initializedWorker: Promise<WorkerClient>;
-	credentialsProvider: CredentialsProvider
+	credentialsProvider: ICredentialsProvider
 |}
 
 const workerDeferred = defer<WorkerClient>()
