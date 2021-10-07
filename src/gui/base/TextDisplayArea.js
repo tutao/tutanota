@@ -24,7 +24,7 @@ export class TextDisplayArea implements MComponent<TextDisplayAreaAttrs> {
 				},
 				lang.getMaybeLazy(vnode.attrs.label)
 			),
-			m(".white-space-pre.flex-grow", {
+			m(".text-pre.flex-grow", {
 				style: {
 					borderBottom: `1px solid ${theme.content_border}`,
 					lineHeight: px(inputLineHeight),

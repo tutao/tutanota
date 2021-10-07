@@ -119,7 +119,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {locator} from "../../api/main/MainLocator"
 import {exportMails} from "../export/Exporter"
 import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {getCoordsOfMouseOrTouchEvent, createMoreSecondaryButtonAttrs, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
+import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
@@ -347,7 +347,11 @@ export class MailViewer {
 								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
-										this._handleDoubleTap(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
+										this._handleDoubleTap(
+											event,
+											(e) => this._handleAnchorClick(e, true),
+											() => this._rescale(true)
+										)
 									}
 								},
 								onclick: (event: MouseEvent) => {
@@ -380,7 +384,8 @@ export class MailViewer {
 	renderMailBodySection(): Children {
 		if (this._sanitizedMailBody != null && !this._didErrorsOccur()) {
 
-			return m("#mail-body.selectable.touch-callout.break-word-links", {
+			return m("#mail-body.selectable.touch-callout.break-word-links"
+				+ (client.isMobileDevice() ? ".break-pre" : ""), {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
 					this._domBody = vnode.dom
