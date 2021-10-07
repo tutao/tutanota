@@ -37,7 +37,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
-import type {EncryptedCredentials} from "../../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider"
 
 type GetCredentialsMethod = "login" | "signup"
 
@@ -112,13 +112,13 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 	_domElement: HTMLElement
 	_loginFormHelpText: string
 	+_password: Stream<string>
-	_storedCredentials: Array<EncryptedCredentials>
+	_storedCredentials: Array<CredentialsInfo>
 
 	constructor() {
 		this._loginFormHelpText = lang.get("emptyString_msg")
 		this._password = stream("")
 		this._storedCredentials = []
-		locator.credentialsProvider.getAllInternalEncryptedCredentials().then((credentials) => {
+		locator.credentialsProvider.getInternalCredentialsInfos().then((credentials) => {
 			this._storedCredentials = credentials
 			m.redraw()
 		})

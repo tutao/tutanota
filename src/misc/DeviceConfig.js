@@ -6,7 +6,7 @@ import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 import type {ThemeId} from "../gui/theme"
-import type {CredentialsStorage, EncryptedCredentials} from "./credentials/CredentialsProvider"
+import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider"
 import {typedEntries} from "../api/common/utils/Utils"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
@@ -22,7 +22,7 @@ export const defaultThemeId: ThemeId = 'light'
  */
 export class DeviceConfig implements CredentialsStorage {
 	_version: number;
-	_credentials: Map<Id, EncryptedCredentials>;
+	_credentials: Map<Id, PersistentCredentials>;
 	_scheduledAlarmUsers: Id[];
 	_themeId: ThemeId;
 	_language: ?LanguageCode;
@@ -35,16 +35,16 @@ export class DeviceConfig implements CredentialsStorage {
 		this._load()
 	}
 
-	store(encryptedCredentials: EncryptedCredentials): void {
-		this._credentials.set(encryptedCredentials.userId, encryptedCredentials)
+	store(persistentCredentials: PersistentCredentials): void {
+		this._credentials.set(persistentCredentials.credentialInfo.userId, persistentCredentials)
 		this._writeToStorage()
 	}
 
-	loadByUserId(userId: Id): EncryptedCredentials | null {
+	loadByUserId(userId: Id): PersistentCredentials | null {
 		return this._credentials.get(userId) ?? null
 	}
 
-	loadAll(): Array<EncryptedCredentials> {
+	loadAll(): Array<PersistentCredentials> {
 		return Array.from(this._credentials.values())
 	}
 
@@ -180,35 +180,39 @@ export class DeviceConfig implements CredentialsStorage {
 	}
 }
 
-export function migrateCredentials(loadedConfig: any): Map<Id, EncryptedCredentials> {
+export function migrateCredentials(loadedConfig: any): Map<Id, PersistentCredentials> {
 	if (loadedConfig === ConfigVersion) {
 		throw new ProgrammingError("Should not migrate credentials, current version")
 	}
 	if (loadedConfig._version === 2) {
 		const oldCredentialsArray = loadedConfig._credentials
-		const newCredentials = new Map<Id, EncryptedCredentials>()
+		const newCredentials = new Map<Id, PersistentCredentials>()
 		for (const oldCredential of oldCredentialsArray) {
-			let newCredential: EncryptedCredentials
+			let newCredential: PersistentCredentials
 			// in version 2 external users had userId as their email address
 			// We use encryption stub in this version
 			if (oldCredential.mailAddress.includes("@")) {
 				newCredential = {
-					login: oldCredential.mailAddress,
+					credentialInfo: {
+						login: oldCredential.mailAddress,
+						userId: oldCredential.userId,
+						type: "internal",
+					},
 					encryptedPassword: oldCredential.encryptedPassword,
-					encryptedAccessToken: oldCredential.accessToken,
-					userId: oldCredential.userId,
-					type: "internal",
+					accessToken: oldCredential.accessToken,
 				}
 			} else {
 				newCredential = {
-					login: oldCredential.userId,
+					credentialInfo: {
+						login: oldCredential.userId,
+						userId: oldCredential.userId,
+						type: "external",
+					},
 					encryptedPassword: oldCredential.encryptedPassword,
-					encryptedAccessToken: oldCredential.accessToken,
-					userId: oldCredential.userId,
-					type: "external",
+					accessToken: oldCredential.accessToken,
 				}
 			}
-			newCredentials.set(newCredential.userId, newCredential)
+			newCredentials.set(newCredential.credentialInfo.userId, newCredential)
 		}
 		return newCredentials
 	} else {

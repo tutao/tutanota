@@ -1,21 +1,21 @@
 // @flow
 import o from "ospec"
-import type {CredentialsEncryption, CredentialsStorage, EncryptedCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
+import type {CredentialsEncryption, CredentialsStorage, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
 import {assertNotNull} from "../../../../src/api/common/utils/Utils"
 
 class CredentialsStorageStub implements CredentialsStorage {
-	values = new Map<Id, EncryptedCredentials>()
+	values = new Map<Id, PersistentCredentials>()
 
-	store(encryptedCredentials: EncryptedCredentials) {
-		this.values.set(encryptedCredentials.userId, encryptedCredentials)
+	store(encryptedCredentials: PersistentCredentials) {
+		this.values.set(encryptedCredentials.credentialInfo.userId, encryptedCredentials)
 	}
 
-	loadByUserId(userId: Id): EncryptedCredentials | null {
+	loadByUserId(userId: Id): PersistentCredentials | null {
 		return this.values.get(userId) ?? null
 	}
 
-	loadAll(): Array<EncryptedCredentials> {
+	loadAll(): Array<PersistentCredentials> {
 		return Array.from(this.values.values())
 	}
 
@@ -25,27 +25,29 @@ class CredentialsStorageStub implements CredentialsStorage {
 }
 
 class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt(credentials: Credentials): Promise<EncryptedCredentials> {
+	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 		if (encryptedPassword == null) {
 			throw new Error("Trying to encrypt non-persistent credentials")
 		}
 		return {
-			login: credentials.login,
+			credentialInfo: {
+				login: credentials.login,
+				userId: credentials.userId,
+				type: credentials.type,
+			},
 			encryptedPassword,
-			encryptedAccessToken: credentials.accessToken,
-			userId: credentials.userId,
-			type: credentials.type,
+			accessToken: credentials.accessToken,
 		}
 	}
 
-	async decrypt(encryptedCredentials: EncryptedCredentials): Promise<Credentials> {
+	async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
 		return {
-			login: encryptedCredentials.login,
+			login: encryptedCredentials.credentialInfo.login,
+			userId: encryptedCredentials.credentialInfo.userId,
+			type: encryptedCredentials.credentialInfo.type,
 			encryptedPassword: encryptedCredentials.encryptedPassword,
-			accessToken: encryptedCredentials.encryptedAccessToken,
-			userId: encryptedCredentials.userId,
-			type: encryptedCredentials.type,
+			accessToken: encryptedCredentials.accessToken,
 		}
 	}
 }
@@ -56,8 +58,8 @@ o.spec("CredentialsProvider", function () {
 	let credentialsProvider
 	let internalCredentials: Credentials
 	let externalCredentials: Credentials
-	let encryptedInternalCredentials: EncryptedCredentials
-	let encryptedExternalCredentials: EncryptedCredentials
+	let encryptedInternalCredentials: PersistentCredentials
+	let encryptedExternalCredentials: PersistentCredentials
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
@@ -74,18 +76,22 @@ o.spec("CredentialsProvider", function () {
 			type: "external",
 		}
 		encryptedInternalCredentials = {
-			login: internalCredentials.login,
+			credentialInfo: {
+				login: internalCredentials.login,
+				userId: internalCredentials.userId,
+				type: internalCredentials.type,
+			},
 			encryptedPassword: assertNotNull(internalCredentials.encryptedPassword),
-			encryptedAccessToken: internalCredentials.accessToken,
-			userId: internalCredentials.userId,
-			type: internalCredentials.type
+			accessToken: internalCredentials.accessToken,
 		}
 		encryptedExternalCredentials = {
-			login: externalCredentials.login,
+			credentialInfo: {
+				login: externalCredentials.login,
+				userId: externalCredentials.userId,
+				type: externalCredentials.type,
+			},
 			encryptedPassword: assertNotNull(externalCredentials.encryptedPassword),
-			encryptedAccessToken: externalCredentials.accessToken,
-			userId: externalCredentials.userId,
-			type: externalCredentials.type
+			accessToken: externalCredentials.accessToken,
 		}
 		encryption = new CredentialsEncryptionStub()
 		storage = new CredentialsStorageStub()
@@ -114,15 +120,15 @@ o.spec("CredentialsProvider", function () {
 		})
 
 		o("Should return all Credentials", async function () {
-			const retrievedCredentials = await credentialsProvider.getAllEncryptedCredentials()
+			const retrievedCredentials = await credentialsProvider.getCredentialsInfos()
 
-			o(retrievedCredentials).deepEquals([encryptedInternalCredentials, encryptedExternalCredentials])
+			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo, encryptedExternalCredentials.credentialInfo])
 		})
 
 		o("Should return credentials for internal users", async function () {
-			const retrievedCredentials = await credentialsProvider.getAllInternalEncryptedCredentials()
+			const retrievedCredentials = await credentialsProvider.getInternalCredentialsInfos()
 
-			o(retrievedCredentials).deepEquals([encryptedInternalCredentials])
+			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo])
 		})
 	})
 

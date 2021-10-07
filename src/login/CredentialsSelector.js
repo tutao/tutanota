@@ -2,13 +2,13 @@
 
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {EncryptedCredentials} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo} from "../misc/credentials/CredentialsProvider"
 
 export type CredentialsSelectorAttrs = {
-	credentials: $ReadOnlyArray<EncryptedCredentials>;
-	onCredentialsSelected: EncryptedCredentials => void;
+	credentials: $ReadOnlyArray<CredentialsInfo>;
+	onCredentialsSelected: CredentialsInfo => void;
 	// will show the delete options if this is provided
-	onCredentialsDeleted?: ?(EncryptedCredentials => void);
+	onCredentialsDeleted?: ?(CredentialsInfo => void);
 }
 
 export class CredentialsSelector implements MComponent<CredentialsSelectorAttrs> {

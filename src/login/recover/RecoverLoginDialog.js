@@ -147,7 +147,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 }
 
 async function deleteCredentialsByMailAddress(cleanMailAddress) {
-	const allCredentials = await locator.credentialsProvider.getAllInternalEncryptedCredentials()
+	const allCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
 	const credentials = allCredentials.find((c) => c.login === cleanMailAddress)
 	if (credentials) {
 		await locator.credentialsProvider.deleteByUserId(credentials.userId)

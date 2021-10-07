@@ -29,12 +29,12 @@ import {header} from "../gui/base/Header"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 import {getLoginErrorMessage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
-import type {CredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
 
 export class ExternalLoginView {
-	+_credentialsProvider: CredentialsProvider
+	+_credentialsProvider: ICredentialsProvider
 	_password: Stream<string>;
 	_savePassword: Stream<boolean>;
 	_helpText: TranslationKey;

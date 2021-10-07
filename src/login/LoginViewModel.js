@@ -16,8 +16,7 @@ import type {LoginController} from "../api/main/LoginController"
 import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {EncryptedCredentials} from "../misc/credentials/CredentialsProvider"
-import {CredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, CredentialsProvider, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 
 assertMainOrNode()
 
@@ -65,12 +64,12 @@ export interface ILoginViewModel {
 	 * Instructs the viewmodel to use the credentials passed for the next login attempt. Changes displayMode to DisplayMode.Credentials.
 	 * @param credentials
 	 */
-	useCredentials(credentials: EncryptedCredentials): Promise<void>;
+	useCredentials(credentials: CredentialsInfo): Promise<void>;
 
 	/**
 	 * Returns all credentials stored on the device.
 	 */
-	getSavedCredentials(): $ReadOnlyArray<EncryptedCredentials>;
+	getSavedCredentials(): $ReadOnlyArray<CredentialsInfo>;
 
 	/**
 	 * Attempts to log in. How the login will be performed (using stored credentials/using email and password) depends on the current
@@ -82,7 +81,7 @@ export interface ILoginViewModel {
 	 * Deletes stored credentials from the device.
 	 * @param credentials
 	 */
-	deleteCredentials(credentials: EncryptedCredentials): Promise<void>;
+	deleteCredentials(credentials: CredentialsInfo): Promise<void>;
 
 	/**
 	 * Changes the display mode to DisplayMode.Form.
@@ -102,7 +101,7 @@ export interface ILoginViewModel {
 
 export class LoginViewModel implements ILoginViewModel {
 	+_loginController: LoginController
-	+_credentialsProvider: CredentialsProvider
+	+_credentialsProvider: ICredentialsProvider
 	+_secondFactorHandler: SecondFactorHandler
 	+mailAddress: Stream<string>;
 	+password: Stream<string>;
@@ -110,10 +109,10 @@ export class LoginViewModel implements ILoginViewModel {
 	state: LoginStateEnum
 	helpText: TranslationKey
 	+savePassword: Stream<boolean>;
-	_savedInternalCredentials: Array<EncryptedCredentials>
+	_savedInternalCredentials: Array<CredentialsInfo>
 	_autoLoginCredentials: ?Credentials
 
-	constructor(loginController: LoginController, credentialsProvider: CredentialsProvider, secondFactorHandler: SecondFactorHandler) {
+	constructor(loginController: LoginController, credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
 		this._loginController = loginController
 		this._credentialsProvider = credentialsProvider
 		this._secondFactorHandler = secondFactorHandler
@@ -151,7 +150,7 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async useCredentials(encryptedCredentials: EncryptedCredentials): Promise<void> {
+	async useCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
 		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		if (credentials) {
 			this._autoLoginCredentials = credentials
@@ -171,7 +170,7 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	async deleteCredentials(encryptedCredentials: EncryptedCredentials): Promise<void> {
+	async deleteCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
 		const credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		if (credentials) {
 			await this._loginController.deleteOldSession(credentials)
@@ -180,7 +179,7 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 	}
 
-	getSavedCredentials(): $ReadOnlyArray<EncryptedCredentials> {
+	getSavedCredentials(): $ReadOnlyArray<CredentialsInfo> {
 		return this._savedInternalCredentials
 	}
 
@@ -203,7 +202,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async _updateCachedCredentials() {
-		this._savedInternalCredentials = await this._credentialsProvider.getAllInternalEncryptedCredentials()
+		this._savedInternalCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
 		if (this._savedInternalCredentials.length > 0) {
 			this.displayMode = DisplayMode.Credentials
 		} else {
@@ -214,7 +213,7 @@ export class LoginViewModel implements ILoginViewModel {
 	async _autologin(): Promise<void> {
 		try {
 			if (!this._autoLoginCredentials) {
-				const allCredentials = await this._credentialsProvider.getAllInternalEncryptedCredentials()
+				const allCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
 				const firstEncryptedCredentials = allCredentials[0]
 				if (firstEncryptedCredentials) {
 					this._autoLoginCredentials = await this._credentialsProvider.getCredentialsByUserId(firstEncryptedCredentials.userId)
@@ -261,7 +260,7 @@ export class LoginViewModel implements ILoginViewModel {
 					await this._credentialsProvider.deleteByUserId(credentials.userId)
 				}
 			}
-			
+
 			if (savePassword) {
 				await this._credentialsProvider.store(newCredentials)
 			}

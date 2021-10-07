@@ -1,9 +1,9 @@
 // @flow
-import type {CredentialsEncryption, EncryptedCredentials} from "./CredentialsProvider"
+import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
 
-export function createCredentialsProvider(): CredentialsProvider {
+export function createCredentialsProvider(): ICredentialsProvider {
 	return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig)
 }
 
@@ -13,27 +13,29 @@ export function createCredentialsProvider(): CredentialsProvider {
  * additional mechanism for credentials encryption using an access key stored server side. This is done in LoginFacade.
  */
 class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt(credentials: Credentials): Promise<EncryptedCredentials> {
+	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 		if (encryptedPassword == null) {
 			throw new Error("Trying to encrypt non-persistent credentials")
 		}
 		return {
-			login: credentials.login,
+			credentialInfo: {
+				login: credentials.login,
+				userId: credentials.userId,
+				type: credentials.type,
+			},
 			encryptedPassword,
-			encryptedAccessToken: credentials.accessToken,
-			userId: credentials.userId,
-			type: credentials.type,
+			accessToken: credentials.accessToken,
 		}
 	}
 
-	async decrypt(encryptedCredentials: EncryptedCredentials): Promise<Credentials> {
+	async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
 		return {
-			login: encryptedCredentials.login,
+			login: encryptedCredentials.credentialInfo.login,
 			encryptedPassword: encryptedCredentials.encryptedPassword,
-			accessToken: encryptedCredentials.encryptedAccessToken,
-			userId: encryptedCredentials.userId,
-			type: encryptedCredentials.type,
+			accessToken: encryptedCredentials.accessToken,
+			userId: encryptedCredentials.credentialInfo.userId,
+			type: encryptedCredentials.credentialInfo.type,
 		}
 	}
 }
