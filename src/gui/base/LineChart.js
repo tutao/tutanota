@@ -78,7 +78,7 @@ export class LineChart implements MComponent<LineChartAttrs> {
 					this._domWrapper = vnode.dom
 				},
 			}, [
-				m("div.positions.abs.mlr-l.mt-l.white-space-pre", {
+				m("div.positions.abs.mlr-l.mt-l.text-pre", {
 					oncreate: vnode => this._domPositions = vnode.dom,
 					style: {right: '5px', top: 0}
 				}),

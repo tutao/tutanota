@@ -181,7 +181,10 @@ styles.registerStyle('main', () => {
 		".border": {border: `1px solid ${theme.content_border}`},
 		".border-top": {borderTop: `1px solid ${theme.content_border}`},
 
-		".white-space-pre": {'white-space': "pre"},
+		"#mail-body.break-pre pre": {
+			'white-space': "pre-wrap",
+			'word-break': "break-word"
+		},
 
 		".min-content": {
 			width: "min-content",
@@ -1493,6 +1496,10 @@ styles.registerStyle('main', () => {
 			},
 			".folder-column": {
 				display: "none"
+			},
+			"pre": {
+				"word-break": "break-word",
+				"white-space": "break-spaces"
 			},
 		},
 

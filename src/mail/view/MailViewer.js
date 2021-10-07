@@ -350,7 +350,11 @@ export class MailViewer {
 								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
-										this._handleDoubleTap(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
+										this._handleDoubleTap(
+											event,
+											(e) => this._handleAnchorClick(e, true),
+											() => this._rescale(true)
+										)
 									}
 								},
 								onclick: (event: MouseEvent) => {
@@ -383,7 +387,8 @@ export class MailViewer {
 	renderMailBodySection(): Children {
 		if (this._sanitizedMailBody != null && !this._didErrorsOccur()) {
 
-			return m("#mail-body.selectable.touch-callout.break-word-links", {
+			return m("#mail-body.selectable.touch-callout.break-word-links"
+				+ (client.isMobileDevice() ? ".break-pre" : ""), {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
 					this._domBody = vnode.dom
