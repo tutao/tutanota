@@ -12,7 +12,8 @@ import {
 	GroupType,
 	MailFolderType,
 	MailState,
-	MAX_ATTACHMENT_SIZE
+	MAX_ATTACHMENT_SIZE,
+	ReplyType
 } from "../../api/common/TutanotaConstants"
 import {assertNotNull, neverNull, noOp} from "../../api/common/utils/Utils"
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
@@ -432,4 +433,12 @@ export function checkAttachmentSize(files: $ReadOnlyArray<Attachment>, maxAttach
 		}
 	})
 	return {attachableFiles, tooBigFiles}
+}
+
+/**
+ * @returns {boolean} true if the given mail was already replied to. Otherwise false.
+ * Note that it also returns true if the mail was replied to AND forwarded.
+ */
+export function isRepliedTo(mail: Mail): boolean {
+	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
 }

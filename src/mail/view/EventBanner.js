@@ -4,7 +4,7 @@ import {MessageBoxN} from "../../gui/base/MessageBoxN"
 import {px, size} from "../../gui/size"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../../api/common/TutanotaConstants"
-import {CalendarAttendeeStatus, CalendarMethod, ReplyType} from "../../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {theme} from "../../gui/theme"
@@ -13,6 +13,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {lazy} from "../../api/common/utils/Utils"
+import {isRepliedTo} from "../model/MailUtils"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -40,7 +41,7 @@ export class EventBanner implements MComponent<Attrs> {
 				}
 			}, [
 				m("", method === CalendarMethod.REQUEST && ownAttendee
-					? mail.replyType === ReplyType.REPLY || (ownAttendee && ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION)
+					? isRepliedTo(mail) || (ownAttendee && ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION)
 						? m(".pt.align-self-start.start.smaller", lang.get("alreadyReplied_msg"))
 						: renderReplyButtons(event, mail, recipient)
 					: method === CalendarMethod.REPLY
