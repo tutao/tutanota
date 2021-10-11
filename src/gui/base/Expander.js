@@ -24,12 +24,10 @@ export type ExpanderPanelAttrs = {
 }
 
 export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
-	_domIcon: ?HTMLElement;
-
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
 		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.flex.items-center", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
 					a.expanded(!a.expanded())
@@ -38,7 +36,7 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 				oncreate: vnode => addFlash(vnode.dom),
 				onremove: (vnode) => removeFlash(vnode.dom),
 				"aria-expanded": String(!!a.expanded()),
-			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
+			}, [
 				(a.showWarning) ? m(Icon, {
 					icon: Icons.Warning,
 					style: {
@@ -56,7 +54,7 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 						transition: `transform ${DefaultAnimationTime}ms`
 					},
 				}),
-			])),
+			]),
 		])
 	}
 }
