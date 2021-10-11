@@ -46,6 +46,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
+import type {lazy} from "../../api/common/utils/Utils"
 import {downcast, isCustomizationEnabledForCustomer, noOp} from "../../api/common/utils/Utils"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils";
 import {client} from "../../misc/ClientDetector"
@@ -62,7 +63,6 @@ import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
 import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser";
-import type {lazy} from "../../api/common/utils/Utils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -304,15 +304,13 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			value: stream(model.getSubject()),
 			oninput: val => model.setSubject(val),
 			injectionsRight: () => {
-				return showConfidentialButton
-					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
-					: [
-						this.openKnowledgeBaseButtonAttrs ? m(ButtonN, this.openKnowledgeBaseButtonAttrs) : null,
-						m(ButtonN, attachFilesButtonAttrs),
-						toolbarButton()
-					]
+				return [
+					showConfidentialButton ? m(ButtonN, confidentialButtonAttrs) : null,
+					this.openKnowledgeBaseButtonAttrs ? m(ButtonN, this.openKnowledgeBaseButtonAttrs) : null,
+					m(ButtonN, attachFilesButtonAttrs),
+					toolbarButton()
+				]
 			}
-
 		}
 
 		function animate(domElement: HTMLElement, fadein: boolean) {
