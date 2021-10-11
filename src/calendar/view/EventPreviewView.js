@@ -9,7 +9,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {createRepeatRuleFrequencyValues, formatEventDuration, getRepeatEndTime, getTimeZone} from "../date/CalendarUtils"
 import type {RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
-import {EndType, getAttendeeStatus, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {downcast, memoized} from "../../api/common/utils/Utils"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import {lang} from "../../misc/LanguageViewModel"
@@ -17,6 +17,8 @@ import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import {formatDateWithMonth} from "../../misc/Formatter"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
+import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -34,6 +36,17 @@ export class EventPreviewView implements MComponent<Attrs> {
 	view({attrs: {event, sanitizedDescription}}: Vnode<Attrs>): Children {
 
 		const url = this._getLocationUrl(event.location.trim())
+
+		const attendees = event.attendees
+		const organizer = event.organizer
+		if (organizer != null && !attendees.some(attendee => attendee.address.address === organizer.address)) {
+			attendees.unshift(createCalendarEventAttendee({
+				address: createEncryptedMailAddress({
+					address: organizer.address
+				}),
+				status: CalendarAttendeeStatus.ADDED // We don't know whether the organizer will be attending or not in this case
+			}))
+		}
 
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
@@ -59,10 +72,10 @@ export class EventPreviewView implements MComponent<Attrs> {
 						}, event.location))
 					])
 					: null,
-				event.attendees.length
+				attendees.length !== 0
 					? m(".flex.pb-s", [
 						this._renderSectionIndicator(BootIcons.Contacts),
-						m(".flex-wrap", event.attendees.map(a => this._renderAttendee(a))),
+						m(".flex-wrap", attendees.map(a => this._renderAttendee(a))),
 					])
 					: null,
 				!!event.description
