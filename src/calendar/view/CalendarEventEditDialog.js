@@ -48,6 +48,7 @@ import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel";
 
@@ -190,6 +191,18 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				guests.splice(indexOfOwn, 1)
 				guests.unshift(ownAttendee)
 			}
+
+			const organizer = viewModel.organizer
+			if (organizer != null && !guests.some(guest => guest.address.address === organizer.address)) {
+				guests.unshift({
+					address: createEncryptedMailAddress({
+						address: organizer.address
+					}),
+					type: RecipientInfoType.EXTERNAL, // Events created by Tutanota will always have the organizer in the attendee list
+					status: CalendarAttendeeStatus.ADDED // We don't know whether the organizer will be attending or not in this case
+				})
+			}
+
 			const externalGuests = viewModel.shouldShowPasswordFields()
 				? guests.filter((a) => a.type === RecipientInfoType.EXTERNAL)
 				        .map((guest) => {
