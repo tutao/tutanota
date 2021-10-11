@@ -46,9 +46,9 @@ import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/Gr
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
@@ -253,10 +253,10 @@ export class UserViewer {
 			(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 			(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 			m(EditAliasesFormN, this._editAliasFormAttrs),
-					logins.getUserController().isPremiumAccount() && whitelistProtection
+			logins.getUserController().isPremiumAccount() && whitelistProtection
 				? [
 					m(".h4.mt-l", lang.get('mailSettings_label')),
-							m(whitelistProtection)
+					m(whitelistProtection)
 				]
 				: null
 		])

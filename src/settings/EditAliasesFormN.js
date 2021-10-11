@@ -58,7 +58,6 @@ export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
 			addButtonAttrs: addAliasButtonAttrs,
 			lines: getAliasLineAttrs(a),
 		}
-
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get('mailAddressAliases_label')),

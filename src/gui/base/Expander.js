@@ -63,43 +63,24 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 
 /**
  * Panel which shows or hides content depending on the attrs.expanded and animates transitions.
- *
- * Note: currently it expects the same stream every time.
  */
 export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 	childDiv: HTMLElement
 
 	// There are some cases where the child div will be added to and a redraw won't be triggered, in which case
-	// the expander panel wont update until some kind of interaction
+	// the expander panel wont update until some kind of interaction happens
 	observer: MutationObserver
 
+	// We calculate the height manually because we need concrete values for the transition (can't just transition from 0px to 100%)
 	lastCalculatedHeight: number
 
-	// We don't want the children to remain in the dom when hidden because they might be included in the tab sequence,
-	// but we need to delay hiding them when the user closes the expander because otherwise they will disappear before the expander is fully closed
-	// so we track this with a separate boolean
+	// We remove the children from the DOM to take them out of the taborder. Setting "tabindex = -1" on the element will not work because
+	// it does not apply to any children
 	childrenInDom: boolean
 
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
 
-
 		this.childrenInDom = vnode.attrs.expanded()
-
-		// In case the user clicks twice really fast we don't want to hide the children in the dom (weird sentence)
-		let setChildrenInDomTimeout
-
-		vnode.attrs.expanded.map(expanded => {
-			window.clearTimeout(setChildrenInDomTimeout)
-			if (expanded) {
-				this.childrenInDom = true
-				m.redraw()
-			} else {
-				setChildrenInDomTimeout = window.setTimeout(() => {
-					this.childrenInDom = false
-					m.redraw()
-				}, DefaultAnimationTime)
-			}
-		})
 
 		this.observer = new MutationObserver(mutations => {
 			// redraw if a child has been added that wont be getting displayed
@@ -111,9 +92,9 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 
 	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
 		const expanded = vnode.attrs.expanded
-		this.lastCalculatedHeight = this.childDiv
-			? this.childDiv.offsetHeight
-			: 0
+
+		this.lastCalculatedHeight = this.childDiv?.offsetHeight ?? 0
+
 		// The expander panel children are wrapped in an extra div so that we can calculate the height properly,
 		// since offsetHeight doesn't include borders or margins
 		return m(".expander-panel.overflow-hidden",
@@ -122,7 +103,19 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 					opacity: expanded() ? "1" : "0",
 					height: expanded() ? `${this.lastCalculatedHeight}px` : "0px",
 					transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`
-				}
+				},
+				ontransitionstart: transition => {
+					// Show the children when the expander begins opening
+					if (transition.propertyName === "opacity" && expanded()) {
+						this.childrenInDom = true
+					}
+				},
+				ontransitionend: transition => {
+					// Hide the children when the expander finishes closing
+					if (transition.propertyName === "opacity" && !expanded()) {
+						this.childrenInDom = false
+					}
+				},
 			}, m(".expander-child-wrapper", {
 				oncreate: vnode => {
 					this.childDiv = vnode.dom
