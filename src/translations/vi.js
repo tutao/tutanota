@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2021-09-03T15:47:05Z",
+	"updated_at": "2021-09-11T13:14:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -270,6 +270,7 @@ export default {
 		"copy_action": "Sao chép",
 		"correctDNSValue_label": "OK",
 		"correctValues_msg": "Vui lòng sửa các giá trị có định dạng không hợp lệ.",
+		"corruptedValue_msg": "Không thể hiển thị giá trị này.",
 		"corrupted_msg": "Phần tử này không thể được hiển thị chính xác.\n\nNếu có thể, vui lòng đề nghị người gửi gửi lại thông điệp này.",
 		"couldNotAttachFile_msg": "Không thể tải tệp tin này.",
 		"couldNotAuthU2f_msg": "Không thể xác thực với khoá an ninh.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2021-09-01T12:47:46Z",
+	"updated_at": "2021-10-08T12:29:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -674,6 +674,7 @@ export default {
 		"moveUp_action": "Desplaceu-vos amunt",
 		"move_action": "Mou",
 		"name_label": "Nom",
+		"nativeShareGiftCard_label": "Comparteix una targeta regal Tutanota",
 		"nbrOfContactsSelected_msg": "{1} contactes seleccionats.",
 		"nbrOfInboxRules_msg": "Heu definit {1} regla(s) de safata d'entrada.",
 		"nbrOfMailsSelected_msg": "{1} correus electrònics seleccionats.",
@@ -727,6 +728,7 @@ export default {
 		"oneMailSelected_msg": "1 correu electrònic seleccionat.",
 		"onlyAvailableForPremiumNotIncluded_msg": "Aquesta característica només es pot demanar després d'actualitzar a una subscripció de pagament. Si us plau actualitzeu el compte.",
 		"onlyAvailableForPremium_msg": "Aquesta funció només està disponible per a subscripcions de pagament. Actualitzeu el vostre compte ara mateix.",
+		"onlyPrivateAccountFeature_msg": "Les targetes regal solament poden ser bescanviades per comptes privades",
 		"onlyPrivateComputer_msg": "Escolliu aquesta opció només si useu un dispositiu privat.",
 		"openCamera_action": "Càmera",
 		"openNewWindow_action": "Finestra nova",
@@ -1137,6 +1139,7 @@ export default {
 		"userEmailSignature_label": "Signatura de correu electrònic",
 		"userManagementRedirect_msg": "Se us reenviarà al menú de configuració de l'usuari. Més endavant podeu reprendre el procés de configuració del domini personalitzat.",
 		"userSettings_label": "Configuració de l'usuari",
+		"validGiftCardCountry_msg": "Aquesta targeta regal només és vàlida per ser utilitzada en ‪{valid}‬ però hem detectat que ets a ‪{actual}‬. Si us plau confirma'ns que estàs utilitzant aquesta targeta regal en ‪{valid}‬.",
 		"validInputFormat_msg": "Format correcte.",
 		"verifyDNSRecords_msg": "Finalment, heu de configurar els registres DNS enumerats a continuació per habilitar el lliurament de correu des de i al servidor de correu Tutanota.",
 		"verifyDNSRecords_title": "Configurar registres DNS",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-09-01T12:47:46Z",
+	"updated_at": "2021-10-06T07:15:30Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -212,7 +212,7 @@ export default {
 		"chooseNumber_msg": "Kérem kattintson valamelyik \"SMS küldése\" gombra, hogy megkapja Tutanota jelszavát.",
 		"choosePhotos_action": "Fényképek",
 		"choose_label": "Választás ...",
-		"clearFolder_action": "Mappa klürítése.",
+		"clearFolder_action": "Mappa kiürítése.",
 		"clickNumber_msg": "Kérjük, kattintson lent a telefonszámára, hogy megkapja a Tutanota jelszavát szöveges üzenetként!",
 		"clickToUpdate_msg": "Kattintson ide a frissítéshez (naprakésszé tételhez)!",
 		"clientSuspensionWait_label": "Amíg a szerver feldolgozza kérését, szíves türelmét kérjük!",
