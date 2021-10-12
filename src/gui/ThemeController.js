@@ -10,8 +10,7 @@ import type {BaseThemeId, Theme, ThemeId} from "./theme";
 import {themes} from "./builtinThemes";
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
-import {getLogoSvg} from "./base/icons/Logo"
-import {VALID_HEX_CODE_FORMAT} from "./base/Color"
+import {getLogoSvg} from "./base/Logo"
 
 assertMainOrNodeBoot()
 
