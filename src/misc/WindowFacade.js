@@ -150,14 +150,19 @@ class WindowFacade {
 	}
 
 	_beforeUnload(e: any): ?string { // BeforeUnloadEvent
-		console.log("windowfacade._beforeUnload")
-		this._notifyCloseListeners(e)
-		if (this.windowCloseConfirmation) {
-			let m = lang.get("closeWindowConfirmation_msg")
-			e.returnValue = m
-			return m
-		} else {
-			logins.logout(true)
+		// In desktop, the only case where we get here is when clicking on a link without "target=_blank" (which in theory should never happen)
+		// If we do logout here then the browser window breaks, so we just want to ignore it.
+		// We listen for "will-navigate" in ApplicationWindow.js which will handle navigation in the case of a link
+		if (!isDesktop()) {
+			console.log("windowfacade._beforeUnload")
+			this._notifyCloseListeners(e)
+			if (this.windowCloseConfirmation) {
+				let m = lang.get("closeWindowConfirmation_msg")
+				e.returnValue = m
+				return m
+			} else {
+				logins.logout(true)
+			}
 		}
 	}
 

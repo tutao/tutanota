@@ -5,10 +5,11 @@ import type {
 	ElectronPermission,
 	FindInPageResult,
 	NativeImage,
+	NewWindowOpenDetails,
+	NewWindowOpenReturn,
 	WebContents,
 	WebContentsEvent
 } from 'electron'
-import type {NewWindowOpenDetails, NewWindowOpenReturn} from "electron"
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
@@ -16,6 +17,7 @@ import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
 import path from "path"
+import type {lazy} from "../api/common/utils/Utils"
 import {downcast, noOp, typedEntries} from "../api/common/utils/Utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
@@ -23,7 +25,6 @@ import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
-import type {lazy} from "../api/common/utils/Utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -220,10 +221,14 @@ export class ApplicationWindow {
 			    // https://www.electronjs.org/docs/api/web-contents#event-will-navigate
 			    //
 			    // Basically the only scenarios left for us are:
-			    // Clicking on a link without target="_blank"
-			    // Programmatically changing window.location to something else (we don't do this and it normally reloads the page)
-			    // In neither of those cases we want to navigate anywhere.
-			    log.debug(TAG, "will-navigate", url)
+			    if (url.startsWith("http://") || url.startsWith("https://")) {
+				    // Clicking on a link without target="_blank". If it's an link click we should open it in the browser
+				    this._electron.shell.openExternal(url)
+			    } else {
+				    // Programmatically changing window.location to something else (we don't do this and it normally reloads the page)
+				    // In this case we don't want to navigate anywhere
+				    log.debug(TAG, "will-navigate", url)
+			    }
 
 			    e.preventDefault()
 		    })
