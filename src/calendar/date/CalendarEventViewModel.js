@@ -62,6 +62,8 @@ import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
+import {arrayEqualsWithPredicate} from "../../api/common/utils/ArrayUtils"
+import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -705,14 +707,16 @@ export class CalendarEventViewModel {
 
 			const newEvent = this._initializeNewEvent()
 			const newAlarms = this.alarms.slice()
-			if (this._eventType === EventType.OWN) {
+			// We want to avoid asking whether to send out updates in case nothing has changed
+			if (this._eventType === EventType.OWN && this._hasChanges(newEvent)) {
 				// It is our own event. We might need to send out invites/cancellations/updates
 				return this._sendNotificationAndSave(askInsecurePassword, askForUpdates, showProgress, newEvent, newAlarms)
 			} else if (this._eventType === EventType.INVITE) {
 				// We have been invited by another person (internal/ unsecure external)
 				return this._respondToOrganizerAndSave(showProgress, assertNotNull(this.existingEvent), newEvent, newAlarms)
 			} else {
-				// This is event in a shared calendar. We cannot send anything because it's not our event.
+				// Either this is an event in a shared calendar. We cannot send anything because it's not our event.
+				// Or no changes were made that require sending updates and we just save other changes.
 				const p = this._saveEvent(newEvent, newAlarms)
 				showProgress(p)
 				return p.then(() => true)
@@ -992,6 +996,9 @@ export class CalendarEventViewModel {
 		return this._eventType === EventType.INVITE
 	}
 
+	/**
+	 * Keep in sync with _hasChanges().
+	 */
 	_initializeNewEvent(): CalendarEvent {
 		// We have to use existing instance to get all the final fields correctly
 		// Using clone feels hacky but otherwise we need to save all attributes of the existing event somewhere and if dialog is
@@ -1049,6 +1056,37 @@ export class CalendarEventViewModel {
 		newEvent.organizer = this.organizer
 		return newEvent
 	}
+
+	/**
+	 * Keep in sync with _initializeNewEvent().
+	 * @param newEvent the new event created from the CalendarEvent properties tracked in this class.
+	 * @returns {boolean} true if changes were made to the event to justify sending updates to attendees.
+	 */
+	_hasChanges(newEvent: CalendarEvent): boolean {
+		// we do not check for the sequence number (as it should be changed with every update) or the default instace properties such as _id
+		return !this.existingEvent
+			|| newEvent.startTime.getTime() !== neverNull(this.existingEvent).startTime.getTime()
+			|| newEvent.description !== this.existingEvent.description
+			|| newEvent.summary !== this.existingEvent.summary
+			|| newEvent.location !== this.existingEvent.location
+			|| newEvent.endTime.getTime() !== neverNull(this.existingEvent).endTime.getTime()
+			|| newEvent.invitedConfidentially !== this.existingEvent.invitedConfidentially
+			|| newEvent.uid !== this.existingEvent.uid
+			|| isDifferentRepeatRule(newEvent.repeatRule, this.existingEvent.repeatRule)
+			|| !arrayEqualsWithPredicate(newEvent.attendees, this.existingEvent.attendees, (a1, a2) => a1.status === a2.status
+				&& a1.address.address === a2.address.address) // we ignore the names
+			|| (newEvent.organizer !== this.existingEvent.organizer && newEvent.organizer?.address
+				!== this.existingEvent.organizer?.address) // we ignore the names
+	}
+}
+
+function isDifferentRepeatRule(r1: ?CalendarRepeatRule, r2: ?CalendarRepeatRule): boolean {
+	return r1 !== r2
+		&& !(r1?.endType === r2?.endType
+			&& r1?.endValue === r2?.endValue
+			&& r1?.frequency === r2?.frequency
+			&& r1?.interval === r2?.interval
+			&& r1?.timeZone === r2?.timeZone)
 }
 
 function addressToMailAddress(address: string, mailboxDetail: MailboxDetail, userController: IUserController): EncryptedMailAddress {
