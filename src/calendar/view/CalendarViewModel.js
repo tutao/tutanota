@@ -318,9 +318,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
 			askInsecurePassword: async () => true,
 			showProgress: noOp,
+			forceUpdates: false
 		})
 	}
-
 
 	_addOrUpdateEvent(calendarInfo: ?CalendarInfo, event: CalendarEvent) {
 		if (calendarInfo) {

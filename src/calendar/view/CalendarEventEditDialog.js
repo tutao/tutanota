@@ -162,7 +162,8 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					.saveAndSend({
 						askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
 						showProgress,
-						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg"),
+						forceUpdates: false
 					})
 					.then((shouldClose) => shouldClose && finish())
 					.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))

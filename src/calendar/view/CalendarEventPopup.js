@@ -18,6 +18,7 @@ import {prepareCalendarDescription} from "../date/CalendarUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {noOp} from "../../api/common/utils/Utils"
 import type {PosRect} from "../../gui/base/Dropdown"
+import {BootIcons} from "../../gui/base/icons/BootIcons"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
@@ -78,6 +79,15 @@ export class CalendarEventPopup implements ModalComponent {
 				help: "delete_action"
 			})
 		}
+		if (!!this._viewModel && this._viewModel.isForceUpdateAvailable()) {
+			this._shortcuts.push({
+				key: Keys.R,
+				exec: () => {
+					this._forceUpdate()
+				},
+				help: "sendUpdates_msg"
+			})
+		}
 
 		this.view = (vnode: Vnode<any>) => {
 			return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
@@ -94,6 +104,17 @@ export class CalendarEventPopup implements ModalComponent {
 				},
 				[
 					m(".flex.flex-end", [
+						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
+							? m(ButtonN, {
+								label: "sendUpdates_msg",
+								click: () => {
+									this._forceUpdate()
+								},
+								type: ButtonType.ActionLarge,
+								icon: () => BootIcons.Progress,
+								colors: ButtonColors.DrawerNav,
+							})
+							: null,
 						!this._isExternal
 							? m(ButtonN, {
 								label: "edit_action",
@@ -165,6 +186,18 @@ export class CalendarEventPopup implements ModalComponent {
 
 	_isDeleteAvailable(): boolean {
 		return this._isPersistentEvent && !!this._viewModel && !this._viewModel.isReadOnlyEvent()
+	}
+
+	async _forceUpdate(): Promise<void>{
+		const viewModel = this._viewModel
+		if(viewModel){
+			const success = await viewModel.forceSaveAndSendUpdates()
+			if (!success){
+				await Dialog.error("errorDuringUpdate_msg")
+			}else {
+				this._close()
+			}
+		}
 	}
 
 	async _deleteEvent(): Promise<void> {

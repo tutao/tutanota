@@ -685,14 +685,28 @@ export class CalendarEventViewModel {
 		])
 	}
 
+	isForceUpdateAvailable(): boolean {
+		return this._eventType === EventType.OWN && this._hasUpdatableAttendees()
+	}
+
+	async forceSaveAndSendUpdates(): Promise<EventCreateResult> {
+		return this.saveAndSend({
+			askForUpdates: () => Promise.resolve("yes"),
+			askInsecurePassword: async () => true,
+			showProgress: noOp,
+			forceUpdates: true
+		})
+	}
+
 	/**
 	 * @reject UserError
 	 */
 	async saveAndSend(
-		{askForUpdates, askInsecurePassword, showProgress}: {
+		{askForUpdates, askInsecurePassword, showProgress, forceUpdates}: {
 			askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 			askInsecurePassword: () => Promise<boolean>,
 			showProgress: ShowProgressCallback,
+			forceUpdates: boolean
 		}
 	): Promise<EventCreateResult> {
 		await this.initialized
@@ -708,7 +722,7 @@ export class CalendarEventViewModel {
 			const newEvent = this._initializeNewEvent()
 			const newAlarms = this.alarms.slice()
 			// We want to avoid asking whether to send out updates in case nothing has changed
-			if (this._eventType === EventType.OWN && this._hasChanges(newEvent)) {
+			if (this._eventType === EventType.OWN && (forceUpdates || this._hasChanges(newEvent))) {
 				// It is our own event. We might need to send out invites/cancellations/updates
 				return this._sendNotificationAndSave(askInsecurePassword, askForUpdates, showProgress, newEvent, newAlarms)
 			} else if (this._eventType === EventType.INVITE) {
@@ -778,10 +792,14 @@ export class CalendarEventViewModel {
 		}
 	}
 
+	_hasUpdatableAttendees(): boolean {
+		return this._updateModel.bccRecipients().length > 0
+	}
+
 	_sendNotificationAndSave(askInsecurePassword: () => Promise<boolean>, askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 	                         showProgress: ShowProgressCallback, newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<boolean> {
 		// ask for update
-		const askForUpdatesAwait = this._updateModel.bccRecipients().length
+		const askForUpdatesAwait = this._hasUpdatableAttendees()
 			? askForUpdates()
 			: Promise.resolve("no")
 
