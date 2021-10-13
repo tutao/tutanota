@@ -224,7 +224,9 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 		signupViewResolver: {
 			async onmatch() {
 				const {showSignupDialog} = await import("./misc/LoginUtils")
-				showSignupDialog()
+				// We have to manually parse it because mithril does not put hash into args of onmatch
+				const hashParams = m.parseQueryString(location.hash.substring(1))
+				showSignupDialog(hashParams)
 				m.route.set("/login", {noAutoLogin: true})
 				return null
 			}

@@ -24,6 +24,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {UserError} from "../api/main/UserError"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import {showUserError} from "./ErrorHandlerImpl"
+import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 import {locator} from "../api/main/MainLocator"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 
@@ -110,10 +111,16 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 	}
 }
 
-export async function showSignupDialog() {
+export async function showSignupDialog(hashParams: {[string]: string}) {
+	let params: ?SubscriptionParameters
+	if (typeof hashParams.subscription === "string" && typeof hashParams.type === "string" && typeof hashParams.interval === "string") {
+		params = hashParams
+	} else {
+		params = null
+	}
 	showProgressDialog('loading_msg', locator.worker.initialized
 	                                         .then(() => import("../subscription/UpgradeSubscriptionWizard")
-		                                         .then((wizard) => wizard.loadSignupWizard())))
+		                                        .then((wizard) => wizard.loadSignupWizard(params))))
 		.then(dialog => dialog.show())
 
 }

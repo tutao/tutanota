@@ -3,10 +3,11 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionType} from "./SubscriptionUtils"
+import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionUtils"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {SignupForm} from "./SignupForm"
+import {neverNull} from "../api/common/utils/Utils"
 
 
 type ConfirmStatus = {
@@ -45,7 +46,12 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): string {
-		return lang.get("subscription_label")
+		var title = getDisplayNameOfSubscriptionType(this.data.type)
+		if (this.data.type === SubscriptionType.PremiumBusiness || this.data.type === SubscriptionType.TeamsBusiness) {
+			return title + " Business"
+		} else {
+			return title
+		}
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

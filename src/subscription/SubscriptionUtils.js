@@ -38,7 +38,7 @@ export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
 
 export const UpgradeType = {
 	Signup: 'Signup', // during signup
-	Initial: 'Initial', // when logged in into Free account
+	Initial: 'Initial', // when logged into Free account
 	Switch: 'Switch' // switching in paid account
 }
 export type UpgradeTypeEnum = $Values<typeof UpgradeType>;
@@ -211,16 +211,18 @@ export function getBusinessUsageSubscriptionType(subscription: SubscriptionTypeE
 }
 
 /**
- * @returns {string|SubscriptionTypeEnum} the name to show to the user for the current subscription (PremiumBusiness -> Premium etc.)
+ * @returns the name to show to the user for the current subscription
+ * We return 'Premium'/'Teams' for both types private and business and individually append 'business' to it
  */
 export function getDisplayNameOfSubscriptionType(subscription: SubscriptionTypeEnum): string {
 	switch (subscription) {
-		case SubscriptionType.PremiumBusiness:
-			return SubscriptionType.Premium
-		case SubscriptionType.TeamsBusiness:
-			return SubscriptionType.Teams
-		default:
-			return subscription
+		case SubscriptionType.PremiumBusiness: return "Premium"
+		case SubscriptionType.Premium: return "Premium"
+		case SubscriptionType.TeamsBusiness: return "Teams"
+		case SubscriptionType.Teams: return "Teams"
+		case SubscriptionType.Free: return "Free"
+		case SubscriptionType.Pro: return "Pro"
+		default: return "Premium"
 	}
 }
 
