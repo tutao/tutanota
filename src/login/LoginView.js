@@ -33,11 +33,17 @@ export class LoginView {
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
 	// in order to focus it
 	loginForm: DeferredObject<LoginForm>;
+	+_targetPath: string
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 
-	constructor(viewController: ILoginViewModel) {
-		this._viewModel = viewController
-		this._requestedPath = "/mail"
+	/**
+	 * @param viewModel
+	 * @param targetPath which path should the app be redirected to after login is completed
+	 */
+	constructor(viewModel: ILoginViewModel, targetPath: string) {
+		this._viewModel = viewModel
+		this._targetPath = targetPath
+		this._requestedPath = this._targetPath
 
 		this.loginForm = defer()
 		this._moreExpanded = stream(false)
@@ -282,7 +288,7 @@ export class LoginView {
 			// on the support link on our website (https://mail.tutanota.com?action=supportMail)
 			this._requestedPath = `/mail?action=${args.action}`
 		} else {
-			this._requestedPath = "/mail"
+			this._requestedPath = this._targetPath
 		}
 
 		this._handleLoginArguments(args)

@@ -174,7 +174,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			const {locator} = await import ("./api/main/MainLocator")
 			const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, secondFactorHandler)
 			await loginViewModel.init()
-			return new LoginView(loginViewModel)
+			return new LoginView(loginViewModel, "/mail")
 		}, false, true),
 		contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js")
 			.then(module => new module.ContactView())),
