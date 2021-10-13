@@ -90,7 +90,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	_draggedEvent: ?DraggedEvent
 	+_redraw: Stream<void>
 	+_deviceConfig: DeviceConfig
-
+	+_timeZone: string
 
 	constructor(loginController: LoginController, createCalendarEventViewModelCallback: CreateCalendarEventViewModelFunction,
 	            calendarModel: CalendarModel, entityClient: EntityClient, eventController: EventController,
@@ -107,6 +107,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.selectedDate = stream(getStartOfDay(new Date()))
 		this._redraw = stream()
 		this._draggedEvent = null
+		this._timeZone = getTimeZone()
 
 		this._calendarInvitations = calendarInvitations
 
@@ -126,7 +127,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		).load()
 
 		this.selectedDate.map((d) => {
-			const thisMonthStart = getMonth(d, getTimeZone()).start
+			const thisMonthStart = getMonth(d, this._timeZone).start
 
 			const previousMonthDate = new Date(thisMonthStart)
 			previousMonthDate.setMonth(thisMonthStart.getMonth() - 1)
@@ -258,7 +259,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const transientEventUids = new Set(this._transientEvents.map(e => e.uid))
 		for (let day of days) {
 			const shortEventsForDay = []
-			const zone = getTimeZone()
 
 			const events = this._eventsForDays.get(day.getTime()) || []
 
@@ -280,11 +280,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			}
 
 			this._transientEvents
-			    .filter(event => isEventBetweenDays(event, day, day, zone))
+			    .filter(event => isEventBetweenDays(event, day, day, this._timeZone))
 			    .forEach(sortEvent)
 
 			const temporaryEvent = this._draggedEvent?.eventClone
-			if (temporaryEvent && isEventBetweenDays(temporaryEvent, day, day, zone)) {
+			if (temporaryEvent && isEventBetweenDays(temporaryEvent, day, day, this._timeZone)) {
 				sortEvent(temporaryEvent)
 			}
 			shortEvents.push(shortEventsForDay)
@@ -321,10 +321,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 
 	_addOrUpdateEvent(calendarInfo: ?CalendarInfo, event: CalendarEvent) {
-		const zone = getTimeZone()
 		if (calendarInfo) {
 			const eventListId = getListId(event)
-			const eventMonth = getMonth(getEventStart(event, zone), zone)
+			const eventMonth = getMonth(getEventStart(event, this._timeZone), this._timeZone)
 			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
 				// If the month is not loaded, we don't want to put it into events.
 				// We will put it there when we load the month
@@ -336,7 +335,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				this._removeExistingEvent(calendarInfo.longEvents.getLoaded(), event)
 				calendarInfo.longEvents.getLoaded().push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
-					const loadedMonth = getMonth(new Date(firstDayTimestamp), zone)
+					const loadedMonth = getMonth(new Date(firstDayTimestamp), this._timeZone)
 					if (event.repeatRule) {
 						this._addDaysForRecurringEvent(event, loadedMonth)
 					} else {
@@ -420,7 +419,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 
 	async _loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		const month = getMonth(dayInMonth, getTimeZone())
+		const month = getMonth(dayInMonth, this._timeZone)
 		if (!this._loadedMonths.has(month.start.getTime())) {
 			this._loadedMonths.add(month.start.getTime())
 			try {
@@ -463,13 +462,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const newEvents = this._cloneEvents()
 				aggregateShortEvents
 					.filter(e => {
-						const eventStart = getEventStart(e, getTimeZone()).getTime()
+						const eventStart = getEventStart(e, this._timeZone).getTime()
 						return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
 					}) // only events for the loaded month
 					.forEach((e) => {
 						addDaysForEvent(newEvents, e, month)
 					})
-				const zone = getTimeZone()
+				const zone = this._timeZone
 				aggregateLongEvents.forEach((e) => {
 					if (e.repeatRule) {
 						addDaysForRecurringEvent(newEvents, e, month, zone)
@@ -527,7 +526,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return
 		}
 		const newMap = this._cloneEvents()
-		addDaysForRecurringEvent(newMap, event, month, getTimeZone())
+		addDaysForRecurringEvent(newMap, event, month, this._timeZone)
 		this._replaceEvents(newMap)
 	}
 
