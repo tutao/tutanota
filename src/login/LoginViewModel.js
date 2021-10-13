@@ -204,7 +204,9 @@ export class LoginViewModel implements ILoginViewModel {
 	async _updateCachedCredentials() {
 		this._savedInternalCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
 		if (this._savedInternalCredentials.length > 0) {
-			this.displayMode = DisplayMode.Credentials
+			if (this.displayMode !== DisplayMode.DeleteCredentials) {
+				this.displayMode = DisplayMode.Credentials
+			}
 		} else {
 			this.displayMode = DisplayMode.Form
 		}

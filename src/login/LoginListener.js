@@ -39,10 +39,7 @@ export async function registerLoginListener() {
  */
 class LoginListener implements LoginEventHandler {
 	async onLoginSuccess(loggedInEvent: LoggedInEvent): mixed {
-		if (loggedInEvent.sessionType !== SessionType.Login) {
-			return
-		}
-
+		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
 			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
@@ -52,6 +49,10 @@ class LoginListener implements LoginEventHandler {
 			console.log(new Date().toISOString(), "offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
+
+		if (loggedInEvent.sessionType !== SessionType.Login) {
+			return
+		}
 
 		// only show "Tutanota" after login if there is no custom title set
 		if (!logins.getUserController().isInternalUser()) {

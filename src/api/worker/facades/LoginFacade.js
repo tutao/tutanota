@@ -402,14 +402,12 @@ export class LoginFacadeImpl implements LoginFacade {
 			})
 			.then(() => this.loadEntropy())
 			.then(() => {
-				if (permanentLogin) {
-					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
-					// close the event bus and reconnect to make sure we get all missed events
-					if (userIdFromFormerLogin) {
-						this._eventBusClient.tryReconnect(true, true)
-					} else {
-						this._eventBusClient.connect(false)
-					}
+				// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
+				// close the event bus and reconnect to make sure we get all missed events
+				if (userIdFromFormerLogin) {
+					this._eventBusClient.tryReconnect(true, true)
+				} else {
+					this._eventBusClient.connect(false)
 				}
 			})
 			.then(() => this.storeEntropy())

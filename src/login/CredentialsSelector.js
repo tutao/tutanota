@@ -6,7 +6,7 @@ import type {CredentialsInfo} from "../misc/credentials/CredentialsProvider"
 
 export type CredentialsSelectorAttrs = {
 	credentials: $ReadOnlyArray<CredentialsInfo>;
-	onCredentialsSelected: CredentialsInfo => void;
+	onCredentialsSelected: CredentialsInfo => mixed;
 	// will show the delete options if this is provided
 	onCredentialsDeleted?: ?(CredentialsInfo => void);
 }

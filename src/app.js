@@ -97,7 +97,7 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 }
 
 //$FlowFixMe[untyped-import]
-import("./translations/en").then((en) => lang.init(en.default)).then(() => {
+import("./translations/en").then((en) => lang.init(en.default)).then(async () => {
 
 
 	// do this after lang initialized
@@ -163,6 +163,9 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 		}
 	}
 
+	const loginListener = await import("./login/LoginListener")
+	await loginListener.registerLoginListener()
+
 	const paths = applicationPaths({
 		loginViewResolver: createViewResolver(async () => {
 			const {LoginView} = await import("./login/LoginView.js")
@@ -171,8 +174,6 @@ import("./translations/en").then((en) => lang.init(en.default)).then(() => {
 			const {locator} = await import ("./api/main/MainLocator")
 			const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, secondFactorHandler)
 			await loginViewModel.init()
-			const loginListener = await import("./login/LoginListener")
-			await loginListener.registerLoginListener()
 			return new LoginView(loginViewModel)
 		}, false, true),
 		contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js")

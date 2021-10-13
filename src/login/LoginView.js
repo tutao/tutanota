@@ -226,9 +226,9 @@ export class LoginView {
 	_renderCredentialsSelector(): Children {
 		return m(CredentialsSelector, {
 			credentials: this._viewModel.getSavedCredentials(),
-			onCredentialsSelected: c => {
-				this._viewModel.useCredentials(c)
-				this._loginWithProgressDialog()
+			onCredentialsSelected: async c => {
+				await this._viewModel.useCredentials(c)
+				await this._loginWithProgressDialog()
 			},
 			onCredentialsDeleted: this._viewModel.displayMode === DisplayMode.DeleteCredentials
 				? (credentials) => {
@@ -304,9 +304,12 @@ export class LoginView {
 
 		this._viewModel.mailAddress(args.loginWith ?? "")
 		this._viewModel.password("")
-		this.loginForm.promise.then((loginForm: LoginForm) => {
-			loginForm.passwordTextField.domInput.focus()
-		})
+		// We want to focus password field if login field is already filled in
+		if (args.loginWith) {
+			this.loginForm.promise.then((loginForm: LoginForm) => {
+				loginForm.passwordTextField.domInput.focus()
+			})
+		}
 
 		m.redraw()
 	}
