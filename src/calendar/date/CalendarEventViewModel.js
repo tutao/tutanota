@@ -686,16 +686,7 @@ export class CalendarEventViewModel {
 	}
 
 	isForceUpdateAvailable(): boolean {
-		return this._eventType === EventType.OWN && this._hasUpdatableAttendees()
-	}
-
-	async forceSaveAndSendUpdates(): Promise<EventCreateResult> {
-		return this.saveAndSend({
-			askForUpdates: () => Promise.resolve("yes"),
-			askInsecurePassword: async () => true,
-			showProgress: noOp,
-			forceUpdates: true
-		})
+		return this._eventType === EventType.OWN && !this.shouldShowSendInviteNotAvailable() && this._hasUpdatableAttendees()
 	}
 
 	/**
@@ -706,7 +697,7 @@ export class CalendarEventViewModel {
 			askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 			askInsecurePassword: () => Promise<boolean>,
 			showProgress: ShowProgressCallback,
-			forceUpdates: boolean
+			forceUpdates?: boolean // force sending updates to all attendees even if the event is unchanged
 		}
 	): Promise<EventCreateResult> {
 		await this.initialized

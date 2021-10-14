@@ -9,6 +9,7 @@ import {modal} from "../../gui/base/Modal"
 import {EventPreviewView} from "./EventPreviewView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {Dialog} from "../../gui/base/Dialog"
+import type {EventCreateResult} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {UserError} from "../../api/main/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
@@ -83,7 +84,7 @@ export class CalendarEventPopup implements ModalComponent {
 			this._shortcuts.push({
 				key: Keys.R,
 				exec: () => {
-					this._forceUpdate()
+					this._forceSendingUpdatesToAttendees()
 				},
 				help: "sendUpdates_msg"
 			})
@@ -107,11 +108,9 @@ export class CalendarEventPopup implements ModalComponent {
 						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
 							? m(ButtonN, {
 								label: "sendUpdates_msg",
-								click: () => {
-									this._forceUpdate()
-								},
+								click: () => this._forceSendingUpdatesToAttendees(),
 								type: ButtonType.ActionLarge,
-								icon: () => BootIcons.Progress,
+								icon: () => BootIcons.Contacts,
 								colors: ButtonColors.DrawerNav,
 							})
 							: null,
@@ -130,9 +129,7 @@ export class CalendarEventPopup implements ModalComponent {
 						this._isDeleteAvailable()
 							? m(ButtonN, {
 								label: "delete_action",
-								click: () => {
-									this._deleteEvent()
-								},
+								click: () => this._deleteEvent(),
 								type: ButtonType.ActionLarge,
 								icon: () => Icons.Trash,
 								colors: ButtonColors.DrawerNav,
@@ -188,14 +185,21 @@ export class CalendarEventPopup implements ModalComponent {
 		return this._isPersistentEvent && !!this._viewModel && !this._viewModel.isReadOnlyEvent()
 	}
 
-	async _forceUpdate(): Promise<void>{
+	async _forceSendingUpdatesToAttendees(): Promise<void> {
 		const viewModel = this._viewModel
-		if(viewModel){
-			const success = await viewModel.forceSaveAndSendUpdates()
-			if (!success){
-				await Dialog.error("errorDuringUpdate_msg")
-			}else {
-				this._close()
+		if (viewModel) {
+			// we handle askForUpdates here to avoid making a request if not necessary
+			const confirmUpdate = await Dialog.confirm("sendUpdates_msg")
+			if (confirmUpdate) {
+				const success: EventCreateResult = await viewModel.saveAndSend({
+					askForUpdates: () => Promise.resolve("yes"),
+					askInsecurePassword: async () => true,
+					showProgress: noOp,
+					forceUpdates: true
+				})
+				if (success) {
+					this._close()
+				}
 			}
 		}
 	}

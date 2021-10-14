@@ -317,8 +317,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return viewModel.saveAndSend({
 			askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
 			askInsecurePassword: async () => true,
-			showProgress: noOp,
-			forceUpdates: false
+			showProgress: noOp
 		})
 	}
 
