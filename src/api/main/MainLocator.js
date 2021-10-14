@@ -94,7 +94,7 @@ export const locator: MainLocatorType = ({
 			userManagementFacade,
 			contactFormFacade,
 			deviceEncryptionFacade,
-		} = this.worker.getWorkerInterfaceBlah()
+		} = this.worker.getWorkerInterface()
 
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade

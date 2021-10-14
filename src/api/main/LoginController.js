@@ -6,7 +6,6 @@ import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
-import {ProgrammingError} from "../common/error/ProgrammingError"
 import {remove} from "../common/utils/ArrayUtils"
 import {client} from "../../misc/ClientDetector"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
@@ -18,8 +17,11 @@ export interface LoginEventHandler {
 }
 
 export const SessionType = Object.freeze({
+	/* 'Regular' login session. */
 	Login: "Login",
+	/* Temporary session that will only be established for a short time, e.g. when recovering a lost account. */
 	Temporary: "Temporary",
+	/* Login session for which credentials should be stored on the device. */
 	Persistent: "Persistent",
 })
 export type SessionTypeEnum = $Values<typeof SessionType>
