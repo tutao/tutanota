@@ -58,6 +58,7 @@ import {CalendarEventPopup} from "./CalendarEventPopup"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
+import {client} from "../../misc/ClientDetector"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 
@@ -383,7 +384,7 @@ export class CalendarView implements CurrentView {
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
 
-		if (styles.isDesktopLayout()) {
+		if (client.isDesktopDevice()) {
 			calendarViewValues.unshift(
 				{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
 				{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.TableColumns, href: "/calendar/week"}
