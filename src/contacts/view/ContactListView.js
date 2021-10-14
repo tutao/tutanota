@@ -78,7 +78,7 @@ export class ContactListView {
 		this.view = (): Children => {
 			return m(ListColumnWrapper, {
 				headerContent: m(DropDownSelectorN, {
-					label: () => "Sort by",
+					label: "sortBy_label",
 					selectedValue: sortByFirstName,
 					items: [
 						{

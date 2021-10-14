@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-10-07T09:48:02Z",
+	"updated_at": "2021-10-14T06:39:56Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -19,6 +19,7 @@ export default {
 	},
 	"keys": {
 		"about_label": "Über",
+		"accentColor_label": "Akzentfarbe",
 		"acceptInvitation_action": "Einladung annehmen",
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
 		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
@@ -86,6 +87,7 @@ export default {
 		"adminSpam_action": "Spam-Regeln",
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Benutzerverwaltung",
+		"advanced_label": "Erweitert",
 		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Ganztags",
@@ -121,6 +123,7 @@ export default {
 		"available_label": "Verfügbar",
 		"back_action": "Zurück",
 		"balance_label": "Kontostand",
+		"baseTheme_label": "Basisfarbschema",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Geburtstag",
 		"blockExternalContentSender_action": "Absender immer blockieren",
@@ -1229,6 +1232,7 @@ export default {
 		"smsSentOften_msg": "Es wurden zu viele SMS versendet. Bitte frag den Sender der E-Mail, ob er diese erneut schicken kann.",
 		"smsSent_msg": "Die SMS sollte innerhalb von 60s ankommen.",
 		"social_label": "Soziale Netzwerke",
+		"sortBy_label": "Sortieren nach",
 		"spamReports_label": "Spam melden",
 		"spamRuleEnterValue_msg": "Bitte gib einen Wert ein.",
 		"spam_action": "Spam",

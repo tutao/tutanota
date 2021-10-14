@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2021-09-28T13:49:34Z",
+	"updated_at": "2021-10-12T13:35:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -22,6 +22,7 @@ export default {
 	},
 	"keys": {
 		"about_label": "حول ",
+		"accentColor_label": "لون تمييز",
 		"acceptInvitation_action": "قبول الدعوة",
 		"acceptPrivacyPolicyReminder_msg": "يرجى قبول سياسة الخصوصية من خلال تحديد مربع الاختيار.",
 		"acceptPrivacyPolicy_msg": "لقد قرأت وأوافق على {privacyPolicy}.",
@@ -89,6 +90,7 @@ export default {
 		"adminSpam_action": "قوانين البريد المؤذي",
 		"adminSubscription_action": "الاشتراك",
 		"adminUserList_action": "إدارة المستخدم",
+		"advanced_label": "متقدم",
 		"ageConfirmation_msg": "لا يقل عمري عن 16 سنة.",
 		"agenda_label": "اجندة ",
 		"allDay_label": "كل يوم",
@@ -124,6 +126,7 @@ export default {
 		"available_label": "متوافر",
 		"back_action": "العودة",
 		"balance_label": "رصيد ",
+		"baseTheme_label": "نسق أساسي",
 		"bcc_label": "مخفية",
 		"birthday_alt": "تاريخ الميلاد",
 		"blockExternalContentSender_action": "حظر المرسل دائما ",

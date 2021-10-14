@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2021-10-03T14:47:27Z",
+	"updated_at": "2021-10-13T15:21:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -20,6 +20,7 @@ export default {
 	},
 	"keys": {
 		"about_label": "Despre",
+		"accentColor_label": "Culoare de evidențiere",
 		"acceptInvitation_action": "Acceptă invitația",
 		"acceptPrivacyPolicyReminder_msg": "Te rugăm să accepți politica de confidențialitate prin bifarea căsuței.",
 		"acceptPrivacyPolicy_msg": "Am citit și sunt de acord cu {privacyPolicy}.",
@@ -87,6 +88,7 @@ export default {
 		"adminSpam_action": "Reguli de respingere",
 		"adminSubscription_action": "Abonament",
 		"adminUserList_action": "Administrare utilizatori",
+		"advanced_label": "Avansate",
 		"ageConfirmation_msg": "Am cel puțin 16 ani.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Toată Ziua",
@@ -122,6 +124,7 @@ export default {
 		"available_label": "Disponibil",
 		"back_action": "Înapoi",
 		"balance_label": "Suma",
+		"baseTheme_label": "Aspect inițial",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Zi de naștere",
 		"blockExternalContentSender_action": "Blochează mereu expeditorul",

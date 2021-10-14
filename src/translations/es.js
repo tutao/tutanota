@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2021-09-30T08:12:29Z",
+	"updated_at": "2021-10-12T12:49:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -19,6 +19,7 @@ export default {
 	},
 	"keys": {
 		"about_label": "Sobre",
+		"accentColor_label": "Color acentuado",
 		"acceptInvitation_action": "Aceptar invitación",
 		"acceptPrivacyPolicyReminder_msg": "Por favor, acepta la política de privacidad seleccionando la casilla de verificación.",
 		"acceptPrivacyPolicy_msg": "He leído y acepto la {privacyPolicy}.",
@@ -86,6 +87,7 @@ export default {
 		"adminSpam_action": "Reglas para Spam",
 		"adminSubscription_action": "Subscripción",
 		"adminUserList_action": "Gestión de usuario",
+		"advanced_label": "Avanzado",
 		"ageConfirmation_msg": "Soy mayor de 16 años.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Todo el día",
@@ -121,6 +123,7 @@ export default {
 		"available_label": "Disponible",
 		"back_action": "Atrás ",
 		"balance_label": "Saldo",
+		"baseTheme_label": "Tema base",
 		"bcc_label": "Cco",
 		"birthday_alt": "Cumpleaños",
 		"blockExternalContentSender_action": "Bloquear siempre este remitente",
