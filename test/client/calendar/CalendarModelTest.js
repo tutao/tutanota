@@ -789,7 +789,6 @@ o.spec("CalendarModel", function () {
 			const sender = "sender@example.com"
 			const workerMock = new WorkerMock()
 			const workerClient = makeWorkerClient(workerMock)
-			// TODO
 			const calendarFacade = makeCalendarFacade()
 			const model = init({workerClient, calendarFacade})
 

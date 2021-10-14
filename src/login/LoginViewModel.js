@@ -25,7 +25,6 @@ assertMainOrNode()
 
 /**
  * Defines what the view should currently render.
- * @type {{Form: string, DeleteCredentials: string, Credentials: string}}
  */
 export const DisplayMode = Object.freeze({
 	/* Display the stored credentials */
@@ -39,7 +38,6 @@ export type DisplayModeEnum = $Values<typeof DisplayMode>
 
 /**
  * Reflects which state the current login process has.
- * @type {{LogginIn: string, UnknownError: string, AccessExpired: string, InvalidCredentials: string, LoggedIn: string, NotAuthenticated: string}}
  */
 export const LoginState = Object.freeze({
 	/* Log in in process. */

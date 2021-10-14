@@ -2,7 +2,6 @@
 
 /**
  * Enum that describes the different methods for encrypting the intermediate key used for credentials encryption.
- * @type {{DEVICE_LOCK: string, SYSTEM_PASSWORD: string, BIOMETRICS: string}}
  */
 export const CredentialEncryptionMode = Object.freeze({
 	/**
