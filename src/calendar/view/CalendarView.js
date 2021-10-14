@@ -383,14 +383,17 @@ export class CalendarView implements CurrentView {
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
-
-		if (client.isDesktopDevice()) {
+		if (styles.isDesktopLayout()) {
 			calendarViewValues.unshift(
-				{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
 				{name: lang.get("week_label"), value: CalendarViewType.WEEK, icon: Icons.TableColumns, href: "/calendar/week"}
 			)
 		}
-
+		if (client.isDesktopDevice()) {
+			calendarViewValues.unshift(
+				{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
+			)
+		}
+		
 		return calendarViewValues.map(viewType => m(".folder-row.flex-start.plr-l",
 			// undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 			m(".flex-grow.ml-negative-s", m(NavButtonN, {

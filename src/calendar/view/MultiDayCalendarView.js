@@ -344,7 +344,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 					// Browsers which don't support overflow:overlay (looking at you, FF) will shrink the contents of the event grid and it
 					// will shift relative to the header (with indicator). It's noticeable when it's close to borders but it's not as bad
 					// when it's smaller than the grid.
-					width: "92%",
+					width: "50%",
 					// The calendar-long-events-header has a 1px border on the bottom that overlaps this selection indicator
 					// therefore we need to make it +1px thicker so that it looks correct (consistent with the indicator in month view)
 					height: px(SELECTED_DATE_INDICATOR_THICKNESS + 1),
