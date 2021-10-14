@@ -110,7 +110,7 @@ export class WorkerClient implements EntityRestInterface {
 		})
 	}
 
-	getWorkerInterfaceBlah(): WorkerInterface {
+	getWorkerInterface(): WorkerInterface {
 		return exposeRemote<WorkerInterface>(this._queue)
 	}
 

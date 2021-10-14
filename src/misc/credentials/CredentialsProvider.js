@@ -68,7 +68,7 @@ export interface CredentialsStorage {
 	loadAll(): Array<PersistentCredentials>;
 
 	/**
-	 * Deletes any stored credentials for {@param userId}.
+	 * Deletes any stored credentials for {@param. userId}.
 	 * @param userId
 	 */
 	deleteByUserId(userId: Id): void;

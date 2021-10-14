@@ -180,9 +180,9 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async useCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
-		const credentials = await this._credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
-		if (credentials) {
-			this._autoLoginCredentials = credentials
+		const credentialsInfo = await this._credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
+		if (credentialsInfo) {
+			this._autoLoginCredentials = credentialsInfo
 			this.displayMode = DisplayMode.Credentials
 		}
 	}
@@ -202,6 +202,13 @@ export class LoginViewModel implements ILoginViewModel {
 	async deleteCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
 		let credentials
 		try {
+			/**
+			 * We have to decrypt the credentials here (and hence deal with any potential errors), because :LoginController.deleteOldSession
+			 * expects the full credentials. The reason for this is that the accessToken contained within credentials has a double function:
+			 * 1. It is used as an actual access token to re-authenticate
+			 * 2. It is used as a session ID
+			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
+			 */
 			credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {

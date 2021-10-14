@@ -3,11 +3,27 @@
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, generateIV} from "../crypto/Aes"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 
+/* Facade to interact with encryption mechanisms using device capabilities. You can use this facade if you need to encrypt data from the
+*  main thread - the facade will delegate all the actual encryption operations to the native thread.
+* */
 export interface DeviceEncryptionFacade {
+	/**
+	 * Generates an encryption key.
+	 */
 	generateKey(): Promise<Uint8Array>;
 
+	/**
+	 * Encrypts {param data} using {param deviceKey}.
+	 * @param deviceKey Key used for encryption - key might be encrypted and/or protected by device specific mechanisms.
+	 * @param data Data to encrypt.
+	 */
 	encrypt(deviceKey: Uint8Array, data: Uint8Array): Promise<Uint8Array>;
 
+	/**
+	 * Decrypts {param encryptedData} using {param deviceKey}.
+	 * @param deviceKey Key used for encryption - key might be encrypted and/or protected by device specific mechanisms.
+	 * @param encryptedData Data to be decrypted.
+	 */
 	decrypt(deviceKey: Uint8Array, encryptedData: Uint8Array): Promise<Uint8Array>;
 }
 
