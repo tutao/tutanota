@@ -51,8 +51,8 @@ export interface CredentialsEncryption {
  */
 export interface CredentialsStorage {
 	/**
-	 * Stores {@param encryptedCredentials}. If another set of credentials exists for the same userId, it will be overwritten.
-	 * @param encryptedCredentials
+	 * Stores {@param persistentCredentials}. If another set of credentials exists for the same userId, it will be overwritten.
+	 * @param persistentCredentials
 	 */
 	store(persistentCredentials: PersistentCredentials): void;
 
@@ -68,7 +68,7 @@ export interface CredentialsStorage {
 	loadAll(): Array<PersistentCredentials>;
 
 	/**
-	 * Deletes any stored credentials for {@param. userId}.
+	 * Deletes any stored credentials for {@param userId}.
 	 * @param userId
 	 */
 	deleteByUserId(userId: Id): void;
