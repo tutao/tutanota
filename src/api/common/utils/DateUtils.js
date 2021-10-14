@@ -79,7 +79,7 @@ export function incrementDate(date: Date, byValue: number): Date {
 
 export function incrementMonth(d: Date, byValue: number): Date {
 	const date = new Date(d)
-	date.setDate(date.getMonth() + byValue)
+	date.setMonth(date.getMonth() + byValue)
 	return date
 }
 
