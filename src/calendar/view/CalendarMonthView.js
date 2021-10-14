@@ -171,14 +171,21 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 						this._monthDom = vnode.dom
 					}
 				},
-				onmousemove: mouseEvent => {
+				onmousemove: (mouseEvent) => {
+					mouseEvent.redraw = false
 					const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
 					this._lastMousePos = posAndBoundsFromMouseEvent
 					this._dayUnderMouse = getDateFromMousePos(posAndBoundsFromMouseEvent, weeks.map(week => week.map(day => day.date)))
 					this._eventDragHandler.handleDrag(this._dayUnderMouse, posAndBoundsFromMouseEvent)
 				},
-				onmouseup: () => this._endDrag(),
-				onmouseleave: () => this._endDrag(),
+				onmouseup: (mouseEvent) => {
+					mouseEvent.redraw = false
+					this._endDrag()
+				},
+				onmouseleave: (mouseEvent) => {
+					mouseEvent.redraw = false
+					this._endDrag()
+				},
 			}, weeks.map((week) => {
 				return m(".flex.flex-grow.rel", {
 					key: week[0].date.getTime()
