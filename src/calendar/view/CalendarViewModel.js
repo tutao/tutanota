@@ -88,7 +88,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Events that have been dropped but still need to be rendered as temporary while waiting for entity updates.
 	+_transientEvents: Array<CalendarEvent>
 	_draggedEvent: ?DraggedEvent
-	+_redraw: Stream<void>
+	+_redrawStream: Stream<void>
 	+_deviceConfig: DeviceConfig
 	+_timeZone: string
 
@@ -105,7 +105,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._deviceConfig = deviceConfig
 		this._hiddenCalendars = new Set(this._deviceConfig.getHiddenCalendars(userId))
 		this.selectedDate = stream(getStartOfDay(new Date()))
-		this._redraw = stream()
+		this._redrawStream = stream()
 		this._draggedEvent = null
 		this._timeZone = getTimeZone()
 
@@ -170,7 +170,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get redraw(): Stream<void> {
-		return this._redraw
+		return this._redrawStream
 	}
 
 	onDragStart(originalEvent: CalendarEvent, timeToMoveBy: number) {
@@ -552,7 +552,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._replaceEvents(newMap)
 	}
 
-
+	_redraw() {
+		// Need to pass some argument to make it a "set" operation
+		this._redrawStream(undefined)
+	}
 }
 
 

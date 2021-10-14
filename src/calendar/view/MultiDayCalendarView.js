@@ -129,14 +129,21 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 					this._redrawIntervalId = null
 				}
 			},
-			onmousemove: ev => {
-				this._lastMousePos = getPosAndBoundsFromMouseEvent(ev)
+			onmousemove: (mouseEvent) => {
+				mouseEvent.redraw = false
+				this._lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
 				if (this._dateUnderMouse) {
 					return this._eventDragHandler.handleDrag(this._dateUnderMouse, this._lastMousePos)
 				}
 			},
-			onmouseup: () => this._endDrag(),
-			onmouseleave: () => this._endDrag(),
+			onmouseup: (mouseEvent) => {
+				mouseEvent.redraw = false
+				this._endDrag()
+			},
+			onmouseleave: (mouseEvent) => {
+				mouseEvent.redraw = false
+				this._endDrag()
+			},
 		}, [
 			styles.isDesktopLayout()
 				? this.renderHeaderDesktop(attrs, thisWeek.days, thisWeek, mainWeek)

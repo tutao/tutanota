@@ -18,7 +18,7 @@ import {
 	TEMPORARY_EVENT_OPACITY
 } from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {mapNullable, neverNull} from "../../api/common/utils/Utils"
+import {downcast, mapNullable, neverNull} from "../../api/common/utils/Utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"
@@ -55,6 +55,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 					m.redraw()
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
+					downcast(mouseEvent).redraw = false
 					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), 4)
 					attrs.setTimeUnderMouse(time)
 				}
