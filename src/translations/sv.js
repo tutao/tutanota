@@ -11,10 +11,11 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-09-28T12:49:36Z",
+	"updated_at": "2021-10-12T18:01:40Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
+		"accentColor_label": "Accentfärg",
 		"acceptInvitation_action": "Acceptera inbjudan",
 		"acceptPrivacyPolicyReminder_msg": "Acceptera sekretesspolicyn genom att markera kryssrutan.",
 		"acceptPrivacyPolicy_msg": "Jag har läst och godkänner {privacyPolicy}.",
@@ -82,6 +83,7 @@ export default {
 		"adminSpam_action": "Spamregler",
 		"adminSubscription_action": "Abonnemang",
 		"adminUserList_action": "Användarhantering",
+		"advanced_label": "Avancerad",
 		"ageConfirmation_msg": "Jag är 16 år eller äldre.",
 		"agenda_label": "Agenda",
 		"allDay_label": "Hela Dagen",
@@ -117,6 +119,7 @@ export default {
 		"available_label": "Tillgänglig",
 		"back_action": "Tillbaka",
 		"balance_label": "Balans",
+		"baseTheme_label": "Grundtema",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Födelsedag",
 		"blockExternalContentSender_action": "Blockera alltid avsändaren",

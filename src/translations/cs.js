@@ -13,10 +13,11 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-09-29T07:23:47Z",
+	"updated_at": "2021-10-13T05:25:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
+		"accentColor_label": "Akcentová barva",
 		"acceptInvitation_action": "Připojit se",
 		"acceptPrivacyPolicyReminder_msg": "Přijměte zásady ochrany osobních údajů zaškrtnutím políčka.",
 		"acceptPrivacyPolicy_msg": "Přečetl jsem si a souhlasím s {privacyPolicy}.",
@@ -119,6 +120,7 @@ export default {
 		"available_label": "K dispozici",
 		"back_action": "Zpět",
 		"balance_label": "Zůstatek",
+		"baseTheme_label": "Základní schéma",
 		"bcc_label": "Skrytá kopie",
 		"birthday_alt": "Narozeniny",
 		"blockExternalContentSender_action": "Vždy blokovat odesílatele",
