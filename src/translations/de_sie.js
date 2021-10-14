@@ -1346,7 +1346,7 @@ export default {
 		"updateAdminshipLocalAdminGroupError_msg": "Sie können den Admin einer lokalen Admin-Gruppe nicht ändern.",
 		"updateAvailable_label": "Neue Version für Tutanota Desktop verfügbar ({version})",
 		"updateFound_label": "Es ist eine neue Version verfügbar.",
-		"updateOwnAdminship_msg": "Sie können den Admin nicht ändern.",
+		"updateOwnAdminship_msg": "Sie können den Admin Ihres Benutzers nicht ändern.",
 		"updatePaymentDataBusy_msg": "Die Bezahldaten werden überprüft. Bitte haben Sie etwas Geduld, dies kann bis zu einer Minute dauern.",
 		"update_action": "Aktualisieren",
 		"upgradeConfirm_msg": "Bestätigen Sie Ihre Bestellung!",
