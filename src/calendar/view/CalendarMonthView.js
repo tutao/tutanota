@@ -47,6 +47,7 @@ import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, EventsOnDays
 import {CalendarViewType} from "./CalendarViewModel"
 import {Time} from "../../api/common/utils/Time"
 import {neverNull} from "../../api/common/utils/Utils"
+import {client} from "../../misc/ClientDetector"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -216,7 +217,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			{
 				key: day.date.getTime(),
 				onclick: (e) => {
-					if (styles.isDesktopLayout()) {
+					if (client.isDesktopDevice()) {
 						const newDate = new Date(day.date)
 						let hour = new Date().getHours()
 						if (hour < 23) {
