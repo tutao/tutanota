@@ -39,10 +39,12 @@ process.on('exit', () => {
 const oldLog = console.log
 const oldError = console.error
 const oldWarn = console.warn
+const oldTrace = console.trace
 
 ;(console: any).log = (...args) => oldLog(`[${new Date().toISOString()}]`, ...args)
 ;(console: any).error = (...args) => oldError(`[${new Date().toISOString()}]`, ...args)
 ;(console: any).warn = (...args) => oldWarn(`[${new Date().toISOString()}]`, ...args)
+;(console: any).trace = (...args) => oldTrace(`[${new Date().toISOString()}]`, ...args)
 
 if (process.platform === "win32") {
 	try {
