@@ -231,7 +231,7 @@ export class LoginView {
 
 	_renderCredentialsSelector(): Children {
 		return [
-			m(".small.center.statusTextColor" + liveDataAttrs(), lang.getMaybeLazy(this._viewModel.helpText)),
+			m(".small.center.statusTextColor.pt" + liveDataAttrs(), lang.getMaybeLazy(this._viewModel.helpText)),
 			m(CredentialsSelector, {
 				credentials: this._viewModel.getSavedCredentials(),
 				onCredentialsSelected: async c => {
