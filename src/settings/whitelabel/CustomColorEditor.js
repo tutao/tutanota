@@ -12,12 +12,23 @@ import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {CustomColorEditorPreview} from "./CustomColorEditorPreview"
 import {downcast} from "../../api/common/utils/Utils"
 import {expandHexTriplet} from "../../gui/base/Color"
+import {groupBy} from "../../api/common/utils/ArrayUtils"
+import {px} from "../../gui/size"
 
 export type SimpleCustomColorEditorAttrs = {
 	model: CustomColorsEditorViewModel,
 }
 
+export type ColorCategories = {
+	content: Array<CustomColor>,
+	header: Array<CustomColor>,
+	navigation: Array<CustomColor>,
+	other: Array<CustomColor>
+}
+
 export const COLOR_PICKER_WIDTH = 400
+export const ADVANCED_TEXTFIELD_WIDTH = 344
+export const CATEGORY_WIDTH = 750
 
 /**
  *  Editor that simplifies the existing whitelabel editor, allowing for easy changes to accent color and base theme, also showing a preview
@@ -50,10 +61,23 @@ export class CustomColorEditor implements MComponent<SimpleCustomColorEditorAttr
 			disabled: true
 		}
 
-		const colorFields = model.customColors
-		const nbrOfLeftColors = Math.ceil(colorFields.length / 2.0)
-		const leftColumnColors = colorFields.slice(0, nbrOfLeftColors)
-		const rightColumnColors = colorFields.slice(nbrOfLeftColors)
+
+		/*
+		Currently:
+			Button:
+			Content:
+			Elevated:
+			Header:
+			List:
+			Modal:
+			Navigation:
+
+		Then:
+			Content: Content, List
+			Header: Header
+			Navigation: Navigation
+			Other: Button, Elevated, Modal
+		 */
 
 		return m("", [
 			m("", [
@@ -84,16 +108,48 @@ export class CustomColorEditor implements MComponent<SimpleCustomColorEditorAttr
 					expanded: this._advancedSettingsEnabled,
 				}, [
 					m(".small.mt", lang.get('customColorsInfo_msg')),
-					m(".wrapping-row", [
-						m("", leftColumnColors.map(color => renderCustomColorField(model, color))),
-						m("", rightColumnColors.map(color => renderCustomColorField(model, color)))
+					m(".flex.flex-column", [
+						Object.entries(this._getGroupedColors(model.customColors))
+						     .map(([name, colors]) => {
+							     return m("", [
+								     m(".h4.mt-l", capitalizeFirstLetterOfString(name)),
+								     m(".editor-border.text-break.wrapping-row", {style: {maxWidth: px(CATEGORY_WIDTH)}}, [
+									     downcast(colors).map(c => renderCustomColorField(model, c))
+								     ])
+							     ])
+						     })
 					])
 				])
 			])
 		])
 	}
-}
 
+	/**
+	 *
+	 */
+	_getGroupedColors(colors: $ReadOnlyArray<CustomColor>): ColorCategories {
+		const groupedColors = {
+			content: [],
+			header: [],
+			navigation: [],
+			other: [],
+		}
+
+		for (const color of colors) {
+			if (color.name.startsWith("content") || color.name.startsWith("list")) {
+				groupedColors.content.push(color)
+			} else if (color.name.startsWith("header")) {
+				groupedColors.header.push(color)
+			} else if (color.name.startsWith("navigation")) {
+				groupedColors.navigation.push(color)
+			} else {
+				groupedColors.other.push(color)
+			}
+		}
+
+		return groupedColors
+	}
+}
 
 function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value, defaultValue, valid}: CustomColor): Child {
 	const attrs = {
@@ -102,17 +158,16 @@ function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value
 		injectionsRight:
 			() => renderColorPicker(event => model.addCustomization(name, downcast<HTMLInputElement>(event.target).value),
 				processColorInputValue(value)
-		),
+			),
 		oninput: (val) => {
 			model.addCustomization(name, val)
 		}
 	}
-	return m("", [
+	return m("", {style: {maxWidth: px(ADVANCED_TEXTFIELD_WIDTH)}}, [
 		m(TextFieldN, attrs),
 		renderDefaultColorLine(defaultValue, valid)
 	])
 }
-
 
 function renderColorPicker(onInput: (Event) => mixed, value: string, oncreate?: Vnode<void> => void): Child {
 	return m("input.color-picker.mb-xs.mr-s", {
@@ -149,11 +204,15 @@ function renderDefaultColorLine(defaultColor: string, valid: boolean): Child {
  */
 function processColorInputValue(value) {
 	const isHexTriplet = /^#[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]$/.test(value)
-	if(isHexTriplet) {
+	if (isHexTriplet) {
 		const withoutHash = value.slice(1)
 		return '#' + expandHexTriplet(withoutHash)
 	} else {
 		return value
 	}
+}
+
+function capitalizeFirstLetterOfString(string: string): string {
+	return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
