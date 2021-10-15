@@ -40,7 +40,7 @@ import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFac
 assertMainOrNode()
 
 export type MainLocatorType = {|
-	init: () => void;
+	init: () => Promise<void>;
 	eventController: EventController,
 	search: SearchModel,
 	mailModel: MailModel;

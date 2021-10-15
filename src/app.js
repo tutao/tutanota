@@ -109,7 +109,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	}
 
 	const {locator} = await import("./api/main/MainLocator")
-	locator.init()
+	await locator.init()
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
