@@ -1,6 +1,8 @@
 import express from "express"
 import expressws from "express-ws"
 import http from "http"
+import path from "path"
+import {promises as fs} from "fs"
 
 export class DevServer {
 
@@ -30,6 +32,17 @@ export class DevServer {
 
 		this._setupHMR(app, sockets)
 
+		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
+		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server.
+		app.get("/index.js", async (req, res, next) => {
+			try {
+				const file = await fs.readFile(path.join(this.webRoot, "index.js"), "utf8")
+				const filledFile = `window.tutaoDefaultApiUrl = "http://localhost:9000"` + "\n" + file
+				res.send(filledFile)
+			} catch (e) {
+				next(e)
+			}
+		})
 		// do not change the order of these two lines
 		app.use(express.static(this.webRoot))
 		this._setupSpaRedirect(app)

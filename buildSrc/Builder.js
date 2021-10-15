@@ -15,7 +15,7 @@ import flow_bin from "flow-bin"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
 
-async function createHtml(env) {
+async function createBootstrap(env) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -35,6 +35,10 @@ async function createHtml(env) {
 
 	const template = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
+if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
+    // overriden by js dev server
+    window.env.staticUrl = window.tutaoDefaultApiUrl
+}
 import('./app.js')`
 	await _writeFile(`./build/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
@@ -43,6 +47,24 @@ import('./app.js')`
 
 function _writeFile(targetFile, content) {
 	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+}
+
+function getStaticUrl(stage, mode, host) {
+	if (stage === "local" && mode === "Browser") {
+		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
+		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server
+		// (see DevServer).
+		// This is only relevant for browser environment.
+		return null
+	} else if (stage === 'test') {
+		return 'https://test.tutanota.com'
+	} else if (stage === 'prod') {
+		return 'https://mail.tutanota.com'
+	} else if (stage === 'local') {
+		return "http://" + os.hostname() + ":9000"
+	} else { // host
+		return host
+	}
 }
 
 async function prepareAssets(stage, host, version) {
@@ -67,9 +89,9 @@ async function prepareAssets(stage, host, version) {
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")
 
-	await createHtml(env.create({staticUrl: restUrl, version, mode: "Browser"}))
-	await createHtml(env.create({staticUrl: restUrl, version, mode: "App"}))
-	await createHtml(env.create({staticUrl: restUrl, version, mode: "Desktop"}))
+	for (const mode of ["Browser", "App", "Desktop"]) {
+		await createBootstrap(env.create({staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false}))
+	}
 }
 
 /**
