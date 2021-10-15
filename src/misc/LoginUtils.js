@@ -26,7 +26,6 @@ import {ofClass} from "../api/common/utils/PromiseUtils"
 import {showUserError} from "./ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.

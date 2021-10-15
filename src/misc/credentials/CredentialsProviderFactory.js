@@ -2,11 +2,22 @@
 import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
-import {isAdminClient, isAndroidApp, isDesktop} from "../../api/common/Env"
+import {isAdminClient, isAndroidApp, isApp, isDesktop} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
+
+export async function usingKeychainAuthentication(): Promise<boolean> {
+	if (isApp()) {
+		const {nativeApp} = await import("../../native/common/NativeWrapper")
+		await nativeApp.initialized()
+		// We can only determine OS after native bridge is established
+		return isAndroidApp()
+	} else {
+		return false
+	}
+}
 
 /**
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
@@ -14,7 +25,7 @@ import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
  * @returns {Promise<CredentialsProvider>}
  */
 export async function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade): Promise<ICredentialsProvider> {
-	if (isAndroidApp()) {
+	if (await usingKeychainAuthentication()) {
 		const {nativeApp} = await import("../../native/common/NativeWrapper")
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeApp, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeApp)
