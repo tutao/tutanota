@@ -263,14 +263,17 @@ self.onmessage = function (msg) {
 	} else { // host
 		restUrl = options.host
 	}
-	await Promise.all([
-		createHtml(
-			env.create((options.stage === 'release' || options.stage === 'local') ? null : restUrl, version, "Browser", true),
-		),
-		(options.stage !== 'release')
-			? createHtml(env.create(restUrl, version, "App", true))
-			: null,
-	])
+	await createHtml(
+		env.create({
+			staticUrl: (options.stage === 'release' || options.stage === 'local') ? null : restUrl,
+			version,
+			mode: "Browser",
+			dist: true
+		}),
+	)
+	if (options.stage !== "release") {
+		await createHtml(env.create({staticUrl: restUrl, version, mode: "App", dist: true}))
+	}
 
 	await bundleServiceWorker(chunks, version)
 }
@@ -291,7 +294,7 @@ async function buildDesktopClient(version) {
 	}
 
 	if (options.stage === "release") {
-		await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
+		await createHtml(env.create({staticUrl: "https://mail.tutanota.com", version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopBaseOpts)
 		if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
@@ -300,7 +303,7 @@ async function buildDesktopClient(version) {
 				// Do not notarize test build
 				notarize: false
 			})
-			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
+			await createHtml(env.create({staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true}))
 			await buildDesktop(desktopTestOpts)
 		}
 	} else if (options.stage === "local") {
@@ -317,7 +320,7 @@ async function buildDesktopClient(version) {
 			nameSuffix: "-snapshot",
 			notarize: false
 		})
-		await createHtml(env.create(`http://${addr}:9000`, version, "Desktop", true))
+		await createHtml(env.create({staticUrl: `http://${addr}:9000`, version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopLocalOpts)
 	} else if (options.stage === "test") {
 		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
@@ -325,7 +328,7 @@ async function buildDesktopClient(version) {
 			nameSuffix: "-test",
 			notarize: false
 		})
-		await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true))
+		await createHtml(env.create({staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopTestOpts)
 	} else if (options.stage === "prod") {
 		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
@@ -333,7 +336,7 @@ async function buildDesktopClient(version) {
 			updateUrl: "http://localhost:9000/desktop",
 			notarize: false
 		})
-		await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true))
+		await createHtml(env.create({staticUrl: "https://mail.tutanota.com", version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopProdOpts)
 	} else { // stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
@@ -342,7 +345,7 @@ async function buildDesktopClient(version) {
 			nameSuffix: "-snapshot",
 			notarize: false
 		})
-		await createHtml(env.create(options.host, version, "Desktop", true))
+		await createHtml(env.create({staticUrl: options.host, version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopHostOpts)
 	}
 }

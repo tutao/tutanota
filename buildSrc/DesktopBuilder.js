@@ -133,7 +133,7 @@ async function rollupDesktop(dirname, outDir, version) {
 				requireReturnsDefault: "preferred",
 			}),
 			terser(),
-			preludeEnvPlugin(createEnv(null, version, "Desktop", true))
+			preludeEnvPlugin(createEnv({staticUrl: null, version, mode: "Desktop", dist: true}))
 		]
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})

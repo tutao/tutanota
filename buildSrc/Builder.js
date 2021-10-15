@@ -67,11 +67,9 @@ async function prepareAssets(stage, host, version) {
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")
 
-	return Promise.all([
-		createHtml(env.create(restUrl, version, "Browser")),
-		createHtml(env.create(restUrl, version, "App")),
-		createHtml(env.create(restUrl, version, "Desktop"))
-	])
+	await createHtml(env.create({staticUrl: restUrl, version, mode: "Browser"}))
+	await createHtml(env.create({staticUrl: restUrl, version, mode: "App"}))
+	await createHtml(env.create({staticUrl: restUrl, version, mode: "Desktop"}))
 }
 
 /**
@@ -180,7 +178,7 @@ async function buildAndStartDesktop(log, version) {
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
-			env.preludeEnvPlugin(env.create(null, version, "Desktop", false))
+			env.preludeEnvPlugin(env.create({staticUrl: null, version, mode: "Desktop", dist: false}))
 		],
 	})
 
