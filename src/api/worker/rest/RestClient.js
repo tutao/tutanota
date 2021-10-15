@@ -12,8 +12,7 @@ import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
-import {typedEntries} from "../../common/utils/Utils"
-import {assertNotNull} from "../../common/utils/Utils"
+import {assertNotNull, typedEntries} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
 

@@ -1,120 +1,147 @@
 //@flow
 import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {deferWithHandler, downcast} from "../../../src/api/common/utils/Utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
-import {assertNotResolvedIn, assertResolvedIn} from "../TestUtils"
+import type {SystemTimeout} from "../../../src/misc/Scheduler"
 
 o.spec("SuspensionHandler test", () => {
 
 	let suspensionHandler
 	let workerMock: WorkerImpl
+	let systemTimeout
 
-
-	let restRequest;
 
 	o.beforeEach(() => {
 		workerMock = downcast({
-			infoMessage: (args) => {}
+			infoMessage: o.spy()
 		})
 
-		restRequest = () => Promise.resolve()
-		suspensionHandler = new SuspensionHandler(workerMock, 1)
+		let timeoutFn = () => {}
+		systemTimeout = {
+			setTimeout: o.spy((fn) => {
+				timeoutFn = fn
+			}),
+			clearTimeout: o.spy(),
+			finish: () => timeoutFn()
+		}
+
+		suspensionHandler = new SuspensionHandler(workerMock, downcast<SystemTimeout>(systemTimeout))
+	})
+
+	o.spec("activating suspension", function () {
+
+		o("should prepare callback when not suspended", node(async function () {
+			suspensionHandler._isSuspended = false
+
+			suspensionHandler.activateSuspensionIfInactive(100)
+
+			o(systemTimeout.setTimeout.args[0]).notEquals(null)
+			o(systemTimeout.setTimeout.args[1]).equals(100 * 1000)
+			o(suspensionHandler.isSuspended()).equals(true)
+		}))
+
+		o("should be a no op when suspended", node(async function () {
+			suspensionHandler._isSuspended = true
+			suspensionHandler._hasSentInfoMessage = false
+
+			suspensionHandler.activateSuspensionIfInactive(100)
+
+			o(systemTimeout.setTimeout.callCount).equals(0)
+			o(suspensionHandler.isSuspended()).equals(true)
+			o(workerMock.infoMessage.callCount).equals(0)
+		}))
+
+		o("should go to not suspended state when suspension is complete", node(async function () {
+			suspensionHandler._isSuspended = false
+
+			suspensionHandler.activateSuspensionIfInactive(100)
+
+			systemTimeout.finish()
+
+			o(suspensionHandler.isSuspended()).equals(false)
+		}))
+
+		o("should send suspend notification", node(async function () {
+			suspensionHandler._isSuspended = false
+			suspensionHandler._hasSentInfoMessage = false
+
+			suspensionHandler.activateSuspensionIfInactive(100)
+
+			o(workerMock.infoMessage.callCount).equals(1)
+		}))
+
+		o("should not send suspend notification", node(async function () {
+			suspensionHandler._isSuspended = false
+			suspensionHandler._hasSentInfoMessage = true
+
+			suspensionHandler.activateSuspensionIfInactive(100)
+
+			o(workerMock.infoMessage.callCount).equals(0)
+		}))
 	})
 
 
-	o("activate suspension", node(async function () {
-		o(suspensionHandler.isSuspended()).equals(false)
+	o.spec("defer request", function () {
+		o("should not defer request when not suspended", node(async function () {
+			suspensionHandler._isSuspended = false
+			const request = o.spy(() => Promise.resolve("ok"))
 
-		const beforeTime1 = Date.now()
-		suspensionHandler.activateSuspensionIfInactive(100)
-		const deferredRequest1 = suspensionHandler.deferRequest(restRequest)
+			const returnValue = await suspensionHandler.deferRequest(request)
 
-		await assertNotResolvedIn(10, deferredRequest1)
+			o(request.callCount).equals(1)
+			o(returnValue).equals("ok")
+		}))
 
-		o(suspensionHandler.isSuspended()).equals(true)
-		o(suspensionHandler._deferredRequests.length).equals(1)
-		await deferredRequest1
-		checkSuspensionTime(beforeTime1, 100)
-		o(suspensionHandler.isSuspended()).equals(false)
+		o("should defer request when suspended", node(async function () {
+			suspensionHandler._isSuspended = true
+			const request = o.spy(() => Promise.resolve("ok"))
 
-		// activating again should have the exact same behaviour
-		const beforeTime2 = Date.now()
-		suspensionHandler.activateSuspensionIfInactive(50)
-		const deferredRequest2 = suspensionHandler.deferRequest(restRequest)
+			const returnedPromise = suspensionHandler.deferRequest(request)
+			suspensionHandler._deferredRequests[0].resolve()
+			const returnValue = await returnedPromise
 
-		await assertNotResolvedIn(10, deferredRequest2)
-
-		o(suspensionHandler.isSuspended()).equals(true)
-		o(suspensionHandler._deferredRequests.length).equals(1)
-		await deferredRequest2
-		checkSuspensionTime(beforeTime2, 50)
-		o(suspensionHandler.isSuspended()).equals(false)
-
-	}))
-
-
-	o("handle defer suspension not active", node(async function () {
-		const deferredRequest = suspensionHandler.deferRequest(restRequest)
-		o(suspensionHandler.isSuspended()).equals(false)
-		await assertResolvedIn(10, deferredRequest)
-	}))
-
-	o("handle multiple suspensions", node(async function () {
-		let firstCalled = false
-		let secondCalled = false
-		const request1 = () => {
-			firstCalled = true
-			o(secondCalled).equals(false)("Second request was resolved before the first one")
-			return Promise.resolve()
-		}
-
-		const request2 = () => {
-			secondCalled = true
-			o(firstCalled).equals(true)("First request was not resolved before the second one")
-			return Promise.resolve()
-		}
-
-		const beforeTime = Date.now()
-		suspensionHandler.activateSuspensionIfInactive(100)
-		const deferredRequest1 = suspensionHandler.deferRequest(request1)
-
-		suspensionHandler.activateSuspensionIfInactive(50)
-		const deferredRequest2 = suspensionHandler.deferRequest(request2)
-		await delay(50)
-		o(suspensionHandler._deferredRequests.length).equals(2)
-		o(suspensionHandler.isSuspended()).equals(true)
-		await assertNotResolvedIn(10, deferredRequest1, deferredRequest2)
-		await deferredRequest2
-		checkSuspensionTime(beforeTime, 100)
-		o(suspensionHandler.isSuspended()).equals(false)
-		o(suspensionHandler._deferredRequests.length).equals(0)
-	}))
-
-	o("deferred request throws exception", async () => {
-		suspensionHandler.activateSuspensionIfInactive(100)
-		const d1 = suspensionHandler.deferRequest(() => Promise.resolve("noice"))
-		const d2 = suspensionHandler.deferRequest(() => { throw "oi" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
-		const d3 = suspensionHandler.deferRequest(() => Promise.resolve("'ken oath"))
-		const d4 = suspensionHandler.deferRequest(() => { throw "karn" }).catch(e => ({exception: e})) // no exception should be thrown anywhere
-
-		const returned1 = await d1
-		const caught1 = await d2
-		const returned2 = await d3
-		const caught2 = await d4
-
-		o(returned1).equals("noice")
-		o(returned2).equals("'ken oath")
-		o(caught1).deepEquals({exception: "oi"})
-		o(caught2).deepEquals({exception: "karn"})
+			o(request.callCount).equals(1)
+			o(returnValue).equals("ok")
+		}))
 	})
 
+	o.spec("suspension complete handler", node(function () {
+		o("should execute suspended requests in order and reset", async function () {
+			const results = []
+			const request1 = o.spy(async () => {
+				results.push("ok!")
+			})
+			const deferral1 = deferWithHandler(request1)
+
+			const request2 = o.spy(async () => {
+				results.push("wow!")
+			})
+			const deferral2 = deferWithHandler(request2)
+
+			suspensionHandler._deferredRequests.push(deferral1)
+			suspensionHandler._deferredRequests.push(deferral2)
+
+			await suspensionHandler._onSuspensionComplete()
+
+			o(results).deepEquals(["ok!", "wow!"])("Requests were executed in order")
+			o(suspensionHandler._deferredRequests.length).equals(0)("Requests have been reset")
+		})
+
+		o("should ignore rejecting requests and keep going", node(async function () {
+			const requestThatRejects = o.spy(() => Promise.reject("oh no!"))
+			const requestThatResolves = o.spy(() => Promise.resolve("ok!"))
+			const deferralThatRejects = deferWithHandler(requestThatRejects)
+			const deferralThatResolves = deferWithHandler(requestThatResolves)
+
+			suspensionHandler._deferredRequests.push(deferralThatRejects)
+			suspensionHandler._deferredRequests.push(deferralThatResolves)
+
+			// No exception was thrown, and following request were completed
+			await suspensionHandler._onSuspensionComplete()
+
+			o(requestThatRejects.callCount).equals(1)
+			o(requestThatResolves.callCount).equals(1)
+		}))
+	}))
 })
-
-
-function checkSuspensionTime(startTime: number, expectedSuspensionTime) {
-	const diff = Date.now() - startTime
-	o(diff >= expectedSuspensionTime).equals(true)
-	o(diff <= (expectedSuspensionTime + 10)).equals(true)
-}

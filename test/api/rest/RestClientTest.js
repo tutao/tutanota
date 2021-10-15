@@ -3,7 +3,6 @@ import o from "ospec"
 import {isSuspensionResponse, RestClient} from "../../../src/api/worker/rest/RestClient"
 import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
-import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {downcast} from "../../../src/api/common/utils/Utils"
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
@@ -11,9 +10,14 @@ const SERVER_TIMESTAMP = 1626095919000
 
 o.spec("rest client", function () {
 	env.staticUrl = "http://localhost:3000"
-	const worker = downcast({})
 
-	let rc = new RestClient(new SuspensionHandler(worker))
+	const suspensionHandlerMock = {
+		activateSuspensionIfInactive: o.spy(),
+		isSuspended: o.spy(() => false),
+		deferRequest: o.spy(request => request())
+	}
+
+	const restClient = new RestClient(downcast(suspensionHandlerMock))
 
 	o.spec("integration tests", node(function () {
 
@@ -44,7 +48,7 @@ o.spec("rest client", function () {
 
 				res.send(responseText)
 			})
-			const res = await rc.request("/get/json", HttpMethod.GET, {}, {}, null, MediaType.Json)
+			const res = await restClient.request("/get/json", HttpMethod.GET, {}, {}, null, MediaType.Json)
 			o(res).equals(responseText)
 		})
 
@@ -58,7 +62,7 @@ o.spec("rest client", function () {
 				res.send()
 				done()
 			})
-			rc.request("/get/with-body", HttpMethod.GET, {}, {}, request, MediaType.Json)
+			restClient.request("/get/with-body", HttpMethod.GET, {}, {}, request, MediaType.Json)
 		})
 
 		o("GET binary", function (done) {
@@ -72,7 +76,7 @@ o.spec("rest client", function () {
 
 				res.send(response)
 			})
-			rc.request("/get/binary", HttpMethod.GET, {}, {}, null, MediaType.Binary).then(res => {
+			restClient.request("/get/binary", HttpMethod.GET, {}, {}, null, MediaType.Binary).then(res => {
 				o(res instanceof Uint8Array).equals(true)
 				o(Array.from((res: any))).deepEquals(Array.from(response))
 				done()
@@ -104,7 +108,7 @@ o.spec("rest client", function () {
 
 					res.send(responseText)
 				})
-				rc.request(url, method, {}, {}, requestText, MediaType.Json).then(res => {
+				restClient.request(url, method, {}, {}, requestText, MediaType.Json).then(res => {
 					o(res).equals(responseText)
 					done()
 				})
@@ -134,7 +138,7 @@ o.spec("rest client", function () {
 
 					res.send(response)
 				})
-				rc.request(url, method, {}, {}, new Uint8Array(request), MediaType.Binary).then(res => {
+				restClient.request(url, method, {}, {}, new Uint8Array(request), MediaType.Binary).then(res => {
 					o(res instanceof Uint8Array).equals(true)
 					o(Array.from((res: any))).deepEquals(Array.from(response))
 					done()
@@ -159,7 +163,7 @@ o.spec("rest client", function () {
 						res.set("Date", SERVER_TIME_IN_HEADER)
 						res.send()
 					})
-					rc.request(url, method, {}, {}, null, null).then(res => {
+					restClient.request(url, method, {}, {}, null, null).then(res => {
 						o(res).equals(undefined)
 						resolve()
 					})
@@ -181,12 +185,12 @@ o.spec("rest client", function () {
 						res.set("Date", SERVER_TIME_IN_HEADER)
 						res.status(205).send() // every status code !== 200 is currently handled as error
 					})
-					rc.request(url, method, {}, {}, null, null)
-					  .then(reject)
-					  .catch(e => {
-						  o(e instanceof ResourceError).equals(true)
-						  resolve()
-					  })
+					restClient.request(url, method, {}, {}, null, null)
+					          .then(reject)
+					          .catch(e => {
+						          o(e instanceof ResourceError).equals(true)
+						          resolve()
+					          })
 				})
 			}
 		}
@@ -194,7 +198,7 @@ o.spec("rest client", function () {
 		o("get time successful request", async () => {
 			const test = testEmptyBody("GET")
 			await test()
-			const timestamp = rc.getServerTimestampMs()
+			const timestamp = restClient.getServerTimestampMs()
 			// Adjust for possible variance in date times
 			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
 		})
@@ -202,7 +206,7 @@ o.spec("rest client", function () {
 		o("get time error request", async () => {
 			const test = testError("GET")
 			await test()
-			const timestamp = rc.getServerTimestampMs()
+			const timestamp = restClient.getServerTimestampMs()
 			// Adjust for possible variance in date times
 			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
 		})
