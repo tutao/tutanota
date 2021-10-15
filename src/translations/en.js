@@ -1414,9 +1414,13 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"credentialsEncryptionMode_label": "Credentials encryption mode",
-		"credentialsEncryptionModeBiometrics_label": "Biometrics",
-		"credentialsEncryptionModeDeviceCredentials_label": "Device credentials",
-		"credentialsEncryptionModeDeviceLock_label": "Device lock",
+		"credentialsEncryptionModeDeviceLock_label": "Automatic",
+		"credentialsEncryptionModeDeviceLockHelp_msg": "Automatically unlocked when device is turned on",
+		"credentialsEncryptionModeDeviceCredentials_label": "System password or biometrics",
+		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "Password from your device or biometric authentication, if available",
+		"credentialsEncryptionModeBiometrics_label": "Biometrics only",
+		"credentialsEncryptionModeBiometricsHelp_msg": "Advanced. Most secure but credentials are invalidated when biometric settings are changed",
+		"credentialsEncryptionModeSelection_msg": "The credentials are stored encrypted on your device. How would you like to unlock them in the future?",
 		"credentialsKeyInvalidated_msg": "System keychain has been invalidated. Deleting stored credentials.",
 		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}"
 	}

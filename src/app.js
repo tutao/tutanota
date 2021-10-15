@@ -5,7 +5,7 @@ import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import "./gui/main-styles"
-import {assertMainOrNodeBoot, bootFinished, isAndroidApp, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import type {lazy} from "./api/common/utils/Utils"
 import {downcast, neverNull} from "./api/common/utils/Utils"
@@ -170,24 +170,25 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 
 	styles.init()
 
+
+	const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
 	/**
 	 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
 	 * This code can (and will) be removed once all users have migrated.
 	 */
-	if (isApp()) {
-		const {nativeApp} = await import("./native/common/NativeWrapper")
+	if (await usingKeychainAuthentication()) {
 		// We can only determine platform after we establish native bridge
-		await nativeApp.initialized()
 		const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
 		const hasCredentials = deviceConfig.loadAll().length > 0
-		if (isAndroidApp() && !hasAlreadyMigrated && hasCredentials) {
+		if (!hasAlreadyMigrated && hasCredentials) {
 			const migrationModule = await import("./misc/credentials/CredentialsMigration")
+			const {nativeApp} = await import("./native/common/NativeWrapper")
 			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeApp)
 			await migration.migrateCredentials()
-			const {showCredentialsEncryptionDialog} = await import("./gui/dialogs/SelectCredentialsEncryptionModeDialog")
+			const {showCredentialsEncryptionModeDialog} = await import("./gui/dialogs/SelectCredentialsEncryptionModeDialog")
 			// We need to render root to show the dialog
 			m.mount(neverNull(document.body), root)
-			await showCredentialsEncryptionDialog(locator.credentialsProvider)
+			await showCredentialsEncryptionModeDialog(locator.credentialsProvider)
 		}
 	}
 

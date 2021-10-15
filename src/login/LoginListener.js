@@ -29,7 +29,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {LockedError} from "../api/common/error/RestError"
 import {ofClass} from "../api/common/utils/PromiseUtils"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
-import {showCredentialsEncryptionDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
+import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
+import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 
 export async function registerLoginListener(credentialsProvider: ICredentialsProvider) {
 	logins.registerHandler(new LoginListener(credentialsProvider))
@@ -76,9 +77,11 @@ class LoginListener implements LoginEventHandler {
 		notifications.requestPermission()
 
 
-		if (isAndroidApp() && loggedInEvent.sessionType === SessionType.Persistent && this._credentialsProvider.getCredentialsEncryptionMode()
-			== null) {
-			await showCredentialsEncryptionDialog(this._credentialsProvider)
+		if (loggedInEvent.sessionType === SessionType.Persistent
+			&& await usingKeychainAuthentication()
+			&& this._credentialsProvider.getCredentialsEncryptionMode() == null
+		) {
+			await showCredentialsEncryptionModeDialog(this._credentialsProvider)
 		}
 
 		// Do not wait

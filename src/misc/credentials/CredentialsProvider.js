@@ -2,8 +2,7 @@
 
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
-import {assertNotNull, typedValues} from "../../api/common/utils/Utils"
-import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
+import {assertNotNull} from "../../api/common/utils/Utils"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -201,6 +200,10 @@ export class CredentialsProvider implements ICredentialsProvider {
 	}
 
 	async setCredentialsEncryptionMode(encryptionMode: CredentialEncryptionModeEnum): Promise<void> {
+		if (encryptionMode === this.getCredentialsEncryptionMode()) {
+			return
+		}
+
 		const oldKeyEncrypted = this._credentialsStorage.getCredentialsEncryptionKey()
 
 		if (oldKeyEncrypted) {
