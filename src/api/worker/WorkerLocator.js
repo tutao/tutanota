@@ -61,7 +61,7 @@ export const locator: WorkerLocatorType = ({}: any)
 export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
 
-	const suspensionHandler = new SuspensionHandler(worker)
+	const suspensionHandler = new SuspensionHandler(worker, self)
 
 	locator.restClient = new RestClient(suspensionHandler)
 

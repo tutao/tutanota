@@ -3,7 +3,7 @@
 import type {DeferredObject} from "../common/utils/Utils"
 import {defer, noOp} from "../common/utils/Utils"
 import {WorkerImpl} from "./WorkerImpl"
-import {promiseMap} from "../common/utils/PromiseUtils"
+import type {SystemTimeout} from "../../misc/Scheduler"
 
 export class SuspensionHandler {
 	_isSuspended: boolean;
@@ -11,45 +11,36 @@ export class SuspensionHandler {
 	_deferredRequests: Array<DeferredObject<any>>;
 	_worker: WorkerImpl;
 	_hasSentInfoMessage: boolean;
-	_suspensionTimeFactor: number
+	_timeout: SystemTimeout
 
 
-	/**
-	 * @param worker
-	 * @param suspensionTimeFactor Changes the factor to convert suspension seconds to millis. Change it only for testing
-	 */
-	constructor(worker: WorkerImpl, suspensionTimeFactor: number = 1000) {
+	constructor(worker: WorkerImpl, systemTimeout: SystemTimeout) {
 		this._isSuspended = false
 		this._suspendedUntil = 0
 		this._deferredRequests = []
 		this._worker = worker
 		this._hasSentInfoMessage = false
-		this._suspensionTimeFactor = suspensionTimeFactor
+		this._timeout = systemTimeout
 	}
 
 
 	/**
 	 * Activates suspension states for the given amount of seconds. After the end of the suspension time all deferred requests are executed.
-	 * @param suspensionDurationSeconds
 	 */
 	// if already suspended do we want to ignore incoming suspensions?
 	activateSuspensionIfInactive(suspensionDurationSeconds: number) {
 		if (!this.isSuspended()) {
 			console.log(`Activating suspension:  ${suspensionDurationSeconds}s`)
 			this._isSuspended = true
-			const suspentionStartTime = Date.now()
-			setTimeout(() => {
-				console.log(`Suspension released after ${(Date.now() - suspentionStartTime) / this._suspensionTimeFactor}s`)
-				this._isSuspended = false
-				const deferredRequests = this._deferredRequests
-				this._deferredRequests = []
-				// do wee need to delay those requests?
-				promiseMap(deferredRequests, (deferredRequest) => {
-					deferredRequest.resolve()
-					// Ignore all errors here, any errors should be caught by whoever is handling the deferred request
-					return deferredRequest.promise.catch(noOp)
-				})
-			}, suspensionDurationSeconds * this._suspensionTimeFactor)
+			const suspensionStartTime = Date.now()
+			this._timeout.setTimeout(
+				async () => {
+					this._isSuspended = false
+					console.log(`Suspension released after ${(Date.now() - suspensionStartTime) / 1000}s`)
+					await this._onSuspensionComplete()
+				},
+				suspensionDurationSeconds * 1000
+			)
 
 			if (!this._hasSentInfoMessage) {
 				this._worker.infoMessage({translationKey: "clientSuspensionWait_label", args: {}})
@@ -77,6 +68,17 @@ export class SuspensionHandler {
 		} else {
 			// if suspension is not activated then immediately execute the request
 			return request()
+		}
+	}
+
+	async _onSuspensionComplete() {
+		const deferredRequests = this._deferredRequests
+		this._deferredRequests = []
+		// do wee need to delay those requests?
+		for (let deferredRequest of deferredRequests) {
+			await deferredRequest.resolve()
+			// Ignore all errors here, any errors should be caught by whoever is handling the deferred request
+			await deferredRequest.promise.catch(noOp)
 		}
 	}
 }

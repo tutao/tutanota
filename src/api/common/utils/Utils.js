@@ -63,6 +63,12 @@ export type DeferredObject<T> = {
 	promise: Promise<T>,
 }
 
+export type DeferredObjectWithHandler<T, U> = {
+	resolve: (T) => void,
+	reject: (Error) => void,
+	promise: Promise<U>,
+}
+
 export function defer<T>(): DeferredObject<T> {
 	let ret = {}
 	ret.promise = new Promise((resolve, reject) => {
@@ -70,6 +76,15 @@ export function defer<T>(): DeferredObject<T> {
 		ret.reject = reject
 	})
 	return ret
+}
+
+export function deferWithHandler<T, U>(handler: T => U): DeferredObjectWithHandler<T, U> {
+	const deferred = {}
+	deferred.promise = new Promise((resolve, reject) => {
+		deferred.resolve = resolve
+		deferred.reject = reject
+	}).then(handler)
+	return deferred
 }
 
 export async function asyncFind<T>(
@@ -532,7 +547,7 @@ export function isCustomizationEnabledForCustomer(customer: Customer, feature: F
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-export function mapNullable<T, U>(val: ?T, action: T => ?U): U | null  {
+export function mapNullable<T, U>(val: ?T, action: T => ?U): U | null {
 	if (val != null) {
 		const result = action(val)
 		if (result != null) {

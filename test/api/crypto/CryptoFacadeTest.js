@@ -44,12 +44,11 @@ import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress
 import {mockAttribute, unmockAttribute} from "../TestUtils"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
-import {LoginFacade, LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
+import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 // $FlowIgnore[untyped-import]
 import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32"
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
-import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
@@ -64,8 +63,8 @@ o.spec("crypto facade", function () {
 	let restClient;
 
 	o.before(function () {
-		const worker = downcast({})
-		restClient = new RestClient(new SuspensionHandler(worker))
+		const suspensionHandler = downcast({})
+		restClient = new RestClient(suspensionHandler)
 		locator.restClient = restClient
 		locator.login = new LoginFacadeImpl((null: any), restClient, downcast({}))
 	})
