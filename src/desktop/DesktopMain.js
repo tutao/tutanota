@@ -161,16 +161,17 @@ async function startupInstance(components: Components) {
 
 	sse.start().catch(e => log.warn("unable to start sse client", e))
 
+	// The second-instance event fires when we call app.requestSingleInstanceLock inside of DesktopUtils.makeSingleInstance
 	app.on('second-instance', async (ev, args) => {
 		if (await desktopUtils.singleInstanceLockOverridden()) {
 			app.quit()
 		} else {
 			if (wm.getAll().length === 0) {
-				wm.newWindow(true)
+				await wm.newWindow(true)
 			} else {
 				wm.getAll().forEach(w => w.show())
 			}
-			handleMailto(findMailToUrlInArgv(args), components)
+			await handleMailto(findMailToUrlInArgv(args), components)
 		}
 	}).on('open-url', (e, url) => {
 		// MacOS mailto handling
@@ -206,7 +207,7 @@ async function onAppReady(components: Components) {
 	ipc.initialized(w.id).then(() => main(components))
 }
 
-function main(components: Components) {
+async function main(components: Components) {
 	const {tray, notifier, sock, wm, updater, integrator} = components
 	tray.update(notifier)
 	if (process.argv.indexOf('-s') !== -1) {
@@ -224,7 +225,7 @@ function main(components: Components) {
 	updater.start()
 	integrator.runIntegration(wm)
 	if (opts.mailTo) {
-		handleMailto(opts.mailTo, components)
+		await handleMailto(opts.mailTo, components)
 	}
 }
 
