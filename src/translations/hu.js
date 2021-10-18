@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2021-10-06T07:15:30Z",
+	"updated_at": "2021-10-18T09:16:10Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",

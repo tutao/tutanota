@@ -13,10 +13,11 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-09-29T07:23:47Z",
+	"updated_at": "2021-10-18T09:16:10Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
+		"accentColor_label": "Akcentová barva",
 		"acceptInvitation_action": "Připojit se",
 		"acceptPrivacyPolicyReminder_msg": "Přijměte zásady ochrany osobních údajů zaškrtnutím políčka.",
 		"acceptPrivacyPolicy_msg": "Přečetl jsem si a souhlasím s {privacyPolicy}.",
@@ -119,6 +120,7 @@ export default {
 		"available_label": "K dispozici",
 		"back_action": "Zpět",
 		"balance_label": "Zůstatek",
+		"baseTheme_label": "Základní schéma",
 		"bcc_label": "Skrytá kopie",
 		"birthday_alt": "Narozeniny",
 		"blockExternalContentSender_action": "Vždy blokovat odesílatele",
@@ -1221,6 +1223,7 @@ export default {
 		"smsSentOften_msg": "Příliš mnoho odeslaných textových zpráv. Požádejte prosím odesílatele emailu, aby jej poslal znovu.",
 		"smsSent_msg": "Textová zpráva by měla být doručena během 60 sekund.",
 		"social_label": "Sociální sítě",
+		"sortBy_label": "Seřadit podle",
 		"spamReports_label": "Nahlásit spam",
 		"spamRuleEnterValue_msg": "Prosím vložte hodnotu.",
 		"spam_action": "Spam",
