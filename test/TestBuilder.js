@@ -16,7 +16,7 @@ export async function build(buildOptions, serverOptions, log) {
 	await fs.mkdir(buildDir(), {recursive: true})
 	const {version} = JSON.parse(await fs.readFile(pjPath, "utf8"))
 	await fs.copyFile(pjPath, buildDir("package.json"))
-	const localEnv = env.create({staticUrl: "http://localhost:9000", version, mode: "Test"})
+	const localEnv = env.create({staticUrl: "http://localhost:9000", version, mode: "Test", dist: false})
 
 	log("Bundling...")
 	const bundle = await nollup({

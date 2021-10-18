@@ -4,7 +4,7 @@ export function create(params) {
 	const {staticUrl, version, mode, dist} = params
 
 	if (version == null || mode == null || dist == null) {
-		throw new Error(`Invalid env parameters ${params}`)
+		throw new Error(`Invalid env parameters: ${JSON.stringify(params)}`)
 	}
 	return {
 		staticUrl,
