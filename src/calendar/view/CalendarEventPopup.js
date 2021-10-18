@@ -86,7 +86,7 @@ export class CalendarEventPopup implements ModalComponent {
 				exec: () => {
 					this._forceSendingUpdatesToAttendees()
 				},
-				help: "sendUpdates_msg"
+				help: "sendUpdates_label"
 			})
 		}
 
@@ -107,10 +107,10 @@ export class CalendarEventPopup implements ModalComponent {
 					m(".flex.flex-end", [
 						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
 							? m(ButtonN, {
-								label: "sendUpdates_msg",
+								label: "sendUpdates_label",
 								click: () => this._forceSendingUpdatesToAttendees(),
 								type: ButtonType.ActionLarge,
-								icon: () => BootIcons.Contacts,
+								icon: () => BootIcons.Mail,
 								colors: ButtonColors.DrawerNav,
 							})
 							: null,
@@ -191,12 +191,12 @@ export class CalendarEventPopup implements ModalComponent {
 			// we handle askForUpdates here to avoid making a request if not necessary
 			const confirmUpdate = await Dialog.confirm("sendUpdates_msg")
 			if (confirmUpdate) {
+				viewModel.isForceUpdates(true)
 				const success: EventCreateResult = await viewModel.saveAndSend({
-					askForUpdates: () => Promise.resolve("yes"),
+					askForUpdates: () => Promise.resolve("yes"), // will be overwritten anyway because updates are forced
 					askInsecurePassword: async () => true,
-					showProgress: noOp,
-					forceUpdates: true
-				})
+					showProgress: noOp
+				}).finally(() => viewModel.isForceUpdates(false))
 				if (success) {
 					this._close()
 				}

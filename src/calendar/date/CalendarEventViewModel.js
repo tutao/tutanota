@@ -144,6 +144,7 @@ export class CalendarEventViewModel {
 	_processing: boolean;
 	hasBusinessFeature: Stream<boolean>
 	hasPremiumLegacy: Stream<boolean>
+	isForceUpdates: Stream<boolean>
 
 
 	+initialized: Promise<CalendarEventViewModel>
@@ -178,6 +179,7 @@ export class CalendarEventViewModel {
 		this._processing = false
 		this.hasBusinessFeature = stream(false)
 		this.hasPremiumLegacy = stream(false)
+		this.isForceUpdates = stream(false)
 		this.location = stream("")
 		this.note = ""
 		this.allDay = stream(false)
@@ -693,11 +695,10 @@ export class CalendarEventViewModel {
 	 * @reject UserError
 	 */
 	async saveAndSend(
-		{askForUpdates, askInsecurePassword, showProgress, forceUpdates}: {
+		{askForUpdates, askInsecurePassword, showProgress}: {
 			askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 			askInsecurePassword: () => Promise<boolean>,
 			showProgress: ShowProgressCallback,
-			forceUpdates?: boolean // force sending updates to all attendees even if the event is unchanged
 		}
 	): Promise<EventCreateResult> {
 		await this.initialized
@@ -713,7 +714,7 @@ export class CalendarEventViewModel {
 			const newEvent = this._initializeNewEvent()
 			const newAlarms = this.alarms.slice()
 			// We want to avoid asking whether to send out updates in case nothing has changed
-			if (this._eventType === EventType.OWN && (forceUpdates || this._hasChanges(newEvent))) {
+			if (this._eventType === EventType.OWN && (this.isForceUpdates() || this._hasChanges(newEvent))) {
 				// It is our own event. We might need to send out invites/cancellations/updates
 				return this._sendNotificationAndSave(askInsecurePassword, askForUpdates, showProgress, newEvent, newAlarms)
 			} else if (this._eventType === EventType.INVITE) {
@@ -791,8 +792,10 @@ export class CalendarEventViewModel {
 	                         showProgress: ShowProgressCallback, newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<boolean> {
 		// ask for update
 		const askForUpdatesAwait = this._hasUpdatableAttendees()
-			? askForUpdates()
-			: Promise.resolve("no")
+			? this.isForceUpdates()
+				? Promise.resolve("yes") // we do not ask again because the user has already indicated that they want to send updates
+				: askForUpdates()
+			: Promise.resolve("no") // no updates possible
 
 		const passwordCheck = () => this.hasInsecurePasswords()
 		&& this.containsExternalRecipients() ? askInsecurePassword() : Promise.resolve(true)

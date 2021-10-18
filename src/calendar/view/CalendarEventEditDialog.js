@@ -490,7 +490,7 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 		},
 	}, contactModel)
 
-	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, () => renderConfidentialButton(viewModel))
+	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, () => renderGuestButtons(viewModel))
 	return invitePeopleValueTextField
 }
 
@@ -579,6 +579,23 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 				: null,
 		]
 	])
+}
+
+function renderGuestButtons(viewModel: CalendarEventViewModel): Children {
+	return [renderUpdateAttendeesButton(viewModel), renderConfidentialButton(viewModel)]
+}
+
+function renderUpdateAttendeesButton(viewModel: CalendarEventViewModel) {
+	return viewModel.isForceUpdateAvailable()
+		? m(ButtonN, {
+				label: "sendUpdates_label",
+				click: () => viewModel.isForceUpdates(!viewModel.isForceUpdates()),
+				icon: () => BootIcons.Mail,
+				isSelected: () => viewModel.isForceUpdates(),
+				noBubble: true,
+			}
+		)
+		: null
 }
 
 function renderConfidentialButton(viewModel: CalendarEventViewModel) {

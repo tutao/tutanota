@@ -146,7 +146,6 @@ o.spec("CalendarEventViewModel", function () {
 
 	let askForUpdates: OspecSpy<() => Promise<"yes" | "no" | "cancel">>
 	let askInsecurePassword: OspecSpy<() => Promise<boolean>>
-	let forceUpdates: boolean = true
 
 	o.before(function () {
 		// We need this because SendMailModel queries for default language. We should refactor to avoid this.
@@ -485,7 +484,7 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 
-	o.spec("force update", async function() {
+	o.spec("force update", async function () {
 
 		o("not forcing updates to attendees, no changes, send no update", async function () {
 			const calendars = makeCalendars("own")
@@ -553,13 +552,14 @@ o.spec("CalendarEventViewModel", function () {
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 
-			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress, forceUpdates})).equals(true)
+			viewModel.isForceUpdates(true)
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
 			o(distributor.sendUpdate.callCount).equals(1)
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			o(distributor.sendCancellation.callCount).equals(0)
 			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
-			o(askForUpdates.calls.length).equals(1)
+			o(askForUpdates.calls.length).equals(0) // not called because we force updates
 			// No new attendees, do not ask about password
 			o(askInsecurePassword.calls.length).equals(0)
 		})
@@ -593,13 +593,14 @@ o.spec("CalendarEventViewModel", function () {
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(async () => true)
 
-			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress, forceUpdates})).equals(true)
+			viewModel.isForceUpdates(true)
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
 			o(distributor.sendUpdate.callCount).equals(1)
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			o(distributor.sendCancellation.callCount).equals(0)
 			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
-			o(askForUpdates.calls.length).equals(1)
+			o(askForUpdates.calls.length).equals(0) // not called because updates are forced
 			// No new attendees, do not ask about password
 			o(askInsecurePassword.calls.length).equals(0)
 		})
