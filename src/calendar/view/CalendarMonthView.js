@@ -367,7 +367,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			opacity: isTemporary
 				? TEMPORARY_EVENT_OPACITY
 				: 1,
-			enablePointerEvents: !this._eventDragHandler.isDragging && !isTemporary && !styles.isUsingBottomNavigation()
+			enablePointerEvents: !this._eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice()
 		}))
 	}
 
