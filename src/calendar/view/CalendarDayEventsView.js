@@ -26,6 +26,7 @@ import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
 import {getTimeFromMousePos} from "./CalendarGuiUtils"
 import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
 import type {GroupColors} from "./CalendarView"
+import {styles} from "../../gui/styles"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler,
@@ -38,6 +39,7 @@ export type Attrs = {
 	setCurrentDraggedEvent: (ev: CalendarEvent) => mixed,
 	setTimeUnderMouse: (time: Time) => mixed,
 	isTemporaryEvent: (event: CalendarEvent) => boolean,
+	isDragging: boolean,
 	fullViewWidth?: number,
 }
 
@@ -125,8 +127,9 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
 		const height = (endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
-		const maxWidth = attrs.fullViewWidth != null
-			? px(attrs.fullViewWidth / 2)
+		const fullViewWidth = attrs.fullViewWidth
+		const maxWidth = fullViewWidth != null
+			? px(styles.isDesktopLayout() ? (fullViewWidth / 2) : fullViewWidth)
 			: "none"
 
 		const colSpan = expandEvent(ev, columnIndex, columns)
@@ -157,7 +160,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			opacity: attrs.isTemporaryEvent(ev)
 				? TEMPORARY_EVENT_OPACITY
 				: 1,
-			enablePointerEvents: !attrs.isTemporaryEvent(ev)
+			enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging
 		}))
 	}
 
