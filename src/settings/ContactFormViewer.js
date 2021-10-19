@@ -15,12 +15,9 @@ import {neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {DatePicker} from "../gui/date/DatePicker"
-import {getStartOfTheWeekOffsetForUser} from "../calendar/date/CalendarUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
@@ -94,12 +91,6 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 			value: stream(language.pageTitle),
 			disabled: true
 		}
-		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
-		let contactFormReportTo = new DatePicker(startOfTheWeekOffset, "dateTo_label")
-		contactFormReportFrom.setDate(new Date())
-		contactFormReportTo.setDate(new Date())
-
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -148,17 +139,6 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 	}
 }
 
-export function statisticsFieldTypeToString(field: Object): string {
-	if (field.type === InputFieldType.TEXT) {
-		return lang.get("text_label")
-	} else if (field.type === InputFieldType.NUMBER) {
-		return lang.get("number_label")
-	} else if (field.type === InputFieldType.ENUM) {
-		return "[" + field.enumValues.map(s => s.name).join(", ") + "]"
-	} else {
-		return ""
-	}
-}
 
 export function getContactFormUrl(domain: string, path: string): string {
 	let pathPrefix = ""

@@ -39,7 +39,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
 import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../../misc/Formatter"
-import {showDatePickerDialog} from "../../gui/date/DatePickerDialog"
+import {showDateRangeSelectionDialog} from "../../gui/date/DatePickerDialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../../api/common/utils/DateUtils"
 import {logins} from "../../api/main/LoginController"
@@ -300,7 +300,7 @@ export class SearchView implements CurrentView {
 					showNotAvailableForFreeDialog(true)
 				} else {
 					const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-					showDatePickerDialog(startOfWeek, (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+					showDateRangeSelectionDialog(startOfWeek, (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
 						(this._endDate) ? this._endDate : new Date())
 						.then(dates => {
 							if (dates.end && isToday(dates.end)) {

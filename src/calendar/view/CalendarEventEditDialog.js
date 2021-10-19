@@ -78,28 +78,28 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 		createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)
 	]).then(([{HtmlEditor}, viewModel]) => {
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-		const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-		startDatePicker.setDate(viewModel.startDate)
-		endDatePicker.setDate(viewModel.endDate)
-		startDatePicker.date.map((date) => {
+		const startDate = stream(viewModel.startDate)
+		const endDate = stream(viewModel.endDate)
+		startDate.map(date => {
 			viewModel.setStartDate(date)
-			if (endDatePicker.date() !== viewModel.endDate) {
-				endDatePicker.setDate(viewModel.endDate)
+			if (endDate() !== viewModel.endDate) {
+				endDate(viewModel.endDate)
 			}
 		})
 
-		endDatePicker.date.map((date) => {
+		endDate.map(date => {
 			viewModel.setEndDate(date)
 		})
 
 		const repeatValues = createRepeatRuleFrequencyValues()
 		const intervalValues = createIntevalValues()
 		const endTypeValues = createRepeatRuleEndTypeValues()
-		const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg")
-		repeatEndDatePicker.date.map((date) => viewModel.onRepeatEndDateSelected(date))
-		let finished = false
 
+		const repeatEnd = viewModel.repeat?.endValue
+		const repeatEndDate = stream(repeatEnd != null ? new Date(repeatEnd) : null)
+		repeatEndDate.map(date => viewModel.onRepeatEndDateSelected(date))
+
+		let finished = false
 
 		const endOccurrencesStream = memoized(stream)
 
@@ -115,8 +115,12 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					icon: BootIcons.Expand,
 				})
 			} else if (viewModel.repeat.endType === EndType.UntilDate) {
-				repeatEndDatePicker.setDate(new Date(viewModel.repeat.endValue))
-				return m(repeatEndDatePicker)
+				return m(DatePicker, {
+					date: repeatEndDate,
+					startOfTheWeekOffset,
+					label: "emptyString_msg",
+					nullSelectionText: "emptyString_msg"
+				})
 			} else {
 				return null
 			}
@@ -208,7 +212,13 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 
 		const renderDateTimePickers = () => renderTwoColumnsIfFits(
 			[
-				m(".flex-grow", m(startDatePicker)),
+				m(".flex-grow", m(DatePicker, {
+					date: startDate,
+					startOfTheWeekOffset,
+					label: "dateFrom_label",
+					nullSelectionText: "emptyString_msg",
+					disabled: viewModel.isReadOnlyEvent()
+				})),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						value: viewModel.startTime,
@@ -219,7 +229,13 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					: null
 			],
 			[
-				m(".flex-grow", m(endDatePicker)),
+				m(".flex-grow", m(DatePicker, {
+					date: endDate,
+					startOfTheWeekOffset,
+					label: "dateTo_label",
+					nullSelectionText: "emptyString_msg",
+					disabled: viewModel.isReadOnlyEvent()
+				})),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						value: viewModel.endTime,
