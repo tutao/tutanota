@@ -214,6 +214,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 							setCurrentDraggedEvent: (event) => this.startEventDrag(event),
 							setTimeUnderMouse: (time) => this._dateUnderMouse = combineDateWithTime(weekday, time),
 							isTemporaryEvent: (event) => attrs.temporaryEvents.includes(event),
+							isDragging: this._eventDragHandler.isDragging,
 							fullViewWidth: this._viewDom?.getBoundingClientRect().width,
 						}))
 					})

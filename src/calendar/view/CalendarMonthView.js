@@ -258,7 +258,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 	): Children {
 
 		return m(".flex-center", [
-			m(".calendar-day-indicator.circle" + getDateIndicator(date, today), {
+			m(client.isDesktopDevice() ? ".calendar-day-indicator.circle" : "" + getDateIndicator(date, today), {
 				onclick: e => {
 					onDateSelected(new Date(date), CalendarViewType.DAY)
 					e.stopPropagation()
