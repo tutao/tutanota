@@ -8,7 +8,7 @@ import {clone, freezeMap, neverNull, noOp} from "../../api/common/utils/Utils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
-import {findAllAndRemove, findAndRemove, symmetricDifference} from "../../api/common/utils/ArrayUtils"
+import {findAllAndRemove, findAndRemove, groupByAndMapUniquely, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import stream from "mithril/stream/stream.js"
@@ -256,7 +256,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const longEvents: Set<CalendarEvent> = new Set()
 		let shortEvents: Array<Array<CalendarEvent>> = []
 
-		const transientEventUids = new Set(this._transientEvents.map(e => e.uid))
+		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
+		const transientEventUidsByCalendar = groupByAndMapUniquely(this._transientEvents, event => getListId(event), event => event.uid)
+
 		for (let day of days) {
 			const shortEventsForDay = []
 
@@ -271,7 +273,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			}
 
 			for (let event of events) {
-				if (transientEventUids.has(event.uid)) {
+				if (transientEventUidsByCalendar.get(getListId(event))?.has(event.uid)) {
 					continue
 				}
 				if (this._draggedEvent?.originalEvent !== event && !this._hiddenCalendars.has(neverNull(event._ownerGroup))) {
