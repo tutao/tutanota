@@ -19,6 +19,7 @@ import {
 	addDaysForLongEvent,
 	addDaysForRecurringEvent,
 	getDiffInHours,
+	getEventEnd,
 	getEventStart,
 	getMonth,
 	getTimeZone,
@@ -266,7 +267,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			const sortEvent = (event) => {
 				if (isAllDayEvent(event) || getDiffInHours(event.startTime, event.endTime) >= 24) {
-					longEvents.add(event)
+					//If the repeated event spans over two months we have different objects for the same event. We have to check whether the event already exists before saving it.
+					if (event.repeatRule && (getEventStart(event, this._timeZone).getMonth()
+						!== getEventEnd(event, this._timeZone).getMonth())) {
+						if (!Array.from(longEvents).find(e => isSameEvent(e, event))) {
+							longEvents.add(event)
+						}
+					} else {
+						longEvents.add(event)
+					}
 				} else {
 					shortEventsForDay.push(event)
 				}
@@ -293,6 +302,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 
 		const longEventsArray = Array.from(longEvents)
+
 		return {
 			days,
 			longEvents: longEventsArray,
