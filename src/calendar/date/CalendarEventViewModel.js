@@ -1075,26 +1075,27 @@ export class CalendarEventViewModel {
 	 * @returns {boolean} true if changes were made to the event to justify sending updates to attendees.
 	 */
 	_hasChanges(newEvent: CalendarEvent): boolean {
+		const existingEvent = this.existingEvent
 		// we do not check for the sequence number (as it should be changed with every update) or the default instace properties such as _id
-		return !this.existingEvent
-			|| newEvent.startTime.getTime() !== neverNull(this.existingEvent).startTime.getTime()
-			|| newEvent.description !== this.existingEvent.description
-			|| newEvent.summary !== this.existingEvent.summary
-			|| newEvent.location !== this.existingEvent.location
-			|| newEvent.endTime.getTime() !== neverNull(this.existingEvent).endTime.getTime()
-			|| newEvent.invitedConfidentially !== this.existingEvent.invitedConfidentially
-			|| newEvent.uid !== this.existingEvent.uid
-			|| isDifferentRepeatRule(newEvent.repeatRule, this.existingEvent.repeatRule)
-			|| !arrayEqualsWithPredicate(newEvent.attendees, this.existingEvent.attendees, (a1, a2) => a1.status === a2.status
+		return !existingEvent
+			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
+			|| newEvent.description !== existingEvent.description
+			|| newEvent.summary !== existingEvent.summary
+			|| newEvent.location !== existingEvent.location
+			|| newEvent.endTime.getTime() !== existingEvent.endTime.getTime()
+			|| newEvent.invitedConfidentially !== existingEvent.invitedConfidentially
+			|| newEvent.uid !== existingEvent.uid
+			|| !areRepeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)
+			|| !arrayEqualsWithPredicate(newEvent.attendees, existingEvent.attendees, (a1, a2) => a1.status === a2.status
 				&& a1.address.address === a2.address.address) // we ignore the names
-			|| (newEvent.organizer !== this.existingEvent.organizer && newEvent.organizer?.address
-				!== this.existingEvent.organizer?.address) // we ignore the names
+			|| (newEvent.organizer !== existingEvent.organizer && newEvent.organizer?.address
+				!== existingEvent.organizer?.address) // we ignore the names
 	}
 }
 
-function isDifferentRepeatRule(r1: ?CalendarRepeatRule, r2: ?CalendarRepeatRule): boolean {
-	return r1 !== r2
-		&& !(r1?.endType === r2?.endType
+function areRepeatRulesEqual(r1: ?CalendarRepeatRule, r2: ?CalendarRepeatRule): boolean {
+	return r1 === r2
+		|| (r1?.endType === r2?.endType
 			&& r1?.endValue === r2?.endValue
 			&& r1?.frequency === r2?.frequency
 			&& r1?.interval === r2?.interval
