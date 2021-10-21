@@ -12,7 +12,6 @@ import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {CustomColorEditorPreview} from "./CustomColorEditorPreview"
 import {downcast} from "../../api/common/utils/Utils"
 import {expandHexTriplet} from "../../gui/base/Color"
-import {groupBy} from "../../api/common/utils/ArrayUtils"
 import {px} from "../../gui/size"
 
 export type SimpleCustomColorEditorAttrs = {
@@ -97,7 +96,7 @@ export class CustomColorEditor implements MComponent<SimpleCustomColorEditorAttr
 							}
 						}))
 				]),
-				m(CustomColorEditorPreview, {})
+				m(CustomColorEditorPreview)
 			]),
 			m("", [
 				m(ExpanderButtonN, {

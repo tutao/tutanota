@@ -6,15 +6,12 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {createMail} from "../../api/entities/tutanota/Mail"
 import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
 import {MailRow} from "../../mail/view/MailRow"
+import {noOp} from "../../api/common/utils/Utils"
 
 export const COMPONENT_PREVIEW_HEIGHT = 300
 export const BUTTON_WIDTH = 270
 
-export type PreviewAttrs = {
-
-}
-
-export class CustomColorEditorPreview implements MComponent<PreviewAttrs> {
+export class CustomColorEditorPreview implements MComponent<void> {
 	_mailRow: MailRow
 	_mailRow2: MailRow
 
@@ -23,7 +20,7 @@ export class CustomColorEditorPreview implements MComponent<PreviewAttrs> {
 		this._mailRow2 = new MailRow(false)
 	}
 
-	view(vnode: Vnode<PreviewAttrs>): Children {
+	view(): Children {
 		return m(".editor-border.mt-l.flex.col", {
 			style: {
 				height: px(COMPONENT_PREVIEW_HEIGHT),
@@ -37,20 +34,20 @@ export class CustomColorEditorPreview implements MComponent<PreviewAttrs> {
 				},
 				m(ButtonN, {
 					label: 'login_action',
-					click: () => console.log("clicked"),
+					click: noOp,
 					type: ButtonType.Login
 				})),
 			m(".pt-m", [
 				m(ButtonN, {
 					style: {width: px(BUTTON_WIDTH)},
 					label: () => "Secondary",
-					click: () => console.log("clicked"),
+					click: noOp,
 					type: ButtonType.Secondary
 				}),
 				m(ButtonN, {
 					style: {width: px(BUTTON_WIDTH)},
 					label: () => "Primary",
-					click: () => console.log("clicked"),
+					click: noOp,
 					type: ButtonType.Primary
 				})
 			]),
@@ -61,8 +58,8 @@ export class CustomColorEditorPreview implements MComponent<PreviewAttrs> {
 	renderPreviewMailRow(): Children {
 		const mail = createMail({
 			sender: createMailAddress({
-				address: "Preview",
-				name: "Preview"
+				address: "m.mustermann@example.com",
+				name: "Max Mustermann"
 			}),
 			receivedDate: new Date(),
 			subject: "Mail 1",
@@ -74,8 +71,8 @@ export class CustomColorEditorPreview implements MComponent<PreviewAttrs> {
 		})
 		const mail2 = createMail({
 			sender: createMailAddress({
-				address: "Preview",
-				name: "Preview"
+				address: "m.mustermann@example.com",
+				name: "Max Mustermann"
 			}),
 			receivedDate: new Date(),
 			subject: "Mail 2",
