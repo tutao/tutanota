@@ -19,18 +19,27 @@ import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
 
+/**
+ * The HTML input[type=date] is not usable on desktops because:
+ * * it always displays a placeholder (mm/dd/yyyy) and several buttons and
+ * * the picker can't be opened programmatically and
+ * * the date format is based on the operating systems locale and not on the one set in the browser (and used by us)
+ *
+ * That is why we only use the picker on mobile devices. They provide native picker components
+ * and allow opening the picker by forwarding the click event to the input.
+ */
 export interface DatePickerAttrs {
 	date: Stream<?Date>,
 	startOfTheWeekOffset: number,
 	label: TranslationText,
 	nullSelectionText?: TranslationText,
-	disabled?: boolean
+	disabled?: boolean,
+	rightAlignDropdown?: bool
 }
 
 export class DatePicker implements MComponent<DatePickerAttrs> {
 
 	inputText: string = ""
-	previousDate: ?Date = null
 	showingDropdown: boolean = false
 	domInput: ?HTMLElement = null
 	invalidDate: boolean = false
@@ -93,10 +102,10 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 			}
 		}
 
-		return m("", [
+		return m(".rel", [
 			this.renderTextField(this.inputText, attrs.label, helpLabel, attrs.disabled === true, onTextFieldInput),
 			this.showingDropdown
-				? this.renderDropdown(date, attrs.startOfTheWeekOffset, onDropdownDateSelected)
+				? this.renderDropdown(date, attrs.startOfTheWeekOffset, attrs.rightAlignDropdown === true, onDropdownDateSelected, )
 				: null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
@@ -140,10 +149,11 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}))
 	}
 
-	renderDropdown(date: ?Date, startOfTheWeekOffset: number, onSelected: Date => mixed): Children {
+	renderDropdown(date: ?Date, startOfTheWeekOffset: number, rightAlign: boolean, onSelected: Date => mixed): Children {
 		return m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
 			style: {
-				width: "280px"
+				width: "280px",
+				right: rightAlign ? "0" : null
 			},
 			onblur: () => this.showingDropdown = false,
 			oncreate: (vnode) => {

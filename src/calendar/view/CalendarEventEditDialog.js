@@ -119,7 +119,12 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					date: repeatEndDate,
 					startOfTheWeekOffset,
 					label: "emptyString_msg",
-					nullSelectionText: "emptyString_msg"
+					nullSelectionText: "emptyString_msg",
+					// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
+					// to fix this we could either:
+					// * reorganize the layout so it doesn't go over the right edge
+					// * change the alignment so that it goes to the left (this is what we do)
+					rightAlignDropdown: true
 				})
 			} else {
 				return null
@@ -348,7 +353,17 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 
 		function renderDialogContent() {
 
-			return m(".calendar-edit-container.pb", [
+			return m(".calendar-edit-container.pb", {
+					style: {
+						// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with
+						// a transform. So doing a no-op transform will make the dropdowns scroll with the dialog
+						// without this, then the date picker dialogs will show at the same place on the screen regardless of whether the
+						// editor has scrolled or not.
+						// Ideally we could do this inside DatePicker itself, but the rendering breaks and the dialog appears below it's siblings
+						// We also don't want to do this for all dialogs because it could potentially cause other issues
+						transform: "translate(0)"
+					}
+				}, [
 					renderHeading(),
 					renderChangesMessage(),
 					m(".mb.rel", m(ExpanderPanelN, {
@@ -425,7 +440,11 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			middle: () => lang.get("createEvent_label"),
 			// right: save button is only added if the event is not read-only
 		}
-		const dialog = Dialog.largeDialog(dialogHeaderBarAttrs, {view: () => m(".calendar-edit-container.pb", renderDialogContent())}
+		const dialog = Dialog.largeDialog(
+			dialogHeaderBarAttrs,
+			{
+				view: renderDialogContent
+			}
 		).addShortcut({
 			key: Keys.ESC,
 			exec: finish,
