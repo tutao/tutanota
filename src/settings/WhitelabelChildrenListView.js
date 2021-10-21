@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/common/Env"
@@ -14,12 +15,12 @@ import {logins} from "../api/main/LoginController"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {header} from "../gui/base/Header"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 
@@ -138,7 +139,7 @@ export class WhitelabelChildrenListView {
 	}
 }
 
-export class WhitelabelChildRow {
+export class WhitelabelChildRow implements VirtualRow<WhitelabelChild> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?WhitelabelChild;

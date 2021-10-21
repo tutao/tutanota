@@ -2,6 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ContactView} from "./ContactView"
+import type {VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
 import {load, loadAll} from "../../api/main/Entity"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -112,7 +113,7 @@ export class ContactListView {
 	}
 }
 
-export class ContactRow {
+export class ContactRow implements VirtualRow<Contact> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?Contact;

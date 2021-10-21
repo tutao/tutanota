@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/common/Env"
@@ -215,7 +216,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class UserRow {
+export class UserRow implements VirtualRow<GroupInfo> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?GroupInfo;

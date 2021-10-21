@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/common/Env"
@@ -208,7 +209,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 }
 
 
-export class ContactFormRow {
+export class ContactFormRow implements VirtualRow<ContactForm> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?ContactForm;
