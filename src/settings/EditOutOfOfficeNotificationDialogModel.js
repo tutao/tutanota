@@ -26,16 +26,20 @@ const FAILURE_BUSINESS_FEATURE_REQUIRED = "outofoffice.business_feature_required
 export class EditOutOfOfficeNotificationDialogModel {
 	outOfOfficeNotification: OutOfOfficeNotification
 
-	enabled: Stream<boolean>
-	startDate: Stream<?Date>
-	endDate: Stream<?Date>
-	organizationSubject: Stream<string>
-	organizationMessage: Stream<string>
-	defaultSubject: Stream<string>
-	defaultMessage: Stream<string>
+	enabled: Stream<boolean> = stream(false)
 
+	startDate: Stream<Date> = stream(new Date)
+	endDate: Stream<Date> = stream(new Date)
+	indefiniteTimeRange: Stream<boolean> = stream(true)
 	timeRangeEnabled: Stream<boolean> = stream(false)
+
+	organizationSubject: Stream<string> = stream("")
+	organizationMessage: Stream<string> = stream("")
+	defaultSubject: Stream<string> = stream("")
+	defaultMessage: Stream<string> = stream("")
+
 	recipientMessageTypes: Stream<RecipientMessageTypeEnum> = stream(RecipientMessageType.EXTERNAL_TO_EVERYONE)
+
 	_entityClient: EntityClient
 	_userController: IUserController
 	_languageViewModel: LanguageViewModel
@@ -45,13 +49,6 @@ export class EditOutOfOfficeNotificationDialogModel {
 		this._entityClient = entityClient
 		this._userController = userController
 		this._languageViewModel = languageViewModel
-		this.enabled = stream(false)
-		this.startDate = stream(null)
-		this.endDate = stream(null)
-		this.organizationSubject = stream("")
-		this.organizationMessage = stream("")
-		this.defaultSubject = stream("")
-		this.defaultMessage = stream("")
 
 		this._setDefaultMessages()
 		if (!outOfOfficeNotification) {
@@ -81,11 +78,16 @@ export class EditOutOfOfficeNotificationDialogModel {
 				this.recipientMessageTypes(RecipientMessageType.EXTERNAL_TO_EVERYONE)
 			}
 			if (outOfOfficeNotification.startDate) {
-				this.timeRangeEnabled(true)
 				this.startDate(outOfOfficeNotification.startDate)
+				this.timeRangeEnabled(true)
 				// end dates are stored as the beginning of the following date. We subtract one day to show the correct date to the user.
-				const shiftedEndDate = outOfOfficeNotification.endDate ? getDayShifted(outOfOfficeNotification.endDate, -1) : null
-				this.endDate(shiftedEndDate)
+				if (outOfOfficeNotification.endDate) {
+					const shiftedEndDate = getDayShifted(outOfOfficeNotification.endDate, -1)
+					this.endDate(shiftedEndDate)
+					this.indefiniteTimeRange(false)
+				} else {
+					this.indefiniteTimeRange(true)
+				}
 			}
 		}
 	}
@@ -111,12 +113,11 @@ export class EditOutOfOfficeNotificationDialogModel {
 		// We use the local time for date picking and convert it to UTC because the server expects utc dates
 		if (this.timeRangeEnabled()) {
 			startDate = this.startDate()
-			endDate = this.endDate()
-			if (endDate) {
-				endDate = getStartOfNextDay(endDate)
-			}
-			if (!startDate || (endDate && (startDate.getTime() > endDate.getTime() || endDate.getTime() < Date.now()))) {
-				throw new UserError("invalidTimePeriod_msg")
+			if (!this.indefiniteTimeRange()) {
+				endDate = getStartOfNextDay(this.endDate())
+				if (startDate.getTime() > endDate.getTime() || endDate.getTime() < Date.now()) {
+					throw new UserError("invalidTimePeriod_msg")
+				}
 			}
 		}
 
@@ -161,24 +162,24 @@ export class EditOutOfOfficeNotificationDialogModel {
 	 */
 	saveOutOfOfficeNotification(): Promise<*> {
 		return Promise.resolve()
-		              .then(() => this.getNotificationFromData())
-		              .then(sendableNotification => {
+					  .then(() => this.getNotificationFromData())
+					  .then(sendableNotification => {
 
-			              // Error messages are already shown if sendableNotification is null. We do not close the dialog.
-			              return this._isNewNotification()
-				              ? this._entityClient.setup(null, sendableNotification)
-				              : this._entityClient.update(sendableNotification)
-		              })
-		              .catch(ofClass(InvalidDataError, e => {
-			              throw new UserError("outOfOfficeMessageInvalid_msg")
-		              }))
-		              .catch(ofClass(PreconditionFailedError, e => {
-			              if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
-				              throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
-			              } else {
-				              throw new UserError(() => e.toString())
-			              }
-		              }))
+						  // Error messages are already shown if sendableNotification is null. We do not close the dialog.
+						  return this._isNewNotification()
+							  ? this._entityClient.setup(null, sendableNotification)
+							  : this._entityClient.update(sendableNotification)
+					  })
+					  .catch(ofClass(InvalidDataError, e => {
+						  throw new UserError("outOfOfficeMessageInvalid_msg")
+					  }))
+					  .catch(ofClass(PreconditionFailedError, e => {
+						  if (e.data === FAILURE_BUSINESS_FEATURE_REQUIRED) {
+							  throw new BusinessFeatureRequiredError("businessFeatureRequiredGeneral_msg")
+						  } else {
+							  throw new UserError(() => e.toString())
+						  }
+					  }))
 	}
 
 	_isNewNotification(): boolean {

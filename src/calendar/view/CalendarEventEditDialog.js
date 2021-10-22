@@ -50,6 +50,7 @@ import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel";
+import {showUserError} from "../../misc/ErrorHandlerImpl"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -78,26 +79,10 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 		createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)
 	]).then(([{HtmlEditor}, viewModel]) => {
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		const startDate = stream(viewModel.startDate)
-		const endDate = stream(viewModel.endDate)
-		startDate.map(date => {
-			viewModel.setStartDate(date)
-			if (endDate() !== viewModel.endDate) {
-				endDate(viewModel.endDate)
-			}
-		})
-
-		endDate.map(date => {
-			viewModel.setEndDate(date)
-		})
 
 		const repeatValues = createRepeatRuleFrequencyValues()
 		const intervalValues = createIntevalValues()
 		const endTypeValues = createRepeatRuleEndTypeValues()
-
-		const repeatEnd = viewModel.repeat?.endValue
-		const repeatEndDate = stream(repeatEnd != null ? new Date(repeatEnd) : null)
-		repeatEndDate.map(date => viewModel.onRepeatEndDateSelected(date))
 
 		let finished = false
 
@@ -116,7 +101,10 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				})
 			} else if (viewModel.repeat.endType === EndType.UntilDate) {
 				return m(DatePicker, {
-					date: repeatEndDate,
+					date: viewModel.repeat?.endValue != null
+						? new Date(viewModel.repeat?.endValue)
+						: new Date(),
+					setDate: date => viewModel.onRepeatEndDateSelected(date),
 					startOfTheWeekOffset,
 					label: "emptyString_msg",
 					nullSelectionText: "emptyString_msg",
@@ -166,19 +154,25 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				return showProgressDialog("pleaseWait_msg", p).catch(noOp)
 			}
 
-			Promise.resolve().then(() => {
-				return viewModel
-					.saveAndSend({
-						askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
-						showProgress,
-						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-					})
-					.then((shouldClose) => shouldClose && finish())
-					.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
-					.catch(ofClass(BusinessFeatureRequiredError, (e) => {
-						showBusinessFeatureRequiredDialog(() => e.message)
-							.then(businessFeatureOrdered => viewModel.hasBusinessFeature(businessFeatureOrdered)) //entity event updates are too slow to call updateBusinessFeature()
-					}))
+			Promise.resolve().then(async () => {
+				const shouldClose = await viewModel.saveAndSend({
+					askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
+					showProgress,
+					askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+				}).catch(ofClass(UserError, e => {
+					showUserError(e)
+					return false
+				})).catch(ofClass(BusinessFeatureRequiredError, async e => {
+					const businessFeatureOrdered = await showBusinessFeatureRequiredDialog(() => e.message)
+
+					// entity event updates are too slow to call updateBusinessFeature()
+					viewModel.hasBusinessFeature(businessFeatureOrdered)
+					return false
+				}))
+
+				if (shouldClose) {
+					finish()
+				}
 			})
 		}
 
@@ -218,7 +212,12 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 		const renderDateTimePickers = () => renderTwoColumnsIfFits(
 			[
 				m(".flex-grow", m(DatePicker, {
-					date: startDate,
+					date: viewModel.startDate,
+					setDate: date => {
+						if (date) {
+							viewModel.setStartDate(date)
+						}
+					},
 					startOfTheWeekOffset,
 					label: "dateFrom_label",
 					nullSelectionText: "emptyString_msg",
@@ -235,7 +234,12 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			],
 			[
 				m(".flex-grow", m(DatePicker, {
-					date: endDate,
+					date: viewModel.endDate,
+					setDate: date => {
+						if (date) {
+							viewModel.setEndDate(date)
+						}
+					},
 					startOfTheWeekOffset,
 					label: "dateTo_label",
 					nullSelectionText: "emptyString_msg",

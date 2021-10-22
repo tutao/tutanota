@@ -1,6 +1,5 @@
 //@flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/common/Env"
 import {Dialog, DialogType} from "../base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
@@ -14,23 +13,25 @@ assertMainOrNode()
 /**
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.
  */
-export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, start: ?Date, end: ?Date): Promise<{start: ?Date, end: ?Date}> {
+export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, start: Date, end: Date): Promise<{start: Date, end: Date}> {
 	const helpLabel = (date) => date != null ? () => formatDateWithWeekdayAndYear(date) : "unlimited_label"
 
-	const startDate = stream(start)
-	const endDate = stream(end)
+	let startDate = start
+	let endDate = end
 
 	const form: MComponent<void> = {
 		view: () => m(".flex-space-between",
 			client.isDesktopDevice() ? {style: {height: px(305)}} : {}, [
 				m(".pr-s.flex-grow.max-width-200.flex-space-between.flex-column", m(DatePicker, {
 					date: startDate,
+					setDate: date => startDate = date,
 					startOfTheWeekOffset,
 					label: "dateFrom_label",
 					nullSelectionText: helpLabel(start)
 				})),
 				m(".pl-s.flex-grow.max-width-200.flex-space-between.flex-column", m(DatePicker, {
 					date: endDate,
+					setDate: date => endDate = date,
 					startOfTheWeekOffset,
 					label: "dateFrom_label",
 					nullSelectionText: helpLabel(end)
@@ -44,9 +45,9 @@ export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, st
 			child: form,
 			allowOkWithReturn: true,
 			okAction: () => requestAnimationFrame(() => {
-				const start = startDate()
-				const end = endDate()
-				if (start && end && start.getTime() > end.getTime()) {
+				const start = startDate
+				const end = endDate
+				if (start.getTime() > end.getTime()) {
 					Dialog.error("startAfterEnd_label")
 				} else {
 					dialog.close()
@@ -57,3 +58,5 @@ export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, st
 		})
 	})
 }
+
+
