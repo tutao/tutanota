@@ -16,6 +16,7 @@ import javax.crypto.Cipher;
 import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.CredentialAuthenticationException;
 import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 
 @RequiresApi(30)
@@ -85,13 +86,11 @@ public final class CredentialsEncryptionFromAPI30 implements ICredentialsEncrypt
 		int allowedAuthenticators = encryptionMode == CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS
 				? BiometricManager.Authenticators.BIOMETRIC_STRONG
 				: (BiometricManager.Authenticators.DEVICE_CREDENTIAL | BiometricManager.Authenticators.BIOMETRIC_STRONG);
-		// TODO: translate
 		BiometricPrompt.PromptInfo.Builder promptInfoBuilder = new BiometricPrompt.PromptInfo.Builder()
-				.setTitle("Biometric login for my app")
-				.setSubtitle("Log in using your biometric credential")
+				.setTitle(activity.getString(R.string.unlockCredentials_action))
 				.setAllowedAuthenticators(allowedAuthenticators);
 		if (encryptionMode == CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS) {
-			promptInfoBuilder.setNegativeButtonText("Cancel");
+			promptInfoBuilder.setNegativeButtonText(activity.getString(android.R.string.cancel));
 		}
 		BiometricPrompt.PromptInfo promptInfo = promptInfoBuilder.build();
 
