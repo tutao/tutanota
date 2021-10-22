@@ -477,18 +477,18 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 	const remainingDaysForExistingEvent: ?CalendarEvent = events.get(calculationDate.getTime())?.find(e => isSameEvent(e, event))
 	if (remainingDaysForExistingEvent) {
 		const existingEventEndDate = getEventEnd(remainingDaysForExistingEvent, zone)
-		while (calculationDate.getTime() < existingEventEndDate.getTime()) {
-			assertDateIsValid(calculationDate)
-			if (iterations > MAX_EVENT_ITERATIONS) {
-				throw new Error("Run into the infinite loop, addDaysForEvent")
+		if (existingEventEndDate.getTime() > eventEndDate.getTime()) {
+			while (calculationDate.getTime() < existingEventEndDate.getTime()) {
+				assertDateIsValid(calculationDate)
+				if (iterations > MAX_EVENT_ITERATIONS) {
+					throw new Error("Run into the infinite loop, addDaysForEvent")
+				}
+				findAllAndRemove(getFromMap(events, calculationDate.getTime(), () => []), (e) => isSameEvent(e, event))
+				calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+				iterations++
 			}
-			findAllAndRemove(getFromMap(events, calculationDate.getTime(), () => []), (e) => isSameEvent(e, event))
-			calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-			iterations++
 		}
-
 	}
-
 }
 
 /**

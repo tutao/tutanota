@@ -159,6 +159,21 @@ o.spec("CalendarModel", function () {
 			const eventsForDay = neverNull(eventsForDays.get(getStartOfDay(event.startTime).getTime()))
 			o(eventsForDay).deepEquals([event])
 		})
+
+		o("event became shorter", function () {
+			const event = createEvent(new Date(2019, 4, 1, 8), new Date(2019, 4, 5, 12))
+			const month = getMonth(event.startTime, zone)
+			addDaysForEvent(eventsForDays, event, month)
+
+			o(eventsForDays.get(new Date(2019, 4, 5).getTime())?.includes(event)).equals(true)("Original event is added")
+
+			const shorterEvent = createEvent(new Date(2019, 4, 1, 8), new Date(2019, 4, 3, 12))
+			shorterEvent._id = event._id
+			addDaysForEvent(eventsForDays, shorterEvent, month)
+
+			o(eventsForDays.get(new Date(2019, 4, 5).getTime())).deepEquals([])("Original event is removed")
+			o(eventsForDays.get(new Date(2019, 4, 3).getTime())?.includes(shorterEvent)).equals(true)("New event is added")
+		})
 	})
 
 	o.spec("addDaysForRecurringEvent", function () {
