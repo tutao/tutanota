@@ -1422,6 +1422,7 @@ export default {
 		"credentialsEncryptionModeBiometricsHelp_msg": "Advanced. Most secure but credentials are invalidated when biometric settings are changed",
 		"credentialsEncryptionModeSelection_msg": "The credentials are stored encrypted on your device. How would you like to unlock them in the future?",
 		"credentialsKeyInvalidated_msg": "System keychain has been invalidated. Deleting stored credentials.",
-		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}"
+		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}",
+		"unlockCredentials_action": "Unlock credentials"
 	}
 }

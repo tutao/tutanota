@@ -86,6 +86,10 @@ android {
 		exclude 'META-INF/LICENSE'
 		exclude 'META-INF/ASL2.0'
 	}
+
+	lintOptions {
+		disable 'MissingTranslation'
+	}
 }
 
 task copyResourcesToClasses(type: Copy) {
