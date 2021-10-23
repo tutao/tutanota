@@ -162,6 +162,8 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 		const desktopEntry = `[Desktop Entry]
 Name=${prefix}Tutanota Desktop
 Comment=The desktop client for Tutanota, the secure e-mail service.
+GenericName=Mail Client
+Keywords=Email;E-mail
 Exec="${this.packagePath}" %U
 Terminal=false
 Type=Application
