@@ -5,7 +5,7 @@ import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
-import type {MainLocatorType} from "./MainLocator"
+import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity, objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
@@ -42,7 +42,7 @@ export class WorkerClient implements EntityRestInterface {
 	_leaderStatus: WebsocketLeaderStatus
 
 
-	constructor(locator: MainLocatorType) {
+	constructor(locator: IMainLocator) {
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
 		this._initWorker()
@@ -249,6 +249,6 @@ export class WorkerClient implements EntityRestInterface {
 	}
 }
 
-export function bootstrapWorker(locator: MainLocatorType): WorkerClient {
+export function bootstrapWorker(locator: IMainLocator): WorkerClient {
 	return new WorkerClient(locator)
 }
