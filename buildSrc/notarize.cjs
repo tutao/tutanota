@@ -14,6 +14,7 @@ exports.default = async function notarizing(context) {
 		appBundleId: 'de.tutao.tutanota',
 		appPath: `${appOutDir}/${appName}.app`,
 		appleId: process.env.APPLEID,
-		appleIdPassword: process.env.APPLEIDPASS
+		appleIdPassword: process.env.APPLEIDPASS,
+		tool: "notarytool", // notarytool is part of Xcode 13, default is "legacy", notarytool is much faster
 	});
 };
