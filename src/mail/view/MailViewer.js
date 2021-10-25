@@ -287,12 +287,19 @@ export class MailViewer {
 								m(".flex.flex-column-reverse", [
 									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
-										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-											{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
-												this._tutaoBadge(),
-												getSenderOrRecipientHeading(this.mail, false)
-											]),
-									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
+										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s", {
+											title: getSenderOrRecipientHeadingTooltip(this.mail)
+										}, [
+											this._tutaoBadge(),
+											getSenderOrRecipientHeading(this.mail, false)
+										]),
+									this._folderText
+										? m("small.b.flex.pt", {
+											style: {
+												color: theme.navigation_button
+											}
+										}, this._folderText)
+										: null,
 								]),
 								!this._isAnnouncement() && styles.isUsingBottomNavigation()
 									? null
@@ -385,8 +392,8 @@ export class MailViewer {
 	}
 
 	renderMailBodySection(): Children {
-		if (this._sanitizedMailBody != null && !this._didErrorsOccur()) {
-
+		const sanitizedMailBody = this._sanitizedMailBody
+		if (sanitizedMailBody != null && !this._didErrorsOccur()) {
 			return m("#mail-body.selectable.touch-callout.break-word-links"
 				+ (client.isMobileDevice() ? ".break-pre" : ""), {
 				oncreate: vnode => {
@@ -411,7 +418,7 @@ export class MailViewer {
 					'line-height': this._bodyLineHeight ? this._bodyLineHeight.toString() : size.line_height,
 					'transform-origin': 'top left'
 				},
-			}, m.trust(this._sanitizedMailBody))
+			}, m.trust(sanitizedMailBody))
 		} else if (!this._didErrorsOccur()) {
 			return m(".progress-panel.flex-v-center.items-center", {
 				style: {
@@ -933,8 +940,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-						? ContentBlockingStatus.AlwaysShow
-						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+					? ContentBlockingStatus.AlwaysShow
+					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
