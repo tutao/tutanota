@@ -159,9 +159,9 @@ export class BuildServer {
 			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(normalizedPath))
 			if (this.config.autoRebuild) {
 				log("Rebuilding ...")
-				await this.builder.preBuild?.(log)
+				await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
 				const updates = await this._generateBundles()
-				await this.builder.postBuild?.(log)
+				await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
 				this.devServer?.updateBundles(updates)
 			}
 		} catch (e) {
@@ -186,14 +186,14 @@ export class BuildServer {
 			this._startDevServer()
 		}
 
-		await this.builder.preBuild?.(log)
+		await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
 		this.bundleWrappers = await this.builder.build(
 			this.lastBuildConfig,
 			this.config,
 			(...message) => {log("Builder: " + message.join(" "))}
 		)
 		await this._generateBundles(log)
-		await this.builder.postBuild?.(log)
+		await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
 		await this._setupWatchers(log)
 	}
 
@@ -248,9 +248,9 @@ export class BuildServer {
 				if (this.bundleWrappers == null) {
 					await this._runInitialBuild(log)
 				} else {
-					await this.builder.preBuild?.(log)
+					await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
 					await this._generateBundles(log)
-					await this.builder.postBuild?.(log)
+					await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
 				}
 				this._sendToClient(STATUS_OK, "Build finished")
 			} else if (command === COMMAND_DUMP_CONFIG) {

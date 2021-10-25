@@ -9,7 +9,7 @@ import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {babelDesktopPlugins, bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
-import {spawn} from "child_process"
+import {spawn, spawnSync} from "child_process"
 import flow_bin from "flow-bin"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -115,15 +115,15 @@ function debugModels() {
 	}
 }
 
-export async function preBuild(log) {
-	await runFlowChecks(log)
+export async function preBuild({clean}, {}, log) {
+	await runFlowChecks(clean, log)
 }
 
-export async function postBuild(log) {
+export async function postBuild({clean}, {}, log) {
 
 }
 
-export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
+export async function build({desktop, stage, host, clean}, {devServerPort, watchFolders}, log) {
 	log("Building app")
 
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
@@ -233,7 +233,11 @@ async function buildAndStartDesktop(log, version) {
 	return [nodeBundleWrapper]
 }
 
-function runFlowChecks(log) {
+function runFlowChecks(clean, log) {
+	if (clean) {
+		log("Called with --clean, stopping flow server")
+		spawnSync(flow_bin, ["stop"], {stdio: "pipe"})
+	}
 	log("Running flow checks")
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(flow_bin, ["--quiet"], {stdio: "pipe"})
