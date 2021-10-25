@@ -17,7 +17,6 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
-import {mod} from "../misc/MathUtils"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./model/SearchUtils"
 import {locator} from "../api/main/MainLocator"
@@ -47,6 +46,7 @@ import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {compareContacts} from "../contacts/view/ContactGuiUtils";
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {LayerType} from "../RootView"
+import {mod} from "@tutao/tutanota-utils/lib/MathUtils"
 
 assertMainOrNode()
 

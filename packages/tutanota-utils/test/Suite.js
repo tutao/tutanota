@@ -8,5 +8,6 @@ import "./ArrayUtilsTest"
 import "./EncodingTest"
 import "./PromiseUtilTest"
 import "./SortedArrayTest"
+import "./MathUtilsTest"
 
 o.run()

@@ -7,7 +7,8 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog";
 import type {MousePosAndBounds} from "../../gui/base/GuiUtils"
 import {Time} from "../../api/common/utils/Time"
-import {firstThrow} from "@tutao/tutanota-utils"
+import {assert} from "@tutao/tutanota-utils"
+import {clamp} from "@tutao/tutanota-utils/lib/MathUtils"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, switcher: Function): Child {
 	return m(ButtonN, {
@@ -67,15 +68,19 @@ export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no
 
 
 /**
- * Map the location of a mouse click on an element to a give date, given a 2d array of days. Each element in weeks must have the same length
+ * Map the location of a mouse click on an element to a give date, given a list of weeks
  * there should be neither zero weeks, nor zero length weeks
  */
 export function getDateFromMousePos({x, y, targetWidth, targetHeight}: MousePosAndBounds, weeks: Array<Array<Date>>): Date {
+	assert(weeks.length > 0, "Weeks must not be zero length")
 	const unitHeight = targetHeight / weeks.length
-	const unitWidth = targetWidth / firstThrow(weeks).length
-	const currentSquareX = Math.floor(x / unitWidth)
 	const currentSquareY = Math.floor(y / unitHeight)
-	return weeks[currentSquareY][currentSquareX]
+	const week = weeks[clamp(currentSquareY, 0, weeks.length)]
+
+	assert(week.length > 0, "Week must not be zero length")
+	const unitWidth = targetWidth / week.length
+	const currentSquareX = Math.floor(x / unitWidth)
+	return week[clamp(currentSquareX, 0, week.length)]
 }
 
 /**
