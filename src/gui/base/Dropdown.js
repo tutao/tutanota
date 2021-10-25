@@ -3,7 +3,6 @@ import m from "mithril"
 import {modal} from "./Modal"
 import {px, size} from "../size"
 import {Button} from "./Button"
-import {mod} from "../../misc/MathUtils"
 import stream from "mithril/stream/stream.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -19,6 +18,7 @@ import type {lazy, lazyAsync} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
+import {mod} from "@tutao/tutanota-utils/lib/MathUtils"
 
 assertMainOrNode()
 
