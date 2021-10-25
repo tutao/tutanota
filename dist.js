@@ -69,7 +69,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 		options.desktop = {
 			win32: options.win ? [] : undefined,
 			linux: options.linux ? [] : undefined,
-			darwin: options.mac ? [] : undefined
+			mac: options.mac ? [] : undefined
 		}
 
 		if (!Object.values(options.desktop).some(Boolean)) {
@@ -79,7 +79,7 @@ DEBUG_SIGN\t\tpath to a folder containing a self-signed certificate for signing 
 				options.desktop = {
 					win32: process.platform === "win32" ? [] : undefined,
 					linux: process.platform === "linux" ? [] : undefined,
-					darwin: process.platform === "darwin" ? [] : undefined
+					mac: process.platform === "darwin" ? [] : undefined
 				}
 			} else {
 				options.desktop = undefined
@@ -342,7 +342,7 @@ async function buildDesktopClient(version) {
 	} else { // stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 			version,
-			updateUrl: "http://localhost:9000/desktop-snapshot",
+			updateUrl: `${options.host}/client/build/desktop-snapshot`,
 			nameSuffix: "-snapshot",
 			notarize: false
 		})
