@@ -20,6 +20,7 @@ import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {WorkerInterface} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
+import {delay} from "../common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -187,10 +188,8 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
-	_postRequest(msg: Request): Promise<any> {
-		if (!this._isInitialized) {
-			throw new Error("worker has not been initialized, request: " + msg.type)
-		}
+	async _postRequest(msg: Request): Promise<any> {
+		await this.initialized
 		return this._queue.postMessage(msg)
 	}
 
