@@ -14,7 +14,7 @@ import {px, size as sizes} from "../size"
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
-import type {MainLocatorType} from "../../api/main/MainLocator"
+import type {IMainLocator} from "../../api/main/MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
@@ -167,7 +167,7 @@ class Header {
 
 	_mobileSearchBarVisible(): boolean {
 		let route = m.route.get()
-		let locator: ?MainLocatorType = window.tutao.locator
+		let locator: ?IMainLocator = window.tutao.locator
 		return this.searchBar != null
 			&& locator != null
 			&& !locator.search.indexState().initializing
@@ -356,7 +356,7 @@ class Header {
 
 	_desktopSearchBarVisible(): boolean {
 		let route = m.route.get()
-		let locator: ?MainLocatorType = window.tutao.locator
+		let locator: ?IMainLocator = window.tutao.locator
 		return this.searchBar != null && locator != null && !locator.search.indexState().initializing
 			&& styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()

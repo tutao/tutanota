@@ -13,7 +13,8 @@ import {ContactModelImpl} from "../../contacts/model/ContactModel"
 import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
-import {defer} from "../common/utils/Utils"
+import type {DeferredObject} from "../common/utils/Utils"
+import {defer, downcast} from "../common/utils/Utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../../misc/Scheduler"
@@ -39,19 +40,20 @@ import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFac
 
 assertMainOrNode()
 
-export type MainLocatorType = {|
-	init: () => Promise<void>;
-	eventController: EventController,
-	search: SearchModel,
-	mailModel: MailModel;
-	calendarModel: CalendarModel;
-	minimizedMailModel: MinimizedMailEditorViewModel;
-	contactModel: ContactModel;
-	entityClient: EntityClient;
-	progressTracker: ProgressTracker;
-	initializedWorker: Promise<WorkerClient>;
-	credentialsProvider: ICredentialsProvider;
-	worker: WorkerClient;
+// We use interface here mostly to make things readonly from the outside.
+export interface IMainLocator {
+	+eventController: EventController;
+	+search: SearchModel;
+	+mailModel: MailModel;
+	+calendarModel: CalendarModel;
+	+minimizedMailModel: MinimizedMailEditorViewModel;
+	+contactModel: ContactModel;
+	+entityClient: EntityClient;
+	+progressTracker: ProgressTracker;
+	+initializedWorker: Promise<WorkerClient>;
+	+credentialsProvider: ICredentialsProvider;
+	+worker: WorkerClient;
+
 	+loginFacade: LoginFacade;
 	+customerFacade: CustomerFacade;
 	+giftCardFacade: GiftCardFacade;
@@ -69,13 +71,65 @@ export type MainLocatorType = {|
 	+userManagementFacade: UserManagementFacade;
 	+contactFormFacade: ContactFormFacade;
 	+deviceEncryptionFacade: DeviceEncryptionFacade;
-|}
 
-const workerDeferred = defer<WorkerClient>()
-export const locator: MainLocatorType = ({
-	initializedWorker: workerDeferred.promise,
-	async init() {
+	+init: () => Promise<void>
+}
+
+
+class MainLocator implements IMainLocator {
+	eventController: EventController;
+	search: SearchModel;
+	mailModel: MailModel;
+	calendarModel: CalendarModel;
+	minimizedMailModel: MinimizedMailEditorViewModel;
+	contactModel: ContactModel;
+	entityClient: EntityClient;
+	progressTracker: ProgressTracker;
+	credentialsProvider: ICredentialsProvider;
+	worker: WorkerClient;
+
+	loginFacade: LoginFacade;
+	customerFacade: CustomerFacade;
+	giftCardFacade: GiftCardFacade;
+	groupManagementFacade: GroupManagementFacade;
+	configFacade: ConfigurationDatabase;
+	calendarFacade: CalendarFacade;
+	mailFacade: MailFacade;
+	shareFacade: ShareFacade;
+	counterFacade: CounterFacade;
+	indexerFacade: Indexer;
+	searchFacade: SearchFacade;
+	bookingFacade: BookingFacade;
+	mailAddressFacade: MailAddressFacade;
+	fileFacade: FileFacade;
+	userManagementFacade: UserManagementFacade;
+	contactFormFacade: ContactFormFacade;
+	deviceEncryptionFacade: DeviceEncryptionFacade;
+
+	+_workerDeferred: DeferredObject<WorkerClient>
+	_entropyCollector: EntropyCollector
+
+	constructor() {
+		this._workerDeferred = defer()
+	}
+
+	get initializedWorker(): Promise<WorkerClient> {
+		return this._workerDeferred.promise
+	}
+
+	async init(): Promise<void> {
+		// Split init in two separate parts: creating modules and causing side effects.
+		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
+		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
+		await this._createInstances()
+
+		this._entropyCollector = new EntropyCollector(this.worker)
+		this._entropyCollector.start()
+		this._workerDeferred.resolve(this.worker)
+	}
+
+	async _createInstances() {
 		const {
 			loginFacade,
 			customerFacade,
@@ -116,7 +170,7 @@ export const locator: MainLocatorType = ({
 
 		this.eventController = new EventController(logins)
 		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.worker)
+		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(this.worker)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade)
 
@@ -139,15 +193,12 @@ export const locator: MainLocatorType = ({
 			this.calendarFacade,
 			this.fileFacade,
 		)
-		this.contactModel = new ContactModelImpl(this.worker, this.entityClient, logins)
+		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-
-		const entropyCollector = new EntropyCollector(this.worker)
-		entropyCollector.start()
-
-		workerDeferred.resolve(this.worker)
 	}
-}: any)
+}
+
+export const locator: IMainLocator = new MainLocator()
 
 if (typeof window !== "undefined") {
 	window.tutao.locator = locator
@@ -159,18 +210,18 @@ if (typeof window !== "undefined") {
 // method implementation swapping.
 const hot = typeof module !== "undefined" && module.hot
 if (hot) {
-	hot.accept(() => {
+	hot.accept(async () => {
 		// This should be there already
-		const worker = workerDeferred.promise.then((worker) => {
-			// Import this module again and init the locator. If someone just imports it they will get a new one
-			const newLocator = require(module.id).locator
-			newLocator.init(worker)
+		const worker = await locator.initializedWorker
 
-			// This will patch old instances to use new classes, this is when instances are already injected
-			for (const key of Object.getOwnPropertyNames(newLocator)) {
-				Object.setPrototypeOf(locator[key], Object.getPrototypeOf(newLocator[key]))
-			}
-		})
+		// Import this module again and init the locator. If someone just imports it they will get a new one
+		const newLocator = require(module.id).locator
+		newLocator.worker = worker
+		await newLocator._initModules(worker)
 
+		// This will patch old instances to use new classes, this is when instances are already injected
+		for (const key of Object.getOwnPropertyNames(newLocator)) {
+			Object.setPrototypeOf(downcast(locator)[key], Object.getPrototypeOf(newLocator[key]))
+		}
 	})
 }
