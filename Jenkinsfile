@@ -118,19 +118,25 @@ pipeline {
 					   			usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
 								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
 					   		]
-						) {
+						)
+						{
 							sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
-							sh '''
-								export JENKINS=TRUE;
-								export APPLEID=${APPLEIDVAR};
-								export APPLEIDPASS=${APPLEIDPASSVAR};
-								node dist --existing --mac '''
+							script {
+								def stage = params.RELEASE ? 'release' : 'prod'
+								sh '''
+									export JENKINS=TRUE;
+									export APPLEID=${APPLEIDVAR};
+									export APPLEIDPASS=${APPLEIDPASSVAR};
+									node dist --existing --mac ''' + "${stage}"
+								dir('build') {
+									if (params.RELEASE) {
+										stash includes: 'desktop-test/*', name:'mac_installer_test'
+									}
+									stash includes: 'desktop/*', name:'mac_installer'
+								}
+							}
 						}
-						dir('build') {
-							stash includes: 'desktop-test/*', name:'mac_installer_test'
-                            stash includes: 'desktop/*', name:'mac_installer'
-						}
-                    }
+					}
                 }
 
                 stage('desktop-linux') {
