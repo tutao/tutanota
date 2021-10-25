@@ -104,7 +104,7 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					date: viewModel.repeat?.endValue != null
 						? new Date(viewModel.repeat?.endValue)
 						: new Date(),
-					setDate: date => viewModel.onRepeatEndDateSelected(date),
+					onDateSelected: date => viewModel.onRepeatEndDateSelected(date),
 					startOfTheWeekOffset,
 					label: "emptyString_msg",
 					nullSelectionText: "emptyString_msg",
@@ -213,7 +213,7 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			[
 				m(".flex-grow", m(DatePicker, {
 					date: viewModel.startDate,
-					setDate: date => {
+					onDateSelected: date => {
 						if (date) {
 							viewModel.setStartDate(date)
 						}
@@ -235,7 +235,7 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			[
 				m(".flex-grow", m(DatePicker, {
 					date: viewModel.endDate,
-					setDate: date => {
+					onDateSelected: date => {
 						if (date) {
 							viewModel.setEndDate(date)
 						}

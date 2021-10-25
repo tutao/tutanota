@@ -29,7 +29,7 @@ import {parseDate} from "../../misc/DateParser"
  */
 export interface DatePickerAttrs {
 	date: Date,
-	setDate: Date => mixed,
+	onDateSelected: Date => mixed,
 	startOfTheWeekOffset: number,
 	label: TranslationText,
 	nullSelectionText?: TranslationText,
@@ -66,22 +66,22 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}
 
 		return m(".rel", [
-			this.renderTextField(attrs),
+			this._renderTextField(attrs),
 			this.showingDropdown
-				? this.renderDropdown(attrs)
+				? this._renderDropdown(attrs)
 				: null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
 			client.isMobileDevice()
-				? this.renderMobileDateInput(attrs)
+				? this._renderMobileDateInput(attrs)
 				: null,
 		])
 	}
 
-	renderTextField(
+	_renderTextField(
 		{
 			date,
-			setDate,
+			onDateSelected,
 			label,
 			nullSelectionText,
 			disabled
@@ -96,9 +96,9 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}, m(TextFieldN, {
 			value: () => this.inputText,
 			label,
-			helpLabel: () => this.renderHelpLabel(date, nullSelectionText),
+			helpLabel: () => this._renderHelpLabel(date, nullSelectionText),
 			disabled,
-			oninput: this.textInputHandler(setDate),
+			oninput: this._getTextInputHandler(onDateSelected),
 			onfocus: () => {
 				this.showingDropdown = true
 				this.textFieldHasFocus = true
@@ -118,7 +118,7 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}))
 	}
 
-	renderHelpLabel(date: ?Date, nullSelectionText: ?TranslationText): Children {
+	_renderHelpLabel(date: ?Date, nullSelectionText: ?TranslationText): Children {
 		if (this.showingDropdown) {
 			return null
 		} else if (date != null) {
@@ -128,16 +128,16 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}
 	}
 
-	renderDropdown(
+	_renderDropdown(
 		{
 			date,
-			setDate,
+			onDateSelected,
 			startOfTheWeekOffset,
 			rightAlignDropdown,
 		}: DatePickerAttrs
 	): Children {
 
-		const onSelected = this.dateSelectedHandler(setDate)
+		const onSelected = this._getDateSelectedHandler(onDateSelected)
 		return m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
 			style: {
 				width: "280px",
@@ -172,8 +172,8 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}))
 	}
 
-	renderMobileDateInput({date, setDate}: DatePickerAttrs): Children {
-		const onSelected = this.dateSelectedHandler(setDate)
+	_renderMobileDateInput({date, onDateSelected}: DatePickerAttrs): Children {
+		const onSelected = this._getDateSelectedHandler(onDateSelected)
 		return m("input.fill-absolute", {
 			type: "date",
 			style: {
@@ -192,7 +192,7 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		})
 	}
 
-	textInputHandler(setDateCallback: Date => mixed): string => mixed {
+	_getTextInputHandler(setDateCallback: Date => mixed): string => mixed {
 		return text => {
 			this.inputText = text
 			const trimmedValue = text.trim()
@@ -207,7 +207,7 @@ export class DatePicker implements MComponent<DatePickerAttrs> {
 		}
 	}
 
-	dateSelectedHandler(setDateCallback: Date => mixed): Date => mixed {
+	_getDateSelectedHandler(setDateCallback: Date => mixed): Date => mixed {
 		return date => {
 			this.inputText = formatDate(date)
 			setDateCallback(date)

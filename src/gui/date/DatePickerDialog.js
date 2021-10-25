@@ -24,14 +24,14 @@ export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, st
 			client.isDesktopDevice() ? {style: {height: px(305)}} : {}, [
 				m(".pr-s.flex-grow.max-width-200.flex-space-between.flex-column", m(DatePicker, {
 					date: startDate,
-					setDate: date => startDate = date,
+					onDateSelected: date => startDate = date,
 					startOfTheWeekOffset,
 					label: "dateFrom_label",
 					nullSelectionText: helpLabel(start)
 				})),
 				m(".pl-s.flex-grow.max-width-200.flex-space-between.flex-column", m(DatePicker, {
 					date: endDate,
-					setDate: date => endDate = date,
+					onDateSelected: date => endDate = date,
 					startOfTheWeekOffset,
 					label: "dateFrom_label",
 					nullSelectionText: helpLabel(end)

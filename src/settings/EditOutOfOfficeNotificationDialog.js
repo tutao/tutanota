@@ -205,7 +205,7 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 		return m(".flex.col", [
 			m(DatePicker, {
 				date: model.startDate(),
-				setDate: model.startDate,
+				onDateSelected: model.startDate,
 				label: "dateFrom_label",
 				nullSelectionText: "emptyString_msg",
 				startOfTheWeekOffset,
@@ -217,7 +217,7 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 			!model.indefiniteTimeRange()
 				? m(DatePicker, {
 					date: model.endDate(),
-					setDate: model.endDate,
+					onDateSelected: model.endDate,
 					label: "dateTo_label",
 					nullSelectionText: "emptyString_msg",
 					startOfTheWeekOffset,
