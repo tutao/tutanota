@@ -1416,6 +1416,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"sendUpdates_label": "Aktualisierung an Eingeladene senden"
 	}
 }

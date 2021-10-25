@@ -1410,3 +1410,5 @@ export type TranslationKeyType = "about_label"
 	| "credentialsEncryptionModeDeviceLockHelp_msg"
 	| "credentialsEncryptionModeDeviceCredentialsHelp_msg"
 	| "credentialsEncryptionModeBiometricsHelp_msg"
+	// TODO phrase
+	| "sendUpdates_label"

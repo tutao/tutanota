@@ -62,6 +62,8 @@ import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
+import {arrayEqualsWithPredicate} from "../../api/common/utils/ArrayUtils"
+import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -142,6 +144,7 @@ export class CalendarEventViewModel {
 	_processing: boolean;
 	hasBusinessFeature: Stream<boolean>
 	hasPremiumLegacy: Stream<boolean>
+	isForceUpdates: Stream<boolean>
 
 
 	+initialized: Promise<CalendarEventViewModel>
@@ -176,6 +179,7 @@ export class CalendarEventViewModel {
 		this._processing = false
 		this.hasBusinessFeature = stream(false)
 		this.hasPremiumLegacy = stream(false)
+		this.isForceUpdates = stream(false)
 		this.location = stream("")
 		this.note = ""
 		this.allDay = stream(false)
@@ -683,6 +687,10 @@ export class CalendarEventViewModel {
 		])
 	}
 
+	isForceUpdateAvailable(): boolean {
+		return this._eventType === EventType.OWN && !this.shouldShowSendInviteNotAvailable() && this._hasUpdatableAttendees()
+	}
+
 	/**
 	 * @reject UserError
 	 */
@@ -705,14 +713,16 @@ export class CalendarEventViewModel {
 
 			const newEvent = this._initializeNewEvent()
 			const newAlarms = this.alarms.slice()
-			if (this._eventType === EventType.OWN) {
+			// We want to avoid asking whether to send out updates in case nothing has changed
+			if (this._eventType === EventType.OWN && (this.isForceUpdates() || this._hasChanges(newEvent))) {
 				// It is our own event. We might need to send out invites/cancellations/updates
 				return this._sendNotificationAndSave(askInsecurePassword, askForUpdates, showProgress, newEvent, newAlarms)
 			} else if (this._eventType === EventType.INVITE) {
 				// We have been invited by another person (internal/ unsecure external)
 				return this._respondToOrganizerAndSave(showProgress, assertNotNull(this.existingEvent), newEvent, newAlarms)
 			} else {
-				// This is event in a shared calendar. We cannot send anything because it's not our event.
+				// Either this is an event in a shared calendar. We cannot send anything because it's not our event.
+				// Or no changes were made that require sending updates and we just save other changes.
 				const p = this._saveEvent(newEvent, newAlarms)
 				showProgress(p)
 				return p.then(() => true)
@@ -774,12 +784,18 @@ export class CalendarEventViewModel {
 		}
 	}
 
+	_hasUpdatableAttendees(): boolean {
+		return this._updateModel.bccRecipients().length > 0
+	}
+
 	_sendNotificationAndSave(askInsecurePassword: () => Promise<boolean>, askForUpdates: () => Promise<"yes" | "no" | "cancel">,
 	                         showProgress: ShowProgressCallback, newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<boolean> {
 		// ask for update
-		const askForUpdatesAwait = this._updateModel.bccRecipients().length
-			? askForUpdates()
-			: Promise.resolve("no")
+		const askForUpdatesAwait = this._hasUpdatableAttendees()
+			? this.isForceUpdates()
+				? Promise.resolve("yes") // we do not ask again because the user has already indicated that they want to send updates
+				: askForUpdates()
+			: Promise.resolve("no") // no updates possible
 
 		const passwordCheck = () => this.hasInsecurePasswords()
 		&& this.containsExternalRecipients() ? askInsecurePassword() : Promise.resolve(true)
@@ -992,6 +1008,9 @@ export class CalendarEventViewModel {
 		return this._eventType === EventType.INVITE
 	}
 
+	/**
+	 * Keep in sync with _hasChanges().
+	 */
 	_initializeNewEvent(): CalendarEvent {
 		// We have to use existing instance to get all the final fields correctly
 		// Using clone feels hacky but otherwise we need to save all attributes of the existing event somewhere and if dialog is
@@ -1049,6 +1068,38 @@ export class CalendarEventViewModel {
 		newEvent.organizer = this.organizer
 		return newEvent
 	}
+
+	/**
+	 * Keep in sync with _initializeNewEvent().
+	 * @param newEvent the new event created from the CalendarEvent properties tracked in this class.
+	 * @returns {boolean} true if changes were made to the event to justify sending updates to attendees.
+	 */
+	_hasChanges(newEvent: CalendarEvent): boolean {
+		const existingEvent = this.existingEvent
+		// we do not check for the sequence number (as it should be changed with every update) or the default instace properties such as _id
+		return !existingEvent
+			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
+			|| newEvent.description !== existingEvent.description
+			|| newEvent.summary !== existingEvent.summary
+			|| newEvent.location !== existingEvent.location
+			|| newEvent.endTime.getTime() !== existingEvent.endTime.getTime()
+			|| newEvent.invitedConfidentially !== existingEvent.invitedConfidentially
+			|| newEvent.uid !== existingEvent.uid
+			|| !areRepeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)
+			|| !arrayEqualsWithPredicate(newEvent.attendees, existingEvent.attendees, (a1, a2) => a1.status === a2.status
+				&& a1.address.address === a2.address.address) // we ignore the names
+			|| (newEvent.organizer !== existingEvent.organizer && newEvent.organizer?.address
+				!== existingEvent.organizer?.address) // we ignore the names
+	}
+}
+
+function areRepeatRulesEqual(r1: ?CalendarRepeatRule, r2: ?CalendarRepeatRule): boolean {
+	return r1 === r2
+		|| (r1?.endType === r2?.endType
+			&& r1?.endValue === r2?.endValue
+			&& r1?.frequency === r2?.frequency
+			&& r1?.interval === r2?.interval
+			&& r1?.timeZone === r2?.timeZone)
 }
 
 function addressToMailAddress(address: string, mailboxDetail: MailboxDetail, userController: IUserController): EncryptedMailAddress {

@@ -1412,7 +1412,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
 		"credentialsEncryptionMode_label": "Credentials encryption mode",
 		"credentialsEncryptionModeDeviceLock_label": "Automatic",
 		"credentialsEncryptionModeDeviceLockHelp_msg": "Automatically unlocked when device is turned on",
@@ -1423,6 +1422,8 @@ export default {
 		"credentialsEncryptionModeSelection_msg": "The credentials are stored encrypted on your device. How would you like to unlock them in the future?",
 		"credentialsKeyInvalidated_msg": "System keychain has been invalidated. Deleting stored credentials.",
 		"couldNotUnlockCredentials_msg": "Could not unlock credentials: {reason}",
-		"unlockCredentials_action": "Unlock credentials"
+		"unlockCredentials_action": "Unlock credentials",
+		"you_label": "You",
+		"sendUpdates_label": "Send updates to invitees"
 	}
 }

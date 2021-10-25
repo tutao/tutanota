@@ -18,6 +18,7 @@ import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/Ca
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor"
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
+import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel";
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils"
 import {DateTime} from "luxon"
@@ -50,7 +51,7 @@ import {
 	makeMailboxDetail,
 	makeUserController
 } from "./CalendarTestUtils"
-import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel";
+import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 
 
 const now = new Date(2020, 4, 25, 13, 40)
@@ -327,6 +328,322 @@ o.spec("CalendarEventViewModel", function () {
 		o(viewModel.canModifyOwnAttendance()).equals(false)
 		o(viewModel.canModifyOrganizer()).equals(false)
 		o(viewModel.possibleOrganizers).deepEquals([existingEvent.organizer])
+	})
+
+	o.spec("_hasChanges", async function () {
+		o("ignore sequence", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				sequence: "1",
+				invitedConfidentially: true,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			const newEvent = viewModel._initializeNewEvent()
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.sequence = "7"
+			o(viewModel._hasChanges(newEvent)).equals(false)
+		})
+
+		o("detect changes", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest}),
+						status: "0"
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: true,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			let newEvent = viewModel._initializeNewEvent()
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.description = "my test"
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.description = existingEvent.description
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.summary = "some nice title"
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.summary = existingEvent.summary
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.location = "some nice title"
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.location = existingEvent.location
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.startTime = new Date(2020, 4, 10, 16)
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.startTime = existingEvent.startTime
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.endTime = new Date(2020, 4, 10, 16)
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.endTime = existingEvent.endTime
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.organizer = wrapEncIntoMailAddress("otherorganizer@tutanota.com")
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.organizer = existingEvent.organizer
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.attendees.push(createCalendarEventAttendee({
+				address: createEncryptedMailAddress({address: "mysecondadress@tutanota.com"})
+			}))
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.attendees = existingEvent.attendees
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.attendees = [
+				createCalendarEventAttendee({
+					address: createEncryptedMailAddress({address: guest}),
+					status: "1" // different
+				})
+			]
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.attendees = existingEvent.attendees
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			newEvent.repeatRule = createRepeatRule()
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			newEvent.repeatRule = existingEvent.repeatRule
+			o(viewModel._hasChanges(newEvent)).equals(false)
+		})
+
+		o("do not ignore confidentiality", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: true,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			let newEvent = viewModel._initializeNewEvent()
+			o(viewModel._hasChanges(newEvent)).equals(false)
+			existingEvent.invitedConfidentially = false
+			o(viewModel._hasChanges(newEvent)).equals(true)
+		})
+
+		o("do not ignore uid", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				invitedConfidentially: true,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			let viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			let newEvent = viewModel._initializeNewEvent()
+			o(viewModel._hasChanges(newEvent)).equals(true)
+			existingEvent.uid = "MyUid"
+			viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			newEvent = viewModel._initializeNewEvent()
+			o(viewModel._hasChanges(newEvent)).equals(false)
+		})
+	})
+
+	o.spec("force update", async function () {
+
+		o("not forcing updates to attendees, no changes, send no update", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: false,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
+			await updateModel.bccRecipients()[0].resolveContactPromise
+			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
+			updateModel.onMailChanged(true)
+			askForUpdates = o.spy(() => Promise.resolve("yes"))
+			askInsecurePassword = o.spy(async () => true)
+
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
+			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
+			o(distributor.sendUpdate.callCount).equals(0)
+			o(distributor.sendCancellation.callCount).equals(0)
+			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
+			o(askForUpdates.calls.length).equals(0)
+			// No new attendees, do not ask about password
+			o(askInsecurePassword.calls.length).equals(0)
+		})
+
+		o("force sending updates to attendees, no changes", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: false,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
+			await updateModel.bccRecipients()[0].resolveContactPromise
+			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
+			updateModel.onMailChanged(true)
+			askForUpdates = o.spy(() => Promise.resolve("yes"))
+			askInsecurePassword = o.spy(async () => true)
+
+			viewModel.isForceUpdates(true)
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
+			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
+			o(distributor.sendUpdate.callCount).equals(1)
+			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
+			o(distributor.sendCancellation.callCount).equals(0)
+			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
+			o(askForUpdates.calls.length).equals(0) // not called because we force updates
+			// No new attendees, do not ask about password
+			o(askInsecurePassword.calls.length).equals(0)
+		})
+
+		o("force sending updates to attendees, with changes", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: false,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			viewModel.setStartDate(new Date(2020, 4, 3))
+			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
+			await updateModel.bccRecipients()[0].resolveContactPromise
+			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
+			updateModel.onMailChanged(true)
+			askForUpdates = o.spy(() => Promise.resolve("yes"))
+			askInsecurePassword = o.spy(async () => true)
+
+			viewModel.isForceUpdates(true)
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
+			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
+			o(distributor.sendUpdate.callCount).equals(1)
+			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
+			o(distributor.sendCancellation.callCount).equals(0)
+			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
+			o(askForUpdates.calls.length).equals(0) // not called because updates are forced
+			// No new attendees, do not ask about password
+			o(askInsecurePassword.calls.length).equals(0)
+		})
+
+		o("not forcing updates to attendees, with changes", async function () {
+			const calendars = makeCalendars("own")
+			const calendarModel = makeCalendarModel()
+			const distributor = makeDistributor()
+			const guest = "new-attendee@example.com"
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "eventId"],
+				_ownerGroup: calendarGroupId,
+				attendees: [
+					createCalendarEventAttendee({
+						address: createEncryptedMailAddress({address: guest})
+					})
+				],
+				uid: "MyUid",
+				invitedConfidentially: false,
+				organizer: encMailAddress,
+				startTime: new Date(2020, 4, 5, 16),
+				endTime: new Date(2020, 4, 6, 20),
+			})
+			const userController = makeUserController([], AccountType.PREMIUM, "", true)
+			const viewModel = await init({userController, calendars, existingEvent, calendarModel, distributor})
+			viewModel.setStartDate(new Date(2020, 4, 3))
+			updateModel.bccRecipients()[0].type = RecipientInfoType.EXTERNAL
+			await updateModel.bccRecipients()[0].resolveContactPromise
+			updateModel.bccRecipients()[0].contact = createContact({presharedPassword: "123"})
+			updateModel.onMailChanged(true)
+			askForUpdates = o.spy(() => Promise.resolve("yes"))
+			askInsecurePassword = o.spy(async () => true)
+
+			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
+			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
+			o(distributor.sendUpdate.callCount).equals(1)
+			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
+			o(distributor.sendCancellation.callCount).equals(0)
+			o(updateModel.bccRecipients().map((a) => a.mailAddress)).deepEquals([guest])
+			o(askForUpdates.calls.length).equals(1)
+			// No new attendees, do not ask about password
+			o(askInsecurePassword.calls.length).equals(0)
+		})
 	})
 
 	o.spec("delete event", async function () {

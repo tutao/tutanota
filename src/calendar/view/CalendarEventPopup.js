@@ -9,6 +9,7 @@ import {modal} from "../../gui/base/Modal"
 import {EventPreviewView} from "./EventPreviewView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {Dialog} from "../../gui/base/Dialog"
+import type {EventCreateResult} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {UserError} from "../../api/main/UserError"
 import {DROPDOWN_MARGIN, showDropdown} from "../../gui/base/DropdownN"
@@ -18,6 +19,7 @@ import {prepareCalendarDescription} from "../date/CalendarUtils"
 import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {noOp} from "../../api/common/utils/Utils"
 import type {PosRect} from "../../gui/base/Dropdown"
+import {BootIcons} from "../../gui/base/icons/BootIcons"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent
@@ -78,6 +80,15 @@ export class CalendarEventPopup implements ModalComponent {
 				help: "delete_action"
 			})
 		}
+		if (!!this._viewModel && this._viewModel.isForceUpdateAvailable()) {
+			this._shortcuts.push({
+				key: Keys.R,
+				exec: () => {
+					this._forceSendingUpdatesToAttendees()
+				},
+				help: "sendUpdates_label"
+			})
+		}
 
 		this.view = (vnode: Vnode<any>) => {
 			return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
@@ -94,6 +105,15 @@ export class CalendarEventPopup implements ModalComponent {
 				},
 				[
 					m(".flex.flex-end", [
+						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
+							? m(ButtonN, {
+								label: "sendUpdates_label",
+								click: () => this._forceSendingUpdatesToAttendees(),
+								type: ButtonType.ActionLarge,
+								icon: () => BootIcons.Mail,
+								colors: ButtonColors.DrawerNav,
+							})
+							: null,
 						!this._isExternal
 							? m(ButtonN, {
 								label: "edit_action",
@@ -109,9 +129,7 @@ export class CalendarEventPopup implements ModalComponent {
 						this._isDeleteAvailable()
 							? m(ButtonN, {
 								label: "delete_action",
-								click: () => {
-									this._deleteEvent()
-								},
+								click: () => this._deleteEvent(),
 								type: ButtonType.ActionLarge,
 								icon: () => Icons.Trash,
 								colors: ButtonColors.DrawerNav,
@@ -165,6 +183,25 @@ export class CalendarEventPopup implements ModalComponent {
 
 	_isDeleteAvailable(): boolean {
 		return this._isPersistentEvent && !!this._viewModel && !this._viewModel.isReadOnlyEvent()
+	}
+
+	async _forceSendingUpdatesToAttendees(): Promise<void> {
+		const viewModel = this._viewModel
+		if (viewModel) {
+			// we handle askForUpdates here to avoid making a request if not necessary
+			const confirmUpdate = await Dialog.confirm("sendUpdates_msg")
+			if (confirmUpdate) {
+				viewModel.isForceUpdates(true)
+				const success: EventCreateResult = await viewModel.saveAndSend({
+					askForUpdates: () => Promise.resolve("yes"), // will be overwritten anyway because updates are forced
+					askInsecurePassword: async () => true,
+					showProgress: noOp
+				}).finally(() => viewModel.isForceUpdates(false))
+				if (success) {
+					this._close()
+				}
+			}
+		}
 	}
 
 	async _deleteEvent(): Promise<void> {
