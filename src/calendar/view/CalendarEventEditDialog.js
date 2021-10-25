@@ -193,7 +193,7 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			}
 
 			const organizer = viewModel.organizer
-			if (organizer != null && !guests.some(guest => guest.address.address === organizer.address)) {
+			if (organizer != null && guests.length > 0 && !guests.some(guest => guest.address.address === organizer.address)) {
 				guests.unshift({
 					address: createEncryptedMailAddress({
 						address: organizer.address

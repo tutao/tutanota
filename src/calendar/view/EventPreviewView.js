@@ -37,9 +37,12 @@ export class EventPreviewView implements MComponent<Attrs> {
 
 		const url = this._getLocationUrl(event.location.trim())
 
-		const attendees = event.attendees
+		// We copy the attendees array so that we can add the organizer, in the case that they are not already in attendees
+		// This is just for display purposes. We need to copy because event.attendees is the source of truth for the event
+		// so we can't modify it
+		const attendees = event.attendees.slice()
 		const organizer = event.organizer
-		if (organizer != null && !attendees.some(attendee => attendee.address.address === organizer.address)) {
+		if (organizer != null && attendees.length > 0 && !attendees.some(attendee => attendee.address.address === organizer.address)) {
 			attendees.unshift(createCalendarEventAttendee({
 				address: createEncryptedMailAddress({
 					address: organizer.address
