@@ -1,11 +1,11 @@
 // @flow
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode} from "../api/common/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {TimeFormat} from "../api/common/TutanotaConstants"
-import {pad} from "../api/common/utils/StringUtils";
+import {pad} from "@tutao/tutanota-utils";
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

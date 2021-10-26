@@ -16,7 +16,7 @@ import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {errorToString, neverNull, noOp} from "../api/common/utils/Utils"
+import {errorToString, neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins, SessionType} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
@@ -36,7 +36,7 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
 
 assertMainOrNode()

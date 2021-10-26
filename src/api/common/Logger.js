@@ -1,7 +1,7 @@
 //@flow
 //@bundleInto:common-min
 
-import {errorToString} from "./utils/Utils"
+import {errorToString} from "@tutao/tutanota-utils"
 
 
 export const LOG_SIZE = 1000
@@ -65,7 +65,7 @@ export class Logger {
 }
 
 export function createLogFile(timestamp: number, entries: Array<string>, scope: string): Promise<DataFile> {
-	return import("./utils/Encoding").then(({stringToUtf8Uint8Array}) => {
+	return import("@tutao/tutanota-utils").then(({stringToUtf8Uint8Array}) => {
 		const content = entries.join("\n")
 		const data = stringToUtf8Uint8Array(content)
 		return {

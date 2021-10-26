@@ -4,7 +4,7 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "./Expander"
 import {theme} from "../theme"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export type FolderExpanderAttrs = {
 	label: TranslationKey | lazy<string>,

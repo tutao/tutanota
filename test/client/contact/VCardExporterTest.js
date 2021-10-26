@@ -14,7 +14,7 @@ import {
 	contactsToVCard
 } from "../../../src/contacts/VCardExporter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
-import {neverNull} from "../../../src/api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
 import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 

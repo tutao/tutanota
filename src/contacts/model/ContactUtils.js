@@ -1,11 +1,11 @@
 // @flow
 import {lang} from "../../misc/LanguageViewModel.js"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {Contact} from "../../api/entities/tutanota/Contact"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {Birthday} from "../../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth} from "../../misc/Formatter"
 import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

@@ -1,7 +1,7 @@
 // @flow
 
 import type {SelectorItem} from "../base/DropDownSelectorN"
-import {mapNullable} from "../../api/common/utils/Utils"
+import {mapNullable} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 export async function showSpellcheckLanguageDialog(): Promise<string> {

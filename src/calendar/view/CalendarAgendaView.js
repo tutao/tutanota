@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {incrementDate} from "../../api/common/utils/DateUtils"
+import {incrementDate} from "@tutao/tutanota-utils"
 import {styles} from "../../gui/styles"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatDate, formatDateWithWeekday} from "../../misc/Formatter"
@@ -15,9 +15,9 @@ import {
 	hasAlarmsForTheUser
 } from "../date/CalendarUtils"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {px, size} from "../../gui/size"
-import {lastThrow} from "../../api/common/utils/ArrayUtils"
+import {lastThrow} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import type {GroupColors} from "./CalendarView"

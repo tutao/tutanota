@@ -218,7 +218,8 @@ async function buildWebapp(version) {
 			MINIFY && terser(),
 			analyzer(),
 			visualizer({filename: "build/stats.html", gzipSize: true}),
-			bundleDependencyCheckPlugin()
+			bundleDependencyCheckPlugin(),
+			nodeResolve(),
 		],
 	})
 	console.log("bundling timings: ")

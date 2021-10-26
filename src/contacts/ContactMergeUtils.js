@@ -1,7 +1,7 @@
 // @flow
 import type {ContactComparisonResultEnum, IndifferentContactComparisonResultEnum} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"

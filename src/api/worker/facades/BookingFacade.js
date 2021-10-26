@@ -6,12 +6,12 @@ import {createPriceRequestData} from "../../entities/sys/PriceRequestData"
 import {serviceRequest} from "../EntityWorker"
 import type {PriceServiceReturn} from "../../entities/sys/PriceServiceReturn"
 import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
-import {neverNull} from "../../common/utils/Utils"
-import {assertWorkerOrNode} from "../../common/Env"
+import {neverNull} from "@tutao/tutanota-utils"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {SysService} from "../../entities/sys/Services"
 import type {PriceData} from "../../entities/sys/PriceData"
 import type {PriceItemData} from "../../entities/sys/PriceItemData"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

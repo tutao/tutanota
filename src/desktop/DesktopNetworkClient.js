@@ -1,7 +1,7 @@
 // @flow
 import http from 'http'
 import https from 'https'
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 export type DesktopClientRequest = http$ClientRequest<*>
 

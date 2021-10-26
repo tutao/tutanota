@@ -1,7 +1,6 @@
 // @flow
-//@bundleInto:common-min
 
-import type {lazy} from "./Utils"
+import type {lazy} from "./Utils.js"
 
 /**
  * Returns a string which contains the given number padded with 0s.

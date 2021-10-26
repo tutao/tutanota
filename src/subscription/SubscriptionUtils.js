@@ -19,7 +19,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,

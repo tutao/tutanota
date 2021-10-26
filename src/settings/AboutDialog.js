@@ -4,15 +4,15 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {UserError} from "../api/main/UserError"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {createDataFile} from "../api/common/DataFile"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): Children {

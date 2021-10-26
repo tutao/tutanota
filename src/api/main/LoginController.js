@@ -1,14 +1,15 @@
 //@flow
-import type {DeferredObject} from "../common/utils/Utils"
-import {assertNotNull, defer} from "../common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {assertNotNull, defer} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
-import {remove} from "../common/utils/ArrayUtils"
+import {remove} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
+import type {Credentials} from "../../misc/credentials/Credentials"
 
 assertMainOrNodeBoot()
 

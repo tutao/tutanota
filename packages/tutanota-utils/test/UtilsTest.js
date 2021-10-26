@@ -1,18 +1,16 @@
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {clone, deepEqual, getChangedProps} from "../../../src/api/common/utils/Utils"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
+import {clone, deepEqual, getChangedProps} from "../lib"
 
 o.spec("utils", function () {
 
 	o("deep clone an instance", function () {
-		let address = createContactMailAddress()
+		let address = {}
 		address.type = "1"
 		address._id = "dummyAddressId"
 		address.address = "donald@duck.de"
 		address.customTypeName = ""
 
-		let c1 = createContact()
+		let c1 = {}
 		c1._ownerEncSessionKey = new Uint8Array([3, 2])
 		c1._id = ["dummyListId", "dummyId"]
 		c1.firstName = "Donald"

@@ -1,12 +1,9 @@
 // @flow
 
-import {union} from "./ArrayUtils"
-import {toLowerCase} from "./StringUtils"
-import {isSameTypeRef} from "./TypeRef"
+import {downcast, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/File"
-import {downcast} from "./Utils"
-import {intersection} from "./CollectionUtils"
+import {intersection} from "@tutao/tutanota-utils/"
 
 type StringPredicate = string => boolean
 const _false: StringPredicate = () => false
@@ -74,7 +71,7 @@ export function sanitizeFilename(filename: string): string {
  * @param filenames
  * @param _taken: file names that are taken but won't be included in the output
  */
-export function   deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnlySet<string> = new Set()): {[string]: Array<string>} {
+export function deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnlySet<string> = new Set()): {[string]: Array<string>} {
 	// make taken lowercase aswell for case insensitivity
 	const taken = new Set(Array.from(_taken).map(toLowerCase))
 

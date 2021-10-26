@@ -1,6 +1,6 @@
 //@flow
 import {TutanotaError} from "../api/common/error/TutanotaError"
-import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {assertMainOrNode, getHttpOrigin, isAdminClient, isApp, isDesktop} from "../api/common/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
@@ -13,8 +13,9 @@ import {SECOND_MS} from "../api/common/TutanotaConstants"
 import {BrowserType} from "./ClientConstants"
 import {client} from "./ClientDetector"
 import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
-import {delay} from "../api/common/utils/PromiseUtils"
-import {downcast} from "../api/common/utils/Utils"
+import {delay} from "@tutao/tutanota-utils"
+import {downcast} from "@tutao/tutanota-utils"
+import type {Base64, Base64Url} from "@tutao/tutanota-utils/"
 
 assertMainOrNode()
 

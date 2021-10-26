@@ -1,7 +1,7 @@
 // @flow
 
 import m from "mithril"
-import {getStartOfDay, incrementDate, isSameDay} from "../../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isSameDay} from "@tutao/tutanota-utils"
 import {formatTime} from "../../misc/Formatter"
 import {
 	CALENDAR_EVENT_HEIGHT,
@@ -27,7 +27,7 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import type {EventTextTimeOptionEnum, WeekStartEnum} from "../../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
-import {lastThrow} from "../../api/common/utils/ArrayUtils"
+import {lastThrow} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {PageView} from "../../gui/base/PageView"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -40,12 +40,12 @@ import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {styles} from "../../gui/styles"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
 import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 
 export type Attrs = {

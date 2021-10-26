@@ -8,7 +8,6 @@ import {CounterType_UnreadMails, MailFolderType} from "../../api/common/Tutanota
 import type {MailView} from "./MailView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {assertMainOrNode} from "../../api/common/Env"
 import {canDoDragAndDropExport, getArchiveFolder, getFolderName, getInboxFolder} from "../model/MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler"
 import {NotFoundError} from "../../api/common/error/RestError"
@@ -22,7 +21,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import {MonitorService} from "../../api/entities/monitor/Services"
 import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
-import {assertNotNull, debounce, downcast, neverNull} from "../../api/common/utils/Utils"
+import {assertNotNull, debounce, downcast, neverNull} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
@@ -30,12 +29,13 @@ import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {Request} from "../../api/common/WorkerProtocol"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {ofClass, promiseFilter, promiseMap, tap} from "../../api/common/utils/PromiseUtils"
-import {AsyncResult} from "../../api/common/utils/AsyncResult"
+import {ofClass, promiseFilter, promiseMap, tap} from "@tutao/tutanota-utils"
+import {AsyncResult} from "@tutao/tutanota-utils"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
 import type {VirtualRow} from "../../gui/base/List"
+import {assertMainOrNode} from "../../api/common/Env";
 
 assertMainOrNode()
 

@@ -7,11 +7,11 @@ import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
-import {assertMainOrNode} from "../api/common/Env"
+import {decodeBase64, decodeQuotedPrintable} from "@tutao/tutanota-utils"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {birthdayToIsoDate, isoDateToBirthday, isValidBirthday} from "../api/common/utils/BirthdayUtils"
-import {decodeBase64, decodeQuotedPrintable} from "../api/common/utils/Encoding"
+import {birthdayToIsoDate, isValidBirthday} from "../api/common/utils/BirthdayUtils"
 import {ParsingError} from "../api/common/error/ParsingError"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

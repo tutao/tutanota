@@ -3,8 +3,8 @@
 import m from "mithril"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
-import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "../../api/common/utils/DateUtils"
-import {numberRange} from "../../api/common/utils/ArrayUtils"
+import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "@tutao/tutanota-utils"
+import {numberRange} from "@tutao/tutanota-utils"
 import {
 	eventEndsAfterDay,
 	eventStartsBefore,
@@ -18,7 +18,7 @@ import {
 	TEMPORARY_EVENT_OPACITY
 } from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {downcast, mapNullable, neverNull} from "../../api/common/utils/Utils"
+import {downcast, mapNullable, neverNull} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"

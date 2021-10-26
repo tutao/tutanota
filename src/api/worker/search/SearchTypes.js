@@ -2,9 +2,10 @@
 import type {DbFacade} from "./DbFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {TypeRef} from "@tutao/tutanota-utils";
 import type {ModelAssociation, ModelValue} from "../../common/EntityTypes"
-import type {lazy} from "../../common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import type {Base64} from "@tutao/tutanota-utils/"
 
 
 // db types

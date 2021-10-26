@@ -1,15 +1,9 @@
 //@flow
 
 import o from "ospec"
-import {
-	delay,
-	mapInCallContext,
-	PromisableWrapper as PromiseableWrapper,
-	promiseFilter,
-	promiseMap
-} from "../../../src/api/common/utils/PromiseUtils"
-import {defer} from "../../../src/api/common/utils/Utils"
-import {assertThrows} from "../TestUtils"
+import {delay, mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseFilter, promiseMap} from "../lib/PromiseUtils"
+import {defer} from "../lib/Utils"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 
 
 o.spec("PromiseUtils", function () {

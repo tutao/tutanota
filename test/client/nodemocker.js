@@ -1,6 +1,6 @@
 // @flow
 import o from "ospec"
-import {downcast} from "../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 /**
  * you need to call .get() on the return value to actually register the replacer to spyify its functions.

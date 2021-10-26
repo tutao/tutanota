@@ -6,7 +6,7 @@ import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKeyType} from "../../misc/TranslationKey"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 type CalendarProperties = {name: string, color: string}
 

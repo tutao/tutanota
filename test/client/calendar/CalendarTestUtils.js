@@ -7,7 +7,7 @@ import type {IUserController} from "../../../src/api/main/UserController"
 import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils"
 import {createFeature} from "../../../src/api/entities/sys/Feature"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
@@ -20,7 +20,7 @@ import {MailModel} from "../../../src/mail/model/MailModel"
 import {createMailBox} from "../../../src/api/entities/tutanota/MailBox";
 import {createGroup} from "../../../src/api/entities/sys/Group";
 import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/MailboxGroupRoot";
-import {LazyLoaded} from "../../../src/api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor"
 import o from "ospec"
 import type {Contact} from "../../../src/api/entities/tutanota/Contact"

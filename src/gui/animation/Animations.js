@@ -1,9 +1,9 @@
 // @flow
 import type {EasingFunction} from "./Easing"
 import {ease} from "./Easing"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {hexToRgb} from "../base/Color"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 

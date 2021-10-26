@@ -23,18 +23,11 @@ import {
 	typeRefToTypeInfo
 } from "../../../../src/api/worker/search/IndexUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
-import {
-	base64ToUint8Array,
-	generatedIdToTimestamp,
-	timestampToGeneratedId,
-	uint8ArrayToBase64
-} from "../../../../src/api/common/utils/Encoding"
-import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
-import {makeCore, spy} from "../../TestUtils"
+import {base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {spy} from "@tutao/tutanota-test-utils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
-import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
@@ -43,9 +36,9 @@ import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
-import {PromisableWrapper} from "../../../../src/api/common/utils/PromiseUtils"
-import {elementIdPart, listIdPart} from "../../../../src/api/common/utils/EntityUtils";
+import {elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils";
 import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/Indexer";
+import {makeCore} from "../../TestUtils"
 
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)

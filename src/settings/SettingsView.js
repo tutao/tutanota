@@ -30,7 +30,7 @@ import {PaymentViewer} from "../subscription/PaymentViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {flat, LazyLoaded, partition} from "@tutao/tutanota-utils"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
@@ -43,12 +43,11 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 import {TemplateListView} from "./TemplateListView"
 import {KnowledgeBaseListView} from "./KnowledgeBaseListView"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 import {loadTemplateGroupInstances} from "../templates/model/TemplatePopupModel"
 import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import {showGroupSharingDialog} from "../sharing/view/GroupSharingDialog"
-import {getConfirmation, createMoreActionButtonAttrs} from "../gui/base/GuiUtils"
-import {flat, partition} from "../api/common/utils/ArrayUtils"
+import {createMoreActionButtonAttrs, getConfirmation} from "../gui/base/GuiUtils"
 import {SidebarSection} from "../gui/SidebarSection"
 import {ReceivedGroupInvitationsModel} from "../sharing/model/ReceivedGroupInvitationsModel"
 import {getDefaultGroupName, getSharedGroupName, isSharedGroupOwner} from "../sharing/GroupUtils"
@@ -197,7 +196,7 @@ export class SettingsView implements CurrentView {
 							: null,
 						templateInvitations.length > 0
 							? m(SidebarSection, {name: "templateGroupInvitations_label"},
-							templateInvitations.map(invitation => this._renderTemplateInvitationFolderRow(invitation)))
+								templateInvitations.map(invitation => this._renderTemplateInvitationFolderRow(invitation)))
 							: null,
 						this._knowledgeBaseFolders.length > 0
 							? m(SidebarSection, {

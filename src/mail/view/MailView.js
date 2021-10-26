@@ -20,8 +20,8 @@ import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMail
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import type {lazy} from "../../api/common/utils/Utils"
-import {defer, lazyMemoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {defer, lazyMemoized, neverNull, noOp} from "@tutao/tutanota-utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -64,7 +64,7 @@ import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./Mail
 import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 
 assertMainOrNode()

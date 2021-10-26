@@ -2,9 +2,9 @@
 
 import m from "mithril"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
-import {memoized, neverNull, noOp} from "../../api/common/utils/Utils"
+import {memoized, neverNull, noOp} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {startsWith} from "../../api/common/utils/StringUtils"
+import {startsWith} from "@tutao/tutanota-utils"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -12,7 +12,7 @@ import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TemplateGrou
 import {locator} from "../../api/main/MainLocator"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry,

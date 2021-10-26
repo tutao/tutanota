@@ -1,9 +1,9 @@
 //@flow
 import type {Db} from "./SearchTypes"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {random} from "../crypto/Randomizer"
-import {TypeRef} from "../../common/utils/TypeRef";
+import {TypeRef} from "@tutao/tutanota-utils";
 import {SearchTermSuggestionsOS} from "./Indexer"
 
 export type SuggestionsType = {

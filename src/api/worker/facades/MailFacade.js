@@ -33,7 +33,19 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {addressDomain, defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
+import {
+	addressDomain,
+	byteLength,
+	contains,
+	defer,
+	downcast,
+	isSameTypeRefByAttr,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseFilter,
+	promiseMap
+} from "@tutao/tutanota-utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -52,7 +64,6 @@ import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData
 import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {contains} from "../../common/utils/ArrayUtils"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
@@ -63,13 +74,9 @@ import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils";
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils";
-import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 import {htmlToText} from "../search/IndexUtils"
-import {ofClass, promiseFilter, promiseMap} from "../../common/utils/PromiseUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
-import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
-import type {WorkerClient} from "../../main/WorkerClient"
 import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {SysService} from "../../entities/sys/Services"

@@ -20,7 +20,7 @@ import type {MailExportMode} from "../mail/export/Exporter"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/ConfigKeys"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {ThemeManager} from "./ThemeManager"
 
 export type WindowBounds = {|

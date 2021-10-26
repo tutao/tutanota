@@ -10,10 +10,11 @@ import {
 	IV_BYTE_LENGTH
 } from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString} from "../../../src/api/common/utils/Encoding"
+import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
-import {concat} from "../../../src/api/common/utils/ArrayUtils"
+import {concat} from "@tutao/tutanota-utils"
+import type {Hex} from "@tutao/tutanota-utils/"
 
 
 o.spec("aes", function () {

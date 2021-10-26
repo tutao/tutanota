@@ -23,8 +23,8 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY
 } from "../date/CalendarUtils"
-import {incrementDate, incrementMonth, isSameDay} from "../../api/common/utils/DateUtils"
-import {flat, lastThrow} from "../../api/common/utils/ArrayUtils"
+import {incrementDate, incrementMonth, isSameDay} from "@tutao/tutanota-utils"
+import {flat, lastThrow} from "@tutao/tutanota-utils"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../../gui/styles"
 import {formatMonthWithFullYear} from "../../misc/Formatter"
@@ -38,7 +38,7 @@ import {SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"
 import type {EventDragHandlerCallbacks, MousePos} from "./EventDragHandler"
 import {EventDragHandler} from "./EventDragHandler"
 import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {theme} from "../../gui/theme"
@@ -46,7 +46,7 @@ import {getDateFromMousePos, renderCalendarSwitchLeftButton, renderCalendarSwitc
 import type {CalendarEventBubbleClickHandler, CalendarViewTypeEnum, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {Time} from "../../api/common/utils/Time"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
 
 type CalendarMonthAttrs = {

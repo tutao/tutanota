@@ -1,5 +1,5 @@
 //@flow
-import {downcast, filterInt, neverNull} from "../../api/common/utils/Utils"
+import {downcast, filterInt, neverNull} from "@tutao/tutanota-utils"
 import {DateTime, IANAZone} from "luxon"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -9,7 +9,7 @@ import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import {createRepeatRule} from "../../api/entities/sys/RepeatRule"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../../api/entities/sys/AlarmInfo"
-import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS} from "@tutao/tutanota-utils"
 import type {Parser} from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,

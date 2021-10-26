@@ -6,7 +6,7 @@ import type {ReportMovedMailsTypeEnum} from "../api/common/TutanotaConstants"
 import {ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 /**
  * Loads the mailbox properties from the server.

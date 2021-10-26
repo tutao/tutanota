@@ -5,14 +5,12 @@ import {SysService} from "../../entities/sys/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
-import {uint8ArrayToHex} from "../../common/utils/Encoding"
+import {ofClass, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
 import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
-import type {RecipientInfo} from "../../common/RecipientInfo"
-import {ofClass} from "../../common/utils/PromiseUtils"
 
 export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
 	let keyData = createPublicKeyData()

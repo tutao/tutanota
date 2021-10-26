@@ -6,7 +6,7 @@ import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/De
 import n from "../../nodemocker"
 import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {NativeWrapper} from "../../../../src/native/common/NativeWrapper"
 
 o.spec("CredentialsMigrationTest", function () {

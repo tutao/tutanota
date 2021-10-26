@@ -1,20 +1,22 @@
 // @flow
 import {
+	arrayEquals,
 	base64ToHex,
 	base64ToUint8Array,
-	hexToUint8Array,
+	concat,
 	int8ArrayToBase64,
+	LazyLoaded,
 	uint8ArrayToBase64,
 	uint8ArrayToHex
-} from "../../common/utils/Encoding"
-import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
+} from "@tutao/tutanota-utils"
 import {hash} from "./Sha256"
 import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode, Mode} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import {BigInteger, parseBigInt, RSAKey} from "./lib/crypto-jsbn-2012-08-09_1"
-import {LazyLoaded} from "../../common/utils/LazyLoaded"
+import type {Base64, Hex} from "@tutao/tutanota-utils/"
+import type {PrivateKey, PublicKey, RsaKeyPair} from "./RsaKeyPair"
 
 assertWorkerOrNode()
 

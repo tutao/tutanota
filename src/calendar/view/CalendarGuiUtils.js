@@ -7,7 +7,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog";
 import type {MousePosAndBounds} from "../../gui/base/GuiUtils"
 import {Time} from "../../api/common/utils/Time"
-import {firstThrow} from "../../api/common/utils/ArrayUtils"
+import {firstThrow} from "@tutao/tutanota-utils"
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, switcher: Function): Child {
 	return m(ButtonN, {

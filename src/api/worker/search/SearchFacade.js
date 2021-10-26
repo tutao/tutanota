@@ -3,8 +3,23 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {DbTransaction} from "./DbFacade"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
-import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
-import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
+import type {PromiseMapFn} from "@tutao/tutanota-utils"
+import {
+	arrayHash,
+	asyncFind,
+	contains,
+	defer,
+	downcast,
+	flat,
+	getDayShifted,
+	getStartOfDay,
+	isSameTypeRef,
+	neverNull,
+	promiseMap,
+	promiseMapCompat,
+	TypeRef,
+	uint8ArrayToBase64
+} from "@tutao/tutanota-utils"
 import type {
 	Db,
 	DecryptedSearchIndexEntry,
@@ -34,20 +49,15 @@ import {
 	typeRefToTypeInfo
 } from "./IndexUtils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
-import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {compareNewestFirst, firstBiggerThanSecond, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
-import {LoginFacade, LoginFacadeImpl} from "../facades/LoginFacade"
+import {LoginFacadeImpl} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
-import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
-import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {ofClass, promiseMap, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
-import {compareNewestFirst, firstBiggerThanSecond} from "../../common/utils/EntityUtils";
-import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
 import type {TypeModel} from "../../common/EntityTypes"
 

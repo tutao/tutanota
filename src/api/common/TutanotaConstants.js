@@ -1,6 +1,6 @@
 // @flow
 //@bundleInto:common-min
-import {downcast} from "./utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import type {MailFolder} from "../entities/tutanota/MailFolder"
 import type {ContactSocialId} from "../entities/tutanota/ContactSocialId"

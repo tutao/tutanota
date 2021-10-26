@@ -6,8 +6,8 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Icon} from "./base/Icon"
 import {Icons} from "./base/icons/Icons"
-import type {MaybeLazy} from "../api/common/utils/Utils"
-import {resolveMaybeLazy} from "../api/common/utils/Utils"
+import type {MaybeLazy} from "@tutao/tutanota-utils"
+import {resolveMaybeLazy} from "@tutao/tutanota-utils"
 
 export type ScrollSelectListAttrs<T> = {|
 	items: $ReadOnlyArray<T>,

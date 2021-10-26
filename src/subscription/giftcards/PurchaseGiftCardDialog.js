@@ -33,11 +33,11 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
 import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
-import {filterInt, noOp} from "../../api/common/utils/Utils"
+import {filterInt, noOp} from "@tutao/tutanota-utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils";
-import {ofClass} from "../../api/common/utils/PromiseUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import {ofClass} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,

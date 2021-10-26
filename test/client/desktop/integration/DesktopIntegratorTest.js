@@ -2,7 +2,7 @@
 import o from "ospec"
 import n from "../../nodemocker"
 import { getDesktopIntegratorForPlatform} from "../../../../src/desktop/integration/DesktopIntegrator"
-import {downcast} from "../../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager"
 import {lang} from "../../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]

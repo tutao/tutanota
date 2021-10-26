@@ -3,12 +3,12 @@ import o from "ospec"
 import {LINE_BREAK} from "../../../src/mail/model/MailUtils"
 import type {EmailSignatureTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {EmailSignatureType} from "../../../src/api/common/TutanotaConstants"
-import {downcast} from "../../../src/api/common/utils/Utils"
-import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import {mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {htmlSanitizer} from "../../../src/misc/HtmlSanitizer"
 import type {LoginController} from "../../../src/api/main/LoginController"
-import {appendEmailSignature, prependEmailSignature} from "../../../src/mail/signature/Signature";
+import {appendEmailSignature, prependEmailSignature} from "../../../src/mail/signature/Signature"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 

@@ -5,7 +5,7 @@ import {px, size} from "../gui/size"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
-import {isEmpty} from "../api/common/utils/ArrayUtils"
+import {isEmpty} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
@@ -26,7 +26,7 @@ import m from "mithril"
 import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/model/ContactUtils.js"
 import {getMailFolderIcon} from "../mail/view/MailGuiUtils";
-import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
+import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {locator} from "../api/main/MainLocator"
 
 type SearchBarOverlayAttrs = {

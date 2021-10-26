@@ -1,7 +1,7 @@
 // @flow
 
 import o from "ospec"
-import {SortedArray} from "../../../src/api/common/utils/SortedArray"
+import {SortedArray} from "../lib/SortedArray"
 
 o.spec("SortedArray", function () {
 

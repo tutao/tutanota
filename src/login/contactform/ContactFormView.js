@@ -1,9 +1,8 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {Dialog} from "../../gui/base/Dialog"
 import {getLanguage, lang} from "../../misc/LanguageViewModel"
@@ -17,8 +16,9 @@ import {header} from "../../gui/base/Header"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

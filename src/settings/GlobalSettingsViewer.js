@@ -1,11 +1,11 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
+import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadRange, update} from "../api/main/Entity"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getCustomMailDomains, neverNull, noOp} from "../api/common/utils/Utils"
+import {getCustomMailDomains} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -20,7 +20,6 @@ import {Dialog} from "../gui/base/Dialog"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LockedError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
@@ -38,20 +37,24 @@ import {DomainDnsStatus} from "./DomainDnsStatus"
 import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {RejectedSenderTypeRef} from "../api/entities/sys/RejectedSender"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../api/common/utils/Encoding"
+import {
+	GENERATED_MAX_ID,
+	generatedIdToTimestamp,
+	getElementId,
+	sortCompareByReverseId,
+	timestampToGeneratedId
+} from "../api/common/utils/EntityUtils"
 import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
-import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getDomainPart} from "../misc/parsing/MailAddressParser";
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

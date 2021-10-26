@@ -1,6 +1,6 @@
 // @flow
-import {neverNull} from "./Utils"
 import type {lazyAsync} from "./Utils"
+import {neverNull} from "./Utils"
 
 /**
  * A wrapper for an object that shall be lazy loaded asynchronously. If loading the object is triggered in parallel (getAsync()) the object is actually only loaded once but returned to all calls of getAsync().

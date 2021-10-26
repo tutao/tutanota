@@ -2,13 +2,13 @@
 import m from "mithril"
 import {alpha, animations} from "./../animation/Animations"
 import {theme} from "../theme"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
-import {remove} from "../../api/common/utils/ArrayUtils"
-import {downcast, insideRect} from "../../api/common/utils/Utils"
+import {remove} from "@tutao/tutanota-utils"
+import {downcast, insideRect} from "@tutao/tutanota-utils"
 import {LayerType} from "../../RootView"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 

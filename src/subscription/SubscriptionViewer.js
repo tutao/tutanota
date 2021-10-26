@@ -5,7 +5,7 @@ import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {serviceRequest} from "../api/main/Entity"
@@ -69,7 +69,7 @@ import {elementIdPart, GENERATED_MAX_ID, getEtId} from "../api/common/utils/Enti
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

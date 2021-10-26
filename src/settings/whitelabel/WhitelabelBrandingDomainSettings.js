@@ -2,7 +2,7 @@
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {LockedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
@@ -17,7 +17,7 @@ import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
 import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
 import {formatDateTime} from "../../misc/Formatter"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {

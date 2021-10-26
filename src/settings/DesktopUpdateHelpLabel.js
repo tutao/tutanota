@@ -5,7 +5,7 @@ import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Request} from "../api/common/WorkerProtocol.js"
-import {delay} from "../api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>;

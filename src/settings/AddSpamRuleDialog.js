@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/common/Env"
 import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
 import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
@@ -12,10 +11,9 @@ import {
 	SpamRuleType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS
 } from "../api/common/TutanotaConstants"
-import {contains} from "../api/common/utils/ArrayUtils"
+import {contains, neverNull, objectEntries} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import {load} from "../api/main/Entity"
-import {neverNull, objectEntries} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
@@ -25,6 +23,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

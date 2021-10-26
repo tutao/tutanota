@@ -8,7 +8,6 @@ import {load, loadAll} from "../../api/main/Entity"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {getContactListName} from "../model/ContactUtils"
-import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
@@ -17,7 +16,8 @@ import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils";
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {compareContacts} from "./ContactGuiUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

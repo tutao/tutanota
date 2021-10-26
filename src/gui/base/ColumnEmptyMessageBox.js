@@ -2,11 +2,11 @@
 import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {AllIconsEnum} from "./Icon"
 import {Icon} from "./Icon"
 import {px, size} from "../size"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

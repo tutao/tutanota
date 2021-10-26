@@ -2,10 +2,10 @@
 import o from "ospec"
 import type {Theme, ThemeId} from "../../../src/gui/theme"
 import n from "../nodemocker"
-import {ThemeController} from "../../../src/gui/ThemeController"
 import type {ThemeStorage} from "../../../src/gui/ThemeController"
+import {ThemeController} from "../../../src/gui/ThemeController"
 import type {ThemeCustomizations} from "../../../src/misc/WhitelabelCustomizations"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 o.spec("Theme Controller", function () {
 	let themeManager: ThemeController

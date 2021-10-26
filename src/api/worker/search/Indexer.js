@@ -11,9 +11,23 @@ import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
-import type {DeferredObject} from "../../common/utils/Utils"
-import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/Encoding"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/EntityUtils"
+import {
+	contains,
+	daysToMillis,
+	defer,
+	downcast,
+	getFromMap,
+	isSameTypeRef,
+	isSameTypeRefByAttr,
+	millisToDays,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	TypeRef
+} from "@tutao/tutanota-utils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
 import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
@@ -36,22 +50,17 @@ import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
-import {contains} from "../../common/utils/ArrayUtils"
 import {CancelledError} from "../../common/error/CancelledError"
 import {random} from "../crypto/Randomizer"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
-import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils";
-import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
 import {deleteObjectStores} from "../utils/DbUtils"
-import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
-import {daysToMillis, millisToDays} from "../../common/utils/DateUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -222,7 +231,7 @@ export class Indexer {
 				})
 				this._dbInitializedDeferredObject.reject(e)
 				throw e
- 			}
+			}
 		}
 	}
 

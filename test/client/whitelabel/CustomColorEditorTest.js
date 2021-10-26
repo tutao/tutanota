@@ -4,7 +4,7 @@ import {CustomColorsEditorViewModel} from "../../../src/settings/whitelabel/Cust
 import {ThemeController} from "../../../src/gui/ThemeController"
 import {createWhitelabelConfig} from "../../../src/api/entities/sys/WhitelabelConfig"
 import {createDomainInfo} from "../../../src/api/entities/sys/DomainInfo"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {ThemeCustomizations} from "../../../src/misc/WhitelabelCustomizations"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {themes} from "../../../src/gui/builtinThemes"
@@ -264,7 +264,7 @@ o.spec("Simple Color Editor", function () {
 			}))
 
 		})
-		o("pressed save when on whitelabelDomain, should not revert back to initial theme", async function() {
+		o("pressed save when on whitelabelDomain, should not revert back to initial theme", async function () {
 			const customizations: ThemeCustomizations = downcast({})
 			isWhitelabelEnabled = true
 			model = new CustomColorsEditorViewModel(defaultTheme,

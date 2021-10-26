@@ -4,16 +4,17 @@ import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginV
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {SessionType} from "../../../src/api/main/LoginController"
 import nodemocker, {MockBuilder, spyify} from "../nodemocker"
-import {assertNotNull, downcast, noOp} from "../../../src/api/common/utils/Utils"
+import {assertNotNull, downcast, noOp} from "@tutao/tutanota-utils"
 import {createUser} from "../../../src/api/entities/sys/User"
 import type {IUserController} from "../../../src/api/main/UserController"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {SecondFactorHandler} from "../../../src/misc/SecondFactorHandler"
-import {assertThrows} from "../../api/TestUtils"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 import type {CredentialsInfo, ICredentialsProvider, PersistentCredentials} from "../../../src/misc/credentials/CredentialsProvider"
 import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError"
 import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError"
+import type {Credentials} from "../../../src/misc/credentials/Credentials"
 
 class CredentialsProviderStub implements ICredentialsProvider {
 	credentials = new Map<string, PersistentCredentials>()

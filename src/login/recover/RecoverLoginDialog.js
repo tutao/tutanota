@@ -12,13 +12,13 @@ import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {assertMainOrNode} from "../../api/common/Env"
 import {secondFactorHandler} from "../../misc/SecondFactorHandler"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {client} from "../../misc/ClientDetector"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {locator} from "../../api/main/MainLocator"
 import {windowFacade} from "../../misc/WindowFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

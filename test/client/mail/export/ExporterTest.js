@@ -3,7 +3,7 @@
 import o from "ospec"
 import type {MailBundle} from "../../../../src/mail/export/Bundler"
 import {_formatSmtpDateTime, mailToEml} from "../../../../src/mail/export/Exporter"
-import {base64ToUint8Array, stringToUtf8Uint8Array} from "../../../../src/api/common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {createDataFile} from "../../../../src/api/common/DataFile"
 
 o.spec("Exporter", function () {

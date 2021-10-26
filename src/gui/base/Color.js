@@ -1,7 +1,7 @@
 //@flow
 
+import {assert} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
-import {assert} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 

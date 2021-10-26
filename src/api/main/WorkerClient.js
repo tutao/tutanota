@@ -7,7 +7,8 @@ import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaCo
 import {EntropySrc} from "../common/TutanotaConstants"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity, objToError} from "../common/utils/Utils"
+import {downcast, identity, TypeRef} from "@tutao/tutanota-utils"
+import {objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
@@ -15,12 +16,10 @@ import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
-import {TypeRef} from "../common/utils/TypeRef"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {WorkerInterface} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
-import {delay} from "../common/utils/PromiseUtils"
 
 assertMainOrNode()
 

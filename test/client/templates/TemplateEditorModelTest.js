@@ -5,7 +5,7 @@ import {createEmailTemplate} from "../../../src/api/entities/tutanota/EmailTempl
 import {TemplateEditorModel} from "../../../src/settings/TemplateEditorModel"
 import {createTemplateGroupRoot} from "../../../src/api/entities/tutanota/TemplateGroupRoot"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {createEmailTemplateContent} from "../../../src/api/entities/tutanota/EmailTemplateContent"
 import {LanguageNames, languages} from "../../../src/misc/LanguageViewModel"
 

@@ -2,7 +2,7 @@
 import type {ImageHandler} from "../model/MailUtils"
 import {fileController} from "../../file/FileController"
 import {ALLOWED_IMAGE_FORMATS, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
-import {uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
 

@@ -3,9 +3,10 @@ import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsPr
 import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import type {NativeWrapper} from "../../native/common/NativeWrapper"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import {Request} from "../../api/common/WorkerProtocol"
+import type {Credentials} from "./Credentials"
 
 /**
  * Credentials encryption implementation that uses the native (platform-specific) keychain implementation. It uses an intermediate key to

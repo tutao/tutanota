@@ -1,5 +1,5 @@
 // @flow
-import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {serviceRequestVoid} from "../EntityWorker"
@@ -15,8 +15,7 @@ import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import type {Permission} from "../../entities/sys/Permission"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
-import {assertWorkerOrNode} from "../../common/Env"
-import {downcast, neverNull, noOp} from "../../common/utils/Utils"
+import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
@@ -44,9 +43,10 @@ import type {Contact} from "../../entities/tutanota/Contact"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils";
 import type {TypeModel} from "../../common/EntityTypes"
-import {ofClass} from "../../common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

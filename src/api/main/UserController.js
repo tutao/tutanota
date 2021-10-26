@@ -1,7 +1,7 @@
 // @flow
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot, setup} from "./Entity"
-import {downcast, neverNull, noOp} from "../common/utils/Utils"
+import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
@@ -27,11 +27,12 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
-import {ofClass, promiseMap} from "../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
-import {first, mapAndFilterNull} from "../common/utils/ArrayUtils"
+import {first, mapAndFilterNull} from "@tutao/tutanota-utils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
+import type {Base64Url} from "@tutao/tutanota-utils/"
 
 assertMainOrNode()
 

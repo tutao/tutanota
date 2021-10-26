@@ -2,7 +2,7 @@
 import o from "ospec"
 import {DesktopConfigMigrator} from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator"
 import {DesktopCryptoFacade} from "../../../../../src/desktop/DesktopCryptoFacade"
-import {downcast} from "../../../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {DesktopDeviceKeyProvider} from "../../../../../src/desktop/DeviceKeyProviderImpl"
 import {makeDeviceKeyProvider} from "../../../../api/TestUtils"
 

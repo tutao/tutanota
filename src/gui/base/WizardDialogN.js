@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "./Dialog"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
@@ -10,6 +9,7 @@ import {getContentButtonIconBackground, theme} from "../theme"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {Keys} from "../../api/common/TutanotaConstants"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

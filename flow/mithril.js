@@ -1,5 +1,5 @@
 // @flow
-
+type $Promisable<+T> = Promise<T> | T;
 // Declared at the top level to not import it in all places
 interface MComponent<-Attrs> extends Lifecycle<Attrs> {
 	/** Creates a view out of virtual elements. */

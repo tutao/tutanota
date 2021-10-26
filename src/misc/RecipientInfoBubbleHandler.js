@@ -11,7 +11,7 @@ import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
 import {stringToNameAndMailAddress} from "./parsing/MailAddressParser"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 

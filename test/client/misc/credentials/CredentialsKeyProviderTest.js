@@ -6,7 +6,7 @@ import n from "../../nodemocker"
 import type {CredentialEncryptionModeEnum} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade"
-import {uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialsStorage} from "../../../../src/misc/credentials/CredentialsProvider"
 
 o.spec("CredentialsKeyProviderTest", function () {

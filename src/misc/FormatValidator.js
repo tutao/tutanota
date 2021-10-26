@@ -1,5 +1,5 @@
 // @flow
-import {startsWith} from "../api/common/utils/StringUtils"
+import {startsWith} from "@tutao/tutanota-utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+\_]+"
 const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)

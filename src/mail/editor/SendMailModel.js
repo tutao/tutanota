@@ -21,10 +21,9 @@ import {
 	TooManyRequestsError
 } from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
-import {assertMainOrNode} from "../../api/common/Env"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
-import type {lazy} from "../../api/common/utils/Utils"
-import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {
 	checkAttachmentSize,
 	createRecipientInfo,
@@ -56,25 +55,26 @@ import {EventController, isUpdateForTypeRef} from "../../api/main/EventControlle
 import {isMailAddress} from "../../misc/FormatValidator"
 import {createApprovalMail} from "../../api/entities/monitor/ApprovalMail"
 import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
-import {deduplicate, remove} from "../../api/common/utils/ArrayUtils"
+import {deduplicate, remove} from "@tutao/tutanota-utils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
 import type {IUserController} from "../../api/main/UserController"
-import {cleanMatch} from "../../api/common/utils/StringUtils"
+import {cleanMatch} from "@tutao/tutanota-utils"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
-import {getFromMap} from "../../api/common/utils/MapUtils"
+import {getFromMap} from "@tutao/tutanota-utils"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils";
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

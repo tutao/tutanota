@@ -2,7 +2,9 @@
 import type {Options as PromiseMapOptions} from "./PromiseMap"
 import {pMap as promiseMap} from "./PromiseMap"
 
+export type $Promisable<+T> = Promise<T> | T;
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
+
 
 /**
  * Map array of values to promise of arrays or array. Mapper function may return promise or value. If value is returned,

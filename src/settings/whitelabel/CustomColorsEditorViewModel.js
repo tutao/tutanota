@@ -2,7 +2,7 @@
 
 import {assertMainOrNode} from "../../api/common/Env"
 import type {BaseThemeId, Theme} from "../../gui/theme"
-import {assertNotNull, clone, debounceStart, downcast} from "../../api/common/utils/Utils"
+import {assertNotNull, clone, debounceStart, downcast} from "@tutao/tutanota-utils"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import {VALID_HEX_CODE_FORMAT} from "../../gui/base/Color"

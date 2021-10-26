@@ -13,7 +13,6 @@ import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {showTemplateEditor} from "./TemplateEditor"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {createEmailTemplate, EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
-import {assertMainOrNode} from "../api/common/Env"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {EntityClient} from "../api/common/EntityClient"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
@@ -24,7 +23,8 @@ import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import type {LoginController} from "../api/main/LoginController"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

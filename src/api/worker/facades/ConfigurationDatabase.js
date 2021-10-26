@@ -4,13 +4,13 @@ import type {ObjectStoreName} from "../search/DbFacade"
 import {b64UserIdHash, DbFacade} from "../search/DbFacade"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {Metadata} from "../search/Indexer"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
 import {random} from "../crypto/Randomizer"
-import {LazyLoaded} from "../../common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {User} from "../../entities/sys/User"
-import {assertNotNull} from "../../common/utils/Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 import type {ExternalImageRuleEnum} from "../../common/TutanotaConstants"
 import {ExternalImageRule} from "../../common/TutanotaConstants"
 
@@ -63,7 +63,7 @@ export class ConfigurationDatabase {
 	async getExternalImageRule(address: string): Promise<ExternalImageRuleEnum> {
 		const {db, metaData} = await this.db.getAsync()
 		if (!db.indexingSupported) return ExternalImageRule.None
-		
+
 		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
 		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)

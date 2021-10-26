@@ -8,7 +8,7 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {SuggestionFacade} from "../../../../src/api/worker/search/SuggestionFacade"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {SearchTermSuggestionsOS} from "../../../../src/api/worker/search/Indexer";
-import {downcast} from "../../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 
 o.spec("SuggestionFacade test", () => {

@@ -1,5 +1,5 @@
 // @flow
-import {DAY_IN_MILLIS} from "./DateUtils"
+import {DAY_IN_MILLIS} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
 import {stringToCustomId} from "./EntityUtils";
 

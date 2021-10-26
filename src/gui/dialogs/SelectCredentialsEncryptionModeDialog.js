@@ -13,8 +13,8 @@ import {ButtonType} from "../base/ButtonN"
 import {CredentialAuthenticationError} from "../../api/common/error/CredentialAuthenticationError"
 import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError"
 import {liveDataAttrs} from "../AriaUtils"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer} from "@tutao/tutanota-utils"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 

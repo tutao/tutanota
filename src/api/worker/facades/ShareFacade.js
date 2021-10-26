@@ -1,5 +1,4 @@
 //@flow
-import {assertWorkerOrNode} from "../../common/Env"
 import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
@@ -9,10 +8,10 @@ import {aes128RandomKey} from "../crypto/Aes"
 import type {ShareCapabilityEnum} from "../../common/TutanotaConstants"
 import {createSharedGroupData} from "../../entities/tutanota/SharedGroupData"
 import {HttpMethod} from "../../common/EntityFunctions"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {LoginFacade, LoginFacadeImpl} from "./LoginFacade"
+import {LoginFacadeImpl} from "./LoginFacade"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvitationPostData"
 import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
@@ -20,7 +19,7 @@ import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvi
 import type {GroupInvitationPostReturn} from "../../entities/tutanota/GroupInvitationPostReturn"
 import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInvitationPostReturn"
 import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

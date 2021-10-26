@@ -1,6 +1,6 @@
 //@flow
 
-import {noOp} from "../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {Mode} from "../api/common/Env"
 
 type LogFn = (...args: any) => void

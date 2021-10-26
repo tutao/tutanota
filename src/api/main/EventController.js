@@ -1,13 +1,13 @@
 // @flow
-import {remove} from "../common/utils/ArrayUtils"
-import {assertMainOrNode} from "../common/Env"
+import {remove} from "@tutao/tutanota-utils"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
-import {downcast, identity, noOp} from "../common/utils/Utils"
+import {downcast, identity, noOp} from "@tutao/tutanota-utils"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
-import {isSameTypeRefByAttr, TypeRef} from "../common/utils/TypeRef";
+import {isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils";
+import {assertMainOrNode} from "../common/Env"
 
 assertMainOrNode()
 

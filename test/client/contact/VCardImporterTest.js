@@ -2,7 +2,7 @@
 import o from "ospec"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/ContactAddress"
-import {neverNull} from "../../../src/api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"

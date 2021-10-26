@@ -8,16 +8,17 @@ import {
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+} from "@tutao/tutanota-utils"
 import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
-import {assertWorkerOrNode} from "../../common/Env"
 import {compress, uncompress} from "../Compression"
-import {TypeRef} from "../../common/utils/TypeRef";
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {TypeRef} from "@tutao/tutanota-utils";
+import {promiseMap} from "@tutao/tutanota-utils"
 import type {ModelValue, TypeModel, ValueTypeEnum} from "../../common/EntityTypes"
-import {assertNotNull} from "../../common/utils/Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
+import {assertWorkerOrNode} from "../../common/Env"
+import type {Base64} from "@tutao/tutanota-utils/"
 
 assertWorkerOrNode()
 

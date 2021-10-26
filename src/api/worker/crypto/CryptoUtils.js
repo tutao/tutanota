@@ -1,12 +1,18 @@
 // @flow
-import {base64ToBase64Url, base64ToUint8Array, hexToUint8Array,uint8ArrayToArrayBuffer, uint8ArrayToBase64
-} from "../../common/utils/Encoding"
-import {concat} from "../../common/utils/ArrayUtils"
+import {
+	base64ToBase64Url,
+	base64ToUint8Array,
+	concat,
+	hexToUint8Array,
+	uint8ArrayToArrayBuffer,
+	uint8ArrayToBase64
+} from "@tutao/tutanota-utils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import sjcl from "./lib/sjcl"
+import {assertWorkerOrNode} from "../../common/Env"
+import type {Base64, Base64Url} from "@tutao/tutanota-utils/"
 
 assertWorkerOrNode()
 

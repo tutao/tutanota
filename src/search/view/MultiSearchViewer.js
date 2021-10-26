@@ -19,18 +19,17 @@ import {mergeContacts} from "../../contacts/ContactMergeUtils"
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {exportContacts} from "../../contacts/VCardExporter"
-import {lazyMemoized, noOp} from "../../api/common/utils/Utils"
+import {isSameTypeRef, lazyMemoized, noOp} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {locator} from "../../api/main/MainLocator"
-import {NBSP} from "../../api/common/utils/StringUtils"
+import {NBSP} from "@tutao/tutanota-utils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {moveMails} from "../../mail/view/MailGuiUtils"
-import {isSameTypeRef} from "../../api/common/utils/TypeRef";
 import {exportMails} from "../../mail/export/Exporter"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

@@ -1,8 +1,8 @@
 // @flow
 import {AlarmScheduler, AlarmSchedulerImpl} from "../../../src/calendar/date/AlarmScheduler"
 import type {ScheduledId, Scheduler} from "../../../src/misc/Scheduler"
-import type {Thunk} from "../../../src/api/common/utils/Utils"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import type {Thunk} from "@tutao/tutanota-utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
 import o from "ospec"
 import {DateTime} from "luxon"

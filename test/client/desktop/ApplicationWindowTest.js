@@ -1,13 +1,13 @@
 // @flow
 import o from "ospec"
 import n from "../nodemocker"
-import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import {ApplicationWindow} from "../../../src/desktop/ApplicationWindow"
 import type {NativeImage} from "electron"
 import {ThemeManager} from "../../../src/desktop/ThemeManager"
 import type {Theme, ThemeId} from "../../../src/gui/theme"
 import {DesktopConfig} from "../../../src/desktop/config/DesktopConfig"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 
 const U2F_EXTENSION_ID = "kmendfapggjehodndflmmgagdbamhnfd" // check u2f-api.js

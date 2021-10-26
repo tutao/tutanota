@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List"
-import {downcast, noOp} from "../../../../src/api/common/utils/Utils"
+import {downcast, noOp} from "@tutao/tutanota-utils"
 import {createMail} from "../../../../src/api/entities/tutanota/Mail"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/utils/EntityUtils";
 import type {ListElement} from "../../../../src/api/common/utils/EntityUtils"

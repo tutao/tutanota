@@ -10,7 +10,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
+} from "@tutao/tutanota-utils"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {
@@ -45,7 +45,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
-import {defer, neverNull, noOp} from "../../common/utils/Utils"
+import {defer, neverNull, noOp} from "@tutao/tutanota-utils"
 import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {hash} from "../crypto/Sha256"
@@ -78,10 +78,12 @@ import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStat
 import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
-import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
-import {delay, ofClass, promiseMap} from "../../common/utils/PromiseUtils"
+import {isSameTypeRefByAttr} from "@tutao/tutanota-utils";
+import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {TotpSecret} from "../crypto/TotpVerifier"
 import {TotpVerifier} from "../crypto/TotpVerifier"
+import type {Base64Url, Hex} from "@tutao/tutanota-utils/"
+import type {Credentials} from "../../../misc/credentials/Credentials"
 
 assertWorkerOrNode()
 

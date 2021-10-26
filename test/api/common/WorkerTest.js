@@ -6,8 +6,8 @@ import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {Request} from "../../../src/api/common/WorkerProtocol"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {logins, SessionType} from "../../../src/api/main/LoginController"
-import {assertThrows} from "../TestUtils"
 import {locator} from "../../../src/api/main/MainLocator"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 
 o.spec("WorkerTest request / response", node(function () {
 	let worker: WorkerClient

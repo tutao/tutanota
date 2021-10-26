@@ -8,7 +8,7 @@ import {
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
-} from "../../../src/api/common/utils/Encoding"
+} from "@tutao/tutanota-utils"
 import {
 	applyMigrationsForInstance,
 	decryptAndMapToInstance,
@@ -41,7 +41,7 @@ import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress"
-import {mockAttribute, unmockAttribute} from "../TestUtils"
+import {mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
@@ -50,9 +50,9 @@ import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
-import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
-import {isSameTypeRef} from "../../../src/api/common/utils/TypeRef";
+import {isSameTypeRef} from "@tutao/tutanota-utils";
 import type {ModelValue} from "../../../src/api/common/EntityTypes"
 
 

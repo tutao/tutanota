@@ -4,13 +4,16 @@ import {
 	base64ToUint8Array,
 	base64UrlToBase64,
 	stringToUtf8Uint8Array,
+	TypeRef,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
-} from "./Encoding"
+} from "@tutao/tutanota-utils"
 import {Cardinality, Type, ValueType} from "../EntityConstants"
-import {TypeRef} from "./TypeRef"
 import type {SomeEntity} from "../../main/Entity"
 import type {ModelValue, TypeModel} from "../EntityTypes"
+import {pad} from "@tutao/tutanota-utils/lib"
+import {base64ExtToBase64, base64ToBase64Ext, hexToBase64} from "@tutao/tutanota-utils/lib/Encoding"
+import type {Hex} from "@tutao/tutanota-utils/"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -212,4 +215,67 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 		}
 	}
 	throw new Error(`no default value for ${JSON.stringify(value)}`)
+}
+
+
+/**
+ * Converts a timestamp number to a GeneratedId (the counter is set to zero) in hex format.
+ *
+ * @param timestamp The timestamp of the GeneratedId
+ * @return The GeneratedId as hex string.
+ */
+export function timestampToHexGeneratedId(timestamp: number, serverBytes: number): Hex {
+	let id = timestamp * 4 // shifted 2 bits left, so the value covers 44 bits overall (42 timestamp + 2 shifted)
+	let hex = parseInt(id).toString(16) + "00000" + pad(serverBytes, 2) // add one zero for the missing 4 bits plus 4 more (2 bytes) plus 2 more for the server id to get 9 bytes
+	// add leading zeros to reach 9 bytes (GeneratedId length) = 18 hex
+	for (let length = hex.length; length < 18; length++) {
+		hex = "0" + hex
+	}
+	return hex
+}
+
+/**
+ * Converts a timestamp number to a GeneratedId (the counter and server bits are set to zero).
+ *
+ * @param timestamp The timestamp of the GeneratedId
+ * @return The GeneratedId.
+ */
+export function timestampToGeneratedId(timestamp: number, serverBytes: number = 0): Id {
+	let hex = timestampToHexGeneratedId(timestamp, serverBytes)
+	return base64ToBase64Ext(hexToBase64(hex))
+}
+
+/**
+ * Extracts the timestamp from a GeneratedId
+ * @param base64Ext The id as base64Ext
+ * @returns The timestamp of the GeneratedId
+ */
+export function generatedIdToTimestamp(base64Ext: Id): number {
+	const base64 = base64ExtToBase64(base64Ext)
+	const decodedbB4 = atob(base64)
+	let numberResult = 0
+	// Timestamp is in the first 42 bits
+	for (let i = 0; i < 5; i++) {
+		// We "shift" each number by 8 bits to the left: numberResult << 8
+		numberResult = numberResult * 256
+		numberResult += decodedbB4.charCodeAt(i)
+	}
+	// We need to shift the whole number to the left by 2 bits (because 42 bits is encoded in 6 bytes)
+	numberResult = numberResult * 4
+	// We take only last two highest bits from the last byte
+	numberResult += decodedbB4.charCodeAt(5) >>> 6
+	return numberResult
+}
+
+// We can't import EntityUtils here, otherwise we should say GENERATED_MAX_ID.length or something like it
+const base64extEncodedIdLength = 12
+const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
+
+export function isValidGeneratedId(id: Id | IdTuple): boolean {
+
+	const test = id => id.length === base64extEncodedIdLength && Array.from(id).every(char => base64extAlphabet.includes(char))
+
+	return typeof id === "string"
+		? test(id)
+		: id.every(test)
 }

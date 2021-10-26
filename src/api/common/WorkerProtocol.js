@@ -6,8 +6,9 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
+import {downcast} from "@tutao/tutanota-utils"
+import {objToError} from "./utils/Utils"
 import {isWorker} from "./Env"
-import {downcast, objToError} from "./utils/Utils"
 
 type Command = (msg: Request) => Promise<any>
 

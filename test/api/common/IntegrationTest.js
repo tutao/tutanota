@@ -8,7 +8,7 @@ import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAd
 import type {MailFolder} from "../../../src/api/entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../../src/api/entities/tutanota/MailFolder"
 import {MailBoxTypeRef} from "../../../src/api/entities/tutanota/MailBox"
-import {neverNull} from "../../../src/api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
 import {initLocator, locator} from "../../../src/api/worker/WorkerLocator"
 import {browserDataStub} from "../TestUtils"

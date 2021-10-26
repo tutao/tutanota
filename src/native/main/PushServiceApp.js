@@ -2,7 +2,7 @@
 import {load, loadAll, setup, update} from "../../api/main/Entity"
 import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {PushServiceTypeEnum} from "../../api/common/TutanotaConstants"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
@@ -14,7 +14,7 @@ import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {getElementId} from "../../api/common/utils/EntityUtils";
 import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 
 class PushServiceApp {

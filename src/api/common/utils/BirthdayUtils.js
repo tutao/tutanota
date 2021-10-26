@@ -2,7 +2,7 @@
 
 import type {Birthday} from "../../entities/tutanota/Birthday"
 import {createBirthday} from "../../entities/tutanota/Birthday"
-import {formatSortableDate} from "./DateUtils"
+import {formatSortableDate} from "@tutao/tutanota-utils"
 import {ParsingError} from "../error/ParsingError"
 
 /**

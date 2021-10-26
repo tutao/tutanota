@@ -10,8 +10,8 @@ import {
 	numberOfBytes,
 	removeBinaryBlockRanges
 } from "../../../../src/api/worker/search/SearchIndexEncoding"
-import {spy as makeSpy} from "../../TestUtils"
-import {concat, flat} from "../../../../src/api/common/utils/ArrayUtils"
+import {spy as makeSpy} from "@tutao/tutanota-test-utils"
+import {concat, flat} from "@tutao/tutanota-utils"
 
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {
@@ -140,7 +140,9 @@ o.spec("SearchIndexEncoding test", function () {
 			const newDataOne = new Uint8Array(256).fill(2)
 			const newDataTwo = new Uint8Array([0x01])
 
-			const expected = concat(new Uint8Array([0x01, 0x02]), new Uint8Array([0x82, 0x01, 0x00]), newDataOne, new Uint8Array([0x01, 0x01]))
+			const expected = concat(new Uint8Array([0x01, 0x02]), new Uint8Array([0x82, 0x01, 0x00]), newDataOne, new Uint8Array([
+				0x01, 0x01
+			]))
 
 			o(JSON.stringify(appendBinaryBlocks([newDataOne, newDataTwo], row))).equals(JSON.stringify(expected))
 		})

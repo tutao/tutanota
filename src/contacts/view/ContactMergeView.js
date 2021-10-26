@@ -8,7 +8,7 @@ import {ContactMergeAction, getContactSocialType, Keys} from "../../api/common/T
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
-import {defer, downcast} from "../../api/common/utils/Utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -16,7 +16,7 @@ import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSo
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
-import {delay} from "../../api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 export class ContactMergeView {
 	dialog: Dialog;

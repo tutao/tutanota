@@ -8,7 +8,7 @@ import {GroupType} from "../api/common/TutanotaConstants"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {getDefaultGroupName} from "./GroupUtils"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
-import type {lazy} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export type GroupSharingTexts = {
 	+groupNameLabel: TranslationKey,

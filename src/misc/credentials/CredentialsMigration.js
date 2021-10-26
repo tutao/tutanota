@@ -3,8 +3,8 @@
 import {DeviceConfig} from "../DeviceConfig"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 import type {NativeWrapper} from "../../native/common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 

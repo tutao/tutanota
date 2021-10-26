@@ -3,15 +3,15 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px, size} from "../size"
-import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType, isVisible} from "./ButtonN"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

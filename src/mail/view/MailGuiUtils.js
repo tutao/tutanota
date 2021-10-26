@@ -12,8 +12,8 @@ import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer";
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File";
 import {isApp, isDesktop} from "../../api/common/Env";
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
-import {neverNull} from "../../api/common/utils/Utils"
+import {promiseMap} from "@tutao/tutanota-utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {MailFolderType, MailReportType} from "../../api/common/TutanotaConstants"
 import {getElementId} from "../../api/common/utils/EntityUtils"
 import {reportMailsAutomatically} from "./MailReportDialog"

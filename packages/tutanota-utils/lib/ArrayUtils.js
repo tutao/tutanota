@@ -1,5 +1,4 @@
 //@flow
-//@bundleInto:common-min
 import {downcast, identity, neverNull} from "./Utils"
 import {getFromMap} from "./MapUtils"
 

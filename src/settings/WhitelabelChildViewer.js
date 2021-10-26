@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {Type} from "../gui/base/TextFieldN"
 import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
@@ -19,7 +18,8 @@ import {isSameId} from "../api/common/utils/EntityUtils";
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

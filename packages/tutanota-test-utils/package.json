@@ -1,0 +1,27 @@
+{
+  "name": "@tutao/tutanota-test-utils",
+  "version": "3.89.6",
+  "license": "GPL-3.0",
+  "main": "./lib/index.js",
+  "repository": {
+	"type": "git",
+	"url": "https://github.com/tutao/tutanota.git",
+	"directory": "packages/tutanota-test-utils"
+  },
+  "scripts": {
+	"flow": "flow; test $? -eq 0 -o $? -eq 2",
+	"test": "echo \"No tests defined for module\""
+  },
+  "type": "module",
+  "files": [
+	"lib/*",
+	"README.md",
+	"LICENSE.txt"
+  ],
+  "peerDependencies": {
+	"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
+  },
+  "devDependencies": {
+	"flow-bin": "0.152.0"
+  }
+}

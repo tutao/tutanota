@@ -2,7 +2,7 @@
 /**
  * @file Functions to automatically expose certain interfaces across the WorkerProtocol Queue.
  */
-import {downcast} from "./utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {Queue, Request} from "./WorkerProtocol"
 
 /**

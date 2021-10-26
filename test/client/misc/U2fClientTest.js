@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec"
 import {U2fClient} from "../../../src/misc/U2fClient"
-import {base64UrlToBase64, base64ToUint8Array} from "../../../src/api/common/utils/Encoding"
+import {base64UrlToBase64, base64ToUint8Array} from "@tutao/tutanota-utils"
 
 o.spec("U2fClientTest", function () {
 

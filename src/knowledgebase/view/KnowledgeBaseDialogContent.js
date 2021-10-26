@@ -12,7 +12,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {makeListSelectionChangedScrollHandler} from "../../gui/base/GuiUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 export type KnowledgebaseDialogContentAttrs = {|
 	+onTemplateSelect: (EmailTemplate,) => void,

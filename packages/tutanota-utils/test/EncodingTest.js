@@ -9,18 +9,17 @@ import {
 	base64ToBase64Url,
 	base64ToHex,
 	base64ToUint8Array,
-	base64UrlToBase64, decodeBase64, decodeQuotedPrintable,
-	generatedIdToTimestamp,
+	base64UrlToBase64,
+	decodeBase64,
+	decodeQuotedPrintable,
 	hexToBase64,
 	hexToUint8Array,
 	stringToUtf8Uint8Array,
-	timestampToGeneratedId,
-	timestampToHexGeneratedId,
 	uint8ArrayToArrayBuffer,
 	uint8ArrayToBase64,
-	uint8ArrayToHex, uint8ArrayToString
-} from "../../../src/api/common/utils/Encoding"
-import {GENERATED_MIN_ID} from "../../../src/api/common/utils/EntityUtils";
+	uint8ArrayToHex,
+	uint8ArrayToString
+} from "../lib/Encoding"
 
 o.spec("Encoding", function () {
 
@@ -46,7 +45,6 @@ o.spec("Encoding", function () {
 	})
 
 	o("StringToUint8ArrayAndBackLegacy", () => stringToUint8ArrayAndBack(_stringToUtf8Uint8ArrayLegacy, _utf8Uint8ArrayToStringLegacy))
-	o("StringToUint8ArrayAndBack", browser(() => stringToUint8ArrayAndBack((s) => new TextEncoder().encode(s), (s) => new TextDecoder().decode(s))))
 
 	function stringToUint8ArrayAndBack(encoder, decoder) {
 		o(decoder(encoder("halloTest € à 草"))).equals("halloTest € à 草")
@@ -62,28 +60,6 @@ o.spec("Encoding", function () {
 		o(decoder(encoder("b\uD800a"))).equals("b\uFFFDa") // lone high surrogate is replace with REPLACEMENT CHARACTER
 		o(decoder(encoder("b\uD800\uDFFFa"))).equals("b\uD800\uDFFFa") // high and low surrogate
 	}
-
-	/*
-	 o("StringToUint8 performance comparison with sjcl", function () {
-	 let s = ""
-	 for (let i = 0; i < 5000; i++) {
-	 s += i
-	 new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sjcl.codec.utf8String.toBits((s)), false))
-	 //   stringToUtf8Uint8Array(s) // => faster by factor 4
-	 }
-	 o(true).equals(true)
-	 })
-
-	 oly("StringToUint8 performance comparison with sjcl", function () {
-	 let a = new Uint8Array(5000)
-	 for (let i = 0; i < 5000; i++) {
-	 a[i] = i % 100
-	 sjcl.codec.utf8String.fromBits(sjcl.codec.arrayBuffer.toBits(a.buffer))
-	 //utf8Uint8ArrayToString(a) // => faster by factor 1/4
-	 }
-	 o(true).equals(true)
-	 })
-	 */
 
 	o("HexToArrayBufferAndBack", function () {
 		o(uint8ArrayToHex(hexToUint8Array("ba9012cb349de910924ed81239d18423"))).equals("ba9012cb349de910924ed81239d18423")
@@ -135,25 +111,6 @@ o.spec("Encoding", function () {
 		o(base64ExtToBase64(base64ToBase64Ext("AA=="))).equals("AA==")
 		o(base64ExtToBase64(base64ToBase64Ext("qq8="))).equals("qq8=")
 		o(base64ExtToBase64(base64ToBase64Ext("qqqv"))).equals("qqqv")
-	})
-
-	o("TimestampToHexGeneratedId ", function () {
-		let timestamp = 1370563200000
-		o(timestampToHexGeneratedId(timestamp, 0)).equals("4fc6fbb10000000000")
-	})
-
-	o("TimestampToHexGeneratedId server id 1", function () {
-		let timestamp = 1370563200000
-		o(timestampToHexGeneratedId(timestamp, 1)).equals("4fc6fbb10000000001")
-	})
-
-	o("generatedIdToTimestamp ", function () {
-		let maxTimestamp = (Math.pow(2, 42) - 1)
-
-		o(generatedIdToTimestamp(GENERATED_MIN_ID)).equals(0)
-		o(generatedIdToTimestamp(timestampToGeneratedId(0))).equals(0)
-		o(generatedIdToTimestamp("zzzzzzzzzzzz")).equals(maxTimestamp)
-		o(generatedIdToTimestamp("IwQvgF------")).equals(1370563200000)
 	})
 
 	o("Uint8ArrayToBase64 ", function () {

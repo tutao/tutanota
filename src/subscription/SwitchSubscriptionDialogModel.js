@@ -17,7 +17,7 @@ import {
 	SubscriptionType
 } from "./SubscriptionUtils"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
@@ -26,7 +26,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {Booking} from "../api/entities/sys/Booking"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
 
 

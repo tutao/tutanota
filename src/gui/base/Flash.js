@@ -1,7 +1,7 @@
 // @flow
 import {animations, opacity} from "../animation/Animations"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
 import {client} from "../../misc/ClientDetector"
+import {assertMainOrNodeBoot} from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 

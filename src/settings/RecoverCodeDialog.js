@@ -4,15 +4,16 @@ import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import m from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import type {Hex} from "@tutao/tutanota-utils/"
 
 type Action = 'get' | 'create'
 

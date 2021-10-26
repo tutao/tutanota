@@ -3,8 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import {app} from 'electron'
 import {execSync} from 'child_process'
-import {last} from '../api/common/utils/ArrayUtils'
-import {neverNull} from "../api/common/utils/Utils"
+import {last} from '@tutao/tutanota-utils'
+import {neverNull} from "@tutao/tutanota-utils"
 import {Logger, replaceNativeLogger} from "../api/common/Logger"
 import {log, rebindDesktopLog} from "./DesktopLog";
 

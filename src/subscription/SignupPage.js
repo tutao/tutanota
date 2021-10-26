@@ -7,7 +7,7 @@ import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./Subscription
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {SignupForm} from "./SignupForm"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 
 
 type ConfirmStatus = {

@@ -10,8 +10,8 @@ import {PasswordIndicator} from "../PasswordIndicator"
 import stream from "mithril/stream/stream.js"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {TabIndex} from "../../api/common/TutanotaConstants"
-import {delay} from "../../api/common/utils/PromiseUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import {delay} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

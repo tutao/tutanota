@@ -1,10 +1,9 @@
 // @flow
-import {assertMainOrNodeBoot, isDesktop} from "../api/common/Env"
-import {downcast} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {downcast, replaceAll} from "@tutao/tutanota-utils"
 import type {TranslationKeyType} from "./TranslationKey"
-import {replaceAll} from "../api/common/utils/StringUtils"
 import {getWhitelabelCustomizations} from "./WhitelabelCustomizations"
-import type {lazy} from "../api/common/utils/Utils"
+import {assertMainOrNodeBoot} from "../api/common/Env"
 
 export type TranslationKey = TranslationKeyType
 

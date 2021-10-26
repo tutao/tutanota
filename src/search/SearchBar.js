@@ -30,7 +30,7 @@ import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector";
-import {debounce, downcast, noOp} from "../api/common/utils/Utils"
+import {debounce, downcast, noOp} from "@tutao/tutanota-utils"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
 import {hasMoreResults} from "./model/SearchModel"
@@ -39,13 +39,13 @@ import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
-import {flat, groupBy} from "../api/common/utils/ArrayUtils"
+import {flat, groupBy} from "@tutao/tutanota-utils"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../api/worker/search/SearchTypes"
 import type {ListElement} from "../api/common/utils/EntityUtils";
 import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils";
-import {isSameTypeRef, TypeRef} from "../api/common/utils/TypeRef";
+import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {compareContacts} from "../contacts/view/ContactGuiUtils";
-import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {LayerType} from "../RootView"
 
 assertMainOrNode()

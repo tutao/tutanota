@@ -2,9 +2,9 @@
 import type {WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {defer, mapNullable, objToError} from '../api/common/utils/Utils.js'
-import type {DeferredObject} from "../api/common/utils/Utils"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {objToError} from "../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
 import {errorToObj} from "../api/common/WorkerProtocol"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
@@ -13,7 +13,6 @@ import type {Socketeer} from "./Socketeer"
 import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
-import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import type {ElectronUpdater} from "./ElectronUpdater"
 import {log} from "./DesktopLog";
 import type {DesktopUtils} from "./DesktopUtils"

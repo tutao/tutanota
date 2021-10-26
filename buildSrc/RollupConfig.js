@@ -67,8 +67,16 @@ export function resolveLibs(baseDir = ".") {
  */
 export function getChunkName(moduleId, {getModuleInfo}) {
 	// See HACKING.md for rules
-	const code = getModuleInfo(moduleId).code
-	if (code.includes("@bundleInto:common-min") || moduleId.includes(path.normalize("libs/stream"))) {
+	const moduleInfo = getModuleInfo(moduleId)
+	const code = moduleInfo.code
+	if (code == null) {
+		console.log(moduleInfo)
+	}
+	if (
+		code.includes("@bundleInto:common-min")
+		|| moduleId.includes(path.normalize("libs/stream"))
+		|| moduleId.includes(path.normalize("packages/tutanota-utils"))
+	) {
 		return "common-min"
 	} else if (code.includes("assertMainOrNodeBoot") ||
 		moduleId.includes(path.normalize("libs/mithril")) ||

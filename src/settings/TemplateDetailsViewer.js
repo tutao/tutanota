@@ -2,7 +2,7 @@
 
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -20,7 +20,7 @@ import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRo
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import type {lazy} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export class TemplateDetailsViewer implements UpdatableSettingsViewer {
 	isReadOnly: lazy<boolean>

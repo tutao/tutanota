@@ -3,7 +3,7 @@ import o from "ospec"
 import {isSuspensionResponse, RestClient} from "../../../src/api/worker/rest/RestClient"
 import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000

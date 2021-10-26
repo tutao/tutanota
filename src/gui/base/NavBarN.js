@@ -4,11 +4,11 @@ import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
 import {ButtonColors, isVisible} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
-import {assertMainOrNode} from "../../api/common/Env"
 import {size} from "../size"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {BootIcons} from "./icons/BootIcons"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

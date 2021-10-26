@@ -21,8 +21,8 @@ import {
 } from "../../../src/api/worker/crypto/Rsa"
 import {SecureRandom} from "../../../src/api/worker/crypto/SecureRandom"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex} from "../../../src/api/common/utils/Encoding"
-import {concat} from "../../../src/api/common/utils/ArrayUtils"
+import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {concat} from "@tutao/tutanota-utils"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
 
 const originalRandom = random.generateRandomData

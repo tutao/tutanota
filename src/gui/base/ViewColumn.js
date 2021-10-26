@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {LayerType} from "../../RootView"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

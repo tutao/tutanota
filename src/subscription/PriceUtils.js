@@ -2,7 +2,7 @@
 import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"

@@ -10,7 +10,7 @@
  * This implementation should handle non-ascii characters.
  */
 
-import {stringToUtf8Uint8Array} from "../../../common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 
 function x86fmix32(h) {
 	h ^= h >>> 16;

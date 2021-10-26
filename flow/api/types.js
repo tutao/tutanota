@@ -8,40 +8,11 @@ type Aes256Key = BitArray
 type SignedBytes = number[]
 
 type Base32 = string
-type Base64 = string
-type Base64Ext = string
-type Base64Url = string
-type Hex = string
 type NumberString = string
 
 type Id = string
 type IdTuple = [string, string]
 type Params = {[key: string]: string}
-
-type RsaKeyPair = {
-	publicKey: PublicKey,
-	privateKey: PrivateKey,
-}
-
-type PrivateKey = {
-	version: number,
-
-	keyLength: number,
-	modulus: Base64,
-	privateExponent: Base64,
-	primeP: Base64,
-	primeQ: Base64,
-	primeExponentP: Base64,
-	primeExponentQ: Base64,
-	crtCoefficient: Base64,
-}
-
-type PublicKey = {
-	version: number,
-	keyLength: number,
-	modulus: Base64,
-	publicExponent: number,
-}
 
 /** Requests from main web thread to worker */
 type WorkerRequestType = 'setup'
@@ -173,20 +144,6 @@ type EnvType = {
 }
 
 declare var env: EnvType
-
-/** Data obtained after logging in. */
-type Credentials = {
-	/**
-	 * Identifier which we use for logging in.
-	 * Email address used to log in for internal users, userId for external users.
-	 * */
-	login: string,
-	/** Session#accessKey encrypted password. Is set when session is persisted. */
-	encryptedPassword: ?Base64,
-	accessToken: Base64Url,
-	userId: Id,
-	type: "internal" | "external",
-}
 
 declare function browser(f: Function): Function
 

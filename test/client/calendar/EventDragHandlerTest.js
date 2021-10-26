@@ -2,13 +2,13 @@
 
 import o from "ospec"
 import {EventDragHandler} from "../../../src/calendar/view/EventDragHandler"
-import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import type {DraggedEvent} from "../../../src/calendar/view/CalendarViewModel"
 import {makeEvent} from "./CalendarTestUtils"
 import {getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone} from "../../../src/calendar/date/CalendarUtils"
 import {isAllDayEvent} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {DateTime} from "luxon"
-import {DAY_IN_MILLIS} from "../../../src/api/common/utils/DateUtils"
+import {DAY_IN_MILLIS} from "@tutao/tutanota-utils"
 
 const INIT_MOUSE_POS = {x: 0, y: 0}
 const NOT_DRAG_MOUSE_POS = {x: 0, y: 0}

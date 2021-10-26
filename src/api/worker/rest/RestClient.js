@@ -9,10 +9,10 @@ import {
 } from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
-import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
+import {uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
-import {assertNotNull, typedEntries} from "../../common/utils/Utils"
+import {assertNotNull, typedEntries} from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 

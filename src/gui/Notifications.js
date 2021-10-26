@@ -1,6 +1,6 @@
 //@flow
 
-import {noOp} from "../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {isApp, isDesktop} from "../api/common/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 import type {clickHandler} from "./base/GuiUtils"

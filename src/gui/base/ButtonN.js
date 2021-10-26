@@ -3,13 +3,13 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

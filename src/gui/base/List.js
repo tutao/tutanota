@@ -5,10 +5,9 @@ import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
-import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
-import type {DeferredObject, MaybeLazy} from "../../api/common/utils/Utils"
-import {assertNotNull, debounceStart, defer, mapLazily, neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/common/Env"
+import {addAll, arrayEquals, last, remove} from "@tutao/tutanota-utils"
+import type {DeferredObject, MaybeLazy} from "@tutao/tutanota-utils"
+import {assertNotNull, debounceStart, defer, mapLazily, neverNull} from "@tutao/tutanota-utils"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
 import {animations, transform} from "../animation/Animations"
@@ -24,7 +23,8 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {isKeyPressed, keyManager} from "../../misc/KeyManager"
 import type {ListElement} from "../../api/common/utils/EntityUtils"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

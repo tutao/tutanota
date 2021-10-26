@@ -5,8 +5,8 @@ import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
-import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer} from "../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer} from "@tutao/tutanota-utils"
 
 // exported for testing
 export const SERVICE_NAME = 'tutanota-vault'

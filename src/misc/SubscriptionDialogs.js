@@ -3,14 +3,14 @@ import type {LoginController} from "../api/main/LoginController";
 import {logins} from "../api/main/LoginController"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "./LanguageViewModel";
 import {lang} from "./LanguageViewModel"
 import {isIOSApp} from "../api/common/Env"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {clickHandler} from "../gui/base/GuiUtils"
-import type {lazy} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.

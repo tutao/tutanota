@@ -1,7 +1,7 @@
 // @flow
 
 import type {DateProvider} from "../calendar/date/CalendarUtils"
-import type {Thunk} from "../api/common/utils/Utils"
+import type {Thunk} from "@tutao/tutanota-utils"
 
 export opaque type ScheduledId = TimeoutID
 

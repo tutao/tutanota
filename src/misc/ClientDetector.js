@@ -2,7 +2,7 @@
 import {assertMainOrNodeBoot, Mode} from "../api/common/Env"
 import type {BrowserData, BrowserTypeEnum, DeviceTypeEnum} from "./ClientConstants"
 import {BrowserType, DeviceType} from "./ClientConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 

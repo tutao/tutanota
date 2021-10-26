@@ -1,7 +1,7 @@
 // @flow
 
-import type {DeferredObject} from "../common/utils/Utils"
-import {defer, noOp} from "../common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "./WorkerImpl"
 import type {SystemTimeout} from "../../misc/Scheduler"
 

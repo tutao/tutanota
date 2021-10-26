@@ -1,7 +1,7 @@
 // @flow
 
 
-import {pad} from "./StringUtils"
+import {pad} from "@tutao/tutanota-utils"
 import type {DateTime} from "luxon"
 
 /**

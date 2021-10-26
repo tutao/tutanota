@@ -2,7 +2,7 @@
 
 import {Editor} from "../../gui/editor/Editor"
 import {isKeyPressed} from "../../misc/KeyManager"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel} from "../model/TemplatePopupModel"
 import {lang, languageByCode, LanguageViewModel} from "../../misc/LanguageViewModel"
@@ -10,7 +10,7 @@ import {ButtonType} from "../../gui/base/ButtonN"
 import {DropdownN} from "../../gui/base/DropdownN"
 import {modal} from "../../gui/base/Modal"
 import {showTemplatePopupInEditor} from "./TemplatePopup"
-import {firstThrow} from "../../api/common/utils/ArrayUtils"
+import {firstThrow} from "@tutao/tutanota-utils"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)

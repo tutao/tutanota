@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {ConfigurationDatabase, encryptItem} from "../../../src/api/worker/facades/ConfigurationDatabase"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {DbStub} from "./search/DbStub"
 import type {ExternalImageRuleEnum} from "../../../src/api/common/TutanotaConstants"
 import {ExternalImageRule} from "../../../src/api/common/TutanotaConstants"

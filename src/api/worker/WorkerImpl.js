@@ -16,7 +16,7 @@ import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
-import {downcast} from "../common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
@@ -39,7 +39,7 @@ import {FileFacade} from "./facades/FileFacade"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {exposeLocal} from "../common/WorkerProxy"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
-import {delay} from "../common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 
 

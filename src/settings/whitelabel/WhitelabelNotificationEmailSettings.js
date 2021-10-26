@@ -9,7 +9,7 @@ import {ButtonType} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {

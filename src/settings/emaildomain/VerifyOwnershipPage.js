@@ -9,12 +9,12 @@ import {Dialog} from "../../gui/base/Dialog"
 import {getCustomMailDomains} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
-import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

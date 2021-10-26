@@ -1,14 +1,15 @@
 // @flow
-import {assertMainOrNodeBoot} from "../api/common/Env"
 import {client} from "./ClientDetector"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CalendarViewTypeEnum} from "../calendar/view/CalendarViewModel"
 import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider"
-import {typedEntries} from "../api/common/utils/Utils"
+import {typedEntries} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialEncryptionModeEnum} from "./credentials/CredentialEncryptionMode"
+import {assertMainOrNodeBoot} from "../api/common/Env"
+import type {Base64} from "@tutao/tutanota-utils/"
 
 assertMainOrNodeBoot()
 

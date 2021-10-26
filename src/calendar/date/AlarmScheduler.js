@@ -1,8 +1,8 @@
 //@flow
-import {isSameDay} from "../../api/common/utils/DateUtils"
+import {isSameDay} from "@tutao/tutanota-utils"
 import {formatDateWithWeekdayAndTime, formatTime} from "../../misc/Formatter"
-import type {Thunk} from "../../api/common/utils/Utils"
-import {downcast} from "../../api/common/utils/Utils"
+import type {Thunk} from "@tutao/tutanota-utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {EndType} from "../../api/common/TutanotaConstants"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"

@@ -2,7 +2,7 @@
 import type {ElectronSession} from 'electron'
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
-import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, noOp} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"

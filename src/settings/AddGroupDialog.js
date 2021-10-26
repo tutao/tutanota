@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import type {GroupTypeEnum} from "../api/common/TutanotaConstants"
 import {BookingItemFeatureType, FeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
@@ -19,10 +18,10 @@ import {TemplateGroupPreconditionFailedReason} from "../sharing/GroupUtils"
 import * as AddUserDialog from "./AddUserDialog"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {firstThrow} from "../api/common/utils/ArrayUtils"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import type {GroupManagementFacade} from "../api/worker/facades/GroupManagementFacade"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 
@@ -198,13 +197,13 @@ export function show(): mixed {
 function addTemplateGroup(name: string): Promise<boolean> {
 	return showProgressDialog("pleaseWait_msg",
 		locator.groupManagementFacade.createTemplateGroup(name)
-		      .then(() => true)
-		      .catch(ofClass(PreconditionFailedError, (e) => {
-			      if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
-				      showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
-			      } else {
-				      Dialog.error(() => e.message)
-			      }
-			      return false
-		      })))
+		       .then(() => true)
+		       .catch(ofClass(PreconditionFailedError, (e) => {
+			       if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
+				       showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
+			       } else {
+				       Dialog.error(() => e.message)
+			       }
+			       return false
+		       })))
 }

@@ -7,6 +7,7 @@ import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryp
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
+import type {Credentials} from "./Credentials"
 
 export async function usingKeychainAuthentication(): Promise<boolean> {
 	if (isApp()) {

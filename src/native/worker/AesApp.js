@@ -1,5 +1,5 @@
 // @flow
-import {uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {nativeApp} from "../common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {keyToBase64} from "../../api/worker/crypto/CryptoUtils"

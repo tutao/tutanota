@@ -1,12 +1,12 @@
 //@flow
-import {assertMainOrNodeBoot} from "../api/common/Env"
 import {client} from "./ClientDetector"
 import type {TranslationKey} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
 import type {KeysEnum} from "../api/common/TutanotaConstants"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {lazy} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNodeBoot} from "../api/common/Env"
 
 assertMainOrNodeBoot()
 

@@ -15,7 +15,7 @@ import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from ".
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {makeCore} from "../../TestUtils"
-import {downcast} from "../../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 import {GroupDataOS} from "../../../../src/api/worker/search/Indexer"

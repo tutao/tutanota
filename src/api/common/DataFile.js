@@ -1,7 +1,7 @@
 // @flow
 import type {File as TutanotaFile} from "../entities/tutanota/File"
 import {FileTypeRef} from "../entities/tutanota/File"
-import {isSameTypeRef} from "./utils/TypeRef";
+import {isSameTypeRef} from "@tutao/tutanota-utils";
 
 export function createDataFile(name: string, mimeType: string, data: Uint8Array, cid?: string): DataFile {
 	return {

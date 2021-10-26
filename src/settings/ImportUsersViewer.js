@@ -5,10 +5,10 @@ import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {contains} from "../api/common/utils/ArrayUtils"
+import {contains} from "@tutao/tutanota-utils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {delay, ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 const delayTime = 900

@@ -9,10 +9,10 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {NavButtonN} from "./NavButtonN"
-import {mapNullable} from "../../api/common/utils/Utils"
+import {mapNullable} from "@tutao/tutanota-utils"
 import {Icons} from "./icons/Icons"
 import {ifAllowedTutanotaLinks} from "./GuiUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 const WARNING_RED = "#ca0606"
 

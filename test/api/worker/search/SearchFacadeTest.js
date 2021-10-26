@@ -19,15 +19,16 @@ import type {
 	SearchRestriction
 } from "../../../../src/api/worker/search/SearchTypes"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
-import {groupBy, numberRange, splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
+import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils"
+import {groupBy, numberRange, splitInChunks} from "@tutao/tutanota-utils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import type {BrowserData} from "../../../../src/misc/ClientConstants"
 import {browserDataStub} from "../../TestUtils"
 import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/utils/EntityUtils";
-import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/Indexer";
+import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/Indexer"
+import type {Base64} from "@tutao/tutanota-utils/"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
 type KeyToIndexEntriesWithType = {

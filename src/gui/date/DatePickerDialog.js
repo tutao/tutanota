@@ -1,12 +1,12 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
 import {Dialog, DialogType} from "../base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {DatePicker} from "./DatePicker"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {formatDateWithWeekdayAndYear} from "../../misc/Formatter"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

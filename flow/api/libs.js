@@ -42,5 +42,3 @@ declare class SystemType {
 declare var System: SystemType
 
 declare function importScripts(...urls: string[]): void;
-
-declare type $Promisable<+T> = Promise<T> | T;

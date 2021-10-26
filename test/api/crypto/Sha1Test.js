@@ -1,6 +1,6 @@
 import o from "ospec"
 import {hash} from "../../../src/api/worker/crypto/Sha256"
-import {hexToUint8Array, stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
+import {hexToUint8Array, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {sha1hash} from "../../../src/api/worker/crypto/Sha1"
 
 o.spec("Sha1", function () {

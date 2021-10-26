@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec"
 import {MailFacade, phishingMarkerValue} from "../../../../src/api/worker/facades/MailFacade"
-import {downcast} from "../../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {createMail} from "../../../../src/api/entities/tutanota/Mail"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {MailAuthenticationStatus, ReportedMailFieldType} from "../../../../src/api/common/TutanotaConstants"

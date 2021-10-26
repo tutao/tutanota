@@ -16,8 +16,8 @@ import {promptAndDeleteMails} from "./MailGuiUtils"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import {noOp} from "../../api/common/utils/Utils"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {noOp} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 const COUNTER_POS_OFFSET = px(-8)
 

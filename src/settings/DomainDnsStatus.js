@@ -6,10 +6,10 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import type {CustomDomainCheckReturn} from "../api/entities/sys/CustomDomainCheckReturn"
 import {CustomDomainCheckReturnTypeRef} from "../api/entities/sys/CustomDomainCheckReturn"
 import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../api/common/TutanotaConstants"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
+import {noOp} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
-import {noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 

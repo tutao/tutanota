@@ -5,7 +5,7 @@ import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto
 import {aes128Decrypt} from "../crypto/Aes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
-import {assert, filterInt, neverNull} from "../../common/utils/Utils"
+import {filterInt, neverNull, TypeRef, assert} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
@@ -31,8 +31,7 @@ import type {BlobAccessInfo} from "../../entities/sys/BlobAccessInfo"
 import {_TypeModel as BlobDataGetTypeModel, createBlobDataGet} from "../../entities/storage/BlobDataGet"
 import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
 import {createTypeInfo} from "../../entities/sys/TypeInfo"
-import {uint8ArrayToBase64} from "../../common/utils/Encoding"
-import {TypeRef} from "../../common/utils/TypeRef"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 assertWorkerOrNode()

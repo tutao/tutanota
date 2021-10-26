@@ -4,11 +4,11 @@ import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
 import type {Rectangle} from "electron"
 import {app} from 'electron'
-import {defer} from '../api/common/utils/Utils.js'
-import {noOp} from "../api/common/utils/Utils"
+import {defer} from '@tutao/tutanota-utils'
+import {noOp} from "@tutao/tutanota-utils"
 import {log} from "./DesktopLog"
-import {uint8ArrayToHex} from "../api/common/utils/Encoding"
-import {delay} from "../api/common/utils/PromiseUtils"
+import {uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {delay} from "@tutao/tutanota-utils"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {swapFilename} from "./PathUtils"
 import url from "url"

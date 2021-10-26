@@ -4,8 +4,8 @@ import m from "mithril"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {px} from "../size"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
-import {resolveMaybeLazy} from "../../api/common/utils/Utils"
+import type {MaybeLazy} from "@tutao/tutanota-utils"
+import {resolveMaybeLazy} from "@tutao/tutanota-utils"
 
 export type DialogInjectionRightAttrs<T: Attrs> = {
 	visible: Stream<boolean>,

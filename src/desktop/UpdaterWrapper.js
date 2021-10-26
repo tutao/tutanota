@@ -2,7 +2,7 @@
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "@tutao/tutanota-utils"
 import path from "path"
 import fs from "fs"
 import {app} from "electron"

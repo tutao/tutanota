@@ -6,7 +6,7 @@ import {lang} from "./LanguageViewModel"
 import {locator} from "../api/main/MainLocator"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {getDayShifted} from "../api/common/utils/DateUtils"
+import {getDayShifted} from "@tutao/tutanota-utils"
 
 /**
  * Returns true if notifications are currently sent.

@@ -1,14 +1,12 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
-import {LazyLoaded} from "../../common/utils/LazyLoaded"
+import {delay, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../../common/error/QuotaExceededError"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {hash} from "../crypto/Sha256"
 import type {User} from "../../entities/sys/User"
 import {getEtId} from "../../common/utils/EntityUtils"
 import type {IndexName} from "./Indexer"
-import {delay} from "../../common/utils/PromiseUtils"
 
 
 export type ObjectStoreName = string
