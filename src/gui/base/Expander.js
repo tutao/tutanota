@@ -76,6 +76,9 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 	// it does not apply to any children
 	childrenInDom: boolean
 
+	expandedStreamListenerHandle: Stream<void>
+	setChildrenInDomTimeout: ?TimeoutID
+
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
 
 		this.childrenInDom = vnode.attrs.expanded()
@@ -86,7 +89,29 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 				m.redraw()
 			}
 		})
+
+		this.expandedStreamListenerHandle = vnode.attrs.expanded.map(expanded => this._handleExpansionStateChanged(expanded))
 	}
+
+	onbeforeupdate(vnode: Vnode<ExpanderPanelAttrs>, old: Vnode<ExpanderPanelAttrs>): boolean {
+		const oldExpanded = old.attrs.expanded
+		const currentExpanded = vnode.attrs.expanded
+
+		// If the stream being passed in has changed, then we need to update our listener
+		// This is possible because some of the views (i.e. UserViewer) are being created with new and passed to mithril as objects,
+		// rather than being proper components
+		// so all the view model state gets recreated but mithril still reuses the old vnode because it doesn't see any difference
+		if (oldExpanded !== currentExpanded) {
+			if (oldExpanded() !== currentExpanded()) {
+				this._handleExpansionStateChanged(currentExpanded())
+			}
+			this.expandedStreamListenerHandle.end(true)
+			this.expandedStreamListenerHandle = vnode.attrs.expanded.map(expanded => this._handleExpansionStateChanged(expanded))
+		}
+
+		return true
+	}
+
 
 	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
 		const expanded = vnode.attrs.expanded
@@ -102,18 +127,6 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 					height: expanded() ? `${this.lastCalculatedHeight}px` : "0px",
 					transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`
 				},
-				ontransitionstart: transition => {
-					// Show the children when the expander begins opening
-					if (transition.propertyName === "opacity" && expanded()) {
-						this.childrenInDom = true
-					}
-				},
-				ontransitionend: transition => {
-					// Hide the children when the expander finishes closing
-					if (transition.propertyName === "opacity" && !expanded()) {
-						this.childrenInDom = false
-					}
-				},
 			}, m(".expander-child-wrapper", {
 				oncreate: vnode => {
 					this.childDiv = vnode.dom
@@ -124,5 +137,14 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 				},
 			}, this.childrenInDom ? vnode.children : null))
 		)
+	}
+
+	_handleExpansionStateChanged(expanded: boolean) {
+		clearTimeout(this.setChildrenInDomTimeout)
+		if (expanded) {
+			this.childrenInDom = true
+		} else {
+			this.setChildrenInDomTimeout = setTimeout(() => this.childrenInDom = false, DefaultAnimationTime)
+		}
 	}
 }
