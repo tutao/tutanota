@@ -5,8 +5,8 @@ import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto
 import {aes128Decrypt} from "../crypto/Aes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
-import {filterInt, neverNull} from "../../common/utils/Utils"
-import type {LoginFacade} from "./LoginFacade"
+import {assert, filterInt, neverNull} from "../../common/utils/Utils"
+import {LoginFacadeImpl} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
 import {FileDataReturnPostTypeRef} from "../../entities/tutanota/FileDataReturnPost"
@@ -34,7 +34,6 @@ import {createTypeInfo} from "../../entities/sys/TypeInfo"
 import {uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {TypeRef} from "../../common/utils/TypeRef"
 import type {TypeModel} from "../../common/EntityTypes"
-import {LoginFacadeImpl} from "./LoginFacade"
 
 assertWorkerOrNode()
 
@@ -70,58 +69,54 @@ export class FileFacade {
 		})
 	}
 
-	downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
-		if (![Mode.App, Mode.Desktop].includes(env.mode)) {
-			return Promise.reject("Environment is not app or Desktop!")
-		}
+	async downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
+
+		assert(env.mode === Mode.App || env.mode === Mode.Desktop, "Environment is not app or Desktop!")
 
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 		}
 
-		let requestData = createFileDataDataGet()
-		requestData.file = file._id
-		requestData.base64 = false
-
-		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
-			return encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
-				let headers = this._login.createAuthHeaders()
-				headers['v'] = FileDataDataGetTypModel.version
-				let body = JSON.stringify(entityToSend)
-				let queryParams = {'_body': body}
-				let url = addParamsToUrl(new URL(getHttpOrigin() + REST_PATH), queryParams)
-
-				return fileApp.download(url.toString(), file.name, headers).then(({
-					                                                                  statusCode,
-					                                                                  encryptedFileUri,
-					                                                                  errorId,
-					                                                                  precondition,
-					                                                                  suspensionTime
-				                                                                  }) => {
-					let response;
-					if (statusCode === 200 && encryptedFileUri != null) {
-						response = aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
-							const mimeType = file.mimeType == null ? MediaType.Binary : file.mimeType
-							return {
-								_type: 'FileReference',
-								name: file.name,
-								mimeType,
-								location: decryptedFileUrl,
-								size: filterInt(file.size)
-							}
-						})
-					} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
-						this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
-						response = this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
-					} else {
-						response = Promise.reject(handleRestError(statusCode, ` | GET ${url.toString()} failed to natively download attachment`, errorId, precondition))
-					}
-
-					return response.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
-					                                                                 .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
-				})
-			})
+		const requestData = createFileDataDataGet({
+			file: file._id,
+			base64: false
 		})
+		const sessionKey = await resolveSessionKey(FileTypeModel, file)
+		const entityToSend = await encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
+		const headers = this._login.createAuthHeaders()
+		headers['v'] = FileDataDataGetTypModel.version
+
+		const body = JSON.stringify(entityToSend)
+		const queryParams = {'_body': body}
+		const url = addParamsToUrl(new URL(getHttpOrigin() + REST_PATH), queryParams)
+		const {
+			statusCode,
+			encryptedFileUri,
+			errorId,
+			precondition,
+			suspensionTime
+		} = await fileApp.download(url.toString(), file.name, headers)
+
+		if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
+			this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+			return this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
+		} else if (statusCode === 200 && encryptedFileUri != null) {
+			const decryptedFileUri = await aesDecryptFile(neverNull(sessionKey), encryptedFileUri)
+			try {
+				await fileApp.deleteFile(encryptedFileUri)
+			} catch (e) {
+				console.warn("Failed to delete encrypted file", encryptedFileUri)
+			}
+			return {
+				_type: 'FileReference',
+				name: file.name,
+				mimeType: file.mimeType ?? MediaType.Binary,
+				location: decryptedFileUri,
+				size: filterInt(file.size)
+			}
+		} else {
+			throw handleRestError(statusCode, ` | GET ${url.toString()} failed to natively download attachment`, errorId, precondition)
+		}
 	}
 
 	uploadFileData(dataFile: DataFile, sessionKey: Aes128Key): Promise<Id> {

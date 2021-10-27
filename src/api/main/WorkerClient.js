@@ -156,7 +156,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	_initServices() {
-		import("../../native/common/NativeWrapper").then(({nativeApp}) => nativeApp.init())
+		import("../../native/common/NativeWrapper").then(({nativeApp}) => nativeApp.initOnMain())
 	}
 
 

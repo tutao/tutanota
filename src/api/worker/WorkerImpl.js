@@ -77,7 +77,7 @@ export class WorkerImpl {
 		}
 		const workerScope = self
 		this._queue = new Queue(workerScope)
-		nativeApp.setWorkerQueue(this._queue)
+		nativeApp.initOnWorker(this._queue)
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 

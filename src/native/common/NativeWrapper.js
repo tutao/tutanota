@@ -2,7 +2,7 @@
 import {Queue, Request} from "../../api/common/WorkerProtocol"
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, neverNull} from "../../api/common/utils/Utils"
-import {isMainOrNode, Mode} from "../../api/common/Env"
+import {assertWorkerOrNode, isMainOrNode, Mode} from "../../api/common/Env"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
@@ -22,7 +22,7 @@ export class NativeWrapper {
 	_workerQueue: ?Queue;
 	_nativeQueue: ?Queue;
 
-	init() {
+	initOnMain() {
 		if (!isMainOrNode()) return
 		let postMessage;
 		if (env.mode === Mode.App) {
@@ -95,9 +95,11 @@ export class NativeWrapper {
 		neverNull(this._nativeQueue)._handleMessage(obj)
 	}
 
-	setWorkerQueue(queue: Queue) {
+	initOnWorker(queue: Queue) {
+		assertWorkerOrNode()
 		this._workerQueue = queue;
 		this._nativeQueue = null
+		this._initialized.resolve()
 	}
 
 	initialized(): Promise<void> {

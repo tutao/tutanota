@@ -27,25 +27,32 @@ export class FileController {
 	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		const fileFacade = locator.fileFacade
-		let downloadPromise
-		if (isApp()) {
-			downloadPromise = fileFacade.downloadFileContentNative(tutanotaFile)
-			                        .then((file) => {
-				                        return (isAndroidApp() && !open
-					                        ? import("../native/common/FileApp")
-						                        .then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))
-					                        : this.open(file))
-					                        .finally(() => this._deleteFile(file.location))
-			                        })
-		} else if (isDesktop()) {
-			downloadPromise = (open
-					? fileFacade.downloadFileContentNative(tutanotaFile)
-					: fileFacade.downloadFileContent(tutanotaFile)
-			).then(file => this.open(file))
-		} else {
-			downloadPromise = fileFacade.downloadFileContent(tutanotaFile)
-			                        .then((file) => this.open(file))
-		}
+		const downloadPromise = Promise.resolve().then(async () => {
+			if (isApp()) {
+				let file
+				try {
+					file = await fileFacade.downloadFileContentNative(tutanotaFile)
+					if (isAndroidApp() && !open) {
+						const fileApp = await import("../native/common/FileApp")
+						await fileApp.putFileIntoDownloadsFolder(file.location)
+					} else {
+						await this.open(file)
+					}
+				} finally {
+					if (file) {
+						this._deleteFile(file.location)
+					}
+				}
+			} else if (isDesktop()) {
+				const file = open
+					? await fileFacade.downloadFileContentNative(tutanotaFile)
+					: await fileFacade.downloadFileContent(tutanotaFile)
+				await this.open(file)
+			} else {
+				const file = await fileFacade.downloadFileContent(tutanotaFile)
+				await this.open(file)
+			}
+		})
 
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
 			.catch(ofClass(CryptoError, e => {
