@@ -27,6 +27,7 @@ import {showUserError} from "./ErrorHandlerImpl"
 import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 import {locator} from "../api/main/MainLocator"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
+import {client} from "./ClientDetector"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -111,18 +112,46 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 	}
 }
 
-export async function showSignupDialog(hashParams: {[string]: string}) {
-	let params: ?SubscriptionParameters
-	if (typeof hashParams.subscription === "string" && typeof hashParams.type === "string" && typeof hashParams.interval === "string") {
-		params = hashParams
-	} else {
-		params = null
-	}
-	showProgressDialog('loading_msg', locator.worker.initialized
-	                                         .then(() => import("../subscription/UpgradeSubscriptionWizard")
-		                                        .then((wizard) => wizard.loadSignupWizard(params))))
-		.then(dialog => dialog.show())
+const CAMPAIGN_KEY = "campaign"
 
+
+export async function showSignupDialog(hashParams: QueryParams) {
+	const subscriptionParams = getSubscriptionParameters(hashParams)
+	const campaign = getCampaign(hashParams)
+
+	const dialog = await showProgressDialog(
+		'loading_msg',
+		locator.worker.initialized.then(async () => {
+			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
+			return loadSignupWizard(subscriptionParams, campaign)
+		})
+	)
+	dialog.show()
+}
+
+function getSubscriptionParameters(hashParams: QueryParams): ?SubscriptionParameters {
+	if (typeof hashParams.subscription === "string"
+		&& typeof hashParams.type === "string"
+		&& typeof hashParams.interval === "string") {
+		return hashParams
+	} else {
+		return null
+	}
+}
+
+export function getCampaign(hashParams: ?QueryParams): ?string {
+	let token = null
+
+	if (hashParams && typeof hashParams.token === "string") {
+		token = hashParams.token
+		if (client.localStorage()) {
+			localStorage.setItem(CAMPAIGN_KEY, token)
+		}
+	} else if (client.localStorage()) {
+		token = localStorage.getItem(CAMPAIGN_KEY)
+	}
+
+	return token
 }
 
 export async function showGiftCardDialog(urlHash: string) {
