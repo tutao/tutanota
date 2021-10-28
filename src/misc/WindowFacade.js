@@ -30,16 +30,21 @@ class WindowFacade {
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
+
+		// load async to reduce size of boot bundle
 		import("../api/main/MainLocator")
-			.then((locatorModule) => {
-				// load async to reduce size of boot bundle
-				this._worker = locatorModule.locator.worker
-				this._indexerFacade = locatorModule.locator.indexerFacade
+			.then(async ({locator}) => {
+
+				// We need to wait til the locator has finished initializing before we read from it
+				// This is a temporary solution, we should ideally refactor window facade to no longer be a global
+				await locator.initializedWorker
+				this._worker = locator.worker
+				this._indexerFacade = locator.indexerFacade
 
 				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
-					return import("../native/common/NativeWrapper").then(({nativeApp}) => {
-						return nativeApp.initialized().then(() => this.addPageInBackgroundListener())
-					})
+					const {nativeApp} = await import("../native/common/NativeWrapper")
+					await nativeApp.initialized()
+					this.addPageInBackgroundListener()
 				}
 			})
 	}
