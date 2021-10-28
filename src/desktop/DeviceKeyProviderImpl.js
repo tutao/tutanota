@@ -5,6 +5,8 @@ import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {defer} from "../api/common/utils/Utils"
 
 // exported for testing
 export const SERVICE_NAME = 'tutanota-vault'
@@ -15,24 +17,48 @@ export interface DesktopDeviceKeyProvider {
 }
 
 export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
-	_secretStorage: SecretStorage;
-	_deviceKey: Aes256Key
+	_secretStorage: SecretStorage
+	_deviceKey: DeferredObject<Aes256Key>
+	_keyResolved: boolean = false
 	_crypto: DesktopCryptoFacade
 
 	constructor(secretStorage: SecretStorage, crypto: DesktopCryptoFacade) {
 		this._secretStorage = secretStorage
 		this._crypto = crypto
+		this._deviceKey = defer()
 	}
 
 	async getDeviceKey(): Promise<Aes256Key> {
-		if (this._deviceKey) return this._deviceKey
-		try {
-			const storedKey = await this._secretStorage.getPassword(SERVICE_NAME, ACCOUNT_NAME)
-			this._deviceKey = storedKey ? base64ToKey(storedKey) : await this._generateAndStoreDeviceKey()
-			return this._deviceKey
-		} catch (e) {
-			throw new DeviceStorageUnavailableError("could not access device secret storage", e)
+		// we want to retrieve the key exactly once
+		if (!this._keyResolved) {
+			this._keyResolved = true
+			this._resolveDeviceKey().then()
 		}
+		return this._deviceKey.promise
+	}
+
+	async _resolveDeviceKey(): Promise<void> {
+		let storedKey = null
+		try {
+			storedKey = await this._secretStorage.getPassword(SERVICE_NAME, ACCOUNT_NAME)
+		} catch (e) {
+			this._deviceKey.reject(new DeviceStorageUnavailableError("could not retrieve device key from device secret storage", e))
+			return
+		}
+
+		console.log("stored devicekey:", storedKey)
+		if (storedKey) {
+			this._deviceKey.resolve(base64ToKey(storedKey))
+			return
+		} else {
+			try {
+				storedKey = await this._generateAndStoreDeviceKey()
+			} catch (e) {
+				this._deviceKey.reject(new DeviceStorageUnavailableError("could not create new device key", e))
+				return
+			}
+		}
+		this._deviceKey.resolve(storedKey)
 	}
 
 	async _generateAndStoreDeviceKey(): Promise<Aes256Key> {
