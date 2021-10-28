@@ -1,7 +1,7 @@
 // @flow
 import path from 'path'
 import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, downcast, getChangedProps} from "../../api/common/utils/Utils"
+import {defer, downcast} from "../../api/common/utils/Utils"
 import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import {DesktopConfigMigrator} from "./migrations/DesktopConfigMigrator"
 import fs from "fs"
@@ -14,6 +14,7 @@ import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {readJSON, writeJSON} from "./ConfigFile"
 
 
 type AllConfigKeysEnum = DesktopConfigKeyEnum | DesktopConfigEncKeyEnum
@@ -63,7 +64,7 @@ export class DesktopConfig {
 			fs.writeFileSync(this._desktopConfigPath, JSON.stringify(defaultConf))
 		}
 
-		const userConf = await readJSON(this._desktopConfigPath).catch(() => defaultConf)
+		const userConf = (await readJSON(this._desktopConfigPath)) || defaultConf
 		const populatedConfig = Object.assign({}, defaultConf, userConf)
 		const desktopConfig = await this._migrator.applyMigrations(
 			downcast<MigrationKind>(buildConfig["configMigrationFunction"]),
@@ -189,14 +190,4 @@ export class DesktopConfig {
 			}
 		}
 	}
-}
-
-async function readJSON(path: string): Promise<any> {
-	const text: string = await fs.promises.readFile(path, "utf8")
-	return JSON.parse(text)
-}
-
-async function writeJSON(path: string, obj: any): Promise<void> {
-	const json = JSON.stringify(obj, null, 2)
-	return fs.promises.writeFile(path, json)
 }
