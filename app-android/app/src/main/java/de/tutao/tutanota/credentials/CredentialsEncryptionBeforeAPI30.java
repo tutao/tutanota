@@ -2,6 +2,7 @@ package de.tutao.tutanota.credentials;
 
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.UserNotAuthenticatedException;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.biometric.BiometricManager;
