@@ -185,10 +185,15 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			const {nativeApp} = await import("./native/common/NativeWrapper")
 			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeApp)
 			await migration.migrateCredentials()
+
 			const {showCredentialsEncryptionModeDialog} = await import("./gui/dialogs/SelectCredentialsEncryptionModeDialog")
 			// We need to render root to show the dialog
 			m.mount(neverNull(document.body), root)
 			await showCredentialsEncryptionModeDialog(locator.credentialsProvider)
+			// Redraw synchronously to make sure that modal is removed properly
+			m.redraw.sync()
+			// Remove whatever we have mounted so that we don't have conflicting mithril roots
+			m.mount(neverNull(document.body), null)
 		}
 	}
 

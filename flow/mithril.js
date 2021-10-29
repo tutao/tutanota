@@ -78,6 +78,12 @@ declare interface Router {
 	Link: MComponent<any>;
 }
 
+interface Redraw {
+	(): void;
+
+	sync(): void;
+}
+
 declare interface Mithril {
 	// We would like to write a definition which allows omitting Attrs if all keys are optional
 	(component: string | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
@@ -90,7 +96,7 @@ declare interface Mithril {
 
 	route: Router;
 
-	redraw: () => void;
+	redraw: Redraw;
 
 	fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
 
