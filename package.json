@@ -17,7 +17,7 @@
   },
   "dependencies": {
 	"@tutao/oxmsg": "0.0.8",
-	"@tutao/tutanota-utils": "3.89.6",
+	"@tutao/tutanota-utils": "3.89.6-beta.0",
 	"dompurify": "2.3.0",
 	"keytar": "7.7.0",
 	"linkifyjs": "^3.0.0-beta.3",
@@ -64,7 +64,7 @@
 	"rollup": "^2.55.1",
 	"rollup-plugin-terser": "^7.0.2",
 	"rollup-plugin-visualizer": "^5.5.2",
-	"@tutao/tutanota-test-utils": "3.89.6",
+	"@tutao/tutanota-test-utils": "3.89.6-beta.0",
 	"winreg": "1.2.4",
 	"xhr2": "^0.2.1"
   },
