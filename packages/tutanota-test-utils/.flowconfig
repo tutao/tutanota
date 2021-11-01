@@ -1,9 +1,17 @@
 [ignore]
 .*/dist/*
 .*/build/*
+.*/node_modules/.*
+# make sure other workspaces are added to flow
+!.*/node_modules/@tutao/**/.*
 
 [include]
+# needed to resolve dependencies between workspaces and other dependencies that will be hoisted to ../../node_modules
 ../../node_modules/
+
+[libs]
+# needed for types of third party libs, e.g. ospec
+../../flow
 
 [options]
 module.ignore_non_literal_requires=true
