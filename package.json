@@ -10,7 +10,7 @@
   "scripts": {
 	"flow": "flow --show-all-branches; test $? -eq 0 -o $? -eq 2",
 	"start": "./start-desktop.sh",
-	"test": "cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
+	"test": "npm run test -ws && cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
 	"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
 	"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 	"postinstall": "node ./buildSrc/compileKeytar"
