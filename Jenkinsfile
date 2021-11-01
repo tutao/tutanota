@@ -205,7 +205,7 @@ pipeline {
 				withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
 					sh "echo -e '\n//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> .npmrc"
 				}
-				sh "npm --workspace=@tutao/tutanota-build-server publish"
+				sh "npm --workspaces publish"
 				sh "rm .npmrc"
 			}
         }
