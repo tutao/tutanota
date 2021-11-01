@@ -1428,6 +1428,9 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"importEventsError_msg": "{amount} of {total} events could not be imported.",
+		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
+		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 	}
 }

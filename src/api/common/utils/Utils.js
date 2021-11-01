@@ -51,6 +51,7 @@ import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
 import {CredentialAuthenticationError} from "../error/CredentialAuthenticationError"
 import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidatedError"
 import type {FeatureTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
+import {ImportError} from "../error/ImportError"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName: ?string): ?DomainInfo {
 	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName))
@@ -76,6 +77,7 @@ export function getMailHeaders(headers: MailHeaders): string {
 	return headers.compressedHeaders || headers.headers || ""
 }
 
+//If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "@bundleInto:common-min"
 const ErrorNameToType = {
 	ConnectionError,
 	BadRequestError,
@@ -114,6 +116,7 @@ const ErrorNameToType = {
 	PayloadTooLargeError,
 	DeviceStorageUnavailableError,
 	MailBodyTooLargeError,
+	ImportError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,

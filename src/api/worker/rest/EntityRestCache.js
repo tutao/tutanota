@@ -2,14 +2,10 @@
 import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {
-	HttpMethod,
-	resolveTypeReference
-} from "../../common/EntityFunctions"
+import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {flat, remove} from "@tutao/tutanota-utils"
+import {clone, downcast, flat, groupBy, isSameTypeRef, neverNull, ofClass, promiseMap, remove, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
-import {clone, downcast, neverNull} from "@tutao/tutanota-utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {ValueType} from "../../common/EntityConstants"
@@ -21,16 +17,15 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
+import type {ListElement} from "../../common/utils/EntityUtils"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
+	getElementId,
 	getLetId,
 	READ_ONLY_HEADER
 } from "../../common/utils/EntityUtils";
-import type {ListElement} from "../../common/utils/EntityUtils"
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
-import {promiseMap} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {$Promisable} from "@tutao/tutanota-utils/"
@@ -425,30 +420,74 @@ export class EntityRestCache implements EntityRestInterface {
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
 	entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
-		return promiseMap(batch, (update) => {
-			const {instanceListId, instanceId, operation, type, application} = update
-			if (application === "monitor") return null
-
-			const typeRef = new TypeRef(application, type)
-			switch (operation) {
-				case OperationType.UPDATE:
-					return this._processUpdateEvent(typeRef, update)
-
-				case OperationType.DELETE:
-					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
-						// move for mail is handled in create event.
-					} else {
-						this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
-					}
-					return update
-
-				case OperationType.CREATE:
-					return this._processCreateEvent(typeRef, update, batch)
-				default:
-					throw new ProgrammingError("Unknown operation type: " + operation)
+		// we handle post multiple create operations separately to optimize the number of requests with getMultiple
+		const createUpdatesForLETs = []
+		const regularUpdates = [] // all updates not resulting from post multiple requests
+		batch.forEach(update => {
+			if (update.application !== "monitor") {//monitor application is ignored
+				if (update.operation === OperationType.CREATE && update.instanceListId != null
+					// mails are ignores because move operation are handled as a special event (and no post multiple is possible)
+					&& !isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)) {
+					createUpdatesForLETs.push(update)
+				} else {
+					regularUpdates.push(update)
+				}
 			}
 		})
-			.then((result) => result.filter(Boolean))
+		const createUpdatesForLETsPerList = groupBy(createUpdatesForLETs, (update) => update.instanceListId)
+		// we first handle potential post multiple updates in get multiple requests
+		return promiseMap(createUpdatesForLETsPerList, ([instanceListId, updates]) => {
+			const firstUpdate = updates[0]
+			const typeRef = new TypeRef(firstUpdate.application, firstUpdate.type)
+			const path = typeRefToPath(typeRef)
+			const ids = updates.map(update => update.instanceId)
+			//We only want to load the instances that are in cache range
+			const idsInCacheRange = this._getInCacheRange(path, instanceListId, ids)
+			if (idsInCacheRange.length === 0) {
+				return updates
+			}
+			const updatesNotInCacheRange = idsInCacheRange.length === updates.length
+				? []
+				: updates.filter(update => !idsInCacheRange.includes(update.instanceId))
+			// loadMultiple is only called to cache the elements and check which ones return errors
+			return this._loadMultiple(typeRef, HttpMethod.GET, instanceListId, null, null, {ids: idsInCacheRange.join(",")}, {}, false)
+			           .then((returnedInstances) => {
+				           //We do not want to pass updates that caused an error
+				           if (returnedInstances.length !== idsInCacheRange.length) {
+					           const returnedIds = returnedInstances.map(instance => getElementId(instance))
+					           return updates.filter(update => returnedIds.includes(update.instanceId)).concat(updatesNotInCacheRange)
+				           }
+				           return updates
+			           })
+			           .catch(ofClass(NotAuthorizedError, (e) => {
+				           // return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
+				           return updatesNotInCacheRange
+			           }))
+		}).then(updatesPerList => flat(updatesPerList))
+			// process regular (not potential post multiple) updates:
+          .then((processedUpdates) => {
+	          return promiseMap(regularUpdates, (update) => {
+		          const {instanceListId, instanceId, operation, type, application} = update
+		          const typeRef = new TypeRef(application, type)
+		          switch (operation) {
+			          case OperationType.UPDATE:
+				          return this._processUpdateEvent(typeRef, update)
+			          case OperationType.DELETE:
+				          if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
+					          // move for mail is handled in create event.
+				          } else {
+					          this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
+				          }
+				          return update
+			          case OperationType.CREATE:
+				          return this._processCreateEvent(typeRef, update, batch)
+			          default:
+				          throw new ProgrammingError("Unknown operation type: " + operation)
+		          }
+	          })
+		          // merge the results
+		          .then((result) => result.filter(Boolean).concat(processedUpdates))
+          })
 	}
 
 	_processCreateEvent(
@@ -495,9 +534,10 @@ export class EntityRestCache implements EntityRestInterface {
 		return update
 	}
 
-	_handleProcessingError(e: Error): EntityUpdate | null {
-		// skip event if NotFoundError. May occur if an entity is removed in parallel.
-		// Skip event if NotAuthorizedError. May occur if the user was removed from the owner group.
+	/**
+	 * @returns {null} to avoid implicit returns where it is called
+	 */
+	_handleProcessingError(e: Error): null {
 		if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 			return null
 		} else {
@@ -528,6 +568,14 @@ export class EntityRestCache implements EntityRestInterface {
 		return this._listEntities[path] != null && this._listEntities[path][listId] != null
 			&& !firstBiggerThanSecond(id, this._listEntities[path][listId].upperRangeId)
 			&& !firstBiggerThanSecond(this._listEntities[path][listId].lowerRangeId, id)
+	}
+
+	/**
+	 *
+	 * @returns {Array<Id>} the ids that are in cache range
+	 */
+	_getInCacheRange(path: string, listId: Id, ids: Id[]): Id[] {
+		return ids.filter(id => this._isInCacheRange(path, listId, id))
 	}
 
 	_putIntoCache(originalEntity: any): void {

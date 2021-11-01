@@ -917,7 +917,7 @@ o.spec("CalendarModel", function () {
 				]
 			})
 			o(calendarFacade.updateCalendarEvent.calls).deepEquals([])
-			const [updatedEvent, updatedAlarms, oldEvent] = calendarFacade.createCalendarEvent.calls[0].args
+			const [updatedEvent, updatedAlarms, oldEvent] = calendarFacade.saveCalendarEvent.calls[0].args
 			o(updatedEvent.summary).equals(sentEvent.summary)
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.startTime.toISOString()).equals(sentEvent.startTime.toISOString())
@@ -1047,7 +1047,7 @@ class WorkerMock extends EntityRestClientMock {
 	eventByUid: Map<string, CalendarEvent> = new Map();
 
 	calendarFacade: CalendarFacade = downcast({
-			createCalendarEvent: o.spy((event) => {
+			saveCalendarEvent: o.spy((event) => {
 				this.addListInstances(event)
 				return Promise.resolve()
 			}),
@@ -1075,7 +1075,7 @@ function makeCalendarFacade({getEventByUid} = {getEventByUid: () => Promise.reso
 	return downcast({
 		getEventByUid: getEventByUid,
 		updateCalendarEvent: o.spy(() => Promise.resolve()),
-		createCalendarEvent: o.spy(() => Promise.resolve()),
+		saveCalendarEvent: o.spy(() => Promise.resolve()),
 	})
 }
 

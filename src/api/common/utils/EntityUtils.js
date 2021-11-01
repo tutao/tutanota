@@ -34,6 +34,7 @@ export const GENERATED_ID_BYTES_LENGTH = 9
 export const CUSTOM_MIN_ID = ""
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
+export const POST_MULTIPLE_LIMIT = 100
 export const READ_ONLY_HEADER = "read-only"
 
 /**

@@ -1,79 +1,99 @@
 //@flow
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot";
 import {CALENDAR_MIME_TYPE, fileController} from "../../file/FileController";
-import stream from "mithril/stream/stream.js";
-import {ProgressMonitor} from "../../api/common/utils/ProgressMonitor";
-import {assignEventId, getTimeZone} from "../date/CalendarUtils";
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent";
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
-import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo";
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils";
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog";
+import {showProgressDialog, showWorkerProgressDialog} from "../../gui/dialogs/ProgressDialog";
 import {ParserError} from "../../misc/parsing/ParserCombinator";
 import {Dialog} from "../../gui/base/Dialog";
 import {lang} from "../../misc/LanguageViewModel";
 import {parseCalendarFile, serializeCalendar} from "./CalendarImporter";
 import {loadAll, loadMultiple} from "../../api/main/Entity"
 import {elementIdPart, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
-import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
+import {flat, ofClass, promiseMap, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {assignEventId, getTimeZone} from "../date/CalendarUtils"
+import {ImportError} from "../../api/common/error/ImportError"
 
-export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
-	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
-	              .then((dataFiles) => {
-		              const parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
 
-		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
-		              const progress = stream(0)
-		              const progressMonitor = new ProgressMonitor(totalCount, progress)
-		              const zone = getTimeZone()
+export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
+	let parsedEvents
+	try {
+		const dataFiles = await fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
+		parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
+	} catch (e) {
+		if (e instanceof ParserError) {
+			console.log("Failed to parse file", e)
+			return Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
+		} else {
+			throw e
+		}
+	}
 
-		              const importPromise =
-			              loadAllEvents(calendarGroupRoot)
-				              .then((events) => {
-					              const uidToEvent = new Map()
-					              events.forEach((event) => {
-						              event.uid && uidToEvent.set(event.uid, event)
-					              })
-					              return promiseMap(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
-						              return promiseMap(events, ({event, alarms}) => {
-							              // Don't try to create event which we already have
-							              if (event.uid && uidToEvent.has(event.uid)) {
-								              return
-							              }
-							              event.uid && uidToEvent.set(event.uid, event)
+	const zone = getTimeZone()
 
-							              const repeatRule = event.repeatRule
-							              assignEventId(event, zone, calendarGroupRoot)
-							              event._ownerGroup = calendarGroupRoot._id
+	async function importEvents(): Promise<void> {
+		const existingEvents = await loadAllEvents(calendarGroupRoot)
+		const existingUidToEventMap = new Map()
+		existingEvents.forEach((existingEvent) => {
+			existingEvent.uid && existingUidToEventMap.set(existingEvent.uid, existingEvent)
+		})
+		const flatParsedEvents = flat(parsedEvents)
+		const eventsWithExistingUid = []
+		// Don't try to create event which we already have
+		const eventsForCreation = flatParsedEvents
+			// only create events with non-existing uid
+			.filter(({event}) => {
+				if (!event.uid) {
+					// should not happen because calendar parser will generate uids if they do not exist
+					throw new Error("Uid is not set for imported event")
+				} else if (!existingUidToEventMap.has(event.uid)) {
+					existingUidToEventMap.set(event.uid, event)
+					return true
+				} else {
+					eventsWithExistingUid.push(event)
+					return false
+				}
+			})
+			.map(({event, alarms}) => {
+				// hashedUid will be set later in calendarFacade to avoid importing the hash function here
+				const repeatRule = event.repeatRule
+				assignEventId(event, zone, calendarGroupRoot)
+				event._ownerGroup = calendarGroupRoot._id
 
-							              if (repeatRule && repeatRule.timeZone === "") {
-								              repeatRule.timeZone = getTimeZone()
-							              }
+				if (repeatRule && repeatRule.timeZone === "") {
+					repeatRule.timeZone = getTimeZone()
+				}
 
-							              for (let alarmInfo of alarms) {
-								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-							              }
-							              assignEventId(event, zone, calendarGroupRoot)
-							              return locator.calendarFacade.createCalendarEvent(event, alarms, null)
-							                           .then(() => progressMonitor.workDone(1))
-							                           .then(() => delay(100))
-						              })
-					              })
+				for (let alarmInfo of alarms) {
+					alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
+				}
+				assignEventId(event, zone, calendarGroupRoot)
+				return {event, alarms}
+			})
+		// inform the user that some events already exist and will be ignored
+		if (eventsWithExistingUid.length > 0) {
+			const confirmed = await Dialog.confirm(() => lang.get("importEventExistingUid_msg", {
+				"{amount}": eventsWithExistingUid.length + "",
+				"{total}": flatParsedEvents.length + ""
+			}))
+			if (!confirmed) {
+				return
+			}
+		}
+		return locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation)
+		              .catch(ofClass(ImportError, e => Dialog.error(() => lang.get("importEventsError_msg", {
+			              "{amount}": e.numFailed + "",
+			              "{total}": eventsForCreation.length + ""
+		              }))))
+	}
 
-				              })
-		              return showProgressDialog("importCalendar_label", importPromise.then(() => progress(100)), progress)
-	              })
-	              .catch(ofClass(ParserError, (e) => {
-		              console.log("Failed to parse file", e)
-		              Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
-	              }))
-
+	return showWorkerProgressDialog(locator.worker, "importCalendar_label", importEvents())
 }
 
 export function exportCalendar(
@@ -120,3 +140,4 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 				return shortEvents.concat(longEvents)
 			}))
 }
+

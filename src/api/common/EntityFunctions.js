@@ -1,20 +1,19 @@
 // @flow
 import {Type, ValueType} from "./EntityConstants"
-import {flat, last} from "@tutao/tutanota-utils"
+import {downcast, flat, last, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
 import monitorModelMap from "../entities/monitor/monitorModelMap"
 import type {ListElement} from "./utils/EntityUtils"
-import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT} from "./utils/EntityUtils"
+import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT} from "./utils/EntityUtils"
 import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
-import {TypeRef} from "@tutao/tutanota-utils";
 import storageModelMap from "../entities/storage/storageModelMap"
 import type {TypeModel} from "./EntityTypes"
-import {noOp} from "@tutao/tutanota-utils"
-import {promiseMap} from "@tutao/tutanota-utils"
+import {SetupMultipleError} from "./error/SetupMultipleError"
+import {PayloadTooLargeError} from "./error/RestError"
 
 
 export const HttpMethod = Object.freeze({
@@ -54,9 +53,9 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		return Promise.reject(new Error("Cannot find TypeRef: " + JSON.stringify(typeRef)))
 	} else {
 		return modelMap[typeRef.type]()
-		              .then(module => {
-			              return module._TypeModel
-		              })
+			.then(module => {
+				return module._TypeModel
+			})
 	}
 }
 
@@ -71,6 +70,52 @@ export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInte
 		}
 		return target.entityRequest((instance: any)._type, HttpMethod.POST, listId, null, instance, null, extraHeaders).then(val => {
 			return ((val: any): Id)
+		})
+	})
+}
+
+
+export function _setupMultipleEntities<T>(listId: ?Id, instances: Array<T>, target: EntityRestInterface, extraHeaders?: Params): Promise<Array<Id>> {
+	const count = instances.length
+	if (count < 1) {
+		return Promise.resolve([])
+	}
+	const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
+	const typeRef = (instances[0]: any)._type
+	return resolveTypeReference(typeRef).then(typeModel => {
+		_verifyType(typeModel)
+		if (typeModel.type === Type.ListElement) {
+			if (!listId) throw new Error("List id must be defined for LETs")
+		} else {
+			if (listId) throw new Error("List id must not be defined for ETs")
+		}
+		const errors = []
+		const failedInstances = []
+		return promiseMap(instanceChunks, instanceChunk => {
+			const queryParams = {count: instanceChunk.length + ""} // tell the server that this is a POST_MULTIPLE request
+			return target.entityRequest(typeRef, HttpMethod.POST, listId, null, instanceChunk, queryParams, extraHeaders)
+			             .then(idChunk => {
+				             return ((idChunk: any): Array<Id>)
+			             })
+			             .catch(ofClass(PayloadTooLargeError, e => {
+				             return promiseMap(instanceChunk, (instance) => {
+					             return target.entityRequest(typeRef, HttpMethod.POST, listId, null, instance)
+					                          .catch(e => {
+						                          errors.push(e)
+						                          failedInstances.push(instance)
+					                          })
+				             })
+			             }))
+			             .catch(e => {
+				             errors.push(e)
+				             failedInstances.push(...instanceChunk)
+			             })
+		}).then(idChunks => {
+			if (errors.length) {
+				throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
+			} else {
+				return flat(downcast(idChunks)) // ids can only be undefined in error case handled above. still we have to downcast because of flow
+			}
 		})
 	})
 }
