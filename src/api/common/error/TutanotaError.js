@@ -5,6 +5,11 @@
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
  * Implemented using ES5 inheritance as babel does not support extending builtin types
  * @see http://stackoverflow.com/questions/33870684/why-doesnt-instanceof-work-on-instances-of-error-subclasses-under-babel-node
+ *
+ * Note that passing errors between worker and main thread requires all fields of the error to be serializable.
+ * Currently those are name, message, stack and data. See (errorToObj() and objToError()).
+ *
+ * In order to correctly set the class type of the error after deserialization (needed for e instanceof CustomError to work), the error class needs to be added to the ErrorNameToType map in Utils.js.
  */
 const ExtendableErrorF = function ExtendableError() {
 	Error.apply(this, arguments);

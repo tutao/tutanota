@@ -1,31 +1,31 @@
 //@flow
 import o from "ospec"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
+import type {MailBody} from "../../../src/api/entities/tutanota/MailBody"
 import {createMailBody, MailBodyTypeRef} from "../../../src/api/entities/tutanota/MailBody"
 import type {OperationTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
-import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
-import {
-	HttpMethod
-} from "../../../src/api/common/EntityFunctions"
-import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
-import {clone} from "@tutao/tutanota-utils"
-import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/ExternalUserReference"
-import {NotFoundError} from "../../../src/api/common/error/RestError"
-import {typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
-import {lastThrow} from "@tutao/tutanota-utils"
-import type {MailBody} from "../../../src/api/entities/tutanota/MailBody"
-import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
+import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
+import {HttpMethod} from "../../../src/api/common/EntityFunctions"
+import type {Mail} from "../../../src/api/entities/tutanota/Mail"
+import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
+import {clone, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
+import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/ExternalUserReference"
+import {NotAuthorizedError, NotFoundError} from "../../../src/api/common/error/RestError"
+import {typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
 import {
 	CUSTOM_MIN_ID,
-	GENERATED_MAX_ID, GENERATED_MIN_ID,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
 	getElementId,
-	getListId, readOnlyHeaders,
+	getListId,
+	readOnlyHeaders,
 	sortCompareById,
 	stringToCustomId
 } from "../../../src/api/common/utils/EntityUtils";
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
+import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
+import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 
 o.spec("entity rest cache", function () {
 
@@ -72,6 +72,356 @@ o.spec("entity rest cache", function () {
 	})
 
 	o.spec("entityEventsReceived", function () {
+		const path = typeRefToPath(ContactTypeRef)
+		const contactListId1 = "contactListId1"
+		const contactListId2 = "contactListId2"
+		const id1 = "id1"
+		const id2 = "id2"
+		const id3 = "id3"
+		const id4 = "id4"
+		const id5 = "id5"
+		const id6 = "id6"
+		const id7 = "id7"
+		o.spec("postMultiple", async function () {
+			o.beforeEach(function () {
+
+				cache._listEntities = {
+					[path]: {
+						[contactListId1]: {
+							allRange: [],
+							lowerRangeId: id1,
+							upperRangeId: id7,
+							elements: {
+								[id1]: null,
+								[id2]: null,
+								[id3]: null,
+								[id4]: null,
+								[id5]: null,
+								[id6]: null,
+								[id7]: null
+							}
+						},
+						[contactListId2]: {
+							allRange: [],
+							lowerRangeId: id1,
+							upperRangeId: id7,
+							elements: {
+								[id1]: null,
+								[id2]: null,
+								[id3]: null,
+								[id4]: null,
+								[id5]: null,
+								[id6]: null,
+								[id7]: null
+							}
+						}
+					}
+				}
+
+			})
+			o("post multiple uses get multiple to load entities", async function () {
+
+
+				const contact1 = createContact({_id: [contactListId1, id1]})
+				const contact2 = createContact({_id: [contactListId1, id2]})
+
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE)
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
+					o(method).equals(HttpMethod.GET)
+					o(listId).equals(contactListId1)
+					o(id).equals(null)
+					o(entity).equals(null)
+					o(queryParameter).deepEquals({ids: "id1,id2"})
+					return Promise.resolve([contact1, contact2])
+				}
+
+				const updates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(1)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(true)
+				o(updates).deepEquals(batch)
+			})
+
+			o("post multiple with different update type and list ids", async function () {
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id3, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id4, OperationType.CREATE),
+					createUpdate(CustomerTypeRef, (null: any), id5, OperationType.CREATE), // clientEntityRequest will not be called because ETs are not cached
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.UPDATE), // only cached ids will trigger an entityrequest
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(method).equals(HttpMethod.GET)
+					if (isSameTypeRef(typeRef, ContactTypeRef)) {
+						if (id != null) {
+							o(id).equals(id2)
+							o(listId).equals(contactListId1)
+							o(queryParameter).equals(undefined)
+							return Promise.resolve(createContact({_id: [listId, id]}))
+						} else {
+							o(id).equals(null)
+							o(entity).equals(null)
+							if (listId === contactListId1) {
+								o(queryParameter).deepEquals({ids: "id1,id2"})
+								return Promise.resolve([
+									createContact({_id: [listId, id1]}), createContact({_id: [listId, id2]})
+								])
+							} else if (listId === contactListId2) {
+								o(queryParameter).deepEquals({ids: "id3,id4"})
+								return Promise.resolve([
+									createContact({_id: [listId, "id3"]}), createContact({_id: [listId, "id4"]})
+								])
+							}
+						}
+					} else if (isSameTypeRef(typeRef, CustomerTypeRef)) {
+						o(entity).equals(null)
+						o(listId).equals(null)
+						o(queryParameter).equals(null)
+						o(["id5", "id6", "id7"].includes(id)).equals(true)
+						return Promise.resolve(createCustomer({_id: id}))
+					}
+					throw new Error("should not be reached")
+				}
+				const filteredUpdates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(3) // twice for contact creations (per list id) and once for the update
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id3)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id4)).equals(true)
+				o(cache._isInCache(CustomerTypeRef, null, id5)).equals(false)
+				o(filteredUpdates.length).equals(batch.length)
+				for (const update of batch) {
+					o(filteredUpdates.includes(update)).equals(true)
+				}
+			})
+
+			o("returns empty [] when loadMultiple throwing an error ", async function () {
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id3, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id4, OperationType.CREATE)
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
+					if (listId === contactListId1) {
+						o(queryParameter).deepEquals({ids: "id1,id2"})
+						return Promise.resolve([
+							createContact({_id: [listId, id1]}), createContact({_id: [listId, id2]})
+						])
+					} else if (listId === contactListId2) {
+						o(queryParameter).deepEquals({ids: "id3,id4"})
+						return Promise.reject(new NotAuthorizedError("bam"))
+					}
+				}
+				const updates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(2)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id3)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id4)).equals(false)
+				o(updates).deepEquals(batch.slice(0, 2))
+			})
+		})
+
+
+		o.spec("post  multiple cache range", function () {
+			o("update is not in cache range", async function () {
+
+				const contact1 = createContact({_id: [contactListId1, id1]})
+				const contact2 = createContact({_id: [contactListId1, id2]})
+
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE)
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
+					o(method).equals(HttpMethod.GET)
+					o(listId).equals(contactListId1)
+					o(id).equals(null)
+					o(entity).equals(null)
+					o(queryParameter).deepEquals({ids: "id1,id2"})
+					return Promise.resolve([contact1, contact2])
+				}
+
+				const updates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(0)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(false)
+				o(updates).deepEquals(batch)
+			})
+
+			o("updates partially not loaded by loadMultiple", async function () {
+
+				cache._listEntities = {
+					[path]: {
+						[contactListId1]: {
+							allRange: [],
+							lowerRangeId: id1,
+							upperRangeId: id2,
+							elements: {
+								[id1]: null,
+								[id2]: null,
+							}
+						},
+					}
+				}
+
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(method).equals(HttpMethod.GET)
+					if (isSameTypeRef(typeRef, ContactTypeRef)) {
+						o(id).equals(null)
+						o(entity).equals(null)
+						if (listId === contactListId1) {
+							o(queryParameter).deepEquals({ids: "id1,id2"})
+							return Promise.resolve([
+								createContact({_id: [listId, id1]})
+							])
+						}
+					}
+					throw new Error("should not be reached")
+				}
+				const filteredUpdates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(1)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(false)
+				o(filteredUpdates.length).equals(batch.length - 1)
+				for (const update of batch.slice(0, 1)) {
+					o(filteredUpdates.includes(update)).equals(true)
+				}
+			})
+
+			o("update are partially in cache range ", async function () {
+
+				cache._listEntities = {
+					[path]: {
+						[contactListId1]: {
+							allRange: [],
+							lowerRangeId: id1,
+							upperRangeId: id1,
+							elements: {
+								[id1]: null,
+							}
+						},
+						[contactListId2]: {
+							allRange: [],
+							lowerRangeId: id4,
+							upperRangeId: id4,
+							elements: {
+								[id4]: null
+							}
+						}
+					}
+				}
+
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id3, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id4, OperationType.CREATE)
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(method).equals(HttpMethod.GET)
+					if (isSameTypeRef(typeRef, ContactTypeRef)) {
+						o(id).equals(null)
+						o(entity).equals(null)
+						if (listId === contactListId1) {
+							o(queryParameter).deepEquals({ids: "id1"})
+							return Promise.resolve([
+								createContact({_id: [listId, id1]})
+							])
+						} else if (listId === contactListId2) {
+							o(queryParameter).deepEquals({ids: "id4"})
+							return Promise.resolve([
+								createContact({_id: [listId, "id4"]})
+							])
+						}
+					}
+					throw new Error("should not be reached")
+				}
+				const filteredUpdates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(2) // twice for contact creations (per list id)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id3)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id4)).equals(true)
+				o(filteredUpdates.length).equals(batch.length)
+				for (const update of batch) {
+					o(filteredUpdates.includes(update)).equals(true)
+				}
+
+			})
+
+			o("update  partially results in NotAuthorizedError ", async function () {
+
+				cache._listEntities = {
+					[path]: {
+						[contactListId1]: {
+							allRange: [],
+							lowerRangeId: id1,
+							upperRangeId: id1,
+							elements: {
+								[id1]: null,
+							}
+						},
+						[contactListId2]: {
+							allRange: [],
+							lowerRangeId: id4,
+							upperRangeId: id4,
+							elements: {
+								[id4]: null
+							}
+						}
+					}
+				}
+
+				const batch = [
+					createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id3, OperationType.CREATE),
+					createUpdate(ContactTypeRef, contactListId2, id4, OperationType.CREATE)
+				]
+				clientEntityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+					o(method).equals(HttpMethod.GET)
+					if (isSameTypeRef(typeRef, ContactTypeRef)) {
+						o(id).equals(null)
+						o(entity).equals(null)
+						if (listId === contactListId1) {
+							o(queryParameter).deepEquals({ids: "id1"})
+							return Promise.resolve([
+								createContact({_id: [listId, id1]})
+							])
+						} else if (listId === contactListId2) {
+							o(queryParameter).deepEquals({ids: "id4"})
+							return Promise.reject(new NotAuthorizedError("bam"))
+						}
+					}
+					throw new Error("should not be reached")
+				}
+				const filteredUpdates = await cache.entityEventsReceived(batch)
+				o(clientSpy.callCount).equals(2) // twice for contact creations (per list id)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id1)).equals(true)
+				o(cache._isInCache(ContactTypeRef, contactListId1, id2)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id3)).equals(false)
+				o(cache._isInCache(ContactTypeRef, contactListId2, id4)).equals(false)
+				o(filteredUpdates.length).equals(batch.length - 1)
+				for (const update of batch.slice(0, 3)) {
+					o(filteredUpdates.includes(update)).equals(true)
+				}
+
+			})
+		})
+
 		o("element create notifications are not put into cache", async function () {
 			await cache.entityEventsReceived([createUpdate(MailBodyTypeRef, (null: any), "id1", OperationType.CREATE)])
 			o(clientSpy.callCount).equals(0)
@@ -238,7 +588,7 @@ o.spec("entity rest cache", function () {
 
 		o("list element is deleted from range", function (done) {
 			setupMailList(true, true).then(originalMails => {
-				return cache. entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]).then(() => {
+				return cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]).then(() => {
 					o(clientSpy.callCount).equals(1) // entity is not loaded from server
 					return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 						start: GENERATED_MIN_ID,

@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
@@ -12,14 +11,13 @@ import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertNotNull, neverNull, noOp} from "@tutao/tutanota-utils"
-import {erase, load, loadAll, setup, update} from "../../api/main/Entity"
+import {assertNotNull, flat, neverNull, noOp, ofClass, promiseMap, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import {erase, load, loadAll, update} from "../../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {fileController} from "../../file/FileController"
 import {logins} from "../../api/main/LoginController"
@@ -40,14 +38,14 @@ import {NavButtonN} from "../../gui/base/NavButtonN"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
-import {flat} from "@tutao/tutanota-utils"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils";
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
+
 assertMainOrNode()
 
 export class ContactView implements CurrentView {
@@ -253,6 +251,7 @@ export class ContactView implements CurrentView {
 
 	_importAsVCard() {
 		fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
+			let numberOfContacts
 			try {
 				if (contactFiles.length > 0) {
 					let vCardsList = contactFiles.map(contactFile => {
@@ -269,20 +268,26 @@ export class ContactView implements CurrentView {
 						const contactMembership =
 							assertNotNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact))
 						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
+						numberOfContacts = contactList.length
 						return locator
 							.contactModel
 							.contactListId()
-							.then(contactListId => promiseMap(contactList, (contact) => setup(contactListId, contact)))
-							.then(() => contactList.length)
+							.then(contactListId => locator.entityClient.setupMultipleEntities(contactListId, contactList).then(() => {
+								// actually a success message
+								Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+							}))
 					}))
 				}
 			} catch (e) {
 				console.log(e)
-				Dialog.error("importVCardError_msg")
-			}
-		}).then(numberOfContacts => {
-			if (numberOfContacts) {
-				Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+				if (e instanceof SetupMultipleError) {
+					Dialog.error(() => lang.get("importContactsError_msg", {
+						"{amount}": e.failedInstances.length + "",
+						"{total}": numberOfContacts + ""
+					}))
+				} else {
+					Dialog.error("importVCardError_msg")
+				}
 			}
 		})
 	}

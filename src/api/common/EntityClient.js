@@ -9,12 +9,13 @@ import {
 	_loadEntityRange,
 	_loadMultipleEntities,
 	_loadReverseRangeBetween,
+	_setupMultipleEntities,
 	_setupEntity,
 	_updateEntity,
 	resolveTypeReference
 } from "./EntityFunctions"
-import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils";
 import type {ListElement} from "./utils/EntityUtils";
+import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils";
 import {ValueType} from "./EntityConstants"
 import {TypeRef} from "@tutao/tutanota-utils";
 
@@ -59,6 +60,10 @@ export class EntityClient {
 
 	setup<T>(listId: ?Id, instance: T): Promise<Id> {
 		return _setupEntity(listId, instance, this._target)
+	}
+
+	setupMultipleEntities<T>(listId: ?Id, instances: Array<T>): Promise<Array<Id>> {
+		return _setupMultipleEntities(listId, instances, this._target)
 	}
 
 	update<T>(instance: T): Promise<void> {

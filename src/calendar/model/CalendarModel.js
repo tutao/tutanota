@@ -1,7 +1,6 @@
 //@flow
-import {getFromMap} from "@tutao/tutanota-utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {assertNotNull, clone, defer, downcast, filterInt, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, clone, defer, downcast, filterInt, getFromMap, LazyLoaded, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {CalendarMethod, FeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
@@ -24,7 +23,6 @@ import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import type {ParsedCalendarData} from "../export/CalendarImporter"
 import type {CalendarEventUpdate} from "../../api/entities/tutanota/CalendarEventUpdate"
 import {CalendarEventUpdateTypeRef} from "../../api/entities/tutanota/CalendarEventUpdate"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {createMembershipRemoveData} from "../../api/entities/sys/MembershipRemoveData"
 import {SysService} from "../../api/entities/sys/Services"
 import type {Group} from "../../api/entities/sys/Group";
@@ -41,7 +39,6 @@ import {FileTypeRef} from "../../api/entities/tutanota/File"
 import type {AlarmScheduler} from "../date/AlarmScheduler"
 import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import type {CalendarFacade} from "../../api/worker/facades/CalendarFacade"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
@@ -247,7 +244,7 @@ export class CalendarModelImpl implements CalendarModel {
 			downcast(event)._permissions = null
 			event._ownerGroup = groupRoot._id
 
-			return this._calendarFacade.createCalendarEvent(event, alarmInfos, existingEvent)
+			return this._calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent)
 		})
 	}
 
@@ -433,7 +430,7 @@ export class CalendarModelImpl implements CalendarModel {
 						// Don't wait for the deferred event promise because it can lead to a deadlock.
 						// Since issue #2264 we process event batches sequentially and the
 						// deferred event can never be resolved until the calendar event update is received.
-						deferredEvent.promise.then(() => {
+						deferredEvent.promise = deferredEvent.promise.then(() => {
 							return this._entityClient.load(CalendarEventTypeRef, [listId, elementId])
 							           .then(calendarEvent => {
 								           return this._scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
@@ -449,7 +446,9 @@ export class CalendarModelImpl implements CalendarModel {
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)
 				&& (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)) {
-				return getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
+				const deferredEvent = getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer)
+				deferredEvent.resolve()
+				return deferredEvent.promise
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData)
 				&& entityEventData.operation === OperationType.CREATE) {
 				return this._entityClient.load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])

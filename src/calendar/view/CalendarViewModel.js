@@ -6,17 +6,19 @@ import {
 	findAndRemove,
 	freezeMap,
 	getStartOfDay,
+	groupBy,
 	groupByAndMapUniquely,
 	LazyLoaded,
 	neverNull,
 	noOp,
+	ofClass,
+	promiseMap,
 	symmetricDifference
 } from "@tutao/tutanota-utils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {NotFoundError} from "../../api/common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
@@ -327,7 +329,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	_removeTransientEvent(event: CalendarEvent) {
-		findAndRemove(this._transientEvents, (transitent) => transitent.uid === event.uid)
+		findAndRemove(this._transientEvents, (transient) => transient.uid === event.uid)
 	}
 
 
@@ -371,21 +373,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	_entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		return this._calendarInfos.getAsync().then((calendarEvents) => {
+			const addedOrUpdatedEventsUpdates = [] // we try to make get multiple requests for calendar events potentially created by post multiple
 			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 					this._redraw()
 				}
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
-						return this._entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
-						           .then((event) => {
-							           this._addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
-							           this._removeTransientEvent(event)
-							           this._redraw()
-						           })
-						           .catch(ofClass(NotFoundError, (e) => {
-							           console.log("Not found event in entityEventsReceived of view", e)
-						           }))
+						addedOrUpdatedEventsUpdates.push(update)
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 						this._redraw()
@@ -434,9 +429,30 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 							})
 						}
 					})
-
 				}
-			}).then(noOp)
+			}).then(() => {
+				// handle potential post multiple updates in get multiple requests
+				// this is only necessary until post multiple updates are dealt with in EntityRestCache
+				const updatesPerList = groupBy(addedOrUpdatedEventsUpdates, (update) => update.instanceListId)
+				return promiseMap(updatesPerList, ([instanceListId, updates]) => {
+					const ids = updates.map(update => update.instanceId)
+					return this._entityClient.loadMultipleEntities(CalendarEventTypeRef, instanceListId, ids)
+					           .then((events) => {
+						           events.forEach(event => {
+							           this._addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
+							           this._removeTransientEvent(event)
+						           })
+						           this._redraw()
+					           })
+					           .catch(ofClass(NotAuthorizedError, (e) => {
+						           // return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
+						           console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
+					           }))
+					           .catch(ofClass(NotFoundError, (e) => {
+						           console.log("Not found event in entityEventsReceived of view", e)
+					           }))
+				}).then(noOp)
+			})
 		})
 	}
 

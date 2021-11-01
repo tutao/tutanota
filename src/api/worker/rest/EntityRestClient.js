@@ -14,8 +14,7 @@ import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundErro
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {isSameTypeRef, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils";
 import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
@@ -37,11 +36,11 @@ export interface EntityRestInterface {
 	 * @param typeRef
 	 * @param method
 	 * @param id
-	 * @param entity
+	 * @param entity  maybe single instance or an array of instances or null
 	 * @param queryParams
 	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
 	 */
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id>;
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T | T[], queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id | Id[]>;
 
 	/**
 	 * Must be called when entity events are received.
@@ -69,8 +68,14 @@ export class EntityRestClient implements EntityRestInterface {
 		this._restClient = restClient
 	}
 
-
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
+	/**
+	 *
+	 * @param entity maybe single instance or an array of instances or null
+	 */
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T | T[], queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
+		if (method !== HttpMethod.POST && Array.isArray(entity)) {
+			throw new Error("Arrays of entities are only allowed in PostMultiple requests: " + method + ", " + JSON.stringify(entity))
+		}
 		return resolveTypeReference(typeRef).then(model => {
 			let path = typeRefToPath(typeRef)
 			if (listId) {
@@ -87,12 +92,25 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			headers['v'] = model.version
 			if (method === HttpMethod.POST) {
-				let sk = setNewOwnerEncSessionKey(model, (entity: any))
-				return encryptAndMapToLiteral(model, entity, sk).then(encryptedEntity => {
-					// we do not make use of the PersistencePostReturn anymore but receive all updates via PUSH only
+				let encryptedEntityPromise
+				if(Array.isArray(entity)){
+					//post multiple
+					encryptedEntityPromise = promiseMap(entity, e => {
+						const sk = setNewOwnerEncSessionKey(model, (e: any))
+						return encryptAndMapToLiteral(model, e, sk)
+					})
+				}else {
+					//regular post
+					const sk = setNewOwnerEncSessionKey(model, (entity: any))
+					encryptedEntityPromise = encryptAndMapToLiteral(model, entity, sk)
+				}
+				return encryptedEntityPromise.then(encryptedEntity => {
 					return this._restClient.request(path, method, queryParams, headers, JSON.stringify(encryptedEntity), MediaType.Json)
 					           .then(persistencePostReturn => {
-						           return JSON.parse(persistencePostReturn).generatedId
+						           const postReturn = JSON.parse(persistencePostReturn)
+						           return Array.isArray(postReturn)
+							           ? postReturn.map(e => e.generatedId)
+							           : postReturn.generatedId
 					           })
 				})
 			} else if (method === HttpMethod.PUT) {

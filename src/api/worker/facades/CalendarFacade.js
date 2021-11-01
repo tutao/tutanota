@@ -5,7 +5,20 @@ import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacadeImpl} from "./LoginFacade"
-import {asyncFindAndMap, downcast, getFromMap, neverNull, noOp} from "@tutao/tutanota-utils"
+import {
+	asyncFindAndMap,
+	downcast,
+	flat,
+	flatMap,
+	getFromMap,
+	groupBy,
+	groupByAndMapUniquely,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	stringToUtf8Uint8Array
+} from "@tutao/tutanota-utils"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
@@ -30,12 +43,11 @@ import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {LockedError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
 import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
 import {hash} from "../crypto/Sha256"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
@@ -43,13 +55,20 @@ import {Request} from "../../common/WorkerProtocol"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {flat, flatMap, groupBy, groupByAndMapUniquely} from "@tutao/tutanota-utils"
+import type {WorkerImpl} from "../WorkerImpl"
+import {SetupMultipleError} from "../../common/error/SetupMultipleError"
+import {ImportError} from "../../common/error/ImportError"
 
 assertWorkerOrNode()
 
 function hashUid(uid: string): Uint8Array {
 	return hash(stringToUtf8Uint8Array(uid))
+}
+
+type AlarmNotificationsPerEvent = {
+	event: CalendarEvent,
+	alarmInfoIds: IdTuple[],
+	alarmNotifications: AlarmNotification[]
 }
 
 
@@ -59,98 +78,109 @@ export class CalendarFacade {
 	_groupManagementFacade: GroupManagementFacadeImpl;
 	_entityRestCache: EntityRestCache
 	_entity: EntityClient
+	_worker: WorkerImpl
 
-	constructor(loginFacade: LoginFacadeImpl, groupManagementFacade: GroupManagementFacadeImpl, entityRestCache: EntityRestCache) {
+	constructor(loginFacade: LoginFacadeImpl, groupManagementFacade: GroupManagementFacadeImpl, entityRestCache: EntityRestCache, worker: WorkerImpl) {
 		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
 		this._entityRestCache = entityRestCache
 		this._entity = new EntityClient(entityRestCache)
+		this._worker = worker
 	}
 
-	createCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
+	hashEventUid(event: CalendarEvent) {
+		event.hashedUid = event.uid ? hashUid(event.uid) : null
+	}
+
+
+	async saveImportedCalendarEvents(eventsWrapper: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>): Promise<void> {
+		// it is safe to assume that all event uids are set here
+		eventsWrapper.forEach(({event}) => this.hashEventUid(event))
+		return this._saveCalendarEvents(eventsWrapper)
+	}
+
+
+	/**
+	 * We try to create as many events as possible and only throw the error at the end.
+	 * If alarmNotifications are created for an event that will later fail to be created we ignore them.
+	 * This function does not perform any checks on the event so it should only be called internally when
+	 * we can be sure that those checks have already been performed.
+	 * @param eventsWrapper the events and alarmNotifications to be created.
+	 */
+	async _saveCalendarEvents(eventsWrapper: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>): Promise<void> {
+		let currentProgress = 10
+		await this._worker.sendProgress(currentProgress)
 		const user = this._loginFacade.getLoggedInUser()
-		return Promise
-			.resolve()
-			.then(() => {
-				if (event._id == null) throw new Error("No id set on the event")
-				if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
-				if (event.uid == null) throw new Error("no uid set on the event")
-				event.hashedUid = hashUid(event.uid)
-				if (oldEvent) {
-					return this._entity.erase(oldEvent)
-					           .catch(ofClass(NotFoundError, noOp))
-					           .catch(ofClass(LockedError, noOp))
-				}
-			})
-			.then(() =>
-				this._createAlarms(user, event, alarmInfos)
-				    .then(userAlarmIdsWithAlarmNotifications => {
-					    event.alarmInfos.length = 0
-					    userAlarmIdsWithAlarmNotifications.forEach(([id]) => {
-						    event.alarmInfos.push(id)
-					    })
-					    return this._entity.setup(getListId(event), event)
-					               .then(() => {
-						               if (userAlarmIdsWithAlarmNotifications.length > 0) {
-							               const alarmNotifications = userAlarmIdsWithAlarmNotifications
-								               .map(([_, alarm]) => alarm)
-							               return this._entity.loadAll(
-								               PushIdentifierTypeRef,
-								               neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list
-							               ).then((pushIdentifierList) =>
-								               this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
-						               }
-					               })
-				    }))
+		const numEvents = eventsWrapper.length
+		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
+			ofClass(SetupMultipleError, e => {
+				throw new ImportError("Could not save alarms.", numEvents)
+			}))
+		eventsWithAlarms.forEach(({event, alarmInfoIds}) => event.alarmInfos = alarmInfoIds)
+		currentProgress = 33
+		await this._worker.sendProgress(currentProgress)
+		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, eventWrapper => getListId(eventWrapper.event))
+		let collectedAlarmNotifications = []
+		//we have different lists for short and long events so this is 1 or 2
+		const size = eventsWithAlarmsByEventListId.size
+		let failed = 0
+		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
+			let successfulEvents = eventsWithAlarmsOfOneList
+			await this._entity.setupMultipleEntities(listId, eventsWithAlarmsOfOneList.map(e => e.event)).catch(ofClass(SetupMultipleError, (e) => {
+				failed += e.failedInstances.length
+				successfulEvents = eventsWithAlarmsOfOneList.filter(({event}) => !e.failedInstances.includes(event))
+			}))
+			const allAlarmNotificationsOfListId = flat(successfulEvents.map(event => event.alarmNotifications))
+			collectedAlarmNotifications = collectedAlarmNotifications.concat(allAlarmNotificationsOfListId)
+
+			currentProgress += Math.floor(56 / size)
+			await this._worker.sendProgress(currentProgress)
+		}
+
+		const pushIdentifierList = await this._entity.loadAll(
+			PushIdentifierTypeRef,
+			neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list
+		)
+		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
+			await this._sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
+		}
+		await this._worker.sendProgress(100)
+
+		if (failed !== 0) {
+			throw new ImportError("Could not save alarms.", failed)
+		}
 	}
 
-	updateCalendarEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
-		newEvent._id = existingEvent._id
-		newEvent._ownerEncSessionKey = existingEvent._ownerEncSessionKey
-		newEvent._permissions = existingEvent._permissions
+	async saveCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
+		if (event._id == null) throw new Error("No id set on the event")
+		if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
+		if (event.uid == null) throw new Error("no uid set on the event")
+		this.hashEventUid(event)
+		if (oldEvent) {
+			await this._entity.erase(oldEvent)
+			          .catch(ofClass(NotFoundError, noOp))
+		}
+		return await this._saveCalendarEvents([{event, alarms: alarmInfos}])
+	}
+
+	async updateCalendarEvent(event: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
+		event._id = existingEvent._id
+		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
+		event._permissions = existingEvent._permissions
 		const user = this._loginFacade.getLoggedInUser()
-		return Promise
-			.resolve()
-			.then(() => this._createAlarms(user, newEvent, newAlarms))
-			.then(userAlarmIdsWithAlarmNotifications => {
-				const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
-				// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
-				// Server takes care of the removed alarms,
-				newEvent.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
-				if (userAlarmIdsWithAlarmNotifications) {
-					newEvent.alarmInfos.push(...userAlarmIdsWithAlarmNotifications.map(([id]) => id))
-				}
-				return this._entity.update(newEvent)
-				           .then(() => {
-					           if (userAlarmIdsWithAlarmNotifications) {
-						           const alarmNotifications = userAlarmIdsWithAlarmNotifications
-							           .map(([_id, alarmNotification]) => alarmNotification)
-						           if (alarmNotifications.length > 0) {
-							           return this._entity.loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-							                      .then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
-						           }
-					           }
-				           })
-			})
-	}
-
-	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {
+		const userAlarmIdsWithAlarmNotificationsPerEvent = await this._saveMultipleAlarms(user, [{event, alarms: newAlarms}])
+		const {alarmInfoIds, alarmNotifications} = userAlarmIdsWithAlarmNotificationsPerEvent[0]
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
-		return promiseMap(alarmInfos, (alarmInfo) => {
-			const newAlarm = createUserAlarmInfo()
-			newAlarm._ownerGroup = user.userGroup.group
-			newAlarm.alarmInfo = createAlarmInfo()
-			newAlarm.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
-			newAlarm.alarmInfo.trigger = alarmInfo.trigger
-			newAlarm.alarmInfo.calendarRef = createCalendarEventRef({
-				listId: listIdPart(event._id),
-				elementId: elementIdPart(event._id)
-			})
-			const alarmNotification = createAlarmNotificationForEvent(event, newAlarm.alarmInfo, user._id)
-			return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
-				[userAlarmInfoListId, id], alarmNotification
-			]))
-		}) // sequentially to avoid rate limiting
+		// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
+		// Server takes care of the removed alarms,
+		event.alarmInfos = existingEvent.alarmInfos
+		                                .filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
+		                                .concat(alarmInfoIds)
+		await this._entity.update(event)
+		if (alarmNotifications.length > 0) {
+			const pushIdentifierList = await this._entity.loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+			await this._sendAlarmNotifications(alarmNotifications, pushIdentifierList)
+		}
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -304,6 +334,44 @@ export class CalendarFacade {
 					           .catch(ofClass(NotFoundError, () => null))
 				}
 			})
+	}
+
+	async _saveMultipleAlarms(user: User, eventsWrapper: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>): Promise<Array<AlarmNotificationsPerEvent>> {
+		const userAlarmInfosAndNotificationsPerEvent: Array<{event: CalendarEvent, userAlarmInfoAndNotification: Array<{alarm: UserAlarmInfo, alarmNotification: AlarmNotification}>}> = []
+		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
+		const ownerGroup = user.userGroup.group
+		for (const {event, alarms} of eventsWrapper) {
+			const userAlarmInfoAndNotification: Array<{alarm: UserAlarmInfo, alarmNotification: AlarmNotification}> = []
+			const calendarRef = createCalendarEventRef({
+				listId: listIdPart(event._id),
+				elementId: elementIdPart(event._id)
+			})
+			for (const alarmInfo of alarms) {
+				const userAlarmInfo = createUserAlarmInfo()
+				userAlarmInfo._ownerGroup = ownerGroup
+				userAlarmInfo.alarmInfo = createAlarmInfo()
+				userAlarmInfo.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
+				userAlarmInfo.alarmInfo.trigger = alarmInfo.trigger
+				userAlarmInfo.alarmInfo.calendarRef = calendarRef
+				const alarmNotification = createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)
+				userAlarmInfoAndNotification.push({alarm: userAlarmInfo, alarmNotification})
+			}
+			userAlarmInfosAndNotificationsPerEvent.push({
+				event,
+				userAlarmInfoAndNotification
+			})
+		}
+		const allAlarms = flat(userAlarmInfosAndNotificationsPerEvent.map(({userAlarmInfoAndNotification}) => userAlarmInfoAndNotification.map(({alarm}) => alarm)))
+		const alarmIds = await this._entity.setupMultipleEntities(userAlarmInfoListId, allAlarms)
+		let currentIndex = 0
+		return userAlarmInfosAndNotificationsPerEvent.map(({event, userAlarmInfoAndNotification}) => {
+				return {
+					event,
+					alarmInfoIds: userAlarmInfoAndNotification.map(() => [userAlarmInfoListId, alarmIds[currentIndex++]]),
+					alarmNotifications: userAlarmInfoAndNotification.map(({alarmNotification}) => alarmNotification)
+				}
+			}
+		)
 	}
 }
 
