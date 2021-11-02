@@ -38,6 +38,16 @@ public class AndroidKeyStoreFacade {
 	public static final String TAG = "AndroidKeyStoreFacade";
 
 	private static final String AndroidKeyStore = "AndroidKeyStore";
+	/**
+	 * This is an Android SDK "easter egg"!
+	 * https://stackoverflow.com/a/36394097/1923879
+	 *
+	 * Bouncy Castle was buggy and would say it can handle everything so instead of fixing it and AndroidKeyStore
+	 * provider they put another special provider.
+	 * Since we *really* want to specify a provider for KeyStore keys (and Android docs even say we **must**) we have
+	 * to specify something but specifying AndroidKeyStore does not exactly work so we are stuck with this.
+	 */
+	private static final String ANDROID_KEY_STORE_BC_WORKAROUND = "AndroidKeyStoreBCWorkaround";
 	private static final String SYMMETRIC_KEY_ALIAS = "TutanotaAppDeviceKey";
 	private static final String DEVICE_LOCK_DATA_KEY_ALIAS = "DeviceLockDataKey";
 	private static final String SYSTEM_PASSWORD_DATA_KEY_ALIAS = "SystemPasswordDataKey";
@@ -164,8 +174,8 @@ public class AndroidKeyStoreFacade {
 		Key key = this.getDataKey(encryptionMode);
 		Cipher cipher;
 		try {
-			cipher = Cipher.getInstance(AES_DATA_ALGORITHM);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			cipher = Cipher.getInstance(AES_DATA_ALGORITHM, ANDROID_KEY_STORE_BC_WORKAROUND);
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException e) {
 			throw new RuntimeException(e);
 		}
 		try {
@@ -192,8 +202,8 @@ public class AndroidKeyStoreFacade {
 		Key key = this.getDataKey(encryptionMode);
 		Cipher cipher;
 		try {
-			cipher = Cipher.getInstance(AES_DATA_ALGORITHM);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			cipher = Cipher.getInstance(AES_DATA_ALGORITHM, ANDROID_KEY_STORE_BC_WORKAROUND);
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException e) {
 			throw new RuntimeException(e);
 		}
 		byte[] iv = this.getIV(dataToBeDecrypted);
