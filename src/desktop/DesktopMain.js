@@ -118,7 +118,10 @@ async function createComponents(): Promise<Components> {
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
-	desktopAlarmScheduler.rescheduleAll()
+	desktopAlarmScheduler.rescheduleAll().catch(e => {
+		log.error("Could not reschedule alarms", e)
+		return sse.resetStoredState()
+	})
 
 	tray.setWindowManager(wm)
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)

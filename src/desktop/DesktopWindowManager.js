@@ -131,8 +131,7 @@ export class WindowManager {
 	_registerUserListener(windowId: number) {
 		const sseValueListener = (value: ?SseInfo) => {
 			if (value && value.userIds.length === 0) {
-				log.debug("invalidating alarms for window", windowId)
-				this.ipc.sendRequest(windowId, "invalidateAlarms", [])
+				this.invalidateAlarms(windowId)
 				    .catch((e) => {
 					    log.debug("Could not invalidate alarms for window ", windowId, e)
 					    this._conf.removeListener(DesktopConfigEncKey.sseInfo, sseValueListener)
@@ -143,6 +142,23 @@ export class WindowManager {
 		// call with value initially
 		this._conf.getVar(DesktopConfigEncKey.sseInfo)
 		    .then(sseValueListener, (e) => log.error("Failed to get sseInfo", e))
+	}
+
+	/**
+	 * invalidates the alarms for a specific window or all windows if no windowId is given.
+	 * @param windowId {number | undefined}
+	 * @returns {Promise<void>}
+	 */
+	async invalidateAlarms(windowId?: number): Promise<void> {
+		if (windowId != null) {
+			log.debug("invalidating alarms for window", windowId)
+			await this.ipc.sendRequest(windowId, "invalidateAlarms", [])
+		} else {
+			log.debug("invalidating alarms for all windows")
+			await Promise.all(
+				this.getAll().map(w => this.invalidateAlarms(w.id).catch(e => log.debug("couldn't invalidate alarms for window", w.id, e)))
+			)
+		}
 	}
 
 	hide() {

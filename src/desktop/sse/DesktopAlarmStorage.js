@@ -44,6 +44,7 @@ export class DesktopAlarmStorage {
 	}
 
 	removePushIdentifierKeys(): Promise<void> {
+		this._sessionKeysB64 = {}
 		return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, null)
 	}
 

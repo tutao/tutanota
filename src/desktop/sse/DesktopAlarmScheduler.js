@@ -10,6 +10,7 @@ import type {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {log} from "../DesktopLog"
 import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
 import {NotificationResult} from "../DesktopConstants"
+import {CryptoError} from "../../api/common/error/CryptoError"
 
 export type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
 export type EncryptedAlarmInfo = {
@@ -62,6 +63,12 @@ export class DesktopAlarmScheduler {
 	async _decryptAndSchedule(an: EncryptedAlarmNotification) {
 		const {piSk, piSkEncSk} = await this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
 		const decAn = await this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk)
+		if (Object.keys(decAn).includes("_errors")) {
+			// this is indicative of a serious problem with the stored keys.
+			// therefore, we should invalidate the sseInfo and throw away
+			// our pushEncSessionKeys.
+			throw new CryptoError("could not decrypt alarmNotification")
+		}
 		await this._scheduleAlarms(decAn)
 	}
 
@@ -81,11 +88,7 @@ export class DesktopAlarmScheduler {
 	async rescheduleAll(): Promise<void> {
 		const alarms = await this._alarmStorage.getScheduledAlarms()
 		for (const alarm of alarms) {
-			try {
-				await this._decryptAndSchedule(alarm)
-			} catch (e) {
-				log.debug("Could not reschedule alarm", alarm.alarmInfo.alarmIdentifier, e)
-			}
+			await this._decryptAndSchedule(alarm)
 		}
 	}
 

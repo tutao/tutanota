@@ -45,7 +45,6 @@ export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
 			this._deviceKey.reject(new DeviceStorageUnavailableError("could not retrieve device key from device secret storage", e))
 			return
 		}
-
 		if (storedKey) {
 			this._deviceKey.resolve(base64ToKey(storedKey))
 			return
