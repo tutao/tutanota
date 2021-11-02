@@ -93,7 +93,7 @@ export class DesktopSseClient {
 
 	async start() {
 		this._tryToReconnect = true
-		this._connectedSseInfo = await this._conf.getVar(DesktopConfigEncKey.sseInfo)
+		this._connectedSseInfo = await this.getSseInfo()
 		this._readTimeoutInSeconds = await this._conf.getVar(DesktopConfigKey.heartbeatTimeoutInSeconds)
 		this._reschedule(1)
 	}
@@ -118,8 +118,25 @@ export class DesktopSseClient {
 		           })
 	}
 
-	getSseInfo(): Promise<?SseInfo> {
-		return this._conf.getVar(DesktopConfigEncKey.sseInfo)
+	/**
+	 * return the stored SseInfo if we can decrypt one.
+	 * If not, we'll assume that all stored
+	 * pushIdentifierSessionKeys, AlarmNotifications and set Alarms are invalid.
+	 * @returns {Promise<?SseInfo>}
+	 */
+	async getSseInfo(): Promise<?SseInfo> {
+		const sseInfo: ?SseInfo = await this._conf.getVar(DesktopConfigEncKey.sseInfo)
+		if (this._tryToReconnect && sseInfo == null) {
+			log.warn("sseInfo corrupted or not present, making sure pushEncSessionKeys and scheduled alarms are cleared")
+			// we either never had a device identifier or we couldn't decrypt
+			// the one we had. either way, any pushEncSessionKeys from conf
+			// are probably useless now.
+			// also, we shouldn't expect to be able to reschedule any of the
+			// alarmNotifications that are in conf.json
+			await this.resetStoredState()
+			this._reschedule(1)
+		}
+		return sseInfo
 	}
 
 	async connect(): Promise<void> {
@@ -278,27 +295,35 @@ export class DesktopSseClient {
 	}
 
 	/**
-	 * Reset state when TTL has expired,
+	 * Reset state when TTL has expired or when we detect a problem
+	 * with the stored sseInfo, keys or alarms.
+	 *
+	 * invalidates
+	 * - the pushIdentifierKeys that are stored in conf.json
+	 * - the userIds that are stored as part of the sseInfo in conf.json
+	 * - the alarms set on any window
+	 *  and then disconnects the sse
 	 */
-	resetStoredState(): Promise<void> {
+	async resetStoredState(): Promise<void> {
 		log.debug("Resetting stored state")
-		return Promise
-			.all([
-				this._alarmScheduler.unscheduleAllAlarms(),
-				this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, null),
-			])
-			.then(() => this._alarmStorage.removePushIdentifierKeys())
-			.then(() => {
-				const connectedSseInfo = this._connectedSseInfo
-				if (connectedSseInfo) {
-					connectedSseInfo.userIds = []
-					return this._conf.setVar(DesktopConfigEncKey.sseInfo, connectedSseInfo)
-				}
-			})
-			.then(() => {
-				this._disconnect()
-				this._connectedSseInfo = null
-			})
+		const tryToReconnect = this._tryToReconnect
+		this._tryToReconnect = false
+		this._reschedule() // deletes reschedule timeout
+		await Promise.all([
+			this._alarmScheduler.unscheduleAllAlarms(),
+			this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, null),
+			this._conf.setVar(DesktopConfigKey.lastProcessedNotificationId, null)
+		])
+		await this._alarmStorage.removePushIdentifierKeys()
+		const connectedSseInfo = this._connectedSseInfo
+		if (connectedSseInfo) {
+			connectedSseInfo.userIds = []
+			await this._conf.setVar(DesktopConfigEncKey.sseInfo, connectedSseInfo)
+		}
+		await this._wm.invalidateAlarms()
+		this._disconnect()
+		this._connectedSseInfo = null
+		this._tryToReconnect = tryToReconnect
 	}
 
 	_handlePushMessage(userId: string): Promise<void> {
@@ -462,8 +487,7 @@ export class DesktopSseClient {
 		}
 		log.debug('scheduling to check sse in', delaySeconds, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
-		const timeoutId = this._delayHandler(() => this.connect(), delaySeconds * 1000)
-		this._nextReconnect = timeoutId
+		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
 	}
 
 	_requestJson(identifier: string, userId: string): string {
