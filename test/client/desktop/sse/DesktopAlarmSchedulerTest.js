@@ -191,39 +191,6 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			onClick(NotificationResult.Click)
 			o(wmMock.openCalendar.callCount).equals(1)
 		})
-
-		o("notification is shown and calendar is opened when it's clicked", async function () {
-			const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-
-			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
-
-			const an1 = createAlarmNotification({
-				startTime: new Date(2019, 9, 20, 10),
-				endTime: new Date(2019, 9, 20, 12),
-				trigger: "5M",
-				endType: EndType.Never,
-				endValue: null,
-				frequency: RepeatPeriod.ANNUALLY,
-				interval: '1'
-			})
-
-			await scheduler.handleAlarmNotification(an1)
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
-
-			const cb = lastThrow(alarmScheduler.scheduleAlarm.calls[0].args)
-			const title = "title"
-			const body = "body"
-			cb(title, body)
-
-			o(notifierMock.submitGroupedNotification.calls.map(c => c.args.slice(0, -1))).deepEquals([
-				[title, body, an1.alarmInfo.alarmIdentifier]
-			])
-			o(wmMock.openCalendar.callCount).equals(0)
-			const onClick = lastThrow(notifierMock.submitGroupedNotification.calls[0].args)
-			onClick(NotificationResult.Click)
-			o(wmMock.openCalendar.callCount).equals(1)
-		})
 	})
 })
 
