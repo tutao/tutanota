@@ -4,15 +4,13 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
-import {downcast} from "@tutao/tutanota-utils"
+import {downcast, ofClass, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {UserError} from "../api/main/UserError"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {createDataFile} from "../api/common/DataFile"
-import {ofClass} from "@tutao/tutanota-utils"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): Children {
@@ -61,20 +59,20 @@ export class AboutDialog implements MComponent<void> {
 		let p = Promise.resolve()
 		if (global.logger) {
 			const mainEntries = global.logger.getEntries()
-			p = createLogFile(timestamp.getTime(), mainEntries, "main")
-				.then((mainLogFile) => attachments.push(mainLogFile))
-				.then(() => locator.worker.getLog())
-				.then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
-				.then((workerLogFile) => attachments.push(workerLogFile))
+			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries, "main")
+			attachments.push(mainLogFile)
+			p = locator.worker.getLog()
+			           .then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
+			           .then((workerLogFile) => attachments.push(workerLogFile))
 		}
 
-	p = p.then(() => import("../misc/IndexerDebugLogger"))
-	     .then(({getSearchIndexDebugLogs}) => {
-		     const logs = getSearchIndexDebugLogs()
-		     if (logs) {
-		        attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
-		     }
-	     })
+		p = p.then(() => import("../misc/IndexerDebugLogger"))
+		     .then(({getSearchIndexDebugLogs}) => {
+			     const logs = getSearchIndexDebugLogs()
+			     if (logs) {
+				     attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
+			     }
+		     })
 
 		if (isDesktop()) {
 			p = p

@@ -11,9 +11,8 @@ import {
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import type {SomeEntity} from "../../main/Entity"
 import type {ModelValue, TypeModel} from "../EntityTypes"
-import {pad} from "@tutao/tutanota-utils/lib"
-import {base64ExtToBase64, base64ToBase64Ext, hexToBase64} from "@tutao/tutanota-utils/lib/Encoding"
 import type {Hex} from "@tutao/tutanota-utils/"
+import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils/"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1

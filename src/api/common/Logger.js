@@ -1,7 +1,7 @@
 //@flow
 //@bundleInto:common-min
 
-import {errorToString} from "@tutao/tutanota-utils"
+import {errorToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 
 
 export const LOG_SIZE = 1000
@@ -64,19 +64,17 @@ export class Logger {
 
 }
 
-export function createLogFile(timestamp: number, entries: Array<string>, scope: string): Promise<DataFile> {
-	return import("@tutao/tutanota-utils").then(({stringToUtf8Uint8Array}) => {
-		const content = entries.join("\n")
-		const data = stringToUtf8Uint8Array(content)
-		return {
-			_type: 'DataFile',
-			name: timestamp + "_" + scope + "_tutanota.log",
-			mimeType: "text/plain",
-			data,
-			size: data.byteLength,
-			id: null
-		}
-	})
+export function createLogFile(timestamp: number, entries: Array<string>, scope: string): DataFile {
+	const content = entries.join("\n")
+	const data = stringToUtf8Uint8Array(content)
+	return {
+		_type: 'DataFile',
+		name: timestamp + "_" + scope + "_tutanota.log",
+		mimeType: "text/plain",
+		data,
+		size: data.byteLength,
+		id: null
+	}
 }
 
 export function replaceNativeLogger(global: any, loggerInstance: Logger, force: boolean = false) {

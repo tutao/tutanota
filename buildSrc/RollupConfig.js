@@ -69,9 +69,6 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	// See HACKING.md for rules
 	const moduleInfo = getModuleInfo(moduleId)
 	const code = moduleInfo.code
-	if (code == null) {
-		console.log(moduleInfo)
-	}
 	if (
 		code.includes("@bundleInto:common-min")
 		|| moduleId.includes(path.normalize("libs/stream"))
