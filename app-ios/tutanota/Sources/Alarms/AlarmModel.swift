@@ -12,8 +12,6 @@ class AlarmModel {
     scheduleAhead: Int,
     block:AlarmIterationCallback
   ) {
-    var ocurrences = 0
-    var ocurrencesAfterNow = 0
     var cal = Calendar.current
     let calendarUnit = Self.calendarUnit(for: repeatRule.frequency)
     
@@ -33,6 +31,8 @@ class AlarmModel {
     
     cal.timeZone = isAllDayEvent ? localTimeZone : TimeZone(identifier: repeatRule.timeZone) ?? localTimeZone
     
+    var ocurrences = 0
+    var ocurrencesAfterNow = 0
     while ocurrencesAfterNow < scheduleAhead {
       if case let .count(n) = repeatRule.endCondition, ocurrences >= n {
         break
@@ -111,15 +111,15 @@ class AlarmModel {
     calendar.timeZone = TimeZone(abbreviation: "UTC")!
     
     let startComponents = calendar.dateComponents([.hour, .minute, .second], from: startTime)
-    let passesStart = startComponents.hour == 0
+    let startsOnZero = startComponents.hour == 0
     && startComponents.minute == 0
     && startComponents.second == 0
     
-    let endCompoents = calendar.dateComponents([.hour, .minute,.second], from: endTime)
-    let passesEnd = endCompoents.hour == 0
-    && endCompoents.minute == 0
-    && endCompoents.second == 0
+    let endComponents = calendar.dateComponents([.hour, .minute,.second], from: endTime)
+    let endsOnZero = endComponents.hour == 0
+    && endComponents.minute == 0
+    && endComponents.second == 0
     
-    return passesStart && passesEnd
+    return startsOnZero && endsOnZero
   }
 }

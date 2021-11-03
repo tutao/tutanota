@@ -15,14 +15,6 @@ class FileUtils {
     return FileManager.default.fileExists(atPath: path)
   }
   
-  static func urlFromPath(path: String) -> URL {
-    return URL(fileURLWithPath: path)
-  }
-  
-  static func pathFromUrl(url: URL) -> String {
-    return url.path
-  }
-  
   private static func makeTempDir(name: String) throws -> String {
     let encryptedFolderPath =
     (NSTemporaryDirectory() as NSString).appendingPathComponent(name)

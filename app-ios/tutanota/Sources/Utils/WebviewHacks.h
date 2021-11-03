@@ -3,7 +3,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface WebviewHacks : NSObject
-+ (void) keyboardDisplayDoesNotRequireUserAction;
++ (void)keyboardDisplayDoesNotRequireUserAction;
 + (void)hideAccessoryBar;
 @end
 

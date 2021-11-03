@@ -1,11 +1,3 @@
-//
-//  Crypto.m
-//  Tutanota plugin
-//
-//  Created by Tutao GmbH on 24.09.14.
-//
-//
-
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <openssl/md5.h>
@@ -99,7 +91,7 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
   // generate rsa key
   int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
   TUTKeyPair *keyPair;
-  if (status > 0){
+  if (status > 0){  
     keyPair = [TUTCrypto createRSAKeyPair:rsaKey
                                 keyLength:RSA_KEY_LENGTH_IN_BITS
                                   version:0];
