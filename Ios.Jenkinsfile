@@ -19,6 +19,22 @@ pipeline {
 	}
 
 	stages {
+	    stage("Run tests") {
+	        agent {
+	        	label 'mac'
+	        }
+	        environment {
+	        	LC_ALL="en_US.UTF-8"
+            	LANG="en_US.UTF-8"
+	        }
+	        steps {
+	        	script {
+	        		dir('app-ios') {
+	        			sh 'fastlane test'
+	        		}
+	        	}
+	        }
+	    }
 		stage("Build IOS app") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}"
