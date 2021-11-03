@@ -63,9 +63,6 @@ class AlarmManager {
         return
       }
       
-      var additionalHeaders = [String: String]()
-      addSystemModelHeaders(to: &additionalHeaders)
-      
       if sseInfo.userIds.isEmpty {
         TUTSLog("No users to download missed notification with")
         self.unscheduleAllAlarms(userId: nil)
@@ -73,10 +70,13 @@ class AlarmManager {
         return
       }
       
+      var additionalHeaders = [String: String]()
+      addSystemModelHeaders(to: &additionalHeaders)
+
       let userId: String = sseInfo.userIds[0]
       additionalHeaders["userIds"] = userId
-      if let lastNoficationId = self.userPreference.lastProcessedNotificationId {
-        additionalHeaders["lastProcessedNotificationId"] = lastNoficationId
+      if let lastNotificationId = self.userPreference.lastProcessedNotificationId {
+        additionalHeaders["lastProcessedNotificationId"] = lastNotificationId
       }
       let configuration = URLSessionConfiguration.ephemeral
       configuration.httpAdditionalHeaders = additionalHeaders
@@ -94,7 +94,7 @@ class AlarmManager {
         }
         let httpResponse = response as! HTTPURLResponse
         TUTSLog("Fetched missed notifications with status code \(httpResponse.statusCode)")
-        switch (HttpStatusCode.init(rawValue: httpResponse.statusCode)) {
+        switch (HttpStatusCode(rawValue: httpResponse.statusCode)) {
         case .notAuthenticated:
           TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
           self.unscheduleAllAlarms(userId: userId)
@@ -103,7 +103,7 @@ class AlarmManager {
           self.fetchMissedNotifications(completionHandler)
         case .serviceUnavailable, .tooManyRequests:
           let suspensionTime = extractSuspensionTime(from: httpResponse)
-          TUTSLog("SericeUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
+          TUTSLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
           DispatchQueue.main
             .asyncAfter(deadline: .now() + .seconds(suspensionTime)) {
               self.fetchMissedNotifications(completionHandler)
@@ -117,7 +117,7 @@ class AlarmManager {
           do {
            missedNotification = try JSONDecoder().decode(MissedNotification.self, from: data!)
           } catch {
-            TUTSLog("Failed to parse response for the missed notification request")
+            TUTSLog("Failed to parse response for the missed notification response")
             complete(error: error)
             return
           }
@@ -140,9 +140,9 @@ class AlarmManager {
       var resultError: Error?
       for alarmNotification in notifications {
         do {
-          try self.handleAlarmNotification(alarmNotification, existringAlarms: &savedNotifications)
+          try self.handleAlarmNotification(alarmNotification, existingAlarms: &savedNotifications)
         } catch {
-          TUTSLog("Errror while handling alarm \(error)")
+          TUTSLog("Error while handling alarm \(error)")
           resultError = error
         }
       }
@@ -177,12 +177,10 @@ class AlarmManager {
     TUTSLog("Re-scheduling alarms")
     DispatchQueue.global(qos: .background).async {
       for notification in self.savedAlarms() {
-        autoreleasepool {
-          do {
-            try self.scheduleAlarm(notification)
-          } catch {
-            TUTSLog("Error when re-scheduling alarm \(notification) \(error)")
-          }
+        do {
+          try self.scheduleAlarm(notification)
+        } catch {
+          TUTSLog("Error when re-scheduling alarm \(notification) \(error)")
         }
       }
     }
@@ -200,28 +198,24 @@ class AlarmManager {
   
   private func handleAlarmNotification(
     _ alarm: EncryptedAlarmNotification,
-    existringAlarms: inout Array<EncryptedAlarmNotification>
+    existingAlarms: inout Array<EncryptedAlarmNotification>
   ) throws {
     switch alarm.operation {
     case .Create:
-      do {
-        try self.scheduleAlarm(alarm)
-        if !existringAlarms.contains(alarm) {
-          existringAlarms.append(alarm)
-        }
-      } catch {
-        throw error
+      try self.scheduleAlarm(alarm)
+      if !existingAlarms.contains(alarm) {
+        existingAlarms.append(alarm)
       }
     case .Delete:
-      let alarmToUnschedule = existringAlarms.first { $0 == alarm } ?? alarm
+      let alarmToUnschedule = existingAlarms.first { $0 == alarm } ?? alarm
       do {
         try self.unscheduleAlarm(alarmToUnschedule)
       } catch {
         TUTSLog("Failed to cancel alarm \(alarm) \(error)")
         throw error
       }
-      if let index = existringAlarms.firstIndex(of: alarmToUnschedule) {
-        existringAlarms.remove(at: index)
+      if let index = existingAlarms.firstIndex(of: alarmToUnschedule) {
+        existingAlarms.remove(at: index)
       }
     default:
       fatalError("Unexpected operation for alarm: \(alarm.operation)")
@@ -253,7 +247,7 @@ class AlarmManager {
       throw TUTErrorFactory.createError("Cannot resolve session key")
     }
     let alarmNotification = try AlarmNotification(encrypted: encAlarmNotification, sessionKey: sessionKey)
-    var occurrences = [OcurrenceInfo]()
+    var occurrences = [OccurrenceInfo]()
     
     if let repeatRule = alarmNotification.repeatRule {
       occurrences = try self.iterateRepeatingAlarm(
@@ -263,12 +257,12 @@ class AlarmManager {
         repeatRule: repeatRule
       )
     } else {
-      let singleOcurrence = OcurrenceInfo(occurrence: 0, ocurrenceTime: alarmNotification.eventStart)
+      let singleOcurrence = OccurrenceInfo(occurrence: 0, occurrenceTime: alarmNotification.eventStart)
       occurrences = [singleOcurrence]
     }
     for ocurrence in occurrences {
-      self.scheduleAlarmOcurrence(
-        ocurrenceInfo: ocurrence,
+      self.scheduleAlarmOccurrence(
+        occurrenceInfo: ocurrence,
         trigger: alarmNotification.alarmInfo.trigger,
         summary: alarmNotification.summary,
         alarmIdentifier: alarmNotification.alarmInfo.alarmIdentifer
@@ -302,7 +296,7 @@ class AlarmManager {
     UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: occurrenceIds)
   }
   
-  private func resolveSessionkey(alarmNotification: EncryptedAlarmNotification) -> Data? {
+  private func resolveSessionkey(alarmNotification: EncryptedAlarmNotification) -> Key? {
     var lastError: Error?
     for notificationSessionKey in alarmNotification.notificationSessionKeys {
       do {
@@ -327,9 +321,9 @@ class AlarmManager {
     eventEnd: Date,
     trigger: String,
     repeatRule: RepeatRule
-  ) throws -> [OcurrenceInfo] {
+  ) throws -> [OccurrenceInfo] {
     let now = Date()
-    var ocurrences = [OcurrenceInfo]()
+    var occurrences = [OccurrenceInfo]()
     AlarmModel.iterateRepeatingAlarm(
       eventStart: eventStart,
       eventEnd: eventEnd,
@@ -337,23 +331,23 @@ class AlarmManager {
       now: now,
       localTimeZone: TimeZone.current,
       scheduleAhead: EVENTS_SCHEDULED_AHEAD
-    ) { ocurrnce, occurrenceTime in
-      let info = OcurrenceInfo(
-        occurrence: Int(ocurrnce),
-        ocurrenceTime: occurrenceTime
+    ) { occurrence, occurrenceTime in
+      let info = OccurrenceInfo(
+        occurrence: Int(occurrence),
+        occurrenceTime: occurrenceTime
       )
-      ocurrences.append(info)
+      occurrences.append(info)
     }
-    return ocurrences
+    return occurrences
   }
   
-  private func scheduleAlarmOcurrence(
-    ocurrenceInfo: OcurrenceInfo,
+  private func scheduleAlarmOccurrence(
+    occurrenceInfo: OccurrenceInfo,
     trigger: String,
     summary: String,
     alarmIdentifier: String
   ) {
-    let alarmTime = AlarmModel.alarmTime(trigger: trigger, eventTime: ocurrenceInfo.ocurrenceTime)
+    let alarmTime = AlarmModel.alarmTime(trigger: trigger, eventTime: occurrenceInfo.occurrenceTime)
     
     if alarmTime.timeIntervalSinceNow < 0 {
       TUTSLog("Alarm is in the past \(alarmIdentifier) \(alarmTime)")
@@ -364,12 +358,12 @@ class AlarmManager {
       TUTSLog("Event alarm is too far into the future \(alarmIdentifier) \(alarmTime)")
     }
     
-    let formmatedTime = DateFormatter.localizedString(
-      from: ocurrenceInfo.ocurrenceTime,
+    let formattedTime = DateFormatter.localizedString(
+      from: occurrenceInfo.occurrenceTime,
       dateStyle: .short,
       timeStyle: .short
     )
-    let notificationText = "\(formmatedTime): \(summary)"
+    let notificationText = "\(formattedTime): \(summary)"
     let cal = Calendar.current
     let dateComponents = cal.dateComponents(
       [.year, .month, .day, .hour, .minute],
@@ -386,7 +380,7 @@ class AlarmManager {
     
     let identifier = ocurrenceIdentifier(
       alarmIdentifier: alarmIdentifier,
-      occurrence: ocurrenceInfo.occurrence
+      occurrence: occurrenceInfo.occurrence
     )
     let request = UNNotificationRequest(
       identifier: identifier,
@@ -421,9 +415,9 @@ fileprivate func extractSuspensionTime(from httpResponse: HTTPURLResponse) -> In
   return retryAfterHeader.flatMap { Int($0) } ?? 0
 }
 
-fileprivate struct OcurrenceInfo {
+fileprivate struct OccurrenceInfo {
   let occurrence: Int
-  let ocurrenceTime: Date
+  let occurrenceTime: Date
 }
 
 fileprivate func ocurrenceIdentifier(alarmIdentifier: String, occurrence: Int) -> String {

@@ -22,7 +22,7 @@ class FileFacade {
     do {
       let decryptedFolder = try FileUtils.getDecryptedFolder()
       let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
-      let fileURL = FileUtils.urlFromPath(path: filePath)
+      let fileURL = URL(fileURLWithPath: filePath)
       try data.write(to: fileURL, options: .atomic)
       self.openFile(path: filePath) {
         let deleteError = doCatch {
@@ -92,7 +92,7 @@ class FileFacade {
       
       let session = URLSession(configuration: .ephemeral)
       
-      let fileUrl = FileUtils.urlFromPath(path: path)
+      let fileUrl = URL(fileURLWithPath: path)
       let task = session.uploadTask(with: request, fromFile: fileUrl) { data, response, error in
         if let error = error {
           completion(.failure(error))
@@ -156,7 +156,7 @@ class FileFacade {
   
   private func clearDirectory(folderPath: String) throws {
     let fileManager = FileManager.default
-    let folderUrl = FileUtils.urlFromPath(path: folderPath)
+    let folderUrl = URL(fileURLWithPath: folderPath)
     let files = try fileManager.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])
     for file in files {
       if !file.hasDirectoryPath {
@@ -183,7 +183,7 @@ class FileFacade {
   private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
     let encryptedPath = try FileUtils.getEncryptedFolder()
     let filePath = (encryptedPath as NSString).appendingPathComponent(fileName)
-    try data.write(to: FileUtils.urlFromPath(path: filePath), options: .atomicWrite)
+    try data.write(to: URL(fileURLWithPath: filePath), options: .atomicWrite)
     return filePath
   }
 }
@@ -206,7 +206,7 @@ extension DataTaskResponse {
       errorId: httpResponse.allHeaderFields["Error-Id"] as! String?,
       preconditionHeader: httpResponse.allHeaderFields["Precondition"] as! String?,
       time:
-        httpResponse.allHeaderFields["Retry-After"] as! String? ?? httpResponse.allHeaderFields["Suspention-Time"] as! String?,
+        httpResponse.allHeaderFields["Retry-After"] as! String? ?? httpResponse.allHeaderFields["Suspension-Time"] as! String?,
       encryptedFileUri: encryptedFileUri
     )
   }

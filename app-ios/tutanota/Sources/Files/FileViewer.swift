@@ -14,7 +14,7 @@ class FileViewer {
   func openFile(path: String, completion: @escaping () -> Void) {
     let previewController = QLPreviewController()
     
-    let fileUrl = FileUtils.urlFromPath(path: path)
+    let fileUrl = URL(fileURLWithPath: path)
     DispatchQueue.main.async {
       let delegate = Delegate(fileUrl: fileUrl) {
         // Remove the reference to break retain cycle
@@ -39,10 +39,6 @@ fileprivate class Delegate : NSObject,
   init(fileUrl: URL, completionHandler: @escaping () -> Void) {
     self.fileUrl = fileUrl
     self.completionHandler = completionHandler
-  }
-  
-  deinit {
-    TUTSLog("Viewer delegate deinit")
   }
   
   func numberOfPreviewItems(in controller: QLPreviewController) -> Int {

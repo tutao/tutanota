@@ -6,7 +6,7 @@ class WebViewBridge : NSObject {
   private let webView: WKWebView
   private let viewController: ViewController
   private let crypto: CryptoFacade
-  private var fileFacade: FileFacade
+  private let fileFacade: FileFacade
   private let contactsSource: ContactsSource
   private let themeManager: ThemeManager
   private let keychainManager: KeychainManager
@@ -56,11 +56,11 @@ class WebViewBridge : NSObject {
     self.webView.evaluateJavaScript(js, completionHandler: nil)
   }
   
-  func sendRequest<T>(
+  func sendRequest(
     method: String,
-    args: T,
+    args: [Encodable],
     completion: ((Any?) -> Void)?
-  ) where T : Sequence, T: Encodable {
+  ) {
     if !self.webviewInitialized {
       let callback = { self.sendRequest(method: method, args: args, completion: completion) }
       self.requestsBeforeInit.append(callback)
@@ -72,17 +72,16 @@ class WebViewBridge : NSObject {
     if let completion = completion {
       self.requests[requestId] = completion
     }
-    let bridgeMessage = RemoteMessage(
+    let bridgeMessage = RemoteMessage.request(
       id: requestId,
-      type: .request(value: method),
-      value: args,
-      error: nil
+      type: method,
+      args: args
     )
     self.postMessage(bridgeMessage: bridgeMessage)
   }
   
   private func sendResponse(requestId: String, value: Encodable) {
-    let response = RemoteMessage(id: requestId, type: .response, value: value, error: nil)
+    let response = RemoteMessage.response(id: requestId, value: value)
     self.postMessage(bridgeMessage: response)
   }
 
@@ -93,29 +92,20 @@ class WebViewBridge : NSObject {
     for (key, value) in userInfo {
       newDict[key] = String(describing: value)
     }
-    let message = try! JSONEncoder().encode(newDict)
+    let message = String(data: try! JSONEncoder().encode(newDict), encoding: .utf8)!
     
     let error = ResponseError(
       name: nsError.domain,
       message: "code \(nsError.code) message: \(message)"
     )
-    let bridgeMessage = RemoteMessage(
-      id: requestId,
-      type: .requestError,
-      value: nil,
-      error: error
-    )
+    let bridgeMessage = RemoteMessage.requestError(id: requestId, error: error)
     self.postMessage(bridgeMessage: bridgeMessage)
   }
 
   private func postMessage(bridgeMessage: RemoteMessage) {
     let data = try! JSONEncoder().encode(bridgeMessage)
-    self.postMessage(jsonData: data)
-  }
-
-  private func postMessage(jsonData: Data) {
     DispatchQueue.main.async {
-      let base64 = jsonData.base64EncodedString()
+      let base64 = data.base64EncodedString()
       let js = "tutao.nativeApp.handleMessageFromNative('\(base64)')"
       self.webView.evaluateJavaScript(js, completionHandler: nil)
     }
@@ -140,7 +130,7 @@ class WebViewBridge : NSObject {
   }
   
   private func handleRequest(type: String, args: [Any], completion: @escaping (Result<Encodable, Error>) -> Void) {
-    func respond<T: Codable>(_ result: Result<T, Error>) {
+    func respond<T: Encodable>(_ result: Result<T, Error>) {
       // For some reason Result is not covariant in its value so we manually erase it
       let erasedResult: Result<Encodable, Error> = result.map { thing in thing }
       completion(erasedResult)
@@ -162,22 +152,22 @@ class WebViewBridge : NSObject {
         let publicKey = try! DictionaryDecoder().decode(PublicKey.self, from: args[0] as! NSDictionary)
         self.crypto.rsaEncrypt(
           publicKey: publicKey,
-          base64Data: args[1] as! String,
-          base64Seed: args[2] as! String,
+          base64Data: args[1] as! Base64,
+          base64Seed: args[2] as! Base64,
           completion: respond
           )
       case "rsaDecrypt":
         let privateKey = try! DictionaryDecoder().decode(PrivateKey.self, from: args[0] as! NSDictionary)
         self.crypto.rsaDecrypt(
           privateKey: privateKey,
-          base64Data: args[1] as! String,
+          base64Data: args[1] as! Base64,
           completion: respond
         )
       case "reload":
         self.webviewInitialized = false
         self.viewController.loadMainPage(params: args[0] as! [String : String])
       case "generateRsakey":
-        self.crypto.generateRsaKey(seed: args[0] as! String, completion: respond)
+        self.crypto.generateRsaKey(seed: args[0] as! Base64, completion: respond)
       case "openFileChooser":
         let rectDict = args[0] as! [String : Int]
         let rect = CGRect(
@@ -190,7 +180,7 @@ class WebViewBridge : NSObject {
       case "getName":
         self.fileFacade.getName(path: args[0] as! String, completion: respond)
       case "changeLanguage":
-        respond(.success(nil as String?))
+        respond(nullResult())
       case "getSize":
         self.fileFacade.getSize(path: args[0] as! String, completion: respond)
       case "getMimeType":
@@ -233,7 +223,7 @@ class WebViewBridge : NSObject {
           userId: args[1] as! String,
           sseOrigin: args[2] as! String
         )
-        let keyData = Data(base64Encoded: args[4] as! String)!
+        let keyData = Data(base64Encoded: args[4] as! Base64)!
         let result: Result<String?, Error> = Result {
           try self.keychainManager.storeKey(keyData, withId: args[3] as! String)
           return nil
@@ -246,7 +236,7 @@ class WebViewBridge : NSObject {
         )
       case "closePushNotifications":
         UIApplication.shared.applicationIconBadgeNumber = 0
-        respond(nullResult(error: nil))
+        respond(nullResult())
       case "openLink":
         UIApplication.shared.open(
           URL(string: args[0] as! String)!,
@@ -254,7 +244,7 @@ class WebViewBridge : NSObject {
             respond(.success(success))
         }
       case "saveBlob":
-        let fileDataB64 = args[1] as! String
+        let fileDataB64 = args[1] as! Base64
         let fileData = Data(base64Encoded: fileDataB64)!
         self.fileFacade.openFile(name: args[0] as! String, data: fileData) { err in
           respond(nullResult(error: err))
@@ -263,9 +253,7 @@ class WebViewBridge : NSObject {
         let result = Result { try self.getLogfile() }
         respond(result)
       case "scheduleAlarms":
-        let alarmsJson = args[0] as! [[String : Any]]
-        let alarmsData = try! JSONSerialization.data(withJSONObject: alarmsJson, options: [])
-        let alarms = try! JSONDecoder().decode(Array<EncryptedAlarmNotification>.self, from: alarmsData)
+        let alarms = try! EncryptedAlarmNotification.arrayFrom(nsArray: args[0] as! NSArray)
         self.alarmManager.processNewAlarms(alarms) { error in
           respond(nullResult(error: error))
         }

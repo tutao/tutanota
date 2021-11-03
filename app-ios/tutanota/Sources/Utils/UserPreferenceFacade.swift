@@ -1,4 +1,5 @@
 import Foundation
+import DictionaryCoding
 
 fileprivate let SSE_INFO_KEY = "sseInfo"
 fileprivate let ALARMS_KEY = "repeatingAlarmNotification"
@@ -9,7 +10,7 @@ class UserPreferenceFacade {
   var sseInfo: SSEInfo? {
     get {
       let dict = UserDefaults.standard.object(forKey: SSE_INFO_KEY)
-      return dict.map { nsobjectToEncodable(value: $0 as! NSObject) }
+      return dict.map { try! DictionaryDecoder().decode(SSEInfo.self, from: $0 as! NSDictionary) }
     }
   }
   
@@ -93,7 +94,7 @@ class UserPreferenceFacade {
   }
   
   private func put(sseInfo: SSEInfo) {
-    let dict = encodableToNSOjbect(value: sseInfo)
+    let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)
     UserDefaults.standard.setValue(dict, forKey: SSE_INFO_KEY)
   }
 }

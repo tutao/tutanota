@@ -1,12 +1,16 @@
 import Foundation
+import DictionaryCoding
 
-func encodableToNSOjbect<T: Encodable>(value: T) -> Any {
-  // This is not very efficient but hopefully we only need it temporarily
-  let data = try! JSONEncoder().encode(value)
-  return try! JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+extension Decodable {
+  static func arrayFrom(nsArray: NSArray) throws -> [Self] {
+    // DictionaryCoding works only with NSDictionary so if we want to use some other Foundation type we have to
+    // wrap it into dictionary.
+    let dict: NSDictionary = ["value": nsArray]
+    let decoded: DecodableValueWrapper<[Self]> = try DictionaryDecoder().decode(DecodableValueWrapper.self, from: dict)
+    return decoded.value
+  }
 }
 
-func nsobjectToEncodable<T: Decodable>(value: NSObject) -> T {
-  let data = try! JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed])
-  return try! JSONDecoder().decode(T.self, from: data)
+fileprivate struct DecodableValueWrapper<T : Decodable> : Decodable {
+  let value: T
 }

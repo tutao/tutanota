@@ -1,7 +1,7 @@
 import Foundation
 
 struct EncryptedFileInfo {
-  let uri: String
+  let uri: Base64
   let unencSize: Int64
 }
 extension EncryptedFileInfo : Codable {}
@@ -36,8 +36,8 @@ class CryptoFacade {
   
   func rsaEncrypt(
     publicKey: PublicKey,
-    base64Data: String,
-    base64Seed: String,
+    base64Data: Base64,
+    base64Seed: Base64,
     completion: @escaping ResponseCallback<String>
   ) {
     self.run(completion) {
@@ -51,7 +51,7 @@ class CryptoFacade {
   
   func rsaDecrypt(
     privateKey: PrivateKey,
-    base64Data: String,
+    base64Data: Base64,
     completion: @escaping ResponseCallback<String>
   ) {
     self.run(completion) {
@@ -73,11 +73,11 @@ class CryptoFacade {
     let fileName = (filePath as NSString).lastPathComponent
     let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
     let iv = self.generateIv()
-    let plainTextData = try Data(contentsOf: FileUtils.urlFromPath(path: filePath))
+    let plainTextData = try Data(contentsOf: URL(fileURLWithPath: filePath))
     let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: keyData, withIv: iv, withMac: true)
     let result = EncryptedFileInfo(uri: encryptedFilePath, unencSize: Int64(plainTextData.count))
     
-    try outputData.write(to: FileUtils.urlFromPath(path: encryptedFilePath))
+    try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
     
     return result
   }
@@ -90,13 +90,13 @@ class CryptoFacade {
       throw CryptoError(message: "File to decrypt does not exist")
     }
     
-    let encryptedData = try Data(contentsOf: FileUtils.urlFromPath(path: filePath))
+    let encryptedData = try Data(contentsOf: URL(fileURLWithPath: filePath))
     let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key)
     
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let fileName = (filePath as NSString).lastPathComponent
     let plaintextPath = (decryptedFolder as NSString).appendingPathComponent(fileName)
-    try plaintextData.write(to: FileUtils.urlFromPath(path: plaintextPath), options: .atomic)
+    try plaintextData.write(to: URL(fileURLWithPath: plaintextPath), options: .atomic)
     
     return plaintextPath
   }

@@ -53,12 +53,13 @@ class KeychainManager : NSObject {
   }
   
   func removePushIdentifierKeys() throws {
+    // TODO: Don't delete all of teh keyz when fingerprints
     let deleteQuery: [String: Any] = [
       kSecClass as String: kSecClassKey
     ]
     let status = SecItemDelete(deleteQuery as CFDictionary)
     if status != errSecSuccess {
-      throw TUTErrorFactory .createError("Could not delete the keys, status: \(status)")
+      throw TUTErrorFactory.createError("Could not delete the keys, status: \(status)")
     }
   }
   
