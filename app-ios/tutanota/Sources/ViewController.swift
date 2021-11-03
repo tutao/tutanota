@@ -144,9 +144,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     webView.loadFileURL(url, allowingReadAccessTo: folderUrl)
   }
   
-  private func dictToJson(dictionary: [String : Any]) -> String {
-    let data = try! JSONSerialization.data(withJSONObject: dictionary, options: [])
-    return String(data: data, encoding: .utf8)!
+  private func dictToJson(dictionary: [String : String]) -> String {
+    return try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8)!
   }
   
   private func appUrl() -> URL {

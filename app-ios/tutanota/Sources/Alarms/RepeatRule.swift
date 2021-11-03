@@ -32,11 +32,11 @@ enum RepeatEndCondition {
 }
 
 struct EncryptedRepeatRule : Codable, Hashable {
-  let frequency: String
-  let interval: String
-  let timeZone: String
-  let endType: String
-  let endValue: String?
+  let frequency: Base64
+  let interval: Base64
+  let timeZone: Base64
+  let endType: Base64
+  let endValue: Base64?
 }
 
 struct RepeatRule {

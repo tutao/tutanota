@@ -232,7 +232,6 @@
 		3DCE7AAD27200E0A0085E40D /* WebviewHacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
-		3DD4EA372726D32E00D58207 /* Native.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4EA362726D32E00D58207 /* Native.swift */; };
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE1E446266672870018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
@@ -383,7 +382,6 @@
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3DD4EA362726D32E00D58207 /* Native.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Native.swift; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
@@ -495,6 +493,7 @@
 		3D74536321089D8100B16F2E /* Files */ = {
 			isa = PBXGroup;
 			children = (
+				3D84F56F2722E4B700858A58 /* FileFacade.swift */,
 				3D378EE62536F51F0001F1F3 /* FileChooser.swift */,
 				3D84F56C2722CEF900858A58 /* FileUtils.swift */,
 				3D84F5752723112400858A58 /* FileViewer.swift */,
@@ -522,7 +521,6 @@
 				3DCE7AAA27200E0A0085E40D /* WebviewHacks.m */,
 				3D9B1293272167D4002B46A1 /* IconFactory.swift */,
 				3D9B129927216DE0002B46A1 /* Response.swift */,
-				3D84F56F2722E4B700858A58 /* FileFacade.swift */,
 				3D84F57B27231F1F00858A58 /* Serialization.swift */,
 				3D84F5812723225C00858A58 /* Utils.swift */,
 				3D84F5862726A60A00858A58 /* AsyncBlockOperation.swift */,
@@ -1152,7 +1150,6 @@
 				3D63A0E4233D0C1400D05259 /* TUTLogTest.m */,
 				3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */,
 				3D84F58427268EDE00858A58 /* AlarmModelTest.swift */,
-				3DD4EA362726D32E00D58207 /* Native.swift */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1625,7 +1622,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DD4EA372726D32E00D58207 /* Native.swift in Sources */,
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 				3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */,
 				3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */,

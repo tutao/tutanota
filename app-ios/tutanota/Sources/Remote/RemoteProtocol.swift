@@ -1,64 +1,45 @@
 import Foundation
 
 /// Structure to exchange messages remotely
-struct RemoteMessage : Encodable {
-  let id: String
-  let type: RemoteMessageType
-  let value: Encodable?
-  let error: ResponseError?
+enum RemoteMessage : Encodable {
+  case request(id: String, type: String, args: [Encodable])
+  case response(id: String, value: Encodable)
+  case requestError(id: String, error: ResponseError)
   
   func encode(to encoder: Encoder) throws {
-    var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(id, forKey: .id)
-    try container.encode(type, forKey: .type)
-    try value?.openEncode(into: &container, forKey: .value)
-    try container.encodeIfPresent(error, forKey: .error)
+    var container = encoder.container(keyedBy: Self.CodingKeys)
+    switch self {
+    case let .request(id, type, args):
+      try container.encode(id, forKey: .id)
+      try container.encode(type, forKey: .type)
+      var argsContainer = container.nestedUnkeyedContainer(forKey: .args)
+      for arg in args {
+        try arg.openEncode(into: &argsContainer)
+      }
+    case let .response(id, value):
+      try container.encode(id, forKey: .id)
+      try container.encode("response", forKey: .type)
+      try value.openEncode(into: &container, forKey: .value)
+    case let .requestError(id, error):
+      try container.encode(id, forKey: .id)
+      try container.encode("requestError", forKey: .type)
+      try container.encode(error, forKey: .error)
+    }
   }
   
+  // We could customize this even more by message type
   enum CodingKeys: String, CodingKey {
     case id
     case type
     case value
     case error
+    case args
   }
 }
 
 struct ResponseError : Codable {
   let name: String
   let message: String
-}
-
-enum RemoteMessageType {
-  case request(value: String)
-  case response
-  case requestError
-}
-
-extension RemoteMessageType : Decodable {
-  init(from decoder: Decoder) throws {
-    let value = try String(from: decoder)
-    switch value {
-    case "response":
-      self = .response
-    case "requestError":
-      self = .requestError
-    default:
-      self = .request(value: value)
-    }
-  }
-}
-
-extension RemoteMessageType : Encodable {
-  func encode(to encoder: Encoder) throws {
-    switch self {
-    case .response:
-      try "response".encode(to: encoder)
-    case .requestError:
-      try "requestError".encode(to: encoder)
-    case let .request(value: value):
-      try value.encode(to: encoder)
-    }
-  }
 }
 
 /// Swift magic
@@ -74,6 +55,10 @@ fileprivate extension Encodable {
     try self.encode(to: encoder)
   }
   
+  func openEncode(into unkeyedContainer: inout UnkeyedEncodingContainer) throws {
+    try unkeyedContainer.encode(self)
+  }
+
   func openEncode<C: KeyedEncodingContainerProtocol>(into container: inout C, forKey key: C.Key) throws {
     try container.encode(self, forKey: key)
   }
