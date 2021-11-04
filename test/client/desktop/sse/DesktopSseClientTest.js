@@ -104,8 +104,8 @@ o.spec("DesktopSseClient Test", function () {
 						userInfo: {userId: "myId", mailAddress: "a@b.c"}
 					}
 				]
-
-			}
+			},
+			invalidateAlarms: () => Promise.resolve()
 		}
 
 		const alarmScheduler = {
@@ -626,6 +626,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
+		await Promise.resolve()
 		o(confMock.setVar.calls.find(c => c.args[0] === DesktopConfigEncKey.sseInfo)?.args).deepEquals([
 			DesktopConfigEncKey.sseInfo, {
 				identifier,
@@ -762,7 +763,8 @@ o.spec("DesktopSseClient Test", function () {
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
 		o(confMock.setVar.calls[0].args).deepEquals([DesktopConfigKey.lastMissedNotificationCheckTime, null])
-		o(confMock.setVar.calls[1].args)
+		o(confMock.setVar.calls[1].args).deepEquals(['lastProcessedNotificationId', null])
+		o(confMock.setVar.calls[2].args)
 			.deepEquals([DesktopConfigEncKey.sseInfo, {identifier, userIds: [], sseOrigin: sseInfo.sseOrigin}])
 		o(alarmStorageMock.removePushIdentifierKeys.callCount).equals(1)
 		o(timeoutSpy.callCount).equals(1)

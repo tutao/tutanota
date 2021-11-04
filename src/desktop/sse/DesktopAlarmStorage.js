@@ -48,25 +48,32 @@ export class DesktopAlarmStorage {
 		return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, null)
 	}
 
+	removePushIdentifierKey(piId: string): Promise<void> {
+		delete this._sessionKeysB64[piId]
+		return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, this._sessionKeysB64)
+	}
+
 	/**
 	 * get a B64 encoded sessionKey from memory or decrypt it from disk storage
-	 * @param sessionKeys array of notificationSessionKeys
+	 * @param sessionKeys array of notificationSessionKeys from an alarmNotification. will be modified in place.
+	 * @return {Promise<{piSkEncSk: string, piSk: string}>} one of the pushIdentifierSessionKeyEncSessionKeys from the list and a
+	 * pushIdentifierSessionKey that can decrypt it.
 	 */
 	async resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
 		const pw = await this._deviceKeyProvider.getDeviceKey()
 		const keys = await this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
-		let ret = null
-		// find a working sessionkey and delete all the others
 		for (let i = sessionKeys.length - 1; i >= 0; i--) {
 			const notificationSessionKey = sessionKeys[i]
 			const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
 			if (this._sessionKeysB64[pushIdentifierId]) {
-				ret = {
+				return {
 					piSk: this._sessionKeysB64[pushIdentifierId],
 					piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
 				}
 			} else {
 				if (keys[pushIdentifierId] == null) {
+					// we don't have that pushIdentifier on this device, so we don't
+					// need it on the alarm notification which is saved locally
 					sessionKeys.splice(i, 1)
 					continue
 				}
@@ -79,15 +86,13 @@ export class DesktopAlarmStorage {
 					continue
 				}
 				this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
-				ret = {
+				return {
 					piSk: decryptedKeyB64,
 					piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
 				}
 			}
 		}
-		if (ret) {
-			return ret
-		}
+		// the list was empty or did not contain a key that we could decrypt
 		throw new Error("could not resolve pushIdentifierSessionKey")
 	}
 
