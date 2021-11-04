@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-build-server",
-	"version": "3.89.10",
+	"version": "3.89.11",
 	"license": "GPL-3.0",
 	"main": "index.js",
 	"repository": {
