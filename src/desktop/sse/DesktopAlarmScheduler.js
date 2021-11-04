@@ -11,6 +11,7 @@ import {log} from "../DesktopLog"
 import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
 import {NotificationResult} from "../DesktopConstants"
 import {CryptoError} from "../../api/common/error/CryptoError"
+import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
 
 export type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
 export type EncryptedAlarmInfo = {
@@ -60,16 +61,28 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
-	async _decryptAndSchedule(an: EncryptedAlarmNotification) {
-		const {piSk, piSkEncSk} = await this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
-		const decAn = await this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk)
-		if (Object.keys(decAn).includes("_errors")) {
-			// this is indicative of a serious problem with the stored keys.
-			// therefore, we should invalidate the sseInfo and throw away
-			// our pushEncSessionKeys.
-			throw new CryptoError("could not decrypt alarmNotification")
+	async _decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
+		while (an.notificationSessionKeys.length > 0) {
+			const {piSk, piSkEncSk} = await this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
+			const decAn = await this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk)
+			if (Object.keys(decAn).includes("_errors")) {
+				// throw away the key that caused the error and try again
+				const badKey = an.notificationSessionKeys.splice(-1, 1)[0]
+				const badId = elementIdPart(badKey.pushIdentifier)
+				// we only want to throw it away if the list of keys in the an doesn't contain a key that
+				// uses the same ID
+				if (!an.notificationSessionKeys.find((k: NotificationSessionKey) => isSameId(badId, elementIdPart(k.pushIdentifier)))) {
+					await this._alarmStorage.removePushIdentifierKey(badId)
+				}
+				continue
+			}
+			return this._scheduleAlarms(decAn)
 		}
-		await this._scheduleAlarms(decAn)
+		// none of the keys worked.
+		// this is indicative of a serious problem with the stored keys.
+		// therefore, we should invalidate the sseInfo and throw away
+		// our pushEncSessionKeys.
+		throw new CryptoError("could not decrypt alarmNotification")
 	}
 
 	async unscheduleAllAlarms(userId: ?Id = null): Promise<void> {
