@@ -195,7 +195,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 		      .then(() => Promise.all([
 			      serviceRequest(SysService.GiftCardService, HttpMethod.GET, null, GiftCardGetReturnTypeRef),
 			      logins.getUserController().loadCustomerInfo(),
-			      loadUpgradePrices()
+			      loadUpgradePrices(null) // do not pass in any campaign here because the gift card prices should be based on default prices.
 		      ]))
 		      .then(([giftCardInfo, customerInfo, prices]) => {
 			      // User can't buy too many gift cards so we have to load their giftcards in order to check how many they ordered

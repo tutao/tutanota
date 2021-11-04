@@ -61,6 +61,8 @@ type LifecycleAttrs<T> = T & Lifecycle<T>
 
 type Attrs = $ReadOnly<{[?string]: any}>
 
+type QueryParams = {[string]: QueryValue}
+
 declare interface Router {
 	(root: HTMLElement, defaultRoute: string, routes: {[string]: MComponent<TopLevelComponentAttrs> | RouteResolver}): void;
 
@@ -104,9 +106,9 @@ declare interface Mithril {
 
 	withAttr(attrName: string, callback: Function): Function;
 
-	buildQueryString(args: {[string]: any}): string;
+	buildQueryString(args: QueryParams): string;
 
-	parseQueryString(queryString: string): {[string]: string};
+	parseQueryString(queryString: string): QueryParams;
 
 	mount(element: HTMLElement, MComponent<void> | Class<MComponent<void>> | null): void;
 

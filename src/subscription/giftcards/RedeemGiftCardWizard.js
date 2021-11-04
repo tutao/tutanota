@@ -345,8 +345,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 
 
 export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
-	return loadUpgradePrices().then(prices => {
-
+	return loadUpgradePrices(null).then(prices => {
 		const priceData: SubscriptionPlanPrices = {
 			Premium: prices.premiumPrices,
 			PremiumBusiness: prices.premiumBusinessPrices,

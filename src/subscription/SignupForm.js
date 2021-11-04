@@ -6,7 +6,6 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import type {NewAccountData} from "./UpgradeSubscriptionWizard"
-import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {SelectMailAddressForm} from "../settings/SelectMailAddressForm"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
@@ -32,6 +31,7 @@ import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {deleteCampaign} from "../misc/LoginUtils";
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */

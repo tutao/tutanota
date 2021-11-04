@@ -13,7 +13,6 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
@@ -26,6 +25,7 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {deleteCampaign} from "../misc/LoginUtils";
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
