@@ -62,6 +62,12 @@ o.spec("array utils", function () {
 		o(splitInChunks(6, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
 		o(splitInChunks(0, [1, 2, 3, 4, 5])).deepEquals([])
 		o(splitInChunks(3, [])).deepEquals([[]])
+		o(splitInChunks(-1, [])).deepEquals([])
+		o(splitInChunks(-1, [1, 2, 3, 4])).deepEquals([])
+		o(splitInChunks(0, [])).deepEquals([])
+		o(splitInChunks(0, [1, 2, 3])).deepEquals([])
+		o(splitInChunks(1, [1, 2, 3])).deepEquals([[1], [2], [3]])
+		o(splitInChunks(2, [1, 2, 3])).deepEquals([[1, 2], [3]])
 	})
 
 	o.spec("findLastIndex", function () {
@@ -222,26 +228,6 @@ o.spec("array utils", function () {
 				[1, [1, 4, 4]],
 				[2, [2]]
 			])
-	})
-
-	o("splitInChunks", function() {
-		o(splitInChunks(-1, []))
-			.deepEquals([])
-
-		o(splitInChunks(-1, [1, 2, 3, 4]))
-			.deepEquals([])
-
-		o(splitInChunks(0, []))
-			.deepEquals([])
-
-		o(splitInChunks(0, [1, 2, 3]))
-			.deepEquals([])
-
-		o(splitInChunks(1, [1, 2, 3]))
-			.deepEquals([[1], [2], [3]])
-
-		o(splitInChunks(2, [1, 2, 3]))
-			.deepEquals([[1, 2], [3]])
 	})
 
 	o("groupByAndMap", function () {

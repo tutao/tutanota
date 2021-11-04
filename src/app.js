@@ -68,6 +68,9 @@ if (state.prefix == null) {
 	let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
 	if (redirectTo) {
 		delete query['r']
+		if (typeof redirectTo !== 'string') {
+			redirectTo = ""
+		}
 	} else {
 		redirectTo = ""
 	}

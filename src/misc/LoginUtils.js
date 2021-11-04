@@ -117,8 +117,7 @@ const CAMPAIGN_KEY = "campaign"
 
 export async function showSignupDialog(hashParams: QueryParams) {
 	const subscriptionParams = getSubscriptionParameters(hashParams)
-	const campaign = getCampaign(hashParams)
-
+	const campaign = getCampaignFromParams(hashParams) ?? getCampaignFromLocalStorage()
 	const dialog = await showProgressDialog(
 		'loading_msg',
 		locator.worker.initialized.then(async () => {
@@ -133,25 +132,41 @@ function getSubscriptionParameters(hashParams: QueryParams): ?SubscriptionParame
 	if (typeof hashParams.subscription === "string"
 		&& typeof hashParams.type === "string"
 		&& typeof hashParams.interval === "string") {
-		return hashParams
+		const {subscription, type, interval} = hashParams
+		return {
+			subscription,
+			type,
+			interval
+		}
 	} else {
 		return null
 	}
 }
 
-export function getCampaign(hashParams: ?QueryParams): ?string {
-	let token = null
-
-	if (hashParams && typeof hashParams.token === "string") {
-		token = hashParams.token
+export function getCampaignFromParams(hashParams: QueryParams): ?string {
+	if (typeof hashParams.token === "string") {
+		// we store the campaing token inside local storage to be able to use that key later when upgrading a Free account to Premium.
+		// This might happen if the user decide to not upgrade to premium during signup.
+		const token = hashParams.token
 		if (client.localStorage()) {
 			localStorage.setItem(CAMPAIGN_KEY, token)
 		}
-	} else if (client.localStorage()) {
-		token = localStorage.getItem(CAMPAIGN_KEY)
+		return token
 	}
+	return null
+}
 
-	return token
+export function getCampaignFromLocalStorage(): ?string {
+	if (client.localStorage()) {
+		return localStorage.getItem(CAMPAIGN_KEY)
+	}
+	return null
+}
+
+export function deleteCampaign(): void {
+	if (client.localStorage()) {
+		localStorage.removeItem(CAMPAIGN_KEY)
+	}
 }
 
 export async function showGiftCardDialog(urlHash: string) {

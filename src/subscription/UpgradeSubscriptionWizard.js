@@ -13,7 +13,6 @@ import {Const, getPaymentMethodType, PaymentMethodType as PaymentMethod} from ".
 import {getByAbbreviation} from "../api/common/CountryList"
 import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
-import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import type {SubscriptionOptions, SubscriptionPlanPrices, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
@@ -30,13 +29,11 @@ import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
 import {SignupPage, SignupPageAttrs} from "./SignupPage"
-import {getCampaign} from "../misc/LoginUtils"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Hex} from "@tutao/tutanota-utils/"
+import {getCampaignFromLocalStorage} from "../misc/LoginUtils"
 
 assertMainOrNode()
-
-const CAMPAIGN_KEY = "campaign"
 
 export type SubscriptionParameters = {
 	subscription: string,
@@ -50,8 +47,8 @@ export const SubscriptionTypeParameter = Object.freeze({
 	PREMIUM: "premium",
 	TEAMS: "teams",
 	PRO: "pro",
-}
-)
+})
+
 export type NewAccountData = {
 	mailAddress: string,
 	recoverCode: Hex,
@@ -76,16 +73,10 @@ export type UpgradeSubscriptionData = {
 	subscriptionParameters: ?SubscriptionParameters
 }
 
-export function deleteCampaign(): void {
-	if (client.localStorage()) {
-		localStorage.removeItem(CAMPAIGN_KEY)
-	}
-}
-
-export function loadUpgradePrices(): Promise<UpgradePriceServiceReturn> {
+export function loadUpgradePrices(campaign: ?string): Promise<UpgradePriceServiceReturn> {
 	let data = createUpgradePriceServiceData()
 	data.date = Const.CURRENT_DATE
-	data.campaign = getCampaign()
+	data.campaign = campaign
 	return serviceRequest(SysService.UpgradePriceService, HttpMethod.GET, data, UpgradePriceServiceReturnTypeRef)
 }
 
@@ -101,7 +92,8 @@ function loadCustomerAndInfo(): Promise<{customer: Customer, customerInfo: Custo
 export function showUpgradeWizard(): void {
 	loadCustomerAndInfo()
 		.then(({customer, accountingInfo}) => {
-				return loadUpgradePrices().then(prices => {
+				const campaign = getCampaignFromLocalStorage()
+				return loadUpgradePrices(campaign).then(prices => {
 					const planPrices: SubscriptionPlanPrices = {
 						Premium: prices.premiumPrices,
 						PremiumBusiness: prices.premiumBusinessPrices,
@@ -129,7 +121,7 @@ export function showUpgradeWizard(): void {
 						accountingInfo: accountingInfo,
 						customer: customer,
 						newAccountData: null,
-						campaign: getCampaign(),
+						campaign,
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
 						planPrices: planPrices,
@@ -149,7 +141,7 @@ export function showUpgradeWizard(): void {
 }
 
 export function loadSignupWizard(subscriptionParameters: ?SubscriptionParameters, campaign: ?string): Promise<Dialog> {
-	return loadUpgradePrices().then(prices => {
+	return loadUpgradePrices(campaign).then(prices => {
 		const planPrices: SubscriptionPlanPrices = {
 			Premium: prices.premiumPrices,
 			PremiumBusiness: prices.premiumBusinessPrices,
