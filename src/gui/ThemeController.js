@@ -3,12 +3,15 @@ import {defaultThemeId, DeviceConfig} from "../misc/DeviceConfig";
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer";
 import stream from "mithril/stream/stream.js";
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env";
-import {downcast, typedValues} from "../api/common/utils/Utils";
+import {downcast, neverNull, typedValues} from "../api/common/utils/Utils";
 import m from "mithril";
 import {findAndRemove, mapAndFilterNull} from "../api/common/utils/ArrayUtils";
-import type {Theme, ThemeId} from "./theme";
+import type {BaseThemeId, Theme, ThemeId} from "./theme";
 import {themes} from "./builtinThemes";
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
+import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
+import {getLogoSvg} from "./base/icons/Logo"
+import {VALID_HEX_CODE_FORMAT} from "./base/Color"
 
 assertMainOrNodeBoot()
 
@@ -64,7 +67,7 @@ export class ThemeController {
 			// mithril's parseQueryString does not follow standard exactly so we try to use the same thing we use on the native side
 			const themeJson = window.location.href ? new URL(window.location.href).searchParams.get("theme") : null
 			if ((isApp() || isDesktop()) && themeJson) {
-				const parsedTheme: Theme = this._parseTheme(themeJson)
+				const parsedTheme: ThemeCustomizations = this._parseCustomizations(themeJson)
 				// We also don't need to save anything in this case
 				await this.updateCustomTheme(parsedTheme, false)
 			} else {
@@ -73,7 +76,7 @@ export class ThemeController {
 		}
 	}
 
-	_parseTheme(stringTheme: string): Theme {
+	_parseCustomizations(stringTheme: string): ThemeCustomizations {
 		// Filter out __proto__ to avoid prototype pollution. We use Object.assign() which is not susceptible to it but it doesn't hurt.
 		return JSON.parse(stringTheme, (k, v) => k === "__proto__" ? undefined : v)
 	}
@@ -100,8 +103,8 @@ export class ThemeController {
 			// Make a defensive copy so that original theme definition is not modified.
 			return Object.assign({}, themes[themeId])
 		} else {
-			const themes = await this._themeStorage.getThemes()
-			const customTheme = themes.find(t => t.themeId === themeId)
+			const loadedThemes = await this._themeStorage.getThemes()
+			const customTheme = loadedThemes.find(t => t.themeId === themeId)
 			if (customTheme) {
 				await this._sanitizeTheme(customTheme)
 				return customTheme
@@ -109,6 +112,10 @@ export class ThemeController {
 				return this.getDefaultTheme()
 			}
 		}
+	}
+
+	getCurrentTheme(): Theme {
+		return Object.assign({}, this._theme)
 	}
 
 	/**
@@ -136,7 +143,9 @@ export class ThemeController {
 	/**
 	 * Set the custom theme, if permanent === true, then the new theme will be saved
 	 */
-	async updateCustomTheme(updatedTheme: $Shape<Theme>, permanent: boolean = true) {
+	async updateCustomTheme(customizations: ThemeCustomizations, permanent: boolean = true): Promise<void> {
+
+		const updatedTheme = this.assembleTheme(customizations)
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {logo: ""})
 		this._applyTrustedTheme(filledWithoutLogo, filledWithoutLogo.themeId)
@@ -174,8 +183,29 @@ export class ThemeController {
 		return Object.assign({}, themes[defaultThemeId])
 	}
 
+	getBaseTheme(baseId: BaseThemeId): Theme {
+		// Make a defensive copy so that original theme definition is not modified.
+		return Object.assign({}, themes[baseId])
+	}
+
 	shouldAllowChangingTheme(): boolean {
 		return window.whitelabelCustomizations == null
+	}
+
+	/**
+	 * Assembles a new theme object from customizations.
+	 */
+	assembleTheme(customizations: ThemeCustomizations): Theme {
+		if (!customizations.base) {
+			return Object.assign({}, customizations)
+		} else if (customizations.base && customizations.logo) {
+			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
+		} else {
+			const coloredTutanotaLogo = {
+				logo: getLogoSvg(customizations.content_accent, customizations.base === "light" ? '#4a4a4a' : '#c5c7c7')
+			}
+			return Object.assign({}, this.getBaseTheme(neverNull(customizations.base)), customizations, coloredTutanotaLogo)
+		}
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {

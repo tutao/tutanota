@@ -48,7 +48,7 @@ export class MailListView implements MComponent<void> {
 
 	// Mails that are currently being or have already been downloaded/bundled/saved
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
-	// TODO this currently grows bigger and bigger amd bigger if the user goes on an exporting spree.
+	// TODO this currently grows bigger and bigger and bigger if the user goes on an exporting spree.
 	//  maybe we should deal with this, or maybe this never becomes an issue?
 	exportedMails: Map<string, {fileName: string, result: AsyncResult<*>}>
 

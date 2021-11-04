@@ -5,6 +5,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {lang} from "../misc/LanguageViewModel"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {ListConfig, VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {size} from "../gui/size"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
@@ -24,7 +25,6 @@ import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import type {LoginController} from "../api/main/LoginController"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {promiseMap} from "../api/common/utils/PromiseUtils"
-import type {ListConfig} from "../gui/base/List"
 
 assertMainOrNode()
 
@@ -169,7 +169,7 @@ export function createTemplates(gorgiasTemplates: Array<Array<string>>, template
 	})
 }
 
-export class TemplateRow {
+export class TemplateRow implements VirtualRow<EmailTemplate> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?EmailTemplate;

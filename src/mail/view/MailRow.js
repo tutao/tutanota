@@ -9,6 +9,7 @@ import {locator} from "../../api/main/MainLocator";
 import m from "mithril";
 import Badge from "../../gui/base/Badge";
 import {px} from "../../gui/size";
+import type {VirtualRow} from "../../gui/base/List"
 
 const iconMap: {[MailFolderTypeEnum]: string} = {
 	[MailFolderType.CUSTOM]: FontIcons.Folder,
@@ -20,7 +21,7 @@ const iconMap: {[MailFolderTypeEnum]: string} = {
 	[MailFolderType.DRAFT]: FontIcons.Edit,
 }
 
-export class MailRow {
+export class MailRow implements VirtualRow<Mail> {
 	top: number;
 	domElement: ?HTMLElement; // set from List
 	entity: ?Mail;

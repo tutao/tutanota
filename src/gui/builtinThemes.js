@@ -101,7 +101,6 @@ export const themes: Themes = {
 	}),
 
 	dark: Object.freeze({
-
 		themeId: 'dark',
 		logo: getLogoSvg(green, logo_text_bright_grey),
 
@@ -146,7 +145,6 @@ export const themes: Themes = {
 	}),
 
 	blue: Object.freeze({
-
 		themeId: 'blue',
 		logo: getLogoSvg(blue, logo_text_dark_grey),
 

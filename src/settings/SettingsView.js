@@ -120,7 +120,7 @@ export class SettingsView implements CurrentView {
 		if (logins.getUserController().isGlobalAdmin()) {
 			this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
 			if (!logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
-				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new WhitelabelSettingsViewer()))
+				this._adminFolders.push(new SettingsFolder("whitelabel_label", () => Icons.Wand, "whitelabel", () => new WhitelabelSettingsViewer(locator.entityClient)))
 				if (logins.isEnabled(FeatureType.WhitelabelParent)) {
 					this._adminFolders.push(new SettingsFolder("whitelabelAccounts_label", () => Icons.People, "whitelabelaccounts", () => new WhitelabelChildrenListView(this)))
 				}

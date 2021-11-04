@@ -24,7 +24,7 @@ export function hexToRgb(colorCode: string): {r: number, g: number, b: number} {
 
 	let hexWithoutHash = colorCode.slice(1)
 	if (hexWithoutHash.length === 3) {
-		hexWithoutHash = Array.from(hexWithoutHash).reduce((acc, cur) => `${acc}${cur}${cur}`, "")   // convert from 3 to 6 digits by duplicating each digit
+		hexWithoutHash = expandHexTriplet(hexWithoutHash)   // convert from 3 to 6 digits by duplicating each digit
 	}
 
 	const rgb = parseInt(hexWithoutHash, 16);   // convert rrggbb to decimal
@@ -39,4 +39,12 @@ export function hexToRgb(colorCode: string): {r: number, g: number, b: number} {
 
 export function rgbToHex(color: {r: number, g: number, b: number}): string {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
+}
+
+/**
+ * Convert RGB to RRGGBB
+ */
+export function expandHexTriplet(triplet: string): string {
+	assert(triplet.length === 3, "Provided invalid value for triplet: " + triplet)
+	return Array.from(triplet).reduce((acc, cur) => `${acc}${cur}${cur}`, "")
 }

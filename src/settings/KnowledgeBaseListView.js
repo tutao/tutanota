@@ -6,6 +6,7 @@ import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEnt
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {lang} from "../misc/LanguageViewModel"
+import type {ListConfig, VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -22,7 +23,6 @@ import type {Group} from "../api/entities/sys/Group"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {KnowledgeBaseEntryView} from "../knowledgebase/view/KnowledgeBaseEntryView"
 import {promiseMap} from "../api/common/utils/PromiseUtils"
-import type {ListConfig} from "../gui/base/List"
 
 assertMainOrNode()
 
@@ -135,7 +135,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class KnowledgeBaseRow {
+export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	top: number;
 	domElement: ?HTMLElement;
 	entity: ?KnowledgeBaseEntry;

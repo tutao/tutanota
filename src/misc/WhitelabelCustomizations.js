@@ -1,12 +1,14 @@
 // @flow
-import type {Theme} from "../gui/theme"
+import type {BaseThemeId, Theme} from "../gui/theme"
 import type {BootstrapFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 
 assertMainOrNodeBoot()
 
+export type ThemeCustomizations = $Shape<Theme> & { base: ?BaseThemeId, }
+
 export type WhitelabelCustomizations = {
-	theme: ?Theme,
+	theme: ?ThemeCustomizations,
 	bootstrapCustomizations: BootstrapFeatureTypeEnum[],
 	germanLanguageCode: string,
 	registrationDomains: ?string[],

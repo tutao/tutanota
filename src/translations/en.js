@@ -317,7 +317,7 @@ export default {
 		"credit_label": "Credit",
 		"currentBalance_label": "Current Account Balance",
 		"currentlyBooked_label": "Booking overview",
-		"customColorsInfo_msg": "If you leave a blank field the color from the default light theme is used instead.",
+		"customColorsInfo_msg": "If you leave a blank field the color from the selected base theme is used instead.",
 		"customColors_label": "Custom colors",
 		"customDomainDeletePreconditionFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.\n",

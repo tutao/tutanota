@@ -4,6 +4,8 @@ import type {Theme, ThemeId} from "../../../src/gui/theme"
 import n from "../nodemocker"
 import {ThemeController} from "../../../src/gui/ThemeController"
 import type {ThemeStorage} from "../../../src/gui/ThemeController"
+import type {ThemeCustomizations} from "../../../src/misc/WhitelabelCustomizations"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 o.spec("Theme Controller", function () {
 	let themeManager: ThemeController
@@ -39,11 +41,12 @@ o.spec("Theme Controller", function () {
 
 	o("updateCustomTheme", async function () {
 		await themeManager.initialized
-		const theme: $Shape<Theme> = {
+		const theme: ThemeCustomizations = downcast({
 			themeId: "HelloFancyId",
 			content_bg: "#fffeee",
-			logo: "unsanitized_logo"
-		}
+			logo: "unsanitized_logo",
+			base: "light"
+		})
 		await themeManager.updateCustomTheme(theme)
 
 		const savedTheme = themeStorageMock.setThemes.args[0][0]
