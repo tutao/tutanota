@@ -1,11 +1,11 @@
 // @flow
 import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
-import {assert, downcast} from "../api/common/utils/Utils"
+import {assert, downcast} from "@tutao/tutanota-utils"
 import {search} from "../api/common/utils/PlainTextSearch"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {delay, promiseMap} from "../api/common/utils/PromiseUtils"
+import {delay, promiseMap} from "@tutao/tutanota-utils"
 import type {SanitizeResult} from "../misc/HtmlSanitizer"
 
 export type FaqEntry = {

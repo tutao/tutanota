@@ -3,7 +3,7 @@ import type {NativeWrapper} from "../../native/common/NativeWrapper"
 import type {CredentialsStorage} from "./CredentialsProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {Request} from "../../api/common/WorkerProtocol"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 
 /**

@@ -1,17 +1,17 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../../api/common/Env"
 import {TextFieldN} from "./TextFieldN"
 import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
 import type {AllIconsEnum} from "./Icon"
-import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import {lazyStringValue} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {BootIcons} from "./icons/BootIcons"
-import {noOp} from "../../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

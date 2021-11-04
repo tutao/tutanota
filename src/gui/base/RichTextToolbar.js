@@ -3,11 +3,11 @@ import m from "mithril"
 import {Icons} from "./icons/Icons"
 import type {Editor} from '../editor/Editor.js'
 import stream from "mithril/stream/stream.js"
-import {numberRange} from "../../api/common/utils/ArrayUtils"
+import {numberRange} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
 import {size} from '../size.js'
-import {noOp} from "../../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {attachDropdown} from "./DropdownN"
 import {lang} from '../../misc/LanguageViewModel.js'
 import {animations, height, opacity} from "../animation/Animations"

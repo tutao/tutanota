@@ -2,7 +2,7 @@
 
 import type {DbKey, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
 import {DbTransaction, osName} from "../../../../src/api/worker/search/DbFacade"
-import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import type {IndexName} from "../../../../src/api/worker/search/Indexer";
 import {
 	ElementDataOS,

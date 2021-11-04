@@ -30,7 +30,7 @@ import {
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {createContactSocialId} from "../../../src/api/entities/tutanota/ContactSocialId"
 import {createFilledContact} from "./VCardExporterTest"
-import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {_contactToVCard} from "../../../src/contacts/VCardExporter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {birthdayToIsoDate} from "../../../src/api/common/utils/BirthdayUtils"

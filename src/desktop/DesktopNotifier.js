@@ -2,7 +2,7 @@
 import type {NativeImage} from "electron"
 import type {DesktopTray} from "./tray/DesktopTray"
 import type {ApplicationWindow} from "./ApplicationWindow"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {NotificationResultEnum} from "./DesktopConstants"
 import type {ElectronNotificationFactory} from "./NotificatonFactory"
 

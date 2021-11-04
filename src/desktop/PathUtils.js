@@ -1,7 +1,7 @@
 //@flow
 import path from "path"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {promises as fs} from "fs"
 
 /**

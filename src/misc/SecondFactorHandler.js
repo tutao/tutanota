@@ -10,9 +10,8 @@ import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthDa
 import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import type {TranslationKey} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {U2fClient, U2fError, U2fTimeoutError, U2fWrongDeviceError} from "./U2fClient"
-import {assertMainOrNode} from "../api/common/Env"
 import {AccessBlockedError, BadRequestError, NotAuthenticatedError, NotFoundError} from "../api/common/error/RestError"
 import {Icons, SecondFactorImage} from "../gui/base/icons/Icons"
 import {locator} from "../api/main/MainLocator"
@@ -24,7 +23,8 @@ import {theme} from "../gui/theme"
 import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

@@ -3,7 +3,7 @@ import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import type {DesktopTray} from "./tray/DesktopTray"
 import {Mode} from "../api/common/Env"
 import {log} from "./DesktopLog";

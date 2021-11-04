@@ -2,7 +2,7 @@
 
 import {aes128RandomKey} from "../crypto/Aes"
 import {GroupType} from "../../common/TutanotaConstants"
-import {firstThrow} from "../../common/utils/ArrayUtils"
+import {firstThrow} from "@tutao/tutanota-utils"
 import {encryptKey} from "../crypto/KeyCryptoUtils"
 import {createGiftCardCreateData} from "../../entities/sys/GiftCardCreateData"
 import {serviceRequest, serviceRequestVoid} from "../EntityWorker"

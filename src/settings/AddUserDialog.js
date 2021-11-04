@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/common/Env"
 import {AccountType, BookingItemFeatureType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -10,15 +9,15 @@ import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {addAll} from "../api/common/utils/ArrayUtils"
-import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
+import {addAll, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {getCustomMailDomains} from "../api/common/utils/Utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ofClass} from "../api/common/utils/PromiseUtils"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 
 assertMainOrNode()

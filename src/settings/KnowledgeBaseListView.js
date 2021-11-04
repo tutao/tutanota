@@ -15,14 +15,14 @@ import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot
 import {EntityClient} from "../api/common/EntityClient"
 import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
 import {getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils"
-import {assertMainOrNode} from "../api/common/Env"
 import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import type {LoginController} from "../api/main/LoginController"
 import type {Group} from "../api/entities/sys/Group"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {KnowledgeBaseEntryView} from "../knowledgebase/view/KnowledgeBaseEntryView"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

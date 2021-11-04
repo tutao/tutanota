@@ -5,7 +5,7 @@ import {alpha, Animation, animations, DefaultAnimationTime, transform} from "../
 import {ease} from "../../../../src/gui/animation/Easing"
 import {client} from "../../../../src/misc/ClientDetector"
 import {DeviceType} from "../../../../src/misc/ClientConstants"
-import {assertNotNull, downcast} from "../../../../src/api/common/utils/Utils"
+import {assertNotNull, downcast} from "@tutao/tutanota-utils"
 
 client.device = DeviceType.DESKTOP
 

@@ -1,14 +1,14 @@
 //@flow
 import stream from "mithril/stream/stream.js"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {assertMainOrNode} from "../../api/common/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../../api/common/TutanotaConstants"
 import {DbError} from "../../api/common/error/DbError"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
-import {isSameTypeRef} from "../../api/common/utils/TypeRef";
-import {ofClass} from "../../api/common/utils/PromiseUtils"
-import {arrayEquals} from "../../api/common/utils/ArrayUtils"
+import {isSameTypeRef} from "@tutao/tutanota-utils";
+import {ofClass} from "@tutao/tutanota-utils"
+import {arrayEquals} from "@tutao/tutanota-utils"
 import type {SearchFacade} from "../../api/worker/search/SearchFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

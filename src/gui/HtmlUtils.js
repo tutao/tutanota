@@ -1,6 +1,6 @@
 //@flow
 
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 
 assertMainOrNodeBoot()

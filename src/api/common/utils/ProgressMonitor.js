@@ -1,7 +1,7 @@
 //@flow
 
 import type {ProgressTracker} from "../../main/ProgressTracker"
-import {assertNotNull} from "./Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type ProgressMonitorId = number
 export type ProgressListener = (percentageCompleted: number) => mixed

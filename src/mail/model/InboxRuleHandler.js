@@ -5,8 +5,8 @@ import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../../misc/FormatValidator"
 import {HttpMethod} from "../../api/common/EntityFunctions"
-import {asyncFind, debounce, getMailHeaders, noOp} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/common/Env"
+import {getMailHeaders} from "../../api/common/utils/Utils"
+import {asyncFind, debounce} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
 import {logins} from "../../api/main/LoginController"
@@ -15,12 +15,13 @@ import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/com
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {InboxRule} from "../../api/entities/tutanota/InboxRule"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
-import {splitInChunks} from "../../api/common/utils/ArrayUtils"
+import {splitInChunks} from "@tutao/tutanota-utils"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {WorkerClient} from "../../api/main/WorkerClient"
 import {getElementId, getListId, isSameId} from "../../api/common/utils/EntityUtils";
 import {getInboxFolder} from "./MailUtils"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

@@ -14,7 +14,7 @@ import {logins, SessionType} from "../api/main/LoginController"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {load, update} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
@@ -30,7 +30,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {getPaymentWebRoot} from "../api/common/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 /**
  * Wizard page for editing invoice and payment data.

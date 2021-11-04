@@ -9,7 +9,7 @@ import {
 	NotAuthenticatedError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
+import {base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager} from "../misc/KeyManager"
@@ -23,13 +23,14 @@ import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {logins, SessionType} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
-import {assertMainOrNode} from "../api/common/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {header} from "../gui/base/Header"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 import {getLoginErrorMessage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import {assertMainOrNode} from "../api/common/Env"
+import type {Credentials} from "../misc/credentials/Credentials"
 
 assertMainOrNode()
 

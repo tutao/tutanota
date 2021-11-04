@@ -2,7 +2,7 @@
 import m from "mithril"
 import {theme} from "../theme"
 import {size} from "../size"
-import {NBSP} from "../../api/common/utils/StringUtils"
+import {NBSP} from "@tutao/tutanota-utils"
 
 type AxisLabel = {
 	interval: number;

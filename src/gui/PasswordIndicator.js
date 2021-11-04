@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {scaleToVisualPasswordStrength} from "../misc/PasswordUtils"
-import type {lazy} from "../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export class PasswordIndicator {
 	view: Function;

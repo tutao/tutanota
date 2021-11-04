@@ -4,9 +4,10 @@ import {NativeCredentialsEncryption} from "../../../../src/misc/credentials/Nati
 import {ICredentialsKeyProvider} from "../../../../src/misc/credentials/CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade"
 import n from "../../nodemocker"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {NativeWrapper} from "../../../../src/native/common/NativeWrapper"
+import type {Credentials} from "../../../../src/misc/credentials/Credentials"
 
 o.spec("NativeCredentialsEncryptionTest", function () {
 	const credentialsKey = new Uint8Array([1, 2, 3])

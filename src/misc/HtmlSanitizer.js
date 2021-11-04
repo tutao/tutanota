@@ -2,7 +2,7 @@
 import DOMPurify from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
 import {client} from "./ClientDetector"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise

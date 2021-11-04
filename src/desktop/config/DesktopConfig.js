@@ -1,7 +1,7 @@
 // @flow
 import path from 'path'
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, downcast} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import {DesktopConfigMigrator} from "./migrations/DesktopConfigMigrator"
 import fs from "fs"

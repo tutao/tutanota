@@ -11,8 +11,8 @@ import {
 } from "../../api/common/TutanotaConstants"
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {assertNotNull, noOp} from "../../api/common/utils/Utils"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, noOp} from "@tutao/tutanota-utils"
 import type {SendMailModel} from "../../mail/editor/SendMailModel"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -23,7 +23,7 @@ import {isTutanotaMailAddress} from "../../api/common/RecipientInfo"
 import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
 import {themeController} from "../../gui/theme"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;

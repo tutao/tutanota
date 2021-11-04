@@ -6,13 +6,10 @@ import {
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
-} from "../api/common/utils/Encoding"
+} from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "./CryptoFns"
 import {cryptoFns} from "./CryptoFns"
 import {IV_BYTE_LENGTH} from "../api/worker/crypto/Aes"
-import crypto from "crypto"
-import {random} from "../api/worker/crypto/Randomizer"
-import {EntropySrc} from "../api/common/TutanotaConstants"
 import type {TypeModel} from "../api/common/EntityTypes"
 
 

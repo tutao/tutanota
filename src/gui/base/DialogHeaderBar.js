@@ -2,8 +2,8 @@
 import m from "mithril"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
-import type {lazy, MaybeLazy} from "../../api/common/utils/Utils"
-import {resolveMaybeLazy} from "../../api/common/utils/Utils"
+import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
+import {resolveMaybeLazy} from "@tutao/tutanota-utils"
 
 
 export type DialogHeaderBarAttrs = {|

@@ -6,7 +6,7 @@ import {Icon} from "./Icon"
 import {addFlash, removeFlash} from "./Flash"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>,

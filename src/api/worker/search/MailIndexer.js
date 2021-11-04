@@ -11,8 +11,9 @@ import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {containsEventOfType, getMailBodyText, neverNull, noOp} from "../../common/utils/Utils"
-import {timestampToGeneratedId} from "../../common/utils/Encoding"
+import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {
 	_createNewIndexUpdate,
 	encryptIndexKeyBase64,
@@ -28,7 +29,7 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
-import {flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
+import {flat, groupBy, splitInChunks} from "@tutao/tutanota-utils"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
@@ -40,8 +41,8 @@ import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
-import {TypeRef} from "../../common/utils/TypeRef";
-import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
+import {TypeRef} from "@tutao/tutanota-utils";
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 

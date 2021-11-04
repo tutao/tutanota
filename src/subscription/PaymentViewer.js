@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
@@ -46,7 +46,7 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import {ofClass, promiseMap} from "../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

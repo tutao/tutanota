@@ -3,7 +3,7 @@
 import type {Theme, ThemeId} from "../gui/theme"
 import {DesktopConfig} from "./config/DesktopConfig"
 import {DesktopConfigKey} from "./config/ConfigKeys"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 /**
  * ThemeManager impl like in other native parts.

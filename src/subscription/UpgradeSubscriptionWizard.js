@@ -1,6 +1,5 @@
 // @flow
-import {assertMainOrNode} from "../api/common/Env"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
@@ -31,6 +30,8 @@ import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
 import {SignupPage, SignupPageAttrs} from "./SignupPage"
+import {assertMainOrNode} from "../api/common/Env"
+import type {Hex} from "@tutao/tutanota-utils/"
 
 assertMainOrNode()
 

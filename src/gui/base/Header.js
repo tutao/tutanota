@@ -3,7 +3,7 @@ import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
@@ -11,7 +11,6 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
-import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {IMainLocator} from "../../api/main/MainLocator"
@@ -20,6 +19,7 @@ import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_P
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {ProgressTracker} from "../../api/main/ProgressTracker"
 import type {ViewSlider} from "./ViewSlider"
+import {assertMainOrNode} from "../../api/common/Env"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")
@@ -72,7 +72,7 @@ class Header {
 					(styles.isUsingBottomNavigation() ? this._getCenterContent() : null),
 					styles.isUsingBottomNavigation()
 						? m(".header-right.pr-s.flex-end.items-center",
-						this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
+							this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
 						: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
 							this._renderDesktopSearchBar(),
 							m(NavBar, this._renderButtons())

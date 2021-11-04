@@ -4,14 +4,14 @@ import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType, getColors} from "./ButtonN"
 import type {clickHandler} from "./GuiUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

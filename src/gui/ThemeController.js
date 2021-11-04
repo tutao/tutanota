@@ -3,9 +3,9 @@ import {defaultThemeId, DeviceConfig} from "../misc/DeviceConfig";
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer";
 import stream from "mithril/stream/stream.js";
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env";
-import {downcast, neverNull, typedValues} from "../api/common/utils/Utils";
+import {downcast, neverNull, typedValues} from "@tutao/tutanota-utils";
 import m from "mithril";
-import {findAndRemove, mapAndFilterNull} from "../api/common/utils/ArrayUtils";
+import {findAndRemove, mapAndFilterNull} from "@tutao/tutanota-utils";
 import type {BaseThemeId, Theme, ThemeId} from "./theme";
 import {themes} from "./builtinThemes";
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"

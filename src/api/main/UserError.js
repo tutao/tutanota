@@ -1,9 +1,9 @@
 //@flow
 import {TutanotaError} from "../common/error/TutanotaError"
 import type {TranslationKeyType} from "../../misc/TranslationKey"
-import {assertMainOrNode} from "../common/Env"
 import {lang} from "../../misc/LanguageViewModel"
-import type {lazy} from "../common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../common/Env"
 
 assertMainOrNode()
 

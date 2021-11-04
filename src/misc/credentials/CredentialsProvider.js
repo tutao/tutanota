@@ -2,7 +2,9 @@
 
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
-import {assertNotNull} from "../../api/common/utils/Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
+import type {Base64, Base64Url} from "@tutao/tutanota-utils/"
+import type {Credentials} from "./Credentials"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.

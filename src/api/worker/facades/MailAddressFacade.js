@@ -1,5 +1,4 @@
 // @flow
-import {assertWorkerOrNode} from "../../common/Env"
 import {createMailAddressAliasServiceDataDelete} from "../../entities/sys/MailAddressAliasServiceDataDelete"
 import {_service} from "../rest/ServiceRestClient"
 import {HttpMethod} from "../../common/EntityFunctions"
@@ -12,6 +11,7 @@ import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddre
 import {MailAddressAliasServiceReturnTypeRef} from "../../entities/sys/MailAddressAliasServiceReturn"
 import {SysService} from "../../entities/sys/Services"
 import type {MailAddressAliasServiceReturn} from "../../entities/sys/MailAddressAliasServiceReturn"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

@@ -1,5 +1,5 @@
 //@flow
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 
 export type Parser<T> = (StringIterator) => T

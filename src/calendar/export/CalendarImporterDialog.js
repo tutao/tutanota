@@ -17,10 +17,10 @@ import {loadAll, loadMultiple} from "../../api/main/Entity"
 import {elementIdPart, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
-import {stringToUtf8Uint8Array} from "../../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {createFile} from "../../api/entities/tutanota/File"
 import {convertToDataFile} from "../../api/common/DataFile"
-import {delay, ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {

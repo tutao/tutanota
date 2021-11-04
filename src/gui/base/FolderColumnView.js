@@ -1,6 +1,5 @@
 // @flow
 
-import {assertMainOrNode} from "../../api/common/Env"
 import {DrawerMenu} from "../nav/DrawerMenu"
 import {theme} from "../theme"
 import m from "mithril"
@@ -9,7 +8,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {clickHandler} from "./GuiUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

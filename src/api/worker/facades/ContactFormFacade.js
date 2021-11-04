@@ -1,12 +1,11 @@
 // @flow
-import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import type {ContactForm} from "../../entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../../entities/tutanota/ContactForm"
 import {decryptAndMapToInstance} from "../crypto/CryptoFacade"
-import {locator} from "../WorkerLocator"
 import {RestClient} from "../rest/RestClient"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

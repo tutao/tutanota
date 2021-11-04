@@ -1,11 +1,10 @@
 //@flow
 import o from "ospec"
 import {Notifications} from "../../../src/gui/Notifications"
-import type {Spy} from "../../api/TestUtils"
-import {spy} from "../../api/TestUtils"
+import type {Spy} from "@tutao/tutanota-test-utils"
+import {spy} from "@tutao/tutanota-test-utils"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel"
 import {MailModel} from "../../../src/mail/model/MailModel"
-import {downcast} from "../../../src/api/common/utils/Utils"
 import type {OperationTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {MailFolderType, OperationType} from "../../../src/api/common/TutanotaConstants"
 import {MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
@@ -14,6 +13,7 @@ import type {EntityUpdateData} from "../../../src/api/main/EventController"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {EntityRestClientMock} from "../../api/worker/EntityRestClientMock"
 import nodemocker from "../nodemocker"
+import {downcast} from "@tutao/tutanota-utils"
 
 o.spec("MailModelTest", function () {
 	let notifications: $Shape<Notifications>

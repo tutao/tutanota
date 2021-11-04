@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {client} from "../../../src/misc/ClientDetector"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {addSearchIndexDebugEntry, getSearchIndexDebugLogs} from "../../../src/misc/IndexerDebugLogger"
 

@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec"
 import {FaqModel} from "../../../src/support/FaqModel"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("FaqModelTest", function () {

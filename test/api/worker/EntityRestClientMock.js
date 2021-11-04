@@ -1,13 +1,13 @@
 //@flow
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
-import {timestampToGeneratedId} from "../../../src/api/common/utils/Encoding"
+import {timestampToGeneratedId} from "../../../src/api/common/utils/EntityUtils"
 import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
 import {
 	HttpMethod,
 	resolveTypeReference
 } from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -18,7 +18,7 @@ import {
 	listIdPart
 } from "../../../src/api/common/utils/EntityUtils";
 import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
-import {TypeRef} from "../../../src/api/common/utils/TypeRef";
+import {TypeRef} from "@tutao/tutanota-utils";
 
 export class EntityRestClientMock extends EntityRestClient {
 

@@ -9,7 +9,7 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
@@ -21,12 +21,12 @@ import {ColumnWidth, TableN} from "../../gui/base/TableN"
 import {theme} from "../../gui/theme"
 import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
-import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils";
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

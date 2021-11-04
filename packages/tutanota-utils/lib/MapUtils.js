@@ -1,5 +1,4 @@
 //@flow
-//@bundleInto:common-min
 import {neverNull} from "./Utils"
 
 /**

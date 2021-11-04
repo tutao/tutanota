@@ -7,7 +7,6 @@ import {alpha, animations, DefaultAnimationTime, opacity, transform} from "../an
 import {ease} from "../animation/Easing"
 import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {KeyPress, Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious, keyManager} from "../../misc/KeyManager"
 import {getElevatedBackground} from "../theme"
@@ -26,10 +25,11 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
-import type {lazy, MaybeLazy} from "../../api/common/utils/Utils"
-import {getAsLazy, mapLazily, noOp} from "../../api/common/utils/Utils"
+import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
+import {getAsLazy, mapLazily, noOp} from "@tutao/tutanota-utils"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

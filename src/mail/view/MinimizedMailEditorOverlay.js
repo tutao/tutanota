@@ -2,7 +2,6 @@
 
 import m from "mithril"
 import {px, size} from "../../gui/size"
-import {assertMainOrNode} from "../../api/common/Env"
 import {displayOverlay} from "../../gui/base/Overlay"
 import {DefaultAnimationTime, transform} from "../../gui/animation/Animations"
 import {EventController} from "../../api/main/EventController"
@@ -14,6 +13,7 @@ import type {MinimizedEditor, SaveStatusEnum} from "../model/MinimizedMailEditor
 import {MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
 import {MinimizedEditorOverlay} from "./MinimizedEditorOverlay"
 import {windowFacade} from "../../misc/WindowFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

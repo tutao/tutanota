@@ -24,28 +24,26 @@ import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/F
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
+import {ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS} from "../../../../src/api/worker/search/Indexer"
 import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {browserDataStub, makeCore, mock, replaceAllMaps, spy} from "../../TestUtils"
-import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import {mock, spy} from "@tutao/tutanota-test-utils"
+import {browserDataStub, makeCore} from "../../TestUtils"
+import {downcast, getDayShifted, getStartOfDay, neverNull} from "@tutao/tutanota-utils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
-import {getDayShifted, getStartOfDay} from "../../../../src/api/common/utils/DateUtils"
 import {createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
 import type {MailBox} from "../../../../src/api/entities/tutanota/MailBox"
 import {createMailBox} from "../../../../src/api/entities/tutanota/MailBox"
 import {createSearchIndexDbStub} from "./DbStub"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
-import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
+import {getElementId, getListId, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils"
 import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFolderRef"
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
-import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
-import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
 
 class FixedDateProvider implements DateProvider {
 	now: number;

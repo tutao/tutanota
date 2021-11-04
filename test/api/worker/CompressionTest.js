@@ -2,7 +2,7 @@
 
 import o from "ospec"
 import {compress, CompressionError, uncompress} from "../../../src/api/worker/Compression"
-import {stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 
 o.spec("Compression/Decompression", function () {
 

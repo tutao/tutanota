@@ -1,7 +1,7 @@
 // @flow
 import {deviceConfig} from "../misc/DeviceConfig"
 import {assertMainOrNodeBoot, isApp, isDesktop, isTest} from "../api/common/Env"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
 import {NativeThemeStorage, ThemeController, WebThemeStorage} from "./ThemeController"
 

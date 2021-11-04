@@ -3,7 +3,7 @@ import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "
 import {NotFoundError} from "../../common/error/RestError"
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {neverNull, noOp} from "../../common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsLocalOrGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
@@ -14,7 +14,7 @@ import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import {EntityClient} from "../../common/EntityClient"
-import {ofClass, promiseMap} from "../../common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;

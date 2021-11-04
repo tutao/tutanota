@@ -1,7 +1,7 @@
 // @flow
 
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "../../common/utils/TypeRef"
+import {TypeRef} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BlobId} from "../sys/BlobId"

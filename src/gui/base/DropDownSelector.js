@@ -2,14 +2,14 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Button} from "./Button"
-import {assertMainOrNode} from "../../api/common/Env"
 import {Icons} from "./icons/Icons"
-import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import {lazyStringValue} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ButtonType} from "./ButtonN"
 import {createDropDownButton} from "./Dropdown";
 import {TextFieldN} from "./TextFieldN"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

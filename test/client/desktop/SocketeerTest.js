@@ -1,7 +1,7 @@
 // @flow
 import n from "../nodemocker"
 import o from "ospec"
-import {makeTimeoutMock} from "../../api/TestUtils"
+import {makeTimeoutMock} from "@tutao/tutanota-test-utils"
 import {Socketeer} from "../../../src/desktop/Socketeer"
 
 o.spec("Socketeer Test", function () {

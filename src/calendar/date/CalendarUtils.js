@@ -1,5 +1,19 @@
 //@flow
-import {getEndOfDay, getStartOfDay, incrementDate, isSameDay, isSameDayOfDate, isValidDate} from "../../api/common/utils/DateUtils"
+import {
+	clone,
+	downcast,
+	filterInt,
+	findAllAndRemove,
+	getEndOfDay,
+	getFromMap,
+	getStartOfDay,
+	incrementDate,
+	insertIntoSortedArray,
+	isSameDay,
+	isSameDayOfDate,
+	isValidDate,
+	neverNull
+} from "@tutao/tutanota-utils"
 import type {
 	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
@@ -19,27 +33,24 @@ import {
 	WeekStart
 } from "../../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {clone, downcast, filterInt, neverNull} from "../../api/common/utils/Utils"
 import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
 import {createCalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
 import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../../misc/Formatter"
 import {size} from "../../gui/size"
-import {assertMainOrNode} from "../../api/common/Env"
-import {getFromMap} from "../../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../../api/entities/sys/User"
 import {isColorLight} from "../../gui/base/Color"
 import type {GroupColors} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils";
-import {findAllAndRemove, insertIntoSortedArray} from "../../api/common/utils/ArrayUtils"
 import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import type {Time} from "../../api/common/utils/Time"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import type {CalendarInfo} from "../model/CalendarModel";
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

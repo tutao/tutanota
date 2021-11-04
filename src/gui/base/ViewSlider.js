@@ -6,8 +6,7 @@ import {size} from "../size"
 import {alpha, animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
-import {neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/common/Env"
+import {neverNull} from "@tutao/tutanota-utils"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
 import {styles} from "../styles"
@@ -15,6 +14,7 @@ import type {AriaLandmarksEnum} from "../AriaUtils"
 import {AriaLandmarks} from "../AriaUtils"
 import {LayerType} from "../../RootView"
 import type {windowSizeListener} from "../../misc/WindowFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

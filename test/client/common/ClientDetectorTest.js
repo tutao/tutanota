@@ -253,13 +253,13 @@ o.spec("ClientDetector test", function () {
 		o(client.isMobileDevice()).equals(true)
 	})
 
-	o.spec("app", function() {
+	o.spec("app", function () {
 		let prevMode
-		o.before(function() {
+		o.before(function () {
 			prevMode = env.mode
 			env.mode = Mode.App
 		})
-		o.after(function() {
+		o.after(function () {
 			env.mode = prevMode
 		})
 

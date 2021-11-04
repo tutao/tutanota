@@ -1,15 +1,15 @@
 // @flow
 import type {Contact} from "../api/entities/tutanota/Contact"
-import {assertMainOrNode} from "../api/common/Env"
 import {convertToDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {fileController} from "../file/FileController"
 import {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
 import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
 import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

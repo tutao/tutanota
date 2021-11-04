@@ -14,12 +14,12 @@ import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {Contact} from "../../api/entities/tutanota/Contact"
-import {noOp} from "../../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {isSameTypeRef} from "../../api/common/utils/TypeRef";
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {isSameTypeRef} from "@tutao/tutanota-utils";
+import {ofClass} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

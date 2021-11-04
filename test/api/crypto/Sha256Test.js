@@ -1,7 +1,7 @@
 import o from "ospec"
 import sjcl from "../../../src/api/worker/crypto/lib/sjcl"
 import {hash} from "../../../src/api/worker/crypto/Sha256"
-import {hexToUint8Array, stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
+import {hexToUint8Array, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 
 o.spec("Sha256", function () {
 

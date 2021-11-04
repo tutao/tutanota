@@ -1,13 +1,14 @@
 // @flow
 
-import {assertWorkerOrNode} from "../../common/Env"
 import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
-import {concat} from "../../common/utils/ArrayUtils"
-import {hexToUint8Array, uint8ArrayToHex} from "../../common/utils/Encoding"
+import {concat} from "@tutao/tutanota-utils"
+import {hexToUint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {hexToPrivateKey, privateKeyToHex} from "./Rsa"
 import {random} from "./Randomizer"
 import {fixedIv} from "./CryptoUtils"
+import {assertWorkerOrNode} from "../../common/Env"
+import type {PrivateKey} from "./RsaKeyPair"
 
 assertWorkerOrNode()
 

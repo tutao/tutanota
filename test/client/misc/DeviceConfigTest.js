@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec"
 import {migrateCredentials} from "../../../src/misc/DeviceConfig"
-import {assertNotNull} from "../../../src/api/common/utils/Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateCredentials", function () {

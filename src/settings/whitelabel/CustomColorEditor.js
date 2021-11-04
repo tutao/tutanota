@@ -10,7 +10,7 @@ import type {CustomColor} from "./CustomColorsEditorViewModel"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {CustomColorEditorPreview} from "./CustomColorEditorPreview"
-import {downcast} from "../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {expandHexTriplet} from "../../gui/base/Color"
 import {px} from "../../gui/size"
 
@@ -109,14 +109,14 @@ export class CustomColorEditor implements MComponent<SimpleCustomColorEditorAttr
 					m(".small.mt", lang.get('customColorsInfo_msg')),
 					m(".flex.flex-column", [
 						Object.entries(this._getGroupedColors(model.customColors))
-						     .map(([name, colors]) => {
-							     return m("", [
-								     m(".h4.mt-l", capitalizeFirstLetterOfString(name)),
-								     m(".editor-border.text-break.wrapping-row", {style: {maxWidth: px(CATEGORY_WIDTH)}}, [
-									     downcast(colors).map(c => renderCustomColorField(model, c))
-								     ])
-							     ])
-						     })
+						      .map(([name, colors]) => {
+							      return m("", [
+								      m(".h4.mt-l", capitalizeFirstLetterOfString(name)),
+								      m(".editor-border.text-break.wrapping-row", {style: {maxWidth: px(CATEGORY_WIDTH)}}, [
+									      downcast(colors).map(c => renderCustomColorField(model, c))
+								      ])
+							      ])
+						      })
 					])
 				])
 			])

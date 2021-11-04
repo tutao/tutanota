@@ -6,10 +6,10 @@ import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {OperationType} from "../../../../src/api/common/TutanotaConstants"
-import {defer} from "../../../../src/api/common/utils/Utils"
+import {defer} from "@tutao/tutanota-utils"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
-import {delay} from "../../../../src/api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue

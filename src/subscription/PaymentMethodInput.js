@@ -8,7 +8,7 @@ import type {PaymentData, PaymentMethodTypeEnum} from "../api/common/TutanotaCon
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardAttrs, CreditCardInput} from "./CreditCardInput"
 import {PayPalLogo} from "../gui/base/icons/Icons"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -19,8 +19,8 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
-import {noOp} from "../api/common/utils/Utils"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {noOp} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.

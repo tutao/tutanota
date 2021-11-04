@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {PasswordIndicator} from "../gui/PasswordIndicator"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
@@ -15,9 +14,10 @@ import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {User} from "../api/entities/sys/User"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {getEtId} from "../api/common/utils/EntityUtils"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

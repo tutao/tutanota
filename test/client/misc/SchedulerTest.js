@@ -3,8 +3,8 @@ import o from "ospec"
 import type {ScheduledId, Scheduler, SystemTimeout} from "../../../src/misc/Scheduler"
 import {SchedulerImpl, SET_TIMEOUT_LIMIT} from "../../../src/misc/Scheduler"
 import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
-import type {Thunk} from "../../../src/api/common/utils/Utils"
-import {assertNotNull, downcast} from "../../../src/api/common/utils/Utils"
+import type {Thunk} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast} from "@tutao/tutanota-utils"
 import {DateTime, Duration} from "luxon"
 
 o.spec("Scheduler", function () {

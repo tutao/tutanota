@@ -13,7 +13,7 @@ import type {BookingItemFeatureTypeEnum} from "../../../src/api/common/TutanotaC
 import {AccountType, BookingItemFeatureType} from "../../../src/api/common/TutanotaConstants"
 import {SwitchSubscriptionDialogModel} from "../../../src/subscription/SwitchSubscriptionDialogModel"
 import type {WorkerClient} from "../../../src/api/main/WorkerClient"
-import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "@tutao/tutanota-utils"
 import type {PlanPrices} from "../../../src/api/entities/sys/PlanPrices"
 import {PlanPricesTypeRef} from "../../../src/api/entities/sys/PlanPrices"
 import {createPriceData} from "../../../src/api/entities/sys/PriceData"

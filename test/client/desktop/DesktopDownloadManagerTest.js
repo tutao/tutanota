@@ -2,9 +2,9 @@
 import o from "ospec"
 import n from "../nodemocker"
 import {DesktopDownloadManager} from "../../../src/desktop/DesktopDownloadManager"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 import {CancelledError} from "../../../src/api/common/error/CancelledError"
-import {assertThrows} from "../../api/TestUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 

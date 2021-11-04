@@ -12,14 +12,14 @@ import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertNotNull, neverNull, noOp} from "../../api/common/utils/Utils"
+import {assertNotNull, neverNull, noOp} from "@tutao/tutanota-utils"
 import {erase, load, loadAll, setup, update} from "../../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
+import {utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {fileController} from "../../file/FileController"
 import {logins} from "../../api/main/LoginController"
@@ -40,14 +40,14 @@ import {NavButtonN} from "../../gui/base/NavButtonN"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
-import {flat} from "../../api/common/utils/ArrayUtils"
+import {flat} from "@tutao/tutanota-utils"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils";
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 assertMainOrNode()
 
 export class ContactView implements CurrentView {

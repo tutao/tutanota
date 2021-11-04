@@ -1,11 +1,10 @@
 // @flow
-import {assertWorkerOrNode} from "../../common/Env"
 import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import {generateRsaKey, publicKeyToHex} from "../crypto/Rsa"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
-import {hexToUint8Array} from "../../common/utils/Encoding"
+import {hexToUint8Array} from "@tutao/tutanota-utils"
 import {decryptKey, encryptKey, encryptRsaKey, encryptString} from "../crypto/CryptoFacade"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
@@ -16,7 +15,7 @@ import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLoc
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
@@ -27,6 +26,8 @@ import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroup
 import type {UserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {EntityClient} from "../../common/EntityClient"
+import {assertWorkerOrNode} from "../../common/Env"
+import type {RsaKeyPair} from "../crypto/RsaKeyPair"
 
 assertWorkerOrNode()
 

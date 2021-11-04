@@ -2,7 +2,6 @@
 import {inputLineHeight, px, size} from "../size"
 import m from "mithril"
 import {animations, fontSize, transform} from "../animation/Animations"
-import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isSelected} from "./ButtonN"
@@ -17,7 +16,8 @@ import type {TextFieldTypeEnum} from "./TextFieldN"
 import {Type} from "./TextFieldN"
 import {windowFacade} from "../../misc/WindowFacade"
 import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

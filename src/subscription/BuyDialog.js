@@ -1,13 +1,12 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {formatDate} from "../misc/Formatter"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -23,8 +22,9 @@ import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream/stream.js"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

@@ -9,7 +9,7 @@ import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {px} from "../size"
 import {DefaultAnimationTime} from "../animation/Animations"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>,

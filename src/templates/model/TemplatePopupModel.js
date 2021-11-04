@@ -14,15 +14,12 @@ import {logins} from "../../api/main/LoginController"
 import {getElementId, getEtId, isSameId} from "../../api/common/utils/EntityUtils"
 import type {EmailTemplateContent} from "../../api/entities/tutanota/EmailTemplateContent"
 import type {GroupMembership} from "../../api/entities/sys/GroupMembership"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {flat, LazyLoaded, promiseMap, SortedArray} from "@tutao/tutanota-utils"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TemplateGroupRoot"
 import type {TemplateGroupInstance} from "./TemplateGroupModel"
 import {GroupTypeRef} from "../../api/entities/sys/Group"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import {UserTypeRef} from "../../api/entities/sys/User"
-import {SortedArray} from "../../api/common/utils/SortedArray"
-import {flat} from "../../api/common/utils/ArrayUtils"
 
 /**
  *   Model that holds main logic for the Template Feature.

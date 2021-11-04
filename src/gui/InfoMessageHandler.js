@@ -2,8 +2,8 @@
 import m from "mithril"
 import {show as showNotificationOverlay} from "./base/NotificationOverlay"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

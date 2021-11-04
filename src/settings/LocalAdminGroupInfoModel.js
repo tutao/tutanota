@@ -8,8 +8,8 @@ import {GroupType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {noOp} from "../api/common/utils/Utils"
-import {promiseMap} from "../api/common/utils/PromiseUtils"
+import {noOp} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;

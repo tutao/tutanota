@@ -1,5 +1,5 @@
 //@flow
-import {typedValues} from "../../api/common/utils/Utils"
+import {typedValues} from "@tutao/tutanota-utils"
 
 export const DesktopConfigKey = Object.freeze({
 	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',

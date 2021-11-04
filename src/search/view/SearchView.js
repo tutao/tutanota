@@ -37,11 +37,11 @@ import {load} from "../../api/main/Entity"
 import {locator} from "../../api/main/MainLocator"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../../misc/Formatter"
 import {showDateRangeSelectionDialog} from "../../gui/date/DatePickerDialog"
 import {Icons} from "../../gui/base/icons/Icons"
-import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../../api/common/utils/DateUtils"
+import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "@tutao/tutanota-utils"
 import {logins} from "../../api/main/LoginController"
 import {PageSize} from "../../gui/base/List"
 import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
@@ -57,12 +57,12 @@ import {styles} from "../../gui/styles"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
-import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
+import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions";
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {clickHandler} from "../../gui/base/GuiUtils"
 
 assertMainOrNode()

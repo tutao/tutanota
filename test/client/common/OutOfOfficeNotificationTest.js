@@ -1,10 +1,10 @@
 //@flow
 import o from "ospec"
 import {createOutOfOfficeNotification} from "../../../src/api/entities/tutanota/OutOfOfficeNotification"
-import {mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import {mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
+import {getDayShifted, getStartOfDay, getStartOfNextDay} from "@tutao/tutanota-utils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {formatActivateState, isNotificationCurrentlyActive} from "../../../src/misc/OutOfOfficeNotificationUtils"
-import {getDayShifted, getStartOfDay, getStartOfNextDay} from "../../../src/api/common/utils/DateUtils"
 
 o.spec("OutOfOfficeNotificationTest", function () {
 

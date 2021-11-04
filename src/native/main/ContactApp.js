@@ -1,11 +1,11 @@
 //@flow
-import {assertMainOrNode} from "../../api/common/Env"
 import {nativeApp} from "../common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {ContactSuggestion} from "../../misc/ContactSuggestion"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, load} from "../api/main/Entity"
 import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
@@ -11,7 +10,7 @@ import {createContactForm} from "../api/entities/tutanota/ContactForm"
 import {loadGroupInfos} from "./LoadingUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -21,6 +20,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

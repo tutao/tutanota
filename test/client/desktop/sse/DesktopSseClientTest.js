@@ -1,15 +1,14 @@
 // @flow
 import o from "ospec"
 import n from "../../nodemocker"
-import {numberRange} from '../../../../src/api/common/utils/ArrayUtils.js'
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import type {TimeoutMock} from "@tutao/tutanota-test-utils"
+import {makeTimeoutMock} from "@tutao/tutanota-test-utils"
+import {defer, delay, downcast, neverNull, noOp, numberRange} from "@tutao/tutanota-utils"
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
-import type {DeferredObject} from "../../../../src/api/common/utils/Utils"
-import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import * as url from "url"
 import * as querystring from "querystring"
 import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
-import type {TimeoutMock} from "../../../api/TestUtils"
-import {makeTimeoutMock} from "../../../api/TestUtils"
 import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
@@ -21,7 +20,6 @@ import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarm
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient"
 import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError"
-import {delay} from "../../../../src/api/common/utils/PromiseUtils"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = 'identifier'

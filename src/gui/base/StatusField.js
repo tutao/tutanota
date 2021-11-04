@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

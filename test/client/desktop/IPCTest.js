@@ -1,10 +1,9 @@
 // @flow
 import n from "../nodemocker"
 import o from "ospec"
-import {defer, noOp} from "../../../src/api/common/utils/Utils"
+import {assertThrows} from "@tutao/tutanota-test-utils"
+import {defer, delay, noOp} from "@tutao/tutanota-utils"
 import {IPC} from "../../../src/desktop/IPC"
-import {assertThrows} from "../../api/TestUtils"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
 
 o.spec("IPC tests", function () {
 	const CALLBACK_ID = 'to-main'
@@ -160,7 +159,7 @@ o.spec("IPC tests", function () {
 			alarmStorageMock: n.mock("__alarmStorage", alarmStorage).set(),
 			cryptoMock: n.mock("./DesktopCryptoFacade", crypto).set(),
 			dlMock: n.mock("__dl", dl).set(),
-			utilsMock: n.mock("../api/common/utils/Utils", utils).set(),
+			utilsMock: n.mock("@tutao/tutanota-utils", utils).set(),
 			autoUpdaterMock: n.mock("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock("__alarmScheduler", alarmScheduler).set(),
 			themeManagerMock: n.mock("__themeManager", themeManager).set(),

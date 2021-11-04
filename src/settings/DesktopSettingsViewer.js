@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {Request} from "../api/common/WorkerProtocol.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
-import {noOp} from "../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -24,6 +23,7 @@ import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

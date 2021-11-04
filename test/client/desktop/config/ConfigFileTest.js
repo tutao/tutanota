@@ -2,9 +2,8 @@
 
 import o from "ospec"
 import n from "../../nodemocker"
-import {delay} from "../../../../src/api/common/utils/PromiseUtils"
+import {delay, numberRange} from "@tutao/tutanota-utils"
 import {getConfigFile} from "../../../../src/desktop/config/ConfigFile"
-import {numberRange} from "../../../../src/api/common/utils/ArrayUtils"
 
 const MAX_LATENCY = 20
 const rndDelay = () => delay(Math.floor(Math.random() * MAX_LATENCY))

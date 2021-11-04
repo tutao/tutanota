@@ -3,8 +3,8 @@
 import m from "mithril"
 import type {Attachment, RecipientField} from "./SendMailModel"
 import {SendMailModel} from "./SendMailModel"
-import {findAllAndRemove, remove} from "../../api/common/utils/ArrayUtils"
-import {debounce, downcast} from "../../api/common/utils/Utils"
+import {findAllAndRemove, remove} from "@tutao/tutanota-utils"
+import {debounce, downcast} from "@tutao/tutanota-utils"
 import {Mode} from "../../api/common/Env"
 import {fileController} from "../../file/FileController"
 import {PermissionError} from "../../api/common/error/PermissionError"
@@ -32,13 +32,13 @@ import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../../misc/R
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
-import {cleanMatch} from "../../api/common/utils/StringUtils"
+import {cleanMatch} from "@tutao/tutanota-utils"
 import {ConnectionError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import {ofClass} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)

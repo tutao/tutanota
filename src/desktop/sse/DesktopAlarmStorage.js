@@ -5,7 +5,7 @@ import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
-import {findAllAndRemove} from "../../api/common/utils/ArrayUtils"
+import {findAllAndRemove} from "@tutao/tutanota-utils"
 
 
 /**

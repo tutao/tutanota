@@ -1,9 +1,8 @@
 //@flow
 import {Queue, Request} from "../../api/common/WorkerProtocol"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, neverNull} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, defer, neverNull, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode, isMainOrNode, Mode} from "../../api/common/Env"
-import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../api/common/utils/Encoding"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 /**

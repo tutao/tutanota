@@ -3,9 +3,9 @@ import m from "mithril"
 import type {BootIconsEnum} from "./icons/BootIcons"
 import {BootIcons, BootIconsSvg} from "./icons/BootIcons"
 import {theme} from "../theme"
-import {assertMainOrNode} from "../../api/common/Env"
 import type {IconsEnum} from "./icons/Icons"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

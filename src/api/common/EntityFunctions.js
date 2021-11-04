@@ -1,6 +1,6 @@
 // @flow
 import {Type, ValueType} from "./EntityConstants"
-import {flat, last} from "./utils/ArrayUtils"
+import {flat, last} from "@tutao/tutanota-utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
@@ -10,11 +10,11 @@ import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIM
 import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
-import {TypeRef} from "./utils/TypeRef";
+import {TypeRef} from "@tutao/tutanota-utils";
 import storageModelMap from "../entities/storage/storageModelMap"
 import type {TypeModel} from "./EntityTypes"
-import {noOp} from "./utils/Utils"
-import {promiseMap} from "./utils/PromiseUtils"
+import {noOp} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 
 export const HttpMethod = Object.freeze({

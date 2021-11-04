@@ -1,10 +1,24 @@
 //@flow
 import type {DbTransaction} from "./DbFacade"
 import {tokenize} from "./Tokenizer"
-import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
-import type {DeferredObject} from "../../common/utils/Utils"
-import {defer, neverNull, noOp} from "../../common/utils/Utils"
-import {generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import type {$Promisable, DeferredObject, PromiseMapFn} from "@tutao/tutanota-utils"
+import {
+	arrayHash,
+	byteLength,
+	defer,
+	findLastIndex,
+	getFromMap,
+	groupByAndMap,
+	lastThrow,
+	mergeMaps,
+	neverNull,
+	noOp,
+	PromisableWrapper,
+	promiseMapCompat,
+	TypeRef,
+	uint8ArrayToBase64
+} from "@tutao/tutanota-utils"
+import {elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart} from "../../common/utils/EntityUtils"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
 	compareMetaEntriesOldest,
@@ -38,11 +52,8 @@ import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {PromisableWrapper, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
-import {arrayHash, findLastIndex, groupByAndMap, lastThrow} from "../../common/utils/ArrayUtils"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumbers,
@@ -53,11 +64,8 @@ import {
 } from "./SearchIndexEncoding"
 import {random} from "../crypto/Randomizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/utils/EntityUtils";
-import {TypeRef} from "../../common/utils/TypeRef";
 import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
 import type {TypeModel} from "../../common/EntityTypes"
-import {byteLength} from "../../common/utils/StringUtils";
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

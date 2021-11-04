@@ -24,7 +24,7 @@ import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {

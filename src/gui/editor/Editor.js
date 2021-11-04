@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
 import SquireEditor from "squire-rte"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer} from "@tutao/tutanota-utils"
 import {px} from "../size"
 import {Dialog} from "../base/Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'

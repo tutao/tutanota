@@ -4,7 +4,7 @@ import n from '../../nodemocker'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants"
 import {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 import type {AlarmScheduler} from "../../../../src/calendar/date/AlarmScheduler"
-import {lastThrow} from "../../../../src/api/common/utils/ArrayUtils"
+import {lastThrow} from "@tutao/tutanota-utils"
 import {NotificationResult} from "../../../../src/desktop/DesktopConstants"
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()

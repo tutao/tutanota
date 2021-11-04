@@ -2,11 +2,12 @@
 import o from "ospec"
 import type {CredentialsEncryption, CredentialsStorage, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
-import {assertNotNull} from "../../../../src/api/common/utils/Utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator"
 import {spyify} from "../../nodemocker"
+import type {Credentials} from "../../../../src/misc/credentials/Credentials"
 
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])

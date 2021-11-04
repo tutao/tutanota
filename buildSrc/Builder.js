@@ -139,6 +139,8 @@ export async function build({desktop, stage, host, clean}, {devServerPort, watch
 			.concat(devServerPort ? hmr({bundleId: '', hmrHost: `localhost:${devServerPort}`, verbose: true}) : [])
 			.concat(debugModels())
 			.concat(bundleDependencyCheckPlugin())
+			.concat(nodeResolve(
+				{preferBuiltins: true,}))
 	})
 	const generateBundle = async () => {
 		log("Generating")
@@ -199,7 +201,7 @@ async function buildAndStartDesktop(log, version) {
 			...rollupDebugPlugins(path.resolve("."), babelDesktopPlugins),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
-			nodeResolve({preferBuiltins: true}),
+			nodeResolve({preferBuiltins: true,}),
 			env.preludeEnvPlugin(env.create({staticUrl: null, version, mode: "Desktop", dist: false}))
 		],
 	})

@@ -6,7 +6,7 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {createMail} from "../../api/entities/tutanota/Mail"
 import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
 import {MailRow} from "../../mail/view/MailRow"
-import {noOp} from "../../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 
 export const COMPONENT_PREVIEW_HEIGHT = 300
 export const BUTTON_WIDTH = 270

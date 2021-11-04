@@ -2,8 +2,7 @@
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ContactEditor} from "../ContactEditor"
-import {Type} from "../../gui/base/TextFieldN"
-import {assertMainOrNode} from "../../api/common/Env"
+import {TextFieldN, Type} from "../../gui/base/TextFieldN"
 import {keyManager} from "../../misc/KeyManager"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -16,18 +15,16 @@ import type {ContactSocialId} from "../../api/entities/tutanota/ContactSocialId"
 import {locator} from "../../api/main/MainLocator"
 import {newMailEditorFromTemplate} from "../../mail/editor/MailEditor"
 import {logins} from "../../api/main/LoginController"
-import {NBSP} from "../../api/common/utils/StringUtils"
+import {downcast, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils";
 import {appendEmailSignature} from "../../mail/signature/Signature";
 import {formatBirthdayOfContact} from "../model/ContactUtils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import type {ContactAddress} from "../../api/entities/tutanota/ContactAddress"
 import {ButtonN} from "../../gui/base/ButtonN"
 import type {ContactPhoneNumber} from "../../api/entities/tutanota/ContactPhoneNumber"
-import {downcast, noOp} from "../../api/common/utils/Utils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

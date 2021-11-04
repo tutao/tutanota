@@ -2,7 +2,7 @@
 import o from "ospec"
 import type {App} from "electron"
 import type {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade";
-import {downcast} from "../../../src/api/common/utils/Utils";
+import {downcast} from "@tutao/tutanota-utils";
 import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater";
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray";
 import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper";
@@ -12,7 +12,7 @@ import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier";
 import {lang} from "../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 lang.init(en)
 

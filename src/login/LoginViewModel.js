@@ -7,7 +7,6 @@ import {
 	NotAuthenticatedError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {assertMainOrNode} from "../api/common/Env"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {SecondFactorHandler} from "../misc/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
@@ -18,8 +17,9 @@ import stream from "mithril/stream/stream.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import {first} from "../api/common/utils/ArrayUtils"
+import {first} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

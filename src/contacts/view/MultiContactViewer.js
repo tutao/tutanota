@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/common/Env"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -8,9 +7,10 @@ import type {ContactView} from "./ContactView"
 import {exportContacts} from "../VCardExporter"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
-import {NBSP} from "../../api/common/utils/StringUtils"
+import {NBSP} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ActionBar} from "../../gui/base/ActionBar"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

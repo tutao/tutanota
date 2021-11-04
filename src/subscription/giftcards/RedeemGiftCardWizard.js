@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {createWizardDialog, emitWizardEvent, WizardEventType, WizardPageWrapper} from "../../gui/base/WizardDialogN"
 import {logins, SessionType} from "../../api/main/LoginController"
@@ -35,7 +35,7 @@ import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceU
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider"
 
 type GetCredentialsMethod = "login" | "signup"

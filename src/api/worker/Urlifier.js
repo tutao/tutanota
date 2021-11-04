@@ -1,6 +1,5 @@
 //@flow
 import linkifyHtml from "linkify/html"
-import {startsWith} from "../common/utils/StringUtils"
 
 /**
  * Replaces plain text links in the given text by html links. Already existing html links are not changed.

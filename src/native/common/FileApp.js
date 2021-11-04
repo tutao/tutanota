@@ -1,9 +1,9 @@
 //@flow
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
-import {uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler";
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 
 export const fileApp = {

@@ -43,7 +43,7 @@ import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Booking} from "../api/entities/sys/Booking"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 /**

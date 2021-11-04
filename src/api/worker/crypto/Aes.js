@@ -3,12 +3,12 @@
 import sjcl from "./lib/sjcl"
 import {random} from "./Randomizer"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
-import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
-import {uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {arrayEquals, concat} from "@tutao/tutanota-utils"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../common/Env"
 import {hash} from "./Sha256"
 import * as Sha512 from "./Sha512"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

@@ -1,7 +1,7 @@
 // @flow
 
 import o from "ospec"
-import {replaceAll} from "../../../src/api/common/utils/StringUtils"
+import {replaceAll} from "../lib/StringUtils"
 
 o.spec("StringUtils", function () {
 

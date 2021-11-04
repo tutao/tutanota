@@ -5,8 +5,8 @@ import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants
 import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
-import {noOp} from "../../api/common/utils/Utils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {noOp} from "@tutao/tutanota-utils"
 
 /**
  * create a mail editor as requested from the native side, ie because a

@@ -2,7 +2,7 @@
 // $FlowIgnore[untyped-import]
 import sjcl from "./lib/sjcl"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
-import {hexToUint8Array} from "../../common/utils/Encoding"
+import {hexToUint8Array} from "@tutao/tutanota-utils"
 import {random} from "./Randomizer"
 
 export let DIGITS: number = 6;

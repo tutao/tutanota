@@ -13,21 +13,21 @@ import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {locator} from "../../api/main/MainLocator"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, neverNull, noOp} from "../../api/common/utils/Utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
 import {Dialog} from "../../gui/base/Dialog"
-import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
+import {flat, groupBy} from "@tutao/tutanota-utils"
 import type {ListElement} from "../../api/common/utils/EntityUtils"
 import {elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../../mail/view/MailGuiUtils";
 import {MailRow} from "../../mail/view/MailRow";
-import {isSameTypeRef, TypeRef} from "../../api/common/utils/TypeRef";
+import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {compareContacts} from "../../contacts/view/ContactGuiUtils";
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

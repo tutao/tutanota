@@ -4,12 +4,12 @@
 import bCrypt from "./lib/bCrypt"
 import {random} from "./Randomizer"
 import {hash} from "./Sha256"
-import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode} from "../../common/Env"
 import {uint8ArrayToBitArray} from "./CryptoUtils"
 import type {KeyLengthEnum} from "./CryptoConstants"
 import {KeyLength} from "./CryptoConstants"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

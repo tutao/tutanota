@@ -2,19 +2,19 @@
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {createRestriction} from "../../search/model/SearchUtils"
-import {asyncFindAndMap} from "../../api/common/utils/Utils"
+import {asyncFindAndMap} from "@tutao/tutanota-utils"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {DbError} from "../../api/common/error/DbError"
-import {assertMainOrNode} from "../../api/common/Env"
 import {EntityClient} from "../../api/common/EntityClient"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {LoginController} from "../../api/main/LoginController"
 import type {ContactList} from "../../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../api/entities/tutanota/ContactList"
 import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils";
-import {flat, groupBy} from "../../api/common/utils/ArrayUtils"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {flat, groupBy} from "@tutao/tutanota-utils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {SearchFacade} from "../../api/worker/search/SearchFacade"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

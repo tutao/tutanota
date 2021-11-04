@@ -4,7 +4,7 @@ import {size} from "./size"
 import {assertMainOrNodeBoot, isAdminClient, isTest} from "../api/common/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeController} from "./theme"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {client} from "../misc/ClientDetector"
 
 assertMainOrNodeBoot()

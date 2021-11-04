@@ -8,7 +8,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
 import {KnowledgeBaseEditorModel} from "./KnowledgeBaseEditorModel"
-import {noOp} from "../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {Dialog} from "../gui/base/Dialog"
@@ -26,7 +26,7 @@ import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {UserError} from "../api/main/UserError"
 import type {DropdownChildAttrs} from "../gui/base/DropdownN"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 /**
  *  Editor to edit / add a knowledgeBase entry

@@ -5,7 +5,7 @@ import {ACCOUNT_NAME, DeviceKeyProviderImpl, SERVICE_NAME} from "../../../src/de
 import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade"
 import type {SecretStorage} from "../../../src/desktop/sse/SecretStorage"
 import {spyify} from "../nodemocker"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {keyToBase64, uint8ArrayToKey} from "../../../src/api/worker/crypto/CryptoUtils"
 
 function initDeviceKeyProvider(secretStorage: SecretStorage, crypto: DesktopCryptoFacade): DeviceKeyProviderImpl {

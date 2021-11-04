@@ -1,13 +1,12 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {noOp} from "../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
@@ -23,9 +22,10 @@ import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import {firstThrow} from "../api/common/utils/ArrayUtils"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {firstThrow} from "@tutao/tutanota-utils"
+import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

@@ -11,7 +11,7 @@ import type {GroupTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import type {LoginController} from "../../api/main/LoginController"
 import {getLetId, isSameId} from "../../api/common/utils/EntityUtils"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 export class ReceivedGroupInvitationsModel {
 	+invitations: Stream<Array<ReceivedGroupInvitation>>

@@ -1,18 +1,27 @@
 // @flow
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {
+	clone,
+	DAY_IN_MILLIS,
+	findAllAndRemove,
+	findAndRemove,
+	freezeMap,
+	getStartOfDay,
+	groupByAndMapUniquely,
+	LazyLoaded,
+	neverNull,
+	noOp,
+	symmetricDifference
+} from "@tutao/tutanota-utils"
+import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {clone, freezeMap, neverNull, noOp} from "../../api/common/utils/Utils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
-import {findAllAndRemove, findAndRemove, groupByAndMapUniquely, symmetricDifference} from "../../api/common/utils/ArrayUtils"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import stream from "mithril/stream/stream.js"
-import {DAY_IN_MILLIS, getStartOfDay} from "../../api/common/utils/DateUtils"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
 	addDaysForEvent,

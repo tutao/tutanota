@@ -12,7 +12,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 import {isRepliedTo} from "../model/MailUtils"
 
 export type Attrs = {

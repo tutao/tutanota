@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/common/Env"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -12,9 +11,10 @@ import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperti
 import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 

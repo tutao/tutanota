@@ -2,7 +2,7 @@
 
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {Config} from "../ConfigCommon"
-import {downcast} from "../../../api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
 import {log} from "../../DesktopLog"
 

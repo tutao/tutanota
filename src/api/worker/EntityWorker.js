@@ -9,9 +9,9 @@ import {
 	_updateEntity
 } from "../common/EntityFunctions"
 import {_service} from "./rest/ServiceRestClient"
-import {assertWorkerOrNode} from "../common/Env"
 import {locator} from "./WorkerLocator"
-import {TypeRef} from "../common/utils/TypeRef";
+import {TypeRef} from "@tutao/tutanota-utils";
+import {assertWorkerOrNode} from "../common/Env"
 
 assertWorkerOrNode()
 

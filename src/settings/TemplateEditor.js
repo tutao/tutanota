@@ -18,7 +18,7 @@ import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {UserError} from "../api/main/UserError"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import {ofClass} from "../api/common/utils/PromiseUtils"
+import {ofClass} from "@tutao/tutanota-utils"
 
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one

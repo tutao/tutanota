@@ -8,15 +8,15 @@ import {EventController, isUpdateForTypeRef} from "../../api/main/EventControlle
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
 import {EntityClient} from "../../api/common/EntityClient"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
+import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {GroupMembership} from "../../api/entities/sys/GroupMembership"
-import {neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import type {Group} from "../../api/entities/sys/Group"
 import {loadTemplateGroupInstances} from "./TemplatePopupModel"
 import {locator} from "../../api/main/MainLocator"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import {promiseMap} from "@tutao/tutanota-utils"
 
 export type TemplateGroupInstance = {
 	group: Group,

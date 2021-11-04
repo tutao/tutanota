@@ -1,5 +1,4 @@
 // @flow
-import {assertWorkerOrNode} from "../../common/Env"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
@@ -7,7 +6,7 @@ import {GroupTypeRef} from "../../entities/sys/Group"
 import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {createAuthVerifier} from "../crypto/CryptoUtils"
 import {createResetPasswordData} from "../../entities/sys/ResetPasswordData"
 import {HttpMethod} from "../../common/EntityFunctions"
@@ -30,6 +29,7 @@ import {SysService} from "../../entities/sys/Services"
 import {generateRsaKey} from "../crypto/Rsa"
 import type {User} from "../../entities/sys/User"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
+import {assertWorkerOrNode} from "../../common/Env"
 
 assertWorkerOrNode()
 

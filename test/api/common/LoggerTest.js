@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec"
 import {LOG_SIZE, Logger} from "../../../src/api/common/Logger"
-import {lastThrow} from "../../../src/api/common/utils/ArrayUtils"
+import {lastThrow} from "@tutao/tutanota-utils"
 
 
 o.spec("Loger test", function () {

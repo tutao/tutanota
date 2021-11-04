@@ -1,7 +1,7 @@
 //@flow
-import {stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
+
+import {concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {concat} from "../../common/utils/ArrayUtils"
 import {random} from "../crypto/Randomizer"
 import type {
 	DecryptedSearchIndexEntry,
@@ -24,11 +24,11 @@ import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import {isTest} from "../../common/Env"
 import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import {TypeRef} from "../../common/utils/TypeRef";
 import type {TypeModel} from "../../common/EntityTypes"
+import {isTest} from "../../common/Env"
+import type {Base64} from "@tutao/tutanota-utils/"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

@@ -1,9 +1,9 @@
 //@flow
 import m from "mithril"
 import {px} from "../size"
-import {assertMainOrNode} from "../../api/common/Env"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

@@ -7,7 +7,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
-} from "../../../src/api/common/utils/Encoding"
+} from "@tutao/tutanota-utils"
 import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt} from "../../../src/api/worker/crypto/Aes"
 import {generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
 import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"

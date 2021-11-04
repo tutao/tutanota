@@ -1,5 +1,5 @@
 // @flow
-import type {LoginFacade} from "./facades/LoginFacade"
+import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
@@ -15,9 +15,19 @@ import {
 	SessionExpiredError
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {assertNotNull, downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
+import {
+	assertNotNull,
+	binarySearch,
+	delay,
+	downcast,
+	identity,
+	lastThrow,
+	neverNull,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval
+} from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
-import {binarySearch, lastThrow} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
@@ -43,8 +53,6 @@ import {
 	getLetId,
 	isSameId
 } from "../common/utils/EntityUtils";
-import {delay, ofClass, promiseMap} from "../common/utils/PromiseUtils"
-import {LoginFacadeImpl} from "./facades/LoginFacade"
 
 assertWorkerOrNode()
 

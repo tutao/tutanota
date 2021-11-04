@@ -4,10 +4,10 @@ import TableLine from "./TableLine"
 import {lang} from "../../misc/LanguageViewModel"
 import {Button} from "./Button"
 import {px, size} from "../size"
-import {assertMainOrNode} from "../../api/common/Env"
 import {progressIcon} from "./Icon"
 import type {ColumnWidthEnum} from "./TableN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 

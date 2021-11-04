@@ -10,7 +10,7 @@ import {ButtonType} from "../../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TemplateGroupRoot} from "../../api/entities/tutanota/TemplateGroupRoot"
-import {noOp} from "../../api/common/utils/Utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import stream from "mithril/stream/stream.js"
 import type {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight"
@@ -18,7 +18,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
-import type {lazy} from "../../api/common/utils/Utils"
+import type {lazy} from "@tutao/tutanota-utils"
 
 
 export function createKnowledgeBaseDialogInjection(knowledgeBase: KnowledgeBaseModel, templateModel: TemplatePopupModel, editor: Editor): DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> {

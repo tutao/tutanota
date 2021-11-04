@@ -4,7 +4,7 @@ import {formatMonthlyPrice, formatPrice, getSubscriptionPrice} from "../../../sr
 import stream from "mithril/stream/stream.js"
 import {createPlanPrices} from "../../../src/api/entities/sys/PlanPrices"
 import {SubscriptionType, UpgradePriceType} from "../../../src/subscription/SubscriptionUtils"
-import {clone} from "../../../src/api/common/utils/Utils"
+import {clone} from "@tutao/tutanota-utils"
 
 const PLAN_PRICES = {
 	PremiumBusiness: createPlanPrices({

@@ -7,11 +7,11 @@ import {
 	resolveTypeReference
 } from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {flat, remove} from "../../common/utils/ArrayUtils"
-import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
+import {flat, remove} from "@tutao/tutanota-utils"
+import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
+import {clone, downcast, neverNull} from "@tutao/tutanota-utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import {assertWorkerOrNode} from "../../common/Env"
 import {ValueType} from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
@@ -29,9 +29,11 @@ import {
 	READ_ONLY_HEADER
 } from "../../common/utils/EntityUtils";
 import type {ListElement} from "../../common/utils/EntityUtils"
-import {isSameTypeRef, TypeRef} from "../../common/utils/TypeRef";
-import {promiseMap} from "../../common/utils/PromiseUtils"
+import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
+import {promiseMap} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
+import {assertWorkerOrNode} from "../../common/Env"
+import type {$Promisable} from "@tutao/tutanota-utils/"
 
 
 assertWorkerOrNode()

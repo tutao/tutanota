@@ -3,7 +3,7 @@
 import o from "ospec"
 import {Dialog} from "../../../src/gui/base/Dialog"
 import {getConfirmation, getPosAndBoundsFromMouseEvent} from "../../../src/gui/base/GuiUtils"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 o.spec("GuiUtils", function () {
 

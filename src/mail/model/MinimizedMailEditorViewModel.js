@@ -2,7 +2,7 @@
 
 import type {Dialog} from "../../gui/base/Dialog"
 import type {SendMailModel} from "../editor/SendMailModel"
-import {lastThrow, remove} from "../../api/common/utils/ArrayUtils"
+import {lastThrow, remove} from "@tutao/tutanota-utils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 

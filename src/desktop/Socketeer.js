@@ -5,7 +5,7 @@ import type {WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
 import {log} from "./DesktopLog";
-import type {TimeoutSetter} from "../api/common/utils/Utils"
+import type {TimeoutSetter} from "@tutao/tutanota-utils"
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
 

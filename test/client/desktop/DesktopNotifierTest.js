@@ -2,11 +2,11 @@
 import o from "ospec"
 import n from "../nodemocker"
 import type {ElectronNotificationFactory} from "../../../src/desktop/NotificatonFactory"
-import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import {DesktopNotifier} from "../../../src/desktop/DesktopNotifier"
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray"
 import type {NativeImage} from "electron"
-import {delay} from "../../../src/api/common/utils/PromiseUtils"
+import {delay} from "@tutao/tutanota-utils"
 
 // just a placeholder, symbol to make sure it's the same instance
 const appIcon: NativeImage = downcast(Symbol("appIcon"))

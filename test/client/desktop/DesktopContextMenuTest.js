@@ -2,7 +2,7 @@
 import o from "ospec"
 import n from "../nodemocker"
 import {DesktopContextMenu} from "../../../src/desktop/DesktopContextMenu"
-import {downcast} from "../../../src/api/common/utils/Utils"
+import {downcast} from "@tutao/tutanota-utils"
 
 o.spec("DesktopContextMenu Test", () => {
 	const standardMocks = () => {

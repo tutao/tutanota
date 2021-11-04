@@ -1,13 +1,12 @@
 //@flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {LoginView} from "../../login/LoginView"
 import {header} from "../../gui/base/Header";
 import {modal} from "../../gui/base/Modal";
-import {last} from "../../api/common/utils/ArrayUtils";
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../../misc/RouteChange"
 import {locator} from "../../api/main/MainLocator"
 import {getInboxFolder} from "../../mail/model/MailUtils"
+import {last} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

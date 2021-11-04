@@ -12,9 +12,7 @@ import {
 	getTimeZone,
 	incrementByRepeatPeriod
 } from "../../../src/calendar/date/CalendarUtils"
-import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
-import {clone, downcast, neverNull, noOp} from "../../../src/api/common/utils/Utils"
-import {asResult, mapToObject} from "../../api/TestUtils"
+import {clone, downcast, getStartOfDay, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../../src/calendar/model/CalendarModel"
 import {CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
@@ -43,6 +41,7 @@ import {MailModel} from "../../../src/mail/model/MailModel"
 import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
 import {CalendarFacade} from "../../../src/api/worker/facades/CalendarFacade"
 import {FileFacade} from "../../../src/api/worker/facades/FileFacade"
+import {asResult, mapToObject} from "@tutao/tutanota-test-utils"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
