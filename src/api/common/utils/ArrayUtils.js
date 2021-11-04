@@ -217,30 +217,52 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
 }
 
 /**
- * Group an array based on the given separator, but each group will have only unique items
+ * Group an array based on the given discriminator, but each group will have only unique items
  */
-export function groupByAndMapUniquely<T, R, E>(iterable: Iterable<T>, separator: T => R, mapper: T => E): Map<R, Set<E>> {
+export function groupByAndMapUniquely<T, R, E>(iterable: Iterable<T>, discriminator: T => R, mapper: T => E): Map<R, Set<E>> {
 	const map = new Map()
 	for (let el of iterable) {
-		const key = separator(el)
+		const key = discriminator(el)
 		getFromMap(map, key, () => new Set()).add(mapper(el))
 	}
 	return map
 }
 
-export function groupByAndMap<T, R, E>(iterable: Iterable<T>, separator: (T) => R, mapper: (T) => E): Map<R, Array<E>> {
+/**
+ * convert an Array of T's into a Map of Arrays of E's by
+ * * grouping them based on a discriminator
+ * * mapping them from T to E
+ * @param iterable the array to split into groups
+ * @param discriminator a function that produces the keys to group the elements by
+ * @param mapper a function that maps the array elements before they get added to the group
+ * @returns {Map<R, Array<E>>}
+ */
+export function groupByAndMap<T, R, E>(iterable: Iterable<T>, discriminator: (T) => R, mapper: (T) => E): Map<R, Array<E>> {
 	const map = new Map()
 	for (let el of iterable) {
-		const key = separator(el)
+		const key = discriminator(el)
 		getFromMap(map, key, () => []).push(mapper(el))
 	}
 	return map
 }
 
-export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
-	return groupByAndMap(iterable, separator, identity)
+/**
+ * Group array elements based on keys produced by a discriminator
+ * @param iterable the array to split into groups
+ * @param discriminator a function that produces the keys to group the elements by
+ * @returns {NodeJS.Global.Map<R, Array<T>>}
+ */
+export function groupBy<T, R>(iterable: Iterable<T>, discriminator: (T) => R): Map<R, Array<T>> {
+	return groupByAndMap(iterable, discriminator, identity)
 }
 
+/**
+ * split an array into chunks of a given size.
+ * the last chunk will be smaller if there are less than chunkSize elements left.
+ * @param chunkSize
+ * @param array
+ * @returns {Array<Array<T>>}
+ */
 export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Array<T>> {
 	if (chunkSize < 1) {
 		return []

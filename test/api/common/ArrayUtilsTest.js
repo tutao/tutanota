@@ -1,12 +1,20 @@
 //@flow
 import o from "ospec"
 import {
-	arrayEquals, arrayEqualsWithPredicate,
+	arrayEquals,
+	arrayEqualsWithPredicate,
 	concat,
-	deduplicate, difference,
-	findLastIndex, flat, flatMap, groupBy, groupByAndMap, groupByAndMapUniquely,
+	deduplicate,
+	difference,
+	findLastIndex,
+	flat,
+	flatMap,
+	groupBy,
+	groupByAndMap,
+	groupByAndMapUniquely,
 	insertIntoSortedArray,
-	splitInChunks, symmetricDifference
+	splitInChunks,
+	symmetricDifference
 } from "../../../src/api/common/utils/ArrayUtils"
 
 type ObjectWithId = {
@@ -214,6 +222,26 @@ o.spec("array utils", function () {
 				[1, [1, 4, 4]],
 				[2, [2]]
 			])
+	})
+
+	o("splitInChunks", function() {
+		o(splitInChunks(-1, []))
+			.deepEquals([])
+
+		o(splitInChunks(-1, [1, 2, 3, 4]))
+			.deepEquals([])
+
+		o(splitInChunks(0, []))
+			.deepEquals([])
+
+		o(splitInChunks(0, [1, 2, 3]))
+			.deepEquals([])
+
+		o(splitInChunks(1, [1, 2, 3]))
+			.deepEquals([[1], [2], [3]])
+
+		o(splitInChunks(2, [1, 2, 3]))
+			.deepEquals([[1, 2], [3]])
 	})
 
 	o("groupByAndMap", function () {

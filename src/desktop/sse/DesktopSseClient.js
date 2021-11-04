@@ -2,6 +2,7 @@
 
 import type {App} from "electron"
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import type {TimeoutSetter} from "../../api/common/utils/Utils"
 import {filterInt, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
@@ -9,7 +10,7 @@ import type {DesktopConfig} from "../config/DesktopConfig"
 import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
-import type {DesktopNetworkClient} from "../DesktopNetworkClient"
+import type {DesktopClientRequest, DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
@@ -26,8 +27,6 @@ import {
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
-import type {DesktopClientRequest} from "../DesktopNetworkClient"
-import type {TimeoutSetter} from "../../api/common/utils/Utils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -145,6 +144,9 @@ export class DesktopSseClient {
 		}
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
 		log.debug("starting sse connection")
+
+		// webstorm seems to think that ClientRequest.end() returns void.
+		// noinspection JSVoidFunctionReturnValueUsed
 		this._connection = this._net.request(url, {
 			headers: {
 				"Content-Type": "application/json",
@@ -369,6 +371,9 @@ export class DesktopSseClient {
 			if (lastProcessedId) {
 				headers["lastProcessedNotificationId"] = lastProcessedId
 			}
+
+			// webstorm seems to think that ClientRequest.end() returns void.
+			// noinspection JSVoidFunctionReturnValueUsed
 			const req = this._net
 			                .request(url, {
 					                method: "GET",

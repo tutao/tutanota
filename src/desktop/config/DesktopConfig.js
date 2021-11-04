@@ -1,7 +1,7 @@
 // @flow
 import path from 'path'
 import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, downcast, getChangedProps} from "../../api/common/utils/Utils"
+import {defer, downcast} from "../../api/common/utils/Utils"
 import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import {DesktopConfigMigrator} from "./migrations/DesktopConfigMigrator"
 import fs from "fs"
@@ -14,6 +14,8 @@ import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import type {ConfigFileType} from "./ConfigFile"
+import {getConfigFile} from "./ConfigFile"
 
 
 type AllConfigKeysEnum = DesktopConfigKeyEnum | DesktopConfigEncKeyEnum
@@ -26,7 +28,7 @@ type ConfigValue = string | number | {} | boolean | $ReadOnlyArray<ConfigValue>
 export class DesktopConfig {
 	_buildConfig: DeferredObject<Config>;
 	_desktopConfig: DeferredObject<Config>; // user preferences as set for this installation
-	_desktopConfigPath: string;
+	_desktopConfigFile: ConfigFileType;
 	_deviceKeyProvider: DesktopDeviceKeyProvider
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
@@ -38,7 +40,7 @@ export class DesktopConfig {
 		this._cryptoFacade = cryptFacade
 		this._app = app
 		this._migrator = migrator
-		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
+		this._desktopConfigFile = getConfigFile(path.join(app.getPath('userData'), 'conf.json'), fs)
 		this._onValueSetListeners = {}
 		this._buildConfig = defer()
 		this._desktopConfig = defer()
@@ -46,8 +48,8 @@ export class DesktopConfig {
 
 	async init() {
 		try {
-			const packageJsonPath = path.join(this._app.getAppPath(), 'package.json')
-			const packageJson = downcast<{[string]: mixed}>(await readJSON(packageJsonPath))
+			const packageJsonFile = getConfigFile(path.join(this._app.getAppPath(), 'package.json'), fs)
+			const packageJson = downcast<{[string]: mixed}>(await packageJsonFile.readJSON())
 			this._buildConfig.resolve(downcast<Config>(packageJson['tutao-config']))
 		} catch (e) {
 			throw new Error("Could not load build config: " + e)
@@ -57,20 +59,16 @@ export class DesktopConfig {
 		const defaultConf: Config = downcast(buildConfig["defaultDesktopConfig"])
 
 		// create default config if none exists
-		try {
-			fs.accessSync(this._desktopConfigPath, fs.constants.F_OK)
-		} catch (e) {
-			fs.writeFileSync(this._desktopConfigPath, JSON.stringify(defaultConf))
-		}
+		await this._desktopConfigFile.ensurePresence(defaultConf)
 
-		const userConf = await readJSON(this._desktopConfigPath).catch(() => defaultConf)
+		const userConf = (await this._desktopConfigFile.readJSON()) || defaultConf
 		const populatedConfig = Object.assign({}, defaultConf, userConf)
 		const desktopConfig = await this._migrator.applyMigrations(
 			downcast<MigrationKind>(buildConfig["configMigrationFunction"]),
 			populatedConfig,
 		)
 		await fs.promises.mkdir(path.join(this._app.getPath('userData')), {recursive: true})
-		await writeJSON(this._desktopConfigPath, desktopConfig)
+		await this._desktopConfigFile.writeJSON(desktopConfig)
 		this._desktopConfig.resolve(desktopConfig)
 	}
 
@@ -147,7 +145,7 @@ export class DesktopConfig {
 
 	async _saveAndNotify(key: AllConfigKeysEnum, value: ?ConfigValue): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
-		await writeJSON(this._desktopConfigPath, desktopConfig)
+		await this._desktopConfigFile.writeJSON(desktopConfig)
 		this._notifyChangeListeners(key, value)
 	}
 
@@ -189,14 +187,4 @@ export class DesktopConfig {
 			}
 		}
 	}
-}
-
-async function readJSON(path: string): Promise<any> {
-	const text: string = await fs.promises.readFile(path, "utf8")
-	return JSON.parse(text)
-}
-
-async function writeJSON(path: string, obj: any): Promise<void> {
-	const json = JSON.stringify(obj, null, 2)
-	return fs.promises.writeFile(path, json)
 }

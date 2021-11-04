@@ -77,6 +77,7 @@ import {preTest, reportTest} from "../api/TestUtils"
 		await import("./desktop/DesktopCryptoFacadeTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
 		await import("./desktop/DeviceKeyProviderTest.js")
+		await import ("./desktop/config/ConfigFileTest.js")
 	}
 
 	preTest()

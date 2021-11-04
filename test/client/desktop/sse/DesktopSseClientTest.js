@@ -667,7 +667,7 @@ o.spec("DesktopSseClient Test", function () {
 		downcast(electronMock.app).callbacks['will-quit']()
 	})
 
-	o("suspension on downloadMissedNotification", async function () {
+	o("suspension on downloadMissedNotification Service Unavailable", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const sseResponse = new net.Response(200)
@@ -702,7 +702,7 @@ o.spec("DesktopSseClient Test", function () {
 		downcast(electronMock.app).callbacks['will-quit']()
 	})
 
-	o("suspension on downloadMissedNotification", async function () {
+	o("suspension on downloadMissedNotification Too Many Requests", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const sseResponse = new net.Response(200)
