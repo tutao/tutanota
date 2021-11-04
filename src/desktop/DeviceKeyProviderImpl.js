@@ -46,7 +46,6 @@ export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
 			return
 		}
 
-		console.log("stored devicekey:", storedKey)
 		if (storedKey) {
 			this._deviceKey.resolve(base64ToKey(storedKey))
 			return
