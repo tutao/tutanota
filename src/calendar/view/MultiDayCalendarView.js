@@ -180,7 +180,7 @@ export class MultiDayCalendarView implements MComponent<Attrs> {
 									attrs.onNewEvent(time.toDate(attrs.selectedDate))
 								},
 							},
-							m(".pt.pl-s.pr-s.center.small", {
+							m(".pl-s.pr-s.center.small", {
 								style: {
 									'line-height': styles.isDesktopLayout() ? px(size.calendar_hour_height) : "unset",
 									width: px(width),

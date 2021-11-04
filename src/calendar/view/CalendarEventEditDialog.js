@@ -224,8 +224,8 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				m(".flex-grow", m(startDatePicker)),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
-						value: viewModel.startTime,
-						onselected: (time) => viewModel.setStartTime(time),
+						time: viewModel.startTime,
+						onTimeSelected: (time) => viewModel.setStartTime(time),
 						amPmFormat: viewModel.amPmFormat,
 						disabled: viewModel.isReadOnlyEvent()
 					}))
@@ -235,8 +235,8 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				m(".flex-grow", m(endDatePicker)),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
-						value: viewModel.endTime,
-						onselected: (time) => viewModel.setEndTime(time),
+						time: viewModel.endTime,
+						onTimeSelected: (time) => viewModel.setEndTime(time),
 						amPmFormat: viewModel.amPmFormat,
 						disabled: viewModel.isReadOnlyEvent()
 					}))
