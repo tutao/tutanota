@@ -16,61 +16,89 @@
 default_platform(:ios)
 
 platform :ios do
-
-  desc "Push a new release to AppStore"
-  lane :release do |options|
-    match(app_identifier: "de.tutao.tutanota",
-      	type: "appstore",
-      	verbose: false,
-      	readonly: true,
-      	generate_apple_certs: false,
-      	keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-      	api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-    )
-    build_app(
-    	scheme: "tutanota-dist",
-		output_directory: "releases",
-		output_name: "tutanota-" + get_version_number(target: "tutanota"),
-		include_bitcode: true,
-		include_symbols: true,
-		verbose: false
-    )
-	if options[:submit]
-		upload_to_app_store(
-			skip_screenshots: true,
-			submit_for_review: false,
-			precheck_include_in_app_purchases: false,
-			# must use force as long as we don't automatically create html previews
-			force: true,
+	desc "Push a new release to AppStore"
+	lane :release do |options|
+		match(
+			app_identifier: "de.tutao.tutanota",
+			type: "appstore",
+			verbose: false,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
-    end
-  end
+		build_app(
+			scheme: "tutanota-dist",
+			output_directory: "releases",
+			output_name: "tutanota-" + get_version_number(target: "tutanota"),
+			include_bitcode: true,
+			include_symbols: true,
+			verbose: false
+		)
+		if options[:submit]
+			upload_to_app_store(
+				skip_screenshots: true,
+				submit_for_review: false,
+				precheck_include_in_app_purchases: false,
+				# must use force as long as we don't automatically create html previews
+				force: true,
+				api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+			)
+		end
+	end
+
+	desc "Build a new release for ad-hoc"
+	lane :adhoc do |options|
+		match(
+			app_identifier: "de.tutao.tutanota",
+			type: "adhoc",
+			verbose: false,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+		build_app(
+			scheme: "tutanota-dist",
+			output_directory: "releases",
+			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-adhoc",
+			export_options: {
+				method: "ad-hoc"
+			},
+			include_bitcode: true,
+			verbose: false
+		)
+	end
+
 	desc "Build against test system"
-    lane :adhoctest do
-    match(app_identifier: "de.tutao.tutanota",
-    	type: "adhoc",
-    	verbose: false,
-    	readonly: true,
-    	generate_apple_certs: false,
-    	keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
-    	api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
-    )
-  	build_app(scheme: "tutanota-dist",
-		output_directory: "releases",
-		output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
-		export_options: {
-			method: "ad-hoc"
-		},
-		include_bitcode: true,
-		verbose: false
-  	)
-    end
+	lane :adhoctest do
+		match(
+			app_identifier: "de.tutao.tutanota",
+			type: "adhoc",
+			verbose: false,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+		build_app(
+			scheme: "tutanota-dist",
+			output_directory: "releases",
+			output_name: "tutanota-" + get_version_number(target: "tutanota") + "-test",
+			export_options: {
+				method: "ad-hoc"
+			},
+			include_bitcode: true,
+			verbose: false
+		)
+	end
 
-  lane :test do
-	puts Dir.pwd
-	puts Dir.pwd
-  end
-
-
+	desc "Run iOS test cases"
+	lane :test do
+		sh "mkdir -p ../../build" # Create tutanota-3/build if it's not there because we try to copy it during build	run_tests(
+		run_tests(
+				scheme: "tutanota",
+				devices: ["iPhone 6s"]
+		)
+ 	end
 end

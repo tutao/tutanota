@@ -19,6 +19,22 @@ pipeline {
 	}
 
 	stages {
+	    stage("Run tests") {
+	        agent {
+	        	label 'mac'
+	        }
+	        environment {
+	        	LC_ALL="en_US.UTF-8"
+            	LANG="en_US.UTF-8"
+	        }
+	        steps {
+	        	script {
+	        		dir('app-ios') {
+	        			sh 'fastlane test'
+	        		}
+	        	}
+	        }
+	    }
 		stage("Build IOS app") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}"
@@ -34,9 +50,8 @@ pipeline {
 					createAppfile()
 
 					def stage = params.PROD ? 'prod' : 'test'
-					def lane = params.PROD ? 'release' : 'adhoctest'
-					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
-					def fastlaneOpts = params.PROD && params.PUBLISH ? "submit:true" : "submit:false"
+					def lane = params.PROD ? 'adhoc' : 'adhoctest'
+					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
 					sh "echo $PATH"
 					sh "npm ci"
 					sh "node dist ${stage}"
@@ -54,7 +69,10 @@ pipeline {
 
 							// Set git ssh command to avoid ssh prompting to confirm an unknown host
 							// (since we don't have console access we can't confirm and it gets stuck)
-							sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane} ${fastlaneOpts}"
+							sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
+							if (params.PROD && params.PUBLISH) {
+								sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane release submit:true"
+							}
 						}
 					}
 
@@ -64,7 +82,6 @@ pipeline {
 						def tag = "tutanota-ios-release-${VERSION}"
  						sh "git tag ${tag}"
  						sh "git push --tags"
-//						sh "echo ${tag}"
 					}
 				}
 			}
@@ -109,7 +126,7 @@ pipeline {
 			steps {
 				script {
 					def util = load "jenkins-lib/util.groovy"
-					def ipaFileName = params.PROD ? "tutanota-${VERSION}.ipa" : "tutanota-${VERSION}-test.ipa"
+					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
 					def artifactId = params.PROD ? "ios" : "ios-test"
 
 					unstash 'ipa'
