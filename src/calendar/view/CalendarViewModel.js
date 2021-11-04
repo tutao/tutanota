@@ -231,15 +231,27 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._deviceConfig.setHiddenCalendars(logins.getUserController().user._id, [...newHiddenCalendars])
 	}
 
-	getCalendarInfosCreateIfNeeded(): Promise<$ReadOnlyMap<Id, CalendarInfo>> | $ReadOnlyMap<Id, CalendarInfo> {
-		return this._calendarInfos.isLoaded() && this._calendarInfos.getLoaded().size > 0
-			? this._calendarInfos.getLoaded()
-			: this._calendarModel.createCalendar("", null)
-			      .then(() => this._calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
-			      .then((infos) => {
-				      this._calendarInfos = new LazyLoaded(() => Promise.resolve(infos)).load()
-				      return infos
-			      })
+	/**
+	 * Get calendar infos, creating a new calendar info if none exist
+	 * Not async because we want to return the result directly if it is available when called
+	 * otherwise we return a promise
+	 */
+	getCalendarInfosCreateIfNeeded(): $Promisable<$ReadOnlyMap<Id, CalendarInfo>> {
+
+		if (this._calendarInfos.isLoaded() && this.calendarInfos.getLoaded().size > 0) {
+			return this._calendarInfos.getLoaded()
+		}
+
+		return Promise.resolve().then(async () => {
+			const calendars = await this._calendarInfos.getAsync()
+			if (calendars.size > 0) {
+				return calendars
+			} else {
+				await this._calendarModel.createCalendar("", null)
+				this._calendarInfos = new LazyLoaded(() => this._calendarModel.loadCalendarInfos(new NoopProgressMonitor()))
+				return this._calendarInfos.getAsync()
+			}
+		})
 	}
 
 

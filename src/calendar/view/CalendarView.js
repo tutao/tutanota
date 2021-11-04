@@ -393,7 +393,7 @@ export class CalendarView implements CurrentView {
 				{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.TableSingle, href: "/calendar/day"},
 			)
 		}
-		
+
 		return calendarViewValues.map(viewType => m(".folder-row.flex-start.plr-l",
 			// undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 			m(".flex-grow.ml-negative-s", m(NavButtonN, {
