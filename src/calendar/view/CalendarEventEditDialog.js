@@ -51,6 +51,7 @@ import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel";
+import {showUserError} from "../../misc/ErrorHandlerImpl"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -79,28 +80,12 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 		createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)
 	]).then(([{HtmlEditor}, viewModel]) => {
 		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-		const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-		startDatePicker.setDate(viewModel.startDate)
-		endDatePicker.setDate(viewModel.endDate)
-		startDatePicker.date.map((date) => {
-			viewModel.setStartDate(date)
-			if (endDatePicker.date() !== viewModel.endDate) {
-				endDatePicker.setDate(viewModel.endDate)
-			}
-		})
-
-		endDatePicker.date.map((date) => {
-			viewModel.setEndDate(date)
-		})
 
 		const repeatValues = createRepeatRuleFrequencyValues()
 		const intervalValues = createIntevalValues()
 		const endTypeValues = createRepeatRuleEndTypeValues()
-		const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg")
-		repeatEndDatePicker.date.map((date) => viewModel.onRepeatEndDateSelected(date))
-		let finished = false
 
+		let finished = false
 
 		const endOccurrencesStream = memoized(stream)
 
@@ -116,8 +101,20 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					icon: BootIcons.Expand,
 				})
 			} else if (viewModel.repeat.endType === EndType.UntilDate) {
-				repeatEndDatePicker.setDate(new Date(viewModel.repeat.endValue))
-				return m(repeatEndDatePicker)
+				return m(DatePicker, {
+					date: viewModel.repeat?.endValue != null
+						? new Date(viewModel.repeat?.endValue)
+						: new Date(),
+					onDateSelected: date => viewModel.onRepeatEndDateSelected(date),
+					startOfTheWeekOffset,
+					label: "emptyString_msg",
+					nullSelectionText: "emptyString_msg",
+					// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
+					// to fix this we could either:
+					// * reorganize the layout so it doesn't go over the right edge
+					// * change the alignment so that it goes to the left (this is what we do)
+					rightAlignDropdown: true
+				})
 			} else {
 				return null
 			}
@@ -158,19 +155,25 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 				return showProgressDialog("pleaseWait_msg", p).catch(noOp)
 			}
 
-			Promise.resolve().then(() => {
-				return viewModel
-					.saveAndSend({
-						askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
-						showProgress,
-						askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-					})
-					.then((shouldClose) => shouldClose && finish())
-					.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
-					.catch(ofClass(BusinessFeatureRequiredError, (e) => {
-						showBusinessFeatureRequiredDialog(() => e.message)
-							.then(businessFeatureOrdered => viewModel.hasBusinessFeature(businessFeatureOrdered)) //entity event updates are too slow to call updateBusinessFeature()
-					}))
+			Promise.resolve().then(async () => {
+				const shouldClose = await viewModel.saveAndSend({
+					askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
+					showProgress,
+					askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+				}).catch(ofClass(UserError, e => {
+					showUserError(e)
+					return false
+				})).catch(ofClass(BusinessFeatureRequiredError, async e => {
+					const businessFeatureOrdered = await showBusinessFeatureRequiredDialog(() => e.message)
+
+					// entity event updates are too slow to call updateBusinessFeature()
+					viewModel.hasBusinessFeature(businessFeatureOrdered)
+					return false
+				}))
+
+				if (shouldClose) {
+					finish()
+				}
 			})
 		}
 
@@ -221,7 +224,18 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 
 		const renderDateTimePickers = () => renderTwoColumnsIfFits(
 			[
-				m(".flex-grow", m(startDatePicker)),
+				m(".flex-grow", m(DatePicker, {
+					date: viewModel.startDate,
+					onDateSelected: date => {
+						if (date) {
+							viewModel.setStartDate(date)
+						}
+					},
+					startOfTheWeekOffset,
+					label: "dateFrom_label",
+					nullSelectionText: "emptyString_msg",
+					disabled: viewModel.isReadOnlyEvent()
+				})),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						time: viewModel.startTime,
@@ -232,7 +246,18 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 					: null
 			],
 			[
-				m(".flex-grow", m(endDatePicker)),
+				m(".flex-grow", m(DatePicker, {
+					date: viewModel.endDate,
+					onDateSelected: date => {
+						if (date) {
+							viewModel.setEndDate(date)
+						}
+					},
+					startOfTheWeekOffset,
+					label: "dateTo_label",
+					nullSelectionText: "emptyString_msg",
+					disabled: viewModel.isReadOnlyEvent()
+				})),
 				!viewModel.allDay()
 					? m(".ml-s.time-field", m(TimePicker, {
 						time: viewModel.endTime,
@@ -345,7 +370,17 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 
 		function renderDialogContent() {
 
-			return m(".calendar-edit-container.pb", [
+			return m(".calendar-edit-container.pb", {
+					style: {
+						// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with
+						// a transform. So doing a no-op transform will make the dropdowns scroll with the dialog
+						// without this, then the date picker dialogs will show at the same place on the screen regardless of whether the
+						// editor has scrolled or not.
+						// Ideally we could do this inside DatePicker itself, but the rendering breaks and the dialog appears below it's siblings
+						// We also don't want to do this for all dialogs because it could potentially cause other issues
+						transform: "translate(0)"
+					}
+				}, [
 					renderHeading(),
 					renderChangesMessage(),
 					m(".mb.rel", m(ExpanderPanelN, {
@@ -422,7 +457,11 @@ export function showCalendarEventDialog(date: Date, calendars: $ReadOnlyMap<Id, 
 			middle: () => lang.get("createEvent_label"),
 			// right: save button is only added if the event is not read-only
 		}
-		const dialog = Dialog.largeDialog(dialogHeaderBarAttrs, {view: () => m(".calendar-edit-container.pb", renderDialogContent())}
+		const dialog = Dialog.largeDialog(
+			dialogHeaderBarAttrs,
+			{
+				view: renderDialogContent
+			}
 		).addShortcut({
 			key: Keys.ESC,
 			exec: finish,

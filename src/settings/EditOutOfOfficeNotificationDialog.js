@@ -88,15 +88,9 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 	_timeRangeCheckboxAttrs: CheckboxAttrs
 	_defaultSubjectAttrs: TextFieldAttrs
 	_organizationSubjectAttrs: TextFieldAttrs
-	_startDatePicker: DatePicker
-	_endDatePicker: DatePicker
 
 	constructor(vnode: Vnode<EditoOutOfOfficeNotificationDialogAttrs>) {
 		const {model} = vnode.attrs
-		const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		this._startDatePicker = new DatePicker(startOfWeek, "dateFrom_label", "emptyString_msg", false, model.startDate)
-		this._endDatePicker = new DatePicker(startOfWeek, "dateTo_label", "emptyString_msg", false, model.endDate)
-
 		const statusItems = [
 			{
 				name: lang.get("deactivated_label"),
@@ -180,21 +174,19 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 		const {model, defaultMessageEditor, organizationMessageEditor} = vnode.attrs
 		const defaultEnabled = model.isDefaultMessageEnabled()
 		const organizationEnabled = model.isOrganizationMessageEnabled()
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
 		return [
 			m(DropDownSelectorN, this._statusSelectorAttrs),
 			m(DropDownSelectorN, this._recipientSelectorAttrs),
 			m(".mt.flex-start", m(CheckboxN, this._timeRangeCheckboxAttrs)),
 			model.timeRangeEnabled()
-				? m(".flex-start", [
-					m(this._startDatePicker), m(this._endDatePicker)
-				])
+				? this.renderTimeRangeSelector(model, startOfTheWeekOffset)
 				: null,
 			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg",)),
 			organizationEnabled
 				? [
 					m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
-					m(TextFieldN, this._organizationSubjectAttrs
-					),
+					m(TextFieldN, this._organizationSubjectAttrs),
 					m(organizationMessageEditor)
 				]
 				: null,
@@ -207,6 +199,31 @@ class EditoOutOfOfficeNotificationDialog implements MComponent<EditoOutOfOfficeN
 				: null,
 			m(".pb", "")
 		]
+	}
+
+	renderTimeRangeSelector(model: EditOutOfOfficeNotificationDialogModel, startOfTheWeekOffset: number): Children {
+		return m(".flex.col", [
+			m(DatePicker, {
+				date: model.startDate(),
+				onDateSelected: model.startDate,
+				label: "dateFrom_label",
+				nullSelectionText: "emptyString_msg",
+				startOfTheWeekOffset,
+			}),
+			m(CheckboxN, {
+				label: () => lang.get("unlimited_label"),
+				checked: model.indefiniteTimeRange,
+			}),
+			!model.indefiniteTimeRange()
+				? m(DatePicker, {
+					date: model.endDate(),
+					onDateSelected: model.endDate,
+					label: "dateTo_label",
+					nullSelectionText: "emptyString_msg",
+					startOfTheWeekOffset,
+				})
+				: null,
+		])
 	}
 }
 

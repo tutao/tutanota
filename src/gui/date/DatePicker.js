@@ -1,16 +1,13 @@
 //@flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {Icons} from "../base/icons/Icons"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
-import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
+import type {TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
 import {BootIcons} from "../base/icons/BootIcons"
-import type {lazy} from "../../api/common/utils/Utils"
-import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "../base/Icon"
 import {getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
 import {DateTime} from "luxon"
@@ -30,142 +27,191 @@ import {parseDate} from "../../misc/DateParser"
  * That is why we only use the picker on mobile devices. They provide native picker components
  * and allow opening the picker by forwarding the click event to the input.
  */
-export class DatePicker implements MComponent<void> {
-	invalidDate: boolean;
-	date: Stream<?Date>;
-	_dateString: Stream<string>;
-	_startOfTheWeekOffset: number;
-	_showingDropdown: boolean;
-	_disabled: boolean;
-	_label: TranslationKey | lazy<string>
-	_nullSelectionHelpLabel: TranslationText
-	_domInput: ?HTMLElement
+export interface DatePickerAttrs {
+	date: Date,
+	onDateSelected: Date => mixed,
+	startOfTheWeekOffset: number,
+	label: TranslationText,
+	nullSelectionText?: TranslationText,
+	disabled?: boolean,
+	rightAlignDropdown?: bool
+}
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationText = "emptyString_msg", disabled: boolean = false, dateStream?: Stream<?Date>) {
-		this.date = dateStream ? dateStream : stream(null)
-		const initDate = this.date()
-		this._dateString = stream(initDate ? formatDate(initDate) : "")
-		this._startOfTheWeekOffset = startOfTheWeekOffset
-		this._showingDropdown = false
-		this._disabled = disabled
-		this._label = labelTextIdOrTextFunction
-		this._nullSelectionHelpLabel = nullSelectionTextId
-		this.invalidDate = false
-		this._domInput = null
-		this._dateString.map(value => {
-			try {
-				if (value.trim().length > 0) {
-					this.date(parseDate(value))
-					this.invalidDate = false
-				} else {
-					this.invalidDate = false
-					this.date(null)
-				}
-			} catch (e) {
-				this.invalidDate = true
-			}
-		})
+export class DatePicker implements MComponent<DatePickerAttrs> {
+
+	inputText: string = ""
+	showingDropdown: boolean = false
+	domInput: ?HTMLElement = null
+	documentClickListener: ?MouseEventListener = null
+
+	textFieldHasFocus: boolean = false
+
+	constructor({attrs}: Vnode<DatePickerAttrs>) {
+		const initDate = attrs.date
+		if (initDate) {
+			this.inputText = formatDate(initDate)
+		} else {
+			this.inputText = formatDate(new Date())
+		}
 	}
 
-	_documentClickListener: ?MouseEventListener;
+	view({attrs}: Vnode<DatePickerAttrs>): Children {
 
-	view: (() => Children) = () => {
-		const date = this.date()
+		const date = attrs.date
 
-		const helpLabel = () => {
-			if (this._showingDropdown) {
-				return null
-			} else if (this.invalidDate) {
-				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
-			} else if (this.date() != null) {
-				return formatDateWithWeekdayAndYear(neverNull(this.date()))
-			} else {
-				return lang.getMaybeLazy(this._nullSelectionHelpLabel)
-			}
+		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
+		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programatically
+		if (!this.textFieldHasFocus) {
+			this.inputText = formatDate(date)
 		}
 
 		return m(".rel", [
-			m("div", {
-				onclick: () => {
-					if (!this._disabled) {
-						this._showingDropdown = true
-					}
-				},
-
-			}, m(TextFieldN, {
-				label: this._label,
-				helpLabel,
-				disabled: this._disabled,
-				value: this._dateString,
-				onfocus: () => {
-					this._showingDropdown = true
-				},
-				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-				},
-				keyHandler: (key) => {
-					if (key.keyCode === Keys.TAB.code) {
-						this._showingDropdown = false
-					}
-					return true
-				}
-			})),
-			this._showingDropdown
-				? m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
-					style: {width: "280px"},
-					onblur: () => this._showingDropdown = false,
-					oncreate: (vnode) => {
-						const listener: MouseEventListener = (e) => {
-							if (!vnode.dom.contains(e.target)) {
-								this._showingDropdown = false
-								m.redraw()
-							}
-						}
-						this._documentClickListener = listener
-						document.addEventListener("click", listener, true)
-					},
-					onremove: (vnode) => {
-						this._documentClickListener && document.removeEventListener("click", this._documentClickListener, true)
-					}
-				}, m(VisualDatePicker, {
-					selectedDate: this.date(),
-					onDateSelected: (newDate, dayClick) => {
-						this.setDate(newDate)
-						if (dayClick) { // Do not close dropdown on changing a month
-							this._showingDropdown = false
-						}
-					},
-					wide: false,
-					startOfTheWeekOffset: this._startOfTheWeekOffset
-				}))
+			this._renderTextField(attrs),
+			this.showingDropdown
+				? this._renderDropdown(attrs)
 				: null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
 			client.isMobileDevice()
-				? m("input.fill-absolute", {
-					type: "date",
-					style: {
-						opacity: 0,
-						// This overrides platform-specific width setting, we want to cover the whole field
-						minWidth: "100%",
-						minHeight: "100%"
-					},
-					// Format as ISO date format (YYY-MM-dd). We use luxon for that because JS Date only supports full format with time.
-					value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
-					oninput: (event) => {
-						// valueAsDate is always 00:00 UTC
-						// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-						this.setDate(getAllDayDateLocal(event.target.valueAsDate))
-					},
-				})
+				? this._renderMobileDateInput(attrs)
 				: null,
 		])
 	}
 
-	setDate(date: ?Date) {
-		this.invalidDate = false
-		this.date(date)
-		this._dateString(date && formatDate(date) || "")
+	_renderTextField(
+		{
+			date,
+			onDateSelected,
+			label,
+			nullSelectionText,
+			disabled
+		}: DatePickerAttrs,
+	): Children {
+		return m("", {
+			onclick: () => {
+				if (!disabled) {
+					this.showingDropdown = true
+				}
+			},
+		}, m(TextFieldN, {
+			value: () => this.inputText,
+			label,
+			helpLabel: () => this._renderHelpLabel(date, nullSelectionText),
+			disabled,
+			oninput: this._getTextInputHandler(onDateSelected),
+			onfocus: () => {
+				this.showingDropdown = true
+				this.textFieldHasFocus = true
+			},
+			onblur: () => {
+				this.textFieldHasFocus = false
+			},
+			oncreate: (vnode) => {
+				this.domInput = vnode.dom
+			},
+			keyHandler: (key) => {
+				if (key.keyCode === Keys.TAB.code) {
+					this.showingDropdown = false
+				}
+				return true
+			}
+		}))
+	}
+
+	_renderHelpLabel(date: ?Date, nullSelectionText: ?TranslationText): Children {
+		if (this.showingDropdown) {
+			return null
+		} else if (date != null) {
+			return formatDateWithWeekdayAndYear(date)
+		} else {
+			return lang.getMaybeLazy(nullSelectionText ?? "emptyString_msg")
+		}
+	}
+
+	_renderDropdown(
+		{
+			date,
+			onDateSelected,
+			startOfTheWeekOffset,
+			rightAlignDropdown,
+		}: DatePickerAttrs
+	): Children {
+
+		const onSelected = this._getDateSelectedHandler(onDateSelected)
+		return m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
+			style: {
+				width: "280px",
+				right: rightAlignDropdown ? "0" : null
+			},
+			onblur: () => this.showingDropdown = false,
+			oncreate: (vnode) => {
+				const listener: MouseEventListener = (e) => {
+					if (!vnode.dom.contains(e.target)) {
+						this.showingDropdown = false
+						m.redraw()
+					}
+				}
+				this.documentClickListener = listener
+				document.addEventListener("click", listener, true)
+			},
+			onremove: (vnode) => {
+				if (this.documentClickListener) {
+					document.removeEventListener("click", this.documentClickListener, true)
+				}
+			}
+		}, m(VisualDatePicker, {
+			selectedDate: date,
+			onDateSelected: (newDate, dayClick) => {
+				onSelected(newDate)
+				if (dayClick) { // Do not close dropdown on changing a month
+					this.showingDropdown = false
+				}
+			},
+			wide: false,
+			startOfTheWeekOffset: startOfTheWeekOffset
+		}))
+	}
+
+	_renderMobileDateInput({date, onDateSelected}: DatePickerAttrs): Children {
+		const onSelected = this._getDateSelectedHandler(onDateSelected)
+		return m("input.fill-absolute", {
+			type: "date",
+			style: {
+				opacity: 0,
+				// This overrides platform-specific width setting, we want to cover the whole field
+				minWidth: "100%",
+				minHeight: "100%"
+			},
+			// Format as ISO date format (YYYY-MM-dd). We use luxon for that because JS Date only supports full format with time.
+			value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
+			oninput: (event) => {
+				// valueAsDate is always 00:00 UTC
+				// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
+				onSelected(getAllDayDateLocal(event.target.valueAsDate))
+			},
+		})
+	}
+
+	_getTextInputHandler(setDateCallback: Date => mixed): string => mixed {
+		return text => {
+			this.inputText = text
+			const trimmedValue = text.trim()
+			if (trimmedValue !== "") {
+				try {
+					const parsedDate = parseDate(trimmedValue)
+					setDateCallback(parsedDate)
+				} catch (e) {
+					// Parsing failed so the user is probably typing
+				}
+			}
+		}
+	}
+
+	_getDateSelectedHandler(setDateCallback: Date => mixed): Date => mixed {
+		return date => {
+			this.inputText = formatDate(date)
+			setDateCallback(date)
+		}
 	}
 }
 
@@ -218,7 +264,9 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	_switchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this._elWidth(attrs))
 		return m(".icon.flex.justify-center.items-center.click", {
-			onclick: forward ? () => this._onNextMonthSelected(attrs) : () => this._onPrevMonthSelected(attrs),
+			onclick: forward
+				? () => this._onNextMonthSelected()
+				: () => this._onPrevMonthSelected(),
 			style: {
 				fill: theme.content_fg,
 				width: size,
@@ -227,11 +275,11 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		}, m(Icon, {icon: forward ? Icons.ArrowForward : BootIcons.Back, style: {fill: theme.content_fg}}))
 	}
 
-	_onPrevMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
+	_onPrevMonthSelected() {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
 	}
 
-	_onNextMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
+	_onNextMonthSelected() {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
 	}
 
@@ -271,18 +319,4 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 			}, wd)
 		)
 	}
-
-
 }
-
-function addMonth(date: Date, toAdd: number): Date {
-	if (client.isIE()) {
-		const newDate = new Date(date)
-		newDate.setMonth(newDate.getMonth() + toAdd)
-		return newDate
-	} else {
-		return DateTime.fromJSDate(date).plus({months: toAdd}).toJSDate()
-	}
-}
-
-

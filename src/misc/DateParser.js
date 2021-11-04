@@ -75,7 +75,11 @@ export function parseDate(dateString: string): Date {
 		year = new Date().getFullYear()
 	} else { // invalid parts length
 		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+	}
 
+	// if 1 or 2 digit year, then make it be in the 2000
+	if (year < 1000) {
+		year += 2000
 	}
 
 	if (month < 1 || month > 12) {
@@ -153,12 +157,7 @@ export function parseBirthday(text: string): ?Birthday {
 }
 
 export function _cleanupAndSplit(dateString: string): number[] {
-	let languageTag = lang.languageTag.toLowerCase()
-
-	if (languageTag === 'bg-bg') {
-		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
-	}
-	dateString = dateString.replace(/ /g, "")
-	dateString = dateString.replace(/‎/g, "") // remove left-to-right character (included on Edge)
+	// Clean up any characters that can't be dealt with
+	dateString = dateString.replace(/[^ 0-9.\/-]/g, "")
 	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
 }

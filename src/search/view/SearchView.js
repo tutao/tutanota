@@ -39,7 +39,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
 import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../../misc/Formatter"
-import {showDatePickerDialog} from "../../gui/date/DatePickerDialog"
+import {showDateRangeSelectionDialog} from "../../gui/date/DatePickerDialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../../api/common/utils/DateUtils"
 import {logins} from "../../api/main/LoginController"
@@ -294,27 +294,29 @@ export class SearchView implements CurrentView {
 
 		const changeTimeButtonAttrs = {
 			label: "selectPeriodOfTime_label",
-			click: () => {
+			click: async () => {
 				if (logins.getUserController().isFreeAccount()) {
 					showNotAvailableForFreeDialog(true)
 				} else {
 					const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-					showDatePickerDialog(startOfWeek, (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
-						(this._endDate) ? this._endDate : new Date())
-						.then(dates => {
-							if (dates.end && isToday(dates.end)) {
-								this._endDate = null
-							} else {
-								this._endDate = dates.end
-							}
-							let current = this._getCurrentMailIndexDate()
-							if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
-								this._startDate = null
-							} else {
-								this._startDate = dates.start
-							}
-							this._searchAgain()
-						})
+					const {end, start} = await showDateRangeSelectionDialog(
+						startOfWeek,
+						this._startDate ?? this._getCurrentMailIndexDate() ?? new Date(),
+						this._endDate ?? new Date()
+					)
+					if (end && isToday(end)) {
+						this._endDate = null
+					} else {
+						this._endDate = end
+					}
+					let current = this._getCurrentMailIndexDate()
+					if (start && current && isSameDay(current, start)) {
+						this._startDate = null
+					} else {
+						this._startDate = start
+					}
+					this._searchAgain()
+
 				}
 			},
 			icon: () => Icons.Edit,

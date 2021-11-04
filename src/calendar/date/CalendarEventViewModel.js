@@ -508,27 +508,23 @@ export class CalendarEventViewModel {
 		this.endTime = new Time(newEndHours, newEndMinutes)
 	}
 
-	setStartDate(date: ?Date) {
-		if (date) {
-			// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
-			// tackle because it is a rare case.
-			if (date && date.getFullYear() < TIMESTAMP_ZERO_YEAR) {
-				const thisYear = (new Date()).getFullYear()
-				let newDate = new Date(date)
-				newDate.setFullYear(thisYear)
-				this.startDate = newDate
-			} else {
-				const diff = getDiffInDays(this.startDate, date)
-				this.endDate = DateTime.fromJSDate(this.endDate, {zone: this._zone}).plus({days: diff}).toJSDate()
-				this.startDate = date
-			}
+	setStartDate(date: Date) {
+		// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
+		// tackle because it is a rare case.
+		if (date && date.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+			const thisYear = (new Date()).getFullYear()
+			let newDate = new Date(date)
+			newDate.setFullYear(thisYear)
+			this.startDate = newDate
+		} else {
+			const diff = getDiffInDays(this.startDate, date)
+			this.endDate = DateTime.fromJSDate(this.endDate, {zone: this._zone}).plus({days: diff}).toJSDate()
+			this.startDate = date
 		}
 	}
 
-	setEndDate(date: ?Date) {
-		if (date) {
-			this.endDate = date
-		}
+	setEndDate(date: Date) {
+		this.endDate = date
 	}
 
 	onRepeatPeriodSelected(repeatPeriod: ?RepeatPeriodEnum) {
