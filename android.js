@@ -1,10 +1,11 @@
 import options from "commander"
 
-import {execFileSync} from "child_process"
 import fs from "fs"
-import path from "path"
+import {execFileSync} from "child_process"
+import {runDevBuild} from "./buildSrc/DevBuild.js"
 import {prepareMobileBuild} from "./buildSrc/prepareMobileBuild.js"
 
+const log = (...messages) => console.log("\nBUILD:", ...messages, "\n")
 
 /**
  * Besides options below this script may require signing parameters passed as environment variables:
@@ -14,31 +15,54 @@ import {prepareMobileBuild} from "./buildSrc/prepareMobileBuild.js"
  * 'APK_SIGN_STORE'
  * 'ANDROID_HOME'
  */
-
 options
-	.usage('[options] [test|prod|local] ')
-	.arguments('<target>')
+	.usage('[options] [test|prod|local|host <url>] ')
+	.arguments('[stage] [host]')
 	.option('-b, --buildtype <type>', 'gradle build type', /^(debugDist|debug|release|releaseTest)$/i, 'release')
 	.option('-w --webclient <client>', 'choose web client build', /^(make|dist)$/i, 'dist')
-	.parse(process.argv)
+	.action((stage, host, options) => {
+		if (!["test", "prod", "local", "host", undefined].includes(stage)
+			|| (stage !== "host" && host)
+			|| (stage === "host" && !host)) {
+			options.outputHelp()
+			process.exit(1)
+		}
 
-const log = (...messages) => console.log("\nBUILD:", ...messages, "\n")
+		const {webclient, buildtype} = options
 
-buildAndroid({
-	host: options.args[0] || 'prod',
-	webClient: options.webclient,
-	buildType: options.buildtype,
-}).catch(e => {
-	console.error(e)
-	process.exit(1)
-})
+		buildAndroid({
+			stage: stage ?? 'prod',
+			host: host,
+			webClient: webclient,
+			buildType: buildtype,
+		})
+	})
 
-async function buildAndroid({host, buildType, webClient}) {
+options.parse(process.argv)
+
+
+async function buildAndroid({stage, host, buildType, webClient}) {
 	log(`Starting build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 
-	runCommand('node', [webClient, `${host}`], {
-		stdio: [null, process.stdout, process.stderr]
-	})
+	if (webClient === "make") {
+		await runDevBuild({
+			stage,
+			host,
+			desktop: false,
+			clean: false,
+			watch: false,
+			serve: false
+		})
+	} else {
+		const nodeCommand = host
+			? ['dist', stage, host]
+			: ['dist', stage]
+
+		runCommand('node', nodeCommand, {
+			stdio: [null, process.stdout, process.stderr]
+		})
+
+	}
 
 	await prepareMobileBuild(webClient)
 
@@ -65,6 +89,10 @@ async function buildAndroid({host, buildType, webClient}) {
 	await fs.promises.rename(apkPath, outPath)
 
 	log(`Build complete. The APK is located at: ${outPath}`)
+
+	// runDevBuild spawns some child processes from the BuildServerClient,
+	// ideally we would detach from them inside as needed but for now we just hard exit
+	process.exit(0)
 }
 
 function runCommand(command, args, options) {
