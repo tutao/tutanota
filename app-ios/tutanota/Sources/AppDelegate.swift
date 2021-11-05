@@ -14,6 +14,9 @@ class AppDelegate : UIResponder,
   func registerForPushNotifications(
     callback: @escaping ResponseCallback<String>
   ) {
+    #if targetEnvironment(simulator)
+    return
+    #else
     UNUserNotificationCenter.current()
       .requestAuthorization(
         options: [.alert, .badge, .sound]) { granted, error in
@@ -26,6 +29,7 @@ class AppDelegate : UIResponder,
           callback(.failure(error!))
         }
       }
+    #endif
   }
   
   func application(
@@ -33,16 +37,20 @@ class AppDelegate : UIResponder,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
   ) -> Bool {
     TUTSLog("Start Tutanota \(String(describing: launchOptions))")
-    let keychainManager = KeychainManager()
+    
+    let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
+    
     self.alarmManager = AlarmManager(keychainManager: keychainManager, userPreference: userPreferences)
     self.window = UIWindow(frame: UIScreen.main.bounds)
+    let credentialsEncryption = CredentialsEncryption(keychainManager: keychainManager)
     self.viewController = ViewController(
       crypto: CryptoFacade(),
       contactsSource: ContactsSource(),
       themeManager: ThemeManager(),
       keychainManager: keychainManager,
       userPreferences: userPreferences,
-      alarmManager: self.alarmManager
+      alarmManager: self.alarmManager,
+      credentialsEncryption: credentialsEncryption
     )
     self.window!.rootViewController = viewController
     
@@ -79,9 +87,14 @@ class AppDelegate : UIResponder,
     
     let contentAvailable = apsDict["content-available"]
     if contentAvailable as? Int == 1 {
-      self.alarmManager.fetchMissedNotifications { err in
-        TUTSLog("Fetched missed notificaiton after notification \(String(describing: err))")
-        completionHandler(err != nil ? .failed : .newData)
+      self.alarmManager.fetchMissedNotifications { result in
+        TUTSLog("Fetched missed notificaiton after notification \(String(describing: result))")
+        switch result {
+        case .success():
+          completionHandler(.newData)
+        case .failure(_):
+          completionHandler(.failed)
+        }
       }
     }
   }

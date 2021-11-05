@@ -46,6 +46,8 @@
 	<string>Take a picture or video for adding it as attachment.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Find recipient email address in contacts.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Protecting credentials</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Used when recording a video as attachment.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

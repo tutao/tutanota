@@ -4,7 +4,7 @@ import UserNotifications
 import DictionaryCoding
 
 /// Main screen of the app.
-class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
+class ViewController : UIViewController, UIScrollViewDelegate {
   private let themeManager: ThemeManager
   private let alarmManager: AlarmManager
   private var bridge: WebViewBridge!
@@ -19,7 +19,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     themeManager: ThemeManager,
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
-    alarmManager: AlarmManager
+    alarmManager: AlarmManager,
+    credentialsEncryption: CredentialsEncryption
     ) {
       self.themeManager = themeManager
       self.alarmManager = alarmManager
@@ -34,7 +35,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
       
       self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
-      webView.navigationDelegate = self
       webView.scrollView.bounces = false
       webView.scrollView.isScrollEnabled = false
       webView.scrollView.delegate = self
@@ -50,7 +50,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
         keychainManager: keychainManager,
         userPreferences: userPreferences,
         alarmManager: alarmManager,
-        fileFacade: fileFacade
+        fileFacade: fileFacade,
+        credentialsEncryption: credentialsEncryption
       )
   }
   
@@ -121,10 +122,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     self.alarmManager.initialize()
     
     self._loadMainPage(params: [:])
-  }
-  
-  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    self.bridge.injectBridge()
   }
   
   private func _loadMainPage(params: [String : String]) {

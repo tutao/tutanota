@@ -19,8 +19,6 @@
 #import "Swiftier.h"
 #import "../Utils/PSPDFFastEnumeration.h"
 
-static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
-static NSInteger const PUBLIC_EXPONENT = 65537;
 static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 
 @implementation TUTPublicKey : NSObject

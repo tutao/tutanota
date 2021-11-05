@@ -24,7 +24,6 @@
 
 @end
 
-
 static unsigned char *randValueMock;
 
 // These don't need to do anything.
@@ -222,27 +221,27 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 
 }
 
-
 + (TUTPrivateKey *) hexToPrivateKey:( NSString*) hexKey {
-	let privateKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
-  let dict = @{
-    @"modulus": privateKeyArray[0],
-    @"privateExponent":privateKeyArray[1],
-    @"primeP":privateKeyArray[2],
-    @"primeQ":privateKeyArray[3],
-    @"primeExponentP":privateKeyArray[4],
-    @"primeExponentQ":privateKeyArray[5],
-    @"crtCoefficient":privateKeyArray[6],
-    };
-  return [[TUTPrivateKey alloc] initWithDict:dict];
+  let privateKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
+  return [[TUTPrivateKey alloc] initWithVersion:0
+                               keyLength:RSA_KEY_LENGTH_IN_BITS
+                                 modulus:privateKeyArray[0]
+                         privateExponent:privateKeyArray[1]
+                                  primeP:privateKeyArray[2]
+                                  primeQ:privateKeyArray[3]
+                          primeExponentP:privateKeyArray[4]
+                          primeExponentQ:privateKeyArray[5]
+                          crtCoefficient:privateKeyArray[6]
+  ];
 }
 
 + (TUTPublicKey *) hexToPublicKey:( NSString*) hexKey {
-	let publicKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
-	let dict = @{
-			 @"modulus":publicKeyArray[0]
-			 };
-  return [[TUTPublicKey alloc] initWithDict:dict];
+  let publicKeyArray = [CompatibilityTest hexToKeyArray:hexKey];
+  return [[TUTPublicKey alloc] initWithVersion:0
+                                     keyLength:RSA_KEY_LENGTH_IN_BITS
+                                       modulus:publicKeyArray[0]
+                                publicExponent:PUBLIC_EXPONENT
+  ];
 }
 
 - (NSString*) hexToB64:(NSString *) hexString {
