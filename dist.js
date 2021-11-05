@@ -177,7 +177,6 @@ async function buildWebapp(version) {
 				babelHelpers: "bundled",
 			}),
 			MINIFY && terser(),
-			// nodeResolve is only for core-js and oxmsg.
 			{
 				name: "append-libs",
 				resolveId(id) {
@@ -186,6 +185,7 @@ async function buildWebapp(version) {
 					}
 				},
 			},
+			// nodeResolve is for oxmsg and our own modules
 			nodeResolve(),
 			commonjs(),
 		],

@@ -68,7 +68,6 @@ function getStaticUrl(stage, mode, host) {
 }
 
 async function prepareAssets(stage, host, version) {
-	let restUrl
 	await Promise.all([
 		await fs.emptyDir("build/images"),
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
@@ -76,15 +75,6 @@ async function prepareAssets(stage, host, version) {
 		fs.copy(path.join(root, '/resources/desktop-icons'), path.join(root, '/build/icons')),
 		fs.copy(path.join(root, '/src/braintree.html'), path.join(root, 'build/braintree.html'))
 	])
-	if (stage === 'test') {
-		restUrl = 'https://test.tutanota.com'
-	} else if (stage === 'prod') {
-		restUrl = 'https://mail.tutanota.com'
-	} else if (stage === 'local') {
-		restUrl = "http://" + os.hostname() + ":9000"
-	} else { // host
-		restUrl = host
-	}
 
 	// write empty file
 	await fs.writeFile("build/polyfill.js", "")
