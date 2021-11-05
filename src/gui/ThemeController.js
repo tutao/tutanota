@@ -141,10 +141,9 @@ export class ThemeController {
 	}
 
 	/**
-	 * Set the custom theme, if permanent === true, then the new theme will be saved
+	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
 	async updateCustomTheme(customizations: ThemeCustomizations, permanent: boolean = true): Promise<void> {
-
 		const updatedTheme = this.assembleTheme(customizations)
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {logo: ""})
@@ -169,6 +168,9 @@ export class ThemeController {
 		}
 	}
 
+	/**
+	 * Save theme to the storage.
+	 */
 	async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
 		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
 		await this._sanitizeTheme(nonNullTheme)

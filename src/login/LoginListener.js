@@ -17,7 +17,6 @@ import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOffice
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
-import type {Theme} from "../gui/theme"
 import {themeController} from "../gui/theme"
 import {Dialog} from "../gui/base/Dialog"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
@@ -30,6 +29,8 @@ import {LockedError} from "../api/common/error/RestError"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
+import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
+import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 
 export async function registerLoginListener(credentialsProvider: ICredentialsProvider) {
 	logins.registerHandler(new LoginListener(credentialsProvider))
@@ -146,13 +147,14 @@ class LoginListener implements LoginEventHandler {
 	async _maybeSetCustomTheme(): Promise<*> {
 		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
-			const newTheme: Theme = JSON.parse(domainInfoAndConfig.whitelabelConfig.jsonTheme)
+			const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
 
 			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
-			// so we can't just check `!whitelabelConfig.jsonTheme` or something like this
-			if (Object.keys(newTheme).length > 0) {
-				newTheme.themeId = domainInfoAndConfig.domainInfo.domain
+			// so we can't just check `!whitelabelConfig.jsonTheme`
+			if (Object.keys(customizations).length > 0) {
+				customizations.themeId = domainInfoAndConfig.domainInfo.domain
 				const previouslySavedThemes = await themeController.getCustomThemes()
+				const newTheme = themeController.assembleTheme(customizations)
 				await themeController.updateSavedThemeDefinition(newTheme)
 				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 				if (!isExistingTheme && await Dialog.confirm("whitelabelThemeDetected_msg")) {
