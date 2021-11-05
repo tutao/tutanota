@@ -13,6 +13,8 @@
 		3D0EB1FA26F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
 		3D0EB1FD26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
+		3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */; };
+		3D2DB91C2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D378EF22536F79A0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D378EFB2536F79A0001F1F3 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -125,6 +127,10 @@
 		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D891F142105B8AF0031E528 /* libcrypto.a */; };
+		3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
+		3D92867D273A7D19006B8FB2 /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
+		3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */; };
+		3D928680273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */; };
 		3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9782192739600700DB639C /* URLSession+Sync.swift */; };
 		3D97821B2739600700DB639C /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9782192739600700DB639C /* URLSession+Sync.swift */; };
 		3D9A1F0922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4222031B82002C2455 /* InfoPlist.strings */; };
@@ -253,6 +259,7 @@
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
+		3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialsEncryption.swift; sourceTree = "<group>"; };
 		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
 		3D378EE62536F51F0001F1F3 /* FileChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChooser.swift; sourceTree = "<group>"; };
 		3D378F5A2536F79A0001F1F3 /* tutanota debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tutanota debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -289,6 +296,8 @@
 		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
 		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
+		3D92867B273A7D18006B8FB2 /* TutanotaError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutanotaError.swift; sourceTree = "<group>"; };
+		3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyGeneratorSecureEnclave.swift; sourceTree = "<group>"; };
 		3D9782192739600700DB639C /* URLSession+Sync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URLSession+Sync.swift"; sourceTree = "<group>"; };
 		3D9A1E4322031B82002C2455 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E4622031B82002C2455 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -439,6 +448,8 @@
 			isa = PBXGroup;
 			children = (
 				3D0EB1F526F48854002E5102 /* KeychainManager.swift */,
+				3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */,
+				3D92867E273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift */,
 			);
 			path = Keychain;
 			sourceTree = "<group>";
@@ -524,6 +535,7 @@
 				3D84F57B27231F1F00858A58 /* Serialization.swift */,
 				3D84F5812723225C00858A58 /* Utils.swift */,
 				3D9782192739600700DB639C /* URLSession+Sync.swift */,
+				3D92867B273A7D18006B8FB2 /* TutanotaError.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1556,6 +1568,7 @@
 				3D9B12AA27219538002B46A1 /* AlarmInfo.swift in Sources */,
 				3D378F052536F79A0001F1F3 /* TUTSubKeys.m in Sources */,
 				3DCE7AA8271D63BF0085E40D /* ViewController.swift in Sources */,
+				3D928680273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
 				3DBE94BB273147830077A6EA /* WebViewBridge.swift in Sources */,
 				3D378F082536F79A0001F1F3 /* TUTCrypto.m in Sources */,
 				3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */,
@@ -1564,7 +1577,9 @@
 				3DE1E446266672870018C9DE /* UIColor+utils.swift in Sources */,
 				3D0EB1FA26F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D73DA322731953E008E7A8A /* RemoteProtocol.swift in Sources */,
+				3D2DB91C2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
 				3D9B129B27216DE0002B46A1 /* Response.swift in Sources */,
+				3D92867D273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D9B12AD27219623002B46A1 /* NotificationSessionKey.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1585,8 +1600,10 @@
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
+				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
+				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
@@ -1600,6 +1617,7 @@
 				3D84F5702722E4B700858A58 /* FileFacade.swift in Sources */,
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
+				3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,

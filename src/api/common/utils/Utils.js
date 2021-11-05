@@ -130,6 +130,8 @@ const ErrorNameToType = {
 	"NSURLErrorDomain": ConnectionError,
 	"de.tutao.tutanota.CredentialAuthenticationException": CredentialAuthenticationError,
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
+	"de.tutao.tutanota.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
+	"de.tutao.tutanota.CredentialAuthenticationError": CredentialAuthenticationError,
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureTypeEnum): boolean {

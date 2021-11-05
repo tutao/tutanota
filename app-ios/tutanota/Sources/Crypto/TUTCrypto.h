@@ -1,11 +1,7 @@
-//
-//  TUTCrypto.h
-//
-//  Created by Tutao GmbH on 24.09.14.
-//
-//
-
 NS_ASSUME_NONNULL_BEGIN
+
+static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
+static NSInteger const PUBLIC_EXPONENT = 65537;
 
 @interface TUTPublicKey : NSObject
 @property(nonatomic, readonly) NSInteger version;

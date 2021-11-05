@@ -12,6 +12,7 @@ class WebViewBridge : NSObject {
   private let keychainManager: KeychainManager
   private let userPreferences: UserPreferenceFacade
   private let alarmManager: AlarmManager
+  private let credentialsEncryption: CredentialsEncryption
   
   private var requestId = 0
   private var requests = [String : ((Any?) -> Void)]()
@@ -27,7 +28,8 @@ class WebViewBridge : NSObject {
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
-    fileFacade: FileFacade
+    fileFacade: FileFacade,
+    credentialsEncryption: CredentialsEncryption
   ) {
     self.webView = webView
     self.viewController = viewController
@@ -38,22 +40,18 @@ class WebViewBridge : NSObject {
     self.userPreferences = userPreferences
     self.alarmManager = alarmManager
     self.fileFacade = fileFacade
+    self.credentialsEncryption = credentialsEncryption
     
     super.init()
     self.webView.configuration.userContentController.add(self, name: "nativeApp")
-  }
-  
-  func injectBridge() {
-    // We need to implement this bridging from here because we don't know if we are an iOS app
-    // before the init is sent from here.
-    // From JS we expect window.nativeApp.invoke to be there.
     let js =
       """
       window.nativeApp = {
         invoke: (message) => window.webkit.messageHandlers.nativeApp.postMessage(message)
       }
       """
-    self.webView.evaluateJavaScript(js, completionHandler: nil)
+    let script = WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+    self.webView.configuration.userContentController.addUserScript(script)
   }
   
   func sendRequest(
@@ -86,19 +84,25 @@ class WebViewBridge : NSObject {
   }
 
   private func sendErrorResponse(requestId: String, err: Error) {
-    let nsError = err as NSError
-    let userInfo = nsError.userInfo
-    var newDict = [String : String]()
-    for (key, value) in userInfo {
-      newDict[key] = String(describing: value)
-    }
-    let message = String(data: try! JSONEncoder().encode(newDict), encoding: .utf8)!
+    TUTSLog("Error: \(err)")
     
-    let error = ResponseError(
-      name: nsError.domain,
-      message: "code \(nsError.code) message: \(message)"
-    )
-    let bridgeMessage = RemoteMessage.requestError(id: requestId, error: error)
+    let responseError: ResponseError
+    if let err = err as? TutanotaError {
+      responseError = ResponseError(name: err.name, message: err.message, stack: err.underlyingError.debugDescription)
+    } else {
+      let nsError = err as NSError
+      let userInfo = nsError.userInfo
+      let message = userInfo["message"] as? String ?? err.localizedDescription
+      let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as! NSError?
+      
+      responseError = ResponseError(
+        name: nsError.domain,
+        message: message,
+        stack:  underlyingError?.debugDescription ?? ""
+      )
+    }
+    
+    let bridgeMessage = RemoteMessage.requestError(id: requestId, error: responseError)
     self.postMessage(bridgeMessage: bridgeMessage)
   }
 
@@ -271,6 +275,14 @@ class WebViewBridge : NSObject {
         self.themeManager.themes = themes
         self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
         respond(nullResult())
+      case "encryptUsingKeychain":
+        let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
+        self.credentialsEncryption.encryptUsingKeychain(data: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
+      case "decryptUsingKeychain":
+        let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
+        self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
+      case "getSupportedEncryptionModes":
+        self.credentialsEncryption.getSupportedEncryptionModes(completion: respond) 
       default:
         let message = "Unknown comand: \(type)"
         TUTSLog(message)
@@ -309,6 +321,8 @@ extension WebViewBridge : WKScriptMessageHandler {
       TUTSLog("Request failed: \(type) \(requestId)")
       // We don't "reject" requests right now
       self.requests.removeValue(forKey: requestId)
+    case "requestError":
+      fatalError(jsonString)
     default:
       let arguments = json["args"] as! [Any]
       self.handleRequest(type: type, requestId: requestId, args: arguments)

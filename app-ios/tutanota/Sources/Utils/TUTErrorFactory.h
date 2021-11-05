@@ -6,7 +6,6 @@ extern NSString *const TUT_FILEVIEWER_ERROR;
 extern NSString *const TUT_NETWORK_ERROR;
 
 @interface TUTErrorFactory : NSObject
-
 + (NSError *)createError:(NSString*) description;
 + (NSError *)createErrorWithDomain:(NSString*) domain message:(NSString*) description;
 + (NSError *)wrapNativeErrorWithDomain:(NSString *)domain message:(NSString *)description error:(NSError *)error;

@@ -2,7 +2,7 @@
 import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
-import {isAdminClient, isAndroidApp, isDesktop} from "../../api/common/Env"
+import {isAdminClient, isApp, isDesktop} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
@@ -10,7 +10,7 @@ import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
 import type {Credentials} from "./Credentials"
 
 export function usingKeychainAuthentication(): boolean {
-	return isAndroidApp()
+	return isApp()
 }
 
 /**

@@ -40,6 +40,7 @@ enum RemoteMessage : Encodable {
 struct ResponseError : Codable {
   let name: String
   let message: String
+  let stack: String
 }
 
 /// Swift magic
