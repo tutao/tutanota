@@ -47,6 +47,7 @@ import type {UpdatableSettingsViewer} from "../SettingsView"
 import {promiseMap} from "@tutao/tutanota-utils"
 import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../../api/common/EntityClient"
+import {getThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 
 assertMainOrNode()
 
@@ -305,7 +306,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 						.then(bookings => {
 							this._lastBooking = bookings.length === 1 ? bookings[0] : null
-							this._customJsonTheme = (this._whitelabelConfig) ? JSON.parse(this._whitelabelConfig.jsonTheme) : null
+							this._customJsonTheme = (this._whitelabelConfig) ? getThemeCustomizations(this._whitelabelConfig) : null
 							m.redraw()
 							this._customerProperties.getAsync().then(m.redraw)
 						})

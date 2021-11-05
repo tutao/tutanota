@@ -2,6 +2,7 @@
 import type {BaseThemeId, Theme} from "../gui/theme"
 import type {BootstrapFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {assertMainOrNodeBoot} from "../api/common/Env"
+import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
 
 assertMainOrNodeBoot()
 
@@ -24,3 +25,6 @@ export function getWhitelabelCustomizations(window: typeof window): ?WhitelabelC
 	return window.whitelabelCustomizations
 }
 
+export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {
+	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => k === "__proto__" ? undefined : v)
+}
