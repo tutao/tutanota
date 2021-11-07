@@ -1196,6 +1196,18 @@ export default {
 		"yourCalendars_label": "Vos calendriers",
 		"yourFolders_action": "Vos dossiers",
 		"yourMessage_label": "Votre message",
-		"you_label": "Vous"
+		"credentialsEncryptionMode_label": "Mode de chiffrement des identifiants",
+		"credentialsEncryptionModeDeviceLock_label": "Automatique",
+		"credentialsEncryptionModeDeviceLockHelp_msg": "Déverouiller automatiquement quand l'appareil est allumé",
+		"credentialsEncryptionModeDeviceCredentials_label": "Mot de passe système ou biométrie",
+		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "Mot de passe de l'appareil ou authentification biométrique, si disponible",
+		"credentialsEncryptionModeBiometrics_label": "Biométrie uniquement",
+		"credentialsEncryptionModeBiometricsHelp_msg": "Avancé. Plus sécurisé mais les identifiants sont invalidés si les paramètres de biométrie sont changés",
+		"credentialsEncryptionModeSelection_msg": "Les identifiants sont enregistrés chiffrés sur l'appareil. Comment voulez-vous les déverouiller à l'avenir?",
+		"credentialsKeyInvalidated_msg": "Le trousseau de clé système a été invalidé. Suppression des identifiants enregistrés.",
+		"couldNotUnlockCredentials_msg": "Impossible de déverouiller les identifiants: {reason}",
+		"unlockCredentials_action": "Déverouillage des identifiants",
+		"you_label": "Vous",
+		"sendUpdates_label": "Envoyer les mises à jour aux invités"
 	}
 }
