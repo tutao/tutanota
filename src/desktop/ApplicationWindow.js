@@ -105,7 +105,7 @@ export class ApplicationWindow {
 			icon,
 			dictUrl
 		})
-		this._loadInitialUrl(noAutoLogin || false)
+		this._loadInitialUrl(noAutoLogin ?? false)
 		this._electron.Menu.setApplicationMenu(null)
 	}
 
