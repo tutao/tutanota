@@ -200,16 +200,10 @@ o.spec("IPC tests", function () {
 	}
 
 	o("addWindow & init & removeWindow", function (done) {
-		n.setPlatform('minix') // init sends platform
 		const {ipc} = setUpWithWindowAndInit()
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(1)
-			o(windowMock.sendMessageToWebContents.args[0]).deepEquals({
-				id: 'id',
-				type: 'response',
-				value: 'minix' // there it is
-			})
 
 			ipc.removeWindow(WINDOW_ID)
 			let threw = false

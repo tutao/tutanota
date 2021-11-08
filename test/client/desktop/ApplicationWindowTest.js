@@ -1,13 +1,12 @@
 // @flow
 import o from "ospec"
 import n from "../nodemocker"
-import {defer, downcast} from "@tutao/tutanota-utils"
+import {defer, delay, downcast} from "@tutao/tutanota-utils"
 import {ApplicationWindow} from "../../../src/desktop/ApplicationWindow"
 import type {NativeImage} from "electron"
 import {ThemeManager} from "../../../src/desktop/ThemeManager"
 import type {Theme, ThemeId} from "../../../src/gui/theme"
 import {DesktopConfig} from "../../../src/desktop/config/DesktopConfig"
-import {delay} from "@tutao/tutanota-utils"
 
 
 const U2F_EXTENSION_ID = "kmendfapggjehodndflmmgagdbamhnfd" // check u2f-api.js
@@ -286,7 +285,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.loadURL.callCount).equals(1)
 		const theme = await themeManager.getCurrentThemeWithFallback()
 		const themeJson = JSON.stringify(theme)
-		const query = new URLSearchParams({theme: themeJson})
+		const query = new URLSearchParams({noAutoLogin: "false", platformId: process.platform, theme: themeJson})
 		o(bwInstance.loadURL.args[0])
 			.equals(`file:///path/to/app/desktophtml?${query.toString()}`)
 		o(bwInstance.opts).deepEquals({
@@ -355,6 +354,7 @@ o.spec("ApplicationWindow Test", function () {
 		const themeJson = JSON.stringify(await themeManagerMock.getCurrentThemeWithFallback())
 		const url = new URL(bwInstance2.loadURL.args[0])
 		o(url.searchParams.get("noAutoLogin")).equals("true")
+		o(url.searchParams.get("platformId")).equals(process.platform)
 		o(url.searchParams.get("theme")).equals(themeJson)
 		o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
 	})
