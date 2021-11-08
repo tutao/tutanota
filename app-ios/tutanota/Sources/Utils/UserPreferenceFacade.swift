@@ -16,13 +16,13 @@ class UserPreferenceFacade {
   
   func store(pushIdentifier: String, userId: String, sseOrigin: String) {
     if var sseInfo = self.sseInfo {
-        sseInfo.pushIdentifier = pushIdentifier
-        sseInfo.sseOrigin = sseOrigin
-        var userIds = sseInfo.userIds
-        if !userId.contains(userId) {
-          userIds.append(userId)
-        }
-        sseInfo.userIds = userIds
+      sseInfo.pushIdentifier = pushIdentifier
+      sseInfo.sseOrigin = sseOrigin
+      var userIds = sseInfo.userIds
+      if !userIds.contains(userId) {
+        userIds.append(userId)
+      }
+      sseInfo.userIds = userIds
       self.put(sseInfo: sseInfo)
     } else {
       let sseInfo = SSEInfo(

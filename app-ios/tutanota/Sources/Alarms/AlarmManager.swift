@@ -35,121 +35,121 @@ class AlarmManager {
     if self.hasNotificationTTLExpired() {
       self.resetStoredState()
     } else {
-      self.fetchMissedNotifications { err in
-        if let err = err {
-          TUTSLog("Failed to fetch/process missed notification \(err)")
-        } else {
+      self.fetchMissedNotifications { result in
+        switch result {
+        case .success():
           TUTSLog("Successfully processed missed notification")
+        case .failure(let err):
+          TUTSLog("Failed to fetch/process missed notification \(err)")
         }
       }
       self.rescheduleAlarms()
     }
   }
   
-  func fetchMissedNotifications(_ completionHandler: @escaping (Error?) -> Void) {
+  /// Fetch and process missed notification. Will execute fetch operations one by one if it's queued multiple times.  Will wait for suspension if necessary.
+  func fetchMissedNotifications(_ completionHandler: @escaping ResponseCallback<Void>) {
     TUTSLog("Adding fetch notificaiton operation to queue")
-    self.fetchQueue.addAsyncOperation {[weak self] queueCompletionHandler in
+    self.fetchQueue.addOperation { [weak self] in
+      let void: Void = ()
       guard let self = self else {
-        return
-      }
-      func complete(error: Error?) {
-        queueCompletionHandler()
-        completionHandler(error)
-      }
-      
-      guard let sseInfo = self.userPreference.sseInfo else {
-        TUTSLog("No stored SSE info")
-        complete(error: nil)
+        completionHandler(.success(void))
         return
       }
       
-      if sseInfo.userIds.isEmpty {
-        TUTSLog("No users to download missed notification with")
-        self.unscheduleAllAlarms(userId: nil)
-        complete(error: nil)
-        return
-      }
-      
-      var additionalHeaders = [String: String]()
-      addSystemModelHeaders(to: &additionalHeaders)
-
-      let userId: String = sseInfo.userIds[0]
-      additionalHeaders["userIds"] = userId
-      if let lastNotificationId = self.userPreference.lastProcessedNotificationId {
-        additionalHeaders["lastProcessedNotificationId"] = lastNotificationId
-      }
-      let configuration = URLSessionConfiguration.ephemeral
-      configuration.httpAdditionalHeaders = additionalHeaders
-      
-      let urlSession = URLSession(configuration: configuration)
-      let urlString = self.missedNotificationUrl(origin: sseInfo.sseOrigin, pushIdentifier: sseInfo.pushIdentifier)
-      
-      TUTSLog("Downloading missed notification with userId \(userId)")
-      
-      urlSession.dataTask(with: URL(string: urlString)!) { data, response, error in
-        if let error = error {
-          TUTSLog("Fetched missed notifications with errror \(error)")
-          complete(error: error)
-          return
-        }
-        let httpResponse = response as! HTTPURLResponse
-        TUTSLog("Fetched missed notifications with status code \(httpResponse.statusCode)")
-        switch (HttpStatusCode(rawValue: httpResponse.statusCode)) {
-        case .notAuthenticated:
-          TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
-          self.unscheduleAllAlarms(userId: userId)
-          self.userPreference.removeUser(userId)
-          queueCompletionHandler()
-          self.fetchMissedNotifications(completionHandler)
-        case .serviceUnavailable, .tooManyRequests:
-          let suspensionTime = extractSuspensionTime(from: httpResponse)
-          TUTSLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
-          DispatchQueue.main
-            .asyncAfter(deadline: .now() + .seconds(suspensionTime)) {
-              self.fetchMissedNotifications(completionHandler)
-            }
-          queueCompletionHandler()
-        case .notFound:
-          complete(error: nil)
-        case .ok:
-          self.userPreference.lastMissedNotificationCheckTime = Date()
-          let missedNotification: MissedNotification
-          do {
-           missedNotification = try JSONDecoder().decode(MissedNotification.self, from: data!)
-          } catch {
-            TUTSLog("Failed to parse response for the missed notification response")
-            complete(error: error)
-            return
-          }
-          self.userPreference.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
-          self.processNewAlarms(missedNotification.alarmNotifications, completion: complete)
-        default:
-          let errorId = httpResponse.allHeaderFields["Error-Id"]
-          let error = NSError(domain: TUT_NETWORK_ERROR, code: httpResponse.statusCode, userInfo: [
-            "message": "Failed to fetch missed notification, error id: \(errorId ?? "")"
-          ])
-          complete(error: error)
-        }
-      }.resume()
+      let result = Result { try self.doFetchMissedNotifications() }
+      completionHandler(result)
     }
   }
   
-  func processNewAlarms(_ notifications: Array<EncryptedAlarmNotification>, completion: @escaping (Error?) -> Void) {
-    DispatchQueue.global(qos: .utility).async {
-      var savedNotifications = self.userPreference.alarms
-      var resultError: Error?
-      for alarmNotification in notifications {
-        do {
-          try self.handleAlarmNotification(alarmNotification, existingAlarms: &savedNotifications)
-        } catch {
-          TUTSLog("Error while handling alarm \(error)")
-          resultError = error
-        }
+  /// Fetch and process missed notification, actual impl without queuing which makes it easier to just call it recursively.
+  private func doFetchMissedNotifications() throws {
+    guard let sseInfo = self.userPreference.sseInfo else {
+      TUTSLog("No stored SSE info")
+      return
+    }
+    
+    if sseInfo.userIds.isEmpty {
+      TUTSLog("No users to download missed notification with")
+      self.unscheduleAllAlarms(userId: nil)
+      return
+    }
+    
+    var additionalHeaders = [String: String]()
+    addSystemModelHeaders(to: &additionalHeaders)
+    
+    let userId: String = sseInfo.userIds[0]
+    additionalHeaders["userIds"] = userId
+    if let lastNotificationId = self.userPreference.lastProcessedNotificationId {
+      additionalHeaders["lastProcessedNotificationId"] = lastNotificationId
+    }
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.httpAdditionalHeaders = additionalHeaders
+    
+    let urlSession = URLSession(configuration: configuration)
+    let urlString = self.missedNotificationUrl(origin: sseInfo.sseOrigin, pushIdentifier: sseInfo.pushIdentifier)
+    
+    TUTSLog("Downloading missed notification with userId \(userId)")
+    
+    let (data, response) = try urlSession.synchronousDataTask(with: URL(string: urlString)!)
+    let httpResponse = response as! HTTPURLResponse
+    TUTSLog("Fetched missed notifications with status code \(httpResponse.statusCode)")
+    
+    switch (HttpStatusCode(rawValue: httpResponse.statusCode)) {
+    case .notAuthenticated:
+      TUTSLog("Not authenticated to download missed notification w/ user \(userId)")
+      self.unscheduleAllAlarms(userId: userId)
+      self.userPreference.removeUser(userId)
+      try self.doFetchMissedNotifications()
+    case .serviceUnavailable, .tooManyRequests:
+      let suspensionTime = extractSuspensionTime(from: httpResponse)
+      TUTSLog("ServiceUnavailable when downloading missed notification, waiting for \(suspensionTime)s")
+      sleep(suspensionTime)
+      try self.doFetchMissedNotifications()
+    case .notFound:
+      return
+    case .ok:
+      self.userPreference.lastMissedNotificationCheckTime = Date()
+      let missedNotification: MissedNotification
+      do {
+        missedNotification = try JSONDecoder().decode(MissedNotification.self, from: data)
+      } catch {
+        throw TUTErrorFactory.createError("Failed to parse response for the missed notificaiton, \(error)")
       }
-      
-      TUTSLog("Finished processing \(notifications.count) alarms")
-      self.userPreference.store(alarms: savedNotifications)
-      completion(resultError)
+      self.userPreference.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
+      try self.doProcessNewAlarms(missedNotification.alarmNotifications)
+    default:
+      let errorId = httpResponse.allHeaderFields["Error-Id"]
+      let error = NSError(domain: TUT_NETWORK_ERROR, code: httpResponse.statusCode, userInfo: [
+        "message": "Failed to fetch missed notification, error id: \(errorId ?? "")"
+      ])
+      throw error
+    }
+  }
+
+  func processNewAlarms(_ alarms: Array<EncryptedAlarmNotification>, completion: @escaping ResponseCallback<Void>) {
+    DispatchQueue.global(qos: .default).async {
+      let result = Result { try self.doProcessNewAlarms(alarms) }
+      completion(result)
+    }
+  }
+  
+  private func doProcessNewAlarms(_ alarms: Array<EncryptedAlarmNotification>) throws {
+    var savedNotifications = self.userPreference.alarms
+    var resultError: Error?
+    for alarmNotification in alarms {
+      do {
+        try self.handleAlarmNotification(alarmNotification, existingAlarms: &savedNotifications)
+      } catch {
+        TUTSLog("Error while handling alarm \(error)")
+        resultError = error
+      }
+    }
+    
+    TUTSLog("Finished processing \(alarms.count) alarms")
+    self.userPreference.store(alarms: savedNotifications)
+    if let error = resultError {
+      throw error
     }
   }
   
@@ -408,11 +408,11 @@ func stringToCustomId(customId: String) -> String {
 /**
  Gets suspension time from the request in seconds
  */
-fileprivate func extractSuspensionTime(from httpResponse: HTTPURLResponse) -> Int {
+fileprivate func extractSuspensionTime(from httpResponse: HTTPURLResponse) -> UInt32 {
   let retryAfterHeader =
     (httpResponse.allHeaderFields["Retry-After"] ?? httpResponse.allHeaderFields["Suspension-Time"])
     as! String?
-  return retryAfterHeader.flatMap { Int($0) } ?? 0
+  return retryAfterHeader.flatMap { UInt32($0) } ?? 0
 }
 
 fileprivate struct OccurrenceInfo {
