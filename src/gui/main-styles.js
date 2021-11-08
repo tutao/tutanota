@@ -185,6 +185,8 @@ styles.registerStyle('main', () => {
 			'white-space': "pre-wrap",
 			'word-break': "break-word"
 		},
+		
+		".white-space-pre": {'white-space': "pre"},
 
 		".min-content": {
 			width: "min-content",
