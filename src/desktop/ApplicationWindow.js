@@ -5,25 +5,25 @@ import type {
 	ElectronPermission,
 	FindInPageResult,
 	NativeImage,
+	NewWindowOpenDetails,
+	NewWindowOpenReturn,
 	WebContents,
 	WebContentsEvent
 } from 'electron'
-import type {NewWindowOpenDetails, NewWindowOpenReturn} from "electron"
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
-import {capitalizeFirstLetter} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {capitalizeFirstLetter, downcast, noOp, typedEntries} from "@tutao/tutanota-utils"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
 import path from "path"
-import {downcast, noOp, typedEntries} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
 import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
-import type {lazy} from "@tutao/tutanota-utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -110,7 +110,7 @@ export class ApplicationWindow {
 	}
 
 	async _loadInitialUrl(noAutoLogin: boolean) {
-		const initialUrl = await this._getInitialUrl(noAutoLogin)
+		const initialUrl = await this._getInitialUrl({noAutoLogin})
 		await this.updateBackgroundColor()
 		this._browserWindow.loadURL(initialUrl)
 	}
@@ -246,7 +246,7 @@ export class ApplicationWindow {
 		    .on('did-fail-load', (evt, errorCode, errorDesc, validatedURL) => {
 			    log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
-				    this._getInitialUrl(true).then(initialUrl => {
+				    this._getInitialUrl({noAutoLogin: true}).then(initialUrl => {
 					    log.debug(TAG, "redirecting to start page...", initialUrl)
 					    return this._browserWindow.loadURL(initialUrl)
 				    }).then(() => log.debug(TAG, "...redirected"))
@@ -269,13 +269,9 @@ export class ApplicationWindow {
 		this._reRegisterShortcuts()
 	}
 
-	async reload(queryParams: {[string]: string}) {
-		const url = new URL(this._startFileURLString)
-		await this._addThemeToUrl(url)
-		for (const [key, value] of typedEntries(queryParams)) {
-			url.searchParams.append(key, value)
-		}
-		await this._browserWindow.loadURL(url.toString())
+	async reload(queryParams: {[string]: string | boolean}) {
+		const url = await this._getInitialUrl(queryParams)
+		await this._browserWindow.loadURL(url)
 	}
 
 	_onNewWindow(details: NewWindowOpenDetails): NewWindowOpenReturn {
@@ -479,18 +475,18 @@ export class ApplicationWindow {
 		}
 	}
 
-	async _getInitialUrl(noAutoLogin: boolean): Promise<string> {
+	async _getInitialUrl(additionalQueryParams: {[string]: string | boolean}): Promise<string> {
 		const url = new URL(this._startFileURLString)
-		await this._addThemeToUrl(url)
 
-		if (noAutoLogin) {
-			url.searchParams.append("noAutoLogin", "true")
+		for (const [key, value] of typedEntries(additionalQueryParams)) {
+			url.searchParams.append(key, String(value))
 		}
-		return url.toString()
-	}
 
-	async _addThemeToUrl(url: URL): Promise<void> {
+		url.searchParams.append("platformId", process.platform)
+
 		const theme = await this._themeManager.getCurrentThemeWithFallback()
 		url.searchParams.append("theme", JSON.stringify(theme))
+
+		return url.toString()
 	}
 }

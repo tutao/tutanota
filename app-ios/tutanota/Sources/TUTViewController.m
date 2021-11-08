@@ -152,7 +152,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 		[self handleResponseWithId:requestId value:value];
 	} else if ([@"init" isEqualToString:type]) {
 		_webViewInitialized = YES;
-		[self sendResponseWithId:requestId value:@"ios"];
+		[self sendResponseWithId:requestId value:NSNull.null];
 		foreach(callback, _requestsBeforeInit) {
 			callback();
 		}
@@ -326,6 +326,8 @@ alarmManager:(TUTAlarmManager *)alarmManager
     let encodedTheme = [self objectToJson:theme];
     [mutableParams setObject:encodedTheme forKey:@"theme"];
   }
+  
+  [mutableParams setObject:@"ios" forKey:@"platformId"];
   let queryParams = [NSURLQueryItem fromDict:mutableParams];
   let components = [NSURLComponents componentsWithURL:fileUrl resolvingAgainstBaseURL:NO];
   components.queryItems = queryParams;

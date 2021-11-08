@@ -8,12 +8,11 @@ import {PasswordForm} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {SessionTypeRef} from "../api/entities/sys/Session"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {erase, loadAll} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -27,7 +26,6 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "../misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
@@ -45,7 +43,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	_closedSessionsTableLines: Stream<Array<TableLineAttrs>>;
 	_secondFactorsForm: EditSecondFactorsForm;
 	_credentialsProvider: ICredentialsProvider
-	_usingKeychainAuthentication: boolean
 
 	constructor(credentialsProvider: ICredentialsProvider) {
 		this._credentialsProvider = credentialsProvider
@@ -57,12 +54,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
 		stream.merge([this._closedSessionsTableLines, this._activeSessionsTableLines]).map(m.redraw)
 		this._updateSessions()
-
-		this._usingKeychainAuthentication = false
-		usingKeychainAuthentication().then((using) => {
-			this._usingKeychainAuthentication = using
-			m.redraw()
-		})
 	}
 
 	view(): Children {
@@ -169,7 +160,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_renderEncryptionModeField(): Children {
-		if (!this._usingKeychainAuthentication) {
+		if (!usingKeychainAuthentication()) {
 			return null
 		}
 		const usedMode = this._credentialsProvider.getCredentialsEncryptionMode()

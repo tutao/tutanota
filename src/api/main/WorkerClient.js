@@ -49,7 +49,6 @@ export class WorkerClient implements EntityRestInterface {
 
 		this.initialized.then(() => {
 			this._isInitialized = true
-			this._initServices()
 		})
 		this._queue.setCommands({
 			execNative: (message: Message) =>
@@ -153,11 +152,6 @@ export class WorkerClient implements EntityRestInterface {
 			this.initialized = Promise.resolve()
 		}
 	}
-
-	_initServices() {
-		import("../../native/common/NativeWrapper").then(({nativeApp}) => nativeApp.initOnMain())
-	}
-
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
 		return this._postRequest(new Request('tryReconnectEventBus', [closeIfOpen, enableAutomaticState, delay]))

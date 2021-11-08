@@ -17,10 +17,23 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
+import {ProgrammingError} from "./api/common/error/ProgrammingError"
 
 
 assertMainOrNodeBoot()
 bootFinished()
+
+const urlQueryParams = m.parseQueryString(location.search)
+const platformId = urlQueryParams["platformId"]
+if (isApp() || isDesktop()) {
+	if ((isApp() && (platformId === "android" || platformId === "ios")) ||
+		(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+	) {
+		env.platformId = platformId
+	} else {
+		throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
+	}
+}
 
 replaceNativeLogger(window, new Logger())
 
@@ -64,17 +77,16 @@ if (state.prefix == null) {
 		: location.pathname.substring(0, location.pathname.length - 1)
 	state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 
-	let query = m.parseQueryString(location.search)
-	let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
+	let redirectTo = urlQueryParams['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
 	if (redirectTo) {
-		delete query['r']
+		delete urlQueryParams['r']
 		if (typeof redirectTo !== 'string') {
 			redirectTo = ""
 		}
 	} else {
 		redirectTo = ""
 	}
-	let newQueryString = m.buildQueryString(query)
+	let newQueryString = m.buildQueryString(urlQueryParams)
 	if (newQueryString.length > 0) {
 		newQueryString = "?" + newQueryString
 	}
@@ -179,7 +191,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
 	 * This code can (and will) be removed once all users have migrated.
 	 */
-	if (await usingKeychainAuthentication()) {
+	if (usingKeychainAuthentication()) {
 		// We can only determine platform after we establish native bridge
 		const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
 		const hasCredentials = deviceConfig.loadAll().length > 0
@@ -252,6 +264,11 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 
 	// see https://github.com/MithrilJS/mithril.js/issues/2659
 	m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+
+	if (isApp() || isDesktop()) {
+		const {nativeApp} = await import("./native/common/NativeWrapper.js")
+		await nativeApp.initOnMain()
+	}
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	const resolvers: {[string]: RouteResolver} = {

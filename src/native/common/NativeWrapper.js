@@ -2,7 +2,7 @@
 import {Queue, Request} from "../../api/common/WorkerProtocol"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, neverNull, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {assertWorkerOrNode, isMainOrNode, Mode} from "../../api/common/Env"
+import {assertMainOrNode, assertWorkerOrNode, isMainOrNode, Mode} from "../../api/common/Env"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 /**
@@ -22,7 +22,8 @@ export class NativeWrapper {
 	_nativeQueue: ?Queue;
 
 	initOnMain() {
-		if (!isMainOrNode()) return
+		assertMainOrNode()
+
 		let postMessage;
 		if (env.mode === Mode.App) {
 			// the native part must be able to invoke this.handleMessageFromNative without invoking System.import
@@ -35,17 +36,14 @@ export class NativeWrapper {
 			window.nativeApp.attach(args => this.handleMessageObjectFromNative(args))
 			postMessage = (msg: Request) => window.nativeApp.invoke(msg)
 		} else {
-			return
+			throw new ProgrammingError("Shouldn't try to init nativeWrapper in the web client")
 		}
 
 		const queue = this._nativeQueue = new Queue(({postMessage}: any))
-		import("../main/NativeWrapperCommands").then(({appCommands, desktopCommands}) => {
+		import("../main/NativeWrapperCommands").then(async ({appCommands, desktopCommands}) => {
 			queue.setCommands(env.mode === Mode.App ? appCommands : desktopCommands)
-			return this._invokeNative(new Request("init", []))
-			           .then(platformId => {
-				           env.platformId = platformId
-				           this._initialized.resolve()
-			           })
+			await this._invokeNative(new Request("init", []))
+			this._initialized.resolve()
 		})
 	}
 
