@@ -136,6 +136,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       let encodedTheme = self.dictToJson(dictionary: theme)
       mutableParams["theme"] = encodedTheme
     }
+    mutableParams["platformId"] = "ios"
     let queryParams = NSURLQueryItem.from(dict: mutableParams)
     var components = URLComponents.init(url: fileUrl, resolvingAgainstBaseURL: false)!
     components.queryItems = queryParams
