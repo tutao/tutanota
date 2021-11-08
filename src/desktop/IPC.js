@@ -131,7 +131,7 @@ export class IPC {
 				// Mark ourselves as initialized *after* we answer.
 				// This simplifies some cases e.g. testing.
 				Promise.resolve().then(() => this._initialized[windowId].resolve())
-				return process.platform
+				return null
 			case 'findInPage':
 				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)

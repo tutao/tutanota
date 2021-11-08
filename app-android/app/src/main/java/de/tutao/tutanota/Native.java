@@ -175,7 +175,7 @@ public final class Native {
 					if (!webAppInitialized.isResolved()) {
 						webAppInitialized.resolve(null);
 					}
-					promise.resolve("android");
+					promise.resolve(null);
 					break;
 				case "reload":
 					webAppInitialized = new DeferredObject<>();

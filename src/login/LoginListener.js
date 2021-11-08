@@ -78,7 +78,7 @@ class LoginListener implements LoginEventHandler {
 
 
 		if (loggedInEvent.sessionType === SessionType.Persistent
-			&& await usingKeychainAuthentication()
+			&& usingKeychainAuthentication()
 			&& this._credentialsProvider.getCredentialsEncryptionMode() == null
 		) {
 			await showCredentialsEncryptionModeDialog(this._credentialsProvider)

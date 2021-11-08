@@ -196,6 +196,7 @@ public class MainActivity extends FragmentActivity {
 
 	@Override
 	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
 		handleIntent(intent);
 	}
 
@@ -300,6 +301,8 @@ public class MainActivity extends FragmentActivity {
 		if (theme != null) {
 			parameters.put("theme", Objects.requireNonNull(JSONObject.wrap(theme)).toString());
 		}
+
+		parameters.put("platformId", "android");
 
 		StringBuilder queryBuilder = new StringBuilder();
 		for (Map.Entry<String, String> entry : parameters.entrySet()) {
