@@ -197,12 +197,12 @@ class WebViewBridge : NSObject {
           completion: respond
         )
       case "deleteFile":
-        self.fileFacade.deleteFile(path: args[0] as! String) { _ in
-          respond(nullResult())
+        self.fileFacade.deleteFile(path: args[0] as! String) { result in
+          respond(result.asNull())
         }
       case "clearFileData":
-        self.fileFacade.clearFileData { error in
-          respond(nullResult(error: error))
+        self.fileFacade.clearFileData { result in
+          respond(result.asNull())
         }
       case "download":
         self.fileFacade.downloadFile(
@@ -246,16 +246,16 @@ class WebViewBridge : NSObject {
       case "saveBlob":
         let fileDataB64 = args[1] as! Base64
         let fileData = Data(base64Encoded: fileDataB64)!
-        self.fileFacade.openFile(name: args[0] as! String, data: fileData) { err in
-          respond(nullResult(error: err))
+        self.fileFacade.openFile(name: args[0] as! String, data: fileData) { result in
+          respond(result.asNull())
         }
       case "getDeviceLog":
         let result = Result { try self.getLogfile() }
         respond(result)
       case "scheduleAlarms":
         let alarms = try! EncryptedAlarmNotification.arrayFrom(nsArray: args[0] as! NSArray)
-        self.alarmManager.processNewAlarms(alarms) { error in
-          respond(nullResult(error: error))
+        self.alarmManager.processNewAlarms(alarms) { result in
+          respond(result.asNull())
         }
       case "getSelectedTheme":
         respond(.success(self.themeManager.selectedThemeId))
@@ -276,7 +276,7 @@ class WebViewBridge : NSObject {
         TUTSLog(message)
         let error = NSError(domain: "tutanota", code: 5, userInfo: ["message": message])
         
-        respond(nullResult(error: error))
+        respond(Result<NullReturn, Error>.failure(error))
     }
   }
   
@@ -316,14 +316,23 @@ extension WebViewBridge : WKScriptMessageHandler {
   }
 }
 
-fileprivate func nullResult() -> Result<String?, Error> {
-  return .success(nil)
+/// Little zero-sized struct that encodes to null so that it's easier to pass around when we return stuff
+fileprivate struct NullReturn {
 }
 
-fileprivate func nullResult(error: Error?) -> Result<String?, Error> {
-  if let error = error {
-    return .failure(error)
-  } else {
-    return .success(nil)
+extension NullReturn : Encodable {
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encodeNil()
+  }
+}
+
+fileprivate func nullResult() -> Result<NullReturn, Error> {
+  return .success(NullReturn())
+}
+
+extension Result where Success == Void {
+  fileprivate func asNull() -> Result<NullReturn, Failure> {
+    return self.map { _ in NullReturn() }
   }
 }

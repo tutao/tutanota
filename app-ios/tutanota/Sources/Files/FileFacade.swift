@@ -18,29 +18,29 @@ class FileFacade {
     self.viewer.openFile(path: path, completion: completion)
   }
   
-  func openFile(name: String, data: Data, completion: @escaping  (Error?) -> Void) {
+  func openFile(name: String, data: Data, completion: @escaping ResponseCallback<Void>) {
     do {
       let decryptedFolder = try FileUtils.getDecryptedFolder()
       let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
       let fileURL = URL(fileURLWithPath: filePath)
       try data.write(to: fileURL, options: .atomic)
       self.openFile(path: filePath) {
-        let deleteError = doCatch {
+        let result = Result {
           try FileManager.default.removeItem(atPath: filePath)
         }
-        completion(deleteError)
+        completion(result)
       }
     } catch {
-      completion(error)
+      completion(.failure(error))
     }
   }
   
-  func deleteFile(path: String, completion: @escaping (Error?) -> Void) {
+  func deleteFile(path: String, completion: @escaping ResponseCallback<Void>) {
     DispatchQueue.global(qos: .default).async {
-      let error = doCatch {
+      let result = Result {
         try FileManager.default.removeItem(atPath: path)
       }
-      completion(error)
+      completion(result)
     }
   }
   
@@ -143,14 +143,14 @@ class FileFacade {
     }
   }
   
-  func clearFileData(completion: @escaping (Error?) -> Void) {
+  func clearFileData(completion: @escaping ResponseCallback<Void>) {
     DispatchQueue.global(qos: .default).async {
-      let error = doCatch {
+      let result = Result {
         try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder())
         try self.clearDirectory(folderPath: FileUtils.getDecryptedFolder())
         try self.clearDirectory(folderPath: NSTemporaryDirectory())
       }
-      completion(error)
+      completion(result)
     }
   }
   
