@@ -27,10 +27,10 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {LockedError} from "../api/common/error/RestError"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
-import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
+import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 
 export async function registerLoginListener(credentialsProvider: ICredentialsProvider) {
 	logins.registerHandler(new LoginListener(credentialsProvider))
@@ -81,7 +81,9 @@ class LoginListener implements LoginEventHandler {
 			&& await usingKeychainAuthentication()
 			&& this._credentialsProvider.getCredentialsEncryptionMode() == null
 		) {
-			await showCredentialsEncryptionModeDialog(this._credentialsProvider)
+			// If the encryption mode is not selected, we opt user into automatic mode.
+			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
+			await this._credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
 		// Do not wait
