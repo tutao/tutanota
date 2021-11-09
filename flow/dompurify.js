@@ -21,6 +21,7 @@ declare type SanitizeConfigBase = {
 	SANITIZE_DOM?: boolean,
 	KEEP_CONTENT?: boolean,
 	FORCE_BODY?: boolean,
+	NAMESPACE?: string
 }
 
 declare type SanitizeConfig = SanitizeConfigBase & {RETURN_DOM?: boolean} & {RETURN_DOM_FRAGMENT?: boolean}
