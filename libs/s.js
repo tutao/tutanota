@@ -1,5 +1,5 @@
 /*
-* SJS 6.8.3
+* SJS 6.10.2
 * Minimal SystemJS Build
 */
 (function () {
@@ -302,7 +302,7 @@
             }
           }
 
-          if (name.__esModule) {
+          if (name && name.__esModule) {
             ns.__esModule = name.__esModule;
           }
         }
@@ -543,6 +543,9 @@
         }).catch(function (err) {
           err.message = errMsg('W4',  script.src ) + '\n' + err.message;
           console.warn(err);
+          if (typeof script.onerror === 'function') {
+              script.onerror();
+          }
           return '{}';
         }) : script.innerHTML;
         importMapPromise = importMapPromise.then(function () {
