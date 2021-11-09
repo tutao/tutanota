@@ -300,6 +300,37 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		const result = htmlSanitizer.sanitize(`<img src="cid:123456">`, {usePlaceholderForInlineImages: false}).text
 		o(result).equals(`<img src="cid:123456">`)
 	})
+
+	o("svg tag not removed", function () {
+		const result = htmlSanitizer.sanitize(`<svg> <rect x="10" y="10" width="10" height="10"> </rect> </svg>`).text.trim()
+
+		const element = document.createElement("div")
+		element.innerHTML = result
+		o(element.children[0]?.nodeName).equals("svg")
+		o(element.children[0]?.children[0]?.nodeName.toLowerCase()).equals("rect")
+		o(element.children[0]?.children[0]?.getAttribute("x")).equals("10")
+		o(element.children[0]?.children[0]?.getAttribute("y")).equals("10")
+		o(element.children[0]?.children[0]?.getAttribute("width")).equals("10")
+		o(element.children[0]?.children[0]?.getAttribute("height")).equals("10")
+
+	})
+
+	o.only("svg fragment should not be removed", function () {
+		const result = htmlSanitizer.sanitize(`<rect x="10" y="10" width="10" height="10"> </rect>`, {useSvgNamespace: true}).text.trim()
+
+		const element = document.createElement("svg")
+		element.innerHTML = result
+		o(element.children[0]?.nodeName.toLowerCase()).equals("rect")
+		o(element.children[0]?.getAttribute("x")).equals("10")
+		o(element.children[0]?.getAttribute("y")).equals("10")
+		o(element.children[0]?.getAttribute("width")).equals("10")
+		o(element.children[0]?.getAttribute("height")).equals("10")
+	})
+
+	o("svg fragment should be removed", function () {
+		const result = htmlSanitizer.sanitize(`<rect x="10" y="10" width="10" height="10"> </rect>`, {useSvgNamespace: false}).text.trim()
+		o(result).equals(``)
+	})
 }))
 
 
