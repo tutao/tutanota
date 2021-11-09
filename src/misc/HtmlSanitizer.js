@@ -14,12 +14,14 @@ const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // back
 type SanitizeConfigExtra = {
 	blockExternalContent: boolean,
 	allowRelativeLinks: boolean,
-	usePlaceholderForInlineImages: boolean
+	usePlaceholderForInlineImages: boolean,
+	useSvgNamespace: boolean
 }
 const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 	blockExternalContent: true,
 	allowRelativeLinks: false,
-	usePlaceholderForInlineImages: true
+	usePlaceholderForInlineImages: true,
+	useSvgNamespace: false
 }
 
 export type SanitizeResult = {
@@ -128,6 +130,7 @@ export class HtmlSanitizer {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 			ADD_URI_SAFE_ATTR: ['poster'], // poster for video element.
 			FORBID_TAGS: ['style'], // prevent loading of external fonts,
+			NAMESPACE: _config.useSvgNamespace ? 'http://www.w3.org/2000/svg' : undefined,
 		}
 
 		const configExtra = Object.assign({}, DEFAULT_CONFIG_EXTRA, _config)
