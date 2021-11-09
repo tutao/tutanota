@@ -198,8 +198,12 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 		if (!hasAlreadyMigrated && hasCredentials) {
 			const migrationModule = await import("./misc/credentials/CredentialsMigration")
 			const {nativeApp} = await import("./native/common/NativeWrapper")
+			nativeApp.initOnMain()
 			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeApp)
 			await migration.migrateCredentials()
+			// Reload the app just to make sure we are in the right state and don't init nativeApp twice
+			windowFacade.reload({})
+			return
 		}
 	}
 
