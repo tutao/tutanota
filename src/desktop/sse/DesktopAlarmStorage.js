@@ -1,12 +1,13 @@
 // @flow
 import type {DesktopConfig} from "../config/DesktopConfig"
-import type {EncryptedAlarmNotification} from "./DesktopAlarmScheduler"
+import type {EncryptedAlarmNotification, NotificationSessionKey} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import type {Base64} from "@tutao/tutanota-utils"
 import {findAllAndRemove} from "@tutao/tutanota-utils"
-
+import {log} from "../DesktopLog"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -49,51 +50,38 @@ export class DesktopAlarmStorage {
 	}
 
 	removePushIdentifierKey(piId: string): Promise<void> {
+		log.debug("Remove push identifier key. elementId=" + piId)
 		delete this._sessionKeysB64[piId]
 		return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, this._sessionKeysB64)
 	}
 
 	/**
-	 * get a B64 encoded sessionKey from memory or decrypt it from disk storage
-	 * @param sessionKeys array of notificationSessionKeys from an alarmNotification. will be modified in place.
-	 * @return {Promise<{piSkEncSk: string, piSk: string}>} one of the pushIdentifierSessionKeyEncSessionKeys from the list and a
-	 * pushIdentifierSessionKey that can decrypt it.
+	 * try to get a B64 encoded PushIdentifierSessionKey that can decrypt a notificationSessionKey from memory or decrypt it from disk storage
+	 * @param notificationSessionKey one notificationSessionKey from an alarmNotification.
+	 * @return {Promise<?Base64>} a stored pushIdentifierSessionKey that should be able to decrypt the given notificationSessionKey
 	 */
-	async resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
+	async getPushIdentifierSessionKey(notificationSessionKey: NotificationSessionKey): Promise<?Base64> {
 		const pw = await this._deviceKeyProvider.getDeviceKey()
 		const keys = await this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
-		for (let i = sessionKeys.length - 1; i >= 0; i--) {
-			const notificationSessionKey = sessionKeys[i]
-			const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
-			if (this._sessionKeysB64[pushIdentifierId]) {
-				return {
-					piSk: this._sessionKeysB64[pushIdentifierId],
-					piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
-				}
-			} else {
-				if (keys[pushIdentifierId] == null) {
-					// we don't have that pushIdentifier on this device, so we don't
-					// need it on the alarm notification which is saved locally
-					sessionKeys.splice(i, 1)
-					continue
-				}
-				let decryptedKeyB64
-				try {
-					decryptedKeyB64 = this._crypto.aes256DecryptKeyToB64(pw, keys[pushIdentifierId])
-				} catch (e) {
-					console.warn("could not decrypt pushIdentifierSessionKey, trying next one...")
-					sessionKeys.splice(i, 1)
-					continue
-				}
+		const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
+		if (this._sessionKeysB64[pushIdentifierId]) {
+			return this._sessionKeysB64[pushIdentifierId]
+		} else {
+			const sessionKeyFromConf = keys[pushIdentifierId]
+			if (sessionKeyFromConf == null) {
+				// key with this id is not saved in local conf, so we can't resolve it
+				return null
+			}
+
+			try {
+				const decryptedKeyB64 = this._crypto.aes256DecryptKeyToB64(pw, sessionKeyFromConf)
 				this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
-				return {
-					piSk: decryptedKeyB64,
-					piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
-				}
+				return decryptedKeyB64
+			} catch (e) {
+				console.warn("could not decrypt pushIdentifierSessionKey")
+				return null
 			}
 		}
-		// the list was empty or did not contain a key that we could decrypt
-		throw new Error("could not resolve pushIdentifierSessionKey")
 	}
 
 	async storeAlarm(alarm: EncryptedAlarmNotification): Promise<void> {
