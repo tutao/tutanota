@@ -8,10 +8,12 @@ export default {
 	"plural_forms": [
 		"zero",
 		"one",
+		"two",
+		"many",
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2021-09-01T12:47:46Z",
+	"updated_at": "2021-10-22T14:33:38Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "אודות",
@@ -808,7 +810,7 @@ export default {
 		"outOfOfficeReminder_label": "הודעות מחוץ למשרד מופעלות.",
 		"outOfOfficeTimeRangeHelp_msg": "סמן כדי לבחור תאריכים.",
 		"outOfOfficeTimeRange_msg": "שלח רק בטווח זמן זה:",
-		"outOfOfficeUnencrypted_msg": "שימו לב כי התראות מחוץ למשרד נשלחות בטקסט רגיל לשרת ולמקבלי עתידים.",
+		"outOfOfficeUnencrypted_msg": "אנא שימו לב כי התראות אוטומטיות נשלחות בפונט לא מעוצב.",
 		"owner_label": "בעלים",
 		"packageDowngradeUserAccounts_label": "שנמוך חבילה ל-{1} משתמש(ים)",
 		"packageUpgradeUserAccounts_label": "שדרג/י חבילה לעוד-{1} משתמש\\ים",
@@ -1043,7 +1045,7 @@ export default {
 		"sendingUnencrypted_msg": "ההודעה שלכם נשלחת.",
 		"sending_msg": "ההודעה שלכם עוברת הצפנה ונשלחת.",
 		"sendMail_alt": "שלח אימייל לכתובת זו",
-		"sendUpdates_msg": "לשלוח עדכונים?",
+		"sendUpdates_msg": "לשלוח התראות עדכון למוזמנים?",
 		"send_action": "שלח",
 		"sent_action": "נשלח",
 		"serverDownForMaintenance_msg": "השרת אינו פעיל לצורך תחזוקה. אנא נסו שוב מאוחר יותר.",

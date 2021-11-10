@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Posnemite sliko ali videoposnetek, če ga želite dodati kot prilogo.";
 NSPhotoLibraryUsageDescription = "Dodaj sliko iz knjižnice kot priponko.";
-NSMicrophoneUsageDescription = "Dodaj sliko iz knjižnice kot priponko.";
 NSMicrophoneUsageDescription = "Uporabljeno med snemanjem videa za prilogo.";
 NSContactsUsageDescription = "Najdi prejemnikov poštni naslov v stikih.";
 NSRemindersUsageDescription = "Prikaže obvestilo, ko prispe novo sporočilo.";

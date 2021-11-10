@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Ta en bild eller video för att lägga till den som bifogad fil.";
 NSPhotoLibraryUsageDescription = "Lägga till en bild från ditt bibliotek som bifogad fil.";
-NSMicrophoneUsageDescription = "Lägga till en bild från ditt bibliotek som bifogad fil.";
 NSMicrophoneUsageDescription = "Används när du spelar in en video som bifogad fil.";
 NSContactsUsageDescription = "Hitta mottagares e-postadress i kontakter.";
 NSRemindersUsageDescription = "Visar en avisering när nya mejl kommer.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Avbryt";
 TutaoSettingsAction = "Inställningar";
 TutaoCalendarAlarmTitle = "Påminnelse";
 TutaoScheduleAlarmError = "Det gick inte att ställa in ett alarm. Uppdatera programmet.";
+TutaoUnlockCredentialsAction = "Lås upp inloggningsuppgifter";

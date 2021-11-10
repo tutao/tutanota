@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2021-09-07T11:22:57Z",
+	"updated_at": "2021-10-19T11:40:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1182,7 +1182,7 @@ export default {
 		"switchTrash_action": "Çöp kutusu klasörüne geç",
 		"switchWeekView_action": "Haftalık görünüme geç",
 		"takeoverAccountInvalid_msg": "Hedef hesaba devralınması istenen eposta adresi Premium yöneticiye ait değil.",
-		"takeoverMailAddressInfo_msg": "İsteğe bağlı: Hedef hesaptaki e-posta adreslerini yeniden kullanabilmek için hedef ücretli hesabın yönetici e-posta adresini belirtin.",
+		"takeoverMailAddressInfo_msg": "İsteğe bağlı: E-posta adreslerinizi hedef hesapta yeniden kullanmak için ücretli hesabınızın yöneticisinin e-posta adresini girin.",
 		"takeoverMailAddress_label": "Hedef e-posta adresi",
 		"takeoverSuccess_msg": "Artık eski adresinizi belirtilen hesapta e-posta takma adı veya ek kullanıcı olarak yeniden kullanabilirsiniz!",
 		"takeOverUnusedAddress_msg": "Silinen hesabınızın e-posta adresini başka bir ücretli hesaba devredip kullanabilirsiniz. Bunun için lütfen hedef ücretli hesap yöneticisi e-posta adresini belirtin.\nLütfen unutmayın: Kimlik doğrulama için ikinci bir faktör yapılandırdıysanız, 2FA silinmiş bir hesap için kullanılamayacağından lütfen bunun yerine kurtarma kodunuzu sağlayın.",
@@ -1295,7 +1295,7 @@ export default {
 		"week_label": "Hafta",
 		"welcomeMailBodyTweetText_msg": "Tutanota posta kutumu yeni kurdum. Artık emaillerimi meraklı gözlerden koruyabilirim! Siz de katılabilirsiniz:",
 		"welcomeMailBody_markdown": "Güçlü şifreleme ile korunan, güvenli ve reklamsız Tutanota posta kutunuza hoş geldiniz. Tutanota, diğer e-posta hizmetlerinden geçiş yapmayı kolaylaştırır. Sezgisel web istemcimiz, Android ve iOS için uygulamalarımız ve Windows, Mac OS ve Linux için masaüstü uygulamalarımız, herhangi bir cihazdan güvenli posta kutunuza erişmenizi sağlar.\n\nBir profesyonel olarak, tüm iş e-postalarınızı uçtan uca şifreli olarak Tutanota'nın Almanya merkezli güvenli sunucularında barındırarak zamandan ve paradan tasarruf edebilirsiniz: İşiniz için Tutanota'yı beyazetiket ile özelleştirebilir, giriş panelini kendi web sitenize yerleştirebilir, müşterilerin size gizli bir şekilde kolayca ulaşabilmesi için web sitenize bir iletişim formu oluşturabilirsiniz. [Tutanota'nın kapsamlı işletme özellikleri hakkında daha fazla bilgi edinin]({businessLink}).\n\n**Tutanota, gizlilik dostu bir alternatif sunmak için bu 4 ilkeye uyar**\n\n1. Tutanota sizi izlemez / takip etmez.\n2. Tutanota verilerinizi tarayamaz.\n3. Tutanota tüm posta kutunuzu, kişilerinizi ve takviminizi şifreler.\n4. Tutanota, tasarımı gereği gizliliği içerir.\n\n[Size ve gizlilik hakkınıza saygı duyan açık kaynaklı e-posta hizmeti]({blogOpenSourceLink}) olan Tutanota'yı tavsiye edin.\n\nHerkesin ücretsiz ve gizli bir posta kutusunu hak ettiğine inanıyoruz. Bizi en sevdiğiniz sosyal medya kanalından takip ederek ve içeriklerimizi, arkadaşlarınız ve iş arkadaşlarınızla paylaşarak bize destek olabilirsiniz. Birlikte interneti daha iyi hale getireceğiz:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nÇok teşekküler,\\\nTutanota Ekibiniz\n\nTutanota açık kaynak kodludur. [Kaynak kodunu buradan inceleyebilir ve göz atabilirsiniz]({githubLink}).",
-		"welcomeMailSubject_msg": "Kendinizi evinizde hissedin: Bilginiz güvende.",
+		"welcomeMailSubject_msg": "Güvenli, yeşil & reklamsız!",
 		"whatIsPhishing_msg": "Oltalama nedir?",
 		"when_label": "Ne zaman",
 		"whitelabelAccounts_label": "Beyaz etiket hesapları",

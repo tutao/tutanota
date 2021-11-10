@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2021-08-18T09:06:19Z",
+	"updated_at": "2021-10-18T12:07:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",

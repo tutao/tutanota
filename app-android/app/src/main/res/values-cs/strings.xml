@@ -5,4 +5,5 @@
     <string name="scheduleAlarmError_msg">Nepodařilo se nastavit alarm. Aktualizujte prosím aplikaci.</string>
     <string name="wantToSendReport_msg">Vyskytla se neočekávaná chyba. Chceš odeslat zprávu o chybě? Můžeš přidat zprávu a pomoci nám tak chybu odstranit.</string>
     <string name="downloadCompleted_msg">Úspěšně staženo</string>
+    <string name="unlockCredentials_action">Odemknout přístupové údaje</string>
 </resources>

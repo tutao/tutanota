@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2021-09-01T12:47:46Z",
+	"updated_at": "2021-10-18T12:07:03Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",

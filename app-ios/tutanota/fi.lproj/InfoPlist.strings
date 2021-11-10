@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Ota kuva tai video ja lisää se liitteeksi.";
 NSPhotoLibraryUsageDescription = "Lisää kuva liitteenä.";
-NSMicrophoneUsageDescription = "Lisää kuva liitteenä.";
 NSMicrophoneUsageDescription = "Käytetään, kun videota tallennetaan liitteenä.";
 NSContactsUsageDescription = "Etsi vastaanottajan sähköpostiosoite yhteystiedoista.";
 NSRemindersUsageDescription = "Viestin saapumisilmoitus.";

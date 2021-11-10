@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Uzņemiet fotoattēlu vai video, lai pievienotu pielikumā.";
 NSPhotoLibraryUsageDescription = "Pielikumā pievienojiet attēlu no galerijas.";
-NSMicrophoneUsageDescription = "Pielikumā pievienojiet attēlu no galerijas.";
 NSMicrophoneUsageDescription = "Tiek izmantots video pielikuma ierakstīšanai";
 NSContactsUsageDescription = "Atrast saņēmēja e-pasta adresi kontaktos.";
 NSRemindersUsageDescription = "Parāda paziņojumus par jaunām ienākošajām vēstulēm.";

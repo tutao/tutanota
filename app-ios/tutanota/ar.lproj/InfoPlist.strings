@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "إلتقاط صورة أو فيديو للإضافة كمرفق.";
 NSPhotoLibraryUsageDescription = "إضافة صورة من مكتبتك كمُرفق.";
-NSMicrophoneUsageDescription = "إضافة صورة من مكتبتك كمُرفق.";
 NSMicrophoneUsageDescription = "تُستعمل عند تسجيل فيديو كمُرفق.";
 NSContactsUsageDescription = "إبحث عن عنوان المُتلقّي الإلكتروني في جهات الإتصال.";
 NSRemindersUsageDescription = "أظهر الإشعار عند وصول رسالة جديدة.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "إلغاء";
 TutaoSettingsAction = "إعدادات";
 TutaoCalendarAlarmTitle = "تذكير ";
 TutaoScheduleAlarmError = "لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.";
+TutaoUnlockCredentialsAction = "إلغاء بيانات الاعتماد";

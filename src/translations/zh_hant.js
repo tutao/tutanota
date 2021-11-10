@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2021-08-18T09:06:19Z",
+	"updated_at": "2021-10-18T10:56:29Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",

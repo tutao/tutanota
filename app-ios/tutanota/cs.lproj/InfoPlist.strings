@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Odfoťte fotku nebo natočte video, které chcete přidat jako přílohu.";
 NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
-NSMicrophoneUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
 NSMicrophoneUsageDescription = "Používáno při nahrávání video přílohy.";
 NSContactsUsageDescription = "Najít adresu příjemce v kontaktech";
 NSRemindersUsageDescription = "Zobrazit upozornění při doručení nového e-mailu.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Zrušit";
 TutaoSettingsAction = "Nastavení";
 TutaoCalendarAlarmTitle = "Připomenutí";
 TutaoScheduleAlarmError = "Nepodařilo se nastavit alarm. Aktualizujte prosím aplikaci.";
+TutaoUnlockCredentialsAction = "Odemknout přístupové údaje";
