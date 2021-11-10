@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2021-07-15T13:28:07Z",
+	"updated_at": "2021-10-18T10:56:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",

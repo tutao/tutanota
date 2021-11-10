@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Toma una imagen o un vídeo para añadirlo como adjunto.";
 NSPhotoLibraryUsageDescription = "Añadir una imagen de tu librería como adjunto.";
-NSMicrophoneUsageDescription = "Añadir una imagen de tu librería como adjunto.";
 NSMicrophoneUsageDescription = "Usado cuando se graba un vídeo como adjunto.";
 NSContactsUsageDescription = "Encuentra la dirección del destinatario entre tus contactos.";
 NSRemindersUsageDescription = "Muestra una notificación al recibir un mensaje.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Cancelar";
 TutaoSettingsAction = "Configuración";
 TutaoCalendarAlarmTitle = "Recordatorio";
 TutaoScheduleAlarmError = "No se pudo configurar una alarma. Actualice la aplicación.";
+TutaoUnlockCredentialsAction = "Desbloquear credenciales";

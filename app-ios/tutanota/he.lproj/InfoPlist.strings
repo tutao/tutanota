@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "צלמו תמונה או וידאו כדי להוסיפם כקבצים מצורפים.";
 NSPhotoLibraryUsageDescription = "הוסיפו תמונה מהספריה שלכם כקובץ מצורף.";
-NSMicrophoneUsageDescription = "הוסיפו תמונה מהספריה שלכם כקובץ מצורף.";
 NSMicrophoneUsageDescription = "בשימוש בעת הקלטת וידאו בתור קובץ מצורף.";
 NSContactsUsageDescription = "מצא כתובת אימייל של הנמען באנשי הקשר.";
 NSRemindersUsageDescription = "מציג התראה כאשר דוא\"ל חדש מגיע.";

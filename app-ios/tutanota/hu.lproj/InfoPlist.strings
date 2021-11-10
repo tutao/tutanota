@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Videó vagy fénykép készítése csatolmányként való hozzáadáshoz.";
 NSPhotoLibraryUsageDescription = "Fénykép hozzáadása csatolmányként.";
-NSMicrophoneUsageDescription = "Fénykép hozzáadása csatolmányként.";
 NSMicrophoneUsageDescription = "Videó csatolmányként való felhasználásakor.";
 NSContactsUsageDescription = "Címzett keresése a névjegyek között.";
 NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Mégse";
 TutaoSettingsAction = "Beállítások";
 TutaoCalendarAlarmTitle = "Emlékeztető";
 TutaoScheduleAlarmError = "Nem lehetett beállítani a riasztást. Frissítse az alkalmazást!";
+TutaoUnlockCredentialsAction = "Hitelesítő adatok feloldása.";

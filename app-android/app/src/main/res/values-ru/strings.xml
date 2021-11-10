@@ -5,4 +5,5 @@
     <string name="scheduleAlarmError_msg">Не удалось настроить оповещение. Пожалуйста обновите приложение.</string>
     <string name="wantToSendReport_msg">Что-то неожиданно  пошло не так. Отправить отчет об ошибке? Вы можете добавить сообщение, чтобы помочь нам исправить эту ошибку. </string>
     <string name="downloadCompleted_msg">Загрузка завершена</string>
+    <string name="unlockCredentials_action">Разблокировать учетные данные</string>
 </resources>

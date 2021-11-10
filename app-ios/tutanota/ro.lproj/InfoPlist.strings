@@ -1,7 +1,6 @@
-NSCameraUsageDescription = "Fă o poză sau un videoclip pentru a-l anexa.";
+NSCameraUsageDescription = "Fă o poză sau un videoclip pentru a-l atașa.";
 NSPhotoLibraryUsageDescription = "Atașează o poză din galerie.";
-NSMicrophoneUsageDescription = "Atașează o poză din galerie.";
-NSMicrophoneUsageDescription = "Folosit când înregistrați un videoclip ca atașament.";
+NSMicrophoneUsageDescription = "Folosit când înregistrezi un video pentru a-l atașa.";
 NSContactsUsageDescription = "Găsește adresa de e-mail în contacte.";
 NSRemindersUsageDescription = "Afișează notificări atunci când sosesc mesaje noi.";
 TutaoShowCameraAction = "Cameră";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Renunță";
 TutaoSettingsAction = "Opțiuni";
 TutaoCalendarAlarmTitle = "Reamintire";
 TutaoScheduleAlarmError = "Alarma nu a putut fi pusă. Te rugăm să actualizezi aplicația.";
+TutaoUnlockCredentialsAction = "Deblochează datele de autentificare";

@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Сделайте снимок или видео, чтобы приложить его к сообщению.";
 NSPhotoLibraryUsageDescription = "Разместите изображение из библиотеки как вложение. ";
-NSMicrophoneUsageDescription = "Разместите изображение из библиотеки как вложение. ";
 NSMicrophoneUsageDescription = "Используется при записи видео-приложения.";
 NSContactsUsageDescription = "Найти адрес электронной почты получателя в контактах.";
 NSRemindersUsageDescription = "Показывает уведомление, когда приходит новое сообщение. ";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Отмена";
 TutaoSettingsAction = "Настройки";
 TutaoCalendarAlarmTitle = "Напоминание";
 TutaoScheduleAlarmError = "Не удалось настроить оповещение. Пожалуйста обновите приложение.";
+TutaoUnlockCredentialsAction = "Разблокировать учетные данные";

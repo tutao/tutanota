@@ -1,6 +1,5 @@
 NSCameraUsageDescription = "Vytvoriť fotografiu alebo video do prílohy.";
 NSPhotoLibraryUsageDescription = "Pridaj obrázok zo svojej knižnice ako prílohu.";
-NSMicrophoneUsageDescription = "Pridaj obrázok zo svojej knižnice ako prílohu.";
 NSMicrophoneUsageDescription = "Používa sa pri nahrávaní videa ako prílohy.";
 NSContactsUsageDescription = "Nájdi e-mailovú adresu príjemcu v kontaktoch.";
 NSRemindersUsageDescription = "Zobrazuje oznámenie, keď príde nový e-mail.";
@@ -12,3 +11,4 @@ TutaoCancelAction = "Zrušiť";
 TutaoSettingsAction = "Nastavenia";
 TutaoCalendarAlarmTitle = "Pripomienka";
 TutaoScheduleAlarmError = "Alarm sa nepodarilo nastaviť. Prosím, aktualizuj aplikáciu.";
+TutaoUnlockCredentialsAction = "Odomknúť poverenia";
