@@ -50,6 +50,7 @@ declare module 'electron' {
 		// Open the given file in the desktop's default manner.
 		openPath(fullPath: string): Promise<string>;
 	};
+	declare export var safeStorage: SafeStorage;
 
 	declare export class NativeImage {
 	}
@@ -158,6 +159,12 @@ declare module 'electron' {
 		toolTip?: string;
 		accelerator?: Accelerator;
 		icon?: (NativeImage) | (string);
+		/**
+		 * Custom width of the text in the message box.
+		 *
+		 * @platform darwin
+		 */
+		textWidth?: number;
 		/**
 		 * If false, the menu item will be greyed out and unclickable.
 		 */
@@ -322,8 +329,18 @@ declare module 'electron' {
 		isReady(): boolean,
 		whenReady(): Promise<void>,
 		name: string,
+		/**
+		 * A `Boolean` which when `true` indicates that the app is currently running under
+		 * an ARM64 translator (like the macOS Rosetta Translator Environment or Windows
+		 * WOW).
+		 *
+		 * You can use this property to prompt users to download the arm64 version of your
+		 * application when they are running the x64 version under Rosetta incorrectly.
+		 *
+		 * @platform darwin,win32
+		 */
+		+runningUnderARM64Translation: boolean;
 		setPath(name: string, path: string): void;
-		allowRendererProcessReuse: boolean;
 		getLoginItemSettings(opts?: {path: string, args: string}): {
 			openAtLogin: boolean,
 			openAsHidden: boolean,
@@ -358,6 +375,59 @@ declare module 'electron' {
 		removeAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		hide(): void,
 		dock: Dock,
+		/**
+		 * Configures host resolution (DNS and DNS-over-HTTPS). By default, the following
+		 * resolvers will be used, in order:
+		 *
+		 * * DNS-over-HTTPS, if the DNS provider supports it, then
+		 * * the built-in resolver (enabled on macOS only by default), then
+		 * * the system's resolver (e.g. `getaddrinfo`).
+		 *
+		 * This can be configured to either restrict usage of non-encrypted DNS
+		 * (`secureDnsMode: "secure"`), or disable DNS-over-HTTPS (`secureDnsMode: "off"`).
+		 * It is also possible to enable or disable the built-in resolver.
+		 *
+		 * To disable insecure DNS, you can specify a `secureDnsMode` of `"secure"`. If you
+		 * do so, you should make sure to provide a list of DNS-over-HTTPS servers to use,
+		 * in case the user's DNS configuration does not include a provider that supports
+		 * DoH.
+		 *
+		 * This API must be called after the `ready` event is emitted.
+		 */
+		configureHostResolver(options: ConfigureHostResolverOptions): void;
+	}
+
+	declare interface ConfigureHostResolverOptions {
+		/**
+		 * Whether the built-in host resolver is used in preference to getaddrinfo. When
+		 * enabled, the built-in resolver will attempt to use the system's DNS settings to
+		 * do DNS lookups itself. Enabled by default on macOS, disabled by default on
+		 * Windows and Linux.
+		 */
+		enableBuiltInResolver?: boolean;
+		/**
+		 * Can be "off", "automatic" or "secure". Configures the DNS-over-HTTP mode. When
+		 * "off", no DoH lookups will be performed. When "automatic", DoH lookups will be
+		 * performed first if DoH is available, and insecure DNS lookups will be performed
+		 * as a fallback. When "secure", only DoH lookups will be performed. Defaults to
+		 * "automatic".
+		 */
+		secureDnsMode?: string;
+		/**
+		 * A list of DNS-over-HTTP server templates. See RFC8484 § 3 for details on the
+		 * template format. Most servers support the POST method; the template for such
+		 * servers is simply a URI. Note that for some DNS providers, the resolver will
+		 * automatically upgrade to DoH unless DoH is explicitly disabled, even if there
+		 * are no DoH servers provided in this list.
+		 */
+		secureDnsServers?: string[];
+		/**
+		 * Controls whether additional DNS query types, e.g. HTTPS (DNS type 65) will be
+		 * allowed besides the traditional A and AAAA queries when a request is being made
+		 * via insecure DNS. Has no effect on Secure DNS which always allows additional
+		 * types. Defaults to true.
+		 */
+		enableAdditionalDnsQueryTypes?: boolean;
 	}
 
 	declare export class ElectronDialog {
@@ -420,7 +490,8 @@ declare module 'electron' {
 		// macOS, converted to _ on Linux, and left untouched on Windows. For
 		// example, a button label of Vie&w will be converted to Vie_w on Linux
 		// and View on macOS and can be selected via Alt-W on Windows and Linux.
-		normalizeAccessKeys?: boolean
+		normalizeAccessKeys?: boolean,
+		signal?: AbortSignal,
 	}
 
 	declare export type Dock = {
@@ -483,6 +554,7 @@ declare module 'electron' {
 		}): MenuItem;
 		click(): void;
 		enabled: boolean;
+		+userAccelerator: Accelerator | null;
 	}
 
 	declare type DefaultFontFamily = {
@@ -569,15 +641,6 @@ declare module 'electron' {
 		 * session.
 		 */
 		partition?: string;
-		/**
-		 * When specified, web pages with the same `affinity` will run in the same renderer
-		 * process. Note that due to reusing the renderer process, certain `webPreferences`
-		 * options will also be shared between the web pages even when you specified
-		 * different values for them, including but not limited to `preload`, `sandbox` and
-		 * `nodeIntegration`. So it is suggested to use exact same `webPreferences` for web
-		 * pages with the same `affinity`. _Deprecated_
-		 */
-		affinity?: string;
 		/**
 		 * The default zoom factor of the page, `3.0` represents `300%`. Default is `1.0`.
 		 */
@@ -678,12 +741,6 @@ declare module 'electron' {
 		 * tab.
 		 */
 		contextIsolation?: boolean;
-		/**
-		 * If true, values returned from `webFrame.executeJavaScript` will be sanitized to
-		 * ensure JS values can't unsafely cross between worlds when using
-		 * `contextIsolation`. Defaults to `true`. _Deprecated_
-		 */
-		worldSafeExecuteJavaScript?: boolean;
 		/**
 		 * Whether to use native `window.open()`. Defaults to `false`. Child windows will
 		 * always have node integration disabled unless `nodeIntegrationInSubFrames` is
@@ -1057,6 +1114,7 @@ declare module 'electron' {
 		setPosition(x: number, y: number): void;
 		setMenu(menu: Menu | null): void;
 		setBackgroundColor(backgroundColor: string): void;
+		isFocusable(): boolean;
 		webContents: WebContents;
 		id: number;
 
@@ -1298,6 +1356,16 @@ declare module 'electron' {
 		redo(): void;
 		startDrag(item: DragInfo): void;
 		setWindowOpenHandler(handler: (NewWindowOpenDetails) => NewWindowOpenReturn): void;
+		/**
+		 * Sets the image animation policy for this webContents.  The policy only affects
+		 * _new_ images, existing images that are currently being animated are unaffected.
+		 * This is a known limitation in Chromium, you can force image animation to be
+		 * recalculated with `img.src = img.src` which will result in no network traffic
+		 * but will update the animation policy.
+		 *
+		 * This corresponds to the animationPolicy accessibility feature in Chromium.
+		 */
+		setImageAnimationPolicy(policy: 'animate' | 'animateOnce' | 'noAnimation'): void;
 	}
 
 	declare export class WebFrame {
@@ -3034,6 +3102,7 @@ Clears the host resolver cache.
 		+protocol: Protocol;
 		+serviceWorkers: ServiceWorkers;
 		+webRequest: WebRequest;
+		+storagePath: String | null;
 	}
 
 	declare interface ClientRequestConstructorOptions {
@@ -3314,6 +3383,32 @@ Clears the host resolver cache.
 		 */
 		write(chunk: (string) | (Buffer), encoding?: string, callback?: () => void): void;
 		chunkedEncoding: boolean;
+	}
+
+	declare export class SafeStorage extends EventEmitterStub {
+
+		// Docs: https://electronjs.org/docs/api/safe-storage
+
+		/**
+		 * the decrypted string. Decrypts the encrypted buffer obtained  with
+		 * `safeStorage.encryptString` back into a string.
+		 *
+		 * This function will throw an error if decryption fails.
+		 */
+		decryptString(encrypted: Buffer): string;
+		/**
+		 * An array of bytes representing the encrypted string.
+		 *
+		 * This function will throw an error if encryption fails.
+		 */
+		encryptString(plainText: string): Buffer;
+		/**
+		 * Whether encryption is available.
+		 *
+		 * On Linux, returns true if the secret key is available. On MacOS, returns true if
+		 * Keychain is available. On Windows, returns true with no other preconditions.
+		 */
+		isEncryptionAvailable(): boolean;
 	}
 }
 

@@ -161,8 +161,10 @@ export class DesktopDownloadManager {
 	}
 
 	deleteTutanotaTempDirectory() {
-		// TODO Flow doesn't know about the options param, we should update it and then remove this downcast
+		// TODO Flow doesn't know about recent fs changes
 		// Using sync version because this could get called on app shutdown and it may not complete if async
-		downcast(this._fs.rmdirSync)(this._desktopUtils.getTutanotaTempPath(), {recursive: true})
+		if (this._fs.existsSync(this._desktopUtils.getTutanotaTempPath())) {
+			downcast(this._fs).rmSync(this._desktopUtils.getTutanotaTempPath(), {recursive: true})
+		}
 	}
 }
