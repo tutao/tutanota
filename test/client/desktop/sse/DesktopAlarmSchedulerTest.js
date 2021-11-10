@@ -52,7 +52,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		const alarmStorage = {
 			storeAlarm: o.spy(() => Promise.resolve()),
 			deleteAlarm: o.spy(() => Promise.resolve()),
-			resolvePushIdentifierSessionKey: () => Promise.resolve({piSk: "piSk", piSkEncSk: "piSkEncSk"}),
+			getPushIdentifierSessionKey: () => Promise.resolve("piSk"),
 			getScheduledAlarms: () => []
 		}
 		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).set()

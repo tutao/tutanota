@@ -82,10 +82,8 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const {confMock, cryptoMock, secretStorageMock} = standardMocks()
 
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
-		await desktopStorage.resolvePushIdentifierSessionKey([
-			{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
-			{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
-		])
+		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]})
+		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]})
 		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(2)
 	})
 
@@ -97,10 +95,8 @@ o.spec("DesktopAlarmStorageTest", function () {
 		)
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
 		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
-		await desktopStorage.resolvePushIdentifierSessionKey([
-			{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
-			{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
-		])
+		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]})
+		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]})
 		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(0)
 		o(confMock.setVar.callCount).equals(1)
 		o(confMock.setVar.args.length).equals(2)

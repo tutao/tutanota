@@ -11,7 +11,8 @@ import {log} from "../DesktopLog"
 import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
 import {NotificationResult} from "../DesktopConstants"
 import {CryptoError} from "../../api/common/error/CryptoError"
-import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
+import {elementIdPart} from "../../api/common/utils/EntityUtils"
+import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 
 export type NotificationSessionKey = {pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}
 export type EncryptedAlarmInfo = {
@@ -62,23 +63,27 @@ export class DesktopAlarmScheduler {
 	}
 
 	async _decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
-		while (an.notificationSessionKeys.length > 0) {
-			const {piSk, piSkEncSk} = await this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
-			const decAn = await this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk)
-			if (Object.keys(decAn).includes("_errors")) {
-				// throw away the key that caused the error and try again
-				const badKey = an.notificationSessionKeys.splice(-1, 1)[0]
-				const badId = elementIdPart(badKey.pushIdentifier)
-				// we only want to throw it away if the list of keys in the an doesn't contain a key that
-				// uses the same ID
-				if (!an.notificationSessionKeys.find((k: NotificationSessionKey) => isSameId(badId, elementIdPart(k.pushIdentifier)))) {
-					await this._alarmStorage.removePushIdentifierKey(badId)
-				}
+		for (const currentKey of an.notificationSessionKeys) {
+			const pushIdentifierSessionKey = await this._alarmStorage.getPushIdentifierSessionKey(currentKey)
+			if (!pushIdentifierSessionKey) {
+				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
+				// or we couldn't decrypt the NotificationSessionKey for some reason
+				// either way, we probably can't use it.
 				continue
 			}
+			const decAn = await this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, pushIdentifierSessionKey, currentKey.pushIdentifierSessionEncSessionKey)
+			if (hasError(decAn)) {
+				// some property of the AlarmNotification couldn't be decrypted with the selected key
+				// throw away the key that caused the error and try the next one
+				await this._alarmStorage.removePushIdentifierKey(elementIdPart(currentKey.pushIdentifier))
+				continue
+			}
+			// we just want to keep the key that can decrypt the AlarmNotification
+			an.notificationSessionKeys = [currentKey]
 			return this._scheduleAlarms(decAn)
 		}
-		// none of the keys worked.
+
+		// none of the NotificationSessionKeys in the AlarmNotification worked.
 		// this is indicative of a serious problem with the stored keys.
 		// therefore, we should invalidate the sseInfo and throw away
 		// our pushEncSessionKeys.
