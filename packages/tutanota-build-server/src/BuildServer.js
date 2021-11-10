@@ -65,13 +65,22 @@ export class BuildServer {
 	 * @param config A BuildServerConfig object
 	 */
 	constructor(config) {
-		this.config = config
+		/**
+		 * The config for the running build server
+		 */
+		this.buildServerConfig = config
+
+		/**
+		 * The config that gets passed to this.builder
+		 */
+		this.builderConfig = null
+		this.builder = null
 
 		this.serverSocket = null
 		this.watchers = new Watchers()
 
-		this.socketPath = path.join(this.config.directory, SOCKET)
-		this.logFilePath = path.join(this.config.directory, LOGFILE)
+		this.socketPath = path.join(this.buildServerConfig.directory, SOCKET)
+		this.logFilePath = path.join(this.buildServerConfig.directory, LOGFILE)
 	}
 
 	/**
@@ -82,7 +91,7 @@ export class BuildServer {
 		await this._createTempDir()
 		await this._initLog()
 
-		this.builder = await import(this.config.builderPath)
+		this.builder = await import(this.buildServerConfig.builderPath)
 		if (await fs.exists(this.socketPath)) {
 			this.log("Socket already exists, removing", this.socketPath)
 			await fs.remove(this.socketPath)
@@ -95,7 +104,7 @@ export class BuildServer {
 			})
 		this.log("Build server listening on ", this.socketPath)
 
-		this._startDevServer(this.config.webRoot, this.config.devServerPort)
+		this._startDevServer(this.buildServerConfig.webRoot, this.buildServerConfig.devServerPort)
 	}
 
 	/**
@@ -117,7 +126,7 @@ export class BuildServer {
 			this.serverSocket.destroy()
 		}
 		await this._removeSocket()
-		if (!this.config.preserveLogs) {
+		if (!this.buildServerConfig.preserveLogs) {
 			this.log("Removing build server directory")
 			await this._removeTempDir()
 		}
@@ -157,11 +166,11 @@ export class BuildServer {
 			const normalizedPath = await fs.promises.realpath(path)
 			log("invalidating", normalizedPath)
 			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(normalizedPath))
-			if (this.config.autoRebuild) {
+			if (this.buildServerConfig.autoRebuild) {
 				log("Rebuilding ...")
-				await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
+				await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
 				const updates = await this._generateBundles()
-				await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
+				await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
 				this.devServer?.updateBundles(updates)
 			}
 		} catch (e) {
@@ -176,24 +185,24 @@ export class BuildServer {
 	}
 
 	async _setupWatchers(log) {
-		this.watchers.start(log, this.config.watchFolders, (event, path) => this._onSrcDirChanged(event, path, log), this.config.builderPath, this._onBuilderChanged.bind(this))
+		this.watchers.start(log, this.buildServerConfig.watchFolders, (event, path) => this._onSrcDirChanged(event, path, log), this.buildServerConfig.builderPath, this._onBuilderChanged.bind(this))
 	}
 
 	async _runInitialBuild(log) {
 		this.log("initial build")
 		this._stopDevServer()
-		if (this.config.devServerPort) {
+		if (this.buildServerConfig.devServerPort) {
 			this._startDevServer()
 		}
 
-		await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
+		await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
 		this.bundleWrappers = await this.builder.build(
-			this.lastBuildConfig,
-			this.config,
+			this.builderConfig,
+			this.buildServerConfig,
 			(...message) => {log("Builder: " + message.join(" "))}
 		)
 		await this._generateBundles(log)
-		await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
+		await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
 		await this._setupWatchers(log)
 	}
 
@@ -240,21 +249,21 @@ export class BuildServer {
 			} else if (command === COMMAND_BUILD) {
 				log("New build request with parameters: " + JSON.stringify(options))
 				const newConfig = options
-				if (!this.lastBuildConfig || !this._isSameConfig(newConfig, this.lastBuildConfig)) {
-					log(`Config has changed, rebuilding old: ${JSON.stringify(this.lastBuildConfig)}, new: ${JSON.stringify(newConfig)}`)
+				if (!this.builderConfig || !this._isSameConfig(newConfig, this.builderConfig)) {
+					log(`Config has changed, rebuilding old: ${JSON.stringify(this.builderConfig)}, new: ${JSON.stringify(newConfig)}`)
 					this.bundleWrappers = null
-					this.lastBuildConfig = newConfig
+					this.builderConfig = newConfig
 				}
 				if (this.bundleWrappers == null) {
 					await this._runInitialBuild(log)
 				} else {
-					await this.builder.preBuild?.(this.lastBuildConfig, this.config, log)
+					await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
 					await this._generateBundles(log)
-					await this.builder.postBuild?.(this.lastBuildConfig, this.config, log)
+					await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
 				}
 				this._sendToClient(STATUS_OK, "Build finished")
 			} else if (command === COMMAND_DUMP_CONFIG) {
-				await this._sendToClient(STATUS_CONFIG, this.config)
+				await this._sendToClient(STATUS_CONFIG, this.buildServerConfig)
 			} else {
 				log("Unknown command: " + command)
 			}
@@ -298,7 +307,7 @@ export class BuildServer {
 	}
 
 	_startDevServer() {
-		this.devServer = new DevServer(this.config.webRoot, this.config.spaRedirect, this.config.devServerPort, this._logTee.bind(this))
+		this.devServer = new DevServer(this.buildServerConfig.webRoot, this.buildServerConfig.spaRedirect, this.buildServerConfig.devServerPort, this._logTee.bind(this))
 		this.devServer.start()
 	}
 
@@ -307,11 +316,11 @@ export class BuildServer {
 	}
 
 	async _createTempDir() {
-		await fs.mkdirs(this.config.directory)
+		await fs.mkdirs(this.buildServerConfig.directory)
 	}
 
 	async _removeTempDir() {
-		await fs.rm(this.config.directory, {recursive: true})
+		await fs.rm(this.buildServerConfig.directory, {recursive: true})
 	}
 
 	async _removeSocket() {

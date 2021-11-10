@@ -10,13 +10,18 @@ export async function runDevBuild({stage, host, desktop, clean, watch, serve}) {
 		fs.emptyDir("build")
 	}
 
+	const doClean = clean ?? false
+
 	let buildServerOptions = {
-		forceRestart: typeof (clean) !== "undefined" ? clean : false,
+		forceRestart: doClean,
 		builderPath: path.resolve("./buildSrc/Builder.js"),
 		preserveLogs: true,
-		autoRebuild: typeof (watch) !== "undefined" ? watch : false,
+		autoRebuild: watch ?? false,
 		buildOpts: {
-			desktop, stage, host, clean
+			desktop: desktop ?? false,
+			stage: stage ?? "local",
+			host,
+			clean: doClean
 		},
 		watchFolders: [path.resolve("src")]
 	}
