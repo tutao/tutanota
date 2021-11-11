@@ -15,6 +15,7 @@ import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanen
 import {liveDataAttrs} from "../AriaUtils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
+import {windowFacade} from "../../misc/WindowFacade"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
@@ -88,9 +89,14 @@ class CredentialEncryptionMethodDialog {
 			this._dialog.close()
 			this._finished.resolve()
 		} catch (e) {
-			if (e instanceof CredentialAuthenticationError || e instanceof KeyPermanentlyInvalidatedError) {
+			if (e instanceof CredentialAuthenticationError) {
 				this._error = e.message
 				m.redraw()
+			} else if (e instanceof KeyPermanentlyInvalidatedError) {
+				await this._credentialsProvider.clearCredentials()
+				this._dialog.close()
+				await Dialog.error("credentialsKeyInvalidated_msg")
+				windowFacade.reload({})
 			} else {
 				throw e
 			}

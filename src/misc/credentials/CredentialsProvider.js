@@ -135,6 +135,8 @@ export interface ICredentialsProvider {
 	/**
 	 * Sets the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is protected.
 	 * @param encryptionMode
+	 * @throws KeyPermanentlyInvalidatedError
+	 * @throws CredentialAuthenticationError
 	 */
 	setCredentialsEncryptionMode(encryptionMode: CredentialEncryptionModeEnum): Promise<void>;
 
