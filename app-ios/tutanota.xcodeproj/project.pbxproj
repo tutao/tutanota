@@ -93,6 +93,8 @@
 		3D378F542536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5422031B83002C2455 /* InfoPlist.strings */; };
 		3D378F552536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9622031B89002C2455 /* InfoPlist.strings */; };
 		3D378F562536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5122031B83002C2455 /* InfoPlist.strings */; };
+		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
+		3D4E16F5273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFC26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
@@ -266,6 +268,7 @@
 		3D378F5B2536F79A0001F1F3 /* tutanota copy2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy2-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy2-Info.plist"; sourceTree = "<absolute>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
+		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
 		3D4F1BF826EBADE500E87BF5 /* TUTBigNum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTBigNum.h; sourceTree = "<group>"; };
 		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
 		3D63A0DD233CF7C900D05259 /* TUTLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTLog.h; sourceTree = "<group>"; };
@@ -536,6 +539,7 @@
 				3D84F5812723225C00858A58 /* Utils.swift */,
 				3D9782192739600700DB639C /* URLSession+Sync.swift */,
 				3D92867B273A7D18006B8FB2 /* TutanotaError.swift */,
+				3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1575,6 +1579,7 @@
 				3D9B129E272189BB002B46A1 /* AlarmModel.swift in Sources */,
 				3D84F5832723225C00858A58 /* Utils.swift in Sources */,
 				3DE1E446266672870018C9DE /* UIColor+utils.swift in Sources */,
+				3D4E16F5273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D0EB1FA26F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D73DA322731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3D2DB91C2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
@@ -1596,6 +1601,7 @@
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
+				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
