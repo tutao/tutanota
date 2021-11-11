@@ -71,7 +71,6 @@ export class FileFacade {
 	async downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
 
 		assert(env.mode === Mode.App || env.mode === Mode.Desktop, "Environment is not app or Desktop!")
-
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 		}
@@ -139,34 +138,29 @@ export class FileFacade {
 	/**
 	 * Does not cleanup uploaded files. This is a responsibility of the caller
 	 */
-	uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
+	async uploadFileDataNative(fileReference: FileReference, sessionKey: Aes128Key): Promise<Id> {
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
 		}
-		return aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
-			.then(encryptedFileInfo => {
-				let fileData = createFileDataDataPost()
-				fileData.size = encryptedFileInfo.unencSize.toString()
-				fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
-				return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
-					.then(fileDataPostReturn => {
-						let fileDataId = fileDataPostReturn.fileData
-						let headers = this._login.createAuthHeaders()
-						headers['v'] = FileDataDataReturnTypeModel.version
-						let url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {fileDataId})
-						return fileApp.upload(encryptedFileInfo.uri, url.toString(), headers)
-						              .then(({statusCode, uri, errorId, precondition, suspensionTime}) => {
-							              if (statusCode === 200) {
-								              return fileDataId;
-							              } else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
-								              this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
-								              return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
-							              } else {
-								              throw handleRestError(statusCode, ` | PUT ${url.toString()} failed to natively upload attachment`, errorId, precondition)
-							              }
-						              })
-					})
-			})
+		const encryptedFileInfo = await aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
+		const fileData = createFileDataDataPost({
+			size: encryptedFileInfo.unencSize.toString(),
+			group: this._login.getGroupId(GroupType.Mail), // currently only used for attachments
+		})
+		const fileDataPostReturn = await _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
+		const fileDataId = fileDataPostReturn.fileData
+		const headers = this._login.createAuthHeaders()
+		headers['v'] = FileDataDataReturnTypeModel.version
+		const url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {fileDataId})
+		const {statusCode, errorId, precondition, suspensionTime} = await fileApp.upload(encryptedFileInfo.uri, url.toString(), headers)
+		if (statusCode === 200) {
+			return fileDataId;
+		} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
+			this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+			return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
+		} else {
+			throw handleRestError(statusCode, ` | PUT ${url.toString()} failed to natively upload attachment`, errorId, precondition)
+		}
 	}
 
 	/**

@@ -192,8 +192,8 @@ class FileFacade {
 struct DataTaskResponse {
   let statusCode: Int
   let errorId: String?
-  let preconditionHeader: String?
-  let time: String?
+  let precondition: String?
+  let suspensionTime: String?
   let encryptedFileUri: String?
 }
 
@@ -204,8 +204,8 @@ extension DataTaskResponse {
     self.init(
       statusCode: httpResponse.statusCode,
       errorId: httpResponse.allHeaderFields["Error-Id"] as! String?,
-      preconditionHeader: httpResponse.allHeaderFields["Precondition"] as! String?,
-      time:
+      precondition: httpResponse.allHeaderFields["Precondition"] as! String?,
+      suspensionTime:
         httpResponse.allHeaderFields["Retry-After"] as! String? ?? httpResponse.allHeaderFields["Suspension-Time"] as! String?,
       encryptedFileUri: encryptedFileUri
     )

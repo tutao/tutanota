@@ -101,11 +101,21 @@ function saveBlob(data: DataFile): Promise<void> {
 	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
 }
 
+export type DataTaskResponse = {
+    statusCode: number,
+    errorId: ?string,
+    precondition: ?string,
+    suspensionTime: ?string,
+}
+
+export type DownloadTaskResponse = DataTaskResponse & {
+    encryptedFileUri: ?string,
+}
+
 /**
  * Uploads the binary data of a file to tutadb
  */
-function upload(fileUrl: string, targetUrl: string,
-                headers: Object): Promise<{statusCode: number, errorId: ?string, precondition: ?string, uri: ?string, suspensionTime: ?string}> {
+function upload(fileUrl: string, targetUrl: string, headers: Object): Promise<DataTaskResponse> {
 	return nativeApp.invokeNative(new Request("upload", [fileUrl, targetUrl, headers]))
 }
 
@@ -113,7 +123,7 @@ function upload(fileUrl: string, targetUrl: string,
  * Downloads the binary data of a file from tutadb and stores it in the internal memory.
  * @returns Resolves to the URI of the downloaded file
  */
-function download(sourceUrl: string, filename: string, headers: Object): Promise<{statusCode: number, encryptedFileUri: ?string, errorId: ?string, precondition: ?string, suspensionTime: ?string}> {
+function download(sourceUrl: string, filename: string, headers: Object): Promise<DownloadTaskResponse> {
 	return nativeApp.invokeNative(new Request("download", [sourceUrl, filename, headers]))
 }
 
