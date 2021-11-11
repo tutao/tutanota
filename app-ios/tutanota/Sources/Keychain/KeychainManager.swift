@@ -122,7 +122,13 @@ class KeychainManager : NSObject {
     let encryptedData = SecKeyCreateEncryptedData(publicKey, Self.DATA_ALGORITHM, data as CFData, &error) as Data?
     
     guard let encryptedData = encryptedData else {
-      try self.handleKeychainError(error!, mode: encryptionMode)
+      switch try self.handleKeychainError(error!, mode: encryptionMode) {
+      case .unrecoverable(let error):
+        throw error
+      case .recoverable(let error):
+        TUTSLog("Trying to recover from error \(error)")
+        return try self.encryptData(encryptionMode: encryptionMode, data: data)
+      }
     }
     return encryptedData
   }
@@ -134,7 +140,13 @@ class KeychainManager : NSObject {
     let decryptedData = SecKeyCreateDecryptedData(key, Self.DATA_ALGORITHM, encryptedData as CFData, &error) as Data?
     
     guard let decryptedData = decryptedData else {
-      try self.handleKeychainError(error!, mode: encryptionMode)
+      switch try self.handleKeychainError(error!, mode: encryptionMode) {
+      case .unrecoverable(let error):
+        throw error
+      case .recoverable(let error):
+        TUTSLog("Trying to recover from error \(error)")
+        return try self.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
+      }
     }
     return decryptedData
   }
@@ -213,22 +225,44 @@ class KeychainManager : NSObject {
     return keyTag.data(using: .utf8)!
   }
   
-  private func handleKeychainError(_ error: Unmanaged<CFError>, mode: CredentialEncryptionMode) throws -> Never {
+  private func handleKeychainError(_ error: Unmanaged<CFError>, mode: CredentialEncryptionMode) throws -> HandledKeychainError {
     let parsedError = self.keyGenerator.parseKeychainError(error)
     let message = "Keychain operation failed \(mode)"
     switch parsedError {
     case .authFailure(let error):
-      throw CredentialAuthenticationError(underlyingError: error)
+      return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
+    case .lockout(error: let error):
+      let (result, promptError) = blockOn { cb in
+        self.showPasswordPrompt(reason: error.localizedDescription, cb)
+      }
+      if let error = promptError {
+        return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
+      } else if result == .some(false) {
+        return .unrecoverable(error: CredentialAuthenticationError(underlyingError: error))
+      } else {
+        return .recoverable(error: CredentialAuthenticationError(underlyingError: error))
+      }
     case .keyPermanentlyInvalidated(let error):
       let tag = self.keyAlias(for: mode)
       try self.deleteKey(tag: tag)
-      throw KeyPermanentlyInvalidatedError(underlyingError: error)
+      return .unrecoverable(error: KeyPermanentlyInvalidatedError(underlyingError: error))
     case .unknown(let error):
-      throw TUTErrorFactory.wrapNativeError(
-        withDomain: TUT_ERROR_DOMAIN,
-        message: message,
-        error: error
-      )
+      return .unrecoverable(error: TUTErrorFactory.wrapNativeError(withDomain: TUT_ERROR_DOMAIN, message: message, error: error))
     }
   }
+  
+  private func showPasswordPrompt(reason: String, _ completion: @escaping (Bool?, Error?) -> Void) {
+    DispatchQueue.main.async {
+      LAContext()
+        .evaluatePolicy(.deviceOwnerAuthentication,
+                        localizedReason: reason,
+                        reply: completion
+        )
+    }
+  }
+}
+
+fileprivate enum HandledKeychainError {
+  case recoverable(error: Error)
+  case unrecoverable(error: Error)
 }

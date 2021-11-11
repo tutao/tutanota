@@ -44,7 +44,11 @@ class KeyGenerator {
     }
     #endif
     
-    if e.domain == LAError.errorDomain && (e.code == LAError.Code.systemCancel.rawValue || e.code == LAError.Code.userCancel.rawValue) {
+    if e.domain == LAError.errorDomain && e.code == LAError.Code.biometryLockout.rawValue {
+      return .lockout(error: e)
+    }
+    
+    if e.domain == LAError.errorDomain {
       return .authFailure(error: e)
     }
     
@@ -54,6 +58,8 @@ class KeyGenerator {
 
 internal enum KeychainError {
   case authFailure(error: NSError)
+  /// Too many attempts to use biometrics, user must authenticate with password before trying again
+  case lockout(error: NSError)
   case keyPermanentlyInvalidated(error: NSError)
   case unknown(error: NSError)
 }
