@@ -60,12 +60,13 @@ export class TimePicker implements MComponent<TimePickerAttrs> {
 			this._onSelected(attrs)
 		}
 
-		const timeAsString = attrs.time?.toString(attrs.amPmFormat) ?? ""
+		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
+		const timeAsString = attrs.time?.toString(false) ?? ""
+
 		this._oldValue = timeAsString
 		this._value(timeAsString)
 		return m(TextFieldN, {
 			label: "emptyString_msg",
-			// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 			value: this._value,
 			type: TextFieldType.Time,
 			oninput: (value) => {
