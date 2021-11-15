@@ -3,10 +3,10 @@ import {defaultThemeId, DeviceConfig} from "../misc/DeviceConfig";
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer";
 import stream from "mithril/stream/stream.js";
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env";
-import {downcast, findAndRemove, mapAndFilterNull, neverNull, typedValues} from "@tutao/tutanota-utils";
+import {downcast, findAndRemove, mapAndFilterNull, typedValues} from "@tutao/tutanota-utils";
 import m from "mithril";
 import type {BaseThemeId, Theme, ThemeId} from "./theme";
-import {themes} from "./builtinThemes";
+import {logo_text_bright_grey, logo_text_dark_grey, themes} from "./builtinThemes";
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {getLogoSvg} from "./base/Logo"
@@ -202,7 +202,7 @@ export class ThemeController {
 			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 		} else {
 			const coloredTutanotaLogo = {
-				logo: getLogoSvg(customizations.content_accent, customizations.base === "light" ? '#4a4a4a' : '#c5c7c7')
+				logo: getLogoSvg(customizations.content_accent, customizations.base === "light" ?  logo_text_dark_grey : logo_text_bright_grey)
 			}
 			return Object.assign({}, this.getBaseTheme(neverNull(customizations.base)), customizations, coloredTutanotaLogo)
 		}

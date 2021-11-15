@@ -27,7 +27,7 @@ const grey_darker_1 = '#303030'
 
 const red = '#840010'
 const blue = '#005885'
-const logo_text_dark_grey = '#4a4a4a'
+export const logo_text_dark_grey = '#4a4a4a'
 
 /**
  *      dark theme background
@@ -51,7 +51,7 @@ const dark = '#222222'
 const dark_darker_0 = '#111111'
 
 const green = '#00d2a7'
-const logo_text_bright_grey = '#c5c7c7'
+export const logo_text_bright_grey = '#c5c7c7'
 
 type Themes = {
 	[ThemeId]: Theme

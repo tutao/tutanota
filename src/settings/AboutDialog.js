@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {theme} from "../gui/theme"
+import {getColouredTutanotaLogo, theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
 import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
@@ -16,7 +16,7 @@ export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
-			m(".center.mt", m.trust(theme.logo)),
+			m(".center.mt", m.trust(getColouredTutanotaLogo())),
 			m(".flex.justify-center.mt-l.flex-wrap", [
 				this._aboutLink(lang.getInfoLink("homePage_link"), "Website"),
 				this._aboutLink('https://github.com/tutao/tutanota/releases', 'Releases'),

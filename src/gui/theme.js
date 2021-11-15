@@ -4,6 +4,9 @@ import {assertMainOrNodeBoot, isApp, isDesktop, isTest} from "../api/common/Env"
 import {downcast} from "@tutao/tutanota-utils"
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
 import {NativeThemeStorage, ThemeController, WebThemeStorage} from "./ThemeController"
+import {isColorLight} from "./base/Color"
+import {logo_text_bright_grey, logo_text_dark_grey} from "./builtinThemes"
+import {getLogoSvg} from "./base/Logo"
 
 assertMainOrNodeBoot()
 
@@ -102,4 +105,8 @@ export function getNavigationMenuBg(): string {
 
 export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
+}
+
+export function getColouredTutanotaLogo(): string {
+	return getLogoSvg(theme.content_accent, isColorLight(theme.content_bg) ?  logo_text_dark_grey : logo_text_bright_grey)
 }
