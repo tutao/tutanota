@@ -4,20 +4,20 @@ import MobileCoreServices
 class FileFacade {
   private let chooser: TUTFileChooser
   private let viewer: FileViewer
-  
+
   init(chooser: TUTFileChooser, viewer: FileViewer) {
     self.chooser = chooser
     self.viewer = viewer
   }
-  
+
   func openFileChooser(anchor: CGRect, completion: @escaping ResponseCallback<[String]>) {
     self.chooser.open(withAnchorRect: anchor, completion: completion)
   }
-  
+
   func openFile(path: String, completion: @escaping () -> Void) {
     self.viewer.openFile(path: path, completion: completion)
   }
-  
+
   func openFile(name: String, data: Data, completion: @escaping ResponseCallback<Void>) {
     do {
       let decryptedFolder = try FileUtils.getDecryptedFolder()
@@ -34,7 +34,7 @@ class FileFacade {
       completion(.failure(error))
     }
   }
-  
+
   func deleteFile(path: String, completion: @escaping ResponseCallback<Void>) {
     DispatchQueue.global(qos: .default).async {
       let result = Result {
@@ -43,7 +43,7 @@ class FileFacade {
       completion(result)
     }
   }
-  
+
   func getName(path: String, completion: @escaping ResponseCallback<String>) {
     DispatchQueue.global(qos: .default).async {
       let fileName = (path as NSString).lastPathComponent
@@ -58,14 +58,14 @@ class FileFacade {
       }
     }
   }
-  
+
   func getMimeType(path: String, completion: @escaping ResponseCallback<String>) {
     DispatchQueue.global(qos: .default).async {
       let mimeType = self.getFileMIMEType(path: path) ?? "application/octet-stream"
       completion(.success(mimeType))
     }
   }
-  
+
   func getSize(path: String, completion: @escaping ResponseCallback<UInt64>) {
     DispatchQueue.global(qos: .default).async {
       do {
@@ -76,7 +76,7 @@ class FileFacade {
       }
     }
   }
-  
+
   func uploadFile(
     atPath path: String,
     toUrl url: String,
@@ -89,9 +89,9 @@ class FileFacade {
       request.httpMethod = "PUT"
       request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
       request.allHTTPHeaderFields = headers
-      
+
       let session = URLSession(configuration: .ephemeral)
-      
+
       let fileUrl = URL(fileURLWithPath: path)
       let task = session.uploadTask(with: request, fromFile: fileUrl) { data, response, error in
         if let error = error {
@@ -105,7 +105,7 @@ class FileFacade {
       task.resume()
     }
   }
-  
+
   func downloadFile(
     fromUrl url: String,
     forName fileName: String,
@@ -117,7 +117,7 @@ class FileFacade {
       var request = URLRequest(url: url)
       request.httpMethod = "GET"
       request.allHTTPHeaderFields = headers
-      
+
       let session = URLSession(configuration: .ephemeral)
       let task = session.dataTask(with: request) { data, response, error in
         if let error = error {
@@ -142,7 +142,7 @@ class FileFacade {
       task.resume()
     }
   }
-  
+
   func clearFileData(completion: @escaping ResponseCallback<Void>) {
     DispatchQueue.global(qos: .default).async {
       let result = Result {
@@ -153,7 +153,7 @@ class FileFacade {
       completion(result)
     }
   }
-  
+
   private func clearDirectory(folderPath: String) throws {
     let fileManager = FileManager.default
     let folderUrl = URL(fileURLWithPath: folderPath)
@@ -164,7 +164,7 @@ class FileFacade {
       }
     }
   }
-  
+
   private func getFileMIMEType(path: String) -> String? {
     // UTType is only available since iOS 15.
     // We take retainedValue because both functions create new object and we
@@ -179,7 +179,7 @@ class FileFacade {
     let MIMEUTI = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType)?.takeRetainedValue()
     return MIMEUTI as String?
   }
-  
+
   private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
     let encryptedPath = try FileUtils.getEncryptedFolder()
     let filePath = (encryptedPath as NSString).appendingPathComponent(fileName)
@@ -203,11 +203,25 @@ extension DataTaskResponse {
   init(httpResponse: HTTPURLResponse, encryptedFileUri: String?) {
     self.init(
       statusCode: httpResponse.statusCode,
-      errorId: httpResponse.allHeaderFields["Error-Id"] as! String?,
-      precondition: httpResponse.allHeaderFields["Precondition"] as! String?,
-      suspensionTime:
-        httpResponse.allHeaderFields["Retry-After"] as! String? ?? httpResponse.allHeaderFields["Suspension-Time"] as! String?,
+      errorId: httpResponse.valueForHeaderField("Error-Id"),
+      precondition: httpResponse.valueForHeaderField("Precondition"),
+      suspensionTime: httpResponse.valueForHeaderField("Retry-After") ?? httpResponse.valueForHeaderField("Suspension-Time"),
       encryptedFileUri: encryptedFileUri
     )
   }
 }
+
+/// Reading header fields from HTTPURLResponse.allHeaderFields is case-sensitive, it is a bug: https://bugs.swift.org/browse/SR-2429
+/// From iOS13 we have a method to read headers case-insensitively: HTTPURLResponse.value(forHTTPHeaderField:)
+/// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
+public extension HTTPURLResponse {
+    func valueForHeaderField(_ headerField: String) -> String? {
+        if #available(iOS 13.0, *) {
+            return value(forHTTPHeaderField: headerField)
+        } else {
+            return (allHeaderFields as NSDictionary)[headerField] as? String
+        }
+    }
+}
+
+
