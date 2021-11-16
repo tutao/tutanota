@@ -4,6 +4,7 @@ import n from '../../nodemocker'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants"
 import {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 import type {AlarmScheduler} from "../../../../src/calendar/date/AlarmScheduler"
+import {CryptoError} from "../../../../src/api/common/error/CryptoError"
 import {lastThrow} from "@tutao/tutanota-utils"
 import {NotificationResult} from "../../../../src/desktop/DesktopConstants"
 
@@ -53,7 +54,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			storeAlarm: o.spy(() => Promise.resolve()),
 			deleteAlarm: o.spy(() => Promise.resolve()),
 			getPushIdentifierSessionKey: () => Promise.resolve("piSk"),
-			getScheduledAlarms: () => []
+			getScheduledAlarms: () => [],
+			removePushIdentifierKey: () => {}
 		}
 		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).set()
 
@@ -190,6 +192,74 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			const onClick = lastThrow(notifierMock.submitGroupedNotification.calls[0].args)
 			onClick(NotificationResult.Click)
 			o(wmMock.openCalendar.callCount).equals(1)
+		})
+
+		o("alarmnotification with unavailable pushIdentifierSessionKey", async function () {
+			const {wmMock, notifierMock, cryptoMock} = standardMocks()
+			const alarmStorageMock = n.mock("__alarmStorage", {
+				storeAlarm: o.spy(() => Promise.resolve()),
+				deleteAlarm: o.spy(() => Promise.resolve()),
+				getPushIdentifierSessionKey: () => null,
+				getScheduledAlarms: () => []
+			}).set()
+			const alarmScheduler = makeAlarmScheduler()
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+
+			const an1 = createAlarmNotification({
+				startTime: new Date(2019, 9, 20, 10),
+				endTime: new Date(2019, 9, 20, 12),
+				trigger: "5M",
+				endType: EndType.Never,
+				endValue: null,
+				frequency: RepeatPeriod.ANNUALLY,
+				interval: '1'
+			})
+
+			an1.notificationSessionKeys.push({
+				_id: `notificationSessionKeysIdFoo`,
+				pushIdentifierSessionEncSessionKey: `pushIdentifierSessionEncSessionKeyFoo`,
+				pushIdentifier: [
+					`pushIdentifierFooPart1`,
+					`pushIdentifierFooPart2`
+				]
+			})
+			let err = null
+			try {
+				await scheduler.handleAlarmNotification(an1)
+			} catch (e) {
+				err = e
+			}
+			// async o(...).throws(CryptoError) won't work
+			o(err instanceof CryptoError).equals(true)
+			o(alarmStorageMock.getPushIdentifierSessionKey.callCount).equals(2)
+		})
+
+		o("alarmnotification with corrupt fields", async function () {
+			const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+			const cryptoMock = n.mock('__crypto', crypto).with({
+				decryptAndMapToInstance: (tm, an) => Promise.resolve(Object.assign({"_errors": {}}, an))
+			}).set()
+			const alarmScheduler = makeAlarmScheduler()
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+
+			const an1 = createAlarmNotification({
+				startTime: new Date(2019, 9, 20, 10),
+				endTime: new Date(2019, 9, 20, 12),
+				trigger: "5M",
+				endType: EndType.Never,
+				endValue: null,
+				frequency: RepeatPeriod.ANNUALLY,
+				interval: '1'
+			})
+			let err = null
+			try {
+				await scheduler.handleAlarmNotification(an1)
+			} catch (e) {
+				err = e
+			}
+			// async o(...).throws(CryptoError) won't work
+			o(err instanceof CryptoError).equals(true)
+			o(alarmStorageMock.removePushIdentifierKey.callCount).equals(1)
 		})
 	})
 })
