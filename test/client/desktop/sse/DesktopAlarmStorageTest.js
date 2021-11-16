@@ -78,29 +78,47 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 	const deviceKeyProvider: DesktopDeviceKeyProvider = makeDeviceKeyProvider(new Uint8Array([1, 2, 3]))
 
-	o("resolvePushIdentifierSessionKey with uncached sessionKey", async function () {
-		const {confMock, cryptoMock, secretStorageMock} = standardMocks()
+	o("getPushIdentifierSessionKey with uncached sessionKey", async function () {
+		const {confMock, cryptoMock} = standardMocks()
 
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
-		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]})
-		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]})
-		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(2)
+		const key1 = await desktopStorage.getPushIdentifierSessionKey({
+			pushIdentifierSessionEncSessionKey: "abc",
+			pushIdentifier: ["oneId", "twoId"]
+		})
+		o(confMock.getVar.callCount).equals(1)
+		o(key1).equals("decryptedKey")
 	})
 
-	o("resolvePushIdentifierSessionKey with cached sessionKey", async function () {
-		const {cryptoMock, secretStorageMock} = standardMocks()
+	o("getPushIdentifierSessionKey with cached sessionKey", async function () {
+		const {cryptoMock} = standardMocks()
 		const confMock = downcast<DesktopConfig>(n.mock("__conf", conf).with({
+				// no keys in config
 				getVar: key => {}
 			}).set()
 		)
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
 		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
-		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]})
-		await desktopStorage.getPushIdentifierSessionKey({pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]})
-		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(0)
+
 		o(confMock.setVar.callCount).equals(1)
 		o(confMock.setVar.args.length).equals(2)
 		o(confMock.setVar.args[0]).equals("pushEncSessionKeys")
 		o(confMock.setVar.args[1]).deepEquals({fourId: "password"})
+
+		const key1 = await desktopStorage.getPushIdentifierSessionKey({
+			pushIdentifierSessionEncSessionKey: "def",
+			pushIdentifier: ["threeId", "fourId"]
+		})
+		o(key1).equals("user4pw=")
+	})
+
+	o("getPushIdentifierSessionKey when sessionKey is unavailable", async function () {
+		const {cryptoMock, confMock} = standardMocks()
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
+		const key1 = await desktopStorage.getPushIdentifierSessionKey({
+			pushIdentifierSessionEncSessionKey: "def",
+			pushIdentifier: ["fiveId", "sixId"]
+		})
+		o(key1).equals(null)
 	})
 })

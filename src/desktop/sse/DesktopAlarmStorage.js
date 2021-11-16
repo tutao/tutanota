@@ -62,11 +62,11 @@ export class DesktopAlarmStorage {
 	 */
 	async getPushIdentifierSessionKey(notificationSessionKey: NotificationSessionKey): Promise<?Base64> {
 		const pw = await this._deviceKeyProvider.getDeviceKey()
-		const keys = await this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
 		const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
 		if (this._sessionKeysB64[pushIdentifierId]) {
 			return this._sessionKeysB64[pushIdentifierId]
 		} else {
+			const keys = await this._conf.getVar(DesktopConfigKey.pushEncSessionKeys) || {}
 			const sessionKeyFromConf = keys[pushIdentifierId]
 			if (sessionKeyFromConf == null) {
 				// key with this id is not saved in local conf, so we can't resolve it
