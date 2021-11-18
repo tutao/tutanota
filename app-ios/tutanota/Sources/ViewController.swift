@@ -4,7 +4,7 @@ import UserNotifications
 import DictionaryCoding
 
 /// Main screen of the app.
-class ViewController : UIViewController, UIScrollViewDelegate {
+class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
   private let themeManager: ThemeManager
   private let alarmManager: AlarmManager
   private var bridge: WebViewBridge!
@@ -35,6 +35,7 @@ class ViewController : UIViewController, UIScrollViewDelegate {
       webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
       
       self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
+      webView.navigationDelegate = self
       webView.scrollView.bounces = false
       webView.scrollView.isScrollEnabled = false
       webView.scrollView.delegate = self
@@ -68,6 +69,28 @@ class ViewController : UIViewController, UIScrollViewDelegate {
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardSizeChange), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
+  }
+
+  /// Implementation of WKNavigationDelegate
+  /// Handles links being clicked inside the webview
+  func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    guard let requestUrl = navigationAction.request.url else {
+      decisionHandler(.cancel)
+      return
+    }
+    
+    if requestUrl.scheme == "file" && requestUrl.path == self.appUrl().path {
+      decisionHandler(.allow)
+    } else if requestUrl.scheme == "file" && requestUrl.absoluteString.hasPrefix(self.appUrl().absoluteString) {
+	  // If the app is removed from memory, the URL won't point to the file but will have additional path.
+	  // We ignore additional path for now.
+      decisionHandler(.cancel)
+      self.loadMainPage(params:[:])
+    } else {
+      decisionHandler(.cancel)
+      UIApplication.shared.open(requestUrl, options:[:])
+    }
+  
   }
   
   var appDelegate: AppDelegate {
