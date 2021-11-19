@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2021-11-19T10:55:39Z",
+	"updated_at": "2021-11-08T19:22:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -382,7 +382,7 @@ export default {
 		"defaultSenderMailAddressInfo_msg": "Domyślny adres e-mail nadawcy dla nowych wiadomości.",
 		"defaultSenderMailAddress_label": "Domyślny nadawca",
 		"defaultShareGiftCardBody_msg": "Cześć,\n\nKupiłem ci kartę podarunkową Tutanota, użyj tego linku, aby ją zrealizować!\n\n{link}\n\nJeśli nie masz jeszcze konta, możesz użyć tego linku, aby je utworzyć i odzyskać swoją prywatność.\n\nWszystkiego Najlepszego,\n{username}",
-		"defaultShareGiftCardSubject_msg": "Otrzymałeś kartę podarunkową Tutanota!",
+		"defaultShareGiftCardSubject_msg": "Podarowano Ci kartę podarunkową Tutanota!",
 		"deleteAccountConfirm_msg": "Czy na pewno chcesz usunąć konto? Nie ma możliwości późniejszego odzyskania konta oraz zarejestrowania adresu e-mail.",
 		"deleteAccountReasonInfo_msg": "Opcjonalnie: Będziemy wdzięczni, jeśli podasz nam powód, dla którego chcesz usunąć konto, abyśmy mogli dalej ulepszać Tutanota.",
 		"deleteAccountReason_label": "Dlaczego?",
@@ -641,7 +641,7 @@ export default {
 		"invalidVatIdNumber_msg": "Numer identyfikacji podatkowej (VAT) jest nieprawidłowy.",
 		"invalidVatIdValidationFailed_msg": "Nie udało się zweryfikować numeru identyfikacyjnego VAT. Spróbuj ponownie później.",
 		"invitationMailBody_msg": "Witaj!<br><br>Oto mój nowy adres e-mail. Tutanota oferuje w pełni zaszyfrowaną, wolną od reklam skrzynkę pocztową w celu ochrony naszego prawa do prywatności. Dzięki automatycznemu szyfrowaniu możemy wysyłać wiadomości e-mail tak bezpiecznie jak zapieczętowane listy. Wreszcie nasze dane należą tylko do nas i nikt inny nie ma do nich dostępu.<br><br>Dołącz do Tutanota teraz:<br>{registrationLink}<br><br><br>Pozdrawiam,<br> {username} <br><br>P.S.: Tutanota oferuje darmową skrzynkę o pojemności 1 GB. Dodatkowo, Tutanota jest open-source: {githubLink}",
-		"invitationMailSubject_msg": "Mój nowy adres e-mail - dołącz do Tutanota i odzyskajmy naszą prywatność",
+		"invitationMailSubject_msg": "Mój nowy adres email - dołącz do Tutanota i odzyskajmy swoją prywatność",
 		"invitation_label": "Zaproszenie",
 		"invitedToEvent_msg": "Zaproszono cię do wzięcia udziału w tym wydarzeniu. Czy chcesz wziąć udział? ",
 		"invited_label": "Zaproszony",
