@@ -11,10 +11,20 @@ import {DesktopIntegratorLinux} from "../../../../src/desktop/integration/Deskto
 import {DesktopIntegratorDarwin} from "../../../../src/desktop/integration/DesktopIntegratorDarwin"
 import {DesktopIntegratorWin32} from "../../../../src/desktop/integration/DesktopIntegratorWin32"
 
-const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.'
-	+ '\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application'
-	+ '\nIcon=appName.png\nStartupWMClass=appName\nMimeType=x-scheme-handler/mailto;'
-	+ '\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage'
+const desktopEntry = `[Desktop Entry]
+Name=Tutanota Desktop
+Comment=The desktop client for Tutanota, the secure e-mail service.
+GenericName=Mail Client
+Keywords=Email;E-mail
+Exec="/appimage/path/file.appImage" %U
+Terminal=false
+Type=Application
+Icon=appName.png
+StartupWMClass=appName
+MimeType=x-scheme-handler/mailto;
+Categories=Network;
+X-Tutanota-Version=appVersion
+TryExec=/appimage/path/file.appImage`
 
 lang.init(en)
 
