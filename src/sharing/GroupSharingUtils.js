@@ -17,7 +17,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 		const userName = getSenderNameForUser(mailboxDetails, logins.getUserController())
 		// Sending notifications as bcc so that invited people don't see each other
 		const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
-		_sendNotificationEmail({bcc}, texts.shareEmailSubject, texts.shareEmailBody(userName, getSharedGroupName(sharedGroupInfo, true)), senderMailAddress)
+		_sendNotificationEmail({bcc}, texts.shareEmailSubject, texts.shareEmailBody(getSharedGroupName(sharedGroupInfo, true), userName), senderMailAddress)
 	})
 }
 
