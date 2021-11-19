@@ -75,12 +75,12 @@ export function getDateFromMousePos({x, y, targetWidth, targetHeight}: MousePosA
 	assert(weeks.length > 0, "Weeks must not be zero length")
 	const unitHeight = targetHeight / weeks.length
 	const currentSquareY = Math.floor(y / unitHeight)
-	const week = weeks[clamp(currentSquareY, 0, weeks.length)]
+	const week = weeks[clamp(currentSquareY, 0, weeks.length - 1)]
 
 	assert(week.length > 0, "Week must not be zero length")
 	const unitWidth = targetWidth / week.length
 	const currentSquareX = Math.floor(x / unitWidth)
-	return week[clamp(currentSquareX, 0, week.length)]
+	return week[clamp(currentSquareX, 0, week.length - 1)]
 }
 
 /**
