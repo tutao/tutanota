@@ -10,17 +10,13 @@ import {HttpMethod} from "../../common/EntityFunctions"
 import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {hash} from "../crypto/Sha256"
 import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
 import {getWhitelabelDomain} from "../../common/utils/Utils"
 import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
-import {aes128RandomKey} from "../crypto/Aes"
-import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
+import {resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/CreateCustomerServerPropertiesReturn"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
-import {generateRsaKey, hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {SysService} from "../../entities/sys/Services"
 import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
@@ -53,7 +49,16 @@ import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {Hex} from "@tutao/tutanota-utils/"
-import type {RsaKeyPair} from "../crypto/RsaKeyPair"
+import type {RsaKeyPair} from "@tutao/tutanota-crypto"
+import {
+	aes128RandomKey,
+	bitArrayToUint8Array,
+	encryptKey,
+	hexToPublicKey,
+	sha256Hash,
+	uint8ArrayToBitArray
+} from "@tutao/tutanota-crypto"
+import {generateRsaKey, rsaEncrypt} from "../crypto/RsaApp"
 
 assertWorkerOrNode()
 
@@ -125,7 +130,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 
 	getDomainValidationRecord(domainName: string): Promise<string> {
 		return Promise.resolve("t-verify="
-			+ uint8ArrayToHex(hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase()
+			+ uint8ArrayToHex(sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase()
 				+ neverNull(this._login.getLoggedInUser().customer))).slice(0, 16)))
 	}
 
@@ -232,7 +237,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			value = value.toLowerCase().trim()
 			let newListEntry = createEmailSenderListElement({
 				value,
-				hashedValue: uint8ArrayToBase64(hash(stringToUtf8Uint8Array(value))),
+				hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
 				type,
 				field,
 			})

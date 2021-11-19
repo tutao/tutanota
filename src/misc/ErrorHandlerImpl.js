@@ -331,7 +331,10 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	await locator.mailFacade.sendDraft(draft, [{name, mailAddress, password: "", isExternal: false}], "de")
 }
 
-export function loggingOut() {
+/**
+ * Trying to handle errors during logout can cause unhandled error loops, so we just want to ignore them
+ */
+export function disableErrorHandlingDuringLogout() {
 	isLoggingOut = true
 	showProgressDialog("loggingOut_msg", new Promise(noOp))
 }

@@ -1,6 +1,5 @@
 import o from "ospec"
 import {EntropyCollector} from "../../../src/api/main/EntropyCollector"
-import {EntropySrc as EntropyType} from "../../../src/api/common/TutanotaConstants"
 
 o.spec("EntropyCollector", function () {
 
@@ -11,7 +10,7 @@ o.spec("EntropyCollector", function () {
 			initialized: {
 				isFulfilled: () => true
 			},
-			entropy: o.spy((entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
+			entropy: o.spy((entropyCache: {source: EntropySource, entropy: number, data: number}[]) => {
 				o(entropyCache.length > 0).equals(true)
 			})
 		}

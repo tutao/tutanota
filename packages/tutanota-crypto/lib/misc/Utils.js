@@ -1,4 +1,6 @@
 // @flow
+// $FlowIgnore[untyped-import]
+import sjcl from "../internal/sjcl"
 import {
 	base64ToBase64Url,
 	base64ToUint8Array,
@@ -7,26 +9,20 @@ import {
 	uint8ArrayToArrayBuffer,
 	uint8ArrayToBase64
 } from "@tutao/tutanota-utils"
-import {hash} from "./Sha256"
-import {CryptoError} from "../../common/error/CryptoError"
-// $FlowIgnore[untyped-import]
-import sjcl from "./lib/sjcl"
-import {assertWorkerOrNode} from "../../common/Env"
 import type {Base64, Base64Url} from "@tutao/tutanota-utils/"
-
-assertWorkerOrNode()
+import {CryptoError} from "./CryptoError"
+import {sha256Hash} from "../hashes/Sha256"
 
 const PADDING_BLOCK_LENGTH = 16 // same for aes128 and aes256 as the block size is always 16 byte
-//TODO rename to padAes
-export function pad(bytes: Uint8Array): Uint8Array {
+
+export function padAes(bytes: Uint8Array): Uint8Array {
 	let paddingLength = PADDING_BLOCK_LENGTH - (bytes.byteLength % PADDING_BLOCK_LENGTH)
 	let padding = new Uint8Array(paddingLength)
 	padding.fill(paddingLength)
 	return concat(bytes, padding)
 }
 
-//TODO rename to unpadAes
-export function unpad(bytes: Uint8Array): Uint8Array {
+export function unpadAes(bytes: Uint8Array): Uint8Array {
 	let paddingLength = bytes[bytes.byteLength - 1]
 	if (paddingLength === 0 || paddingLength > bytes.byteLength || paddingLength > PADDING_BLOCK_LENGTH) {
 		throw new CryptoError("invalid padding: " + paddingLength)
@@ -44,7 +40,7 @@ export function unpad(bytes: Uint8Array): Uint8Array {
  */
 export function createAuthVerifier(passwordKey: Aes128Key | Aes256Key): Uint8Array {
 	// FIXME Compatibility Test
-	return hash(bitArrayToUint8Array(passwordKey))
+	return sha256Hash(bitArrayToUint8Array(passwordKey))
 }
 
 export function createAuthVerifierAsBase64Url(passwordKey: Aes128Key | Aes256Key): Base64Url {

@@ -56,13 +56,12 @@ import "./misc/credentials/CredentialsKeyProviderTest"
 import "./misc/credentials/CredentialsMigrationTest"
 import o from "ospec"
 import {random} from "../../src/api/worker/crypto/Randomizer"
-import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import {preTest, reportTest} from "../api/TestUtils"
 
 (async () => {
 	if (typeof process != "undefined") {
 		// setup the Entropy for all testcases
-		random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+		random.addEntropy([{data: 36, entropy: 256, source: EntropySource}])
 		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
 		await import("./desktop/ElectronUpdaterTest")

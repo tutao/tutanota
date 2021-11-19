@@ -7,18 +7,17 @@ import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstan
 import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
-import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {GroupInfoIndexer} from "../../../../src/api/worker/search/GroupInfoIndexer"
 import {createMailAddressAlias} from "../../../../src/api/entities/sys/MailAddressAlias"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {browserDataStub} from "../../TestUtils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 import {GroupDataOS} from "../../../../src/api/worker/search/Indexer";
+import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
 
 
 const dbMock: any = {iv: fixedIv}

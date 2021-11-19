@@ -3,16 +3,20 @@
 /**
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
-import {aes128Decrypt, aes256Decrypt, aes256Encrypt, aes256RandomKey} from "../api/worker/crypto/Aes"
-import {decrypt256Key} from "../api/worker/crypto/KeyCryptoUtils"
-import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
 import forge from "node-forge"
 import crypto from "crypto"
 import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
-import {EntropySrc} from "../api/common/TutanotaConstants"
-import {random} from "../api/worker/crypto/Randomizer"
 import type {TypeModel} from "../api/common/EntityTypes"
 import type {Base64} from "@tutao/tutanota-utils/"
+import {
+	aes128Decrypt,
+	aes256Decrypt,
+	aes256Encrypt,
+	aes256RandomKey,
+	base64ToKey,
+	decrypt256Key,
+	random
+} from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
@@ -22,7 +26,7 @@ const seed = () => {
 	const entropy = crypto.randomBytes(128)
 	random.addEntropy([
 		{
-			source: EntropySrc.random,
+			source: "random",
 			entropy: 128 * 8,
 			data: Array.from(entropy)
 		}

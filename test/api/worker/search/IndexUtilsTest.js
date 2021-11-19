@@ -15,9 +15,7 @@ import {
 	userIsGlobalAdmin,
 	userIsLocalOrGlobalAdmin
 } from "../../../../src/api/worker/search/IndexUtils"
-import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {concat} from "@tutao/tutanota-utils"
 import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
@@ -29,6 +27,7 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {byteLength} from "@tutao/tutanota-utils";
+import {aes256Decrypt, aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

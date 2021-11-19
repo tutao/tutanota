@@ -1,6 +1,5 @@
 // @flow
-import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
-import {aes128RandomKey} from "../crypto/Aes"
+import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {LoginFacadeImpl} from "./LoginFacade"
@@ -26,9 +25,6 @@ import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
 import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
 import type {RecipientDetails} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
-import {KeyLength} from "../crypto/CryptoConstants"
-import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
@@ -49,11 +45,9 @@ import {
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
-import {random} from "../crypto/Randomizer"
 import {createExternalUserData} from "../../entities/tutanota/ExternalUserData"
 import {createCreateExternalUserGroupData} from "../../entities/tutanota/CreateExternalUserGroupData"
 import {createSecureExternalRecipientKeyData} from "../../entities/tutanota/SecureExternalRecipientKeyData"
-import {hash} from "../crypto/Sha256"
 import type {DraftAttachment} from "../../entities/tutanota/DraftAttachment"
 import {createDraftAttachment} from "../../entities/tutanota/DraftAttachment"
 import {createNewDraftAttachment} from "../../entities/tutanota/NewDraftAttachment"
@@ -67,8 +61,6 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
-// $FlowIgnore[untyped-import]
-import murmurHash from "../crypto/lib/murmurhash3_32"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
@@ -81,6 +73,15 @@ import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {SysService} from "../../entities/sys/Services"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
+import {aes128RandomKey} from "@tutao/tutanota-crypto/lib/encryption/Aes"
+import {
+	bitArrayToUint8Array,
+	createAuthVerifier, decryptKey, encryptKey,
+	generateKeyFromPassphrase,
+	generateRandomSalt,
+	KeyLength,
+	keyToUint8Array, murmurHash, random, sha256Hash
+} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -422,7 +423,7 @@ export class MailFacade {
 				data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
 				data.passwordVerifier = passwordVerifier
 				data.salt = salt
-				data.saltHash = hash(salt)
+				data.saltHash = sha256Hash(salt)
 				data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
 
 				service.secureExternalRecipientKeyData.push(data)

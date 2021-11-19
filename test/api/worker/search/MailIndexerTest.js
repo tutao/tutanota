@@ -12,7 +12,6 @@ import {
 	OperationType
 } from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {_getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "../../../../src/api/worker/search/MailIndexer"
@@ -32,7 +31,6 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {mock, spy} from "@tutao/tutanota-test-utils"
 import {browserDataStub, makeCore} from "../../TestUtils"
 import {downcast, getDayShifted, getStartOfDay, neverNull} from "@tutao/tutanota-utils"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
 import type {MailBox} from "../../../../src/api/entities/tutanota/MailBox"
@@ -44,6 +42,7 @@ import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFol
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
+import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
 
 class FixedDateProvider implements DateProvider {
 	now: number;

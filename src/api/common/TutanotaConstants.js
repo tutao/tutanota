@@ -338,17 +338,6 @@ export const InputFieldType = Object.freeze({
 })
 export type InputFieldTypeEnum = $Values<typeof InputFieldType>;
 
-export const EntropySrc = Object.freeze({
-	mouse: "mouse",
-	touch: "touch",
-	key: "key",
-	random: "random",
-	static: "static",
-	time: "time",
-	accelerometer: "accel"
-})
-export type EntropySrcEnum = $Values<typeof EntropySrc>;
-
 export const SecondFactorType = Object.freeze({
 	u2f: "0",
 	totp: "1"

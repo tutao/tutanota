@@ -22,15 +22,12 @@ import {
 	getIdFromEncSearchIndexEntry,
 	typeRefToTypeInfo
 } from "../../../../src/api/worker/search/IndexUtils"
-import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {spy} from "@tutao/tutanota-test-utils"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
@@ -39,6 +36,7 @@ import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../.
 import {elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils";
 import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/Indexer";
 import {makeCore} from "../../TestUtils"
+import {aes256Decrypt, aes256Encrypt, aes256RandomKey, fixedIv, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)

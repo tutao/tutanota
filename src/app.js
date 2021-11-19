@@ -3,7 +3,7 @@ import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
-import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
+import {disableErrorHandlingDuringLogout, handleUncaughtError} from "./misc/ErrorHandler"
 import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
@@ -141,11 +141,11 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	                            doNotCache: boolean = false): RouteResolverMatch {
 		let cache: {view: ?View} = {view: null}
 		return {
-			onmatch: (args, requestedPath) => {
+			onmatch: async (args, requestedPath) => {
 				if (requireLogin && !logins.isUserLoggedIn()) {
 					forceLogin(args, requestedPath)
 				} else if (!requireLogin && logins.isUserLoggedIn()) {
-					logginOut()
+					await disableErrorHandlingDuringLogout()
 					return logins.logout(false).then(() => {
 						windowFacade.reload(args)
 					})

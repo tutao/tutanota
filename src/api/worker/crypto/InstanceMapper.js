@@ -9,8 +9,6 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
 } from "@tutao/tutanota-utils"
-import {random} from "./Randomizer"
-import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {AssociationType, Cardinality, Type, ValueType} from "../../common/EntityConstants"
 import {compress, uncompress} from "../Compression"
 import {TypeRef} from "@tutao/tutanota-utils";
@@ -19,6 +17,7 @@ import type {ModelValue, TypeModel, ValueTypeEnum} from "../../common/EntityType
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {Base64} from "@tutao/tutanota-utils/"
+import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 

@@ -1,29 +1,20 @@
-import {parseBigInt} from "../../../src/api/worker/crypto/lib/crypto-jsbn-2012-08-09_1"
 import o from "ospec"
+import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {concat} from "@tutao/tutanota-utils"
 import {
-	_getPSBlock,
-	_keyArrayToHex, _padAndUnpadLeadingZeros,
-	_verify,
-	encode,
+	CryptoError, encode,
 	generateRsaKeySync,
 	hexToPrivateKey,
 	hexToPublicKey,
-	i2osp,
-	mgf1,
-	oaepPad,
-	oaepUnpad,
 	privateKeyToHex,
 	publicKeyToHex,
-	rsaDecryptSync,
-	rsaEncryptSync,
-	sign,
-	verifySignature
-} from "../../../src/api/worker/crypto/Rsa"
-import {SecureRandom} from "../../../src/api/worker/crypto/SecureRandom"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {concat} from "@tutao/tutanota-utils"
-import {CryptoError} from "../../../src/api/common/error/CryptoError"
+	random, rsaDecryptSync,
+	rsaEncryptSync, sign, verifySignature
+} from "../lib"
+import {parseBigInt} from "../lib/internal/crypto-jsbn-2012-08-09_1"
+import {_getPSBlock, _keyArrayToHex, _padAndUnpadLeadingZeros, _verify, i2osp, mgf1, oaepPad, oaepUnpad} from "../lib/encryption/Rsa"
+import {SecureRandom} from "../lib/random/SecureRandom"
+import type {RsaKeyPair} from "../lib"
 
 const originalRandom = random.generateRandomData
 
@@ -38,7 +29,7 @@ o.spec("rsa", function () {
 	 */
 	let _keyPair
 
-	function _getKeyPair(): KeyPair {
+	function _getKeyPair(): RsaKeyPair {
 		if (!_keyPair) {
 			_keyPair = generateRsaKeySync()
 		}

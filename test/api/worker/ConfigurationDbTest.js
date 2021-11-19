@@ -6,9 +6,8 @@ import {downcast} from "@tutao/tutanota-utils"
 import {DbStub} from "./search/DbStub"
 import type {ExternalImageRuleEnum} from "../../../src/api/common/TutanotaConstants"
 import {ExternalImageRule} from "../../../src/api/common/TutanotaConstants"
-import {aes256RandomKey, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {createUser} from "../../../src/api/entities/sys/User"
+import {aes256RandomKey, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 
 o.spec("ConfigurationDbTest", function () {
 	function makeMocks(allowListTable: Array<{address: string, rule?: ExternalImageRuleEnum}>) {

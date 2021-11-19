@@ -1,5 +1,4 @@
 // @flow
-import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
 import {
 	base64ToBase64Url,
 	base64ToUint8Array,
@@ -9,8 +8,8 @@ import {
 } from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "./CryptoFns"
 import {cryptoFns} from "./CryptoFns"
-import {IV_BYTE_LENGTH} from "../api/worker/crypto/Aes"
 import type {TypeModel} from "../api/common/EntityTypes"
+import {base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
 
 
 export class DesktopCryptoFacade {

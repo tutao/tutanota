@@ -2,7 +2,7 @@
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {nativeApp} from "../common/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
-import {keyToBase64} from "../../api/worker/crypto/CryptoUtils"
+import {keyToBase64} from "@tutao/tutanota-crypto"
 
 export type EncryptedFileInfo = {|
 	uri: string,

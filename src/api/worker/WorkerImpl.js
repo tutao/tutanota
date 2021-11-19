@@ -6,17 +6,13 @@ import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {initLocator, locator, resetLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
-import {random} from "./crypto/Randomizer"
 import {assertWorkerOrNode, isMainOrNode} from "../common/Env"
 import {nativeApp} from "../../native/common/NativeWrapper"
-import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import type {ContactFormFacade} from "./facades/ContactFormFacade"
-import {keyToBase64} from "./crypto/CryptoUtils"
-import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
-import {downcast} from "@tutao/tutanota-utils"
+import {delay, downcast} from "@tutao/tutanota-utils"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
@@ -39,9 +35,9 @@ import {FileFacade} from "./facades/FileFacade"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {exposeLocal} from "../common/WorkerProxy"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
-import {delay} from "@tutao/tutanota-utils"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-
+import type {EntropySource} from "@tutao/tutanota-crypto"
+import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -222,7 +218,7 @@ export class WorkerImpl {
 	 * @param entropy
 	 * @returns {Promise.<void>}
 	 */
-	addEntropy(entropy: {source: EntropySrcEnum, entropy: number, data: number | Array<number>}[]): Promise<void> {
+	addEntropy(entropy: {source: EntropySource, entropy: number, data: number | Array<number>}[]): Promise<void> {
 		try {
 			return random.addEntropy(entropy)
 		} finally {

@@ -25,12 +25,11 @@ export function handleUncaughtError(e: Error) {
 		})
 }
 
-export function logginOut() {
-	import('./ErrorHandlerImpl.js')
-		.then(module => {
-			module.loggingOut()
-		})
-		.catch(e => {
-			console.error("Could not import ErrorHandlerImpl", e)
-		})
+export async function disableErrorHandlingDuringLogout() {
+	try {
+		const {disableErrorHandlingDuringLogout} = await import('./ErrorHandlerImpl.js')
+		disableErrorHandlingDuringLogout()
+	} catch (e) {
+		console.error("Could not import ErrorHandlerImpl", e)
+	}
 }

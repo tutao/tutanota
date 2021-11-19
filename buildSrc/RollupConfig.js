@@ -159,7 +159,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "settings"
 	} else if (moduleId.includes(path.normalize("src/sharing"))) {
 		return "sharing"
-	} else if (moduleId.includes(path.normalize("src/api/worker"))) {
+	} else if (moduleId.includes(path.normalize("src/api/worker"))
+		|| moduleId.includes(path.normalize("packages/tutanota-crypto"))) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (moduleId.includes(path.normalize("libs/jszip"))) {
 		return "jszip"

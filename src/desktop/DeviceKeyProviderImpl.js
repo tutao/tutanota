@@ -1,12 +1,12 @@
 //@flow
 
-import {base64ToKey, keyToBase64} from "../api/worker/crypto/CryptoUtils"
 import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
+import {base64ToKey, keyToBase64} from "@tutao/tutanota-crypto"
 
 // exported for testing
 export const SERVICE_NAME = 'tutanota-vault'

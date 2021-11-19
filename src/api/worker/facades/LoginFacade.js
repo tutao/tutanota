@@ -11,31 +11,8 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
 } from "@tutao/tutanota-utils"
-import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
-import {KeyLength} from "../crypto/CryptoConstants"
-import {
-	base64ToKey,
-	bitArrayToUint8Array,
-	createAuthVerifier,
-	createAuthVerifierAsBase64Url,
-	keyToUint8Array,
-	uint8ArrayToBitArray,
-	uint8ArrayToKey
-} from "../crypto/CryptoUtils"
-import {
-	aes256DecryptKey,
-	aes256EncryptKey,
-	decrypt256Key,
-	decryptKey,
-	encrypt256Key,
-	encryptBytes,
-	encryptKey,
-	encryptString
-} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
-import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
-import {random} from "../crypto/Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
 import {createSaltData} from "../../entities/sys/SaltData"
 import type {SaltReturn} from "../../entities/sys/SaltReturn"
@@ -48,7 +25,6 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull, noOp} from "@tutao/tutanota-utils"
 import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
-import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
@@ -80,10 +56,18 @@ import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "@tutao/tutanota-utils";
 import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {TotpSecret} from "../crypto/TotpVerifier"
-import {TotpVerifier} from "../crypto/TotpVerifier"
 import type {Base64Url, Hex} from "@tutao/tutanota-utils/"
 import type {Credentials} from "../../../misc/credentials/Credentials"
+import type {TotpSecret} from "@tutao/tutanota-crypto"
+import {
+	aes128Decrypt,
+	aes128RandomKey, aes256DecryptKey, aes256EncryptKey, aes256RandomKey, base64ToKey, bitArrayToUint8Array, createAuthVerifier,
+	createAuthVerifierAsBase64Url, decrypt256Key,
+	decryptKey, encrypt256Key, encryptKey,
+	generateKeyFromPassphrase, generateRandomSalt, KeyLength,
+	keyToUint8Array, random, sha256Hash, TotpVerifier, uint8ArrayToBitArray, uint8ArrayToKey
+} from "@tutao/tutanota-crypto"
+import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 
 assertWorkerOrNode()
 
@@ -298,7 +282,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		let userPassphraseKey = generateKeyFromPassphrase(passphrase, salt, KeyLength.b128)
 		// the verifier is always sent as url parameter, so it must be url encoded
 		let authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
-		let authToken = base64ToBase64Url(uint8ArrayToBase64(hash(salt)));
+		let authToken = base64ToBase64Url(uint8ArrayToBase64(sha256Hash(salt)));
 
 		let sessionData = createCreateSessionData();
 		sessionData.user = userId
@@ -383,7 +367,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
 				// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
 				if (uint8ArrayToBase64(user.verifier)
-					!== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))) {
+					!== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
 					// delete the obsolete session in parallel to make sure it can not be used any more
 					this.deleteSession(accessToken)
 					this._accessToken = null
@@ -471,7 +455,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	_getSessionElementId(accessToken: Base64Url): Id {
 		let byteAccessToken = base64ToUint8Array(base64UrlToBase64(neverNull(accessToken)))
-		return base64ToBase64Url(uint8ArrayToBase64(hash(byteAccessToken.slice(GENERATED_ID_BYTES_LENGTH))))
+		return base64ToBase64Url(uint8ArrayToBase64(sha256Hash(byteAccessToken.slice(GENERATED_ID_BYTES_LENGTH))))
 	}
 
 	_getSessionListId(accessToken: Base64Url): Id {

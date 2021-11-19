@@ -1,11 +1,11 @@
 // @flow
 
-import {aes256Decrypt, aes256Encrypt, aes256RandomKey, generateIV} from "../crypto/Aes"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 
 /* Facade to interact with encryption mechanisms using device capabilities. You can use this facade if you need to encrypt data from the
 *  main thread - the facade will delegate all the actual encryption operations to the native thread.
 * */
+import {aes256Decrypt, aes256Encrypt, aes256RandomKey, bitArrayToUint8Array, generateIV, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
+
 export interface DeviceEncryptionFacade {
 	/**
 	 * Generates an encryption key.

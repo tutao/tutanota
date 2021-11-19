@@ -1,4 +1,4 @@
-import {SecureRandom} from '../SecureRandom'
+import {SecureRandom} from '../random/SecureRandom'
 
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.

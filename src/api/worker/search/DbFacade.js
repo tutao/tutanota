@@ -3,10 +3,10 @@ import {DbError} from "../../common/error/DbError"
 import {delay, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../../common/error/QuotaExceededError"
-import {hash} from "../crypto/Sha256"
 import type {User} from "../../entities/sys/User"
 import {getEtId} from "../../common/utils/EntityUtils"
 import type {IndexName} from "./Indexer"
+import {sha256Hash} from "@tutao/tutanota-crypto"
 
 
 export type ObjectStoreName = string
@@ -336,5 +336,5 @@ export class IndexedDbTransaction implements DbTransaction {
 }
 
 export function b64UserIdHash(user: User): string {
-	return uint8ArrayToBase64(hash(stringToUtf8Uint8Array(getEtId(user))))
+	return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(getEtId(user))))
 }

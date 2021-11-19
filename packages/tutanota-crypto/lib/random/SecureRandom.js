@@ -1,8 +1,5 @@
 // @flow
 import {random} from "./Randomizer"
-import {assertWorkerOrNode} from "../../common/Env"
-
-assertWorkerOrNode()
 
 /**
  * This is the adapter to the PRNG interface required by JSBN.

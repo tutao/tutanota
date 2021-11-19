@@ -1,21 +1,12 @@
 //@flow
 import o from "ospec"
-import {
-	aes128Decrypt,
-	aes128Encrypt,
-	aes128RandomKey,
-	aes256Decrypt,
-	aes256Encrypt,
-	aes256RandomKey,
-	IV_BYTE_LENGTH
-} from "../../../src/api/worker/crypto/Aes"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {CryptoError} from "../../../src/api/common/error/CryptoError"
-import {base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
 import {concat} from "@tutao/tutanota-utils"
 import type {Hex} from "@tutao/tutanota-utils/"
-
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../lib/encryption/Aes"
+import {base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray} from "../lib/misc/Utils"
+import {CryptoError} from "../lib/misc/CryptoError"
+import {random} from "../lib/random/Randomizer"
 
 o.spec("aes", function () {
 

@@ -2,7 +2,6 @@
 import {_TypeModel as FileDataDataGetTypModel, createFileDataDataGet} from "../../entities/tutanota/FileDataDataGet"
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
 import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto/CryptoFacade"
-import {aes128Decrypt} from "../crypto/Aes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
 import {filterInt, neverNull, TypeRef, assert} from "@tutao/tutanota-utils"
@@ -11,7 +10,6 @@ import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
 import {FileDataReturnPostTypeRef} from "../../entities/tutanota/FileDataReturnPost"
 import {GroupType} from "../../common/TutanotaConstants"
-import {random} from "../crypto/Randomizer"
 import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
@@ -21,8 +19,6 @@ import {fileApp} from "../../../native/common/FileApp"
 import {convertToDataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {StorageService} from "../../entities/storage/Services"
-import {uint8ArrayToKey} from "../crypto/CryptoUtils"
-import {hash} from "../crypto/Sha256"
 import {createBlobId} from "../../entities/sys/BlobId"
 import {serviceRequest} from "../EntityWorker"
 import {createBlobAccessTokenData} from "../../entities/storage/BlobAccessTokenData"
@@ -33,6 +29,7 @@ import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
 import {createTypeInfo} from "../../entities/sys/TypeInfo"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
+import {aes128Decrypt, random, sha256Hash, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -170,7 +167,7 @@ export class FileFacade {
 		const typeModel = await resolveTypeReference(instance._type)
 		const sessionKey = neverNull(await resolveSessionKey(typeModel, instance))
 		const encryptedData = encryptBytes(sessionKey, blobData)
-		const blobId = uint8ArrayToBase64(hash(encryptedData).slice(0, 6))
+		const blobId = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 
 		const {storageAccessToken, servers} = await this.getUploadToken(typeModel, ownerGroupId)
 		const headers = Object.assign({

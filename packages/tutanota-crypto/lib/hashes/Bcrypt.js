@@ -1,17 +1,13 @@
 // @flow
-
 // $FlowIgnore[untyped-import]
-import bCrypt from "./lib/bCrypt"
-import {random} from "./Randomizer"
-import {hash} from "./Sha256"
+import bCrypt from "../internal/bCrypt"
+import {random} from "../random/Randomizer"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {CryptoError} from "../../common/error/CryptoError"
-import {uint8ArrayToBitArray} from "./CryptoUtils"
-import type {KeyLengthEnum} from "./CryptoConstants"
-import {KeyLength} from "./CryptoConstants"
-import {assertWorkerOrNode} from "../../common/Env"
-
-assertWorkerOrNode()
+import {uint8ArrayToBitArray} from "../misc/Utils"
+import type {KeyLengthEnum} from "../misc/Constants"
+import {KeyLength} from "../misc/Constants"
+import {CryptoError} from "../misc/CryptoError"
+import {sha256Hash} from "./Sha256"
 
 
 const logRounds = 8; // pbkdf2 number of iterations
@@ -33,12 +29,12 @@ export function generateRandomSalt(): Uint8Array {
  */
 export function generateKeyFromPassphrase(passphrase: string, salt: Uint8Array, keyLengthType: KeyLengthEnum): Aes128Key | Aes256Key {
 	// hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same _salt is used
-	let passphraseBytes = hash(stringToUtf8Uint8Array(passphrase))
+	let passphraseBytes = sha256Hash(stringToUtf8Uint8Array(passphrase))
 	let bytes = crypt_raw(passphraseBytes, salt, logRounds)
 	if (keyLengthType === KeyLength.b128) {
 		return uint8ArrayToBitArray(bytes.slice(0, 16))
 	} else {
-		return uint8ArrayToBitArray(hash(bytes))
+		return uint8ArrayToBitArray(sha256Hash(bytes))
 	}
 }
 
@@ -57,7 +53,7 @@ function crypt_raw(passphraseBytes: Uint8Array, saltBytes: Uint8Array, logRounds
  */
 function _signedBytesToUint8Array(signedBytes: SignedBytes): Uint8Array {
 	return new Uint8Array(new Int8Array(signedBytes));
-};
+}
 
 /**
  * Converts an uint8Array (value 0 to 255) to an Array with unsigned bytes (-128 to 127).
@@ -66,4 +62,4 @@ function _signedBytesToUint8Array(signedBytes: SignedBytes): Uint8Array {
  */
 function _uint8ArrayToSignedBytes(unsignedBytes: Uint8Array): SignedBytes {
 	return Array.from(new Uint8Array(new Int8Array(unsignedBytes)))
-};
+}

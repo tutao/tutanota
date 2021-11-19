@@ -3,12 +3,12 @@ import n from "../nodemocker"
 import o from "ospec"
 import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
 import {arrayEquals} from "@tutao/tutanota-utils"
 import {downcast} from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "../../../src/desktop/CryptoFns"
 import type {TypeModel} from "../../../src/api/common/EntityTypes"
 import type {Base64} from "@tutao/tutanota-utils/"
+import {keyToBase64, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = "uint8_somedata"
