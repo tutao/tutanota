@@ -1,8 +1,7 @@
 import o from "ospec"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {CryptoError} from "../../../src/api/common/error/CryptoError"
-import sjcl from "../../../src/api/worker/crypto/lib/sjcl"
-import {EntropySrc} from "../../../src/api/common/TutanotaConstants"
+import {random} from "../lib/random/Randomizer"
+import sjcl from "../lib/internal/sjcl"
+import {CryptoError} from "../lib"
 
 o.spec("Randomizer", function () {
 
@@ -19,7 +18,7 @@ o.spec("Randomizer", function () {
 			o(e instanceof CryptoError).equals(true)
 		}
 
-		random.addEntropy([{data: 10, entropy: 255, source: EntropySrc.mouse}])
+		random.addEntropy([{data: 10, entropy: 255, source: "mouse"}])
 		o(random.isReady()).equals(false)
 		try {
 			random.generateRandomData(1)
@@ -28,12 +27,12 @@ o.spec("Randomizer", function () {
 			o(e instanceof CryptoError).equals(true)
 		}
 
-		random.addEntropy([{data: 10, entropy: 1, source: EntropySrc.key}])
+		random.addEntropy([{data: 10, entropy: 1, source: "key"}])
 		o(random.isReady()).equals(true)
 	})
 
 	o("random data should return array of required length", function () {
-		random.addEntropy([{data: 10, entropy: 256, source: EntropySrc.key}])
+		random.addEntropy([{data: 10, entropy: 256, source: "key"}])
 		for (var i = 1; i < 20; i++) {
 			let r = random.generateRandomData(i)
 			o(r.length).equals(i)
@@ -43,7 +42,7 @@ o.spec("Randomizer", function () {
 	o("random numbers should be fairly distributed", function () {
 		const runs = 10000
 		const bytesPerRun = 16
-		random.addEntropy([{data: 10, entropy: 256, source: EntropySrc.key}])
+		random.addEntropy([{data: 10, entropy: 256, source: "key"}])
 		let results = new Array(256).fill(0)
 		let upperHalfCount = 0
 		let lowerHalfCount = 0

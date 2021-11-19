@@ -1,8 +1,8 @@
 // @flow
 import o from "ospec"
-import {generateRandomSalt, generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
-import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
-import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
+import {generateKeyFromPassphrase, generateRandomSalt} from "../lib/hashes/Bcrypt"
+import {KeyLength} from "../lib/misc/Constants"
+import {bitArrayToUint8Array} from "../lib/misc/Utils"
 
 o.spec("Bcrypt", function () {
 

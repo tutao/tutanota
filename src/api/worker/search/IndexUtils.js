@@ -1,8 +1,6 @@
 //@flow
 
 import {concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
-import {random} from "../crypto/Randomizer"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,
@@ -29,6 +27,7 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {TypeModel} from "../../common/EntityTypes"
 import {isTest} from "../../common/Env"
 import type {Base64} from "@tutao/tutanota-utils/"
+import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

@@ -2,14 +2,13 @@
 import o from "ospec"
 import type {BrowserData} from "../../src/misc/ClientConstants"
 import type {Db} from "../../src/api/worker/search/SearchTypes"
-import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbTransaction} from "../../src/api/worker/search/DbFacade"
-import {fixedIv, uint8ArrayToKey} from "../../src/api/worker/crypto/CryptoUtils"
 import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
 import type {DesktopDeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
 import {mock} from "@tutao/tutanota-test-utils"
+import {aes256RandomKey, fixedIv, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 
 export const browserDataStub: BrowserData = {needsMicrotaskHack: false, needsExplicitIDBIds: false, indexedDbSupported: true}
 

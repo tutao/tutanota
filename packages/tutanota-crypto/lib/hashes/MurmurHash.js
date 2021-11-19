@@ -1,3 +1,4 @@
+// @flow
 /*!
  * +----------------------------------------------------------------------------------+
  * | murmurHash3.js v3.0.0 (http://github.com/karanlyons/murmurHash3.js)              |
@@ -47,7 +48,7 @@ function rol32(n, r) {
 	return (n << r) | (n >>> (32 - r));
 }
 
-export default function x86hash32(value) {
+export function murmurHash(value: string): number {
 	let state = 0
 	const buf = stringToUtf8Uint8Array(value)
 

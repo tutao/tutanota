@@ -1,10 +1,8 @@
 // @flow
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {rsaDecrypt} from "./Rsa"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -19,7 +17,6 @@ import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {uint8ArrayToBitArray} from "./CryptoUtils"
 import {LockedError, NotFoundError, PayloadTooLargeError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
@@ -29,16 +26,6 @@ import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
 import {update} from "./../EntityWorker"
-import {
-	aes256DecryptKey,
-	aes256EncryptKey,
-	decrypt256Key,
-	decryptKey,
-	decryptRsaKey,
-	encrypt256Key,
-	encryptKey,
-	encryptRsaKey
-} from "./KeyCryptoUtils.js"
 import type {Contact} from "../../entities/tutanota/Contact"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
@@ -47,11 +34,12 @@ import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils
 import type {TypeModel} from "../../common/EntityTypes"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
+import {aes128RandomKey, decryptKey, decryptRsaKey, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
+import {rsaDecrypt} from "./RsaApp"
 
 assertWorkerOrNode()
 
 export {decryptAndMapToInstance, encryptAndMapToLiteral, encryptValue, decryptValue, encryptBytes, encryptString}
-export {encryptKey, decryptKey, encrypt256Key, decrypt256Key, encryptRsaKey, decryptRsaKey, aes256EncryptKey, aes256DecryptKey}
 
 // stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 // so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.

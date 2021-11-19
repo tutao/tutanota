@@ -1,14 +1,9 @@
 // @flow
 import o from "ospec"
-import {
-	pad,
-	unpad,
-	checkIs128BitKey,
-	uint8ArrayToBitArray,
-	bitArrayToUint8Array
-} from "../../../src/api/worker/crypto/CryptoUtils"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {CryptoError} from "../../../src/api/common/error/CryptoError"
+import {bitArrayToUint8Array, checkIs128BitKey, padAes, uint8ArrayToBitArray, unpadAes} from "../lib/misc/Utils"
+import {CryptoError} from "../lib/misc/CryptoError"
+import {random} from "../lib/random/Randomizer"
+
 
 o.spec("crypto utils", function () {
 
@@ -26,7 +21,7 @@ o.spec("crypto utils", function () {
 	})
 
 	let _testPadding = function (array, expectedNbrOfPaddingBytes) {
-		let padded = pad(new Uint8Array(array))
+		let padded = padAes(new Uint8Array(array))
 		o(padded.byteLength - array.length).equals(expectedNbrOfPaddingBytes)
 		for (let i = 0; i < array.length; i++) {
 			o(padded[i]).equals(array[i])
@@ -35,7 +30,7 @@ o.spec("crypto utils", function () {
 			o(padded[array.length + i]).equals(expectedNbrOfPaddingBytes)
 		}
 
-		let unpadded = unpad(padded)
+		let unpadded = unpadAes(padded)
 		o(unpadded.length).equals(array.length)
 		for (let i = 0; i < array.length; i++) {
 			o(unpadded[i]).equals(array[i])

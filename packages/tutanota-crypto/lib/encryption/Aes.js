@@ -1,16 +1,13 @@
 // @flow
 // $FlowIgnore[untyped-import]
-import sjcl from "./lib/sjcl"
-import {random} from "./Randomizer"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import sjcl from "../internal/sjcl"
+import {random} from "../random/Randomizer"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../misc/Utils"
 import {arrayEquals, concat} from "@tutao/tutanota-utils"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {CryptoError} from "../../common/error/CryptoError"
-import {hash} from "./Sha256"
-import * as Sha512 from "./Sha512"
-import {assertWorkerOrNode} from "../../common/Env"
-
-assertWorkerOrNode()
+import {sha256Hash} from "../hashes/Sha256"
+import {CryptoError} from "../misc/CryptoError"
+import {sha512Hash} from "../hashes/Sha512"
 
 export const ENABLE_MAC = true
 
@@ -182,7 +179,7 @@ export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePad
 
 function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey: ?Aes128Key, cKey: Aes128Key} {
 	if (mac) {
-		let hashedKey = hash(bitArrayToUint8Array(key));
+		let hashedKey = sha256Hash(bitArrayToUint8Array(key));
 		return {
 			cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_128)),
 			mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_128, KEY_LENGTH_BYTES_AES_128 * 2))
@@ -197,7 +194,7 @@ function getAes128SubKeys(key: Aes128Key, mac: boolean): {mKey: ?Aes128Key, cKey
 
 function getAes256SubKeys(key: Aes256Key, mac: boolean): {mKey: ?Aes256Key, cKey: Aes256Key} {
 	if (mac) {
-		let hashedKey = Sha512.hash(bitArrayToUint8Array(key));
+		let hashedKey = sha512Hash(bitArrayToUint8Array(key));
 		return {
 			cKey: uint8ArrayToBitArray(hashedKey.subarray(0, KEY_LENGTH_BYTES_AES_256)),
 			mKey: uint8ArrayToBitArray(hashedKey.subarray(KEY_LENGTH_BYTES_AES_256, KEY_LENGTH_BYTES_AES_256 * 2))

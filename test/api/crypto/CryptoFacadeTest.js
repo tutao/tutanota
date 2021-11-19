@@ -1,7 +1,5 @@
 //@flow
 import o from "ospec"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {
 	base64ToUint8Array,
 	hexToUint8Array,
@@ -12,19 +10,14 @@ import {
 import {
 	applyMigrationsForInstance,
 	decryptAndMapToInstance,
-	decryptKey,
-	decryptRsaKey,
 	decryptValue,
 	encryptAndMapToLiteral,
-	encryptKey,
-	encryptRsaKey,
 	encryptValue,
 	resolveSessionKey
 } from "../../../src/api/worker/crypto/CryptoFacade"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {Cardinality, ValueType} from "../../../src/api/common/EntityConstants"
 import {BucketPermissionType, PermissionType} from "../../../src/api/common/TutanotaConstants"
-import {hexToPrivateKey, hexToPublicKey, rsaEncrypt} from "../../../src/api/worker/crypto/Rsa"
 import * as Mail from "../../../src/api/entities/tutanota/Mail"
 import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
 import {HttpMethod} from "../../../src/api/common/EntityFunctions"
@@ -42,11 +35,8 @@ import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembersh
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress"
 import {mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
-// $FlowIgnore[untyped-import]
-import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32"
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
@@ -54,6 +44,10 @@ import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 import {isSameTypeRef} from "@tutao/tutanota-utils";
 import type {ModelValue} from "../../../src/api/common/EntityTypes"
+import {hexToPrivateKey, hexToPublicKey} from "@tutao/tutanota-crypto/lib/encryption/Rsa"
+import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto/lib/encryption/Aes"
+import {bitArrayToUint8Array, encryptKey, encryptRsaKey, random} from "@tutao/tutanota-crypto"
+import {rsaEncrypt} from "../../../src/api/worker/crypto/RsaApp"
 
 
 o.spec("crypto facade", function () {
@@ -71,24 +65,6 @@ o.spec("crypto facade", function () {
 
 	o.afterEach(function () {
 		locator.login.resetSession()
-	})
-
-	o("encrypt / decrypt key", function () {
-		let gk = [3957386659, 354339016, 3786337319, 3366334248]
-		let sk = [3229306880, 2716953871, 4072167920, 3901332676]
-		let encryptedKey = encryptKey(gk, sk)
-		o(Array.from(encryptedKey)).deepEquals(Array.from(base64ToUint8Array("O3cyw7uo5DMm655aQiw0Xw==")))
-		o(decryptKey(gk, encryptedKey)).deepEquals(sk)
-	})
-
-	o("encrypt / decrypt private rsa key", function () {
-		let gk = [3957386659, 354339016, 3786337319, 3366334248]
-		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
-		let iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		var encryptedPrivateKey = encryptRsaKey(gk, privateKey, iv);
-		o(uint8ArrayToBase64(encryptedPrivateKey))
-			.equals("OhpFcbl6oPjsn3WwhYFnOiJRZKG9ZSsOzL4ZSzPikn2pc3eSH8rY1aex0iyN2qTl2lsPco8DEmlS7+KXN2gmJz6Lpnw4IFvmVUMF/O7xZFRYIe89qoyuKm2B6noORAXUSKxVYM0B0alT8fxcEbzAW9pv75hmNURkBd1GfYpN35i6bCxgp7l9HKSWpJAFyIYQSiO4aJw+tD87ifu4KBDL6vntBr0uG6yVgXVw+SKcPsaA+RZPXCFSs2QS/l3wZw0w6MIYD0ED+1Sf3/wWr+GZTw1wNowq0c9o5vWQdSG5gc0SYQLJl1G2JpBEIwYg2qu2jc4vJlt6vVOBpQ2D9b5w74EM8lbBfAbCPJmpCaIa1eKRNU+JVEzrAeg/X0/jdUfdxaBbujrhaY/tYJ4Y1l66+lyNgKpznNhFSMUrsLCSJTzXTMoFDPYKztnRYNZ2xxRs2EBbZpK8TSjgfHbfCKn14q81j84lz88yrMo6TkFgWTHV9ndQfg7sDNteYsNx6pa1SyOQQ6TD250oqRltDrCOGbMUVvNBTFWM9w6/ztFaFtMEQf0dptz5PCYFf2DnN7tiWgj4xEYjGnaRd0Y0nT0bfB7gQS2nenppx+nvUGcjND/BCWrVmQhdUQCFygV8QEb9mnEJ4ZoLXzsdlFtWixIhBQfM+RsTRLqn4Crx5kjfRW4pc7Wleo4FtfGkQmWfV4WjetoeWQlPudhL3JpFbSFRu5IKldRHwxqqZKsOaRiI+jh8lfHOfMDo1DwHLxMkI2SF81H6N4DYau0xO6TSa2yz6U0HCslM48kTkFuYTWhES5Hp9YzCohzapL1ekshna+ITNE/vDsEeB/E8AZGSihcbZffnzElrdpIR8adj+f4ZbPsEAb2DqfbYoEXnOExcXVbySDLK8jhaqy7EpkurGhc+tfYBLZ2wpXPUP3JKXfWQ/UcieJ7BPOescTXC4ll2tzdLF1qGXuqOsR7kDUyY7t3SOIojSThn2W9AAb8o/mOLGD1pCa1hIfwP9ee9EGdt56r26LV3s1dCbzHHBUswadbvik5eSvrbjTqLaYW0N7pRRzNaK4KyrLXJEuykuCShvsNefGo+RE93DTeblX+MbOktvONeYQonmOYrUvQQL8o6MGhuFiPu5+QQ8yAybxSMt0zja5KsgdMOn/qFHMwCTdNtwpFc7uULzsRcYgx/qWe4zK7wx+8xBjpLer1Hcylnf1K8pkloPRiADhzOfokN0rOhbD5nyRbklpnKNPO2t3mUBCKAIIETYAFhM9PxAajiBdM1gol9JKH0nCPhNx/uF42+yLGE+iSVodpqlg+jV9uXXYgFfcCGVmA3pVE5zkn2Qoso0Fc16MpQHIAxVenHFSKY7wsCuTUyiYZ9ZdFrp1Bltz23mCUwbRURMuntBHHQ2n9c28X1v1aMTnWSz6zH6IfxI8WVwff8YQQ2v0Wn/T/Xqc5lttQdTEfNZIH4RFZcHWqtHbeFRJXxRlrZpf9PU7SjJ86nbY58dBs2GD62hb/MV/hxw77iYAFuzvfTQoIUd9w8jY8L5UpZlhtDS2ERc0j+asEAVXKV+aSC+UbCApetaUA=")
-		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
 	function createValueType(type, encrypted, cardinality): ModelValue {
@@ -670,19 +646,6 @@ o.spec("crypto facade", function () {
 			done()
 		})
 	})
-
-	o("32bitHash", function () {
-		o(murmurhash3_32_gc("External images")).equals(4063203704)
-		o(murmurhash3_32_gc("Matthias")).equals(194850999)
-		o(murmurhash3_32_gc("map-free@tutanota.de")).equals(3865241570)
-		o(murmurhash3_32_gc("Matthias Pfau")).equals(1016488926)
-		o(murmurhash3_32_gc("asdlkasdj")).equals(1988722598)
-		o(murmurhash3_32_gc("ö")).equals(108599527)
-		o(murmurhash3_32_gc("asdlkasdjö")).equals(436586817)
-		o(murmurhash3_32_gc("В чашах леса жил бы цитрус?")).equals(1081111591)
-		o(murmurhash3_32_gc("👉")).equals(3807575468)
-	})
-
 
 	o.spec("instance migrations", function () {
 		var mock

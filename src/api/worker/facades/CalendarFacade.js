@@ -22,10 +22,9 @@ import {
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import {encryptAndMapToLiteral, encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptAndMapToLiteral, resolveSessionKey} from "../crypto/CryptoFacade"
 import {_TypeModel as AlarmServicePostTypeModel, createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
-import {aes128RandomKey} from "../crypto/Aes"
 import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
 import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
@@ -47,7 +46,6 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
 import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
-import {hash} from "../crypto/Sha256"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
@@ -58,11 +56,12 @@ import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroup
 import type {WorkerImpl} from "../WorkerImpl"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
+import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
 function hashUid(uid: string): Uint8Array {
-	return hash(stringToUtf8Uint8Array(uid))
+	return sha256Hash(stringToUtf8Uint8Array(uid))
 }
 
 type AlarmNotificationsPerEvent = {

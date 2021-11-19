@@ -1,8 +1,7 @@
 // @flow
-import type {EntropySrcEnum} from "../common/TutanotaConstants"
-import {EntropySrc} from "../common/TutanotaConstants"
 import type {WorkerClient} from "./WorkerClient"
 import {assertMainOrNode} from "../common/Env"
+import type {EntropySource} from "@tutao/tutanota-crypto"
 
 assertMainOrNode()
 
@@ -17,7 +16,7 @@ export class EntropyCollector {
 	_accelerometer: Function;
 	_worker: WorkerClient;
 	// the entropy is cached and transmitted to the worker in defined intervals
-	_entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[];
+	_entropyCache: {source: EntropySource, entropy: number, data: number}[];
 
 	// accessible from test case
 	SEND_INTERVAL: number;
@@ -30,27 +29,27 @@ export class EntropyCollector {
 
 		this._mouse = (e: MouseEvent) => {
 			let value = e.clientX ^ e.clientY
-			this._addEntropy(value, 2, EntropySrc.mouse)
+			this._addEntropy(value, 2, "mouse")
 		}
 
 		this._keyDown = (e: KeyboardEvent) => {
 			let value = e.keyCode
-			this._addEntropy(value, 2, EntropySrc.key)
+			this._addEntropy(value, 2, "key")
 		}
 
 		this._touch = (e: TouchEvent) => {
 			let value = e.touches[0].clientX ^ e.touches[0].clientY
-			this._addEntropy(value, 2, EntropySrc.touch)
+			this._addEntropy(value, 2, "touch")
 		}
 
 		this._accelerometer = (e: any) => { // DeviceMotionEvent
 			if (window.orientation && typeof window.orientation === "number") {
-				this._addEntropy(window.orientation, 0, EntropySrc.accelerometer)
+				this._addEntropy(window.orientation, 0, "accel")
 			}
 			if (!!e.accelerationIncludingGravity) {
 				this._addEntropy(
 					e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z,
-					2, EntropySrc.accelerometer)
+					2, "accel")
 			}
 		}
 	}
@@ -61,14 +60,14 @@ export class EntropyCollector {
 	 * @param entropy The amount of entropy in the number in bit.
 	 * @param source The source of the number. One of RandomizerInterface.ENTROPY_SRC_*.
 	 */
-	_addEntropy(data: number, entropy: number, source: EntropySrcEnum) {
+	_addEntropy(data: number, entropy: number, source: EntropySource) {
 		if (data) {
 			this._entropyCache.push({source: source, entropy: entropy, data: data})
 		}
 		if (typeof window !== 'undefined' && window.performance && typeof window.performance.now === "function") {
-			this._entropyCache.push({source: EntropySrc.time, entropy: 2, data: window.performance.now()})
+			this._entropyCache.push({source: "time", entropy: 2, data: window.performance.now()})
 		} else {
-			this._entropyCache.push({source: EntropySrc.time, entropy: 2, data: (new Date()).valueOf()})
+			this._entropyCache.push({source: "time", entropy: 2, data: (new Date()).valueOf()})
 		}
 	}
 
@@ -80,7 +79,7 @@ export class EntropyCollector {
 			for (let v in values) {
 				if (typeof values[v] === "number" && values[v] !== 0) {
 					if (added.indexOf(values[v]) === -1) {
-						this._addEntropy(values[v], 1, EntropySrc.static)
+						this._addEntropy(values[v], 1, "static")
 						added.push(values[v])
 					}
 				}
@@ -107,7 +106,7 @@ export class EntropyCollector {
 		c.getRandomValues(valueList)
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array
-			this._addEntropy(valueList[i], 32, EntropySrc.random)
+			this._addEntropy(valueList[i], 32, "random")
 		}
 	}
 

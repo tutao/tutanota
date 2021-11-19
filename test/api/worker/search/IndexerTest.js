@@ -13,22 +13,28 @@ import {GroupDataOS, Indexer, Metadata, MetaDataOS} from "../../../../src/api/wo
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {aes128RandomKey, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
 import {GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
-import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
-import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {assertThrows, mock, spy} from "@tutao/tutanota-test-utils"
 import {browserDataStub} from "../../TestUtils"
 import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils";
 import {daysToMillis, defer, downcast, TypeRef} from "@tutao/tutanota-utils"
+import {
+	aes128RandomKey,
+	aes256Encrypt,
+	aes256RandomKey,
+	decrypt256Key,
+	encrypt256Key,
+	fixedIv,
+	IV_BYTE_LENGTH,
+	random
+} from "@tutao/tutanota-crypto"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - (1000 * 60 * 60 * 24)

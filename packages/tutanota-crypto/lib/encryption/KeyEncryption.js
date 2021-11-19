@@ -1,16 +1,13 @@
 // @flow
 
 import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../misc/Utils"
 import {concat} from "@tutao/tutanota-utils"
 import {hexToUint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {hexToPrivateKey, privateKeyToHex} from "./Rsa"
-import {random} from "./Randomizer"
-import {fixedIv} from "./CryptoUtils"
-import {assertWorkerOrNode} from "../../common/Env"
+import {random} from "../random/Randomizer"
+import {fixedIv} from "../misc/Utils"
 import type {PrivateKey} from "./RsaKeyPair"
-
-assertWorkerOrNode()
 
 export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
 	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)

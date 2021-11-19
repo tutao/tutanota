@@ -1,76 +1,38 @@
 // @flow
+// $FlowIgnore[untyped-import]
+import {BigInteger, parseBigInt, RSAKey} from "../internal/crypto-jsbn-2012-08-09_1"
 import {
 	arrayEquals,
 	base64ToHex,
 	base64ToUint8Array,
 	concat,
-	int8ArrayToBase64,
-	LazyLoaded,
-	uint8ArrayToBase64,
+	int8ArrayToBase64, uint8ArrayToBase64,
 	uint8ArrayToHex
 } from "@tutao/tutanota-utils"
-import {hash} from "./Sha256"
-import {random} from "./Randomizer"
-import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode, Mode} from "../../common/Env"
-// $FlowIgnore[untyped-import]
-import {BigInteger, parseBigInt, RSAKey} from "./lib/crypto-jsbn-2012-08-09_1"
+import {random} from "../random/Randomizer"
 import type {Base64, Hex} from "@tutao/tutanota-utils/"
 import type {PrivateKey, PublicKey, RsaKeyPair} from "./RsaKeyPair"
+import {CryptoError} from "../misc/CryptoError"
+import {sha256Hash} from "../hashes/Sha256"
 
-assertWorkerOrNode()
-
-const keyLengthInBits = 2048
-const publicExponent = 65537
-
-const jsRsaApp = {
-	generateRsaKey: () => Promise.resolve(generateRsaKeySync()),
-	rsaEncrypt: (publicKey, bytes, seed) => rsaEncryptSync(publicKey, bytes, seed),
-	rsaDecrypt: (privateKey, bytes) => rsaDecryptSync(privateKey, bytes),
-}
-
-/**
- * This is a hack to avoid loading things we don't need and we should re-structure to avoid it
- */
-const rsaApp = new LazyLoaded<typeof jsRsaApp>(() => {
-	if (env.mode === Mode.App) {
-		return import("../../../native/worker/RsaApp").then((m) => {
-			const app = m.rsaApp
-			return {
-				generateRsaKey: () => app.generateRsaKey(random.generateRandomData(512)),
-				rsaEncrypt: app.rsaEncrypt,
-				rsaDecrypt: app.rsaDecrypt,
-			}
-		})
-	} else {
-		return Promise.resolve(jsRsaApp)
-	}
-})
-
-/**
- * Returns the newly generated key
- * @param keyLength
- * @return resolves to the the generated keypair
- */
-export function generateRsaKey(): Promise<RsaKeyPair> {
-	return rsaApp.getAsync().then((app) => app.generateRsaKey())
-}
+const RSA_KEY_LENGTH_BITS = 2048
+const RSA_PUBLIC_EXPONENT = 65537
 
 export function generateRsaKeySync(): RsaKeyPair {
 	// jsbn is seeded inside, see SecureRandom.js
 	try {
 		let rsa = new RSAKey()
-		rsa.generate(keyLengthInBits, publicExponent.toString(16)) // must be hex for JSBN
+		rsa.generate(RSA_KEY_LENGTH_BITS, RSA_PUBLIC_EXPONENT.toString(16)) // must be hex for JSBN
 		return {
 			publicKey: {
 				version: 0,
-				keyLength: keyLengthInBits,
+				keyLength: RSA_KEY_LENGTH_BITS,
 				modulus: uint8ArrayToBase64(new Uint8Array(rsa.n.toByteArray())),
-				publicExponent: publicExponent
+				publicExponent: RSA_PUBLIC_EXPONENT
 			},
 			privateKey: {
 				version: 0,
-				keyLength: keyLengthInBits,
+				keyLength: RSA_KEY_LENGTH_BITS,
 				modulus: uint8ArrayToBase64(new Uint8Array(rsa.n.toByteArray())),
 				privateExponent: uint8ArrayToBase64(new Uint8Array(rsa.d.toByteArray())),
 				primeP: uint8ArrayToBase64(new Uint8Array(rsa.p.toByteArray())),
@@ -83,17 +45,6 @@ export function generateRsaKeySync(): RsaKeyPair {
 	} catch (e) {
 		throw new CryptoError("failed RSA key generation", e)
 	}
-}
-
-/**
- * Encrypt bytes with the provided publicKey
- * @param publicKey
- * @param bytes
- * @return returns the encrypted bytes.
- */
-export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
-	let seed = random.generateRandomData(32)
-	return rsaApp.getAsync().then((app) => app.rsaEncrypt(publicKey, bytes, seed))
 }
 
 export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
@@ -143,16 +94,6 @@ export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Ui
 	// result     [0, 1, 1, 1]
 	result.set(byteArray, result.length - byteArray.length)
 	return result
-}
-
-/**
- * Decrypt bytes with the provided privateKey
- * @param privateKey
- * @param bytes
- * @return returns the decrypted bytes.
- */
-export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	return rsaApp.getAsync().then((app) => app.rsaDecrypt(privateKey, bytes))
 }
 
 export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
@@ -326,7 +267,7 @@ export function _getPSBlock(value: Uint8Array, keyLength: number): Uint8Array {
 	let blockLength = keyLength / 8 - 1 // the leading byte shall be 0 to make the resulting value in any case smaller than the modulus, so we just leave the byte off
 	let block = new Uint8Array(blockLength)
 
-	let defHash = hash(new Uint8Array([])) // empty label
+	let defHash = sha256Hash(new Uint8Array([])) // empty label
 
 	let nbrOfZeros = block.length - (1 + value.length)
 	for (let i = 0; i < block.length; i++) {
@@ -368,12 +309,12 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 		throw new Error("invalid maximum emBits length. Was " + emBits + ", expected: " + minEmBitsLength)
 	}
 
-	let messageHash = hash(message)
+	let messageHash = sha256Hash(message)
 
 	//  M' = (0x)00 00 00 00 00 00 00 00 || mHash || _salt
 	let message2 = concat(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]), messageHash, salt)
 
-	let message2Hash = hash(message2)
+	let message2Hash = sha256Hash(message2)
 
 	let ps = new Uint8Array(emLen - salt.length - hashLength - 2)
 	for (let i = 0; i < ps.length; i++) {
@@ -455,9 +396,9 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 
 		var salt = db.slice(db.length - saltLength)
 
-		var messageHash = hash(message)
+		var messageHash = sha256Hash(message)
 		var message2 = concat(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]), messageHash, salt)
-		var message2Hash = hash(message2)
+		var message2Hash = sha256Hash(message2)
 
 		if (!arrayEquals(hashed, message2Hash)) {
 			throw new CryptoError("Hashes do not match")
@@ -499,7 +440,7 @@ export function mgf1(seed: Uint8Array, length: number): Uint8Array {
 
 	do {
 		C = i2osp(counter)
-		T = concat(T, hash(concat(seed, C)))
+		T = concat(T, sha256Hash(concat(seed, C)))
 	} while (++counter < Math.ceil(length / (256 / 8)))
 
 	return T.slice(0, length)
@@ -553,9 +494,9 @@ function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	var self = this
 	return {
 		version: 0,
-		keyLength: keyLengthInBits,
+		keyLength: RSA_KEY_LENGTH_BITS,
 		modulus: int8ArrayToBase64(new Int8Array(publicKey[0].toByteArray())),
-		publicExponent: publicExponent
+		publicExponent: RSA_PUBLIC_EXPONENT
 	}
 }
 
@@ -563,7 +504,7 @@ function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
 	return {
 		version: 0,
-		keyLength: keyLengthInBits,
+		keyLength: RSA_KEY_LENGTH_BITS,
 		modulus: int8ArrayToBase64(new Int8Array(privateKey[0].toByteArray())),
 		privateExponent: int8ArrayToBase64(new Int8Array(privateKey[1].toByteArray())),
 		primeP: int8ArrayToBase64(new Int8Array(privateKey[2].toByteArray())),
@@ -628,8 +569,8 @@ function _validateKeyLength(key: BigInteger[]) {
 	if (key.length !== 1 && key.length !== 7) {
 		throw new Error("invalid key params")
 	}
-	if (key[0].bitLength() < keyLengthInBits - 1 || key[0].bitLength() > keyLengthInBits) {
-		throw new Error("invalid key length, expected: around " + keyLengthInBits + ", but was: " + key[0].bitLength())
+	if (key[0].bitLength() < RSA_KEY_LENGTH_BITS - 1 || key[0].bitLength() > RSA_KEY_LENGTH_BITS) {
+		throw new Error("invalid key length, expected: around " + RSA_KEY_LENGTH_BITS + ", but was: " + key[0].bitLength())
 	}
 }
 

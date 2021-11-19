@@ -3,8 +3,6 @@ import {CryptoError} from "../common/error/CryptoError"
 import {Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
-import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
-import {EntropySrc} from "../common/TutanotaConstants"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity, TypeRef} from "@tutao/tutanota-utils"
@@ -20,6 +18,8 @@ import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {WorkerInterface} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
+import type {EntropySource} from "@tutao/tutanota-crypto"
+import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -127,10 +127,10 @@ export class WorkerClient implements EntityRestInterface {
 			let start = new Date().getTime()
 			this.initialized = this._queue
 			                       .postMessage(new Request('setup', [
-				                       window.env,
-				                       this._getInitialEntropy(),
-				                       client.browserData()
-			                       ]))
+				window.env,
+				this._getInitialEntropy(),
+				client.browserData()
+			]))
 			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -177,7 +177,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}
 
-	entropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {
+	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
@@ -229,13 +229,14 @@ export class WorkerClient implements EntityRestInterface {
 	/**
 	 * Add data from either secure random source or Math.random as entropy.
 	 */
-	_getInitialEntropy(): Array<{source: EntropySrcEnum, entropy: number, data: number}> {
+	_getInitialEntropy(): Array<{source: EntropySource, entropy: number, data: number}> {
+
 		const valueList = new Uint32Array(16)
 		crypto.getRandomValues(valueList)
-		const entropy: Array<{source: EntropySrcEnum, entropy: number, data: number}> = []
+		const entropy: Array<{source: EntropySource, entropy: number, data: number}> = []
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array
-			entropy.push({source: EntropySrc.random, entropy: 32, data: valueList[i]})
+			entropy.push({source: "random", entropy: 32, data: valueList[i]})
 		}
 		return entropy
 	}

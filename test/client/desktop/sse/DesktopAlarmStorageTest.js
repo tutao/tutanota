@@ -2,13 +2,13 @@
 import o from "ospec"
 import n from '../../nodemocker'
 import {CryptoError} from "../../../../src/api/common/error/CryptoError"
-import {uint8ArrayToBitArray} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage"
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
 import {downcast} from "@tutao/tutanota-utils"
 import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
 import type {DesktopDeviceKeyProvider} from "../../../../src/desktop/DeviceKeyProviderImpl"
 import {makeDeviceKeyProvider} from "../../../api/TestUtils"
+import {uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	const electron = {}

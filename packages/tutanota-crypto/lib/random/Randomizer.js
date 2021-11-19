@@ -1,17 +1,13 @@
 // @flow
 // $FlowIgnore[untyped-import]
-import sjcl from "./lib/sjcl"
-import {CryptoError} from "../../common/error/CryptoError"
-import type {EntropySrcEnum} from "../../common/TutanotaConstants"
-import {EntropySrc} from "../../common/TutanotaConstants"
-import {assertWorkerOrNode} from "../../common/Env"
-
-assertWorkerOrNode()
+import sjcl from "../internal/sjcl"
+import type {EntropySource} from "../misc/Constants"
+import {CryptoError} from "../misc/CryptoError"
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.
  */
-class Randomizer {
+export class Randomizer {
 	random: any;
 
 	constructor() {
@@ -23,7 +19,7 @@ class Randomizer {
 	 * @param entropyCache with: number Any number value, entropy The amount of entropy in the number in bit,
 	 * source The source of the number.
 	 */
-	addEntropy(entropyCache: Array<{source: EntropySrcEnum, entropy: number, data: number | Array<number>}>): Promise<void> {
+	addEntropy(entropyCache: Array<{source: EntropySource, entropy: number, data: number | Array<number>}>): Promise<void> {
 		entropyCache.forEach(entry => {
 			this.random.addEntropy(entry.data, entry.entropy, entry.source)
 		})
@@ -32,7 +28,7 @@ class Randomizer {
 
 	addStaticEntropy(bytes: Uint8Array) {
 		bytes.forEach(byte => {
-			this.random.addEntropy(byte, 8, EntropySrc.static)
+			this.random.addEntropy(byte, 8, "static")
 		})
 	}
 
@@ -63,5 +59,6 @@ class Randomizer {
 	}
 }
 
+// TODO singleton should be created in the app?
 // the randomizer instance (singleton) that should be used throughout the app
 export const random: Randomizer = new Randomizer()

@@ -1,17 +1,10 @@
 import o from "ospec"
 
 import "./common/LoggerTest.js"
-import "./crypto/RandomizerTest.js"
 import "./common/BirthdayUtilsTest"
 import "./common/EntityFunctionsTest"
-import "./crypto/AesTest"
-import "./crypto/BcryptTest"
 import "./crypto/CryptoFacadeTest.js"
 import "./crypto/CompatibilityTest"
-import "./crypto/Sha256Test"
-import "./crypto/Sha1Test"
-import "./crypto/TotpVerifierTest"
-import "./crypto/CryptoUtilsTest"
 import "./error/RestErrorTest"
 import "./error/TutanotaErrorTest"
 import "./rest/RestClientTest"
@@ -30,7 +23,6 @@ import "./worker/search/SearchIndexEncodingTest"
 import "./common/SwTest"
 import "./worker/search/EventQueueTest"
 import "./common/IndexerDebugLoggerTest"
-import "./crypto/RsaTest.js"
 import "./worker/facades/MailFacadeTest"
 import "./worker/facades/CalendarFacadeTest"
 import "./worker/SuspensionHandlerTest"
@@ -38,8 +30,6 @@ import "./worker/ConfigurationDbTest"
 import "./worker/CompressionTest"
 import "../api/common/PlainTextSearchTest"
 import "../api/common/EntityUtilsTest"
-import {random} from "../../src/api/worker/crypto/Randomizer"
-import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import {preTest, reportTest} from "./TestUtils"
 
 (async function () {
@@ -59,7 +49,7 @@ import {preTest, reportTest} from "./TestUtils"
 	}
 
 	// setup the Entropy for all testcases
-	random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+	random.addEntropy([{data: 36, entropy: 256, source: "key"}])
 	preTest()
 
 	await o.run(reportTest)
