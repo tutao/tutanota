@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-10-22T12:56:20Z",
+	"updated_at": "2021-11-19T10:55:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",

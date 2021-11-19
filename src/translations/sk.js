@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2021-10-25T09:09:13Z",
+	"updated_at": "2021-11-19T10:55:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
