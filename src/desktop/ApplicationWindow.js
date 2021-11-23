@@ -187,6 +187,7 @@ export class ApplicationWindow {
 				autoplayPolicy: "user-gesture-required",
 				enableWebSQL: false,
 				spellcheck: true,
+
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)

@@ -65,7 +65,6 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
 // $FlowIgnore[untyped-import]
 import murmurHash from "../crypto/lib/murmurhash3_32"
@@ -269,8 +268,8 @@ export class MailFacade {
 				.then((it) => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
-						fileApp.clearFileData()
-						       .catch((e) => console.warn("Failed to clear files", e))
+						this._file.clearFileData()
+						    .catch((e) => console.warn("Failed to clear files", e))
 					}
 					return it
 				})

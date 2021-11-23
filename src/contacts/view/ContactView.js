@@ -19,7 +19,6 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog"
-import {fileController} from "../../file/FileController"
 import {logins} from "../../api/main/LoginController"
 import {vCardFileToVCards, vCardListToContacts} from "../VCardImporter"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
@@ -250,7 +249,7 @@ export class ContactView implements CurrentView {
 	}
 
 	_importAsVCard() {
-		fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
+		locator.fileController.showFileChooser(true, ["vcf"]).then((contactFiles) => {
 			let numberOfContacts
 			try {
 				if (contactFiles.length > 0) {

@@ -43,6 +43,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let enitityClientLoadAllMock
 	let entityRequestMock
 	let workerMock
+	let nativeMock
 
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
@@ -105,7 +106,10 @@ o.spec("CalendarFacadeTest", async function () {
 		workerMock = downcast({
 			sendProgress: () => Promise.resolve()
 		})
-		calendarFacade = new CalendarFacade(loginFacade, userManagementFacade, entityRestCache, workerMock)
+		nativeMock = downcast({
+			invokeNative: o.spy(() => Promise.resolve())
+		})
+		calendarFacade = new CalendarFacade(loginFacade, userManagementFacade, entityRestCache, nativeMock, workerMock)
 	})
 
 

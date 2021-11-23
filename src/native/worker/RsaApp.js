@@ -1,34 +1,39 @@
 // @flow
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {nativeApp} from "../common/NativeWrapper"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import type {PrivateKey, PublicKey, RsaKeyPair} from "../../api/worker/crypto/RsaKeyPair"
+import type {NativeInterface} from "../common/NativeInterface"
+import type {RsaImplementation} from "../../api/worker/crypto/Rsa"
+import {random} from "../../api/worker/crypto/Randomizer"
 
+export class RsaApp implements RsaImplementation {
+	_native: NativeInterface
 
-export const rsaApp = {
-	generateRsaKey,
-	rsaEncrypt,
-	rsaDecrypt,
-}
+	constructor(native: NativeInterface) {
+		this._native = native
+	}
 
-function generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair> {
-	return nativeApp.invokeNative(new Request("generateRsaKey", [uint8ArrayToBase64(seed)]))
-}
+	generateKey(): Promise<RsaKeyPair> {
+		const seed = random.generateRandomData(512)
+		return this._native.invokeNative(new Request("generateRsaKey", [uint8ArrayToBase64(seed)]))
+	}
 
-/**
- * Encrypt bytes with the provided publicKey
- */
-function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
-	let encodedBytes = uint8ArrayToBase64(bytes);
-	return nativeApp.invokeNative(new Request("rsaEncrypt", [publicKey, encodedBytes, uint8ArrayToBase64(seed)]))
-	                .then(base64 => base64ToUint8Array(base64))
-}
+	/**
+	 * Encrypt bytes with the provided publicKey
+	 */
+	encrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
+		const seed = random.generateRandomData(32)
+		let encodedBytes = uint8ArrayToBase64(bytes);
+		return this._native.invokeNative(new Request("rsaEncrypt", [publicKey, encodedBytes, uint8ArrayToBase64(seed)]))
+		           .then(base64 => base64ToUint8Array(base64))
+	}
 
-/**
- * Decrypt bytes with the provided privateKey
- */
-function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	let encodedBytes = uint8ArrayToBase64(bytes);
-	return nativeApp.invokeNative(new Request("rsaDecrypt", [privateKey, encodedBytes]))
-	                .then(base64 => base64ToUint8Array(base64))
+	/**
+	 * Decrypt bytes with the provided privateKey
+	 */
+	decrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
+		let encodedBytes = uint8ArrayToBase64(bytes);
+		return this._native.invokeNative(new Request("rsaDecrypt", [privateKey, encodedBytes]))
+		           .then(base64 => base64ToUint8Array(base64))
+	}
 }

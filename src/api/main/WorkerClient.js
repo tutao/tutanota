@@ -1,11 +1,13 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import {Queue, Request} from "../common/WorkerProtocol"
+import type {QueueCommands} from "../common/Queue"
+import {Queue, Request, WorkerTransport} from "../common/Queue"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
 import type {IMainLocator} from "./MainLocator"
+import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity, TypeRef} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
@@ -46,14 +48,57 @@ export class WorkerClient implements EntityRestInterface {
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
 		this._initWorker()
-
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
-		this._queue.setCommands({
+	}
+
+	_initWorker() {
+		if (env.mode !== "Test") {
+			const {prefixWithoutFile} = window.tutao.appState
+			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
+			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
+			// localhost/path/WorkerBootstrap.js respectively.
+			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
+			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
+			const worker = new Worker(workerUrl)
+			this._queue = new Queue(new WorkerTransport(worker), this.queueCommands)
+
+			let start = new Date().getTime()
+			this.initialized = this._queue.postRequest(new Request('setup', [
+				window.env,
+				this._getInitialEntropy(),
+				client.browserData()
+			])).then(() => console.log("worker init time (ms):", new Date().getTime() - start))
+
+			worker.onerror = (e: any) => {
+				throw new CryptoError("could not setup worker", e)
+			}
+		} else {
+			// node: we do not use workers but connect the client and the worker queues directly with each other
+			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
+			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
+			const WorkerImpl = globalThis.testWorker
+			const workerImpl = new WorkerImpl(this, true)
+			this.initialized = workerImpl.init(client.browserData()).then(() => {
+				workerImpl._queue._transport = {
+					postMessage: msg => this._queue.handleMessage(msg)
+				}
+				this._queue = new Queue(({
+						postMessage: function (msg) {
+							workerImpl._queue.handleMessage(msg)
+						}
+					}: any),
+					this.queueCommands
+				)
+			})
+		}
+	}
+
+	get queueCommands(): QueueCommands {
+		return {
 			execNative: (message: Message) =>
-				import("../../native/common/NativeWrapper").then(({nativeApp}) =>
-					nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1])))),
+				locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
@@ -106,51 +151,11 @@ export class WorkerClient implements EntityRestInterface {
 				addSearchIndexDebugEntry(reason, user)
 				return Promise.resolve()
 			}
-		})
+		}
 	}
 
 	getWorkerInterface(): WorkerInterface {
 		return exposeRemote<WorkerInterface>(this._queue)
-	}
-
-	_initWorker() {
-		if (env.mode !== "Test") {
-			const {prefixWithoutFile} = window.tutao.appState
-			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
-			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
-			// localhost/path/WorkerBootstrap.js respectively.
-			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
-			const worker = new Worker(workerUrl)
-			this._queue = new Queue(worker)
-
-			let start = new Date().getTime()
-			this.initialized = this._queue
-			                       .postMessage(new Request('setup', [
-				                       window.env,
-				                       this._getInitialEntropy(),
-				                       client.browserData()
-			                       ]))
-			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
-
-			worker.onerror = (e: any) => {
-				throw new CryptoError("could not setup worker", e)
-			}
-		} else {
-			// node: we do not use workers but connect the client and the worker queues directly with each other
-			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
-			const WorkerImpl = globalThis.testWorker
-			const workerImpl = new WorkerImpl(this, true, client.browserData())
-			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
-			this._queue = new Queue(({
-				postMessage: function (msg) {
-					workerImpl._queue._handleMessage(msg)
-
-				}
-			}: any))
-			this.initialized = Promise.resolve()
-		}
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
@@ -183,7 +188,7 @@ export class WorkerClient implements EntityRestInterface {
 
 	async _postRequest(msg: Request): Promise<any> {
 		await this.initialized
-		return this._queue.postMessage(msg)
+		return this._queue.postRequest(msg)
 	}
 
 	registerProgressUpdater(updater: ?progressUpdater) {
@@ -206,7 +211,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
-		return this._queue.postMessage(new Request("closeEventBus", [closeOption]))
+		return this._queue.postRequest(new Request("closeEventBus", [closeOption]))
 	}
 
 	reset(): Promise<void> {
@@ -214,7 +219,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	getLog(): Promise<Array<string>> {
-		return this._queue.postMessage(new Request("getLog", []))
+		return this._queue.postRequest(new Request("getLog", []))
 	}
 
 	isLeader(): boolean {

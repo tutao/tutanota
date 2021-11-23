@@ -10,12 +10,13 @@ import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
 import {Icons} from "../base/icons/Icons"
-import {Request} from "../../api/common/WorkerProtocol"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {attachDropdown} from "../base/DropdownN"
 import {keyManager} from "../../misc/KeyManager"
 
-type Attrs = void
+type Attrs = {
+	openNewWindow(): mixed
+}
 
 export class DrawerMenu implements MComponent<Attrs> {
 
@@ -45,10 +46,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					icon: () => Icons.NewWindow,
 					label: "openNewWindow_action",
 					click: () => {
-						import("../../native/common/NativeWrapper").then(({nativeApp}) => {
-							return nativeApp.invokeNative(new Request('openNewWindow', []))
-						})
-
+						vnode.attrs.openNewWindow()
 					},
 					type: ButtonType.ActionLarge,
 					colors: ButtonColors.DrawerNav

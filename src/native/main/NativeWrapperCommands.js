@@ -1,8 +1,6 @@
 // @flow
-import {Request} from "../../api/common/WorkerProtocol"
-import {getFilesMetaData} from "../common/FileApp"
+import {Request} from "../../api/common/Queue"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
-import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
@@ -38,7 +36,7 @@ async function createMailEditor(msg: Request): Promise<void> {
 		editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
 		if (!editor) return
 	} else {
-		const files = await getFilesMetaData(filesUris)
+		const files = await locator.fileApp.getFilesMetaData(filesUris)
 		const address = addresses && addresses[0] || ""
 		const recipients = address ? {to: [{name: "", address: address}]} : {}
 		editor = await newMailEditorFromTemplate(
@@ -145,15 +143,14 @@ function visibilityChange(msg: Request): Promise<void> {
 	})
 }
 
-function invalidateAlarms(msg: Request): Promise<void> {
-	return import('./PushServiceApp.js').then(({pushServiceApp}) => {
-		return pushServiceApp.invalidateAlarms()
-	})
+async function invalidateAlarms(msg: Request): Promise<void> {
+	const {locator} = await import('./../../api/main/MainLocator.js')
+	await locator.pushService.invalidateAlarms()
 }
 
-function appUpdateDownloaded(msg: Request): Promise<void> {
-	nativeApp.handleUpdateDownload()
-	return Promise.resolve()
+async function appUpdateDownloaded(msg: Request): Promise<void> {
+	const {locator} = await import('./../../api/main/MainLocator.js')
+	locator.native.handleUpdateDownload()
 }
 
 /**

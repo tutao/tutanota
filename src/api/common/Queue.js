@@ -12,6 +12,35 @@ import {isWorker} from "./Env"
 
 type Command = (msg: Request) => Promise<any>
 
+export type Message =
+	| Request
+	| Response
+	| RequestError
+
+export interface Transport {
+	postMessage(message: Message): void;
+
+	setMessageHandler(ev: Message => mixed): mixed;
+}
+
+/**
+ * Queue transport for both WorkerClient and WorkerImpl
+ */
+export class WorkerTransport implements Transport {
+	_worker: Worker | DedicatedWorkerGlobalScope
+	constructor(worker: Worker | DedicatedWorkerGlobalScope) {
+		this._worker = worker
+	}
+
+	postMessage(message: Message): void {
+		return this._worker.postMessage(message)
+	}
+
+	setMessageHandler(handler: Message => mixed) {
+		this._worker.onmessage = (ev: MessageEvent) => handler(downcast(ev.data))
+	}
+}
+
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
 	id: string;
@@ -50,6 +79,7 @@ export class RequestError {
 
 type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 
+export type QueueCommands = {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command}
 /**
  * Queue for the remote invocations (e.g. worker or native calls).
  */
@@ -59,19 +89,17 @@ export class Queue {
 	 * executed on the results sent by the worker.
 	 */
 	_queue: {[key: string]: QueuedMessageCallbacks};
-	_commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command};
-	_transport: Worker | DedicatedWorkerGlobalScope;
+	_commands: QueueCommands;
+	_transport: Transport;
 
-	constructor(transport: ?Worker | ?DedicatedWorkerGlobalScope) {
+	constructor(transport: ?Transport, commands: QueueCommands) {
 		this._queue = {}
+		this._commands = commands
 		this._transport = (transport: any)
-
-		if (this._transport != null) { // only undefined in case of node unit tests (is overridden from WorkerClient, in this case)
-			this._transport.onmessage = (msg: any) => this._handleMessage(msg.data)
-		}
+		this._transport?.setMessageHandler(msg => this.handleMessage(msg))
 	}
 
-	postMessage(msg: Request): Promise<any> {
+	postRequest(msg: Request): Promise<any> {
 		return new Promise((resolve, reject) => {
 			this._queue[msg.id] = {resolve, reject}
 			try {
@@ -83,7 +111,7 @@ export class Queue {
 		})
 	}
 
-	_handleMessage(message: Response | Request | RequestError) {
+	handleMessage(message: Message) {
 		if (message.type === 'response') {
 			this._queue[message.id].resolve(message.value)
 			delete this._queue[message.id]
@@ -114,10 +142,6 @@ export class Queue {
 				}
 			}
 		}
-	}
-
-	setCommands(commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command}) {
-		this._commands = commands
 	}
 }
 

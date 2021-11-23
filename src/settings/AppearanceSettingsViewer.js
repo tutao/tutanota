@@ -10,18 +10,17 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
-import {downcast, noOp} from "@tutao/tutanota-utils"
+import {downcast, incrementDate, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {load, update} from "../api/main/Entity"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
-import {incrementDate} from "@tutao/tutanota-utils"
 import {getHourCycle} from "../misc/Formatter"
-import {Mode} from "../api/common/Env"
 import type {ThemeId} from "../gui/theme"
 import {themeController} from "../gui/theme"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {promiseMap} from "@tutao/tutanota-utils"
+import {isDesktop} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -43,18 +42,17 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			                .concat({name: lang.get("automatic_label"), value: null}),
 			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
 			selectedValue: stream(deviceConfig.getLanguage() || null),
-			selectionChangedHandler: (value) => {
+			selectionChangedHandler: async (value) => {
 				deviceConfig.setLanguage(value)
 				const newLanguage = value
 					? {code: value, languageTag: languageCodeToTag(value)}
 					: getLanguage()
-				lang.setLanguage(newLanguage)
-				    .then(() => env.mode === Mode.Desktop ?
-					    import("../native/main/SystemApp").then(({changeSystemLanguage}) => changeSystemLanguage(newLanguage))
-					    : Promise.resolve()
-				    )
-				    .then(() => styles.updateStyle("main"))
-				    .then(m.redraw)
+				await lang.setLanguage(newLanguage)
+				if (isDesktop()) {
+					await locator.systemApp.changeSystemLanguage(newLanguage)
+				}
+				styles.updateStyle("main")
+				m.redraw()
 			}
 		}
 

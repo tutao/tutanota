@@ -6,15 +6,15 @@ import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/De
 import n from "../../nodemocker"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
-import {NativeWrapper} from "../../../../src/native/common/NativeWrapper"
 import type {Credentials} from "../../../../src/misc/credentials/Credentials"
+import type {NativeInterface} from "../../../../src/native/common/NativeInterface"
 
 o.spec("NativeCredentialsEncryptionTest", function () {
 	const credentialsKey = new Uint8Array([1, 2, 3])
 	let credentialsKeyProvider: ICredentialsKeyProvider
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let encryption: NativeCredentialsEncryption
-	let nativeApp: NativeWrapper
+	let nativeApp: NativeInterface
 	o.beforeEach(function () {
 		credentialsKeyProvider = n.mock("omg delete me", {
 			async getCredentialsKey() {

@@ -6,6 +6,8 @@ import type {WorkerClient} from "../api/main/WorkerClient"
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
 import type {Indexer} from "../api/worker/search/Indexer"
+import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
+import type {NativeSystemApp} from "../native/main/NativeSystemApp"
 
 assertMainOrNodeBoot()
 
@@ -20,6 +22,8 @@ class WindowFacade {
 	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
 	_worker: WorkerClient;
 	_indexerFacade: Indexer;
+	_native: NativeInterfaceMain
+	_systemApp: NativeSystemApp
 	// following two properties are for the iOS
 	_keyboardSize: number = 0;
 	_keyboardSizeListeners: KeyboardSizeListener[] = [];
@@ -41,9 +45,12 @@ class WindowFacade {
 				this._worker = locator.worker
 				this._indexerFacade = locator.indexerFacade
 
+				// Wait for locator to ensure that nativeApp will be initialized
+				await locator.initialized
+				this._native = locator.native
+				this._systemApp = locator.systemApp
+
 				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
-					const {nativeApp} = await import("../native/common/NativeWrapper")
-					await nativeApp.initialized()
 					this.addPageInBackgroundListener()
 				}
 			})
@@ -220,9 +227,7 @@ class WindowFacade {
 			}
 			// Convert all values to strings so that native has easier time dealing with it
 			const preparedArgs = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, String(v)]))
-			import("../native/main/SystemApp").then(({reloadNative}) =>
-				reloadNative(preparedArgs)
-			)
+			this._systemApp.reloadNative(preparedArgs)
 		} else {
 			window.location.reload();
 		}

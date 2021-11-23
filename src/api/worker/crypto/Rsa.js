@@ -5,55 +5,56 @@ import {
 	base64ToUint8Array,
 	concat,
 	int8ArrayToBase64,
-	LazyLoaded,
 	uint8ArrayToBase64,
 	uint8ArrayToHex
 } from "@tutao/tutanota-utils"
 import {hash} from "./Sha256"
 import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
-import {assertWorkerOrNode, Mode} from "../../common/Env"
+import {assertWorkerOrNode, isApp} from "../../common/Env"
 // $FlowIgnore[untyped-import]
 import {BigInteger, parseBigInt, RSAKey} from "./lib/crypto-jsbn-2012-08-09_1"
 import type {Base64, Hex} from "@tutao/tutanota-utils/"
 import type {PrivateKey, PublicKey, RsaKeyPair} from "./RsaKeyPair"
+import type {NativeInterface} from "../../../native/common/NativeInterface"
 
 assertWorkerOrNode()
 
 const keyLengthInBits = 2048
 const publicExponent = 65537
 
-const jsRsaApp = {
-	generateRsaKey: () => Promise.resolve(generateRsaKeySync()),
-	rsaEncrypt: (publicKey, bytes, seed) => rsaEncryptSync(publicKey, bytes, seed),
-	rsaDecrypt: (privateKey, bytes) => rsaDecryptSync(privateKey, bytes),
+export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
+	if (isApp()) {
+		const {RsaApp} = await import ("../../../native/worker/RsaApp")
+		return new RsaApp(native)
+	} else {
+		return new RsaWeb()
+	}
 }
 
-/**
- * This is a hack to avoid loading things we don't need and we should re-structure to avoid it
- */
-const rsaApp = new LazyLoaded<typeof jsRsaApp>(() => {
-	if (env.mode === Mode.App) {
-		return import("../../../native/worker/RsaApp").then((m) => {
-			const app = m.rsaApp
-			return {
-				generateRsaKey: () => app.generateRsaKey(random.generateRandomData(512)),
-				rsaEncrypt: app.rsaEncrypt,
-				rsaDecrypt: app.rsaDecrypt,
-			}
-		})
-	} else {
-		return Promise.resolve(jsRsaApp)
-	}
-})
+export interface RsaImplementation {
+	generateKey(): Promise<RsaKeyPair>,
 
-/**
- * Returns the newly generated key
- * @param keyLength
- * @return resolves to the the generated keypair
- */
-export function generateRsaKey(): Promise<RsaKeyPair> {
-	return rsaApp.getAsync().then((app) => app.generateRsaKey())
+	encrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array>,
+
+	decrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array>
+}
+
+export class RsaWeb implements RsaImplementation {
+
+	async generateKey(): Promise<RsaKeyPair> {
+		return generateRsaKeySync()
+	}
+
+	async encrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
+		const seed = random.generateRandomData(32)
+		return rsaEncryptSync(publicKey, bytes, seed)
+	}
+
+
+	async decrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
+		return rsaDecryptSync(privateKey, bytes)
+	}
 }
 
 export function generateRsaKeySync(): RsaKeyPair {
@@ -85,18 +86,8 @@ export function generateRsaKeySync(): RsaKeyPair {
 	}
 }
 
-/**
- * Encrypt bytes with the provided publicKey
- * @param publicKey
- * @param bytes
- * @return returns the encrypted bytes.
- */
-export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
-	let seed = random.generateRandomData(32)
-	return rsaApp.getAsync().then((app) => app.rsaEncrypt(publicKey, bytes, seed))
-}
-
 export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
+
 	const rsa = new RSAKey()
 	// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
 	// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
@@ -116,6 +107,30 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
 
 	// the encrypted value might have leading zeros or needs to be padded with zeros
 	return _padAndUnpadLeadingZeros(publicKey.keyLength / 8, encrypted)
+}
+
+export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array{
+	try {
+		const rsa = new RSAKey()
+		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
+		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
+		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
+		rsa.p = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeP)))
+		rsa.q = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeQ)))
+		rsa.dmp1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentP)))
+		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
+		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
+
+		const hex = uint8ArrayToHex(bytes)
+		const bigInt = parseBigInt(hex, 16)
+		const decrypted = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
+		// the decrypted value might have leading zeros or needs to be padded with zeros
+		const paddedDecrypted = _padAndUnpadLeadingZeros(privateKey.keyLength / 8 - 1, decrypted)
+		return oaepUnpad(paddedDecrypted, privateKey.keyLength)
+	} catch (e) {
+		throw new CryptoError("failed RSA decryption", e)
+	}
 }
 
 /**
@@ -143,40 +158,6 @@ export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Ui
 	// result     [0, 1, 1, 1]
 	result.set(byteArray, result.length - byteArray.length)
 	return result
-}
-
-/**
- * Decrypt bytes with the provided privateKey
- * @param privateKey
- * @param bytes
- * @return returns the decrypted bytes.
- */
-export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	return rsaApp.getAsync().then((app) => app.rsaDecrypt(privateKey, bytes))
-}
-
-export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
-	try {
-		const rsa = new RSAKey()
-		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
-		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
-		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
-		rsa.p = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeP)))
-		rsa.q = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeQ)))
-		rsa.dmp1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentP)))
-		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
-		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
-
-		const hex = uint8ArrayToHex(bytes)
-		const bigInt = parseBigInt(hex, 16)
-		const decrypted = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
-		// the decrypted value might have leading zeros or needs to be padded with zeros
-		const paddedDecrypted = _padAndUnpadLeadingZeros(privateKey.keyLength / 8 - 1, decrypted)
-		return oaepUnpad(paddedDecrypted, privateKey.keyLength)
-	} catch (e) {
-		throw new CryptoError("failed RSA decryption", e)
-	}
 }
 
 /**

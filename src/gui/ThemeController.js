@@ -3,13 +3,12 @@ import {defaultThemeId, DeviceConfig} from "../misc/DeviceConfig";
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer";
 import stream from "mithril/stream/stream.js";
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env";
-import {downcast, neverNull, typedValues} from "@tutao/tutanota-utils";
+import {downcast, findAndRemove, mapAndFilterNull, neverNull, typedValues} from "@tutao/tutanota-utils";
 import m from "mithril";
-import {findAndRemove, mapAndFilterNull} from "@tutao/tutanota-utils";
 import type {BaseThemeId, Theme, ThemeId} from "./theme";
 import {themes} from "./builtinThemes";
-import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
+import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {getLogoSvg} from "./base/Logo"
 
 assertMainOrNodeBoot()
@@ -239,10 +238,13 @@ export class NativeThemeStorage implements ThemeStorage {
 	}
 
 	async _callWith<R>(method: NativeRequestType, args: $ReadOnlyArray<mixed>): Promise<R> {
-		const {nativeApp} = await import("../native/common/NativeWrapper")
-		const {Request} = await import("../api/common/WorkerProtocol")
-		await nativeApp.initialized()
-		return nativeApp.invokeNative(new Request(method, args))
+		const {Request} = await import("../api/common/Queue")
+		const {locator} = await import("../api/main/MainLocator")
+
+		// Theme initialization happens concurrently with locator initialization, so we have to wait or native may not yet be defined when we first get here.
+		// It would be nice to move all the global theme handling onto the locator as well so we can have more control over this
+		await locator.initialized
+		return locator.native.invokeNative(new Request(method, args))
 	}
 }
 

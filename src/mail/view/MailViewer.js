@@ -32,16 +32,14 @@ import {
 } from "../../api/common/TutanotaConstants"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {FileTypeRef} from "../../api/entities/tutanota/File"
-import {CALENDAR_MIME_TYPE, fileController} from "../../file/FileController"
+import {CALENDAR_MIME_TYPE} from "../../file/FileController"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
 import type {DeferredObject} from "@tutao/tutanota-utils"
+import {addAll, contains, defer, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {defer, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
-import {addAll, contains} from "@tutao/tutanota-utils"
-import {startsWith} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/WorkerProtocol.js"
+import {Request} from "../../api/common/Queue.js"
 import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
 import {
 	createNewContact,
@@ -123,9 +121,9 @@ import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedT
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {ofClass} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 assertMainOrNode()
 
@@ -195,7 +193,7 @@ export class MailViewer {
 	_configFacade: ConfigurationDatabase
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
-	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>) {
+	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: NativeInterface) {
 		this.mail = mail
 		this._contactModel = contactModel
 		this._configFacade = configFacade
@@ -203,8 +201,7 @@ export class MailViewer {
 		this._mailModel = mailModel
 		this._delayBodyRenderingUntil = delayBodyRenderingUntil
 		if (isDesktop()) {
-			import("../../native/common/NativeWrapper").then(({nativeApp}) =>
-				nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}])))
+			native.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this._folderText = null
 		this._filesExpanded = stream(false)
@@ -941,8 +938,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+						? ContentBlockingStatus.AlwaysShow
+						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -1580,7 +1577,7 @@ export class MailViewer {
 	}
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
-		fileController.downloadAndOpen(file, open)
+		locator.fileController.downloadAndOpen(file, open)
 		              .catch(ofClass(FileOpenError, (e) => {
 			              console.warn("FileOpenError", e)
 			              Dialog.message("canNotOpenFileOnDevice_msg")
@@ -1631,7 +1628,7 @@ export class MailViewer {
 	_downloadAll() {
 		this._referencedCids
 		    .then(inlineFileIds => this._attachments.filter(a => !inlineFileIds.includes(a.cid)))
-		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", fileController.downloadAll(nonInlineFiles)))
+		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", locator.fileController.downloadAll(nonInlineFiles)))
 	}
 
 	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {

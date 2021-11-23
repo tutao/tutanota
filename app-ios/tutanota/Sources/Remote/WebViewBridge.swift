@@ -13,12 +13,12 @@ class WebViewBridge : NSObject {
   private let userPreferences: UserPreferenceFacade
   private let alarmManager: AlarmManager
   private let credentialsEncryption: CredentialsEncryption
-  
+
   private var requestId = 0
   private var requests = [String : ((Any?) -> Void)]()
   private var requestsBeforeInit = [() -> Void]()
   private var webviewInitialized = false
-  
+
   init(
     webView: WKWebView,
     viewController: ViewController,
@@ -41,7 +41,7 @@ class WebViewBridge : NSObject {
     self.alarmManager = alarmManager
     self.fileFacade = fileFacade
     self.credentialsEncryption = credentialsEncryption
-    
+
     super.init()
     self.webView.configuration.userContentController.add(self, name: "nativeApp")
     let js =
@@ -53,7 +53,7 @@ class WebViewBridge : NSObject {
     let script = WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true)
     self.webView.configuration.userContentController.addUserScript(script)
   }
-  
+
   func sendRequest(
     method: String,
     args: [Encodable],
@@ -64,7 +64,7 @@ class WebViewBridge : NSObject {
       self.requestsBeforeInit.append(callback)
       return
     }
-    
+
     self.requestId = self.requestId + 1
     let requestId = "app\(self.requestId)"
     if let completion = completion {
@@ -77,7 +77,7 @@ class WebViewBridge : NSObject {
     )
     self.postMessage(bridgeMessage: bridgeMessage)
   }
-  
+
   private func sendResponse(requestId: String, value: Encodable) {
     let response = RemoteMessage.response(id: requestId, value: value)
     self.postMessage(bridgeMessage: response)
@@ -85,7 +85,7 @@ class WebViewBridge : NSObject {
 
   private func sendErrorResponse(requestId: String, err: Error) {
     TUTSLog("Error: \(err)")
-    
+
     let responseError: ResponseError
     if let err = err as? TutanotaError {
       responseError = ResponseError(name: err.name, message: err.message, stack: err.underlyingError.debugDescription)
@@ -94,14 +94,14 @@ class WebViewBridge : NSObject {
       let userInfo = nsError.userInfo
       let message = userInfo["message"] as? String ?? err.localizedDescription
       let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as! NSError?
-      
+
       responseError = ResponseError(
         name: nsError.domain,
         message: message,
         stack:  underlyingError?.debugDescription ?? ""
       )
     }
-    
+
     let bridgeMessage = RemoteMessage.requestError(id: requestId, error: responseError)
     self.postMessage(bridgeMessage: bridgeMessage)
   }
@@ -110,18 +110,18 @@ class WebViewBridge : NSObject {
     let data = try! JSONEncoder().encode(bridgeMessage)
     DispatchQueue.main.async {
       let base64 = data.base64EncodedString()
-      let js = "tutao.nativeApp.handleMessageFromNative('\(base64)')"
+      let js = "tutao.nativeApp.sendMessageFromApp('\(base64)')"
       self.webView.evaluateJavaScript(js, completionHandler: nil)
     }
   }
-  
+
   private func handleResponse(id: String, value: Any?) {
     if let request = self.requests[id] {
       self.requests.removeValue(forKey: id)
       request(value)
     }
   }
-  
+
   private func handleRequest(type: String, requestId: String, args: [Any]) {
     self.handleRequest(type: type, args: args) { response in
       switch response {
@@ -132,14 +132,14 @@ class WebViewBridge : NSObject {
       }
     }
   }
-  
+
   private func handleRequest(type: String, args: [Any], completion: @escaping (Result<Encodable, Error>) -> Void) {
     func respond<T: Encodable>(_ result: Result<T, Error>) {
       // For some reason Result is not covariant in its value so we manually erase it
       let erasedResult: Result<Encodable, Error> = result.map { thing in thing }
       completion(erasedResult)
     }
-    
+
       switch type {
       case "init":
         self.webviewInitialized = true
@@ -282,16 +282,16 @@ class WebViewBridge : NSObject {
         let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
         self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
       case "getSupportedEncryptionModes":
-        self.credentialsEncryption.getSupportedEncryptionModes(completion: respond) 
+        self.credentialsEncryption.getSupportedEncryptionModes(completion: respond)
       default:
         let message = "Unknown comand: \(type)"
         TUTSLog(message)
         let error = NSError(domain: "tutanota", code: 5, userInfo: ["message": message])
-        
+
         respond(Result<NullReturn, Error>.failure(error))
     }
   }
-  
+
   /// - Returns path to the generated logfile
   private func getLogfile() throws -> String {
     let entries = TUTLogger.sharedInstance().entries()
@@ -312,7 +312,7 @@ extension WebViewBridge : WKScriptMessageHandler {
     let json = try! JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!, options: []) as! [String : Any]
     let type = json["type"] as! String
     let requestId = json["id"] as! String
-    
+
     switch type {
     case "response":
       let value = json["value"]

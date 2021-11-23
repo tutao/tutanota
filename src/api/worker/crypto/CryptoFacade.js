@@ -4,7 +4,6 @@ import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {rsaDecrypt} from "./Rsa"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -47,6 +46,7 @@ import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils
 import type {TypeModel} from "../../common/EntityTypes"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
+import {createRsaImplementation} from "./Rsa"
 
 assertWorkerOrNode()
 
@@ -146,6 +146,7 @@ const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
  * @param sessionKeyLoaders sessionKeyLoader to resolve the key
  */
 export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessionKeyLoaders: ?ResolveSessionKeyLoaders): Promise<?Aes128Key> {
+
 	return Promise.resolve().then(() => {
 		let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 		if (!typeModel.encrypted) {
@@ -220,7 +221,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 							              if (pubEncBucketKey == null) {
 								              throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 							              }
-							              return rsaDecrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
+							              return locator.rsa.decrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
 								              let bucketKey = uint8ArrayToBitArray(decryptedBytes)
 
 								              let bucketEncSessionKey = permission.bucketEncSessionKey;
@@ -281,7 +282,7 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
 				console.log("failed to decrypt rsa key for group with id " + group._id)
 				throw e
 			}
-			return rsaDecrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
+			return locator.rsa.decrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
 				.then(decryptedBytes => uint8ArrayToBitArray(decryptedBytes))
 		})
 	}

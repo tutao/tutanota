@@ -5,8 +5,8 @@ import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryp
 import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
-import type {NativeWrapper} from "../../native/common/NativeWrapper"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**
  * Performs the credentials migration needed when switching to the tutanota version in which credentials encryption using biometrics has
@@ -18,9 +18,9 @@ import {Request} from "../../api/common/WorkerProtocol"
 export class CredentialsMigration {
 	+_deviceConfig: DeviceConfig
 	+_deviceEncryptionFacade: DeviceEncryptionFacade
-	+_nativeApp: NativeWrapper
+	+_nativeApp: NativeInterface
 
-	constructor(deviceConfig: DeviceConfig, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeWrapper) {
+	constructor(deviceConfig: DeviceConfig, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
 		this._deviceConfig = deviceConfig
 		this._deviceEncryptionFacade = deviceEncryptionFacade
 		this._nativeApp = nativeApp

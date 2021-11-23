@@ -5,7 +5,6 @@ import {Dialog} from "../../gui/base/Dialog"
 import {assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
 import {themeController} from "../../gui/theme"
 import {Icons} from "../../gui/base/icons/Icons"
-import {fileController} from "../../file/FileController"
 import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaConstants"
 import {contains} from "@tutao/tutanota-utils"
 import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
@@ -121,7 +120,7 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 			m(ButtonN, {
 				label: "edit_action",
 				click: async () => {
-					const files = await fileController.showFileChooser(false)
+					const files = await locator.fileController.showFileChooser(false)
 					let extension = files[0]
 						.name
 						.toLowerCase()

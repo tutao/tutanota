@@ -3,7 +3,7 @@
  * @file Functions to automatically expose certain interfaces across the WorkerProtocol Queue.
  */
 import {downcast} from "@tutao/tutanota-utils"
-import {Queue, Request} from "./WorkerProtocol"
+import {Queue, Request} from "./Queue"
 
 /**
  * Generates proxy where each field will be treated as an interface with async methods. Each method will delegate to the {@param queue}.
@@ -49,7 +49,7 @@ function facadeProxy(queue: Queue, facadeName: string) {
 			if (property === "then") {
 				return undefined
 			} else {
-				return (...args) => queue.postMessage(new Request("facade", [facadeName, property, args]))
+				return (...args) => queue.postRequest(new Request("facade", [facadeName, property, args]))
 			}
 		}
 	})

@@ -1,10 +1,10 @@
 // @flow
-import type {NativeWrapper} from "../../native/common/NativeWrapper"
 import type {CredentialsStorage} from "./CredentialsProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**
  * Interface for obtaining the key that is used to encrypt credentials. Any access to that key should always be done using this interface
@@ -19,11 +19,11 @@ export interface ICredentialsKeyProvider {
 }
 
 export class CredentialsKeyProvider implements ICredentialsKeyProvider {
-	+_nativeApp: NativeWrapper
+	+_nativeApp: NativeInterface
 	+_credentialsStorage: CredentialsStorage
 	+_deviceEncryptionFacade: DeviceEncryptionFacade
 
-	constructor(nativeApp: NativeWrapper, _credentialsStorage: CredentialsStorage, deviceEncryptionFacade: DeviceEncryptionFacade) {
+	constructor(nativeApp: NativeInterface, _credentialsStorage: CredentialsStorage, deviceEncryptionFacade: DeviceEncryptionFacade) {
 		this._nativeApp = nativeApp
 		this._credentialsStorage = _credentialsStorage
 		this._deviceEncryptionFacade = deviceEncryptionFacade

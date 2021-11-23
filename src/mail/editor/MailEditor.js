@@ -20,7 +20,6 @@ import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
-import {fileController} from "../../file/FileController"
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -204,7 +203,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 						click: () => {
 							const inlineAttachment = model.getAttachments().find((attachment) => attachment.cid === cid)
 							if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-								fileController.downloadAndOpen(downcast(inlineAttachment), true)
+								locator.fileController.downloadAndOpen(downcast(inlineAttachment), true)
 								              .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
 							}
 						},
@@ -399,7 +398,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			},
 			ondrop: (ev) => {
 				if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
-					fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
+					locator.fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
 						model.attachFiles((dataFiles: any))
 						m.redraw()
 					}).catch(e => {
@@ -656,7 +655,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 	if (mailTo.attach) {
 		const attach = mailTo.attach
-		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri)))).filter(Boolean)
+		dataFiles = (await Promise.all((attach).map(uri => locator.fileController.getDataFile(uri)))).filter(Boolean)
 
 		// make sure the user is aware that (and which) files have been attached
 		const keepAttachments = dataFiles.length === 0 || await Dialog.confirm(

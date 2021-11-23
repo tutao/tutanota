@@ -3,10 +3,9 @@
 import m from "mithril"
 import type {Attachment, RecipientField} from "./SendMailModel"
 import {SendMailModel} from "./SendMailModel"
-import {findAllAndRemove, remove} from "@tutao/tutanota-utils"
-import {debounce, downcast} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {cleanMatch, debounce, downcast, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
 import {Mode} from "../../api/common/Env"
-import {fileController} from "../../file/FileController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {Dialog} from "../../gui/base/Dialog"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
@@ -32,13 +31,11 @@ import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../../misc/R
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
-import {cleanMatch} from "@tutao/tutanota-utils"
 import {ConnectionError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
-import {ofClass} from "@tutao/tutanota-utils"
-import type {lazy} from "@tutao/tutanota-utils"
+import {locator} from "../../api/main/MainLocator"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
@@ -52,8 +49,8 @@ export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRe
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	const fileSelector = env.mode === Mode.App
-		? import("../../native/common/FileApp").then(({fileApp}) => fileApp.openFileChooser(boundingRect))
-		: fileController.showFileChooser(true, fileTypes)
+		? locator.fileApp.openFileChooser(boundingRect)
+		: locator.fileController.showFileChooser(true, fileTypes)
 
 	return fileSelector
 		.catch(ofClass(PermissionError, () => {
@@ -118,26 +115,23 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 }
 
 
-function _downloadAttachment(attachment: Attachment) {
-	{
-		let promise = Promise.resolve()
+async function _downloadAttachment(attachment: Attachment) {
+	try {
 		if (attachment._type === 'FileReference') {
-			promise = import("../../native/common/FileApp").then(({fileApp}) => fileApp.open(downcast(attachment)))
+			await locator.fileApp.open(downcast(attachment))
 		} else if (attachment._type === "DataFile") {
-			promise = fileController.open(downcast(attachment))
+			await locator.fileController.open(downcast(attachment))
 		} else {
-			promise = fileController.downloadAndOpen(((attachment: any): TutanotaFile), true)
+			await locator.fileController.downloadAndOpen(((attachment: any): TutanotaFile), true)
 		}
-		promise
-			.catch(e => {
-				if (e instanceof FileOpenError) {
+	} catch (e) {
+		if (e instanceof FileOpenError) {
 					return Dialog.message("canNotOpenFileOnDevice_msg")
-				} else {
-					const msg = e || "unknown error"
-					console.error("could not open file:", msg)
+		} else {
+			const msg = e || "unknown error"
+			console.error("could not open file:", msg)
 					return Dialog.message("errorDuringFileOpen_msg")
-				}
-			})
+		}
 	}
 }
 

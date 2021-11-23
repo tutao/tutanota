@@ -1,9 +1,9 @@
 // @flow
 
-import {Request} from "../../api/common/WorkerProtocol"
-import type {NativeWrapper} from "../../native/common/NativeWrapper"
+import {Request} from "../../api/common/Queue"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**
  * Interface for credentials key migration. Migration becomes necessary when the encryption mode for a device is changed,
@@ -28,9 +28,9 @@ export interface ICredentialsKeyMigrator {
  * Platform-independent implementation for of ICredentialsKeyMigrator.
  */
 export class CredentialsKeyMigrator implements ICredentialsKeyMigrator {
-	+_nativeApp: NativeWrapper;
+	+_nativeApp: NativeInterface;
 
-	constructor(nativeApp: NativeWrapper) {
+	constructor(nativeApp: NativeInterface) {
 		this._nativeApp = nativeApp
 	}
 

@@ -11,13 +11,14 @@ self.onmessage = function (msg) {
 		self.env = data.args[0]
 		replaceNativeLogger(self, new Logger())
 		Promise.resolve()
-		       .then(() => {
+		       .then(async () => {
 			       const initialRandomizerEntropy = data.args[1]
 			       const browserData = data.args[2]
 			       if (initialRandomizerEntropy == null || browserData == null) {
 				       throw new Error("Invalid Worker arguments")
 			       }
-			       let workerImpl = new WorkerImpl(typeof self !== 'undefined' ? self : null, browserData)
+			       const workerImpl = new WorkerImpl(typeof self !== 'undefined' ? self : null)
+			       await workerImpl.init(browserData)
 			       workerImpl.addEntropy(initialRandomizerEntropy)
 			       self.postMessage({id: data.id, type: 'response', value: {}})
 		       })

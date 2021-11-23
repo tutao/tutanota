@@ -5,7 +5,7 @@ import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto
 import {aes128Decrypt} from "../crypto/Aes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
-import {filterInt, neverNull, TypeRef, assert} from "@tutao/tutanota-utils"
+import {assert, filterInt, neverNull, TypeRef, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {_service} from "../rest/ServiceRestClient"
@@ -15,9 +15,7 @@ import {random} from "../crypto/Randomizer"
 import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
-import {aesDecryptFile, aesEncryptFile} from "../../../native/worker/AesApp"
 import {handleRestError} from "../../common/error/RestError"
-import {fileApp} from "../../../native/common/FileApp"
 import {convertToDataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {StorageService} from "../../entities/storage/Services"
@@ -31,8 +29,9 @@ import type {BlobAccessInfo} from "../../entities/sys/BlobAccessInfo"
 import {_TypeModel as BlobDataGetTypeModel, createBlobDataGet} from "../../entities/storage/BlobDataGet"
 import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
 import {createTypeInfo} from "../../entities/sys/TypeInfo"
-import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
+import type {NativeFileApp} from "../../../native/common/FileApp"
+import type {AesApp} from "../../../native/worker/AesApp"
 
 assertWorkerOrNode()
 
@@ -43,11 +42,19 @@ export class FileFacade {
 	_login: LoginFacadeImpl;
 	_restClient: RestClient;
 	_suspensionHandler: SuspensionHandler;
+	_fileApp: NativeFileApp
+	_aesApp: AesApp
 
-	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler) {
+	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler, fileApp: NativeFileApp, aesApp: AesApp) {
 		this._login = login
 		this._restClient = restClient
 		this._suspensionHandler = suspensionHandler
+		this._fileApp = fileApp
+		this._aesApp = aesApp
+	}
+
+	clearFileData(): Promise<void> {
+		return this._fileApp.clearFileData()
 	}
 
 	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
@@ -93,15 +100,15 @@ export class FileFacade {
 			errorId,
 			precondition,
 			suspensionTime
-		} = await fileApp.download(url.toString(), file.name, headers)
+		} = await this._fileApp.download(url.toString(), file.name, headers)
 
 		if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
 			this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 			return this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 		} else if (statusCode === 200 && encryptedFileUri != null) {
-			const decryptedFileUri = await aesDecryptFile(neverNull(sessionKey), encryptedFileUri)
+			const decryptedFileUri = await this._aesApp.aesDecryptFile(neverNull(sessionKey), encryptedFileUri)
 			try {
-				await fileApp.deleteFile(encryptedFileUri)
+				await this._fileApp.deleteFile(encryptedFileUri)
 			} catch (e) {
 				console.warn("Failed to delete encrypted file", encryptedFileUri)
 			}
@@ -142,7 +149,7 @@ export class FileFacade {
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
 		}
-		const encryptedFileInfo = await aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
+		const encryptedFileInfo = await this._aesApp.aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
 		const fileData = createFileDataDataPost({
 			size: encryptedFileInfo.unencSize.toString(),
 			group: this._login.getGroupId(GroupType.Mail), // currently only used for attachments
@@ -152,7 +159,12 @@ export class FileFacade {
 		const headers = this._login.createAuthHeaders()
 		headers['v'] = FileDataDataReturnTypeModel.version
 		const url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {fileDataId})
-		const {statusCode, errorId, precondition, suspensionTime} = await fileApp.upload(encryptedFileInfo.uri, url.toString(), headers)
+		const {
+			statusCode,
+			errorId,
+			precondition,
+			suspensionTime
+		} = await this._fileApp.upload(encryptedFileInfo.uri, url.toString(), headers)
 		if (statusCode === 200) {
 			return fileDataId;
 		} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {

@@ -15,7 +15,6 @@ import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
-import {fileController} from "../file/FileController"
 import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
@@ -248,7 +247,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 											.customerFacade
 											.downloadInvoice(neverNull(posting.invoiceNumber))
 										)
-											.then(pdfInvoice => fileController.open(pdfInvoice))
+											.then(pdfInvoice => locator.fileController.open(pdfInvoice))
 									}
 								}
 								: null

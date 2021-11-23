@@ -8,6 +8,7 @@ import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsK
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
 import type {Credentials} from "./Credentials"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp()
@@ -16,10 +17,10 @@ export function usingKeychainAuthentication(): boolean {
 /**
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
+ * @param nativeApp
  */
-export async function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade): Promise<ICredentialsProvider> {
+export function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
-		const {nativeApp} = await import("../../native/common/NativeWrapper")
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeApp, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeApp)
 		const credentialsKeyMigrator = new CredentialsKeyMigrator(nativeApp)

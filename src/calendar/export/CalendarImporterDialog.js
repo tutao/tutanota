@@ -1,6 +1,6 @@
 //@flow
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/CalendarGroupRoot";
-import {CALENDAR_MIME_TYPE, fileController} from "../../file/FileController";
+import {CALENDAR_MIME_TYPE} from "../../file/FileController";
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent";
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils";
@@ -20,11 +20,11 @@ import {flat, ofClass, promiseMap, stringToUtf8Uint8Array} from "@tutao/tutanota
 import {assignEventId, getTimeZone} from "../date/CalendarUtils"
 import {ImportError} from "../../api/common/error/ImportError"
 
-
 export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
+
 	let parsedEvents
 	try {
-		const dataFiles = await fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
+		const dataFiles = await locator.fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
 		parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
 	} catch (e) {
 		if (e instanceof ParserError) {
@@ -130,7 +130,7 @@ function exportCalendarEvents(
 	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
-	return fileController.open(convertToDataFile(tmpFile, data))
+	return locator.fileController.open(convertToDataFile(tmpFile, data))
 }
 
 function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {

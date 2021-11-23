@@ -1,13 +1,13 @@
 //@flow
 import type {ImageHandler} from "../model/MailUtils"
-import {fileController} from "../../file/FileController"
 import {ALLOWED_IMAGE_FORMATS, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
+import {locator} from "../../api/main/MainLocator"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+	locator.fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig = []
 		for (let file of files) {
 			if (file.size > MAX_BASE64_IMAGE_SIZE) {

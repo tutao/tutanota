@@ -3,13 +3,13 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import {convertToDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {fileController} from "../file/FileController"
 import {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
 import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
 import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -21,7 +21,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
 	tmpFile.name = "vCard3.0.vcf"
 	tmpFile.mimeType = "vCard/rfc2426"
 	tmpFile.size = String(data.byteLength)
-	return fileController.open(convertToDataFile(tmpFile, data))
+	return locator.fileController.open(convertToDataFile(tmpFile, data))
 }
 
 /**

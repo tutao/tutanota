@@ -7,7 +7,7 @@ import n from "../../nodemocker"
 import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {NativeWrapper} from "../../../../src/native/common/NativeWrapper"
+import type {NativeInterface} from "../../../../src/native/common/NativeInterface"
 
 o.spec("CredentialsMigrationTest", function () {
 	let encryptionKey: Uint8Array
@@ -16,7 +16,7 @@ o.spec("CredentialsMigrationTest", function () {
 	let deviceConfig: DeviceConfig
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let credentialsMigration: CredentialsMigration
-	let nativeApp: NativeWrapper
+	let nativeApp: NativeInterface
 	let storedCredentialsEncryptionKey
 
 	o.beforeEach(function () {

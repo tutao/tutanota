@@ -1,13 +1,13 @@
 // @flow
 import o from "ospec"
 import {CredentialsKeyProvider} from "../../../../src/misc/credentials/CredentialsKeyProvider"
-import {NativeWrapper} from "../../../../src/native/common/NativeWrapper"
 import n from "../../nodemocker"
 import type {CredentialEncryptionModeEnum} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialsStorage} from "../../../../src/misc/credentials/CredentialsProvider"
+import type {NativeInterface} from "../../../../src/native/common/NativeInterface"
 
 o.spec("CredentialsKeyProviderTest", function () {
 	let credentialEncryptionMode: CredentialEncryptionModeEnum
@@ -15,7 +15,7 @@ o.spec("CredentialsKeyProviderTest", function () {
 	const generatedKey = new Uint8Array([1, 2, 3])
 
 	let credentialsProvider: CredentialsKeyProvider
-	let nativeWrapper: NativeWrapper
+	let nativeWrapper: NativeInterface
 	let credentialsStorage: CredentialsStorage
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 

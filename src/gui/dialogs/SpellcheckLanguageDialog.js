@@ -3,9 +3,9 @@
 import type {SelectorItem} from "../base/DropDownSelectorN"
 import {mapNullable} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {locator} from "../../api/main/MainLocator"
 
 export async function showSpellcheckLanguageDialog(): Promise<string> {
-	const systemApp = await import('../../native/main/SystemApp')
 	const {DesktopConfigKey} = await import('../../desktop/config/ConfigKeys')
 	const current = await getCurrentSpellcheckLanguage()
 	const {Dialog} = await import('../base/Dialog.js')
@@ -20,7 +20,7 @@ export async function showSpellcheckLanguageDialog(): Promise<string> {
 		items,
 		stream.default(current)
 	)
-	await systemApp.setConfigValue(DesktopConfigKey.spellcheck, newLang)
+	await locator.systemApp.setConfigValue(DesktopConfigKey.spellcheck, newLang)
 	// return displayable language name
 	const selectedItem = items.find(i => i.value === newLang)
 	return selectedItem ? selectedItem.name : items[0].name
@@ -34,15 +34,13 @@ export async function getCurrentSpellcheckLanguageLabel(): Promise<string> {
 }
 
 async function getCurrentSpellcheckLanguage(): Promise<string> {
-	const systemApp = await import('../../native/main/SystemApp')
 	const {DesktopConfigKey} = await import('../../desktop/config/ConfigKeys')
-	return systemApp.getConfigValue(DesktopConfigKey.spellcheck)
+	return locator.systemApp.getConfigValue(DesktopConfigKey.spellcheck)
 }
 
 async function getItems(): Promise<Array<SelectorItem<string>>> {
-	const systemApp = await import('../../native/main/SystemApp')
 	const {languages, lang} = await import('../../misc/LanguageViewModel.js')
-	const options = await systemApp.getSpellcheckLanguages()
+	const options = await locator.systemApp.getSpellcheckLanguages()
 	return [
 		{name: lang.get('comboBoxSelectionNone_msg'), value: ""},
 		...options.map(code => {

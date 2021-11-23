@@ -156,7 +156,7 @@ public final class Native {
 	}
 
 	private void postMessage(final JSONObject json) {
-		evaluateJs("tutao.nativeApp.handleMessageFromNative('" + escape(json.toString()) + "')");
+		evaluateJs("tutao.nativeApp.sendMessageFromApp('" + escape(json.toString()) + "')");
 	}
 
 	private void evaluateJs(final String js) {

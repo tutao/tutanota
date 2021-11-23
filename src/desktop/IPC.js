@@ -5,7 +5,7 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
-import {errorToObj} from "../api/common/WorkerProtocol"
+import {errorToObj} from "../api/common/Queue"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
