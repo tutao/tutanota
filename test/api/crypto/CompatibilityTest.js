@@ -14,8 +14,8 @@ import {
 	hexToPublicKey,
 	KeyLength,
 	random,
-	rsaDecryptSync,
-	rsaEncryptSync,
+	rsaDecrypt,
+	rsaEncrypt,
 	sign,
 	uint8ArrayToBitArray,
 	verifySignature
@@ -48,11 +48,11 @@ o.spec("crypto compatibility", function () {
 			let publicKey = hexToPublicKey(td.publicKey)
 
 
-			let encryptedData = rsaEncryptSync(publicKey, hexToUint8Array(td.input), hexToUint8Array(td.seed))
+			let encryptedData = rsaEncrypt(publicKey, hexToUint8Array(td.input), hexToUint8Array(td.seed))
 			o(uint8ArrayToHex(encryptedData)).equals(td.result)
 
 			let privateKey = hexToPrivateKey(td.privateKey)
-			let data = rsaDecryptSync(privateKey, encryptedData)
+			let data = rsaDecrypt(privateKey, encryptedData)
 			o(uint8ArrayToHex(data)).equals(td.input)
 		})
 	})

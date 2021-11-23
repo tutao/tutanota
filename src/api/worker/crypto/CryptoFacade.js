@@ -1,7 +1,7 @@
 // @flow
-import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
-import {serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
@@ -17,7 +17,7 @@ import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {LockedError, NotFoundError, PayloadTooLargeError} from "../../common/error/RestError"
+import {LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
@@ -25,7 +25,7 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
-import {update} from "./../EntityWorker"
+import {update} from "../EntityWorker"
 import type {Contact} from "../../entities/tutanota/Contact"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
@@ -34,8 +34,20 @@ import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils
 import type {TypeModel} from "../../common/EntityTypes"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
-import {aes128RandomKey, decryptKey, decryptRsaKey, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
-import {rsaDecrypt} from "./RsaApp"
+import {
+	aes128RandomKey,
+	bitArrayToUint8Array,
+	decryptKey,
+	decryptRsaKey,
+	encryptKey,
+	hexToPublicKey,
+	uint8ArrayToBitArray
+} from "@tutao/tutanota-crypto"
+import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
+import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
+import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 
 assertWorkerOrNode()
 
@@ -134,6 +146,7 @@ const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
  * @param sessionKeyLoaders sessionKeyLoader to resolve the key
  */
 export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessionKeyLoaders: ?ResolveSessionKeyLoaders): Promise<?Aes128Key> {
+
 	return Promise.resolve().then(() => {
 		let loaders = sessionKeyLoaders == null ? resolveSessionKeyLoaders : sessionKeyLoaders
 		if (!typeModel.encrypted) {
@@ -208,7 +221,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 							              if (pubEncBucketKey == null) {
 								              throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 							              }
-							              return rsaDecrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
+							              return locator.rsa.decrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
 								              let bucketKey = uint8ArrayToBitArray(decryptedBytes)
 
 								              let bucketEncSessionKey = permission.bucketEncSessionKey;
@@ -269,11 +282,36 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
 				console.log("failed to decrypt rsa key for group with id " + group._id)
 				throw e
 			}
-			return rsaDecrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
+			return locator.rsa.decrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
 				.then(decryptedBytes => uint8ArrayToBitArray(decryptedBytes))
 		})
 	}
 	return Promise.resolve(null)
+}
+
+export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
+	let keyData = createPublicKeyData()
+	keyData.mailAddress = recipientMailAddress
+	return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
+		.then(publicKeyData => {
+			let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+			let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+			if (notFoundRecipients.length === 0) {
+				return locator.rsa.encrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
+					let data = createInternalRecipientKeyData()
+					data.mailAddress = recipientMailAddress
+					data.pubEncBucketKey = encrypted
+					data.pubKeyVersion = publicKeyData.pubKeyVersion
+					return data
+				})
+			}
+		})
+		.catch(ofClass(NotFoundError, e => {
+			notFoundRecipients.push(recipientMailAddress)
+		}))
+		.catch(ofClass(TooManyRequestsError, e => {
+			throw new RecipientNotResolvedError("")
+		}))
 }
 
 /**

@@ -2,7 +2,7 @@
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {Request} from "../api/common/WorkerProtocol.js"
+import {Request} from "../api/common/Queue.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
 import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
@@ -17,13 +17,13 @@ import {Dialog} from "../gui/base/Dialog"
 import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 import type {MailExportMode} from "../mail/export/Exporter"
-import type {NativeWrapper} from "../native/common/NativeWrapper"
 import type {DesktopConfigKeyEnum} from "../desktop/config/ConfigKeys"
 import {typeof DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -44,11 +44,9 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_updateAvailable: Stream<boolean>;
 	_mailExportMode: Stream<MailExportMode>
 	_isPathDialogOpen: boolean;
-	_nativeApp: Promise<NativeWrapper>
 	_configKeys: Promise<DesktopConfigKey>
 
 	constructor() {
-		this._nativeApp = import("../native/common/NativeWrapper").then((module) => module.nativeApp)
 		this._isDefaultMailtoHandler = stream(false)
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
@@ -167,7 +165,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 
 		const updateHelpLabelAttrs: UpdateHelpLabelAttrs = {
-			updateAvailable: this._updateAvailable
+			updateAvailable: this._updateAvailable,
+			manualUpdate: () => locator.native.invokeNative(new Request('manualUpdate', []))
 		}
 
 		const setAutoUpdateAttrs: DropDownSelectorAttrs<boolean> = {
@@ -225,99 +224,78 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_toggeAutoLaunchInNative(enable: boolean): Promise<*> {
-		return import("../native/common/NativeWrapper").then(({nativeApp}) => {
-			return nativeApp.invokeNative(new Request(enable ? 'enableAutoLaunch' : 'disableAutoLaunch', []))
-		})
+		return locator.native.invokeNative(new Request(enable ? 'enableAutoLaunch' : 'disableAutoLaunch', []))
 	}
 
 	_updateDefaultMailtoHandler(shouldBeDefaultMailtoHandler: boolean): Promise<void> {
-		return this._nativeApp.then((nativeApp) => {
-			if (shouldBeDefaultMailtoHandler) {
-				return nativeApp.invokeNative(new Request('registerMailto', []))
-			} else {
-				return nativeApp.invokeNative(new Request('unregisterMailto', []))
-			}
-		})
+		if (shouldBeDefaultMailtoHandler) {
+			return locator.native.invokeNative(new Request('registerMailto', []))
+		} else {
+			return locator.native.invokeNative(new Request('unregisterMailto', []))
+		}
 	}
 
 	_updateDesktopIntegration(shouldIntegrate: boolean): Promise<void> {
-		return this._nativeApp.then((nativeApp) => {
-			if (shouldIntegrate) {
-				return nativeApp.invokeNative(new Request('integrateDesktop', []))
-			} else {
-				return nativeApp.invokeNative(new Request('unIntegrateDesktop', []))
-			}
-		})
+		if (shouldIntegrate) {
+			return locator.native.invokeNative(new Request('integrateDesktop', []))
+		} else {
+			return locator.native.invokeNative(new Request('unIntegrateDesktop', []))
+		}
 	}
 
-	_requestDesktopConfig() {
+	async _requestDesktopConfig() {
 		this._defaultDownloadPath = stream(lang.get('alwaysAsk_action'))
+		const DesktopConfigKey = await this._configKeys
 
-		Promise.all([import("../native/main/SystemApp"), this._configKeys])
-		       .then(([systemApp, DesktopConfigKey]) => {
-			       return Promise.all([
-				       systemApp.getIntegrationInfo(),
-				       systemApp.getConfigValue(DesktopConfigKey.defaultDownloadPath),
-				       systemApp.getConfigValue(DesktopConfigKey.runAsTrayApp),
-				       systemApp.getConfigValue(DesktopConfigKey.showAutoUpdateOption),
-				       systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
-				       systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
-				       getCurrentSpellcheckLanguageLabel()
-			       ]).then((result) => {
+		const [
+			integrationInfo,
+			defaultDownloadPath,
+			runAsTrayApp,
+			showAutoUpdateOption,
+			enableAutoUpdate,
+			mailExportMode,
+			spellcheckLabel
+		] = await Promise.all([
+			locator.systemApp.getIntegrationInfo(),
+			locator.systemApp.getConfigValue(DesktopConfigKey.defaultDownloadPath),
+			locator.systemApp.getConfigValue(DesktopConfigKey.runAsTrayApp),
+			locator.systemApp.getConfigValue(DesktopConfigKey.showAutoUpdateOption),
+			locator.systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
+			locator.systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
+			getCurrentSpellcheckLanguageLabel()
+		])
 
-				       const [
-					       integrationInfo,
-					       defaultDownloadPath,
-					       runAsTrayApp,
-					       showAutoUpdateOption,
-					       enableAutoUpdate,
-					       mailExportMode,
-					       spellcheckLabel
-				       ] = result
-				       const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
-				       this._isDefaultMailtoHandler(isMailtoHandler)
-				       this._defaultDownloadPath(defaultDownloadPath || lang.get('alwaysAsk_action'))
-				       this._runAsTrayApp(runAsTrayApp)
-				       this._runOnStartup(isAutoLaunchEnabled)
-				       this._isIntegrated(isIntegrated)
-				       this._showAutoUpdateOption = showAutoUpdateOption
-				       this._isAutoUpdateEnabled(enableAutoUpdate)
-				       this._updateAvailable(isUpdateAvailable)
-				       this._mailExportMode(mailExportMode)
-				       this._spellCheckLang(spellcheckLabel)
-				       m.redraw()
-			       })
-		       })
+		const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
+		this._isDefaultMailtoHandler(isMailtoHandler)
+		this._defaultDownloadPath(defaultDownloadPath || lang.get('alwaysAsk_action'))
+		this._runAsTrayApp(runAsTrayApp)
+		this._runOnStartup(isAutoLaunchEnabled)
+		this._isIntegrated(isIntegrated)
+		this._showAutoUpdateOption = showAutoUpdateOption
+		this._isAutoUpdateEnabled(enableAutoUpdate)
+		this._updateAvailable(isUpdateAvailable)
+		this._mailExportMode(mailExportMode)
+		this._spellCheckLang(spellcheckLabel)
+		m.redraw()
 	}
 
-	updateConfigBoolean(setting: DesktopConfigKeyEnum, value: boolean): void {
-		return this.updateConfig(setting, value)
+	async updateConfigBoolean(setting: DesktopConfigKeyEnum, value: boolean): Promise<void> {
+		await this.updateConfig(setting, value)
 	}
 
-	updateConfig<T>(setting: DesktopConfigKeyEnum, value: T): void {
-		import("../native/main/SystemApp").then((systemApp) => {
-			return systemApp.setConfigValue(setting, value)
-			                .then(() => m.redraw())
-		})
+	async updateConfig<T>(setting: DesktopConfigKeyEnum, value: T): Promise<void> {
+		await locator.systemApp.setConfigValue(setting, value)
+		m.redraw()
 	}
 
-	setDefaultDownloadPath(v: $Values<typeof DownloadLocationStrategy>): Promise<void> {
+	async setDefaultDownloadPath(v: $Values<typeof DownloadLocationStrategy>): Promise<void> {
 		this._isPathDialogOpen = true
-
-		return Promise
-			.resolve(
-				v === DownloadLocationStrategy.ALWAYS_ASK
-					? Promise.resolve([null])
-					: import("../native/common/FileApp").then(({fileApp}) => fileApp.openFolderChooser())
-			)
-			.then((newPaths) => {
-				this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get('alwaysAsk_action'))
-				return this._configKeys.then((DesktopConfigKey) => this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0]))
-			})
-			.then(() => {
-				this._isPathDialogOpen = false
-				m.redraw()
-			})
+		const newPaths = v === DownloadLocationStrategy.ALWAYS_ASK
+			? [null]
+			: await locator.fileApp.openFolderChooser()
+		this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get('alwaysAsk_action'))
+		await this._configKeys.then((DesktopConfigKey) => this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0]))
+		this._isPathDialogOpen = false
 	}
 
 	onAppUpdateAvailable(): void {

@@ -4,7 +4,7 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 
 assertMainOrNodeBoot()
 
-export function handleUncaughtError(e: Error) {
+export async function handleUncaughtError(e: Error) {
 
 	if (isTest()) {
 		throw e
@@ -15,14 +15,13 @@ export function handleUncaughtError(e: Error) {
 		console.log("error", e)
 	}
 
-	// decoupled to remove size of boot bundle
-	import('./ErrorHandlerImpl.js')
-		.then(module => {
-			module.handleUncaughtError(e)
-		})
-		.catch(e => {
-			console.error("Could not import ErrorHandlerImpl", e)
-		})
+	try {
+		// decoupled to remove size of boot bundle
+		const {handleUncaughtError} = await import('./ErrorHandlerImpl.js')
+		await handleUncaughtError(e)
+	} catch (e) {
+		console.error("Encountered error when trying to handle errors with ErrorHandlerImpl", e)
+	}
 }
 
 export async function disableErrorHandlingDuringLogout() {

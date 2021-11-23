@@ -4,13 +4,13 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
-import {downcast, ofClass, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
-import {UserError} from "../api/main/UserError"
 import {createDataFile} from "../api/common/DataFile"
+import {UserError} from "../api/main/UserError"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): Children {
@@ -49,57 +49,55 @@ export class AboutDialog implements MComponent<void> {
 		)
 	}
 
-	_sendDeviceLogs(): void {
+	async _sendDeviceLogs(): Promise<void> {
 
 		const attachments = []
 
 		const timestamp = new Date()
 
 		const global = downcast(window)
-		let p = Promise.resolve()
 		if (global.logger) {
 			const mainEntries = global.logger.getEntries()
 			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries, "main")
 			attachments.push(mainLogFile)
-			p = locator.worker.getLog()
-			           .then((workerLogEntries) => createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
-			           .then((workerLogFile) => attachments.push(workerLogFile))
+			const workerLogEntries = await locator.worker.getLog()
+			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries, "worker")
+			attachments.push(workerLogFile)
 		}
 
-		p = p.then(() => import("../misc/IndexerDebugLogger"))
-		     .then(({getSearchIndexDebugLogs}) => {
-			     const logs = getSearchIndexDebugLogs()
-			     if (logs) {
-				     attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
-			     }
-		     })
+		const {getSearchIndexDebugLogs} = await import("../misc/IndexerDebugLogger")
+		const logs = getSearchIndexDebugLogs()
+
+		if (logs) {
+			attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
+		}
 
 		if (isDesktop()) {
-			p = p
-				.then(() => import("../native/main/SystemApp"))
-				.then(({getDesktopLogs}) => getDesktopLogs())
-				.then((desktopEntries) => createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
-				.then((desktopLogFile) => attachments.push(desktopLogFile))
+			const desktopEntries = await locator.systemApp.getDesktopLogs()
+			const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
+			attachments.push(desktopLogFile)
 		}
 
 		if (isApp()) {
-			p = p
-				.then(() => import("../native/main/SystemApp"))
-				.then(({getDeviceLogs}) => getDeviceLogs())
-				.then(fileReference => {
-					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-					attachments.push(fileReference)
-				})
+			const fileReference = await locator.systemApp.getDeviceLogs()
+			fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
+			attachments.push(fileReference)
 		}
 
-		p.then(_ => locator.mailModel.getUserMailboxDetails())
-		 .then((mailboxDetails) => {
-			 let {message, type, client} = clientInfoString(timestamp, true)
-			 message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
-			 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
-		 })
-		 .then(editor => editor.show())
-		 .catch(ofClass(UserError, showUserError))
+		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		let {message, type, client} = clientInfoString(timestamp, true)
+		message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
+
+		try {
+			const editor = await newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
+			editor.show()
+		} catch (e) {
+			if (e instanceof UserError) {
+				await showUserError(e)
+			} else {
+				throw e
+			}
+		}
 	}
 }
 

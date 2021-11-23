@@ -7,16 +7,15 @@ import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 
-export function registerInfoMessageHandler() {
-	locator.initializedWorker.then((worker) => {
-		worker.infoMessages.map((message) => {
-			showNotificationOverlay(
-				{
-					view: () => m("", lang.get(message.translationKey, message.args))
-				},
-				{label: "close_alt"},
-				[])
-		})
+export async function registerInfoMessageHandler(): Promise<void> {
+	await locator.initialized
+	locator.worker.infoMessages.map((message) => {
+		showNotificationOverlay(
+			{
+				view: () => m("", lang.get(message.translationKey, message.args))
+			},
+			{label: "close_alt"},
+			[])
 	})
 }
 

@@ -1,5 +1,5 @@
 // @flow
-import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptBucketKeyForInternalRecipient, encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {LoginFacadeImpl} from "./LoginFacade"
@@ -40,7 +40,8 @@ import {
 	noOp,
 	ofClass,
 	promiseFilter,
-	promiseMap
+	promiseMap,
+	uint8ArrayToHex
 } from "@tutao/tutanota-utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
@@ -59,8 +60,6 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import {fileApp} from "../../../native/common/FileApp"
-import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
@@ -270,8 +269,8 @@ export class MailFacade {
 				.then((it) => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
-						fileApp.clearFileData()
-						       .catch((e) => console.warn("Failed to clear files", e))
+						this._file.clearFileData()
+						    .catch((e) => console.warn("Failed to clear files", e))
 					}
 					return it
 				})

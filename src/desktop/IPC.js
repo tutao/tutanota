@@ -5,7 +5,7 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
-import {errorToObj} from "../api/common/WorkerProtocol"
+import {Request, Response, RequestError} from "../api/common/Queue"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
@@ -25,7 +25,6 @@ import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {ThemeManager} from "./ThemeManager"
 import type {ThemeId} from "../gui/theme"
-
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
  */
@@ -102,22 +101,14 @@ export class IPC {
 				this._queue[request.id](objToError((request: any).error), null)
 				delete this._queue[request.id]
 			} else {
-				this._invokeMethod(windowId, request.type, request.args)
+				this._invokeMethod(windowId, request.requestType, request.args)
 				    .then(result => {
-					    const response = {
-						    id: request.id,
-						    type: "response",
-						    value: result,
-					    }
+					    const response = new Response(request, result)
 					    const w = this._wm.get(windowId)
 					    if (w) w.sendMessageToWebContents(response)
 				    })
 				    .catch((e) => {
-					    const response = {
-						    id: request.id,
-						    type: "requestError",
-						    error: errorToObj(e),
-					    }
+						const response = new RequestError(request, e)
 					    const w = this._wm.get(windowId)
 					    if (w) w.sendMessageToWebContents(response)
 				    })
@@ -354,11 +345,7 @@ export class IPC {
 	sendRequest(windowId: number, type: JsRequestType, args: Array<any>): Promise<Object> {
 		return this.initialized(windowId).then(() => {
 			const requestId = this._createRequestId();
-			const request = {
-				id: requestId,
-				type: type,
-				args: args,
-			}
+			const request = new Request(type, args, requestId)
 			const w = this._wm.get(windowId)
 			if (w) {
 				w.sendMessageToWebContents(request)

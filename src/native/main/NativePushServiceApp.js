@@ -7,83 +7,62 @@ import type {PushServiceTypeEnum} from "../../api/common/TutanotaConstants"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
-import {nativeApp} from "../common/NativeWrapper"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import {logins} from "../../api/main/LoginController"
 import {client} from "../../misc/ClientDetector.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {getElementId} from "../../api/common/utils/EntityUtils";
-import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
+import type {NativeInterface} from "../common/NativeInterface"
+import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
 
-class PushServiceApp {
+export class NativePushServiceApp {
 	_pushNotification: ?Object;
 	_currentIdentifier: ?string;
+	_native: NativeInterface
 
-	constructor() {
+	constructor(nativeInterface: NativeInterface) {
 		this._pushNotification = null;
+		this._native = nativeInterface
 	}
 
-	register(): Promise<void> {
+	async register(): Promise<void> {
 		if (isAndroidApp() || isDesktop()) {
-			return this._loadPushIdentifierFromNative()
-			           .then(identifier => {
-				           if (identifier) {
-					           this._currentIdentifier = identifier
-					           return this._loadPushIdentifier(identifier).then(pushIdentifier => {
-						           if (!pushIdentifier) { // push identifier is  not associated with current user
-							           return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-							                      .then(pushIdentifier =>
-								                      this._storePushIdentifierLocally(pushIdentifier)
-								                          .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier)))
+			try {
+				const identifier = await this._loadPushIdentifierFromNative()
+					?? await locator.worker.generateSsePushIdentifer()
 
-						           } else {
-							           return this._storePushIdentifierLocally(pushIdentifier)
-							                      .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+				this._currentIdentifier = identifier
 
-						           }
-					           })
-				           } else {
-					           return locator.worker.generateSsePushIdentifer()
-					                         .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-					                         .then(pushIdentifier => {
-						                         this._currentIdentifier = pushIdentifier.identifier
-						                         return this._storePushIdentifierLocally(pushIdentifier)
-						                                    .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
-					                         })
-				           }
-			           })
-			           .then(this._initPushNotifications)
-			           .catch(ofClass(DeviceStorageUnavailableError, (e) => {
-				           console.warn("Device storage is unavailable, cannot register for push notifications", e)
-			           }))
+				const pushIdentifier = await this._loadPushIdentifier(identifier)
+					?? await this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
+
+				await this._storePushIdentifierLocally(pushIdentifier)
+				await this._scheduleAlarmsIfNeeded(pushIdentifier)
+				await this._initPushNotifications()
+			} catch (e) {
+				if (e instanceof DeviceStorageUnavailableError) {
+					console.warn("Device storage is unavailable, cannot register for push notifications", e)
+				} else {
+					throw e
+				}
+			}
 		} else if (isIOSApp()) {
-			return this._loadPushIdentifierFromNative()
-			           .then(identifier => {
-				           if (identifier) {
-					           this._currentIdentifier = identifier
-					           return this._loadPushIdentifier(identifier)
-					                      .then(pushIdentifier => {
-						                      if (pushIdentifier) {
-							                      if (pushIdentifier.language !== lang.code) {
-								                      pushIdentifier.language = lang.code
-								                      update(pushIdentifier)
-							                      }
-							                      return this._storePushIdentifierLocally(pushIdentifier)
-							                                 .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
-						                      } else {
-							                      return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
-							                                 .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier)
-							                                                             .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier)))
-						                      }
-					                      })
-				           } else {
-					           console.log("denied by user")
-				           }
-			           })
-		} else {
-			return Promise.resolve()
+			const identifier = await this._loadPushIdentifierFromNative()
+			if (identifier) {
+				this._currentIdentifier = identifier
+				const pushIdentifier = await this._loadPushIdentifier(identifier)
+					?? await this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+
+				if (pushIdentifier.language !== lang.code) {
+					pushIdentifier.language = lang.code
+					update(pushIdentifier)
+				}
+				await this._storePushIdentifierLocally(pushIdentifier)
+				await this._scheduleAlarmsIfNeeded(pushIdentifier)
+			} else {
+				console.log("Push notifications were rejected by user")
+			}
 		}
 	}
 
@@ -98,7 +77,7 @@ class PushServiceApp {
 	}
 
 	_loadPushIdentifierFromNative(): Promise<?string> {
-		return nativeApp.invokeNative(new Request("getPushIdentifier", [
+		return this._native.invokeNative(new Request("getPushIdentifier", [
 			logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
 		]))
 	}
@@ -106,7 +85,7 @@ class PushServiceApp {
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = logins.getUserController().user._id
 		return locator.worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
-			return nativeApp.invokeNative(new Request("storePushIdentifierLocally", [
+			return this._native.invokeNative(new Request("storePushIdentifierLocally", [
 				pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64
 			]))
 		})
@@ -155,7 +134,7 @@ class PushServiceApp {
 	}
 
 	closePushNotification(addresses: string[]) {
-		nativeApp.invokeNative(new Request('closePushNotifications', [addresses]))
+		this._native.invokeNative(new Request('closePushNotifications', [addresses]))
 	}
 
 	getPushIdentifier(): ?string {
@@ -163,7 +142,7 @@ class PushServiceApp {
 	}
 
 	_initPushNotifications(): Promise<void> {
-		return nativeApp.invokeNative(new Request("initPushNotifications", []))
+		return this._native.invokeNative(new Request("initPushNotifications", []))
 	}
 
 	_scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
@@ -177,5 +156,3 @@ class PushServiceApp {
 		}
 	}
 }
-
-export const pushServiceApp: PushServiceApp = new PushServiceApp()

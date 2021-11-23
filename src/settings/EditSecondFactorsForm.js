@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/common/Env"
 import {createSecondFactor, SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
-import {LazyLoaded} from "@tutao/tutanota-utils"
+import {contains, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {erase, load, loadAll, setup} from "../api/main/Entity"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -11,11 +11,9 @@ import {U2fClient} from "../misc/U2fClient"
 import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
-import {neverNull} from "@tutao/tutanota-utils"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../misc/SecondFactorHandler"
-import {contains} from "@tutao/tutanota-utils"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -36,7 +34,6 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
@@ -204,14 +201,11 @@ export class EditSecondFactorsForm {
 
 				const openTOTPAppAttrs: ButtonAttrs = {
 					label: "addOpenOTPApp_action",
-					click: () => {
-						import("../native/main/SystemApp").then(({openLinkNative}) => {
-							return openLinkNative(authUrl).then(successful => {
-								if (!successful) {
+					click: async () => {
+						const successful = await locator.systemApp.openLinkNative(authUrl)
+						if (!successful) {
 									Dialog.message("noAppAvailable_msg")
-								}
-							})
-						})
+						}
 					},
 					type: ButtonType.Login
 				}

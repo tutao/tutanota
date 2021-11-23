@@ -115,16 +115,16 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 //$FlowFixMe[untyped-import]
 import("./translations/en").then((en) => lang.init(en.default)).then(async () => {
 	// do this after lang initialized
+	const {locator} = await import("./api/main/MainLocator")
+	await locator.init()
 	if (client.isIE()) {
 		import("./gui/base/NotificationOverlay.js").then((module) => module.show({
 			view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
 		}, {label: "close_alt"}, []))
 	} else if (isDesktop()) {
-		import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates())
+		import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.native))
 	}
 
-	const {locator} = await import("./api/main/MainLocator")
-	await locator.init()
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
@@ -133,7 +133,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			console.error("Failed to fetch translation: " + userLanguage.code, e)
 		})
 		if (isApp() || isDesktop()) {
-			import("./native/main/SystemApp").then(({changeSystemLanguage}) => changeSystemLanguage(language))
+			locator.systemApp.changeSystemLanguage(language)
 		}
 	}
 
@@ -197,9 +197,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 		const hasCredentials = deviceConfig.loadAll().length > 0
 		if (!hasAlreadyMigrated && hasCredentials) {
 			const migrationModule = await import("./misc/credentials/CredentialsMigration")
-			const {nativeApp} = await import("./native/common/NativeWrapper")
-			nativeApp.initOnMain()
-			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeApp)
+			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, locator.native)
 			await migration.migrateCredentials()
 			// Reload the app just to make sure we are in the right state and don't init nativeApp twice
 			windowFacade.reload({})
@@ -268,11 +266,6 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 
 	// see https://github.com/MithrilJS/mithril.js/issues/2659
 	m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
-
-	if (isApp() || isDesktop()) {
-		const {nativeApp} = await import("./native/common/NativeWrapper.js")
-		await nativeApp.initOnMain()
-	}
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	const resolvers: {[string]: RouteResolver} = {

@@ -50,14 +50,14 @@ export {
 export {
 	sign,
 	encode,
-	generateRsaKeySync,
+	generateRsaKey,
 	verifySignature,
 	hexToPublicKey,
-	rsaDecryptSync,
+	rsaDecrypt,
 	hexToPrivateKey,
 	privateKeyToHex,
 	publicKeyToHex,
-	rsaEncryptSync,
+	rsaEncrypt,
 } from "./encryption/Rsa"
 
 export type {

@@ -4,40 +4,37 @@ import m from "mithril"
 import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {Request} from "../api/common/WorkerProtocol.js"
 import {delay} from "@tutao/tutanota-utils"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>;
+	manualUpdate(): Promise<boolean>
 }
 
 export class DesktopUpdateHelpLabel {
 	_waiting: boolean;
 	_error: boolean;
 
-	getActionLink(updateAvailable: Stream<boolean>): Child {
+	getActionLink({updateAvailable, manualUpdate}: UpdateHelpLabelAttrs): Child {
 		if (this._waiting || this._error) return null
 
-		const onclick = () => {
-			return import("../native/common/NativeWrapper.js").then(({nativeApp}) => {
-				if (updateAvailable()) {
-					// install now (restarts the app)
-					nativeApp.invokeNative(new Request('manualUpdate', []))
-				} else if (!this._waiting) {
-					// no update available & not currently waiting for check result -> check for update again
-					this._waiting = true
-					Promise.all([
-						nativeApp.invokeNative(new Request('manualUpdate', [])),
-						// make sure there's at least some delay
-						// instant response tends to make users nervous
-						delay(500)
-					]).then(([hasUpdate]) => {
-						this._waiting = false
-						updateAvailable(hasUpdate)
-						m.redraw()
-					})
-				}
-			})
+		const onclick = async () => {
+			if (updateAvailable()) {
+				// install now (restarts the app)
+				manualUpdate()
+			} else if (!this._waiting) {
+				// no update available & not currently waiting for check result -> check for update again
+				this._waiting = true
+				const [hasUpdate] = await Promise.all([
+					manualUpdate(),
+					// make sure there's at least some delay
+					// instant response tends to make users nervous
+					delay(500)
+				])
+				this._waiting = false
+				updateAvailable(hasUpdate)
+				m.redraw()
+			}
 		}
 
 		return m("span.text-break.pr-s", m('button.underline', {
@@ -74,10 +71,9 @@ export class DesktopUpdateHelpLabel {
 	}
 
 	view(vnode: Vnode<UpdateHelpLabelAttrs>): Children {
-		const updateAvailable = vnode.attrs.updateAvailable
 		return m('.flex.items-center', [
-			this.getLabel(updateAvailable),
-			this.getActionLink(updateAvailable),
+			this.getLabel(vnode.attrs.updateAvailable),
+			this.getActionLink(vnode.attrs),
 			this.getIcon()
 		])
 	}

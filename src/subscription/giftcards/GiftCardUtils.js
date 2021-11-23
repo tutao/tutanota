@@ -20,7 +20,15 @@ import {serviceRequest} from "../../api/main/Entity"
 import {SysService} from "../../api/entities/sys/Services"
 import {px} from "../../gui/size"
 import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ExtToBase64,
+	base64ToBase64Ext,
+	base64ToBase64Url,
+	base64UrlToBase64,
+	neverNull,
+	ofClass
+} from "@tutao/tutanota-utils"
 import {LocationServiceGetReturnTypeRef} from "../../api/entities/sys/LocationServiceGetReturn"
 import type {Country} from "../../api/common/CountryList"
 import {getByAbbreviation} from "../../api/common/CountryList"
@@ -30,7 +38,6 @@ import {theme} from "../../gui/theme"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64} from "@tutao/tutanota-utils"
 import {getWebRoot, isAndroidApp, isApp} from "../../api/common/Env"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing/ParserCombinator"
@@ -38,7 +45,6 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
-import {ofClass} from "@tutao/tutanota-utils"
 import type {Base64} from "@tutao/tutanota-utils/"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
@@ -83,8 +89,8 @@ export function redeemGiftCard(giftCardId: IdTuple, key: string, validCountryCod
 		})
 		.then(() => {
 			return locator.giftCardFacade.redeemGiftCard(elementIdPart(giftCardId), key)
-			             .catch(ofClass(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") }))
-			             .catch(ofClass(NotAuthorizedError, e => { throw new UserError(() => e.message) }))
+			              .catch(ofClass(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") }))
+			              .catch(ofClass(NotAuthorizedError, e => { throw new UserError(() => e.message) }))
 		})
 }
 
@@ -180,10 +186,10 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										isAndroidApp()
 											? m(ButtonN, {
 												click: () => {
-													import("../../native/main/SystemApp").then((nativeApp) => {
-														nativeApp.shareTextNative(lang.get("nativeShareGiftCard_msg", {"{link}": link}),
-															lang.get("nativeShareGiftCard_label"))
-													})
+													locator.systemApp.shareTextNative(
+														lang.get("nativeShareGiftCard_msg", {"{link}": link}),
+														lang.get("nativeShareGiftCard_label")
+													)
 												},
 												label: "share_action",
 												icon: () => BootIcons.Share
@@ -232,7 +238,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 			color: theme.content_bg
 		})
 		const svg = qrcodeGenerator.svg({container: null})
-		qrCode = htmlSanitizer.sanitize(svg, {blockExternalContent: false, useSvgNamespace: true }).text
+		qrCode = htmlSanitizer.sanitize(svg, {blockExternalContent: false, useSvgNamespace: true}).text
 	}
 
 	const formattedPrice = formatPrice(price, true)

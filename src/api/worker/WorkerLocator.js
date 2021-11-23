@@ -28,6 +28,11 @@ import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import {ContactFormFacadeImpl} from "./facades/ContactFormFacade"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import {DeviceEncryptionFacadeImpl} from "./facades/DeviceEncryptionFacade"
+import type {NativeInterface} from "../../native/common/NativeInterface"
+import {NativeFileApp} from "../../native/common/FileApp"
+import {AesApp} from "../../native/worker/AesApp"
+import type {RsaImplementation} from "./crypto/RsaImplementation"
+import {createRsaImplementation} from "./crypto/RsaImplementation"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -54,11 +59,13 @@ type WorkerLocatorType = {
 	configFacade: ConfigurationDatabase,
 	contactFormFacade: ContactFormFacade,
 	deviceEncryptionFacade: DeviceEncryptionFacade,
+	native: NativeInterface,
+	rsa: RsaImplementation
 }
 
 export const locator: WorkerLocatorType = ({}: any)
 
-export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
+export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
 
 	const suspensionHandler = new SuspensionHandler(worker, self)
@@ -80,12 +87,17 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	]
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData)
 	locator.counters = new CounterFacade()
-	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient)
-	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
-	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
-	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler)
+
+	locator.rsa = await createRsaImplementation(worker)
+	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient, locator.rsa)
+	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters, locator.rsa)
+	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters, locator.rsa)
+
+	const fileApp = new NativeFileApp(worker)
+	const aesApp = new AesApp(worker)
+	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp)
 	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient)
-	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker)
+	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login,
 		locator.cachingEntityClient)
@@ -96,6 +108,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.configFacade = new ConfigurationDatabase(locator.login)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient)
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacadeImpl()
+	locator.native = worker
 }
 
 export function resetLocator(): Promise<void> {

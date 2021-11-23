@@ -1,11 +1,13 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import {Queue, Request} from "../common/WorkerProtocol"
+import type {Commands} from "../common/Queue"
+import {Queue, Request, WorkerTransport} from "../common/Queue"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity, TypeRef} from "@tutao/tutanota-utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer, downcast, identity, TypeRef} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
@@ -23,97 +25,34 @@ import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 
 assertMainOrNode()
 
-interface Message {
-	id: string,
-	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType,
-	args: mixed[]
-}
-
 type progressUpdater = (number) => mixed;
+type MainRequest = Request<MainRequestType>
 
 export class WorkerClient implements EntityRestInterface {
-	initialized: Promise<void>;
+
+	_deferredInitialized: DeferredObject<void> = defer()
 	_isInitialized: boolean = false
 
-	_queue: Queue;
+	get initialized(): Promise<void> {
+		return this._deferredInitialized.promise
+	}
+
+	_queue: Queue<WorkerRequestType, MainRequestType>;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
 	+infoMessages: Stream<InfoMessage>;
 	_leaderStatus: WebsocketLeaderStatus
 
 
-	constructor(locator: IMainLocator) {
+	constructor() {
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
-		this._initWorker()
-
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
-		this._queue.setCommands({
-			execNative: (message: Message) =>
-				import("../../native/common/NativeWrapper").then(({nativeApp}) =>
-					nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1])))),
-			entityEvent: (message: Message) => {
-				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
-			},
-			error: (message: Message) => {
-				handleUncaughtError(objToError((message).args[0]))
-				return Promise.resolve()
-			},
-			progress: (message: Message) => {
-				const progressUpdater = this._progressUpdater
-				if (progressUpdater) {
-					progressUpdater(downcast(message.args[0]))
-				}
-				return Promise.resolve()
-			},
-			updateIndexState: (message: Message) => {
-				locator.search.indexState(downcast(message.args[0]))
-				return Promise.resolve()
-			},
-			updateWebSocketState: (message: Message) => {
-				this._wsConnection(downcast(message.args[0]));
-				return Promise.resolve()
-			},
-			counterUpdate: (message: Message) => {
-				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
-				return Promise.resolve()
-			},
-			updateLeaderStatus: (message: Message) => {
-				this._leaderStatus = downcast(message.args[0])
-				return Promise.resolve()
-			},
-			infoMessage: (message: Message) => {
-				this.infoMessages(downcast(message.args[0]))
-				return Promise.resolve()
-			},
-			createProgressMonitor: (message: Message) => {
-				const work = downcast(message.args[0])
-				const reference = locator.progressTracker.registerMonitor(work)
-				return Promise.resolve(reference)
-			},
-			progressWorkDone: (message: Message) => {
-				const reference = downcast(message.args[0])
-				const workDone = downcast(message.args[1])
-				const monitor = locator.progressTracker.getMonitor(reference)
-				monitor && monitor.workDone(workDone)
-				return Promise.resolve()
-			},
-			writeIndexerDebugLog: (message: Message) => {
-				const reason = downcast(message.args[0])
-				const user = downcast(message.args[1])
-				addSearchIndexDebugEntry(reason, user)
-				return Promise.resolve()
-			}
-		})
 	}
 
-	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(this._queue)
-	}
-
-	_initWorker() {
+	async init(locator: IMainLocator): Promise<void> {
 		if (env.mode !== "Test") {
 			const {prefixWithoutFile} = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
@@ -122,16 +61,13 @@ export class WorkerClient implements EntityRestInterface {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
 			const worker = new Worker(workerUrl)
-			this._queue = new Queue(worker)
+			this._queue = new Queue(new WorkerTransport(worker), this.queueCommands(locator))
 
-			let start = new Date().getTime()
-			this.initialized = this._queue
-			                       .postMessage(new Request('setup', [
+			await this._queue.postRequest(new Request('setup', [
 				window.env,
 				this._getInitialEntropy(),
 				client.browserData()
 			]))
-			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
@@ -141,16 +77,85 @@ export class WorkerClient implements EntityRestInterface {
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
 			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
 			const WorkerImpl = globalThis.testWorker
-			const workerImpl = new WorkerImpl(this, true, client.browserData())
-			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
+			const workerImpl = new WorkerImpl(this, true)
+			await workerImpl.init(client.browserData())
+			workerImpl._queue._transport = {
+				postMessage: msg => this._queue.handleMessage(msg)
+			}
 			this._queue = new Queue(({
-				postMessage: function (msg) {
-					workerImpl._queue._handleMessage(msg)
-
-				}
-			}: any))
-			this.initialized = Promise.resolve()
+					postMessage: function (msg) {
+						workerImpl._queue.handleMessage(msg)
+					}
+				}: any),
+				this.queueCommands(locator)
+			)
 		}
+
+		this._deferredInitialized.resolve()
+	}
+
+
+	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
+		return {
+			execNative: (message: MainRequest) =>
+				locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
+			entityEvent: (message: MainRequest) => {
+				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
+			},
+			error: (message: MainRequest) => {
+				handleUncaughtError(objToError((message).args[0]))
+				return Promise.resolve()
+			},
+			progress: (message: MainRequest) => {
+				const progressUpdater = this._progressUpdater
+				if (progressUpdater) {
+					progressUpdater(downcast(message.args[0]))
+				}
+				return Promise.resolve()
+			},
+			updateIndexState: (message: MainRequest) => {
+				locator.search.indexState(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			updateWebSocketState: (message: MainRequest) => {
+				this._wsConnection(downcast(message.args[0]));
+				return Promise.resolve()
+			},
+			counterUpdate: (message: MainRequest) => {
+				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			updateLeaderStatus: (message: MainRequest) => {
+				this._leaderStatus = downcast(message.args[0])
+				return Promise.resolve()
+			},
+			infoMessage: (message: MainRequest) => {
+				this.infoMessages(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			createProgressMonitor: (message: MainRequest) => {
+				const work = downcast(message.args[0])
+				const reference = locator.progressTracker.registerMonitor(work)
+				return Promise.resolve(reference)
+			},
+			progressWorkDone: (message: MainRequest) => {
+				const reference = downcast(message.args[0])
+				const workDone = downcast(message.args[1])
+				const monitor = locator.progressTracker.getMonitor(reference)
+				monitor && monitor.workDone(workDone)
+				return Promise.resolve()
+			},
+			writeIndexerDebugLog: (message: MainRequest) => {
+				const reason = downcast(message.args[0])
+				const user = downcast(message.args[1])
+				addSearchIndexDebugEntry(reason, user)
+				return Promise.resolve()
+			}
+		}
+	}
+
+	getWorkerInterface(): WorkerInterface {
+		return exposeRemote<WorkerInterface>(this._queue)
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
@@ -181,9 +186,9 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
-	async _postRequest(msg: Request): Promise<any> {
+	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
-		return this._queue.postMessage(msg)
+		return this._queue.postRequest(msg)
 	}
 
 	registerProgressUpdater(updater: ?progressUpdater) {
@@ -206,7 +211,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
-		return this._queue.postMessage(new Request("closeEventBus", [closeOption]))
+		return this._queue.postRequest(new Request("closeEventBus", [closeOption]))
 	}
 
 	reset(): Promise<void> {
@@ -214,7 +219,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	getLog(): Promise<Array<string>> {
-		return this._queue.postMessage(new Request("getLog", []))
+		return this._queue.postRequest(new Request("getLog", []))
 	}
 
 	isLeader(): boolean {
@@ -243,5 +248,8 @@ export class WorkerClient implements EntityRestInterface {
 }
 
 export function bootstrapWorker(locator: IMainLocator): WorkerClient {
-	return new WorkerClient(locator)
+	const worker = new WorkerClient()
+	const start = Date.now()
+	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))
+	return worker
 }

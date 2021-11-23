@@ -33,7 +33,7 @@ import {
 	KeyLength,
 	random
 } from "@tutao/tutanota-crypto"
-import {generateRsaKey} from "../crypto/RsaApp"
+import type {RsaImplementation} from "../crypto/RsaImplementation";
 
 assertWorkerOrNode()
 
@@ -43,12 +43,13 @@ export class UserManagementFacade {
 	_login: LoginFacadeImpl;
 	_groupManagement: GroupManagementFacadeImpl;
 	_counters: CounterFacade
-
-	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, counters: CounterFacade) {
+	_rsa: RsaImplementation
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, counters: CounterFacade, rsa: RsaImplementation) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
 		this._counters = counters
+		this._rsa = rsa
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -189,7 +190,7 @@ export class UserManagementFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return generateRsaKey()
+		return this._rsa.generateKey()
 			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
 			.then(userGroupData => {
 				return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)

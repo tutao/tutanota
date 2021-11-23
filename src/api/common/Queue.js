@@ -1,6 +1,5 @@
 //@flow
 /**
- * Worker-Protocol:
  * <ul>
  *   <li>The client sends {WorkerRequest}s to the worker and the worker answers with either an {WorkerResponse} or a {WorkerError}.
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
@@ -10,38 +9,71 @@ import {downcast} from "@tutao/tutanota-utils"
 import {objToError} from "./utils/Utils"
 import {isWorker} from "./Env"
 
-type Command = (msg: Request) => Promise<any>
+export type Command<T> = (msg: Request<T>) => Promise<any>
+export type Commands<T> = {[T]: Command<T>}
 
-export class Request {
-	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
+export type Message<Type> =
+	| Request<Type>
+	| Response<Type>
+	| RequestError<Type>
+
+export interface Transport<RequestCommandType, ResponseCommandType> {
+	postMessage(message: Message<RequestCommandType>): void;
+
+	setMessageHandler(ev: Message<ResponseCommandType> => mixed): mixed;
+}
+
+/**
+ * Queue transport for both WorkerClient and WorkerImpl
+ */
+export class WorkerTransport<RequestType, ResponseType> implements Transport<RequestType, ResponseType> {
+	_worker: Worker | DedicatedWorkerGlobalScope
+
+	constructor(worker: Worker | DedicatedWorkerGlobalScope) {
+		this._worker = worker
+	}
+
+	postMessage(message: Message<RequestType>): void {
+		return this._worker.postMessage(message)
+	}
+
+	setMessageHandler(handler: Message<ResponseType> => mixed) {
+		this._worker.onmessage = (ev: MessageEvent) => handler(downcast(ev.data))
+	}
+}
+
+export class Request<T> {
+	type: 'request'
+	requestType: T
 	id: string;
 	args: any[];
 
-	constructor(type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType, args: $ReadOnlyArray<mixed>) {
-		this.type = type
-		this.id = _createRequestId()
+	constructor(type: T, args: $ReadOnlyArray<mixed>, requestId: ?string = null) {
+		this.type = 'request'
+		this.requestType = type
+		this.id = requestId ?? _createRequestId()
 		this.args = Array.from(args)
 	}
 }
 
-export class Response {
+export class Response<T> {
 	type: 'response';
 	id: string;
 	value: any;
 
-	constructor(request: Request, value: any) {
+	constructor(request: Request<T>, value: any) {
 		this.type = 'response'
 		this.id = request.id
 		this.value = value
 	}
 }
 
-export class RequestError {
+export class RequestError<T> {
 	type: 'requestError';
 	id: string;
 	error: Object;
 
-	constructor(request: Request, error: Error) {
+	constructor(request: Request<T>, error: Error) {
 		this.type = 'requestError'
 		this.id = request.id
 		this.error = errorToObj(error) // the structured clone algorithm is not able to clone errors
@@ -53,25 +85,23 @@ type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 /**
  * Queue for the remote invocations (e.g. worker or native calls).
  */
-export class Queue {
+export class Queue<RequestType: string, ResponseType: string> {
 	/**
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
 	_queue: {[key: string]: QueuedMessageCallbacks};
-	_commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command};
-	_transport: Worker | DedicatedWorkerGlobalScope;
+	_commands: Commands<ResponseType>;
+	_transport: Transport<RequestType, ResponseType>;
 
-	constructor(transport: ?Worker | ?DedicatedWorkerGlobalScope) {
+	constructor(transport: ?Transport<RequestType, ResponseType>, commands: Commands<ResponseType>) {
 		this._queue = {}
+		this._commands = commands
 		this._transport = (transport: any)
-
-		if (this._transport != null) { // only undefined in case of node unit tests (is overridden from WorkerClient, in this case)
-			this._transport.onmessage = (msg: any) => this._handleMessage(msg.data)
-		}
+		this._transport?.setMessageHandler(msg => this.handleMessage(msg))
 	}
 
-	postMessage(msg: Request): Promise<any> {
+	postRequest(msg: Request<RequestType>): Promise<any> {
 		return new Promise((resolve, reject) => {
 			this._queue[msg.id] = {resolve, reject}
 			try {
@@ -83,7 +113,7 @@ export class Queue {
 		})
 	}
 
-	_handleMessage(message: Response | Request | RequestError) {
+	handleMessage(message: Message<ResponseType>) {
 		if (message.type === 'response') {
 			this._queue[message.id].resolve(message.value)
 			delete this._queue[message.id]
@@ -91,14 +121,14 @@ export class Queue {
 			this._queue[message.id].reject(objToError(downcast(message).error))
 			delete this._queue[message.id]
 		} else {
-			let command = this._commands[message.type]
+			let command = this._commands[message.requestType]
 			let request = (message: any)
 			if (command != null) {
 				const commandResult = command(request)
 				// Every method exposed via worker protocol must return a promise. Failure to do so is a violation of contract so we
 				// try to catch it early and throw an error.
 				if (commandResult == null || typeof commandResult.then !== "function") {
-					throw new Error(`Handler returned non-promise result: ${message.type}`)
+					throw new Error(`Handler returned non-promise result: ${message.requestType}`)
 				}
 				commandResult.then(value => {
 					this._transport.postMessage(new Response(request, value))
@@ -106,7 +136,7 @@ export class Queue {
 					this._transport.postMessage(new RequestError(request, e))
 				})
 			} else {
-				let error = new Error(`unexpected request: ${message.id}, ${message.type}`)
+				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 				if (isWorker()) {
 					this._transport.postMessage(new RequestError(request, error))
 				} else {
@@ -114,10 +144,6 @@ export class Queue {
 				}
 			}
 		}
-	}
-
-	setCommands(commands: {[key: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType]: Command}) {
-		this._commands = commands
 	}
 }
 

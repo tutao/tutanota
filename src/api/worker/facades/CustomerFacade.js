@@ -9,11 +9,10 @@ import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
 import {getWhitelabelDomain} from "../../common/utils/Utils"
-import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
 import {CreateCustomerServerPropertiesReturnTypeRef} from "../../entities/sys/CreateCustomerServerPropertiesReturn"
@@ -47,7 +46,6 @@ import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServi
 import {AccountingService} from "../../entities/accounting/Services"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
-import {ofClass} from "@tutao/tutanota-utils"
 import type {Hex} from "@tutao/tutanota-utils/"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {
@@ -58,7 +56,7 @@ import {
 	sha256Hash,
 	uint8ArrayToBitArray
 } from "@tutao/tutanota-crypto"
-import {generateRsaKey, rsaEncrypt} from "../crypto/RsaApp"
+import type {RsaImplementation} from "../crypto/RsaImplementation";
 
 assertWorkerOrNode()
 
@@ -118,14 +116,15 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	_worker: WorkerImpl;
 	_counters: CounterFacade
 	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
+	_rsa: RsaImplementation
 
-
-	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, userManagement: UserManagementFacade, counters: CounterFacade) {
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, userManagement: UserManagementFacade, counters: CounterFacade, rsa: RsaImplementation) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
 		this._userManagement = userManagement
 		this._counters = counters
+		this._rsa = rsa
 	}
 
 	getDomainValidationRecord(domainName: string): Promise<string> {
@@ -160,7 +159,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		let sessionKey = aes128RandomKey()
-		const systemAdminPubEncAccountingInfoSessionKey = await rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+		const systemAdminPubEncAccountingInfoSessionKey = await this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
 		let data = createBrandingDomainData()
 		data.domain = domainName
 		data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
@@ -261,20 +260,17 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		})
 	}
 
-	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
-		return generateRsaKey().then(k1 => {
-			return this._worker.sendProgress(33).then(() => {
-				return generateRsaKey().then(k2 => {
-					return this._worker.sendProgress(66).then(() => {
-						return generateRsaKey().then(k3 => {
-							return this._worker.sendProgress(100).then(() => {
-								return [k1, k2, k3]
-							})
-						})
-					})
-				})
-			})
-		})
+	async generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		const key1 = await this._rsa.generateKey()
+		await this._worker.sendProgress(33)
+
+		const key2 = await this._rsa.generateKey()
+		await this._worker.sendProgress(66)
+
+		const key3 = await this._rsa.generateKey()
+		await this._worker.sendProgress(100)
+
+		return [key1, key2, key3]
 	}
 
 	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
@@ -291,40 +287,40 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				let customerServerPropertiesSessionKey = aes128RandomKey()
 
 				// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-				return rsaEncrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
-					.then(systemAdminPubEncAccountingInfoSessionKey => {
-						let userGroupData = this._groupManagement.generateInternalGroupData(keyPairs[0], userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-						let adminGroupData = this._groupManagement.generateInternalGroupData(keyPairs[1], adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-						let customerGroupData = this._groupManagement.generateInternalGroupData(keyPairs[2], customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
-						const recoverData = this._login.generateRecoveryCode(userGroupKey)
-						let data = createCustomerAccountCreateData()
-						data.authToken = authToken
-						data.date = Const.CURRENT_DATE
-						data.lang = currentLanguage
-						data.code = registrationCode
-						data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "", recoverData)
-						data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
-						data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
-						data.userGroupData = userGroupData
-						data.adminGroupData = adminGroupData
-						data.customerGroupData = customerGroupData
-						data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
-						data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
-						data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
-						return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data)
-							.then(() => recoverData.hexCode)
-					})
+				return this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey))
+				           .then(systemAdminPubEncAccountingInfoSessionKey => {
+					           let userGroupData = this._groupManagement.generateInternalGroupData(keyPairs[0], userGroupKey, userGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+					           let adminGroupData = this._groupManagement.generateInternalGroupData(keyPairs[1], adminGroupKey, adminGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+					           let customerGroupData = this._groupManagement.generateInternalGroupData(keyPairs[2], customerGroupKey, customerGroupInfoSessionKey, null, adminGroupKey, customerGroupKey)
+					           const recoverData = this._login.generateRecoveryCode(userGroupKey)
+					           let data = createCustomerAccountCreateData()
+					           data.authToken = authToken
+					           data.date = Const.CURRENT_DATE
+					           data.lang = currentLanguage
+					           data.code = registrationCode
+					           data.userData = this._userManagement.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, password, "", recoverData)
+					           data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
+					           data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
+					           data.userGroupData = userGroupData
+					           data.adminGroupData = adminGroupData
+					           data.customerGroupData = customerGroupData
+					           data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
+					           data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
+					           data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
+					           return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data)
+						           .then(() => recoverData.hexCode)
+				           })
 			})
 	}
 
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = generateRsaKey()
-			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
-			.then(userGroupData => {
-				return {userGroupKey, userGroupData}
-			})
+		this.contactFormUserGroupData = this._rsa.generateKey()
+		                                    .then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
+		                                    .then(userGroupData => {
+			                                    return {userGroupKey, userGroupData}
+		                                    })
 		return Promise.resolve()
 	}
 

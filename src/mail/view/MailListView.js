@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
+import type {VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {serviceRequestVoid} from "../../api/main/Entity"
@@ -21,20 +22,17 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import {MonitorService} from "../../api/entities/monitor/Services"
 import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
-import {assertNotNull, debounce, downcast, neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {ofClass, promiseFilter, promiseMap, tap} from "@tutao/tutanota-utils"
-import {AsyncResult} from "@tutao/tutanota-utils"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
-import type {VirtualRow} from "../../gui/base/List"
 import {assertMainOrNode} from "../../api/common/Env";
 
 assertMainOrNode()
@@ -143,7 +141,7 @@ export class MailListView implements MComponent<void> {
 		}
 	}
 
-	_doExportDrag(draggedMails: Array<Mail>) {
+	async _doExportDrag(draggedMails: Array<Mail>): Promise<void> {
 		assertNotNull(document.body).style.cursor = "progress"
 
 		// We listen to mouseup to detect if the user released the mouse before the download was complete
@@ -156,17 +154,18 @@ export class MailListView implements MComponent<void> {
 
 		// If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
 		// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
-		Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
-		       .then(([didComplete, fileNames]) => {
-			       if (didComplete) {
-				       import("../../native/common/FileApp").then(({fileApp}) => fileApp.startNativeDrag(fileNames))
-			       } else {
-				       import("../../native/common/NativeWrapper")
-					       .then(({nativeApp}) => nativeApp.invokeNative(new Request("focusApplicationWindow", []))
-					                                       .then(() => Dialog.message("unsuccessfulDrop_msg")))
-			       }
-			       neverNull(document.body).style.cursor = "default"
-		       })
+		const [didComplete, fileNames] = await Promise.race([
+			filePathsPromise.then(filePaths => [true, filePaths]),
+			mouseupPromise.then(() => [false, []])
+		])
+
+		if (didComplete) {
+			await locator.fileApp.startNativeDrag(fileNames)
+		} else {
+			await locator.native.invokeNative(new Request("focusApplicationWindow", []))
+			Dialog.message("unsuccessfulDrop_msg")
+		}
+		neverNull(document.body).style.cursor = "default"
 	}
 
 	/**
@@ -175,88 +174,97 @@ export class MailListView implements MComponent<void> {
 	 * @private
 	 * @param mails
 	 */
-	_prepareMailsForDrag(mails: Array<Mail>): Promise<Array<string>> {
-		return getMailExportMode().then(exportMode => {
-			// 3 actions per mail + 1 to indicate that something is happening (if the downloads take a while)
-			const progressMonitor = makeTrackedProgressMonitor(locator.progressTracker, 3 * mails.length + 1)
-			progressMonitor.workDone(1)
+	async _prepareMailsForDrag(mails: Array<Mail>): Promise<Array<string>> {
 
-			const mapKey = mail => `${getLetId(mail).join("")}${exportMode}`
-			const notDownloaded = []
-			const downloaded = []
+		const exportMode = await getMailExportMode()
 
-			const handleNotDownloaded = mail => {
-				notDownloaded.push({
-					mail,
-					fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode)
-				})
-			}
+		// 3 actions per mail + 1 to indicate that something is happening (if the downloads take a while)
+		const progressMonitor = makeTrackedProgressMonitor(locator.progressTracker, 3 * mails.length + 1)
+		progressMonitor.workDone(1)
 
-			const handleDownloaded = (fileName, promise) => {
-				// we don't have to do anything else with the downloaded ones
-				// so finish this chunk of work
-				progressMonitor.workDone(3)
-				downloaded.push({
-					fileName,
-					promise: promise
-				})
-			}
+		const mapKey = mail => `${getLetId(mail).join("")}${exportMode}`
+		const notDownloaded = []
+		const downloaded = []
 
-			// Gather up files that have been downloaded
-			// and all files that need to be downloaded, or were already downloaded but have disappeared
-			return promiseMap(mails, mail => {
+		const handleNotDownloaded = mail => {
+			notDownloaded.push({
+				mail,
+				fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode)
+			})
+		}
 
-				const key = mapKey(mail)
-				const existing = this.exportedMails.get(key)
-				if (!existing || existing.result.state().status === "failure") {
-					// Something went wrong last time we tried to drag this file,
-					// so try again (not confident that it will work this time, though)
-					handleNotDownloaded(mail)
-				} else {
-					const state = existing.result.state()
-					switch (state.status) {
-						// Mail is still being prepared, already has a file path assigned to it
-						case "pending": {
-							return handleDownloaded(existing.fileName, state.promise)
-						}
-						case "complete": {
-							// We have downloaded it, but we need to check if it still exists
-							return import("../../native/common/FileApp").then(({fileApp}) => {
-								return fileApp.checkFileExistsInExportDirectory(existing.fileName)
-								              .then(exists => exists
-									              ? handleDownloaded(existing.fileName, Promise.resolve())
-									              : handleNotDownloaded(mail))
-							})
+		const handleDownloaded = (fileName, promise) => {
+			// we don't have to do anything else with the downloaded ones
+			// so finish this chunk of work
+			progressMonitor.workDone(3)
+			downloaded.push({
+				fileName,
+				promise: promise
+			})
+		}
+
+		// Gather up files that have been downloaded
+		// and all files that need to be downloaded, or were already downloaded but have disappeared
+		for (let mail of mails) {
+			const key = mapKey(mail)
+			const existing = this.exportedMails.get(key)
+			if (!existing || existing.result.state().status === "failure") {
+				// Something went wrong last time we tried to drag this file,
+				// so try again (not confident that it will work this time, though)
+				handleNotDownloaded(mail)
+			} else {
+				const state = existing.result.state()
+				switch (state.status) {
+					// Mail is still being prepared, already has a file path assigned to it
+					case "pending": {
+						handleDownloaded(existing.fileName, state.promise)
+						continue
+					}
+					case "complete": {
+						// We have downloaded it, but we need to check if it still exists
+						const exists = await locator.fileApp.checkFileExistsInExportDirectory(existing.fileName)
+						if (exists) {
+							handleDownloaded(existing.fileName, Promise.resolve())
+						} else {
+							handleNotDownloaded(mail)
 						}
 					}
 				}
+			}
+		}
 
-			}).then(() => {
-				const deduplicatedNames = deduplicateFilenames(notDownloaded.map(f => f.fileName), new Set(downloaded.map(f => f.fileName)))
+		const deduplicatedNames = deduplicateFilenames(notDownloaded.map(f => f.fileName), new Set(downloaded.map(f => f.fileName)))
 
-				return Promise.all(
-					[
-						// Download all the files that need downloading, wait for them, and then return the filename
-						promiseMap(notDownloaded, ({mail, fileName}) => {
-							const name = deduplicatedNames[fileName].shift()
-							const key = mapKey(mail)
-							const downloadPromise =
-								import("../../misc/HtmlSanitizer")
-									.then(({htmlSanitizer}) => makeMailBundle(mail, locator.entityClient, locator.fileFacade, htmlSanitizer))
-									.then(tap(() => progressMonitor.workDone(1)))
-									.then(bundle => generateMailFile(bundle, name, exportMode))
-									.then(tap(() => progressMonitor.workDone(1)))
-									.then(file => import("../../native/common/FileApp").then(({fileApp}) => fileApp.saveToExportDir(file)))
-									.then(tap(() => progressMonitor.workDone(1)))
-							this.exportedMails.set(key, {fileName: name, result: new AsyncResult(downloadPromise)})
-							return downloadPromise.then(() => name)
-						}),
-						// Wait for ones that already were downloading or have finished, and  then return their filenames too
-						promiseMap(downloaded, result => result.promise.then(() => result.fileName))
-					]
-				).then(([left, right]) => left.concat(right)) // combine the list of newly downloaded and previously downloaded files
-			})
-		})
+		const [newFiles, existingFiles] = await Promise.all(
+			[
+				// Download all the files that need downloading, wait for them, and then return the filename
+				promiseMap(notDownloaded, async ({mail, fileName}) => {
+					const name = deduplicatedNames[fileName].shift()
+					const key = mapKey(mail)
+
+					const downloadPromise = Promise.resolve().then(async () => {
+						const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
+						const bundle = await makeMailBundle(mail, locator.entityClient, locator.fileFacade, htmlSanitizer)
+						progressMonitor.workDone(1)
+
+						const file = await generateMailFile(bundle, name, exportMode)
+						progressMonitor.workDone(1)
+
+						await locator.fileApp.saveToExportDir(file)
+						progressMonitor.workDone(1)
+					})
+
+					this.exportedMails.set(key, {fileName: name, result: new AsyncResult(downloadPromise)})
+
+					await downloadPromise
+					return name
+				}),
+				// Wait for ones that already were downloading or have finished, and  then return their filenames too
+				promiseMap(downloaded, result => result.promise.then(() => result.fileName))
+			]
+		)
+		// combine the list of newly downloaded and previously downloaded files
+		return newFiles.concat(existingFiles)
 	}
 
 	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle

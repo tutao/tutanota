@@ -82,39 +82,38 @@ class Header {
 
 
 		// load worker and search bar one after another because search bar uses worker.
-		import("../../api/main/MainLocator")
-			.then((locatorModule) => {
-				return locatorModule.locator.initializedWorker.then((worker) => {
-					worker.wsConnection().map(state => {
-						this._wsState = state
-						m.redraw()
-					})
-					worker.initialized.then(() => {
-						import('../../search/SearchBar.js')
-							.then((searchBarModule) => {
-								this.searchBar = new searchBarModule.SearchBar()
-							})
-
-						const progressTracker: ProgressTracker = locatorModule.locator.progressTracker
-						if (progressTracker.totalWork() !== 0) {
-							this._loadingProgress = progressTracker.completedAmount()
-						}
-						progressTracker.onProgressUpdate.map(amount => {
-							if (this._loadingProgress !== amount) {
-								this._loadingProgress = amount
-								m.redraw()
-								if (this._loadingProgress >= PROGRESS_DONE) {
-									// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
-									setTimeout(() => {
-										this._loadingProgress = PROGRESS_HIDDEN
-										m.redraw()
-									}, 500)
-								}
-							}
-						})
-					})
-				})
+		import("../../api/main/MainLocator").then(async ({locator}) => {
+			await locator.initialized
+			const worker = locator.worker
+			worker.wsConnection().map(state => {
+				this._wsState = state
+				m.redraw()
 			})
+
+			await worker.initialized
+			import('../../search/SearchBar.js')
+				.then(({SearchBar}) => {
+					this.searchBar = new SearchBar()
+				})
+
+			const progressTracker: ProgressTracker = locator.progressTracker
+			if (progressTracker.totalWork() !== 0) {
+				this._loadingProgress = progressTracker.completedAmount()
+			}
+			progressTracker.onProgressUpdate.map(amount => {
+				if (this._loadingProgress !== amount) {
+					this._loadingProgress = amount
+					m.redraw()
+					if (this._loadingProgress >= PROGRESS_DONE) {
+						// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
+						setTimeout(() => {
+							this._loadingProgress = PROGRESS_HIDDEN
+							m.redraw()
+						}, 500)
+					}
+				}
+			})
+		})
 	}
 
 	_renderDesktopSearchBar(): Children {

@@ -103,11 +103,8 @@ class LoginListener implements LoginEventHandler {
 		}
 		if (isApp() || isDesktop()) {
 			// don't wait for it, just invoke
-			import("../native/common/FileApp")
-				.then(({fileApp}) => fileApp.clearFileData())
-				.catch((e) => console.log("Failed to clean file data", e))
-
-			import("../native/main/PushServiceApp").then(({pushServiceApp}) => pushServiceApp.register())
+			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+			locator.pushService.register()
 
 			await this._maybeSetCustomTheme()
 		}

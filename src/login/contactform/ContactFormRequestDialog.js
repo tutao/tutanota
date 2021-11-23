@@ -7,7 +7,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
 import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
 import {animations, height} from "../../gui/animation/Animations"
-import {fileController} from "../../file/FileController"
 import {remove} from "@tutao/tutanota-utils"
 import {windowFacade} from "../../misc/WindowFacade"
 import {progressIcon} from "../../gui/base/Icon"
@@ -132,7 +131,7 @@ export class ContactFormRequestDialog {
 			},
 			ondrop: (ev) => {
 				if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
-					fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
+					locator.fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
 						this._attachFiles((dataFiles: any))
 						m.redraw()
 					}).catch(e => {
@@ -188,7 +187,7 @@ export class ContactFormRequestDialog {
 	}
 
 	_showFileChooserForAttachments(): Promise<void> {
-		return fileController.showFileChooser(true).then(files => {
+		return locator.fileController.showFileChooser(true).then(files => {
 			this._attachFiles((files: any))
 			m.redraw()
 		})
@@ -209,9 +208,9 @@ export class ContactFormRequestDialog {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
 				if (file._type === "DataFile") {
-					fileController.open(downcast(file))
+					locator.fileController.open(downcast(file))
 				} else {
-					fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+					locator.fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 				}
 			}, null).setType(ButtonType.Secondary))
 			lazyButtons.push(new Button("remove_action", () => {

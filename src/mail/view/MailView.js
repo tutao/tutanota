@@ -10,7 +10,7 @@ import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix} from "../../gui/base/NavButtonN"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {load, serviceRequestVoid, update} from "../../api/main/Entity"
-import {MailViewer} from "./MailViewer"
+import {createMailViewer, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
@@ -21,9 +21,9 @@ import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import type {lazy} from "@tutao/tutanota-utils"
-import {defer, lazyMemoized, neverNull, noOp} from "@tutao/tutanota-utils"
+import {defer, lazyMemoized, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {MailListView} from "./MailListView"
-import {assertMainOrNode, isApp} from "../../api/common/Env"
+import {assertMainOrNode, isApp, isDesktop} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
@@ -47,7 +47,6 @@ import {ActionBar} from "../../gui/base/ActionBar";
 import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {fileController} from "../../file/FileController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
 import {attachDropdown, DropdownN} from "../../gui/base/DropdownN"
@@ -64,7 +63,6 @@ import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./Mail
 import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 
 assertMainOrNode()
@@ -165,7 +163,7 @@ export class MailView implements CurrentView {
 						Promise
 							.all([
 								this._getMailboxDetails(),
-								fileController.readLocalFiles(ev.dataTransfer.files),
+								locator.fileController.readLocalFiles(ev.dataTransfer.files),
 								import("../signature/Signature"),
 								import("../editor/MailEditor"),
 							])
@@ -501,11 +499,10 @@ export class MailView implements CurrentView {
 
 		if (isApp()) {
 			let userGroupInfo = logins.getUserController().userGroupInfo
-			import("../../native/main/PushServiceApp").then(({pushServiceApp}) => {
-				pushServiceApp.closePushNotification(
-					userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
-					             .concat(userGroupInfo.mailAddress || []))
-			})
+			locator.pushService.closePushNotification(
+				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
+				             .concat(userGroupInfo.mailAddress || [])
+			)
 		}
 
 		if (this.isInitialized() && args.listId && this.mailList && args.listId !== this.mailList.listId) {
@@ -707,7 +704,12 @@ export class MailView implements CurrentView {
 
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel, locator.configFacade, animationOverDeferred.promise)
+				this.mailViewer = createMailViewer({
+					mail: mails[0],
+					showFolder: false,
+					delayBodyRenderingUntil: animationOverDeferred.promise
+				})
+
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -779,9 +781,10 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel,
-							locator.configFacade,
-							Promise.resolve())
+						this.mailViewer = createMailViewer({
+							mail: updatedMail,
+							showFolder: false
+						})
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

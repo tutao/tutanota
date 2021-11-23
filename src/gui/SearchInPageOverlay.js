@@ -6,13 +6,13 @@ import {displayOverlay} from './base/Overlay'
 import {px, size} from "./size"
 import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
-import {Request} from "../api/common/WorkerProtocol.js"
+import {Request} from "../api/common/Queue.js"
 import {lang} from "../misc/LanguageViewModel"
 import {transform} from "./animation/Animations"
-import {nativeApp} from "../native/common/NativeWrapper.js"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {FindInPageResult} from "electron"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -53,7 +53,7 @@ export class SearchInPageOverlay {
 	close() {
 		if (this._closeFunction) {
 			this._closeFunction()
-			nativeApp.invokeNative(new Request("stopFindInPage", []))
+			locator.native.invokeNative(new Request("stopFindInPage", []))
 			this._closeFunction = null
 		}
 		m.redraw()
@@ -80,10 +80,10 @@ export class SearchInPageOverlay {
 						this._skipNextBlur = false
 						this._domInput.focus()
 					} else {
-						nativeApp.invokeNative(new Request("setSearchOverlayState", [false, false]))
+						locator.native.invokeNative(new Request("setSearchOverlayState", [false, false]))
 					}
 				},
-				onfocus: e => nativeApp.invokeNative(new Request("setSearchOverlayState", [true, false])),
+				onfocus: e => locator.native.invokeNative(new Request("setSearchOverlayState", [true, false])),
 				oninput: e => this._find(true, true),
 				style: {
 					width: px(250),
@@ -98,7 +98,7 @@ export class SearchInPageOverlay {
 
 	_find: ((forward: boolean, findNext: boolean) => Promise<void>) = (forward, findNext) => {
 		this._skipNextBlur = true
-		return nativeApp.invokeNative(new Request("findInPage", [
+		return locator.native.invokeNative(new Request("findInPage", [
 			this._domInput.value, {
 				forward,
 				matchCase: this._matchCase,
@@ -162,6 +162,8 @@ export class SearchInPageOverlay {
 			click: () => this.close(),
 		}
 
+		const handleMouseUp = (event) => this.handleMouseUp(event)
+
 		return {
 			view: (vnode: Object) => {
 				return m(".flex.flex-space-between",
@@ -198,20 +200,20 @@ export class SearchInPageOverlay {
 
 		}
 	}
+	/*
+	* we're catching enter key events on the main thread while the search overlay is open to enable
+	* next-result-via-enter behaviour.
+	*
+	* since losing focus on the overlay via issuing a search request seems to be indistinguishable
+	* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
+	* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
+	*/
+	handleMouseUp(e: Event) {
+		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
+		locator.native.invokeNative(new Request('setSearchOverlayState', [false, true]))
+	}
 }
 
 
-/*
-* we're catching enter key events on the main thread while the search overlay is open to enable
-* next-result-via-enter behaviour.
-*
-* since losing focus on the overlay via issuing a search request seems to be indistinguishable
-* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
-* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
-*/
-function handleMouseUp(e: Event) {
-	if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
-	nativeApp.invokeNative(new Request('setSearchOverlayState', [false, true]))
-}
 
 export const searchInPageOverlay: SearchInPageOverlay = new SearchInPageOverlay()

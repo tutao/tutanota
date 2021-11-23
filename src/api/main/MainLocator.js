@@ -5,7 +5,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode} from "../../api/common/Env"
+import {assertMainOrNode, isBrowser} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -37,6 +37,14 @@ import type {FileFacade} from "../worker/facades/FileFacade"
 import type {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import type {ContactFormFacade} from "../worker/facades/ContactFormFacade"
 import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFacade"
+import {FileController} from "../../file/FileController"
+import type {NativeFileApp} from "../../native/common/FileApp"
+import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
+import type {NativeSystemApp} from "../../native/main/NativeSystemApp"
+import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
+import {createNativeInterfaces} from "./NativeInterfaceFactory"
+import {ProgrammingError} from "../common/error/ProgrammingError"
+import type {NativeInterfaces} from "./NativeInterfaceFactory"
 
 assertMainOrNode()
 
@@ -50,9 +58,13 @@ export interface IMainLocator {
 	+contactModel: ContactModel;
 	+entityClient: EntityClient;
 	+progressTracker: ProgressTracker;
-	+initializedWorker: Promise<WorkerClient>;
 	+credentialsProvider: ICredentialsProvider;
 	+worker: WorkerClient;
+	+native: NativeInterfaceMain;
+	+fileController: FileController;
+	+fileApp: NativeFileApp;
+	+pushService: NativePushServiceApp;
+	+systemApp: NativeSystemApp;
 
 	+loginFacade: LoginFacade;
 	+customerFacade: CustomerFacade;
@@ -72,7 +84,8 @@ export interface IMainLocator {
 	+contactFormFacade: ContactFormFacade;
 	+deviceEncryptionFacade: DeviceEncryptionFacade;
 
-	+init: () => Promise<void>
+	+init: () => Promise<void>;
+	+initialized: Promise<void>;
 }
 
 
@@ -87,6 +100,8 @@ class MainLocator implements IMainLocator {
 	progressTracker: ProgressTracker;
 	credentialsProvider: ICredentialsProvider;
 	worker: WorkerClient;
+	fileController: FileController;
+
 
 	loginFacade: LoginFacade;
 	customerFacade: CustomerFacade;
@@ -106,15 +121,44 @@ class MainLocator implements IMainLocator {
 	contactFormFacade: ContactFormFacade;
 	deviceEncryptionFacade: DeviceEncryptionFacade;
 
+	_nativeInterfaces: ?NativeInterfaces = null
+
+	get native(): NativeInterfaceMain {
+		return this._getNativeInterface("native")
+	}
+
+	get fileApp(): NativeFileApp {
+		return this._getNativeInterface("fileApp")
+	}
+
+	get pushService(): NativePushServiceApp {
+		return this._getNativeInterface("pushService")
+	}
+
+	get systemApp(): NativeSystemApp {
+		return this._getNativeInterface("systemApp")
+	}
+
+	// get an interface from native interfaces
+	// return type is `any` because of flow nonsense
+	_getNativeInterface(name: $Keys<NativeInterfaces>): any {
+		if (!this._nativeInterfaces) {
+			throw new ProgrammingError(`Tried to use ${name} in web`)
+		}
+		return this._nativeInterfaces[name]
+	}
+
 	+_workerDeferred: DeferredObject<WorkerClient>
 	_entropyCollector: EntropyCollector
 
-	constructor() {
-		this._workerDeferred = defer()
+	_deferredInitialized: DeferredObject<void> = defer()
+
+	get initialized(): Promise<void> {
+		return this._deferredInitialized.promise
 	}
 
-	get initializedWorker(): Promise<WorkerClient> {
-		return this._workerDeferred.promise
+	constructor() {
+		this._workerDeferred = defer()
 	}
 
 	async init(): Promise<void> {
@@ -122,14 +166,21 @@ class MainLocator implements IMainLocator {
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
+
 		await this._createInstances()
 
 		this._entropyCollector = new EntropyCollector(this.worker)
 		this._entropyCollector.start()
-		this._workerDeferred.resolve(this.worker)
+
+		this._deferredInitialized.resolve()
 	}
 
 	async _createInstances() {
+
+		if (!isBrowser()) {
+			this._nativeInterfaces = await createNativeInterfaces()
+		}
+
 		const {
 			loginFacade,
 			customerFacade,
@@ -172,7 +223,7 @@ class MainLocator implements IMainLocator {
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(this.worker)
-		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade)
+		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
 
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		const lazyScheduler = async () => {
@@ -195,6 +246,7 @@ class MainLocator implements IMainLocator {
 		)
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
+		this.fileController = new FileController(this._nativeInterfaces?.fileApp)
 	}
 }
 
@@ -212,12 +264,13 @@ const hot = typeof module !== "undefined" && module.hot
 if (hot) {
 	hot.accept(async () => {
 		// This should be there already
-		const worker = await locator.initializedWorker
+		await locator.initialized
+		const worker = locator.worker
 
 		// Import this module again and init the locator. If someone just imports it they will get a new one
 		const newLocator = require(module.id).locator
 		newLocator.worker = worker
-		await newLocator._initModules(worker)
+		await newLocator._createInstances(worker)
 
 		// This will patch old instances to use new classes, this is when instances are already injected
 		for (const key of Object.getOwnPropertyNames(newLocator)) {

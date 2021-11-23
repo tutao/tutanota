@@ -36,14 +36,13 @@ class WindowFacade {
 			.then(async ({locator}) => {
 
 				// We need to wait til the locator has finished initializing before we read from it
-				// This is a temporary solution, we should ideally refactor window facade to no longer be a global
-				await locator.initializedWorker
+				// because it is happening concurrently
+				await locator.initialized
+
 				this._worker = locator.worker
 				this._indexerFacade = locator.indexerFacade
 
 				if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
-					const {nativeApp} = await import("../native/common/NativeWrapper")
-					await nativeApp.initialized()
 					this.addPageInBackgroundListener()
 				}
 			})
@@ -213,16 +212,15 @@ class WindowFacade {
 		window.addEventListener("offline", listener)
 	}
 
-	reload(args: {[string]: QueryValue}) {
+	async reload(args: {[string]: QueryValue}) {
 		if (isApp() || isDesktop() || isAdminClient()) {
 			if (!args.hasOwnProperty("noAutoLogin")) {
 				args.noAutoLogin = true
 			}
 			// Convert all values to strings so that native has easier time dealing with it
 			const preparedArgs = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, String(v)]))
-			import("../native/main/SystemApp").then(({reloadNative}) =>
-				reloadNative(preparedArgs)
-			)
+			const {locator} = await import("../api/main/MainLocator")
+			locator.systemApp.reloadNative(preparedArgs)
 		} else {
 			window.location.reload();
 		}

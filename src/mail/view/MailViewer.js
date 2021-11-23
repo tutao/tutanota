@@ -32,16 +32,14 @@ import {
 } from "../../api/common/TutanotaConstants"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {FileTypeRef} from "../../api/entities/tutanota/File"
-import {CALENDAR_MIME_TYPE, fileController} from "../../file/FileController"
+import {CALENDAR_MIME_TYPE} from "../../file/FileController"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
 import type {DeferredObject} from "@tutao/tutanota-utils"
+import {addAll, contains, defer, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {defer, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
-import {addAll, contains} from "@tutao/tutanota-utils"
-import {startsWith} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/WorkerProtocol.js"
+import {Request} from "../../api/common/Queue.js"
 import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
 import {
 	createNewContact,
@@ -123,9 +121,9 @@ import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedT
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {ofClass} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 assertMainOrNode()
 
@@ -195,7 +193,7 @@ export class MailViewer {
 	_configFacade: ConfigurationDatabase
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
-	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>) {
+	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: ?NativeInterface) {
 		this.mail = mail
 		this._contactModel = contactModel
 		this._configFacade = configFacade
@@ -203,8 +201,8 @@ export class MailViewer {
 		this._mailModel = mailModel
 		this._delayBodyRenderingUntil = delayBodyRenderingUntil
 		if (isDesktop()) {
-			import("../../native/common/NativeWrapper").then(({nativeApp}) =>
-				nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}])))
+			// Notify the admin client about the mail being selected
+			native?.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this._folderText = null
 		this._filesExpanded = stream(false)
@@ -695,7 +693,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, locator.fileFacade)),
+							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], this._entityClient, locator.fileFacade)),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -922,11 +920,11 @@ export class MailViewer {
 			throw e
 		}
 
-		const externalImageRule = await locator.configFacade.getExternalImageRule(mail.sender.address)
-		                                       .catch(e => {
-			                                       console.log("Error getting external image rule:", e)
-			                                       return ExternalImageRule.None
-		                                       })
+		const externalImageRule = await this._configFacade.getExternalImageRule(mail.sender.address)
+		                                    .catch(e => {
+			                                    console.log("Error getting external image rule:", e)
+			                                    return ExternalImageRule.None
+		                                    })
 		const isAllowedAndAuthenticatedExternalSender = externalImageRule === ExternalImageRule.Allow
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
@@ -941,8 +939,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+						? ContentBlockingStatus.AlwaysShow
+						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -1580,16 +1578,16 @@ export class MailViewer {
 	}
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
-		fileController.downloadAndOpen(file, open)
-		              .catch(ofClass(FileOpenError, (e) => {
-			              console.warn("FileOpenError", e)
+		locator.fileController.downloadAndOpen(file, open)
+		       .catch(ofClass(FileOpenError, (e) => {
+			       console.warn("FileOpenError", e)
 			              Dialog.message("canNotOpenFileOnDevice_msg")
-		              }))
-		              .catch(e => {
-			              const msg = e || "unknown error"
-			              console.error("could not open file:", msg)
+		       }))
+		       .catch(e => {
+			       const msg = e || "unknown error"
+			       console.error("could not open file:", msg)
 			              return Dialog.message("errorDuringFileOpen_msg")
-		              })
+		       })
 	}
 
 	_createAttachmentsButtons(files: $ReadOnlyArray<TutanotaFile>, inlineCids: $ReadOnlyArray<Id>): Button[] {
@@ -1631,7 +1629,7 @@ export class MailViewer {
 	_downloadAll() {
 		this._referencedCids
 		    .then(inlineFileIds => this._attachments.filter(a => !inlineFileIds.includes(a.cid)))
-		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", fileController.downloadAll(nonInlineFiles)))
+		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", locator.fileController.downloadAll(nonInlineFiles)))
 	}
 
 	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
@@ -1792,4 +1790,23 @@ export class MailViewer {
 
 		return {inlineImageCids, links, externalContent}
 	}
+}
+
+type CreateMailViewerOptions = {
+	mail: Mail,
+	showFolder: boolean,
+	delayBodyRenderingUntil?: Promise<void>
+}
+
+export function createMailViewer({mail, showFolder, delayBodyRenderingUntil}: CreateMailViewerOptions): MailViewer {
+	return new MailViewer(
+		mail,
+		showFolder,
+		locator.entityClient,
+		locator.mailModel,
+		locator.contactModel,
+		locator.configFacade,
+		delayBodyRenderingUntil ?? Promise.resolve(),
+		isDesktop() ? locator.native : null
+	)
 }

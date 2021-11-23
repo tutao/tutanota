@@ -10,6 +10,7 @@ import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {Request} from "../../api/common/Queue"
 
 assertMainOrNode()
 
@@ -23,7 +24,12 @@ export type Attrs = {
 export class FolderColumnView implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>): Children {
 		return m(".flex.height-100p", [
-			m(DrawerMenu),
+			m(DrawerMenu, {
+				openNewWindow: async () => {
+					const {locator} = await import("../../api/main/MainLocator")
+					return locator.native.invokeNative(new Request('openNewWindow', []))
+				}
+			}),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col"
 				+ landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)),
 				[

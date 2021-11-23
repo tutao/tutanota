@@ -1,37 +1,43 @@
 // @flow
-import {stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {pad} from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	formatSortableDateTime,
+	noOp,
+	pad,
+	promiseMap,
+	sortableTimestamp,
+	stringToBase64,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64
+} from "@tutao/tutanota-utils"
 import {createDataFile, getCleanedMimeType} from "../../api/common/DataFile"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {formatSortableDateTime, sortableTimestamp} from "@tutao/tutanota-utils"
 import type {MailBundle} from "./Bundler"
 import {makeMailBundle} from "./Bundler"
 import {isDesktop} from "../../api/common/Env"
-import {promiseMap} from "@tutao/tutanota-utils"
 import {sanitizeFilename} from "../../api/common/utils/FileUtils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {EntityClient} from "../../api/common/EntityClient"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
+import {locator} from "../../api/main/MainLocator"
 
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
-export function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
+export async function generateMailFile(bundle: MailBundle, fileName: string, mode: MailExportMode): Promise<DataFile> {
 	return mode === "eml"
-		? Promise.resolve(mailToEmlFile(bundle, fileName))
-		: import("../../native/common/FileApp").then(({fileApp}) => fileApp.mailToMsg(bundle, fileName))
+		? mailToEmlFile(bundle, fileName)
+		: locator.fileApp.mailToMsg(bundle, fileName)
 }
 
-export function getMailExportMode(): Promise<MailExportMode> {
-	return isDesktop()
-		? Promise.all([import("../../native/main/SystemApp"), import("../../desktop/config/ConfigKeys")])
-		         .then(([systemApp, ConfigKeys]) => systemApp.getConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode))
-		         .then(mailExportMode => mailExportMode || "eml")
-		         .catch(e => {
-			         console.log("error getting export mode:", e)
-			         return "eml"
-		         })
-		: Promise.resolve("eml")
+export async function getMailExportMode(): Promise<MailExportMode> {
+
+	if (isDesktop()) {
+		const ConfigKeys = await import("../../desktop/config/ConfigKeys")
+		const mailExportMode = await locator.systemApp.getConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode).catch(noOp)
+		return mailExportMode ?? "eml"
+	} else {
+		return "eml"
+	}
 }
 
 export function generateExportFileName(subject: string, sentOn: Date, mode: MailExportMode): string {
@@ -60,17 +66,16 @@ export function exportMails(mails: Array<Mail>, entityClient: EntityClient, file
 
 	return Promise.all([
 		getMailExportMode(),
-		import("../../file/FileController"),
 		downloadPromise
-	]).then(([mode, {fileController}, bundles]) => {
+	]).then(([mode, bundles]) => {
 		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode))
 			.then(files => {
 				const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 				const maybeZipPromise = files.length === 1
 					? Promise.resolve(files[0])
-					: fileController.zipDataFiles(files, zipName)
+					: locator.fileController.zipDataFiles(files, zipName)
 
-				maybeZipPromise.then(outputFile => fileController.open(outputFile))
+				maybeZipPromise.then(outputFile => locator.fileController.open(outputFile))
 			})
 	})
 }

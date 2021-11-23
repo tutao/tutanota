@@ -3,13 +3,13 @@ import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex} from "@tutao/t
 import {concat} from "@tutao/tutanota-utils"
 import {
 	CryptoError, encode,
-	generateRsaKeySync,
+	generateRsaKey,
 	hexToPrivateKey,
 	hexToPublicKey,
 	privateKeyToHex,
 	publicKeyToHex,
-	random, rsaDecryptSync,
-	rsaEncryptSync, sign, verifySignature
+	random, rsaDecrypt,
+	rsaEncrypt, sign, verifySignature
 } from "../lib"
 import {parseBigInt} from "../lib/internal/crypto-jsbn-2012-08-09_1"
 import {_getPSBlock, _keyArrayToHex, _padAndUnpadLeadingZeros, _verify, i2osp, mgf1, oaepPad, oaepUnpad} from "../lib/encryption/Rsa"
@@ -31,7 +31,7 @@ o.spec("rsa", function () {
 
 	function _getKeyPair(): RsaKeyPair {
 		if (!_keyPair) {
-			_keyPair = generateRsaKeySync()
+			_keyPair = generateRsaKey()
 		}
 		return _keyPair
 	}
@@ -78,8 +78,8 @@ o.spec("rsa", function () {
 
 		let plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
 
-		let encrypted = rsaEncryptSync(keyPair.publicKey, plain, random.generateRandomData(32))
-		let plainAgain = rsaDecryptSync(keyPair.privateKey, encrypted)
+		let encrypted = rsaEncrypt(keyPair.publicKey, plain, random.generateRandomData(32))
+		let plainAgain = rsaDecrypt(keyPair.privateKey, encrypted)
 		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
 	})
 
@@ -150,8 +150,8 @@ o.spec("rsa", function () {
 		])
 		const plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
 
-		const encrypted = rsaEncryptSync(keyPair.publicKey, plain, seed)
-		let plainAgain = rsaDecryptSync(keyPair.privateKey, encrypted)
+		const encrypted = rsaEncrypt(keyPair.publicKey, plain, seed)
+		let plainAgain = rsaDecrypt(keyPair.privateKey, encrypted)
 		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
 	})
 
@@ -192,9 +192,9 @@ o.spec("rsa", function () {
 			120, 151, 119, 228, 21, 98, 99, 49, 233, 69, 169, 58, 158, 95, 153, 22, 23, 127, 216, 77, 109, 199, 208, 245, 38, 133, 107, 86,
 			23, 149, 223, 40
 		])
-		const encrypted = rsaEncryptSync(keyPair.publicKey, plain, salt)
+		const encrypted = rsaEncrypt(keyPair.publicKey, plain, salt)
 		o(encrypted.length).equals(256)
-		const plainAgain = rsaDecryptSync(keyPair.privateKey, encrypted)
+		const plainAgain = rsaDecrypt(keyPair.privateKey, encrypted)
 		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
 	})
 
@@ -232,9 +232,9 @@ o.spec("rsa", function () {
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToPublicKey(rsaPublicHexKey)
 		let plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
-		let encrypted = rsaEncryptSync(publicKey, plain, random.generateRandomData(32))
+		let encrypted = rsaEncrypt(publicKey, plain, random.generateRandomData(32))
 		try {
-			rsaDecryptSync(privateKey, encrypted)
+			rsaDecrypt(privateKey, encrypted)
 		} catch (e) {
 			o(e instanceof CryptoError).equals(true)
 			done()
@@ -247,9 +247,9 @@ o.spec("rsa", function () {
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToPublicKey(rsaPublicHexKey)
 		let plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
-		let encrypted = rsaEncryptSync(publicKey, plain, random.generateRandomData(32))
+		let encrypted = rsaEncrypt(publicKey, plain, random.generateRandomData(32))
 		try {
-			rsaDecryptSync(privateKey, concat(encrypted, stringToUtf8Uint8Array("hello")))
+			rsaDecrypt(privateKey, concat(encrypted, stringToUtf8Uint8Array("hello")))
 		} catch (e) {
 			o(e instanceof CryptoError).equals(true)
 			done()

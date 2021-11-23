@@ -1,17 +1,17 @@
 //@flow
-import {nativeApp} from "../common/NativeWrapper"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {ContactSuggestion} from "../../misc/ContactSuggestion"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
 
 export function findRecipients(text: string, maxNumberOfSuggestions: number, suggestions: ContactSuggestion[]): Promise<void> {
-	return nativeApp.invokeNative(new Request("findSuggestions", [text]))
+	return locator.native.invokeNative(new Request("findSuggestions", [text]))
 	                .then((addressBookSuggestions: {name: string, mailAddress: string}[]) => {
 		                let contactSuggestions = addressBookSuggestions.slice(0, maxNumberOfSuggestions)
 		                                                               .map(s => new ContactSuggestion(s.name, s.mailAddress, null))

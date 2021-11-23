@@ -1,11 +1,11 @@
 // @flow
-import {Request} from "../../api/common/WorkerProtocol"
-import {getFilesMetaData} from "../common/FileApp"
+import {Request} from "../../api/common/Queue"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
-import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
+
+type JsRequest = Request<JsRequestType>
 
 /**
  * create a mail editor as requested from the native side, ie because a
@@ -17,14 +17,14 @@ import {noOp, ofClass} from "@tutao/tutanota-utils"
  *  * confidential will be set to false
  *
  */
-async function createMailEditor(msg: Request): Promise<void> {
+async function createMailEditor(msg: JsRequest): Promise<void> {
 	const [
-		{locator},
+		locator,
 		{newMailEditorFromTemplate, newMailtoUrlMailEditor},
 		{logins},
 		signatureModule
 	] = await Promise.all([
-		import('../../api/main/MainLocator.js'),
+		getInitializedLocator(),
 		import('../../mail/editor/MailEditor.js'),
 		import('../../api/main/LoginController.js'),
 		import("../../mail/signature/Signature")
@@ -38,7 +38,7 @@ async function createMailEditor(msg: Request): Promise<void> {
 		editor = await newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
 		if (!editor) return
 	} else {
-		const files = await getFilesMetaData(filesUris)
+		const files = await locator.fileApp.getFilesMetaData(filesUris)
 		const address = addresses && addresses[0] || ""
 		const recipients = address ? {to: [{name: "", address: address}]} : {}
 		editor = await newMailEditorFromTemplate(
@@ -54,21 +54,21 @@ async function createMailEditor(msg: Request): Promise<void> {
 
 }
 
-const showAlertDialog = (msg: Request): Promise<void> => {
+const showAlertDialog = (msg: JsRequest): Promise<void> => {
 	return import('../../gui/base/Dialog.js').then(module => {
 			return module.Dialog.message(msg.args[0])
 		}
 	)
 }
 
-const openMailbox = (msg: Request): Promise<void> => {
+const openMailbox = (msg: JsRequest): Promise<void> => {
 	return import('./OpenMailboxHandler.js').then(module => {
 			return module.openMailbox(msg.args[0], msg.args[1], msg.args[2])
 		}
 	)
 }
 
-const openCalendar = (msg: Request): Promise<void> => {
+const openCalendar = (msg: JsRequest): Promise<void> => {
 	return import('./OpenMailboxHandler.js')
 		.then(module => module.openCalendar(msg.args[0]))
 }
@@ -81,7 +81,7 @@ const handleBackPress = (): Promise<boolean> => {
 		)
 }
 
-const keyboardSizeChanged = (msg: Request): Promise<void> => {
+const keyboardSizeChanged = (msg: JsRequest): Promise<void> => {
 	return import('../../misc/WindowFacade.js').then(module => {
 		return module.windowFacade.onKeyboardSizeChanged(Number(msg.args[0]))
 	})
@@ -113,7 +113,7 @@ const addShortcuts = (msg: any): Promise<void> => {
 	})
 }
 
-function reportError(msg: Request): Promise<*> {
+function reportError(msg: JsRequest): Promise<*> {
 	return Promise.all(
 		[
 			import('../../misc/ErrorHandlerImpl.js'),
@@ -128,10 +128,11 @@ function reportError(msg: Request): Promise<*> {
 
 let disconnectTimeoutId: ?TimeoutID
 
-function visibilityChange(msg: Request): Promise<void> {
+async function visibilityChange(msg: JsRequest): Promise<void> {
 	console.log("native visibility change", msg.args[0])
-	return import('../../api/main/MainLocator.js').then(({locator}) => {
-		if (msg.args[0]) {
+	const locator = await getInitializedLocator()
+
+	if (msg.args[0]) {
 			if (disconnectTimeoutId != null) {
 				clearTimeout(disconnectTimeoutId)
 				disconnectTimeoutId = null
@@ -142,31 +143,33 @@ function visibilityChange(msg: Request): Promise<void> {
 				locator.worker.closeEventBus(CloseEventBusOption.Pause)
 			}, 30 * SECOND_MS)
 		}
-	})
 }
 
-function invalidateAlarms(msg: Request): Promise<void> {
-	return import('./PushServiceApp.js').then(({pushServiceApp}) => {
-		return pushServiceApp.invalidateAlarms()
-	})
+async function invalidateAlarms(msg: JsRequest): Promise<void> {
+	const locator = await getInitializedLocator()
+	await locator.pushService.invalidateAlarms()
 }
 
-function appUpdateDownloaded(msg: Request): Promise<void> {
-	nativeApp.handleUpdateDownload()
-	return Promise.resolve()
+async function appUpdateDownloaded(msg: JsRequest): Promise<void> {
+	const locator = await getInitializedLocator()
+	locator.native.handleUpdateDownload()
 }
 
 /**
  * this is only used in the admin client to sync the DB view with the inbox
  */
-function openCustomer(msg: Request): Promise<void> {
+async function openCustomer(msg: JsRequest): Promise<void> {
 	const mailAddress = msg.args[0]
 	if (typeof mailAddress === 'string' && tutao.m.route.get().startsWith("/customer")) {
 		tutao.m.route.set(`/customer?query=${encodeURIComponent(mailAddress)}`)
 		console.log('switching to customer', mailAddress)
 	}
+}
 
-	return Promise.resolve()
+async function getInitializedLocator() {
+	const {locator} = await import("../../api/main/MainLocator")
+	await locator.initialized
+	return locator
 }
 
 /**
@@ -174,7 +177,7 @@ function openCustomer(msg: Request): Promise<void> {
  * this updates the link-reveal on hover when the main thread detects that
  * the hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)
  */
-function updateTargetUrl(msg: Request): Promise<void> {
+function updateTargetUrl(msg: JsRequest): Promise<void> {
 	const url = msg.args[0]
 	const appPath = msg.args[1]
 	let linkToolTip = document.getElementById("link-tt")
@@ -193,7 +196,7 @@ function updateTargetUrl(msg: Request): Promise<void> {
 	return Promise.resolve()
 }
 
-function showSpellcheckDropdown(msg: Request): Promise<string> {
+function showSpellcheckDropdown(msg: JsRequest): Promise<string> {
 	return showSpellcheckLanguageDialog()
 }
 

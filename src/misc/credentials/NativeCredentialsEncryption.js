@@ -2,11 +2,11 @@
 import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider"
 import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import type {NativeWrapper} from "../../native/common/NativeWrapper"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
-import {Request} from "../../api/common/WorkerProtocol"
+import {Request} from "../../api/common/Queue"
 import type {Credentials} from "./Credentials"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**
  * Credentials encryption implementation that uses the native (platform-specific) keychain implementation. It uses an intermediate key to
@@ -15,9 +15,9 @@ import type {Credentials} from "./Credentials"
 export class NativeCredentialsEncryption implements CredentialsEncryption {
 	+_credentialsKeyProvider: ICredentialsKeyProvider
 	+_deviceEncryptionFacade: DeviceEncryptionFacade
-	+_nativeApp: NativeWrapper;
+	+_nativeApp: NativeInterface;
 
-	constructor(credentialsKeyProvider: ICredentialsKeyProvider, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeWrapper) {
+	constructor(credentialsKeyProvider: ICredentialsKeyProvider, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
 		this._credentialsKeyProvider = credentialsKeyProvider
 		this._deviceEncryptionFacade = deviceEncryptionFacade
 		this._nativeApp = nativeApp

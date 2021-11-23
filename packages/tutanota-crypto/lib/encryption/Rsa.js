@@ -17,8 +17,7 @@ import {sha256Hash} from "../hashes/Sha256"
 
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
-
-export function generateRsaKeySync(): RsaKeyPair {
+export function generateRsaKey(): RsaKeyPair {
 	// jsbn is seeded inside, see SecureRandom.js
 	try {
 		let rsa = new RSAKey()
@@ -47,7 +46,8 @@ export function generateRsaKeySync(): RsaKeyPair {
 	}
 }
 
-export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
+export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
+
 	const rsa = new RSAKey()
 	// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
 	// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
@@ -67,6 +67,30 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
 
 	// the encrypted value might have leading zeros or needs to be padded with zeros
 	return _padAndUnpadLeadingZeros(publicKey.keyLength / 8, encrypted)
+}
+
+export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array{
+	try {
+		const rsa = new RSAKey()
+		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
+		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
+		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
+		rsa.p = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeP)))
+		rsa.q = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeQ)))
+		rsa.dmp1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentP)))
+		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
+		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
+
+		const hex = uint8ArrayToHex(bytes)
+		const bigInt = parseBigInt(hex, 16)
+		const decrypted = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
+		// the decrypted value might have leading zeros or needs to be padded with zeros
+		const paddedDecrypted = _padAndUnpadLeadingZeros(privateKey.keyLength / 8 - 1, decrypted)
+		return oaepUnpad(paddedDecrypted, privateKey.keyLength)
+	} catch (e) {
+		throw new CryptoError("failed RSA decryption", e)
+	}
 }
 
 /**
@@ -94,30 +118,6 @@ export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Ui
 	// result     [0, 1, 1, 1]
 	result.set(byteArray, result.length - byteArray.length)
 	return result
-}
-
-export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
-	try {
-		const rsa = new RSAKey()
-		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
-		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
-		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
-		rsa.p = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeP)))
-		rsa.q = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeQ)))
-		rsa.dmp1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentP)))
-		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
-		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
-
-		const hex = uint8ArrayToHex(bytes)
-		const bigInt = parseBigInt(hex, 16)
-		const decrypted = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
-		// the decrypted value might have leading zeros or needs to be padded with zeros
-		const paddedDecrypted = _padAndUnpadLeadingZeros(privateKey.keyLength / 8 - 1, decrypted)
-		return oaepUnpad(paddedDecrypted, privateKey.keyLength)
-	} catch (e) {
-		throw new CryptoError("failed RSA decryption", e)
-	}
 }
 
 /**

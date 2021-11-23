@@ -3,7 +3,7 @@ import {Const, GroupType} from "../../common/TutanotaConstants"
 import {createCreateMailGroupData} from "../../entities/tutanota/CreateMailGroupData"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
-import {hexToUint8Array} from "@tutao/tutanota-utils"
+import {hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
@@ -12,7 +12,6 @@ import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLoc
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
-import {neverNull} from "@tutao/tutanota-utils"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
@@ -25,9 +24,9 @@ import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData
 import {EntityClient} from "../../common/EntityClient"
 import {assertWorkerOrNode} from "../../common/Env"
 import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex} from "@tutao/tutanota-crypto"
-import {generateRsaKey} from "../crypto/RsaApp"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {encryptString} from "../crypto/CryptoFacade"
+import type {RsaImplementation} from "../crypto/RsaImplementation";
 
 assertWorkerOrNode()
 
@@ -52,11 +51,13 @@ export class GroupManagementFacadeImpl {
 	_login: LoginFacadeImpl;
 	_counters: CounterFacade
 	_entity: EntityClient
+	_rsa: RsaImplementation
 
-	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient) {
+	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient, rsa: RsaImplementation) {
 		this._login = login
 		this._counters = counters
 		this._entity = entity
+		this._rsa = rsa
 	}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
@@ -65,7 +66,7 @@ export class GroupManagementFacadeImpl {
 		})
 	}
 
-	createMailGroup(name: string, mailAddress: string): Promise<void> {
+	async createMailGroup(name: string, mailAddress: string): Promise<void> {
 		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
 		if (adminGroupIds.length === 0) {
 			adminGroupIds = this._login
@@ -76,32 +77,28 @@ export class GroupManagementFacadeImpl {
 		let mailGroupKey = aes128RandomKey()
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
-
-		return generateRsaKey().then(keyPair => this.generateInternalGroupData(keyPair, mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey))
-		                       .then(mailGroupData => {
-			                       let data = createCreateMailGroupData()
-			                       data.mailAddress = mailAddress
-			                       data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
-			                       data.mailEncMailboxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
-			                       data.groupData = mailGroupData
-			                       return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.POST, data)
-		                       })
+		const keyPair = await this._rsa.generateKey()
+		const mailGroupData = await this.generateInternalGroupData(keyPair, mailGroupKey, mailGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
+		let data = createCreateMailGroupData()
+		data.mailAddress = mailAddress
+		data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
+		data.mailEncMailboxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
+		data.groupData = mailGroupData
+		return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.POST, data)
 	}
 
-	createLocalAdminGroup(name: string): Promise<void> {
+	async createLocalAdminGroup(name: string): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
 		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let groupKey = aes128RandomKey()
 		let groupInfoSessionKey = aes128RandomKey()
-
-		return generateRsaKey().then(keyPair => this.generateInternalGroupData(keyPair, groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
-		                       .then(mailGroupData => {
-			                       let data = createCreateLocalAdminGroupData()
-			                       data.encryptedName = encryptString(groupInfoSessionKey, name)
-			                       data.groupData = mailGroupData
-			                       return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
-		                       })
+		const keyPair = await this._rsa.generateKey()
+		const mailGroupData = await this.generateInternalGroupData(keyPair, groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey)
+		let data = createCreateLocalAdminGroupData()
+		data.encryptedName = encryptString(groupInfoSessionKey, name)
+		data.groupData = mailGroupData
+		return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
 	}
 
 

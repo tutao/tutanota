@@ -1,25 +1,23 @@
 //@flow
 import m from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
+import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
 import {update} from "../../api/main/Entity"
-import {MailViewer} from "../../mail/view/MailViewer"
+import {createMailViewer, MailViewer} from "../../mail/view/MailViewer"
 import {ContactViewer} from "../../contacts/view/ContactViewer"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
+import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
-import {assertMainOrNode} from "../../api/common/Env"
+import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {MultiSearchViewer} from "./MultiSearchViewer"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import type {Mail} from "../../api/entities/tutanota/Mail"
-import type {Contact} from "../../api/entities/tutanota/Contact"
-import {noOp} from "@tutao/tutanota-utils"
+import {isSameTypeRef, noOp, ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {isSameTypeRef} from "@tutao/tutanota-utils";
-import {ofClass} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -55,8 +53,8 @@ export class SearchResultDetailsViewer {
 
 	showEntity(entity: Object, entitySelected: boolean): void {
 		if (isSameTypeRef(MailTypeRef, entity._type)) {
-			let mail = ((entity: any): Mail)
-			this._viewer = new MailViewer(mail, true, locator.entityClient, locator.mailModel, locator.contactModel, locator.configFacade, Promise.resolve())
+			const mail: Mail = entity
+			this._viewer = createMailViewer({mail, showFolder: true})
 			this._viewerEntityId = mail._id
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false

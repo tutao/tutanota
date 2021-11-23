@@ -2,7 +2,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
-import {downcast, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -13,12 +13,22 @@ import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {deduplicateFilenames, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {locator} from "../api/main/MainLocator"
+import type {NativeFileApp} from "../native/common/FileApp"
 
 assertMainOrNode()
 
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export class FileController {
+	_fileApp: ?NativeFileApp
+
+	get fileApp(): NativeFileApp {
+		return assertNotNull(this._fileApp)
+	}
+
+	constructor(fileApp: ?NativeFileApp) {
+		this._fileApp = fileApp
+	}
 
 	/**
 	 * Temporary files are deleted afterwards in apps.
@@ -31,8 +41,7 @@ export class FileController {
 				try {
 					file = await fileFacade.downloadFileContentNative(tutanotaFile)
 					if (isAndroidApp() && !open) {
-						const fileApp = await import("../native/common/FileApp")
-						await fileApp.putFileIntoDownloadsFolder(file.location)
+						await this.fileApp.putFileIntoDownloadsFolder(file.location)
 					} else {
 						await this.open(file)
 					}
@@ -73,7 +82,7 @@ export class FileController {
 			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file =>
-				import("../native/common/FileApp").then((fileApp) => fileApp.putFileIntoDownloadsFolder(file.location))))
+				this.fileApp.putFileIntoDownloadsFolder(file.location)))
 		} else if (isApp()) {
 			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
@@ -166,7 +175,7 @@ export class FileController {
 	}
 
 	openFileReference(file: FileReference): Promise<void> {
-		return import("../native/common/FileApp").then(({fileApp}) => fileApp.open(file))
+		return this.fileApp.open(file)
 	}
 
 	async openDataFile(dataFile: DataFile): Promise<void> {
@@ -236,9 +245,8 @@ export class FileController {
 	}
 
 	async _saveBlobNative(dataFile: DataFile) {
-		const {fileApp} = await import("../native/common/FileApp")
 		try {
-			await fileApp.saveBlob(dataFile)
+			await this.fileApp.saveBlob(dataFile)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				// no-op. User cancelled file dialog
@@ -266,8 +274,7 @@ export class FileController {
 	 */
 	async getDataFile(uriOrPath: string): Promise<?DataFile> {
 		if (!isDesktop()) return null
-		const {fileApp} = await import("../native/common/FileApp")
-		return fileApp.readDataFile(uriOrPath)
+		return this.fileApp.readDataFile(uriOrPath)
 	}
 
 	/**
@@ -283,10 +290,9 @@ export class FileController {
 
 	_deleteFile(filePath: string) {
 		if (isApp()) {
-			import("../native/common/FileApp").then(({fileApp}) =>
-				fileApp.deleteFile(filePath)
-				       .catch((e) => console.log("failed to delete file", filePath, e))
-			)
+			this.fileApp.deleteFile(filePath)
+			    .catch((e) => console.log("failed to delete file", filePath, e))
+
 		}
 	}
 
@@ -316,4 +322,3 @@ export class FileController {
 	}
 }
 
-export const fileController: FileController = new FileController()

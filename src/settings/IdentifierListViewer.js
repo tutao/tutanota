@@ -1,10 +1,11 @@
 //@flow
 import m from "mithril"
-import {isApp, isDesktop} from "../api/common/Env"
+import {isApp, isDesktop, isBrowser} from "../api/common/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {erase, loadAll, update} from "../api/main/Entity"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {logins} from "../api/main/LoginController"
@@ -26,8 +27,6 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 type IdentifierRowAttrs = {|
@@ -156,21 +155,17 @@ export class IdentifierListViewer {
 		}
 	}
 
-	_loadPushIdentifiers() {
-		if (!this._user) {
+	async _loadPushIdentifiers() {
+		if (isBrowser() || !this._user) {
 			return
 		}
-		import("../native/main/PushServiceApp").then(({pushServiceApp}) => {
-			this._currentIdentifier = pushServiceApp.getPushIdentifier()
-			const list = neverNull(this._user).pushIdentifierList
-			if (list) {
-				return loadAll(PushIdentifierTypeRef, list.list)
-					.then((identifiers) => {
-						this._identifiers(identifiers)
-						m.redraw()
-					})
-			}
-		})
+		this._currentIdentifier = locator.pushService.getPushIdentifier()
+		const list = neverNull(this._user).pushIdentifierList
+		if (list) {
+			const identifiers = await loadAll(PushIdentifierTypeRef, list.list)
+			this._identifiers(identifiers)
+			m.redraw()
+		}
 	}
 
 	_showAddNotificationEmailAddressDialog(user: ?User) {
