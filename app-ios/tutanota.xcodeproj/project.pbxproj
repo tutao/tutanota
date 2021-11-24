@@ -15,6 +15,7 @@
 		3D0EB1FD26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
 		3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */; };
 		3D2DB91C2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */; };
+		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D378EF22536F79A0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
 		3D378EFB2536F79A0001F1F3 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -262,6 +263,7 @@
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* CredentialsEncryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialsEncryption.swift; sourceTree = "<group>"; };
+		3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
 		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
 		3D378EE62536F51F0001F1F3 /* FileChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChooser.swift; sourceTree = "<group>"; };
 		3D378F5A2536F79A0001F1F3 /* tutanota debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tutanota debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -415,6 +417,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */,
 			);
@@ -555,6 +558,7 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */,
 				3D891F142105B8AF0031E528 /* libcrypto.a */,
 			);
 			name = Frameworks;
@@ -2396,6 +2400,7 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"$(PROJECT_DIR)/tutanota/Frameworks",
 				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -2433,6 +2438,7 @@
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"$(PROJECT_DIR)/tutanota/Frameworks",
 				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
