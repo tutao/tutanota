@@ -375,7 +375,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function makeReportMovedMailsDropdownAttrs(reportMovedMailsSetting: Stream<ReportMovedMailsTypeEnum>, mailboxProperties: LazyLoaded<?MailboxProperties>): DropDownSelectorAttrs<ReportMovedMailsTypeEnum> {
+export function makeReportMovedMailsDropdownAttrs(reportMovedMailsSetting: Stream<ReportMovedMailsTypeEnum>, mailboxProperties: LazyLoaded<?MailboxProperties>): DropDownSelectorAttrs<ReportMovedMailsTypeEnum> {
 	return {
 		label: "spamReports_label",
 		helpLabel: () => lang.get("unencryptedTransmission_msg"),

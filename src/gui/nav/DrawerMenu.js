@@ -105,6 +105,15 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav,
 				})
 				: null,
+			logins.isInternalUserLoggedIn()
+				? m(ButtonN, {
+					icon: () => BootIcons.Settings,
+					label: "settings_label",
+					click: () => m.route.set(navButtonRoutes.newSettingsUrl),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav,
+				})
+				: null,
 			m(ButtonN, {
 				icon: () => BootIcons.Logout,
 				label: "logout_label",

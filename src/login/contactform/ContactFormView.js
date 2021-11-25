@@ -19,10 +19,11 @@ import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
+import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
 
 assertMainOrNode()
 
-class ContactFormView {
+class ContactFormView implements CurrentView {
 
 	view: Function;
 	_contactForm: ?ContactForm;
@@ -132,6 +133,10 @@ class ContactFormView {
 				m.redraw()
 			}))
 		}
+	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
 	}
 }
 

@@ -1434,6 +1434,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"useSecurityKey_action": "Use security key"
+		"searchSettings_placeholder": "Search Settings",
 	}
 }

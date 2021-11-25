@@ -551,7 +551,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-
 	_updateUserField(): Promise<void> {
 		this._usersFieldValue("" + Math.max(1, getCurrentCount(BookingItemFeatureType.Users, this._lastBooking)))
 		return Promise.resolve()
@@ -672,7 +671,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTypeEnum): string {
+export function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTypeEnum): string {
 	if (type === AccountType.PREMIUM) {
 		return getDisplayNameOfSubscriptionType(subscription)
 	} else {
@@ -680,7 +679,7 @@ function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTy
 	}
 }
 
-function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: ?Date): void {
+export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: ?Date): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
 		const confirmationMessage = () => {
 			return periodEndDate

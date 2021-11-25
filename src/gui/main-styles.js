@@ -779,8 +779,23 @@ styles.registerStyle('main', () => {
 			'border-left': px(size.border_selection) + " solid transparent"
 		},
 		'.list-row > div': {'margin-left': px(-size.border_selection)},
+
+		'.settings-list-row:nth-child(odd)': {
+			'background-color': theme.list_bg,
+		},
+
+		'.settings-list-row:nth-child(even)': {
+			'background-color': theme.list_alternate_bg,
+		},
 		'.odd-row': {
 			'background-color': theme.list_bg,
+		},
+		'.even-row': {
+			'background-color': theme.list_alternate_bg,
+		},
+		'.settings-list-row': {
+			height: px(size.list_row_height),
+			'border-left': px(size.border_selection) + " solid transparent"
 		},
 		'.list-loading': {bottom: 0},
 

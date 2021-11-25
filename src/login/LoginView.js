@@ -12,6 +12,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {CurrentView, SearchBarInfo} from "../gui/base/Header"
 import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
@@ -26,7 +27,7 @@ import type {clickHandler} from "../gui/base/GuiUtils"
 assertMainOrNode()
 
 
-export class LoginView {
+export class LoginView implements CurrentView {
 	+view: typeof MComponent.prototype.view;
 	+_viewModel: ILoginViewModel;
 	+_moreExpanded: Stream<boolean>;
@@ -329,6 +330,10 @@ export class LoginView {
 
 	_switchDeleteCredentialsState(): void {
 		this._viewModel.switchDeleteState()
+	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
 	}
 }
 

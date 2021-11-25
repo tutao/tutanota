@@ -379,7 +379,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 }
 
 
-function _showPayConfirmDialog(price: number): Promise<boolean> {
+export function _showPayConfirmDialog(price: number): Promise<boolean> {
 	return new Promise(resolve => {
 		let dialog: Dialog
 
@@ -406,7 +406,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 	})
 }
 
-function getPostingTypeText(posting: CustomerAccountPosting): string {
+export function getPostingTypeText(posting: CustomerAccountPosting): string {
 	switch (posting.type) {
 		case PostingType.UsageFee:
 			return lang.get("invoice_label")

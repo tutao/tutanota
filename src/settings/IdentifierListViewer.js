@@ -225,3 +225,50 @@ export class IdentifierListViewer {
 		}
 	}
 }
+
+export function showAddNotificationEmailAddressDialog(user: ?User) {
+	if (!user) {
+		return
+	}
+	const mailAddress = stream("")
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(true)
+	} else {
+
+		let emailAddressInputFieldAttrs: TextFieldAttrs = {
+			label: "mailAddress_label",
+			value: mailAddress
+		}
+
+		let form = {
+			view: () => [
+				m(TextFieldN, emailAddressInputFieldAttrs),
+				m(".small.mt-s", lang.get("emailPushNotification_msg"))
+			]
+		}
+
+		let addNotificationEmailAddressOkAction = (dialog) => {
+			user = neverNull(user)
+			let pushIdentifier = createPushIdentifier()
+			pushIdentifier.displayName = lang.get("adminEmailSettings_action")
+			pushIdentifier.identifier = neverNull(getCleanedMailAddress(mailAddress()))
+			pushIdentifier.language = lang.code
+			pushIdentifier.pushServiceType = PushServiceType.EMAIL
+			pushIdentifier._ownerGroup = user.userGroup.group
+			pushIdentifier._owner = user.userGroup.group // legacy
+			pushIdentifier._area = "0" // legacy
+			let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
+				neverNull(user.pushIdentifierList).list, null, pushIdentifier);
+			showProgressDialog("pleaseWait_msg", p)
+			dialog.close()
+		}
+
+		Dialog.showActionDialog({
+			title: lang.get("notificationSettings_action"),
+			child: form,
+			validator: () => this._validateAddNotificationEmailAddressInput(mailAddress()),
+			allowOkWithReturn: true,
+			okAction: addNotificationEmailAddressOkAction
+		})
+	}
+}

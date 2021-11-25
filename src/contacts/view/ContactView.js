@@ -3,7 +3,7 @@ import m from "mithril"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
-import type {CurrentView} from "../../gui/base/Header"
+import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
 import {Button} from "../../gui/base/Button"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {ContactEditor} from "../ContactEditor"
@@ -43,7 +43,6 @@ import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
-
 assertMainOrNode()
 
 export class ContactView implements CurrentView {
@@ -539,6 +538,11 @@ export class ContactView implements CurrentView {
 			return null
 		}
 	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
+	}
+
 }
 
 /**

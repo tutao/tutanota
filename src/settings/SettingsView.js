@@ -6,7 +6,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
 import {lang} from "../misc/LanguageViewModel"
-import type {CurrentView} from "../gui/base/Header"
+import type {CurrentView, SearchBarInfo} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
@@ -487,6 +487,11 @@ export class SettingsView implements CurrentView {
 		} else {
 			return []
 		}
+	}
+
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
 	}
 }
 

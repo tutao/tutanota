@@ -139,7 +139,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
-		let cache: {view: ?View} = {view: null}
+		let cache: {view: ?CurrentView} = {view: null}
 		return {
 			onmatch: async (args, requestedPath) => {
 				if (requireLogin && !logins.isUserLoggedIn()) {
@@ -223,6 +223,8 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			.then(module => new module.MailView())),
 		settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js")
 			.then(module => new module.SettingsView())),
+		newSettingsViewResolver: createViewResolver(() => import("./settings/newSettings/SettingsViewN.js")
+			.then(module => new module.SettingsViewN())),
 		searchViewResolver: createViewResolver(() => import("./search/view/SearchView.js")
 			.then(module => new module.SearchView())),
 		contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js")

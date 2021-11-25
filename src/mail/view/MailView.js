@@ -14,14 +14,14 @@ import {createMailViewer, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
+import type {SearchBarInfo} from "../../gui/base/Header"
 import {CurrentView} from "../../gui/base/Header"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import type {lazy} from "@tutao/tutanota-utils"
-import {defer, lazyMemoized, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {defer, lazy, lazyMemoized, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp, isDesktop} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -810,6 +810,10 @@ export class MailView implements CurrentView {
 				}
 			})
 			: null
+	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
 	}
 
 }

@@ -85,10 +85,18 @@ class Styles {
 		return styleDomElement
 	}
 
+	/**
+	 * Checks whether the width of the body is wide enough to display all three columns
+	 * @returns {boolean}
+	 */
 	isDesktopLayout(): boolean {
 		return this.bodyWidth >= size.desktop_layout_width;
 	}
 
+	/**
+	 * Checks whether the width of the body is small enough to display just one column.
+	 * @returns {boolean}
+	 */
 	isSingleColumnLayout(): boolean {
 		return this.bodyWidth < size.two_column_layout_width;
 	}

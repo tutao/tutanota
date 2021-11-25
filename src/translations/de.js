@@ -374,7 +374,7 @@ export default {
 		"defaultColor_label": "Standardfarbe: {1}",
 		"defaultDownloadPath_label": "Zielordner für Downloads",
 		"defaultEmailSignature_msg": "--\n<br>\nGesendet mit Tutanota, der sicheren & werbefreien Mailbox.\n<br>",
-		"defaultExternalDeliveryInfo_msg": "Die Voreinstellung für neue E-Mails an externe Empfangsadressen: Vertraulich (Ende-zu-Ende verschlüsselt) oder nicht vertraulich (nicht Ende-zu-Ende verschlüsselt).",
+		"defaultExternalDeliveryInfo_msg": "Die Voreinstellung für neue E-Mails an externe Empfänger: Vertraulich (Ende-zu-Ende verschlüsselt) oder nicht vertraulich (nicht Ende-zu-Ende verschlüsselt).",
 		"defaultExternalDelivery_label": "Standard-Übertragung",
 		"defaultGiftCardMessage_msg": "Ich hoffe dir gefällt die Sicherheit und Privatsphäre bei Tutanota!",
 		"defaultMailHandler_label": "Standardprogramm für E-Mail",
@@ -1438,6 +1438,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"useSecurityKey_action": "Sicherheitsschlüssel verwenden"
+		"searchSettings_placeholder": "Suche nach Einstellungen"
 	}
 }
