@@ -400,7 +400,11 @@ export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
  * @param compare: compare items in the array for equality
  * @returns {Array<$NonMaybeType<T>>|Array<T>}
  */
-export function difference<T>(array1: $ReadOnlyArray<T>, array2: $ReadOnlyArray<T>, compare: (T, T) => boolean): Array<T> {
+export function difference<T>(
+	array1: $ReadOnlyArray<T>,
+	array2: $ReadOnlyArray<T>,
+	compare: (T, T) => boolean = (a, b) => a === b
+): Array<T> {
 	return array1.filter(element1 => !array2.some(element2 => compare(element1, element2)))
 }
 
