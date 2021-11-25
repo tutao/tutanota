@@ -422,7 +422,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function makeReportMovedMailsDropdownAttrs(
+export function makeReportMovedMailsDropdownAttrs(
 	reportMovedMailsSetting: Stream<ReportMovedMailsType>,
 	mailboxProperties: LazyLoaded<MailboxProperties | null>,
 ): DropDownSelectorAttrs<ReportMovedMailsType> {

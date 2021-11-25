@@ -116,7 +116,7 @@ function createKeyIdentifier(
  * Shortcuts that are registered by a modal always take precedence.
  */
 
-class KeyManager {
+export class KeyManager {
 	_keyToShortcut: Map<string, Shortcut>
 	// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 	_keyToModalShortcut: Map<string, Shortcut>

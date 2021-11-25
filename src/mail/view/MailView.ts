@@ -10,6 +10,7 @@ import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/b
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
+import type {SearchBarInfo} from "../../gui/base/Header"
 import {CurrentView} from "../../gui/base/Header"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
@@ -873,4 +874,9 @@ export class MailView implements CurrentView {
 			})
 			: null
 	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
+	}
+
 }

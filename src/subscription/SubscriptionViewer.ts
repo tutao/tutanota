@@ -748,7 +748,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function _getAccountTypeName(type: AccountType, subscription: SubscriptionType): string {
+export function _getAccountTypeName(type: AccountType, subscription: SubscriptionType): string {
 	if (type === AccountType.PREMIUM) {
 		return getDisplayNameOfSubscriptionType(subscription)
 	} else {
@@ -756,7 +756,7 @@ function _getAccountTypeName(type: AccountType, subscription: SubscriptionType):
 	}
 }
 
-function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: Date | null): void {
+export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: Date | null): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
 		const confirmationMessage = () => {
 			return periodEndDate

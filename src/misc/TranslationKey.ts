@@ -1428,3 +1428,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "sessions_label"
+	| "secondFactor_label"
+	| "searchSettings_placeholder"

@@ -24,6 +24,7 @@ import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CurrentView, SearchBarInfo} from "../gui/base/Header"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
 import {SessionType} from "../api/common/SessionType.js";
@@ -209,5 +210,9 @@ export class ExternalLoginView implements CurrentView {
 
 				handleExpectedLoginError(e, errorAction)
 			})
+	}
+
+	getSearchBarInfo(): ?SearchBarInfo {
+		return null
 	}
 }

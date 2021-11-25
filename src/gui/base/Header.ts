@@ -5,19 +5,22 @@ import {styles} from "../styles"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
+import type {TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
+import {assertMainOrNode} from "../../api/common/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {IMainLocator} from "../../api/main/MainLocator"
-import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {ProgressTracker} from "../../api/main/ProgressTracker"
 import type {ViewSlider} from "./ViewSlider"
+import {SearchBarMode, SearchBarN} from "./SearchBarN"
+import {client} from "../../misc/ClientDetector"
 import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient";
 
@@ -25,17 +28,27 @@ const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
+export type SearchBarInfo = {|
+	search(): Promise<mixed>,
+	placeholder: TranslationText
+|}
+
 export interface CurrentView extends Component {
 	updateUrl(args: Record<string, any>, requestedPath: string): void
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children
 	readonly getViewSlider?: () => ViewSlider | null
-
 	/** @return true if view handled press itself */
 	readonly handleBackButton?: () => boolean
 
 	/** @return true if "back/up" icon should be shown, false if menu icon */
-	readonly overrideBackIcon?: () => boolean
+	+overrideBackIcon?: () => boolean;
+
+	/** @rerturn Returns an search bar attributes object if a search bar should be shown in the header section. */
+	getSearchBarInfo(): ?SearchBarInfo;
+
+	/** Called each time the url changes. */
+	updateUrl(args: Object, requestedPath: string): void;
 }
 
 const PROGRESS_HIDDEN = -1
@@ -74,13 +87,14 @@ class Header implements Component {
 								{
 									style: styles.isUsingBottomNavigation()
 										? {
-											"margin-left": px(-15),
+											"margin-left": px(-15)
+						,
 										}
 										: null, // manual margin to align the hamburger icon on mobile devices
 								},
 								this._getLeftElements(),
 							),
-							styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
+							styles.isUsingBottomNavigation() ? this._getCenterContent() : null, // Content between right and left side
 							styles.isUsingBottomNavigation()
 								? m(
 									".header-right.pr-s.flex-end.items-center",
@@ -133,12 +147,22 @@ class Header implements Component {
 	}
 
 	_renderDesktopSearchBar(): Children {
-		return this.searchBar && this._desktopSearchBarVisible()
-			? m(this.searchBar, {
+		const searchBarInfo = this._currentView ? this._currentView.getSearchBarInfo() : null
+		if (searchBarInfo) {
+			return m(SearchBarN, {
+				keyManager: keyManager,
+				mode: SearchBarMode.Collapsable,
+				placeholder: searchBarInfo.placeholder,
+				search: searchBarInfo.search
+			})
+		} else if (this.searchBar && this._desktopSearchBarVisible()) {
+			return m(this.searchBar, {
 				spacer: true,
 				placeholder: this._searchPlaceholder(),
 			})
-			: null
+		} else {
+			return null
+		}
 	}
 
 	_focusMain() {

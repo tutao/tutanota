@@ -12,7 +12,7 @@ export type ScrollSelectListAttrs<T> = {
 	items: ReadonlyArray<T>
 	selectedItem: Stream<T | null>
 	emptyListMessage: MaybeLazy<TranslationKey>
-	width: number
+	maxWidth: number
 	renderItem: (arg0: T) => Children
 	onItemDoubleClicked: (arg0: T) => unknown
 }
@@ -63,7 +63,7 @@ export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> 
 			".flex.flex-column.click",
 			{
 				style: {
-					maxWidth: a.width,
+					maxWidth: a.maxWidth
 				},
 			},
 			[

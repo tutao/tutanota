@@ -153,6 +153,74 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 	}
 }
 
+export function showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
+	if (aliasFormAttrs.aliasCount.availableToCreate === 0) {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(true)
+		} else {
+			Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " "
+				+ lang.get("orderAliasesConfirm_msg")).then(confirmed => {
+				if (confirmed) {
+					// Navigate to subscriptions folder and show alias options
+					m.route.set("/settings/subscription")
+					EmailAliasOptionsDialog.show()
+				}
+			})
+		}
+	} else {
+		getAvailableDomains().then(domains => {
+			let isVerificationBusy = false
+			let mailAddress
+			let formErrorId = null
+			let formDomain = stream(firstThrow(domains))
+
+			const mailAddressFormAttrs = {
+				availableDomains: domains,
+				onEmailChanged: (email, validationResult) => {
+					if (validationResult.isValid) {
+						mailAddress = email
+						formErrorId = null
+					} else {
+						formErrorId = validationResult.errorId
+					}
+				},
+				onBusyStateChanged: (isBusy) => isVerificationBusy = isBusy,
+				onDomainChanged: (domain) => formDomain(domain),
+			}
+			const addEmailAliasOkAction = (dialog) => {
+				if (isVerificationBusy) return
+				if (formErrorId) {
+					Dialog.error(formErrorId)
+					return
+				}
+
+				addAlias(aliasFormAttrs, mailAddress)
+				// close the add alias dialog immediately
+				dialog.close()
+			}
+
+			const isTutanotaDomain = formDomain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
+
+			Dialog.showActionDialog({
+				title: lang.get("addEmailAlias_label"),
+				child: {
+					view: () => {
+						return [
+							m(SelectMailAddressForm, mailAddressFormAttrs),
+							m(ExpanderPanelN,
+								{expanded: isTutanotaDomain},
+								m(".pt-m", lang.get("permanentAliasWarning_msg"))
+							)
+						]
+					}
+				},
+				allowOkWithReturn: true,
+				okAction: addEmailAliasOkAction
+			})
+		})
+	}
+}
+
 export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<TableLineAttrs> {
 	return editAliasAttrs.userGroupInfo.mailAddressAliases
 						 .slice()
