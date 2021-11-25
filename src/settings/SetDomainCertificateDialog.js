@@ -22,23 +22,23 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 			       dialog.close()
 		       })
 		       .catch(ofClass(InvalidDataError, e => {
-			       Dialog.error("certificateError_msg")
+			       Dialog.message("certificateError_msg")
 		       }))
-		       .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+		       .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 		       .catch(ofClass(PreconditionFailedError, e => {
 			       switch (e.data) {
 				       case "lock.locked":
-					       Dialog.error("operationStillActive_msg")
+					       Dialog.message("operationStillActive_msg")
 					       break
 				       case "domain.invalid_cname":
-					       Dialog.error("invalidCnameRecord_msg")
+					       Dialog.message("invalidCnameRecord_msg")
 					       break
 				       case "domain.not_a_subdomain":
-					       Dialog.error("notASubdomain_msg")
+					       Dialog.message("notASubdomain_msg")
 					       break
 				       case "domain.invalid":
 				       case "domain.exists":
-					       Dialog.error("customDomainErrorDomainNotAvailable_msg")
+					       Dialog.message("customDomainErrorDomainNotAvailable_msg")
 					       break
 				       default:
 					       throw e;
@@ -69,9 +69,9 @@ export function show(customerInfo: CustomerInfo): void {
 		okAction: () => {
 			const domainAllLowercase = domain().trim().toLowerCase()
 			if (!isDomainName(domainAllLowercase) || domainAllLowercase.split(".").length < 3) {
-				Dialog.error("notASubdomain_msg")
+				Dialog.message("notASubdomain_msg")
 			} else if (customerInfo.domainInfos.find(di => !di.whitelabelConfig && di.domain === domainAllLowercase)) {
-				Dialog.error("customDomainErrorDomainNotAvailable_msg")
+				Dialog.message("customDomainErrorDomainNotAvailable_msg")
 			} else {
 				orderWhitelabelCertificate(domainAllLowercase, dialog)
 			}

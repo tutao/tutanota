@@ -103,13 +103,13 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 			const cleanMailAddress = emailAddressStream().trim().toLowerCase()
 			const cleanRecoverCodeValue = editor.getValue().replace(/\s/g, '').toLowerCase()
 			if (!isMailAddress(cleanMailAddress, true)) {
-				Dialog.error("mailAddressInvalid_msg")
+				Dialog.message("mailAddressInvalid_msg")
 			} else if (cleanRecoverCodeValue === "") {
-				Dialog.error("recoveryCodeEmpty_msg")
+				Dialog.message("recoveryCodeEmpty_msg")
 			} else if (selectedAction() === "password") {
 				const errorMessageId = passwordForm.getErrorMessageId()
 				if (errorMessageId) {
-					Dialog.error(errorMessageId)
+					Dialog.message(errorMessageId)
 				} else {
 					showProgressDialog("pleaseWait_msg",
 						locator.loginFacade.recoverLogin(
@@ -155,14 +155,14 @@ async function deleteCredentialsByMailAddress(cleanMailAddress) {
 
 function handleError(e: Error) {
 	if (e instanceof NotAuthenticatedError) {
-		Dialog.error("loginFailed_msg")
+		Dialog.message("loginFailed_msg")
 	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
-		Dialog.error("loginFailedOften_msg")
+		Dialog.message("loginFailedOften_msg")
 	} else if (e instanceof CancelledError) {
 		// Thrown when second factor dialog is cancelled
 		m.redraw()
 	} else if (e instanceof TooManyRequestsError) {
-		Dialog.error('tooManyAttempts_msg')
+		Dialog.message('tooManyAttempts_msg')
 	} else {
 		throw e
 	}

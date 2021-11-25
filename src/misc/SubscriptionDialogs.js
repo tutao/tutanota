@@ -21,7 +21,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean): voi
 		import("../subscription/UpgradeSubscriptionWizard"), import("../subscription/PriceUtils")
 	]).then(([wizard, priceUtils]) => {
 		if (isIOSApp()) {
-			Dialog.error("notAvailableInApp_msg")
+			Dialog.message("notAvailableInApp_msg")
 		} else {
 			let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
 				+ lang.get("premiumOffer_msg", {"{1}": priceUtils.formatPrice(1, true)})
@@ -58,7 +58,7 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 	}
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 		if (customer.canceledPremiumAccount) {
-			return Dialog.error("subscriptionCancelledMessage_msg").then(() => false)
+			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
 			return Promise.resolve(true)
 		}
@@ -106,7 +106,7 @@ export function showBusinessFeatureRequiredDialog(reason: TranslationKey | lazy<
 			             })
 
 		} else {
-			return Dialog.error(() => lang.getMaybeLazy(reason) + " " + lang.get("contactAdmin_msg"))
+			return Dialog.message(() => lang.getMaybeLazy(reason) + " " + lang.get("contactAdmin_msg"))
 			             .then(() => false)
 		}
 	}

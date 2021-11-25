@@ -268,7 +268,7 @@ export class MultiSearchViewer {
 						}
 					})
 				} else {
-					return Dialog.error("presharedPasswordsUnequal_msg")
+					return Dialog.message("presharedPasswordsUnequal_msg")
 				}
 			} else {
 				return Promise.resolve()

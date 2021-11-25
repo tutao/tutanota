@@ -43,7 +43,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		data.version = version
 		data.customerAddress = addressEditor.getValue()
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
-			Dialog.error("contractorInfo_msg")
+			Dialog.message("contractorInfo_msg")
 		} else {
 			serviceRequestVoid(SysService.SignOrderProcessingAgreementService, HttpMethod.POST, data)
 				.then(() => dialog.close())

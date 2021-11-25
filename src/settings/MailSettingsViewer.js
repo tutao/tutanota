@@ -227,7 +227,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", locator.indexerFacade.enableMailIndexing())
 						.catch(ofClass(IndexingNotSupportedError, () => {
-							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+							Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}))
 				} else {
 					showProgressDialog("pleaseWait_msg", locator.indexerFacade.disableMailIndexing("Disabled by user"))

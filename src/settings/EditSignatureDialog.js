@@ -74,7 +74,7 @@ export function show(props: TutanotaProperties) {
 					.catch(ofClass(PayloadTooLargeError, () => {
 						props.emailSignatureType = oldType
 						props.customEmailSignature = oldCustomValue
-						return Dialog.error("requestTooLarge_msg")
+						return Dialog.message("requestTooLarge_msg")
 					}))
 			}
 

@@ -112,7 +112,7 @@ function sendResponse(event: CalendarEvent, recipient: string, status: CalendarA
 			return getLatestEvent(event).then(latestEvent => {
 				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
 				if (ownAttendee == null) {
-					Dialog.error("attendeeNotFound_msg")
+					Dialog.message("attendeeNotFound_msg")
 					return
 				}
 				replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)

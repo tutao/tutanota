@@ -133,7 +133,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					}
 					m.redraw()
 				} else {
-					Dialog.error("whitelabelDomainNeeded_msg")
+					Dialog.message("whitelabelDomainNeeded_msg")
 				}
 			})
 		}

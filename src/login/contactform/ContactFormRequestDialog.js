@@ -137,7 +137,7 @@ export class ContactFormRequestDialog {
 						m.redraw()
 					}).catch(e => {
 						console.log(e)
-						return Dialog.error("couldNotAttachFile_msg")
+						return Dialog.message("couldNotAttachFile_msg")
 					})
 					ev.stopPropagation()
 					ev.preventDefault()
@@ -200,7 +200,7 @@ export class ContactFormRequestDialog {
 		this._attachments.push(...sizeCheckResult.attachableFiles)
 		this._updateAttachmentButtons()
 		if (sizeCheckResult.tooBigFiles.length > 0) {
-			Dialog.error(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
+			Dialog.message(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
 		}
 	}
 
@@ -235,11 +235,11 @@ export class ContactFormRequestDialog {
 		const {mailFacade, customerFacade} = locator
 		const passwordErrorId = this._passwordForm.getErrorMessageId()
 		if (passwordErrorId) {
-			Dialog.error(passwordErrorId)
+			Dialog.message(passwordErrorId)
 			return
 		}
 		if (getPrivacyStatementLink() && !this._privacyPolicyAccepted()) {
-			Dialog.error("acceptPrivacyPolicyReminder_msg")
+			Dialog.message("acceptPrivacyPolicyReminder_msg")
 			return
 		}
 
@@ -248,7 +248,7 @@ export class ContactFormRequestDialog {
 		if (passwordOk) {
 			const cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress);
 			if (this._notificationEmailAddress !== "" && !cleanedNotificationMailAddress) {
-				return Dialog.error("mailAddressInvalid_msg")
+				return Dialog.message("mailAddressInvalid_msg")
 			}
 			const password = this._passwordForm.getNewPassword()
 			const doSend = async () => {
@@ -300,7 +300,7 @@ export class ContactFormRequestDialog {
 			return showProgressDialog("sending_msg", doSend())
 				.then(result => {return showConfirmDialog(result.userEmailAddress)})
 				.then(() => this._close())
-				.catch(ofClass(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg")))
+				.catch(ofClass(AccessDeactivatedError, e => Dialog.message("contactFormSubmitError_msg")))
 		}
 	}
 }

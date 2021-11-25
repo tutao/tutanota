@@ -66,7 +66,7 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 		: getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
-		return Dialog.error("mailAddressInvalid_msg").then(() => false)
+		return Dialog.message("mailAddressInvalid_msg").then(() => false)
 	} else {
 		const messageFn = () => cleanedTakeover === ""
 			? lang.get("deleteAccountConfirm_msg")
@@ -75,9 +75,9 @@ function deleteAccount(reason: string, takeover: string, password: string): Prom
 		             .then(ok => {
 			             if (ok) {
 				             return locator.loginFacade.deleteAccount(password, reason, neverNull(cleanedTakeover)).then(() => true)
-				                          .catch(ofClass(PreconditionFailedError, () => Dialog.error("passwordWrongInvalid_msg").then(() => false)))
-				                          .catch(ofClass(InvalidDataError, () => Dialog.error("takeoverAccountInvalid_msg").then(() => false)))
-				                          .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg").then(() => false)))
+				                          .catch(ofClass(PreconditionFailedError, () => Dialog.message("passwordWrongInvalid_msg").then(() => false)))
+				                          .catch(ofClass(InvalidDataError, () => Dialog.message("takeoverAccountInvalid_msg").then(() => false)))
+				                          .catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg").then(() => false)))
 			             } else {
 				             return false
 			             }

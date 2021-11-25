@@ -159,7 +159,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 		           .getAsync()
 		           .then(members => {
 				           if (deactivate && members.length > 0) {
-					           Dialog.error("groupNotEmpty_msg")
+					           Dialog.message("groupNotEmpty_msg")
 				           } else {
 					           const bookingItemType = (this.groupInfo.groupType === GroupType.LocalAdmin)
 						           ? BookingItemFeatureType.LocalAdminGroup
@@ -173,11 +173,11 @@ export class GroupViewer implements UpdatableSettingsViewer {
 										                      locator.groupManagementFacade.deactivateGroup(group, !deactivate)
 										                             .catch(ofClass(PreconditionFailedError, e => {
 												                             if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-													                             Dialog.error("localAdminGroupAssignedError_msg")
+													                             Dialog.message("localAdminGroupAssignedError_msg")
 												                             } else if (!deactivate) {
-													                             Dialog.error("emailAddressInUse_msg")
+													                             Dialog.message("emailAddressInUse_msg")
 												                             } else {
-													                             Dialog.error("stillReferencedFromContactForm_msg")
+													                             Dialog.message("stillReferencedFromContactForm_msg")
 												                             }
 											                             }
 										                             )))
@@ -213,7 +213,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 			selectedValue: stream(this.groupInfo.localAdmin),
 			selectionChangedHandler: (id) => {
 				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-					Dialog.error("updateAdminshipLocalAdminGroupError_msg")
+					Dialog.message("updateAdminshipLocalAdminGroupError_msg")
 				} else {
 					showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 						let newAdminGroupId = id
@@ -383,7 +383,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
 									    this.groupInfo.group))
 						)
 							.catch(ofClass(NotAuthorizedError, e => {
-								Dialog.error("removeUserFromGroupNotAdministratedError_msg")
+								Dialog.message("removeUserFromGroupNotAdministratedError_msg")
 							}))
 					},
 					icon: () => Icons.Cancel,

@@ -41,7 +41,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 	const confirmAction = () => {
 		let error = invoiceDataInput.validateInvoiceData()
 		if (error) {
-			Dialog.error(error)
+			Dialog.message(error)
 		} else {
 			let p = Promise.resolve(false)
 			if (!currentlyBusinessOrdered) {
@@ -66,7 +66,7 @@ export function show(customer: Customer, invoiceData: InvoiceData, accountingInf
 								       }
 							       })
 							       .catch(ofClass(BadRequestError, e => {
-								       Dialog.error("paymentMethodNotAvailable_msg")
+								       Dialog.message("paymentMethodNotAvailable_msg")
 							       }))
 					       })
 				}))

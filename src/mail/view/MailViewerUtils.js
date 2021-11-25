@@ -19,7 +19,7 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 			}
 		}
 		if (tooBig.length > 0) {
-			Dialog.error(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
+			Dialog.message(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
 		}
 	})
 }

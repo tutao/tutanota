@@ -24,7 +24,7 @@ export const CSV_USER_FORMAT = "username;user@domain.com;password"
 export function checkAndImportUserData(userDetailsInputCsv: string, availableDomains: string[]): boolean {
 	let userData = csvToUserDetails(userDetailsInputCsv)
 	if (!userData) {
-		Dialog.error(() => lang.get("wrongUserCsvFormat_msg", {
+		Dialog.message(() => lang.get("wrongUserCsvFormat_msg", {
 			"{format}": CSV_USER_FORMAT
 		}))
 		return false
@@ -36,7 +36,7 @@ export function checkAndImportUserData(userDetailsInputCsv: string, availableDom
 			}
 			return true
 		} else {
-			Dialog.error(() => errorMessage)
+			Dialog.message(() => errorMessage)
 			return false
 		}
 	}
@@ -132,15 +132,15 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 					}
 				})
 			}))
-				.catch(ofClass(PreconditionFailedError, () => Dialog.error("createUserFailed_msg")))
+				.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
 				.then(() => {
 					let p = Promise.resolve()
 					if (notAvailableUsers.length > 0) {
-						p = Dialog.error(() => lang.get("addressesAlreadyInUse_msg") + " "
+						p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " "
 							+ notAvailableUsers.map(u => u.mailAddress).join(", "))
 					}
 					p.then(() => {
-						Dialog.error(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
+						Dialog.message(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
 					})
 				})
 		}

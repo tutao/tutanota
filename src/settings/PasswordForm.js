@@ -134,20 +134,20 @@ export class PasswordForm {
 		let changeOwnPasswordOkAction = (dialog) => {
 			let error = form.getErrorMessageId();
 			if (error) {
-				Dialog.error(error)
+				Dialog.message(error)
 			} else {
 				showProgressDialog("pleaseWait_msg",
 					locator.loginFacade.changePassword(form.getOldPassword(), form.getNewPassword()))
 					.then(() => {
 						locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
-						Dialog.error("pwChangeValid_msg")
+						Dialog.message("pwChangeValid_msg")
 						dialog.close()
 					})
 					.catch(ofClass(NotAuthenticatedError, e => {
-						Dialog.error("oldPasswordInvalid_msg")
+						Dialog.message("oldPasswordInvalid_msg")
 					}))
 					.catch(e => {
-						Dialog.error("passwordResetFailed_msg")
+						Dialog.message("passwordResetFailed_msg")
 					})
 			}
 		}
@@ -167,10 +167,10 @@ export class PasswordForm {
 		let form = new PasswordForm(false, false, true)
 		let changeUserPasswordAsAdminOkAction = (dialog) => {
 			let p = locator.userManagementFacade.changeUserPassword(user, form.getNewPassword()).then(() => {
-				Dialog.error("pwChangeValid_msg")
+				Dialog.message("pwChangeValid_msg")
 				dialog.close()
 			}).catch(e => {
-				Dialog.error("passwordResetFailed_msg")
+				Dialog.message("passwordResetFailed_msg")
 			})
 			showProgressDialog("pleaseWait_msg", p)
 		}

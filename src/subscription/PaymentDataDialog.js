@@ -70,7 +70,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
 			if (error) {
-				Dialog.error(error)
+				Dialog.message(error)
 			} else {
 				const finish = success => {
 					if (success) {

@@ -72,7 +72,7 @@ export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
 		const errorMsg = validateDomain(this.data.domain())
 		if (errorMsg) {
-			return showErrorDialog ? Dialog.error(errorMsg).then(() => false) : Promise.resolve(false)
+			return showErrorDialog ? Dialog.message(errorMsg).then(() => false) : Promise.resolve(false)
 		} else {
 			return Promise.resolve(true)
 		}

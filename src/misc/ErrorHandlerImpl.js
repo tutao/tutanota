@@ -79,12 +79,12 @@ export function handleUncaughtError(e: Error) {
 			var checkForMaintenance = function () {
 				var img = document.createElement("img")
 				img.onload = function () {
-					Dialog.error("serverDownForMaintenance_msg").then(() => {
+					Dialog.message("serverDownForMaintenance_msg").then(() => {
 						notConnectedDialogActive = false
 					})
 				}
 				img.onerror = function () {
-					Dialog.error("serverNotReachable_msg").then(() => {
+					Dialog.message("serverNotReachable_msg").then(() => {
 						notConnectedDialogActive = false
 					})
 				}
@@ -95,7 +95,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		if (!invalidSoftwareVersionActive) {
 			invalidSoftwareVersionActive = true
-			Dialog.error("outdatedClient_msg").then(() => invalidSoftwareVersionActive = false)
+			Dialog.message("outdatedClient_msg").then(() => invalidSoftwareVersionActive = false)
 		}
 	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError
 		|| e instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
@@ -131,18 +131,18 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof SecondFactorPendingError) {
 		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges, e.data.mailAddress)
 	} else if (e instanceof OutOfSyncError) {
-		Dialog.error("dataExpired_msg")
+		Dialog.message("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")
 		} else {
 			const errorMessage = () => lang.get("insufficientStorageUser_msg") + " " + lang.get("contactAdmin_msg")
-			Dialog.error(errorMessage)
+			Dialog.message(errorMessage)
 		}
 	} else if (e instanceof ServiceUnavailableError) {
 		if (!serviceUnavailableDialogActive) {
 			serviceUnavailableDialogActive = true;
-			Dialog.error("serviceUnavailable_msg").then(() => {
+			Dialog.message("serviceUnavailable_msg").then(() => {
 				serviceUnavailableDialogActive = false;
 			})
 		}
@@ -152,7 +152,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true
-			Dialog.error("storageQuotaExceeded_msg")
+			Dialog.message("storageQuotaExceeded_msg")
 		}
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
@@ -356,7 +356,7 @@ function showErrorDialogNotLoggedIn(e) {
 			m(".plr.selectable.pb.scroll.text-pre", {style: {height: px(200)}}, message)
 		])
 	]
-	Dialog.error("unknownError_msg", info).then(() => {
+	Dialog.message("unknownError_msg", info).then(() => {
 		unknownErrorDialogActive = false
 	})
 }
@@ -387,5 +387,5 @@ if (typeof window !== "undefined") {
 
 
 export function showUserError(error: UserError): Promise<void> {
-	return Dialog.error(() => error.message)
+	return Dialog.message(() => error.message)
 }

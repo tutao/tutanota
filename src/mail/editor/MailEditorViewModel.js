@@ -57,10 +57,10 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 
 	return fileSelector
 		.catch(ofClass(PermissionError, () => {
-			Dialog.error("fileAccessDeniedMobile_msg")
+			Dialog.message("fileAccessDeniedMobile_msg")
 		}))
 		.catch(ofClass(FileNotFoundError, () => {
-			Dialog.error("couldNotAttachFile_msg")
+			Dialog.message("couldNotAttachFile_msg")
 		}))
 }
 
@@ -131,11 +131,11 @@ function _downloadAttachment(attachment: Attachment) {
 		promise
 			.catch(e => {
 				if (e instanceof FileOpenError) {
-					return Dialog.error("canNotOpenFileOnDevice_msg")
+					return Dialog.message("canNotOpenFileOnDevice_msg")
 				} else {
 					const msg = e || "unknown error"
 					console.error("could not open file:", msg)
-					return Dialog.error("errorDuringFileOpen_msg")
+					return Dialog.message("errorDuringFileOpen_msg")
 				}
 			})
 	}
@@ -249,7 +249,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 					// we are offline but we want to show the error dialog only when we click on send.
 				}))
 				.catch(ofClass(TooManyRequestsError, e => {
-					Dialog.error("tooManyAttempts_msg")
+					Dialog.message("tooManyAttempts_msg")
 				}))
 		}
 

@@ -371,7 +371,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			})
 			.then(errorId => {
 				if (errorId) {
-					return Dialog.error(errorId)
+					return Dialog.message(errorId)
 				}
 			})
 			.finally(() => this._paymentBusy = false)

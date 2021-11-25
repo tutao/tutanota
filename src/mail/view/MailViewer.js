@@ -583,13 +583,13 @@ export class MailViewer {
 				}
 			})).then(success => {
 				if (success) {
-					return Dialog.error("unsubscribeSuccessful_msg")
+					return Dialog.message("unsubscribeSuccessful_msg")
 				}
 			}).catch(e => {
 				if (e instanceof LockedError) {
-					return Dialog.error("operationStillActive_msg")
+					return Dialog.message("operationStillActive_msg")
 				} else {
-					return Dialog.error("unsubscribeFailed_msg")
+					return Dialog.message("unsubscribeFailed_msg")
 				}
 			})
 		}
@@ -782,7 +782,7 @@ export class MailViewer {
 				    // do not report moved mails again
 				    return moveMails(this._mailModel, [this.mail], spamFolder, false)
 			    })
-			    .catch(ofClass(LockedError, () => Dialog.error("operationStillActive_msg")))
+			    .catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			    .catch(ofClass(NotFoundError, () => console.log("mail already moved")))
 			    .then(m.redraw)
 		}
@@ -1583,12 +1583,12 @@ export class MailViewer {
 		fileController.downloadAndOpen(file, open)
 		              .catch(ofClass(FileOpenError, (e) => {
 			              console.warn("FileOpenError", e)
-			              Dialog.error("canNotOpenFileOnDevice_msg")
+			              Dialog.message("canNotOpenFileOnDevice_msg")
 		              }))
 		              .catch(e => {
 			              const msg = e || "unknown error"
 			              console.error("could not open file:", msg)
-			              return Dialog.error("errorDuringFileOpen_msg")
+			              return Dialog.message("errorDuringFileOpen_msg")
 		              })
 	}
 

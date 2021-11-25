@@ -63,7 +63,7 @@ export class KnowledgeBaseDialogContent implements MComponent<KnowledgebaseDialo
 				onTemplateSelected: (templateId) => {
 					model.loadTemplate(templateId).then((fetchedTemplate) => {
 						attrs.onTemplateSelect(fetchedTemplate)
-					}).catch(ofClass(NotFoundError, () => Dialog.error("templateNotExists_msg")))
+					}).catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
 				},
 				readonly: model.isReadOnly(selectedEntry)
 			})

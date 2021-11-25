@@ -185,7 +185,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 			}
 		})
 		return showProgressDialog("pleaseWait_msg", checkMailAddresses).then((nextAllowed) => {
-			if (showErrorDialog && !nextAllowed) Dialog.error("enforceAliasSetup_msg")
+			if (showErrorDialog && !nextAllowed) Dialog.message("enforceAliasSetup_msg")
 			return nextAllowed
 		})
 	}
@@ -200,7 +200,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	addAliasFromInput(): Promise<boolean> {
 		const error = this.errorMessageId
 		if (error) {
-			return Dialog.error(error).then(() => false)
+			return Dialog.message(error).then(() => false)
 		} else {
 			return showProgressDialog("pleaseWait_msg", locator
 				.mailAddressFacade
@@ -208,8 +208,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				.then(() => {
 					return true
 				})
-				.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false)))
-				.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false)))
+				.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg").then(() => false)))
+				.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg").then(() => false)))
 				.finally((result) => updateNbrOfAliases(this.data.editAliasFormAttrs).then(() => result))
 		}
 	}

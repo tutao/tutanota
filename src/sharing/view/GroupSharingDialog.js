@@ -238,7 +238,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 		okAction: () => {
 			invitePeopleValueTextField.createBubbles()
 			if (invitePeopleValueTextField.bubbles.length === 0) {
-				return Dialog.error("noRecipients_msg")
+				return Dialog.message("noRecipients_msg")
 
 			} else {
 				const recipients = invitePeopleValueTextField.bubbles.map(b => b.entity)
@@ -262,11 +262,11 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 												import("../../subscription/BuyDialog")
 													.then((BuyDialog) => BuyDialog.showSharingBuyDialog(true)))
 									} else {
-										Dialog.error(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)
+										Dialog.message(() => `${texts.sharingNotOrderedUser} ${lang.get("contactAdmin_msg")}`)
 									}
 								}))
 								.catch(ofClass(UserError, showUserError))
-								.catch(ofClass(TooManyRequestsError, e => Dialog.error("tooManyAttempts_msg")))
+								.catch(ofClass(TooManyRequestsError, e => Dialog.message("tooManyAttempts_msg")))
 						}
 					})
 			}

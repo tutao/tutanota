@@ -177,7 +177,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					      })
 					      .then(() => this._postLogin())
 					      .catch(ofClass(NotAuthorizedError, e => {
-						      Dialog.error("savedCredentialsError_msg")
+						      Dialog.message("savedCredentialsError_msg")
 					      }))
 				)
 
@@ -223,7 +223,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 					      })
 					      .catch(e => {
 						      // TODO when would login fail here and how does it get handled? can we attempt to login again?
-						      Dialog.error("giftCardLoginError_msg")
+						      Dialog.message("giftCardLoginError_msg")
 						      m.route.set("/login", {noAutoLogin: true})
 					      })
 				}
@@ -285,7 +285,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 			label: "redeem_label",
 			click: () => {
 				if (!this.isConfirmed()) {
-					Dialog.error("termsAcceptedNeutral_msg")
+					Dialog.message("termsAcceptedNeutral_msg")
 					return
 				}
 				redeemGiftCard(data.giftCardInfo.giftCard, data.key, data.giftCardInfo.country, Dialog.confirm)

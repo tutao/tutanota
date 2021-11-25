@@ -107,7 +107,7 @@ export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
 				const addEmailAliasOkAction = (dialog) => {
 					if (isVerificationBusy) return
 					if (formErrorId) {
-						Dialog.error(formErrorId)
+						Dialog.message(formErrorId)
 						return
 					}
 
@@ -196,7 +196,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 		if (confirmed) {
 			let p = locator.mailAddressFacade.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
 			              .catch(ofClass(LimitReachedError, e => {
-				              Dialog.error("adminMaxNbrOfAliasesReached_msg")
+				              Dialog.message("adminMaxNbrOfAliasesReached_msg")
 			              }))
 			              .finally(() => updateNbrOfAliases(editAliasAttrs))
 			showProgressDialog("pleaseWait_msg", p)
@@ -207,14 +207,14 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 
 export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", locator.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
-		.catch(ofClass(InvalidDataError, () => Dialog.error("mailAddressNA_msg")))
-		.catch(ofClass(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg")))
+		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
+		.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg")))
 		.catch(ofClass(PreconditionFailedError, e => {
 			let errorMsg = e.toString()
 			if (e.data === FAILURE_USER_DISABLED) {
 				errorMsg = lang.get("addAliasUserDisabled_msg")
 			}
-			return Dialog.error(() => errorMsg)
+			return Dialog.message(() => errorMsg)
 		}))
 		.finally(() => updateNbrOfAliases(aliasFormAttrs))
 }

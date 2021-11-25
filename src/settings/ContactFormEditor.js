@@ -206,7 +206,7 @@ export class ContactFormEditor {
 
 	_save() {
 		if (!PATH_PATTERN.test(this._path)) {
-			Dialog.error("pleaseEnterValidPath_msg")
+			Dialog.message("pleaseEnterValidPath_msg")
 		} else {
 			// check that the path is unique
 			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -214,7 +214,7 @@ export class ContactFormEditor {
 						return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
 							const receivingMailbox = this._receivingMailbox()
 							if (!receivingMailbox) {
-								return Dialog.error("noReceivingMailbox_label")
+								return Dialog.message("noReceivingMailbox_label")
 							}
 							let contactFormsListId = root.contactForms
 							let customElementIdFromPath = stringToCustomId(this._path)
@@ -228,7 +228,7 @@ export class ContactFormEditor {
 							}
 							return samePathFormCheck.then(samePathForm => {
 								if (samePathForm) {
-									return Dialog.error("pathAlreadyExists_msg")
+									return Dialog.message("pathAlreadyExists_msg")
 								} else {
 									// check if the target mail group is already referenced by a different contact form
 									return load(GroupTypeRef, receivingMailbox.group).then(group => {
@@ -245,7 +245,7 @@ export class ContactFormEditor {
 											let contactFormIdToCheck = (this._createNew) ? contactFormIdFromPath : this._contactForm._id
 											if (mailboxGroupRoot.targetMailGroupContactForm
 												&& !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
-												return Dialog.error("receivingMailboxAlreadyUsed_msg")
+												return Dialog.message("receivingMailboxAlreadyUsed_msg")
 											} else {
 												this._contactForm._ownerGroup =
 													neverNull(logins.getUserController().user.memberships
@@ -449,7 +449,7 @@ export async function show(c: ?ContactForm, createNew: boolean, newContactFormId
 				editor.dialog.show()
 			}))
 	} else {
-		Dialog.error("whitelabelDomainNeeded_msg")
+		Dialog.message("whitelabelDomainNeeded_msg")
 	}
 }
 

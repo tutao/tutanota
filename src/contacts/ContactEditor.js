@@ -200,7 +200,7 @@ export class ContactEditor {
 
 	save() {
 		if (this.invalidBirthday) {
-			Dialog.error("invalidBirthday_msg")
+			Dialog.message("invalidBirthday_msg")
 			return
 		}
 
@@ -229,7 +229,7 @@ export class ContactEditor {
 
 		promise.then(() => this._close())
 		       .catch(ofClass(PayloadTooLargeError, () => {
-			       Dialog.error("requestTooLarge_msg")
+			       Dialog.message("requestTooLarge_msg")
 		       }))
 	}
 

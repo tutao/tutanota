@@ -175,7 +175,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		},
 		okAction: (dialog) => {
 			if (!editor.getValue().includes("{link}")) {
-				return Dialog.error(() => lang.get("templateMustContain_msg", {"{value}": "{link}"}))
+				return Dialog.message(() => lang.get("templateMustContain_msg", {"{value}": "{link}"}))
 			}
 
 			let templates
@@ -205,7 +205,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 
 			}))
 				.catch(ofClass(UserError, err => {
-					return Dialog.error(() => err.message)
+					return Dialog.message(() => err.message)
 				}))
 				.catch(ofClass(PayloadTooLargeError, () => {
 					template.subject = oldSubject
@@ -214,7 +214,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 					if (!isExistingTemplate) {
 						templates.pop()
 					}
-					return Dialog.error("notificationMailTemplateTooLarge_msg")
+					return Dialog.message("notificationMailTemplateTooLarge_msg")
 				}))
 		}
 	})

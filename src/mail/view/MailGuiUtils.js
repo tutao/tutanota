@@ -52,7 +52,7 @@ export function promptAndDeleteMails(mailModel: MailModel, mails: $ReadOnlyArray
 			                .catch((e) => {
 				                //LockedError should no longer be thrown!?!
 				                if (e instanceof PreconditionFailedError || e instanceof LockedError) {
-					                return Dialog.error("operationStillActive_msg").then(() => false)
+					                return Dialog.message("operationStillActive_msg").then(() => false)
 				                } else {
 					                throw e
 				                }
@@ -84,7 +84,7 @@ export function moveMails(mailModel: MailModel, mails: $ReadOnlyArray<Mail>, tar
 	                .catch((e) => {
 		                //LockedError should no longer be thrown!?!
 		                if (e instanceof LockedError || e instanceof PreconditionFailedError) {
-			                return Dialog.error("operationStillActive_msg").then(() => false)
+			                return Dialog.message("operationStillActive_msg").then(() => false)
 		                } else {
 			                throw e
 		                }
