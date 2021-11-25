@@ -1038,6 +1038,7 @@ export default {
 		"privateKey_label": "Privater Schlüssel",
 		"private_label": "Privat",
 		"progressDeleting_msg": "Löschen ...",
+		"promotion.ctAdventCalendarDiscount_msg": "c't Adventskalender: Nutzen Sie Tutanota 12 Monate kostenlos",
 		"promotion.npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 20 Aliasse kostenfrei!",
 		"promotion.npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
 		"promotion.tresoritDiscount_msg": "Exklusives Angebot von Tutanota + Tresorit: 5 Monate Rabatt im ersten Jahr!",
