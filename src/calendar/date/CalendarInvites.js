@@ -109,7 +109,7 @@ export function replyToEventInvitation(
 			const sendMailModel = new SendMailModel(locator.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-				.catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
+				.catch(ofClass(UserError, (e) => Dialog.message(() => e.message)))
 				.then(() => {
 					if (calendar) {
 						// if the owner group is set there is an existing event already so just update

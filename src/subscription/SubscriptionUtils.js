@@ -373,15 +373,15 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number
 			// error handling for cancelling a feature.
 			switch (error.data) {
 				case BookingFailureReason.BALANCE_INSUFFICIENT:
-					return Dialog.error("insufficientBalanceError_msg").then(() => true)
+					return Dialog.message("insufficientBalanceError_msg").then(() => true)
 				case BookingFailureReason.TOO_MANY_DOMAINS:
-					return Dialog.error("tooManyCustomDomains_msg").then(() => true)
+					return Dialog.message("tooManyCustomDomains_msg").then(() => true)
 				case BookingFailureReason.BUSINESS_USE:
-					return Dialog.error("featureRequiredForBusinessUse_msg").then(() => true)
+					return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
 				case BookingFailureReason.HAS_TEMPLATE_GROUP:
-					return Dialog.error("deleteTemplateGroups_msg").then(() => true)
+					return Dialog.message("deleteTemplateGroups_msg").then(() => true)
 				default:
-					return Dialog.error(getBookingItemErrorMsg(featureType)).then(() => true)
+					return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
 			}
 		}))
 }

@@ -142,7 +142,7 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 						.catch(ofClass(PreconditionFailedError, (e) => {
 							const reason = e.data
 							if (reason == null) {
-								return Dialog.error("unknownError_msg")
+								return Dialog.message("unknownError_msg")
 							} else {
 								let detailMsg;
 								switch (reason) {
@@ -171,11 +171,11 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 										}
 										break
 								}
-								return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
+								return Dialog.message(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
 							}
 						}))
-						.catch(ofClass(InvalidDataError, () => Dialog.error("accountSwitchTooManyActiveUsers_msg")))
-						.catch(ofClass(BadRequestError, () => Dialog.error("deactivatePremiumWithCustomDomainError_msg")))
+						.catch(ofClass(InvalidDataError, () => Dialog.message("accountSwitchTooManyActiveUsers_msg")))
+						.catch(ofClass(BadRequestError, () => Dialog.message("deactivatePremiumWithCustomDomainError_msg")))
 				})).finally(() => dialog.close())
 	})
 }

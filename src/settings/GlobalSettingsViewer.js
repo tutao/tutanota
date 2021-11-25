@@ -529,12 +529,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					                                                                   .whitelabelRegistrationDomains
 					                                                                   .map(domainWrapper => domainWrapper.value) : []
 					             if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-						             Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+						             Dialog.message(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 					             } else {
-						             Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+						             Dialog.message(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
 					             }
 				             }))
-				             .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+				             .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 			      }
 		      })
 	}

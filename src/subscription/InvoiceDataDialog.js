@@ -17,14 +17,14 @@ export function show(businessUse: boolean, invoiceData: InvoiceData, accountingI
 	const confirmAction = () => {
 		let error = invoiceDataInput.validateInvoiceData()
 		if (error) {
-			Dialog.error(error)
+			Dialog.message(error)
 		} else {
 			updatePaymentData(Number(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo).then(success => {
 				if (success) {
 					dialog.close()
 				}
 			}).catch(ofClass(BadRequestError, e => {
-				Dialog.error("paymentMethodNotAvailable_msg")
+				Dialog.message("paymentMethodNotAvailable_msg")
 			}))
 		}
 	}

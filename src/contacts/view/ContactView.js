@@ -274,19 +274,19 @@ export class ContactView implements CurrentView {
 							.contactListId()
 							.then(contactListId => locator.entityClient.setupMultipleEntities(contactListId, contactList).then(() => {
 								// actually a success message
-								Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
+								Dialog.message(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 							}))
 					}))
 				}
 			} catch (e) {
 				console.log(e)
 				if (e instanceof SetupMultipleError) {
-					Dialog.error(() => lang.get("importContactsError_msg", {
+					Dialog.message(() => lang.get("importContactsError_msg", {
 						"{amount}": e.failedInstances.length + "",
 						"{total}": numberOfContacts + ""
 					}))
 				} else {
-					Dialog.error("importVCardError_msg")
+					Dialog.message("importVCardError_msg")
 				}
 			}
 		})
@@ -297,7 +297,7 @@ export class ContactView implements CurrentView {
 			return contactListId ? loadAll(ContactTypeRef, contactListId) : []
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
-				Dialog.error("noContacts_msg")
+				Dialog.message("noContacts_msg")
 			} else {
 				let mergeableAndDuplicates = getMergeableContacts(allContacts)
 				let deletePromise = Promise.resolve()
@@ -315,11 +315,11 @@ export class ContactView implements CurrentView {
 				}
 				deletePromise.then(() => {
 					if (mergeableAndDuplicates.mergeable.length === 0) {
-						Dialog.error(() => lang.get("noSimilarContacts_msg"))
+						Dialog.message(() => lang.get("noSimilarContacts_msg"))
 					} else {
 						this._showMergeDialogs(mergeableAndDuplicates.mergeable).then(canceled => {
 							if (!canceled) {
-								Dialog.error(() => lang.get("noMoreSimilarContacts_msg"))
+								Dialog.message(() => lang.get("noMoreSimilarContacts_msg"))
 							}
 						})
 					}
@@ -458,7 +458,7 @@ export class ContactView implements CurrentView {
 					}
 				})
 			} else {
-				return Dialog.error("presharedPasswordsUnequal_msg")
+				return Dialog.message("presharedPasswordsUnequal_msg")
 			}
 		} else {
 			return Promise.resolve()
@@ -561,7 +561,7 @@ export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 		})
 	).then(nbrOfContacts => {
 		if (nbrOfContacts === 0) {
-			Dialog.error("noContacts_msg")
+			Dialog.message("noContacts_msg")
 		}
 	})
 }

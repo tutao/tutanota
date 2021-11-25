@@ -66,10 +66,10 @@ export function show(): Promise<void> {
 
 				const passwordFormError = passwordForm.getErrorMessageId()
 				if (errorMsg) {
-					Dialog.error(errorMsg)
+					Dialog.message(errorMsg)
 					return
 				} else if (passwordFormError) {
-					Dialog.error(passwordFormError)
+					Dialog.message(passwordFormError)
 					return
 				}
 
@@ -81,7 +81,7 @@ export function show(): Promise<void> {
 								"{index}": 0,
 								"{count}": 1
 							}), p)
-								.catch(ofClass(PreconditionFailedError, e => Dialog.error("createUserFailed_msg")))
+								.catch(ofClass(PreconditionFailedError, e => Dialog.message("createUserFailed_msg")))
 								.then(dialog.close())
 						}
 					})

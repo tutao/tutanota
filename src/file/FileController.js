@@ -55,10 +55,10 @@ export class FileController {
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
 			.catch(ofClass(CryptoError, e => {
 				console.log(e)
-				return Dialog.error("corrupted_msg")
+				return Dialog.message("corrupted_msg")
 			})).catch(ofClass(ConnectionError, e => {
 				console.log(e)
-				return Dialog.error("couldNotAttachFile_msg")
+				return Dialog.message("couldNotAttachFile_msg")
 			}))
 	}
 
@@ -66,7 +66,7 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).then(() => null)
+		const showErr = (msg, name) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
 		const fileFacade = locator.fileFacade
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
@@ -129,7 +129,7 @@ export class FileController {
 					resolve(dataFiles)
 				}).catch(e => {
 					console.log(e)
-					return Dialog.error("couldNotAttachFile_msg").then(() => {
+					return Dialog.message("couldNotAttachFile_msg").then(() => {
 						resolve([])
 					})
 				})
@@ -193,7 +193,7 @@ export class FileController {
 				return Promise.resolve()
 			} catch (e) {
 				console.log(e)
-				return Dialog.error("saveDownloadNotPossibleIe_msg")
+				return Dialog.message("saveDownloadNotPossibleIe_msg")
 			}
 		} else {
 			try {
@@ -230,7 +230,7 @@ export class FileController {
 				return Promise.resolve()
 			} catch (e) {
 				console.log(e)
-				return Dialog.error("canNotOpenFileOnDevice_msg")
+				return Dialog.message("canNotOpenFileOnDevice_msg")
 			}
 		}
 	}
@@ -245,7 +245,7 @@ export class FileController {
 				console.log("saveBlob cancelled")
 			} else {
 				console.warn("openDataFile failed", e)
-				Dialog.error("canNotOpenFileOnDevice_msg")
+				Dialog.message("canNotOpenFileOnDevice_msg")
 			}
 		}
 	}

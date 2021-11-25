@@ -163,7 +163,7 @@ export class MailListView implements MComponent<void> {
 			       } else {
 				       import("../../native/common/NativeWrapper")
 					       .then(({nativeApp}) => nativeApp.invokeNative(new Request("focusApplicationWindow", []))
-					                                       .then(() => Dialog.error("unsuccessfulDrop_msg")))
+					                                       .then(() => Dialog.message("unsuccessfulDrop_msg")))
 			       }
 			       neverNull(document.body).style.cursor = "default"
 		       })

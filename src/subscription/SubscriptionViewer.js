@@ -739,7 +739,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 									giftCard.message = message()
 									locator.entityClient.update(giftCard)
 									       .then(() => dialog.close())
-									       .catch(() => Dialog.error("giftCardUpdateError_msg"))
+									       .catch(() => Dialog.message("giftCardUpdateError_msg"))
 									showGiftCardToShare(giftCard)
 								},
 								okActionTextId: "save_action",

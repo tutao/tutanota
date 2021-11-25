@@ -29,7 +29,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	} catch (e) {
 		if (e instanceof ParserError) {
 			console.log("Failed to parse file", e)
-			return Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
+			return Dialog.message(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
 		} else {
 			throw e
 		}
@@ -87,7 +87,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 			}
 		}
 		return locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation)
-		              .catch(ofClass(ImportError, e => Dialog.error(() => lang.get("importEventsError_msg", {
+		              .catch(ofClass(ImportError, e => Dialog.message(() => lang.get("importEventsError_msg", {
 			              "{amount}": e.numFailed + "",
 			              "{total}": eventsForCreation.length + ""
 		              }))))

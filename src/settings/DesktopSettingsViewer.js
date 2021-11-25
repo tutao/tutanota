@@ -147,7 +147,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 						this._isIntegrated(v)
 						m.redraw()
 					})
-					.catch(e => Dialog.error("unknownError_msg", e.message))
+					.catch(e => Dialog.message("unknownError_msg", e.message))
 			}
 		}
 

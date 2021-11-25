@@ -52,9 +52,9 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 			const cleanMailAddress = mailAddress.trim().toLowerCase()
 			const cleanRecoveryCode = editor.getValue().replace(/\s/g, '').toLowerCase()
 			if (!isMailAddress(cleanMailAddress, true)) {
-				Dialog.error("mailAddressInvalid_msg")
+				Dialog.message("mailAddressInvalid_msg")
 			} else if (!isMailAddress(cleanTargetAccountAddress, true)) {
-				Dialog.error("mailAddressInvalid_msg")
+				Dialog.message("mailAddressInvalid_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg",
 					locator.loginFacade.takeOverDeletedAddress(
@@ -63,7 +63,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 						cleanRecoveryCode,
 						cleanTargetAccountAddress,
 					))
-					.then(() => Dialog.error("takeoverSuccess_msg"))
+					.then(() => Dialog.message("takeoverSuccess_msg"))
 					.then(() => {
 						takeoverDialog.close()
 						m.route.set("/login", {loginWith: cleanTargetAccountAddress, noAutoLogin: true})
@@ -77,13 +77,13 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 
 function handleError(e: Error) {
 	if (e instanceof NotAuthenticatedError) {
-		Dialog.error("loginFailed_msg")
+		Dialog.message("loginFailed_msg")
 	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
-		Dialog.error("loginFailedOften_msg")
+		Dialog.message("loginFailedOften_msg")
 	} else if (e instanceof InvalidDataError) {
-		Dialog.error("takeoverAccountInvalid_msg")
+		Dialog.message("takeoverAccountInvalid_msg")
 	} else if (e instanceof TooManyRequestsError) {
-		Dialog.error('tooManyAttempts_msg')
+		Dialog.message('tooManyAttempts_msg')
 	} else {
 		throw e
 	}

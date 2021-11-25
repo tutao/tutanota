@@ -131,14 +131,14 @@ export function show(): mixed {
 	AddUserDialog.getAvailableDomains().then((availableDomains) => {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 
-		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.error("selectionNotAvailable_msg")
+		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 
 		let addGroupOkAction = (dialog) => {
 			if (viewModel.isVerifactionBusy) return
 
 			const errorId = viewModel.validateAddGroupInput()
 			if (errorId) {
-				Dialog.error(errorId)
+				Dialog.message(errorId)
 				return
 			}
 
@@ -202,7 +202,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			       if (e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED) {
 				       showBusinessFeatureRequiredDialog("businessFeatureRequiredGeneral_msg")
 			       } else {
-				       Dialog.error(() => e.message)
+				       Dialog.message(() => e.message)
 			       }
 			       return false
 		       })))

@@ -438,7 +438,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 						this.search()
 						this.focus()
 					}).catch(ofClass(IndexingNotSupportedError, () => {
-						Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+						Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					}))
 				}
 			}).finally(
@@ -665,7 +665,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 
 	focus() {
 		if (!locator.search.indexingSupported) {
-			Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.expanded) {
 			this.focused = true
 			this.expanded = true

@@ -128,7 +128,7 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 						.substring(files[0].name.lastIndexOf(".") + 1)
 
 					if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
-						Dialog.error("customLogoInfo_msg")
+						Dialog.message("customLogoInfo_msg")
 					} else {
 						let imageData = null
 						if (extension === "svg") {

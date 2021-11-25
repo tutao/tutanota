@@ -90,11 +90,11 @@ export class UserViewer {
 			{name: lang.get("yes_label"), value: true}
 		], stream(isAdmin)).setSelectionChangedHandler(makeAdmin => {
 			if (this.userGroupInfo.deleted) {
-				Dialog.error("userAccountDeactivated_msg")
+				Dialog.message("userAccountDeactivated_msg")
 			} else if (this._isItMe()) {
-				Dialog.error("removeOwnAdminFlagInfo_msg")
+				Dialog.message("removeOwnAdminFlagInfo_msg")
 			} else if (this.userGroupInfo.localAdmin != null) {
-				Dialog.error("assignAdminRightsToLocallyAdministratedUserError_msg")
+				Dialog.message("assignAdminRightsToLocallyAdministratedUserError_msg")
 			} else {
 				showProgressDialog("pleaseWait_msg", this._user.getAsync()
 				                                         .then(user => locator.userManagementFacade.changeAdminFlag(user, makeAdmin)))
@@ -106,7 +106,7 @@ export class UserViewer {
 			{name: lang.get("deactivated_label"), value: true}
 		], stream(this.userGroupInfo.deleted != null)).setSelectionChangedHandler(deactivate => {
 			if (this._adminStatusSelector.selectedValue()) {
-				Dialog.error("deactivateOwnAccountInfo_msg")
+				Dialog.message("deactivateOwnAccountInfo_msg")
 			} else {
 				this._deleteUser(!deactivate)
 			}
@@ -136,11 +136,11 @@ export class UserViewer {
 				this._administratedBy = new DropDownSelector("administratedBy_label", null, adminGroupIdToName, stream(this.userGroupInfo.localAdmin)).setSelectionChangedHandler(localAdminId => {
 					return this._user.getAsync().then(user => {
 						if (this.userGroupInfo.deleted) {
-							Dialog.error("userAccountDeactivated_msg")
+							Dialog.message("userAccountDeactivated_msg")
 						} else if (this._isItMe()) {
-							Dialog.error("updateOwnAdminship_msg")
+							Dialog.message("updateOwnAdminship_msg")
 						} else if (this._isAdmin(user)) {
-							Dialog.error("updateAdminshipGlobalAdmin_msg")
+							Dialog.message("updateAdminshipGlobalAdmin_msg")
 						} else {
 							showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
 								let newAdminGroupId = localAdminId ? localAdminId : neverNull(logins.getUserController()
@@ -270,7 +270,7 @@ export class UserViewer {
 		if (this._isItMe()) {
 			PasswordForm.showChangeOwnPasswordDialog()
 		} else if (this._adminStatusSelector.selectedValue()) {
-			Dialog.error("changeAdminPassword_msg")
+			Dialog.message("changeAdminPassword_msg")
 		} else {
 			this._user.getAsync().then(user => {
 				PasswordForm.showChangeUserPasswordAsAdminDialog(user)
@@ -288,7 +288,7 @@ export class UserViewer {
 							removeButton = new Button("remove_action", () => {
 								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group))
 									.catch(ofClass(NotAuthorizedError, e => {
-										Dialog.error("removeUserFromGroupNotAdministratedUserError_msg")
+										Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
 									}))
 							}, () => Icons.Cancel)
 							return new TableLine([
@@ -341,7 +341,7 @@ export class UserViewer {
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			if (this.userGroupInfo.deleted) {
-				Dialog.error("userAccountDeactivated_msg")
+				Dialog.message("userAccountDeactivated_msg")
 			} else {
 				// remove all groups the user is already member of
 				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
@@ -443,9 +443,9 @@ export class UserViewer {
 			})
 		).catch(ofClass(PreconditionFailedError, e => {
 			if (restore) {
-				Dialog.error("emailAddressInUse_msg")
+				Dialog.message("emailAddressInUse_msg")
 			} else {
-				Dialog.error("stillReferencedFromContactForm_msg")
+				Dialog.message("stillReferencedFromContactForm_msg")
 			}
 		}))
 	}

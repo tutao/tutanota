@@ -92,7 +92,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 			}
 		)).then((message) => {
 			if (message) {
-				return showErrorDialog ? Dialog.error(message).then(() => false) : false
+				return showErrorDialog ? Dialog.message(message).then(() => false) : false
 			}
 			return true
 		}).catch(ofClass(PreconditionFailedError, e => {
@@ -100,7 +100,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				// ignore promise. always return false to not switch to next page.
 				showBusinessFeatureRequiredDialog("businessFeatureRequiredMultipleDomains_msg")
 			} else {
-				Dialog.error(() => e.toString())
+				Dialog.message(() => e.toString())
 			}
 			return false
 		}))

@@ -290,7 +290,7 @@ export class Dialog implements ModalComponent {
 	 * @param infoToAppend {?string | lazy<Children>} some text or UI elements to show below the message
 	 * @returns {Promise<void>} a promise that resolves after the dialog is fully closed
 	 */
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | lazy<Children>): Promise<void> {
+	static message(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | lazy<Children>): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
@@ -569,7 +569,7 @@ export class Dialog implements ModalComponent {
 			}
 			let finalizer = Promise.resolve(validationResult).then(error_id => {
 				if (error_id) {
-					Dialog.error(error_id)
+					Dialog.message(error_id)
 				} else {
 					okAction(dialog)
 				}

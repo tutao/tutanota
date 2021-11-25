@@ -34,7 +34,7 @@ export function show(model: CustomColorsEditorViewModel) {
 		if (await model.save()) {
 			dialog.close()
 		} else {
-			return Dialog.error("correctValues_msg")
+			return Dialog.message("correctValues_msg")
 		}
 	}
 

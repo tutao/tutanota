@@ -126,7 +126,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 
 	buyButtonPressed(attrs: GiftCardPurchaseViewAttrs) {
 		if (!this.isConfirmed()) {
-			Dialog.error("termsAcceptedNeutral_msg");
+			Dialog.message("termsAcceptedNeutral_msg");
 			return
 		}
 
@@ -136,7 +136,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 		const country = this.selectedCountry()
 
 		if (!country) {
-			Dialog.error("selectRecipientCountry_msg")
+			Dialog.message("selectRecipientCountry_msg")
 			return
 		}
 
@@ -179,7 +179,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 export function showPurchaseGiftCardDialog(): Promise<void> {
 
 	if (isIOSApp()) {
-		Dialog.error("notAvailableInApp_msg");
+		Dialog.message("notAvailableInApp_msg");
 		return Promise.resolve()
 	}
 	const loadDialogPromise =

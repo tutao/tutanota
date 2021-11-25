@@ -205,7 +205,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 							const inlineAttachment = model.getAttachments().find((attachment) => attachment.cid === cid)
 							if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
 								fileController.downloadAndOpen(downcast(inlineAttachment), true)
-								              .catch(ofClass(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")))
+								              .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
 							}
 						},
 						type: ButtonType.Dropdown
@@ -404,7 +404,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 						m.redraw()
 					}).catch(e => {
 						console.log(e)
-						return Dialog.error("couldNotAttachFile_msg")
+						return Dialog.message("couldNotAttachFile_msg")
 					})
 					ev.stopPropagation()
 					ev.preventDefault()
@@ -507,9 +507,9 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 					     dialog.close()
 				     }
 			     })
-			     .catch(ofClass(UserError, (err) => Dialog.error(() => err.message)))
+			     .catch(ofClass(UserError, (err) => Dialog.message(() => err.message)))
 		} catch (e) {
-			Dialog.error(() => e.message)
+			Dialog.message(() => e.message)
 		}
 
 	}
@@ -670,7 +670,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 			const sizeCheckResult = checkAttachmentSize(dataFiles)
 			dataFiles = sizeCheckResult.attachableFiles
 			if (sizeCheckResult.tooBigFiles.length > 0) {
-				await Dialog.error(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
+				await Dialog.message(() => lang.get("tooBigAttachment_msg"), () => sizeCheckResult.tooBigFiles.map(file => m(".text-break.selectable", file)))
 			}
 		} else {
 			throw new CancelledError("user cancelled opening mail editor with attachments")
@@ -794,11 +794,11 @@ function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
 
 function handleSaveError(e: Error) {
 	if (e instanceof UserError) {
-		Dialog.error(() => e.message)
+		Dialog.message(() => e.message)
 	} else if (e instanceof FileNotFoundError) {
-		Dialog.error("couldNotAttachFile_msg")
+		Dialog.message("couldNotAttachFile_msg")
 	} else if (e instanceof PreconditionFailedError) {
-		Dialog.error("operationStillActive_msg")
+		Dialog.message("operationStillActive_msg")
 	} else {
 		throw e
 	}

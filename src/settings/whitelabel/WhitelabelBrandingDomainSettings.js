@@ -53,10 +53,10 @@ export class WhitelabelBrandingDomainSettings implements MComponent<WhitelabelBr
 				Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 					if (ok) {
 						showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
-							.catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+							.catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 							.catch(ofClass(PreconditionFailedError, e => {
 								if (e.data === "lock.locked") {
-									Dialog.error("operationStillActive_msg")
+									Dialog.message("operationStillActive_msg")
 								} else {
 									throw e;
 								}

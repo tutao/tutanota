@@ -48,7 +48,7 @@ export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, st
 				const start = startDate
 				const end = endDate
 				if (start.getTime() > end.getTime()) {
-					Dialog.error("startAfterEnd_label")
+					Dialog.message("startAfterEnd_label")
 				} else {
 					dialog.close()
 					resolve({start, end})

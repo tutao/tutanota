@@ -694,7 +694,7 @@ export class MailView implements CurrentView {
 		deleteMailFolderData.folders.push(folder._id)
 		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy": any))
 			.catch(ofClass(NotFoundError, e => console.log("mail folder already deleted")))
-			.catch(ofClass(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
+			.catch(ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")))
 	}
 
 	logout() {
@@ -762,7 +762,7 @@ export class MailView implements CurrentView {
 		deleteMailData.folder = folder._id
 		// The request will be handled async by server
 		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
-			.catch(ofClass(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
+			.catch(ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")))
 	}
 
 

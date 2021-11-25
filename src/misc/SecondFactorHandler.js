@@ -163,9 +163,9 @@ export class SecondFactorHandler {
 					.then(() => {
 						this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
 					})
-					.catch(ofClass(NotAuthenticatedError, () => Dialog.error("loginFailed_msg")))
-					.catch(ofClass(BadRequestError, () => Dialog.error("loginFailed_msg")))
-					.catch(ofClass(AccessBlockedError, () => Dialog.error("loginFailedOften_msg")))
+					.catch(ofClass(NotAuthenticatedError, () => Dialog.message("loginFailed_msg")))
+					.catch(ofClass(BadRequestError, () => Dialog.message("loginFailed_msg")))
+					.catch(ofClass(AccessBlockedError, () => Dialog.message("loginFailedOften_msg")))
 					.finally(() => {
 						state.otpInProgress = false
 					})
@@ -262,13 +262,13 @@ export class SecondFactorHandler {
 						// We cannot cancel u2f request but we can ignore the error if no one is listening already.
 						if (e instanceof AccessBlockedError && this._waitingForSecondFactorDialog
 							&& this._waitingForSecondFactorDialog.visible) {
-							Dialog.error("loginFailedOften_msg")
+							Dialog.message("loginFailedOften_msg")
 							this.closeWaitingForSecondFactorDialog()
 						} else if ((e instanceof U2fError || e instanceof U2fWrongDeviceError || e instanceof U2fTimeoutError)
 							&& this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) {
 							state.u2fError = "couldNotAuthU2f_msg"
 						} else if (e instanceof NotAuthenticatedError) {
-							Dialog.error("loginFailed_msg")
+							Dialog.message("loginFailed_msg")
 						}
 					}).finally(() => {
 						m.redraw()

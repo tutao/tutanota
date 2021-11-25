@@ -103,7 +103,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 
 			} catch (e) {
 				// Stop sending after first failure in case something bad happened
-				Dialog.error(() => `Error sending to ${recipient.email}: ${e.message}.\nStopping.`)
+				Dialog.message(() => `Error sending to ${recipient.email}: ${e.message}.\nStopping.`)
 				didFinish = false
 				break
 			}

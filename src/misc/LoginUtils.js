@@ -47,17 +47,17 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 			ApprovalStatus.DELAYED,
 			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
 		].indexOf(status) !== -1) {
-			return Dialog.error("waitingForApproval_msg").then(() => false)
+			return Dialog.message("waitingForApproval_msg").then(() => false)
 		} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
-				return Dialog.error("requestApproval_msg").then(() => true)
+				return Dialog.message("requestApproval_msg").then(() => true)
 			} else {
-				return Dialog.error("waitingForApproval_msg").then(() => false)
+				return Dialog.message("waitingForApproval_msg").then(() => false)
 			}
 		} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
-					return Dialog.error(() => {
+					return Dialog.message(() => {
 						return lang.get("invoiceNotPaid_msg", {"{1}": getHttpOrigin()})
 					}).then(() => {
 						// TODO: navigate to payment site in settings
@@ -69,10 +69,10 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 				}
 			} else {
 				const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
-				return Dialog.error(errorMessage).then(() => false)
+				return Dialog.message(errorMessage).then(() => false)
 			}
 		} else if (status === ApprovalStatus.SPAM_SENDER) {
-			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
+			Dialog.message("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
 			return false
 		} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
 			let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")

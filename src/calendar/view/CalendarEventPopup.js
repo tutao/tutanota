@@ -208,7 +208,7 @@ export class CalendarEventPopup implements ModalComponent {
 		if (viewModel) {
 			const confirmed = await Dialog.confirm("deleteEventConfirmation_msg")
 			if (confirmed) {
-				await viewModel.deleteEvent().catch(ofClass(UserError, (e) => Dialog.error(() => e.message)))
+				await viewModel.deleteEvent().catch(ofClass(UserError, (e) => Dialog.message(() => e.message)))
 				this._close()
 			}
 		}

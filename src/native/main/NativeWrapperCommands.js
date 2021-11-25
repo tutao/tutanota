@@ -5,8 +5,7 @@ import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants
 import {nativeApp} from "../common/NativeWrapper"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"
-import {ofClass} from "@tutao/tutanota-utils"
-import {noOp} from "@tutao/tutanota-utils"
+import {noOp, ofClass} from "@tutao/tutanota-utils"
 
 /**
  * create a mail editor as requested from the native side, ie because a
@@ -57,7 +56,7 @@ async function createMailEditor(msg: Request): Promise<void> {
 
 const showAlertDialog = (msg: Request): Promise<void> => {
 	return import('../../gui/base/Dialog.js').then(module => {
-			return module.Dialog.error(msg.args[0])
+			return module.Dialog.message(msg.args[0])
 		}
 	)
 }

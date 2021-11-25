@@ -208,7 +208,7 @@ export class EditSecondFactorsForm {
 						import("../native/main/SystemApp").then(({openLinkNative}) => {
 							return openLinkNative(authUrl).then(successful => {
 								if (!successful) {
-									Dialog.error("noAppAvailable_msg")
+									Dialog.message("noAppAvailable_msg")
 								}
 							})
 						})
@@ -282,14 +282,14 @@ export class EditSecondFactorsForm {
 						sf.type = selectedType()
 						if (sf.type === SecondFactorType.u2f) {
 							if (verificationStatus() !== VerificationStatus.Success) {
-								Dialog.error("unrecognizedU2fDevice_msg")
+								Dialog.message("unrecognizedU2fDevice_msg")
 								return
 							} else {
 								sf.u2f = u2fRegistrationData()
 							}
 						} else if (sf.type === SecondFactorType.totp) {
 							if (verificationStatus() !== VerificationStatus.Success) {
-								Dialog.error("totpCodeEnter_msg")
+								Dialog.message("totpCodeEnter_msg")
 								return
 							} else {
 								sf.otpSecret = totpKeys.key

@@ -98,7 +98,7 @@ export class SignupForm implements MComponent<SignupFormAttrs> {
 				|| (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
 
 			if (errorMessage) {
-				Dialog.error(errorMessage)
+				Dialog.message(errorMessage)
 				return
 			}
 
@@ -190,7 +190,7 @@ function signup(mailAddress: string, pw: string, registrationCode: string, isBus
 			}
 		})
 	})).catch(ofClass(InvalidDataError, () => {
-		Dialog.error("invalidRegistrationCode_msg")
+		Dialog.message("invalidRegistrationCode_msg")
 	}))
 }
 
@@ -244,14 +244,14 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 									resolve(captchaReturn.token)
 								})
 								.catch(ofClass(InvalidDataError, e => {
-									return Dialog.error("createAccountInvalidCaptcha_msg").then(() => {
+									return Dialog.message("createAccountInvalidCaptcha_msg").then(() => {
 										runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaignToken).then(regDataId => {
 											resolve(regDataId)
 										})
 									})
 								}))
 								.catch(ofClass(AccessExpiredError, e => {
-									Dialog.error("createAccountAccessDeactivated_msg").then(() => {
+									Dialog.message("createAccountAccessDeactivated_msg").then(() => {
 										resolve(null)
 									})
 								}))
@@ -259,7 +259,7 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 									reject(e)
 								})
 						} else {
-							Dialog.error("captchaEnter_msg")
+							Dialog.message("captchaEnter_msg")
 						}
 					}
 					let actionBarAttrs: DialogHeaderBarAttrs = {
@@ -292,6 +292,6 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 			}
 		})
 		.catch(ofClass(AccessDeactivatedError, e => {
-			return Dialog.error("createAccountAccessDeactivated_msg")
+			return Dialog.message("createAccountAccessDeactivated_msg")
 		}))
 }

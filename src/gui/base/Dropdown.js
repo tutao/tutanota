@@ -380,7 +380,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 			if (buttons.length === 0) {
 				import( './Dialog.js')
 					.then(module => {
-						return module.Dialog.error("selectionNotAvailable_msg")
+						return module.Dialog.message("selectionNotAvailable_msg")
 					})
 			} else {
 				mainButton.isActive = false

@@ -97,7 +97,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		const onNextClick = () => {
 			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
 			if (error) {
-				return Dialog.error(error).then(() => null)
+				return Dialog.message(error).then(() => null)
 			} else {
 				a.data.invoiceData = this._invoiceDataInput.getInvoiceData()
 				a.data.paymentData = this._paymentMethodInput.getPaymentData()
@@ -189,32 +189,32 @@ export function updatePaymentData(
 				             })
 			             } else {
 				             if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-					             Dialog.error(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-					             Dialog.error(() => lang.get("creditCardDeclined_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("creditCardDeclined_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
-					             Dialog.error("creditCardCVVInvalid_msg");
+					             Dialog.message("creditCardCVVInvalid_msg");
 				             } else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
-					             Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("paymentProviderNotAvailableError_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-					             Dialog.error(() => lang.get("paymentAccountRejected_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("paymentAccountRejected_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
-					             Dialog.error("creditCardExprationDateInvalid_msg");
+					             Dialog.message("creditCardExprationDateInvalid_msg");
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
-					             Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("invalidVatIdValidationFailed_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_VERIFICATION_LIMIT_REACHED) {
-					             Dialog.error(() => lang.get("creditCardVerificationLimitReached_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("creditCardVerificationLimitReached_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else {
-					             Dialog.error(() => lang.get("otherPaymentProviderError_msg") + ((isSignup) ? " "
+					             Dialog.message(() => lang.get("otherPaymentProviderError_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             }
 				             return false
@@ -276,7 +276,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							// keep waiting. this error code is set before starting the 3DS2 verification and we just received the event very late
 						} else if (invoiceInfo.paymentErrorInfo && (invoiceInfo.paymentErrorInfo.errorCode !== null)) {
 							// verification error during 3ds verification
-							Dialog.error(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
+							Dialog.message(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
 							resolve(false)
 							progressDialog.close()
 						}
@@ -287,7 +287,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		}
 		locator.eventController.addEntityListener(entityEventListener)
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
-		Dialog.error("creditCardVerificationNeededPopup_msg")
+		Dialog.message("creditCardVerificationNeededPopup_msg")
 		      .then(() => {
 			      window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
 			      progressDialog.show()
