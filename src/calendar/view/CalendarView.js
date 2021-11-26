@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {serviceRequestVoid} from "../../api/main/ServiceRequest"
-import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang} from "../../misc/LanguageViewModel"
 import {ViewSlider} from "../../gui/base/ViewSlider"
@@ -678,7 +678,7 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		return null
 	}
 }

@@ -14,7 +14,7 @@ import {createMailViewer, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
-import type {SearchBarInfo} from "../../gui/base/Header"
+import type {SearchHandler} from "../../gui/base/Header"
 import {CurrentView} from "../../gui/base/Header"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMailFolderData"
@@ -812,7 +812,7 @@ export class MailView implements CurrentView {
 			: null
 	}
 
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		return null
 	}
 

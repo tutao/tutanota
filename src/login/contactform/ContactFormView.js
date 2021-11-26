@@ -19,7 +19,7 @@ import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
-import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 
 assertMainOrNode()
 
@@ -135,7 +135,7 @@ class ContactFormView implements CurrentView {
 		}
 	}
 
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		return null
 	}
 }

@@ -31,9 +31,12 @@ export const LogoutUrl: string = location.hash.startsWith("#mail")
 
 assertMainOrNode()
 
-export type SearchBarInfo = {|
-	search(): Promise<mixed>,
-	placeholder: TranslationText
+export type SearchHandler = {|
+	placeholder: TranslationText,
+	onSearch(searchValue: string): Promise<mixed>, // Content of the search value has changed and a new search run can be executed
+	onKeyUpPressed(): void, // A Key.UP event was triggered while the input field was focused. Can be used to select a next item.
+	onKeyDownPressed(): void, // A Key.DOWN event was triggered while the input field was focused. Can be used to select a previous item.
+	onBlur(): void // The input field lost focused.
 |}
 
 export interface CurrentView extends MComponent<mixed> {
@@ -46,7 +49,7 @@ export interface CurrentView extends MComponent<mixed> {
 	+overrideBackIcon?: () => boolean;
 
 	/** @rerturn Returns an search bar attributes object if a search bar should be shown in the header section. */
-	getSearchBarInfo(): ?SearchBarInfo;
+	getSearchHandler(): ?SearchHandler;
 
 	/** Called each time the url changes. */
 	updateUrl(args: Object, requestedPath: string): void;
@@ -138,8 +141,7 @@ class Header {
 			return m(SearchBarN, {
 				keyManager: keyManager,
 				mode: SearchBarMode.Collapsable,
-				placeholder: searchBarInfo.placeholder,
-				search: searchBarInfo.search
+				searchHandler: searchHandler
 			})
 		} else if (this.searchBar && this._desktopSearchBarVisible()) {
 			return m(this.searchBar, {
