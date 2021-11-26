@@ -2,6 +2,7 @@
 import m from "mithril"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {KeyManager, Shortcut} from "../../misc/KeyManager"
+import {getKeyPress, isKeyPressed} from "../../misc/KeyManager"
 import {inputLineHeight, px, size} from "../size"
 import {styles} from "../styles"
 import {theme} from "../theme"
@@ -17,6 +18,8 @@ import {BrowserType} from "../../misc/ClientConstants"
 import {Type} from "./TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/common/Env"
+import {noOp} from "../../api/common/utils/Utils"
+import type {SearchHandler} from "./Header"
 
 assertMainOrNode()
 export const SearchBarMode = Object.freeze({
@@ -83,7 +86,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 						style: this.getSearchInputWrapperStyle()
 					},
 					[
-						this._getInputField(vnode.attrs),
+						this._getInputField(vnode.attrs.searchHandler),
 
 						m("button.closeIconWrapper", {
 								onclick: (e) => this.close(),
@@ -213,12 +216,12 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 		return !styles.isDesktopLayout() || this.expanded
 	}
 
-	_getInputField(attrs: SearchBarNAttrs): Children {
+	_getInputField(handler: SearchHandler): Children {
 		return m("input.input.input-no-clear", {
 			"aria-autocomplete": "list",
 			tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
 			role: "combobox",
-			placeholder: attrs.placeholder,
+			placeholder: handler.placeholder,
 			type: Type.Text,
 			value: this.inputStream(),
 			oncreate: (vnode) => {
@@ -233,7 +236,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 				if (this.skipNextBlur) {
 					setTimeout(() => this.domInput.focus(), 0) // setTimeout needed in Firefox to keep focus
 				} else {
-					this.blur(e)
+					this.blur(handler)
 				}
 				this.skipNextBlur = false
 			},
@@ -247,6 +250,14 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 					this.inputStream(domValue)
 					attrs.search(domValue)
 				}
+			},
+			onkeydown: (e: KeyboardEvent) => {
+				const keyPressed = this.inputFieldKeyHandlers.find(keyHandler => isKeyPressed(e.keyCode, keyHandler.key))
+				if (keyPressed) {
+					keyPressed.exec(getKeyPress(e))
+				}
+				// e.preventDefault()
+				e.stopPropagation()
 			},
 			style: {
 				"line-height": px(inputLineHeight)

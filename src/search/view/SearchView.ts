@@ -53,7 +53,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
 import {PageSize} from "../../gui/base/List"
 import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
-import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 import {header} from "../../gui/base/Header"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
@@ -666,7 +666,7 @@ export class SearchView implements CurrentView {
 		}
 	}
 
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		return null
 	}
 }

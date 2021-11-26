@@ -2,7 +2,7 @@ import m, {Children} from "mithril"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
-import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 import {Button} from "../../gui/base/Button"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {ContactEditor} from "../ContactEditor"
@@ -616,7 +616,7 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		return null
 	}
 

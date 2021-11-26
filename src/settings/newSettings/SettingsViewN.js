@@ -1,8 +1,7 @@
 // @flow
 import {SettingsFolderRow} from "../SettingsFolderRow"
 import m from "mithril"
-import type {CurrentView, SearchBarInfo} from "../../gui/base/Header"
-
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {size} from "../../gui/size"
@@ -21,6 +20,7 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {theme} from "../../gui/theme"
 import {locator} from "../../api/main/MainLocator"
 import type {EntityUpdateData} from "../../api/main/EventController"
+import {noOp} from "../../api/common/utils/Utils"
 
 export class SettingsViewN implements CurrentView {
 
@@ -46,7 +46,6 @@ export class SettingsViewN implements CurrentView {
 
 			return m(this._viewSlider)
 		}
-
 
 		const listener = (updates, eventOwnerGroupId) => {
 			return this._entityEventsReceived(updates, eventOwnerGroupId)
@@ -87,7 +86,6 @@ export class SettingsViewN implements CurrentView {
 		// console.log("SettingsViewN.updateUrl", args, requestedPath)
 	}
 
-
 	_createFoldersColumn(): ViewColumn {
 		return new ViewColumn({
 			onbeforeremove: () => {
@@ -106,7 +104,6 @@ export class SettingsViewN implements CurrentView {
 			}
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("settings_label"))
 	}
-
 
 	_createListColumn(): ViewColumn {
 		return new ViewColumn({
@@ -156,15 +153,17 @@ export class SettingsViewN implements CurrentView {
 		}
 	}
 
-
-	getSearchBarInfo(): ?SearchBarInfo {
+	getSearchHandler(): ?SearchHandler {
 		// TODO implement for more folders
 		return {
-			search: () => {
+			onSearch: () => {
 				console.log("search setting")
 				return Promise.resolve(undefined)
 			},
-			placeholder: "searchSettings_placeholder"
+			placeholder: "searchSettings_placeholder",
+			onBlur: noOp,
+			onKeyUpPressed: noOp,
+			onKeyDownPressed: noOp
 		}
 	}
 }
