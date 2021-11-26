@@ -76,10 +76,13 @@ export class LoginControllerImpl implements LoginController {
 	_loginEventHandlers: Array<LoginEventHandler> = []
 
 	async _getLoginFacade(): Promise<LoginFacade> {
-		const locatorModule = await import("./MainLocator")
-		const worker = await locatorModule.locator.initializedWorker
+		const {locator} = await import("./MainLocator")
+
+		await locator.initialized
+		const worker = locator.worker
+
 		await worker.initialized
-		return locatorModule.locator.loginFacade
+		return locator.loginFacade
 	}
 
 	async createSession(

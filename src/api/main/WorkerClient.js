@@ -7,9 +7,9 @@ import {assertMainOrNode} from "../common/Env"
 import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
 import type {IMainLocator} from "./MainLocator"
-import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity, TypeRef} from "@tutao/tutanota-utils"
+import type {DeferredObject} from "@tutao/tutanota-utils"
+import {defer, downcast, identity, TypeRef} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
@@ -34,8 +34,13 @@ interface Message {
 type progressUpdater = (number) => mixed;
 
 export class WorkerClient implements EntityRestInterface {
-	initialized: Promise<void>;
+
+	_deferredInitialized: DeferredObject<void> = defer()
 	_isInitialized: boolean = false
+
+	get initialized(): Promise<void> {
+		return this._deferredInitialized.promise
+	}
 
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
@@ -44,16 +49,15 @@ export class WorkerClient implements EntityRestInterface {
 	_leaderStatus: WebsocketLeaderStatus
 
 
-	constructor(locator: IMainLocator) {
+	constructor() {
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
-		this._initWorker()
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
 	}
 
-	_initWorker() {
+	async init(locator: IMainLocator): Promise<void> {
 		if (env.mode !== "Test") {
 			const {prefixWithoutFile} = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
@@ -62,14 +66,13 @@ export class WorkerClient implements EntityRestInterface {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
 			const worker = new Worker(workerUrl)
-			this._queue = new Queue(new WorkerTransport(worker), this.queueCommands)
+			this._queue = new Queue(new WorkerTransport(worker), this.queueCommands(locator))
 
-			let start = new Date().getTime()
-			this.initialized = this._queue.postRequest(new Request('setup', [
+			await this._queue.postRequest(new Request('setup', [
 				window.env,
 				this._getInitialEntropy(),
 				client.browserData()
-			])).then(() => console.log("worker init time (ms):", new Date().getTime() - start))
+			]))
 
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
@@ -80,22 +83,23 @@ export class WorkerClient implements EntityRestInterface {
 			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
 			const WorkerImpl = globalThis.testWorker
 			const workerImpl = new WorkerImpl(this, true)
-			this.initialized = workerImpl.init(client.browserData()).then(() => {
-				workerImpl._queue._transport = {
-					postMessage: msg => this._queue.handleMessage(msg)
-				}
-				this._queue = new Queue(({
-						postMessage: function (msg) {
-							workerImpl._queue.handleMessage(msg)
-						}
-					}: any),
-					this.queueCommands
-				)
-			})
+			await workerImpl.init(client.browserData())
+			workerImpl._queue._transport = {
+				postMessage: msg => this._queue.handleMessage(msg)
+			}
+			this._queue = new Queue(({
+					postMessage: function (msg) {
+						workerImpl._queue.handleMessage(msg)
+					}
+				}: any),
+				this.queueCommands(locator)
+			)
 		}
+
+		this._deferredInitialized.resolve()
 	}
 
-	get queueCommands(): QueueCommands {
+	queueCommands(locator: IMainLocator): QueueCommands {
 		return {
 			execNative: (message: Message) =>
 				locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
@@ -247,5 +251,8 @@ export class WorkerClient implements EntityRestInterface {
 }
 
 export function bootstrapWorker(locator: IMainLocator): WorkerClient {
-	return new WorkerClient(locator)
+	const worker = new WorkerClient()
+	const start = Date.now()
+	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))
+	return worker
 }

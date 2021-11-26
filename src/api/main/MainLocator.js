@@ -56,7 +56,6 @@ export interface IMainLocator {
 	+contactModel: ContactModel;
 	+entityClient: EntityClient;
 	+progressTracker: ProgressTracker;
-	+initializedWorker: Promise<WorkerClient>;
 	+credentialsProvider: ICredentialsProvider;
 	+worker: WorkerClient;
 	+native: NativeInterfaceMain;
@@ -136,10 +135,6 @@ class MainLocator implements IMainLocator {
 		this._workerDeferred = defer()
 	}
 
-	get initializedWorker(): Promise<WorkerClient> {
-		return this._workerDeferred.promise
-	}
-
 	async init(): Promise<void> {
 		// Split init in two separate parts: creating modules and causing side effects.
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
@@ -160,7 +155,6 @@ class MainLocator implements IMainLocator {
 
 		this._entropyCollector = new EntropyCollector(this.worker)
 		this._entropyCollector.start()
-		this._workerDeferred.resolve(this.worker)
 		this.fileController = new FileController(this.fileApp)
 
 		this._deferredInitialized.resolve()
@@ -249,7 +243,8 @@ const hot = typeof module !== "undefined" && module.hot
 if (hot) {
 	hot.accept(async () => {
 		// This should be there already
-		const worker = await locator.initializedWorker
+		await locator.initialized
+		const worker = locator.worker
 
 		// Import this module again and init the locator. If someone just imports it they will get a new one
 		const newLocator = require(module.id).locator

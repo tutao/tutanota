@@ -40,13 +40,11 @@ class WindowFacade {
 			.then(async ({locator}) => {
 
 				// We need to wait til the locator has finished initializing before we read from it
-				// This is a temporary solution, we should ideally refactor window facade to no longer be a global
-				await locator.initializedWorker
+				// because it is happening concurrently
+				await locator.initialized
+
 				this._worker = locator.worker
 				this._indexerFacade = locator.indexerFacade
-
-				// Wait for locator to ensure that nativeApp will be initialized
-				await locator.initialized
 				this._native = locator.native
 				this._systemApp = locator.systemApp
 
