@@ -509,7 +509,7 @@ export class MailView implements CurrentView {
 	 *
 	 * @param args Object containing the optional parts of the url which are listId and mailId for the mail view.
 	 */
-	updateUrl(args: Record<string, any>, requestedPath: String) {
+	updateUrl(args: Record<string, any>, requestedPath: string) {
 		if (requestedPath.startsWith("/mailto")) {
 			if (location.hash.length > 5) {
 				let url = location.hash.substring(5)
