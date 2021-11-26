@@ -150,8 +150,8 @@ class Header implements Component {
 	}
 
 	_renderDesktopSearchBar(): Children {
-		const searchBarInfo = this._currentView ? this._currentView.getSearchBarInfo() : null
-		if (searchBarInfo) {
+		const searchHandler = this._currentView ? this._currentView.getSearchHandler() : null
+		if (searchHandler) {
 			return m(SearchBarN, {
 				keyManager: keyManager,
 				mode: SearchBarMode.Collapsable,
