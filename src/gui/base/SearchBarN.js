@@ -30,9 +30,8 @@ export type SearchBarModeEnum = $Values<typeof SearchBarMode>
 
 export type SearchBarNAttrs = {
 	keyManager: KeyManager,
-	search(searchValue: string): Promise<mixed>,
-	placeholder: TranslationText,
-	mode: SearchBarModeEnum
+	mode: SearchBarModeEnum,
+	searchHandler: SearchHandler
 }
 
 /**
@@ -50,6 +49,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 	expanded: boolean
 	focused: boolean
 	shortcuts: Array<Shortcut>
+	inputFieldKeyHandlers: Array<Shortcut>
 	skipNextBlur: boolean
 	inputStream: Stream<string>
 	domInput: HTMLInputElement
@@ -58,6 +58,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 	constructor(vnode: Vnode<SearchBarNAttrs>) {
 		this.expanded = false
 		this.shortcuts = this._setupShortcuts()
+		this.inputFieldKeyHandlers = this._setupInputFieldKeyHandler(vnode.attrs.searchHandler)
 		this.inputStream = stream("")
 	}
 
@@ -89,7 +90,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 						this._getInputField(vnode.attrs.searchHandler),
 
 						m("button.closeIconWrapper", {
-								onclick: (e) => this.close(),
+								onclick: (e) => this.close(vnode.attrs.searchHandler),
 								style: {width: size.icon_size_large},
 								title: lang.get("close_alt"),
 								tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
@@ -192,6 +193,57 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 	}
 
 
+	_setupInputFieldKeyHandler(handler: SearchHandler): Shortcut[] {
+		return [
+			{
+				key: Keys.F1,
+				exec: () => noOp(),//keyManager.openF1Help(),
+				help: "help_label"
+			},
+			{
+				key: Keys.ESC,
+				exec: () => this.close(handler),
+				help: "cancel_action"
+			},
+			{
+				key: Keys.UP,
+				exec: () => handler.onKeyUpPressed(),
+				// {
+				// 	if (entities.length > 0
+				// 	) {
+				// 		let oldSelected = selected || entities[0]
+				// 		this._updateState({
+				// 			selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
+				// 		})
+				// 	}
+				// 	e.preventDefault()
+				// }
+				help: "moveUp_action"
+			}, {
+				key: Keys.DOWN,
+				exec: () => handler.onKeyDownPressed(),
+				// {
+				// 	if (entities
+				//
+				// 			.length
+				// 		>
+				// 		0
+				// 	) {
+				// 		let
+				// 			newSelected = selected || entities[0]
+				// 		this
+				// 			._updateState({
+				// 				selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
+				// 			})
+				// 	}
+				//
+				// 	e.preventDefault()
+				// }
+				help: "moveDown_action"
+			}
+		]
+	}
+
 	focus() {
 		if (!this.expanded) {
 			this.focused = true
@@ -204,11 +256,12 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 		}
 	}
 
-	blur(e: MouseEvent) {
+	blur(handler: SearchHandler) {
 		this.focused = false
 		if (this.inputStream() === "") {
 			this.expanded = false
 		}
+		handler.onBlur()
 	}
 
 	// We only show the minimized version of the search bar when having all coloums visible (desktop layout.)
@@ -248,7 +301,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 				if (this.inputStream() !== domValue) {
 					// update the input on each change
 					this.inputStream(domValue)
-					attrs.search(domValue)
+					handler.onSearch(domValue)
 				}
 			},
 			onkeydown: (e: KeyboardEvent) => {
@@ -265,11 +318,13 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 		})
 	}
 
-	close() {
+	close(handler: SearchHandler) {
 		if (this.expanded) {
 			this.expanded = false
 			this.inputStream("")
-			this.domInput.blur() // remove focus from the input field in case ESC is pressed
+			handler.onSearch("")
+			this.domInput.blur() // remove focus from the input field if ESC was pressed
+			handler.onBlur()
 		}
 	}
 

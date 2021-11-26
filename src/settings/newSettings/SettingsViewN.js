@@ -64,6 +64,9 @@ export class SettingsViewN implements CurrentView {
 
 	}
 
+
+
+
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<*> {
 		const section = this._settingsModel.selectedSection()
 		return section ? section.entityEventReceived(updates, eventOwnerGroupId) : Promise.resolve(undefined)
