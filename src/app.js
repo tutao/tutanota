@@ -18,7 +18,7 @@ import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
-
+import type {CurrentView} from "./gui/base/Header"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -38,7 +38,6 @@ if (isApp() || isDesktop()) {
 replaceNativeLogger(window, new Logger())
 
 // TODO: define type definition for top-level views. Maybe it's CurrentView?
-type View = Object
 
 let currentView: ?MComponent<mixed> = null
 
@@ -137,7 +136,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 		}
 	}
 
-	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
+	function createViewResolver(getView: lazy<Promise<CurrentView>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
 		let cache: {view: ?CurrentView} = {view: null}
 		return {
@@ -150,17 +149,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 						windowFacade.reload(args)
 					})
 				} else {
-					let promise
-					if (cache.view == null) {
-						promise = getView().then(view => {
-							if (!doNotCache) {
-								cache.view = view
-							}
-							return view
-						})
-					} else {
-						promise = Promise.resolve(cache.view)
-					}
+					const promise = getOrCreateViewInstance(cache, getView, doNotCache)
 					Promise.all([
 						promise,
 						import("./gui/base/Header")
@@ -179,6 +168,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			}
 		}
 	}
+
 
 	const loginListener = await import("./login/LoginListener")
 	await loginListener.registerLoginListener(locator.credentialsProvider, locator.secondFactorHandler)
@@ -275,7 +265,6 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
 	}
-
 	for (let path in paths) {
 		resolvers[path] = paths[path]
 	}
@@ -391,4 +380,18 @@ if (hot) {
 		console.log("Requiring new app.js")
 		require(module.id)
 	})
+}
+
+function getOrCreateViewInstance(cache: {view: ?CurrentView}, createView: () => Promise<CurrentView>, doNotCache: boolean): Promise<CurrentView> {
+	const cachedView = cache.view
+	if (cachedView == null) {
+		return createView().then(view => {
+			if (!doNotCache) {
+				cache.view = view
+			}
+			return view
+		})
+	} else {
+		return Promise.resolve(cachedView)
+	}
 }

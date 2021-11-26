@@ -36,7 +36,7 @@ export type SearchBarInfo = {|
 	placeholder: TranslationText
 |}
 
-export interface CurrentView extends MComponent<void> {
+export interface CurrentView extends MComponent<mixed> {
 	+headerView?: () => Children;
 	+headerRightView?: () => Children;
 	+getViewSlider?: () => ?ViewSlider;
