@@ -141,6 +141,16 @@ class MainLocator implements IMainLocator {
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
 
+		await this._createInstances()
+
+		this._entropyCollector = new EntropyCollector(this.worker)
+		this._entropyCollector.start()
+
+		this._deferredInitialized.resolve()
+	}
+
+	async _createInstances() {
+
 		// TODO we might need to do this later during bootstrap?
 		const {
 			native, fileApp, pushService, systemApp
@@ -151,16 +161,6 @@ class MainLocator implements IMainLocator {
 		this.pushService = pushService
 		this.systemApp = systemApp
 
-		await this._createInstances()
-
-		this._entropyCollector = new EntropyCollector(this.worker)
-		this._entropyCollector.start()
-		this.fileController = new FileController(this.fileApp)
-
-		this._deferredInitialized.resolve()
-	}
-
-	async _createInstances() {
 		const {
 			loginFacade,
 			customerFacade,
@@ -226,6 +226,7 @@ class MainLocator implements IMainLocator {
 		)
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
+		this.fileController = new FileController(this.fileApp)
 	}
 }
 
@@ -249,7 +250,7 @@ if (hot) {
 		// Import this module again and init the locator. If someone just imports it they will get a new one
 		const newLocator = require(module.id).locator
 		newLocator.worker = worker
-		await newLocator._initModules(worker)
+		await newLocator._createInstances(worker)
 
 		// This will patch old instances to use new classes, this is when instances are already injected
 		for (const key of Object.getOwnPropertyNames(newLocator)) {
