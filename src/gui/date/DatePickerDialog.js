@@ -33,7 +33,7 @@ export function showDateRangeSelectionDialog<T>(startOfTheWeekOffset: number, st
 					date: endDate,
 					onDateSelected: date => endDate = date,
 					startOfTheWeekOffset,
-					label: "dateFrom_label",
+					label: "dateTo_label",
 					nullSelectionText: helpLabel(end)
 				}))
 			]
