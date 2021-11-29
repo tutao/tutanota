@@ -33,6 +33,7 @@ import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
+import type {SecondFactorAuthHandler} from "../../misc/SecondFactorHandler"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -60,7 +61,8 @@ type WorkerLocatorType = {
 	contactFormFacade: ContactFormFacade,
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	native: NativeInterface,
-	rsa: RsaImplementation
+	rsa: RsaImplementation,
+	secondFactorAuthenticationHandler: SecondFactorAuthHandler,
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -79,7 +81,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
-	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient)
+
+	const mainInterface = worker.getMainInterface()
+	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
+
+	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient, locator.secondFactorAuthenticationHandler)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
 		locator.indexer._groupInfo.suggestionFacade,

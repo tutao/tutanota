@@ -11,6 +11,7 @@ export const dependencyMap = {
 	"luxon": path.normalize("./libs/luxon.js"),
 	"linkify": path.normalize("./libs/linkify.js"),
 	"linkify/html": path.normalize("./libs/linkify-html.js"),
+	"cborg": path.normalize("./libs/cborg-decode.js")
 }
 
 /**
@@ -117,7 +118,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		moduleId.includes(path.normalize("src/misc/ErrorHandlerImpl")) ||
 		moduleId.includes(path.normalize("src/misc")) ||
 		moduleId.includes(path.normalize("src/file")) ||
-		moduleId.includes(path.normalize("src/gui"))
+		moduleId.includes(path.normalize("src/gui")) ||
+		moduleId.includes("cborg")
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"

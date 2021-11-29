@@ -1,6 +1,5 @@
 // @flow
 import {assertMainOrNodeBoot, isTest} from "../api/common/Env"
-import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 
 assertMainOrNodeBoot()
 
@@ -9,11 +8,8 @@ export async function handleUncaughtError(e: Error) {
 	if (isTest()) {
 		throw e
 	}
-	if (e instanceof SecondFactorPendingError) {
-		// ignore
-	} else {
-		console.log("error", e)
-	}
+
+	console.log("error", e, e.stack)
 
 	try {
 		// decoupled to remove size of boot bundle

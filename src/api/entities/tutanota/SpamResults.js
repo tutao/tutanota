@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "48"
+	"version": "49"
 }
 
 export function createSpamResults(values?: $Shape<$Exact<SpamResults>>): SpamResults {

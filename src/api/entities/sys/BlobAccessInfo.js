@@ -4,6 +4,7 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
+import type {BlobId} from "./BlobId"
 import type {TargetServer} from "./TargetServer"
 
 export const BlobAccessInfoTypeRef: TypeRef<BlobAccessInfo> = new TypeRef("sys", "BlobAccessInfo")
@@ -23,6 +24,13 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"archiveId": {
+			"id": 1897,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"storageAccessToken": {
 			"id": 1894,
 			"type": "String",
@@ -32,6 +40,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"blobs": {
+			"id": 1896,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"final": false,
+			"refType": "BlobId",
+			"dependency": null
+		},
 		"servers": {
 			"id": 1895,
 			"type": "AGGREGATION",
@@ -42,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createBlobAccessInfo(values?: $Shape<$Exact<BlobAccessInfo>>): BlobAccessInfo {
@@ -53,7 +69,9 @@ export type BlobAccessInfo = {
 	_type: TypeRef<BlobAccessInfo>;
 
 	_id: Id;
+	archiveId: Id;
 	storageAccessToken: string;
 
+	blobs: BlobId[];
 	servers: TargetServer[];
 }

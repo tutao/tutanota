@@ -16,13 +16,10 @@ import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {errorToString, neverNull, noOp} from "@tutao/tutanota-utils"
+import {errorToString, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {logins, SessionType} from "../api/main/LoginController"
-import {client} from "./ClientDetector"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream/stream.js"
-import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
-import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {windowFacade} from "./WindowFacade"
@@ -36,7 +33,6 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs";
-import {ofClass} from "@tutao/tutanota-utils"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
 
 assertMainOrNode()
@@ -124,12 +120,10 @@ export function handleUncaughtError(e: Error) {
 							      errorMessage(lang.get('emptyString_msg'))
 							      throw e
 						      }))
-						      .finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+						      .finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
 				      }
 			      )
 		}
-	} else if (e instanceof SecondFactorPendingError) {
-		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges, e.data.mailAddress)
 	} else if (e instanceof OutOfSyncError) {
 		Dialog.message("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {

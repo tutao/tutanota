@@ -20,7 +20,7 @@ export type Message<Type> =
 export interface Transport<RequestCommandType, ResponseCommandType> {
 	postMessage(message: Message<RequestCommandType>): void;
 
-	setMessageHandler(ev: Message<ResponseCommandType> => mixed): mixed;
+	setMessageHandler(ev: (Message<ResponseCommandType>) => mixed): mixed;
 }
 
 /**
@@ -42,9 +42,9 @@ export class WorkerTransport<RequestType, ResponseType> implements Transport<Req
 	}
 }
 
-export class Request<T> {
+export class Request<+T> {
 	type: 'request'
-	requestType: T
+	+requestType: T
 	id: string;
 	args: any[];
 
@@ -85,23 +85,23 @@ type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 /**
  * Queue for the remote invocations (e.g. worker or native calls).
  */
-export class Queue<RequestType: string, ResponseType: string> {
+export class Queue<OutgoingRequestType: string, IncomingRequestType: string> {
 	/**
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
 	_queue: {[key: string]: QueuedMessageCallbacks};
-	_commands: Commands<ResponseType>;
-	_transport: Transport<RequestType, ResponseType>;
+	_commands: Commands<IncomingRequestType>;
+	+_transport: Transport<OutgoingRequestType, IncomingRequestType>;
 
-	constructor(transport: ?Transport<RequestType, ResponseType>, commands: Commands<ResponseType>) {
+	constructor(transport: ?Transport<OutgoingRequestType, IncomingRequestType>, commands: Commands<IncomingRequestType>) {
 		this._queue = {}
 		this._commands = commands
 		this._transport = (transport: any)
 		this._transport?.setMessageHandler(msg => this.handleMessage(msg))
 	}
 
-	postRequest(msg: Request<RequestType>): Promise<any> {
+	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
 		return new Promise((resolve, reject) => {
 			this._queue[msg.id] = {resolve, reject}
 			try {
@@ -113,7 +113,7 @@ export class Queue<RequestType: string, ResponseType: string> {
 		})
 	}
 
-	handleMessage(message: Message<ResponseType>) {
+	handleMessage(message: Message<IncomingRequestType>) {
 		if (message.type === 'response') {
 			this._queue[message.id].resolve(message.value)
 			delete this._queue[message.id]

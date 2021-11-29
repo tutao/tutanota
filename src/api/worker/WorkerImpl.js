@@ -33,12 +33,13 @@ import {SearchFacade} from "./search/SearchFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
 import {FileFacade} from "./facades/FileFacade"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
-import {exposeLocal} from "../common/WorkerProxy"
+import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
+import type {SecondFactorAuthHandler} from "../../misc/SecondFactorHandler"
 
 
 assertWorkerOrNode()
@@ -64,10 +65,14 @@ export interface WorkerInterface {
 	+deviceEncryptionFacade: DeviceEncryptionFacade;
 }
 
+/** Interface for the "main"/webpage context of the app, interface for the worker client. */
+export interface MainInterface {
+	+secondFactorAuthenticationHandler: SecondFactorAuthHandler;
+}
+
 type WorkerRequest = Request<WorkerRequestType>
 
 export class WorkerImpl implements NativeInterface {
-
 	_scope: ?DedicatedWorkerGlobalScope
 	_queue: Queue<MainRequestType, WorkerRequestType>;
 	_newEntropy: number;
@@ -232,6 +237,10 @@ export class WorkerImpl implements NativeInterface {
 		return this._queue.postRequest(new Request("execNative", [msg.requestType, msg.args]))
 	}
 
+
+	getMainInterface(): MainInterface {
+		return exposeRemote(this._queue)
+	}
 
 	/**
 	 * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.

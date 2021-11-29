@@ -4,6 +4,7 @@ import {create} from "../../common/utils/EntityUtils"
 import {TypeRef} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
+import type {Blob} from "../sys/Blob"
 import type {DataBlock} from "./DataBlock"
 
 export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
@@ -60,6 +61,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"blobs": {
+			"id": 1221,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"final": false,
+			"refType": "Blob",
+			"dependency": "sys"
+		},
 		"blocks": {
 			"id": 10,
 			"type": "AGGREGATION",
@@ -70,7 +79,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "48"
+	"version": "49"
 }
 
 export function createFileData(values?: $Shape<$Exact<FileData>>): FileData {
@@ -87,5 +96,6 @@ export type FileData = {
 	size: NumberString;
 	unreferenced: boolean;
 
+	blobs: Blob[];
 	blocks: DataBlock[];
 }

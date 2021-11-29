@@ -119,7 +119,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "48"
+	"version": "49"
 }
 
 export function createFile(values?: $Shape<$Exact<File>>): File {

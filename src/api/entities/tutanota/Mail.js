@@ -5,6 +5,7 @@ import {TypeRef} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {MailAddress} from "./MailAddress"
+import type {Blob} from "../sys/Blob"
 import type {EncryptedMailAddress} from "./EncryptedMailAddress"
 import type {MailRestriction} from "./MailRestriction"
 
@@ -175,6 +176,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "MailAddress",
 			"dependency": null
 		},
+		"bodyBlob": {
+			"id": 1224,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Blob",
+			"dependency": "sys"
+		},
 		"ccRecipients": {
 			"id": 113,
 			"type": "AGGREGATION",
@@ -182,6 +191,14 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "MailAddress",
 			"dependency": null
+		},
+		"headersBlob": {
+			"id": 1223,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Blob",
+			"dependency": "sys"
 		},
 		"replyTos": {
 			"id": 616,
@@ -245,7 +262,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "48"
+	"version": "49"
 }
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {
@@ -279,7 +296,9 @@ export type Mail = {
 	unread: boolean;
 
 	bccRecipients: MailAddress[];
+	bodyBlob: ?Blob;
 	ccRecipients: MailAddress[];
+	headersBlob: ?Blob;
 	replyTos: EncryptedMailAddress[];
 	restrictions: ?MailRestriction;
 	sender: MailAddress;

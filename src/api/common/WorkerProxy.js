@@ -10,11 +10,13 @@ import {Queue, Request} from "./Queue"
  * Attention! Make sure that the *only* fields on T are facades. Every facade method must return promise or Bad Things will happen.
  * You should specify T explicitly to avoid mistakes.
  */
-export function exposeRemote<T>(queue: Queue<WorkerRequestType, MainRequestType>): T {
+export function exposeRemote<T, OutgoingRequestType: "facade" | string, IncomingRequestType: string>(
+	queue: Queue<OutgoingRequestType, IncomingRequestType>
+): T {
 	// Outer proxy is just used to generate individual facades
 	const workerProxy = new Proxy({}, {
 		get: (target: {}, property: string, receiver: Proxy<{}>) => {
-			return facadeProxy(queue, property)
+			return facadeProxy<OutgoingRequestType, IncomingRequestType>(queue, property)
 		}
 	})
 	return downcast<T>(workerProxy)
@@ -25,8 +27,8 @@ export function exposeRemote<T>(queue: Queue<WorkerRequestType, MainRequestType>
  * Attention! Make sure that the *only* fields on T are facades. Every facade method must return promise or Bad Things will happen.
  * You should specify T explicitly to avoid mistakes.
  */
-export function exposeLocal<T>(impls: T): ((message: Request<WorkerRequestType>) => Promise<*>) {
-	return (message: Request<WorkerRequestType>) => {
+export function exposeLocal<T, IncomingRequestType>(impls: T): ((message: Request<IncomingRequestType>) => Promise<*>) {
+	return (message: Request<IncomingRequestType>) => {
 		const [facade, fn, args] = message.args
 		const impl = downcast(impls)[facade]
 		return downcast(impl)[fn](...args)
@@ -36,7 +38,10 @@ export function exposeLocal<T>(impls: T): ((message: Request<WorkerRequestType>)
 /**
  * Generates proxy which will generate methods which will simulate methods of the facade.
  */
-function facadeProxy(queue: Queue<WorkerRequestType, MainRequestType>, facadeName: string) {
+function facadeProxy<OutgoingRequestType: string, IncomingRequestType: string>(
+	queue: Queue<OutgoingRequestType, IncomingRequestType>,
+	facadeName: string
+) {
 	if (queue == null) {
 		throw new Error("Queue is null")
 	}
@@ -49,7 +54,10 @@ function facadeProxy(queue: Queue<WorkerRequestType, MainRequestType>, facadeNam
 			if (property === "then") {
 				return undefined
 			} else {
-				return (...args) => queue.postRequest(new Request("facade", [facadeName, property, args]))
+				return (...args) => {
+					// $FlowIgnore[incompatible-call] I give up, I can't tell that "facade" must be one of OutgoingRequestType
+					const request = new Request<OutgoingRequestType>("facade", [facadeName, property, args])
+					return queue.postRequest(request)}
 			}
 		}
 	})

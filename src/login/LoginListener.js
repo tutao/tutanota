@@ -6,7 +6,6 @@ import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {windowFacade} from "../misc/WindowFacade"
 import {checkApprovalStatus} from "../misc/LoginUtils"
-import {secondFactorHandler} from "../misc/SecondFactorHandler"
 import {locator} from "../api/main/MainLocator"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -31,9 +30,10 @@ import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProvid
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
+import {SecondFactorHandler} from "../misc/SecondFactorHandler"
 
-export async function registerLoginListener(credentialsProvider: ICredentialsProvider) {
-	logins.registerHandler(new LoginListener(credentialsProvider))
+export async function registerLoginListener(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
+	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
 }
 
 /**
@@ -41,10 +41,12 @@ export async function registerLoginListener(credentialsProvider: ICredentialsPro
  */
 class LoginListener implements LoginEventHandler {
 	+_credentialsProvider: ICredentialsProvider
+	_secondFactorHandler: SecondFactorHandler
 
 
-	constructor(credentialsProvider: ICredentialsProvider) {
+	constructor(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
 		this._credentialsProvider = credentialsProvider
+		this._secondFactorHandler = secondFactorHandler
 	}
 
 	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -95,7 +97,7 @@ class LoginListener implements LoginEventHandler {
 
 		await this._showUpgradeReminder()
 		await this._checkStorageWarningLimit()
-		secondFactorHandler.setupAcceptOtherClientLoginListener()
+		this._secondFactorHandler.setupAcceptOtherClientLoginListener()
 		if (!isAdminClient()) {
 			await locator.mailModel.init()
 			await locator.calendarModel.init()

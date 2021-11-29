@@ -17,8 +17,8 @@ import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
-import type {WorkerInterface} from "../worker/WorkerImpl"
-import {exposeRemote} from "../common/WorkerProxy"
+import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
+import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
@@ -150,12 +150,17 @@ export class WorkerClient implements EntityRestInterface {
 				const user = downcast(message.args[1])
 				addSearchIndexDebugEntry(reason, user)
 				return Promise.resolve()
-			}
+			},
+			facade: exposeLocal<MainInterface, MainRequestType>({
+				get secondFactorAuthenticationHandler() {
+					return locator.secondFactorHandler
+				}
+			}),
 		}
 	}
 
 	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(this._queue)
+		return exposeRemote<WorkerInterface, WorkerRequestType, MainRequestType>(this._queue)
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {

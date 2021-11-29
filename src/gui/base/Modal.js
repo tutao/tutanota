@@ -107,6 +107,11 @@ class Modal {
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
+		const existingIndex = this.components.findIndex((shownComponent) => shownComponent.component === component)
+		if (existingIndex !== -1) {
+			console.warn("Attempting to display the same modal component multiple times!")
+			this.components.splice(existingIndex, 1)
+		}
 		this.components.push({key: this.currentKey++, component: component, needsBg})
 		m.redraw()
 		keyManager.registerModalShortcuts(component.shortcuts())

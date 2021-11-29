@@ -45,6 +45,8 @@ import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import {createNativeInterfaces} from "./NativeInterfaceFactory"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import type {NativeInterfaces} from "./NativeInterfaceFactory"
+import {SecondFactorHandler} from "../../misc/SecondFactorHandler"
+import {WebauthnClient} from "../../misc/webauthn/WebauthnClient"
 
 assertMainOrNode()
 
@@ -65,6 +67,7 @@ export interface IMainLocator {
 	+fileApp: NativeFileApp;
 	+pushService: NativePushServiceApp;
 	+systemApp: NativeSystemApp;
+	+secondFactorHandler: SecondFactorHandler;
 
 	+loginFacade: LoginFacade;
 	+customerFacade: CustomerFacade;
@@ -101,7 +104,7 @@ class MainLocator implements IMainLocator {
 	credentialsProvider: ICredentialsProvider;
 	worker: WorkerClient;
 	fileController: FileController;
-
+	secondFactorHandler: SecondFactorHandler;
 
 	loginFacade: LoginFacade;
 	customerFacade: CustomerFacade;
@@ -223,6 +226,7 @@ class MainLocator implements IMainLocator {
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(this.worker)
+		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, new WebauthnClient())
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
 
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)

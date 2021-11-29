@@ -5,6 +5,7 @@ import {TypeRef} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {U2fResponseData} from "./U2fResponseData"
+import type {WebauthnResponseData} from "./WebauthnResponseData"
 
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", "SecondFactorAuthData")
 export const _TypeModel: TypeModel = {
@@ -47,6 +48,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "U2fResponseData",
 			"dependency": null
 		},
+		"webauthn": {
+			"id": 1905,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "WebauthnResponseData",
+			"dependency": null
+		},
 		"session": {
 			"id": 1232,
 			"type": "LIST_ELEMENT_ASSOCIATION",
@@ -56,7 +65,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createSecondFactorAuthData(values?: $Shape<$Exact<SecondFactorAuthData>>): SecondFactorAuthData {
@@ -71,5 +80,6 @@ export type SecondFactorAuthData = {
 	type: ?NumberString;
 
 	u2f: ?U2fResponseData;
+	webauthn: ?WebauthnResponseData;
 	session: ?IdTuple;
 }

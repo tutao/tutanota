@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createTakeOverDeletedAddressData(values?: $Shape<$Exact<TakeOverDeletedAddressData>>): TakeOverDeletedAddressData {

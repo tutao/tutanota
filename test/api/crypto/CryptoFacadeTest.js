@@ -66,7 +66,7 @@ o.spec("crypto facade", function () {
 		restClient = new RestClient(suspensionHandler)
 		locator.restClient = restClient
 		locator.rsa = rsa
-		locator.login = new LoginFacadeImpl((null: any), restClient, downcast({}))
+		locator.login = new LoginFacadeImpl((null: any), restClient, downcast({}), downcast({}))
 	})
 
 	o.afterEach(function () {

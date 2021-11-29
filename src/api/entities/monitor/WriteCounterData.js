@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "17"
+	"version": "18"
 }
 
 export function createWriteCounterData(values?: $Shape<$Exact<WriteCounterData>>): WriteCounterData {

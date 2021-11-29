@@ -24,6 +24,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"field": {
+			"id": 109,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"instanceListElementId": {
 			"id": 103,
 			"type": "GeneratedId",
@@ -58,7 +65,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "storage",
-	"version": "1"
+	"version": "2"
 }
 
 export function createBlobReferenceDataDelete(values?: $Shape<$Exact<BlobReferenceDataDelete>>): BlobReferenceDataDelete {
@@ -69,6 +76,7 @@ export type BlobReferenceDataDelete = {
 	_type: TypeRef<BlobReferenceDataDelete>;
 
 	_format: NumberString;
+	field: string;
 	instanceListElementId: Id;
 	instanceListId: Id;
 

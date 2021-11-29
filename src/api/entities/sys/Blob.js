@@ -35,11 +35,18 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"size": {
+			"id": 1898,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createBlob(values?: $Shape<$Exact<Blob>>): Blob {
@@ -52,4 +59,5 @@ export type Blob = {
 	_id: Id;
 	archiveId: Id;
 	blobId: Uint8Array;
+	size: NumberString;
 }

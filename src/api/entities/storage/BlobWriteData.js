@@ -42,7 +42,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "storage",
-	"version": "1"
+	"version": "2"
 }
 
 export function createBlobWriteData(values?: $Shape<$Exact<BlobWriteData>>): BlobWriteData {

@@ -9,8 +9,6 @@ import type {Theme, ThemeId} from "../../../src/gui/theme"
 import {DesktopConfig} from "../../../src/desktop/config/DesktopConfig"
 
 
-const U2F_EXTENSION_ID = "kmendfapggjehodndflmmgagdbamhnfd" // check u2f-api.js
-
 o.spec("ApplicationWindow Test", function () {
 	const electronLocalshortcut = {
 		callbacks: Object.create(null),

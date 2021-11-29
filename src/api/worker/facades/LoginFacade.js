@@ -6,7 +6,14 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
+	defer,
+	delay,
 	hexToUint8Array,
+	isSameTypeRefByAttr,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
@@ -22,7 +29,6 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
-import {defer, neverNull, noOp} from "@tutao/tutanota-utils"
 import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -34,7 +40,6 @@ import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
-import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
 import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
@@ -54,10 +59,8 @@ import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStat
 import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
-import {isSameTypeRefByAttr} from "@tutao/tutanota-utils";
-import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {Base64Url, Hex} from "@tutao/tutanota-utils/"
 import type {Credentials} from "../../../misc/credentials/Credentials"
+import type {SecondFactorAuthHandler} from "../../../misc/SecondFactorHandler"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
 import {
 	aes128Decrypt,
@@ -68,6 +71,7 @@ import {
 	keyToUint8Array, random, sha256Hash, TotpVerifier, uint8ArrayToBitArray, uint8ArrayToKey
 } from "@tutao/tutanota-crypto"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import type {Base64Url, Hex} from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
@@ -140,13 +144,14 @@ export class LoginFacadeImpl implements LoginFacade {
 	_restClient: RestClient;
 	_entity: EntityClient;
 	_leaderStatus: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
+	_secondFactorAuthHandler: SecondFactorAuthHandler
 
-	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient) {
+	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient, secondFactorAuthHandler: SecondFactorAuthHandler) {
 		this._worker = worker
 		this._restClient = restClient
 		this._entity = entity
+		this._secondFactorAuthHandler = secondFactorAuthHandler
 		this.resetSession()
-
 	}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -234,7 +239,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		]
 		this._loginRequestSessionId = sessionId
 		if (createSessionReturn.challenges.length > 0) {
-			this._worker.sendError(new SecondFactorPendingError(sessionId, createSessionReturn.challenges, mailAddress)) // show a notification to the user
+			// Show a message to the user and give them a chance to complete the challenges.
+			this._secondFactorAuthHandler.showSecondFactorAuthenticationDialog(sessionId, createSessionReturn.challenges, mailAddress)
 			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId, 0)
 		}
 		this._loggingInPromiseWrapper = defer()

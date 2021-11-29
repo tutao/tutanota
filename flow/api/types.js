@@ -33,7 +33,9 @@ type WorkerRequestType = 'setup'
 	| 'facade'
 
 /** Requests from worker web thread to main web thread */
-type MainRequestType = 'execNative'
+type MainRequestType =
+	| 'facade'
+	|'execNative'
 	| 'entityEvent'
 	| 'error'
 	| 'progress'

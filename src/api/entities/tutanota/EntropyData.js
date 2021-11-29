@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "48"
+	"version": "49"
 }
 
 export function createEntropyData(values?: $Shape<$Exact<EntropyData>>): EntropyData {

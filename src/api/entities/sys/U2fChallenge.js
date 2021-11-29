@@ -42,7 +42,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {

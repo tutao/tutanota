@@ -6,9 +6,18 @@
 import fs from "fs-extra";
 import path, {dirname} from "path";
 import {fileURLToPath} from "url";
+import {rollup} from "rollup"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+/*
+ * Each entry is one of:
+ *  - string: will be copied from specified to libs preserving the file name
+ *  - object with:
+ *     - src: path to file
+ *     - target: resulting file name
+ *     - rollup: if truthy will use src as input for rollup, otherwise just copy
+ */
 const clientDependencies = [
 	"../node_modules/systemjs/dist/s.js",
 	"../node_modules/mithril/mithril.js",
@@ -18,6 +27,7 @@ const clientDependencies = [
 	"../node_modules/linkifyjs/lib/linkify.js",
 	"../node_modules/linkifyjs/lib/linkify-html.js",
 	"../node_modules/luxon/build/cjs-browser/luxon.js",
+	{src: "../node_modules/cborg/lib/decode.js", target: "cborg-decode.js", rollup: true},
 ]
 
 run()
@@ -30,11 +40,23 @@ async function copyToLibs(files) {
 	for (let srcFile of files) {
 		let targetName = ""
 		if (srcFile instanceof Object) {
-			targetName = srcFile.target
-			srcFile = srcFile.src
+			if (srcFile.rollup) {
+				await roll(srcFile.src, srcFile.target)
+				continue
+			} else {
+				targetName = srcFile.target
+				srcFile = srcFile.src
+			}
 		} else {
 			targetName = path.basename(srcFile)
 		}
 		await fs.copy(path.join(__dirname, srcFile), path.join(__dirname, '../libs/', targetName))
 	}
 }
+
+/** Will bundle starting at {@param src} into a single file at {@param target}. */
+async function roll(src, target) {
+	const bundle = await rollup({input: path.join(__dirname, src)})
+	await bundle.write({file: path.join(__dirname, "../libs", target)})
+}
+

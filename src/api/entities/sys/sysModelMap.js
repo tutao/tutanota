@@ -197,6 +197,7 @@ const map: {[string]: () => mixed} = {
     Blob: () => import('./Blob'),
     BlobId: () => import('./BlobId'),
     TargetServer: () => import('./TargetServer'),
-    BlobAccessInfo: () => import('./BlobAccessInfo')
+    BlobAccessInfo: () => import('./BlobAccessInfo'),
+    WebauthnResponseData: () => import('./WebauthnResponseData')
 }
 export default map

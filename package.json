@@ -19,6 +19,7 @@
 		"@tutao/oxmsg": "0.0.8",
 		"@tutao/tutanota-crypto": "3.89.26",
 		"@tutao/tutanota-utils": "3.89.26",
+		"cborg": "^1.5.4",
 		"dompurify": "2.3.0",
 		"keytar": "7.7.0",
 		"linkifyjs": "^3.0.0-beta.3",

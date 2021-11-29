@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "69"
+	"version": "71"
 }
 
 export function createGiftCardCreateReturn(values?: $Shape<$Exact<GiftCardCreateReturn>>): GiftCardCreateReturn {

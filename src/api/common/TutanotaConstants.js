@@ -340,7 +340,8 @@ export type InputFieldTypeEnum = $Values<typeof InputFieldType>;
 
 export const SecondFactorType = Object.freeze({
 	u2f: "0",
-	totp: "1"
+	totp: "1",
+	webauthn: "2",
 })
 export type SecondFactorTypeEnum = $Values<typeof SecondFactorType>;
 export const SecondFactorTypeNames = ["U2F", "TOTP"]

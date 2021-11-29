@@ -12,7 +12,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {secondFactorHandler} from "../../misc/SecondFactorHandler"
 import {HtmlEditor, Mode} from "../../gui/editor/HtmlEditor"
 import {client} from "../../misc/ClientDetector"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -125,7 +124,7 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 							windowFacade.reload({})
 						})
 						.catch(e => handleError(e))
-						.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+						.finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
 				}
 			} else if (selectedAction() === "secondFactor") {
 				const passwordValue = passwordValueStream()

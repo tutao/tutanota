@@ -37,7 +37,6 @@ import {ProgrammingError} from "../error/ProgrammingError"
 import {RecipientsNotFoundError} from "../error/RecipientsNotFoundError"
 import {RecipientNotResolvedError} from "../error/RecipientNotResolvedError"
 import {OutOfSyncError} from "../error/OutOfSyncError"
-import {SecondFactorPendingError} from "../error/SecondFactorPendingError"
 import {DbError} from "../error/DbError"
 import {IndexingNotSupportedError} from "../error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../error/QuotaExceededError"
@@ -106,7 +105,6 @@ const ErrorNameToType = {
 	RecipientsNotFoundError,
 	RecipientNotResolvedError,
 	OutOfSyncError,
-	SecondFactorPendingError,
 	ServiceUnavailableError,
 	DbError,
 	IndexingNotSupportedError,
