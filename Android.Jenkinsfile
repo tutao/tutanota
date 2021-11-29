@@ -115,13 +115,15 @@ pipeline {
 
 					def checksum = sh(returnStdout: true, script: "sha256sum ${WORKSPACE}/${filePath}")
 
-					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Android)' \
-																	   --milestone '${VERSION}' \
-																	   --tag '${tag}' \
-																	   --uploadFile '${WORKSPACE}/${filePath}' \
-																	   --platform android \
-							 										   --apkChecksum ${checksum}"""
+					catchError(stageResult: 'UNSTABLE', message: 'Failed to create github release page') {
+						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+							sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Android)' \
+																		   --milestone '${VERSION}' \
+																		   --tag '${tag}' \
+																		   --uploadFile '${WORKSPACE}/${filePath}' \
+																		   --platform android \
+																		   --apkChecksum ${checksum}"""
+						}
 					}
 				}
 			}

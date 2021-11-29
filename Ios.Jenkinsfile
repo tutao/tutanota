@@ -87,32 +87,6 @@ pipeline {
 			}
 		}
 
-		stage('Create github release') {
-			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
-			}
-			when {
-				expression { params.PROD }
-				expression { params.PUBLISH }
-			}
-			agent {
-				label 'linux'
-			}
-			steps {
-				script {
-					def tag = "tutanota-ios-release-${VERSION}"
-					// need to run npm ci to install dependencies of createGithubReleasePage.js
-					sh "npm ci"
-					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (IOS)' \
-																	   --milestone '${VERSION}' \
-																	   --tag '${tag}' \
-																	   --platform ios """
-					}
-				}
-			}
-		}
-
 		stage('Upload to Nexus') {
 			environment {
 				PATH="${env.NODE_PATH}:${env.PATH}"
@@ -137,6 +111,34 @@ pipeline {
 							assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
 							fileExtension: "ipa"
 					)
+				}
+			}
+		}
+
+		stage('Create github release') {
+			environment {
+				PATH="${env.NODE_PATH}:${env.PATH}"
+			}
+			when {
+				expression { params.PROD }
+				expression { params.PUBLISH }
+			}
+			agent {
+				label 'linux'
+			}
+			steps {
+				script {
+					catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+						def tag = "tutanota-ios-release-${VERSION}"
+						// need to run npm ci to install dependencies of createGithubReleasePage.js
+						sh "npm ci"
+						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+							sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (IOS)' \
+																		   --milestone '${VERSION}' \
+																		   --tag '${tag}' \
+																		   --platform ios """
+						}
+					}
 				}
 			}
 		}
