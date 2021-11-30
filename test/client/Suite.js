@@ -49,7 +49,6 @@ import "./misc/DeviceConfigTest"
 import "./calendar/EventDragHandlerTest"
 import "./calendar/CalendarGuiUtilsTest"
 import "./calendar/CalendarViewModelTest"
-import "./login/LoginViewModelTest"
 import "./misc/credentials/NativeCredentialsEncryptionTest"
 import "./misc/credentials/CredentialsKeyProviderTest"
 import "./misc/credentials/CredentialsMigrationTest"
@@ -74,6 +73,7 @@ import {preTest, reportTest} from "../api/TestUtils"
 		await import("./desktop/IPCTest.js")
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
+		await import("./desktop/integration/RegistryScriptGeneratorTest.js")
 		await import("./desktop/DesktopCryptoFacadeTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
 		await import("./desktop/DeviceKeyProviderTest.js")

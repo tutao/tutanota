@@ -45,7 +45,7 @@ declare module 'electron' {
 	declare export var shell: {
 		// Open the given external protocol URL in the desktop's default manner.
 		// (For example, mailto: URLs in the user's default mail agent).
-		openExternal(url: string): void;
+		openExternal(url: string): Promise<void>;
 		showItemInFolder(fullPath: string): void;
 		// Open the given file in the desktop's default manner.
 		openPath(fullPath: string): Promise<string>;
@@ -321,7 +321,7 @@ declare module 'electron' {
 		once(AppEvent, (Event, ...Array<any>) => any): App,
 		emit(AppEvent): App,
 		removeListener(AppEvent, Function): App,
-		requestSingleInstanceLock(): void,
+		requestSingleInstanceLock(): boolean,
 		quit(): void,
 		exit(code: number): void,
 		relaunch({args: Array<string>, execPath?: string}): void,
@@ -354,6 +354,7 @@ declare module 'electron' {
 			                     args?: string
 		                     }): void;
 		getAppPath(): string;
+		getName(): string;
 		getPath(name: 'home'
 			| 'appData' //Per-user application data directory
 			| 'userData' // directory for your app's configuration files, by default it is appData + app name.
