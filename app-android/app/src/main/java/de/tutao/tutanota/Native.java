@@ -9,6 +9,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebMessage;
+import android.webkit.WebMessagePort;
+import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
@@ -27,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +63,8 @@ public final class Native {
 	public final ThemeManager themeManager;
 	private final ICredentialsEncryption credentialsEncryption;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
-
+	private WebMessagePort webMessagePort;
+	private boolean isMessageChannelInitialized = false;
 
 	Native(MainActivity activity, SseStorage sseStorage, AlarmNotificationsManager alarmNotificationsManager) {
 		this.activity = activity;
@@ -76,13 +81,49 @@ public final class Native {
 		activity.getWebView().addJavascriptInterface(this, JS_NAME);
 	}
 
+	@JavascriptInterface
+	public void startWebMessageChannel() {
+
+		if (isMessageChannelInitialized) {
+			throw new RuntimeException("Native message channel must only be initialized once");
+		}
+
+		isMessageChannelInitialized = true;
+
+		// WebView.post ensures that webview methods are called on the correct thread
+		activity.getWebView().post(this::initMessageChannel);
+	}
+
+	void initMessageChannel() {
+		WebView webView = activity.getWebView();
+
+		WebMessagePort[] channel = webView.createWebMessageChannel();
+
+		WebMessagePort outgoingPort = channel[0];
+		this.webMessagePort = outgoingPort;
+
+		WebMessagePort incomingPort = channel[1];
+
+		outgoingPort.setWebMessageCallback(new WebMessagePort.WebMessageCallback() {
+			@Override
+			public void onMessage(WebMessagePort port, WebMessage message) {
+				handleMessageFromWeb(message.getData());
+			}
+		});
+
+		// We send the port to the web side, this message gets handled by window.onmessage
+		webView.postWebMessage(
+				new WebMessage("", new WebMessagePort[]{incomingPort}),
+				Uri.EMPTY
+		);
+	}
+
 	/**
 	 * Invokes method with args. The returned response is a JSON of the following format:
 	 *
 	 * @param msg A request (see WorkerProtocol)
 	 */
-	@JavascriptInterface
-	public void invoke(final String msg) {
+	public void handleMessageFromWeb(final String msg) {
 		new Thread(() -> {
 			try {
 				final JSONObject request = new JSONObject(msg);
@@ -157,15 +198,7 @@ public final class Native {
 	}
 
 	private void postMessage(final JSONObject json) {
-		evaluateJs("tutao.nativeApp.sendMessageFromApp('" + escape(json.toString()) + "')");
-	}
-
-	private void evaluateJs(final String js) {
-		activity.getWebView().post(() -> {
-			activity.getWebView().evaluateJavascript(js, value -> {
-				// no response expected
-			});
-		});
+		webMessagePort.postMessage(new WebMessage(json.toString()));
 	}
 
 	private Promise<Object, Exception, Void> invokeMethod(String method, JSONArray args) {
