@@ -4,13 +4,10 @@ import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
 import type {Rectangle} from "electron"
 import {app} from 'electron'
-import {defer} from '@tutao/tutanota-utils'
-import {noOp} from "@tutao/tutanota-utils"
+import {defer, delay, noOp, uint8ArrayToHex} from '@tutao/tutanota-utils'
 import {log} from "./DesktopLog"
-import {uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {delay} from "@tutao/tutanota-utils"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {swapFilename} from "./PathUtils"
+import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
 
 export class DesktopUtils {
@@ -28,6 +25,11 @@ export class DesktopUtils {
 
 	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
+	}
+
+	checkIsPerUserInstall(): Promise<boolean> {
+		const markerPath = swapFilename(process.execPath, "per_user")
+		return fileExists(markerPath)
 	}
 
 	/**
@@ -224,26 +226,38 @@ export class DesktopUtils {
 	}
 
 	async _registerOnWin(): Promise<void> {
+		// any app that wants to use tutanota over MAPI needs to know which dll to load.
+		// additionally, the DLL needs to know
+		// * which tutanota executable to start (per-user/per-machine/snapshot/test/release)
+		// * where to log (this depends on the current user -> %USERPROFILE%)
+		// * where to put tmp files (also user-dependent)
+		// all these must be set in the registry
 		const execPath = process.execPath
-		const dllPath = swapFilename(execPath, "mapirs.dll")
-		const logPath = path.join(app.getPath('userData'), 'logs')
-		const tmpPath = this.getTutanotaTempPath('attach')
+		const dllPath = swapFilename(execPath, 'mapirs.dll')
+		// we may be a per-machine installation that's used by multiple users, so the dll will replace %USERPROFILE%
+		// with the value of the USERPROFILE env var.
+		const appData = path.join("%USERPROFILE%", 'AppData')
+		const logPath = path.join(appData, 'Roaming', app.getName(), 'logs')
+		const tmpPath = path.join(appData, "Local", "Temp", this._topLevelDownloadDir, "attach")
+		const isLocal = await this.checkIsPerUserInstall()
 		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(
 			execPath,
 			dllPath,
 			logPath,
-			tmpPath
+			tmpPath,
+			isLocal
 		)
 		return this._executeRegistryScript(tmpRegScript)
-		           .then(() => {
-			           app.setAsDefaultProtocolClient('mailto')
-		           })
+		           .then(() => app.setAsDefaultProtocolClient('mailto'))
+		           .then(() => this._electron.shell.openExternal('ms-settings:defaultapps').catch())
 	}
 
 	async _unregisterOnWin(): Promise<void> {
 		app.removeAsDefaultProtocolClient('mailto')
-		const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
+		const isLocal = await this.checkIsPerUserInstall()
+		const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys(isLocal)
 		return this._executeRegistryScript(tmpRegScript)
+		           .then(() => this._electron.shell.openExternal('ms-settings:defaultapps').catch())
 	}
 
 	/**
