@@ -26,7 +26,7 @@ const publicExponent = 65537
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
 	if (isApp()) {
 		const {RsaApp} = await import ("../../../native/worker/RsaApp")
-		return new RsaApp(native)
+		return new RsaApp(native, random)
 	} else {
 		return new RsaWeb()
 	}

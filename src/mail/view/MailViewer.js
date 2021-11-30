@@ -193,7 +193,7 @@ export class MailViewer {
 	_configFacade: ConfigurationDatabase
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
-	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: NativeInterface) {
+	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: ?NativeInterface) {
 		this.mail = mail
 		this._contactModel = contactModel
 		this._configFacade = configFacade
@@ -201,7 +201,8 @@ export class MailViewer {
 		this._mailModel = mailModel
 		this._delayBodyRenderingUntil = delayBodyRenderingUntil
 		if (isDesktop()) {
-			native.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
+			// Notify the admin client about the mail being selected
+			native?.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this._folderText = null
 		this._filesExpanded = stream(false)
@@ -692,7 +693,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], locator.entityClient, locator.fileFacade)),
+							click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], this._entityClient, locator.fileFacade)),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -919,11 +920,11 @@ export class MailViewer {
 			throw e
 		}
 
-		const externalImageRule = await locator.configFacade.getExternalImageRule(mail.sender.address)
-		                                       .catch(e => {
-			                                       console.log("Error getting external image rule:", e)
-			                                       return ExternalImageRule.None
-		                                       })
+		const externalImageRule = await this._configFacade.getExternalImageRule(mail.sender.address)
+		                                    .catch(e => {
+			                                    console.log("Error getting external image rule:", e)
+			                                    return ExternalImageRule.None
+		                                    })
 		const isAllowedAndAuthenticatedExternalSender = externalImageRule === ExternalImageRule.Allow
 			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
@@ -1578,15 +1579,15 @@ export class MailViewer {
 
 	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		locator.fileController.downloadAndOpen(file, open)
-		              .catch(ofClass(FileOpenError, (e) => {
-			              console.warn("FileOpenError", e)
+		       .catch(ofClass(FileOpenError, (e) => {
+			       console.warn("FileOpenError", e)
 			              Dialog.message("canNotOpenFileOnDevice_msg")
-		              }))
-		              .catch(e => {
-			              const msg = e || "unknown error"
-			              console.error("could not open file:", msg)
+		       }))
+		       .catch(e => {
+			       const msg = e || "unknown error"
+			       console.error("could not open file:", msg)
 			              return Dialog.message("errorDuringFileOpen_msg")
-		              })
+		       })
 	}
 
 	_createAttachmentsButtons(files: $ReadOnlyArray<TutanotaFile>, inlineCids: $ReadOnlyArray<Id>): Button[] {
@@ -1789,4 +1790,23 @@ export class MailViewer {
 
 		return {inlineImageCids, links, externalContent}
 	}
+}
+
+type CreateMailViewerOptions = {
+	mail: Mail,
+	showFolder: boolean,
+	delayBodyRenderingUntil?: Promise<void>
+}
+
+export function createMailViewer({mail, showFolder, delayBodyRenderingUntil}: CreateMailViewerOptions): MailViewer {
+	return new MailViewer(
+		mail,
+		showFolder,
+		locator.entityClient,
+		locator.mailModel,
+		locator.contactModel,
+		locator.configFacade,
+		delayBodyRenderingUntil ?? Promise.resolve(),
+		isDesktop() ? locator.native : null
+	)
 }

@@ -11,7 +11,7 @@ assertWorkerOrNode()
 /**
  * This Interface provides an abstraction of the random number generator implementation.
  */
-class Randomizer {
+export class Randomizer {
 	random: any;
 
 	constructor() {

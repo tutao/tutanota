@@ -4,17 +4,19 @@ import {Request} from "../../api/common/Queue"
 import type {PrivateKey, PublicKey, RsaKeyPair} from "../../api/worker/crypto/RsaKeyPair"
 import type {NativeInterface} from "../common/NativeInterface"
 import type {RsaImplementation} from "../../api/worker/crypto/Rsa"
-import {random} from "../../api/worker/crypto/Randomizer"
+import type {Randomizer} from "../../api/worker/crypto/Randomizer"
 
 export class RsaApp implements RsaImplementation {
 	_native: NativeInterface
+	_rng: Randomizer
 
-	constructor(native: NativeInterface) {
+	constructor(native: NativeInterface, rng: Randomizer) {
 		this._native = native
+		this._rng = rng
 	}
 
 	generateKey(): Promise<RsaKeyPair> {
-		const seed = random.generateRandomData(512)
+		const seed = this._rng.generateRandomData(512)
 		return this._native.invokeNative(new Request("generateRsaKey", [uint8ArrayToBase64(seed)]))
 	}
 
@@ -22,7 +24,7 @@ export class RsaApp implements RsaImplementation {
 	 * Encrypt bytes with the provided publicKey
 	 */
 	encrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
-		const seed = random.generateRandomData(32)
+		const seed = this._rng.generateRandomData(32)
 		let encodedBytes = uint8ArrayToBase64(bytes);
 		return this._native.invokeNative(new Request("rsaEncrypt", [publicKey, encodedBytes, uint8ArrayToBase64(seed)]))
 		           .then(base64 => base64ToUint8Array(base64))

@@ -31,8 +31,8 @@ import {DeviceEncryptionFacadeImpl} from "./facades/DeviceEncryptionFacade"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
-import {createRsaImplementation} from "./crypto/Rsa"
 import type {RsaImplementation} from "./crypto/Rsa"
+import {createRsaImplementation} from "./crypto/Rsa"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -95,7 +95,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const fileApp = new NativeFileApp(worker)
 	const aesApp = new AesApp(worker)
-	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler,fileApp,aesApp)
+	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp)
 	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient)
 	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker)
 	locator.mailAddress = new MailAddressFacade(locator.login)

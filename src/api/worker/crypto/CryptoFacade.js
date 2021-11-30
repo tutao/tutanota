@@ -1,8 +1,8 @@
 // @flow
-import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
-import {serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
@@ -18,8 +18,8 @@ import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {uint8ArrayToBitArray} from "./CryptoUtils"
-import {LockedError, NotFoundError, PayloadTooLargeError} from "../../common/error/RestError"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import {LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
@@ -46,7 +46,12 @@ import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils
 import type {TypeModel} from "../../common/EntityTypes"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
-import {createRsaImplementation} from "./Rsa"
+import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
+import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
+import {hexToPublicKey} from "./Rsa"
+import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 
 assertWorkerOrNode()
 
@@ -287,6 +292,31 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
 		})
 	}
 	return Promise.resolve(null)
+}
+
+export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
+	let keyData = createPublicKeyData()
+	keyData.mailAddress = recipientMailAddress
+	return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
+		.then(publicKeyData => {
+			let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+			let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+			if (notFoundRecipients.length === 0) {
+				return locator.rsa.encrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
+					let data = createInternalRecipientKeyData()
+					data.mailAddress = recipientMailAddress
+					data.pubEncBucketKey = encrypted
+					data.pubKeyVersion = publicKeyData.pubKeyVersion
+					return data
+				})
+			}
+		})
+		.catch(ofClass(NotFoundError, e => {
+			notFoundRecipients.push(recipientMailAddress)
+		}))
+		.catch(ofClass(TooManyRequestsError, e => {
+			throw new RecipientNotResolvedError("")
+		}))
 }
 
 /**

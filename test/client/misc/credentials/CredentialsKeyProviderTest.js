@@ -25,10 +25,10 @@ o.spec("CredentialsKeyProviderTest", function () {
 
 		nativeWrapper = n.mock("aaaaa", {
 			async invokeNative(request) {
-				if (request.type === "decryptUsingKeychain") {
+				if (request.requestType === "decryptUsingKeychain") {
 					const credentialsKey = request.args[1]
 					return credentialsKey
-				} else if (request.type === "encryptUsingKeychain") {
+				} else if (request.requestType === "encryptUsingKeychain") {
 					const credentialsKey = request.args[1]
 					return credentialsKey
 				} else {
@@ -65,7 +65,7 @@ o.spec("CredentialsKeyProviderTest", function () {
 			o(Array.from(returnedKey)).deepEquals(Array.from(key))
 
 			const request = nativeWrapper.invokeNative.args[0]
-			o(request.type).equals("decryptUsingKeychain")
+			o(request.requestType).equals("decryptUsingKeychain")
 			o(request.args).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(key)])
 		})
 
@@ -77,7 +77,7 @@ o.spec("CredentialsKeyProviderTest", function () {
 			o(Array.from(returnedKey)).deepEquals(Array.from(generatedKey))
 
 			const request = nativeWrapper.invokeNative.args[0]
-			o(request.type).equals("encryptUsingKeychain")
+			o(request.requestType).equals("encryptUsingKeychain")
 			o(request.args).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(generatedKey)])
 			o(Array.from(credentialsStorage.setCredentialsEncryptionKey.args[0])).deepEquals(Array.from(generatedKey))
 		})

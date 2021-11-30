@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {isApp, isDesktop} from "../api/common/Env"
+import {isApp, isDesktop, isBrowser} from "../api/common/Env"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -156,7 +156,7 @@ export class IdentifierListViewer {
 	}
 
 	async _loadPushIdentifiers() {
-		if (!this._user) {
+		if (isBrowser() || !this._user) {
 			return
 		}
 		this._currentIdentifier = locator.pushService.getPushIdentifier()

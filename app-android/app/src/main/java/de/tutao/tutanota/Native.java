@@ -95,7 +95,7 @@ public final class Native {
 					}
 					promise.resolve(request);
 				} else {
-					invokeMethod(request.getString("type"), request.getJSONArray("args"))
+					invokeMethod(request.getString("requestType"), request.getJSONArray("args"))
 							.then(result -> {
 								sendResponse(request, result);
 							})
@@ -116,7 +116,8 @@ public final class Native {
 				arguments.put(arg);
 			}
 			request.put("id", requestId);
-			request.put("type", type.toString());
+			request.put("type", "request");
+			request.put("requestType", type.toString());
 			request.put("args", arguments);
 			this.postMessage(request);
 			DeferredObject<Object, Exception, Void> d = new DeferredObject<>();

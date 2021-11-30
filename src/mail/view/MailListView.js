@@ -218,7 +218,7 @@ export class MailListView implements MComponent<void> {
 					// Mail is still being prepared, already has a file path assigned to it
 					case "pending": {
 						handleDownloaded(existing.fileName, state.promise)
-						break
+						continue
 					}
 					case "complete": {
 						// We have downloaded it, but we need to check if it still exists

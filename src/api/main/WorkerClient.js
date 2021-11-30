@@ -1,6 +1,6 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import type {QueueCommands} from "../common/Queue"
+import type {Commands} from "../common/Queue"
 import {Queue, Request, WorkerTransport} from "../common/Queue"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
@@ -25,13 +25,8 @@ import type {TypeModel} from "../common/EntityTypes"
 
 assertMainOrNode()
 
-interface Message {
-	id: string,
-	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType,
-	args: mixed[]
-}
-
 type progressUpdater = (number) => mixed;
+type MainRequest = Request<MainRequestType>
 
 export class WorkerClient implements EntityRestInterface {
 
@@ -42,7 +37,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._deferredInitialized.promise
 	}
 
-	_queue: Queue;
+	_queue: Queue<WorkerRequestType, MainRequestType>;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
 	+infoMessages: Stream<InfoMessage>;
@@ -99,57 +94,58 @@ export class WorkerClient implements EntityRestInterface {
 		this._deferredInitialized.resolve()
 	}
 
-	queueCommands(locator: IMainLocator): QueueCommands {
+
+	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
 		return {
-			execNative: (message: Message) =>
+			execNative: (message: MainRequest) =>
 				locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
-			entityEvent: (message: Message) => {
+			entityEvent: (message: MainRequest) => {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
-			error: (message: Message) => {
+			error: (message: MainRequest) => {
 				handleUncaughtError(objToError((message).args[0]))
 				return Promise.resolve()
 			},
-			progress: (message: Message) => {
+			progress: (message: MainRequest) => {
 				const progressUpdater = this._progressUpdater
 				if (progressUpdater) {
 					progressUpdater(downcast(message.args[0]))
 				}
 				return Promise.resolve()
 			},
-			updateIndexState: (message: Message) => {
+			updateIndexState: (message: MainRequest) => {
 				locator.search.indexState(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			updateWebSocketState: (message: Message) => {
+			updateWebSocketState: (message: MainRequest) => {
 				this._wsConnection(downcast(message.args[0]));
 				return Promise.resolve()
 			},
-			counterUpdate: (message: Message) => {
+			counterUpdate: (message: MainRequest) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			updateLeaderStatus: (message: Message) => {
+			updateLeaderStatus: (message: MainRequest) => {
 				this._leaderStatus = downcast(message.args[0])
 				return Promise.resolve()
 			},
-			infoMessage: (message: Message) => {
+			infoMessage: (message: MainRequest) => {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-			createProgressMonitor: (message: Message) => {
+			createProgressMonitor: (message: MainRequest) => {
 				const work = downcast(message.args[0])
 				const reference = locator.progressTracker.registerMonitor(work)
 				return Promise.resolve(reference)
 			},
-			progressWorkDone: (message: Message) => {
+			progressWorkDone: (message: MainRequest) => {
 				const reference = downcast(message.args[0])
 				const workDone = downcast(message.args[1])
 				const monitor = locator.progressTracker.getMonitor(reference)
 				monitor && monitor.workDone(workDone)
 				return Promise.resolve()
 			},
-			writeIndexerDebugLog: (message: Message) => {
+			writeIndexerDebugLog: (message: MainRequest) => {
 				const reason = downcast(message.args[0])
 				const user = downcast(message.args[1])
 				addSearchIndexDebugEntry(reason, user)
@@ -190,7 +186,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
-	async _postRequest(msg: Request): Promise<any> {
+	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
 		return this._queue.postRequest(msg)
 	}

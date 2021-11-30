@@ -7,7 +7,7 @@ import {Logger, replaceNativeLogger} from "../common/Logger"
  */
 self.onmessage = function (msg) {
 	const data = msg.data
-	if (data.type === 'setup') {
+	if (data.requestType === 'setup') {
 		self.env = data.args[0]
 		replaceNativeLogger(self, new Logger())
 		Promise.resolve()
@@ -32,6 +32,6 @@ self.onmessage = function (msg) {
 			       })
 		       })
 	} else {
-		throw new Error("worker not yet ready")
+		throw new Error("worker not yet ready. Request type: " + data.requestType)
 	}
 }

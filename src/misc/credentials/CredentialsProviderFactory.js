@@ -9,6 +9,7 @@ import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
 import type {Credentials} from "./Credentials"
 import type {NativeInterface} from "../../native/common/NativeInterface"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp()
@@ -17,16 +18,15 @@ export function usingKeychainAuthentication(): boolean {
 /**
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
- * @param nativeApp
+ * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
  */
-export function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface): ICredentialsProvider {
+export function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: ?NativeInterface): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
-		const credentialsKeyProvider = new CredentialsKeyProvider(nativeApp, deviceConfig, deviceEncryptionFacade)
-		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeApp)
-		const credentialsKeyMigrator = new CredentialsKeyMigrator(nativeApp)
+		const nonNullNativeApp = assertNotNull(nativeApp)
+		const credentialsKeyProvider = new CredentialsKeyProvider(nonNullNativeApp, deviceConfig, deviceEncryptionFacade)
+		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nonNullNativeApp)
+		const credentialsKeyMigrator = new CredentialsKeyMigrator(nonNullNativeApp)
 		return new CredentialsProvider(credentialsEncryption, deviceConfig, credentialsKeyMigrator)
-	} else if (isAdminClient() || isDesktop()) {
-		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub())
 	} else {
 		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub())
 	}

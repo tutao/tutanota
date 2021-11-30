@@ -2,7 +2,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
-import {downcast, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -20,9 +20,13 @@ assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export class FileController {
-	_fileApp: NativeFileApp
+	_fileApp: ?NativeFileApp
 
-	constructor(fileApp: NativeFileApp) {
+	get fileApp(): NativeFileApp {
+		return assertNotNull(this._fileApp)
+	}
+
+	constructor(fileApp: ?NativeFileApp) {
 		this._fileApp = fileApp
 	}
 
@@ -37,7 +41,7 @@ export class FileController {
 				try {
 					file = await fileFacade.downloadFileContentNative(tutanotaFile)
 					if (isAndroidApp() && !open) {
-						await this._fileApp.putFileIntoDownloadsFolder(file.location)
+						await this.fileApp.putFileIntoDownloadsFolder(file.location)
 					} else {
 						await this.open(file)
 					}
@@ -78,7 +82,7 @@ export class FileController {
 			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file =>
-				this._fileApp.putFileIntoDownloadsFolder(file.location)))
+				this.fileApp.putFileIntoDownloadsFolder(file.location)))
 		} else if (isApp()) {
 			downloadContent = f => fileFacade.downloadFileContentNative(f)
 			concurrency = {concurrency: 1}
@@ -171,7 +175,7 @@ export class FileController {
 	}
 
 	openFileReference(file: FileReference): Promise<void> {
-		return this._fileApp.open(file)
+		return this.fileApp.open(file)
 	}
 
 	async openDataFile(dataFile: DataFile): Promise<void> {
@@ -242,7 +246,7 @@ export class FileController {
 
 	async _saveBlobNative(dataFile: DataFile) {
 		try {
-			await this._fileApp.saveBlob(dataFile)
+			await this.fileApp.saveBlob(dataFile)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				// no-op. User cancelled file dialog
@@ -270,7 +274,7 @@ export class FileController {
 	 */
 	async getDataFile(uriOrPath: string): Promise<?DataFile> {
 		if (!isDesktop()) return null
-		return this._fileApp.readDataFile(uriOrPath)
+		return this.fileApp.readDataFile(uriOrPath)
 	}
 
 	/**
@@ -286,7 +290,7 @@ export class FileController {
 
 	_deleteFile(filePath: string) {
 		if (isApp()) {
-			this._fileApp.deleteFile(filePath)
+			this.fileApp.deleteFile(filePath)
 			    .catch((e) => console.log("failed to delete file", filePath, e))
 
 		}

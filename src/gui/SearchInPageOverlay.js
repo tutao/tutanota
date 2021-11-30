@@ -12,7 +12,7 @@ import {transform} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {FindInPageResult} from "electron"
-import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -27,7 +27,6 @@ export class SearchInPageOverlay {
 	_numberOfMatches: number = 0;
 	_currentMatch: number = 0;
 	_skipNextBlur: boolean = false;
-	_nativeApp: NativeInterfaceMain
 
 	constructor() {
 		this._closeFunction = null
@@ -54,7 +53,7 @@ export class SearchInPageOverlay {
 	close() {
 		if (this._closeFunction) {
 			this._closeFunction()
-			this._nativeApp.invokeNative(new Request("stopFindInPage", []))
+			locator.native.invokeNative(new Request("stopFindInPage", []))
 			this._closeFunction = null
 		}
 		m.redraw()
@@ -81,10 +80,10 @@ export class SearchInPageOverlay {
 						this._skipNextBlur = false
 						this._domInput.focus()
 					} else {
-						this._nativeApp.invokeNative(new Request("setSearchOverlayState", [false, false]))
+						locator.native.invokeNative(new Request("setSearchOverlayState", [false, false]))
 					}
 				},
-				onfocus: e => this._nativeApp.invokeNative(new Request("setSearchOverlayState", [true, false])),
+				onfocus: e => locator.native.invokeNative(new Request("setSearchOverlayState", [true, false])),
 				oninput: e => this._find(true, true),
 				style: {
 					width: px(250),
@@ -99,7 +98,7 @@ export class SearchInPageOverlay {
 
 	_find: ((forward: boolean, findNext: boolean) => Promise<void>) = (forward, findNext) => {
 		this._skipNextBlur = true
-		return this._nativeApp.invokeNative(new Request("findInPage", [
+		return locator.native.invokeNative(new Request("findInPage", [
 			this._domInput.value, {
 				forward,
 				matchCase: this._matchCase,
@@ -163,12 +162,14 @@ export class SearchInPageOverlay {
 			click: () => this.close(),
 		}
 
+		const handleMouseUp = (event) => this.handleMouseUp(event)
+
 		return {
 			view: (vnode: Object) => {
 				return m(".flex.flex-space-between",
 					{
-						oncreate: () => window.addEventListener('mouseup', this.handleMouseUp.bind(this)),
-						onremove: () => window.removeEventListener('mouseup', this.handleMouseUp.bind(this))
+						oncreate: () => window.addEventListener('mouseup', handleMouseUp),
+						onremove: () => window.removeEventListener('mouseup', handleMouseUp)
 					},
 					[
 						m(".flex-start.center-vertically",
@@ -209,7 +210,7 @@ export class SearchInPageOverlay {
 	*/
 	handleMouseUp(e: Event) {
 		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
-		this._nativeApp.invokeNative(new Request('setSearchOverlayState', [false, true]))
+		locator.native.invokeNative(new Request('setSearchOverlayState', [false, true]))
 	}
 }
 

@@ -5,7 +5,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode} from "../../api/common/Env"
+import {assertMainOrNode, isBrowser} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -43,6 +43,8 @@ import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
 import type {NativeSystemApp} from "../../native/main/NativeSystemApp"
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import {createNativeInterfaces} from "./NativeInterfaceFactory"
+import {ProgrammingError} from "../common/error/ProgrammingError"
+import type {NativeInterfaces} from "./NativeInterfaceFactory"
 
 assertMainOrNode()
 
@@ -98,11 +100,8 @@ class MainLocator implements IMainLocator {
 	progressTracker: ProgressTracker;
 	credentialsProvider: ICredentialsProvider;
 	worker: WorkerClient;
-	native: NativeInterfaceMain;
 	fileController: FileController;
-	fileApp: NativeFileApp;
-	pushService: NativePushServiceApp;
-	systemApp: NativeSystemApp;
+
 
 	loginFacade: LoginFacade;
 	customerFacade: CustomerFacade;
@@ -121,6 +120,33 @@ class MainLocator implements IMainLocator {
 	userManagementFacade: UserManagementFacade;
 	contactFormFacade: ContactFormFacade;
 	deviceEncryptionFacade: DeviceEncryptionFacade;
+
+	_nativeInterfaces: ?NativeInterfaces = null
+
+	get native(): NativeInterfaceMain {
+		return this._getNativeInterface("native")
+	}
+
+	get fileApp(): NativeFileApp {
+		return this._getNativeInterface("fileApp")
+	}
+
+	get pushService(): NativePushServiceApp {
+		return this._getNativeInterface("pushService")
+	}
+
+	get systemApp(): NativeSystemApp {
+		return this._getNativeInterface("systemApp")
+	}
+
+	// get an interface from native interfaces
+	// return type is `any` because of flow nonsense
+	_getNativeInterface(name: $Keys<NativeInterfaces>): any {
+		if (!this._nativeInterfaces) {
+			throw new ProgrammingError(`Tried to use ${name} in web`)
+		}
+		return this._nativeInterfaces[name]
+	}
 
 	+_workerDeferred: DeferredObject<WorkerClient>
 	_entropyCollector: EntropyCollector
@@ -151,15 +177,9 @@ class MainLocator implements IMainLocator {
 
 	async _createInstances() {
 
-		// TODO we might need to do this later during bootstrap?
-		const {
-			native, fileApp, pushService, systemApp
-		} = await createNativeInterfaces()
-
-		this.native = native
-		this.fileApp = fileApp
-		this.pushService = pushService
-		this.systemApp = systemApp
+		if (!isBrowser()) {
+			this._nativeInterfaces = await createNativeInterfaces()
+		}
 
 		const {
 			loginFacade,
@@ -203,7 +223,7 @@ class MainLocator implements IMainLocator {
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(this.worker)
-		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this.native)
+		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
 
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		const lazyScheduler = async () => {
@@ -226,7 +246,7 @@ class MainLocator implements IMainLocator {
 		)
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.fileController = new FileController(this.fileApp)
+		this.fileController = new FileController(this._nativeInterfaces?.fileApp)
 	}
 }
 

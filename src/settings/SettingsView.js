@@ -30,7 +30,7 @@ import {PaymentViewer} from "../subscription/PaymentViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
-import {flat, LazyLoaded, partition} from "@tutao/tutanota-utils"
+import {flat, LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
@@ -43,7 +43,6 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 import {TemplateListView} from "./TemplateListView"
 import {KnowledgeBaseListView} from "./KnowledgeBaseListView"
-import {promiseMap} from "@tutao/tutanota-utils"
 import {loadTemplateGroupInstances} from "../templates/model/TemplatePopupModel"
 import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
 import {showGroupSharingDialog} from "../sharing/view/GroupSharingDialog"
@@ -93,7 +92,7 @@ export class SettingsView implements CurrentView {
 
 	_templateInvitations: ReceivedGroupInvitationsModel
 
-	constructor(nativeApp?: NativeInterfaceMain) {
+	constructor(nativeApp: ?NativeInterfaceMain) {
 		this._userFolders = [
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer(locator.credentialsProvider)),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
@@ -103,7 +102,9 @@ export class SettingsView implements CurrentView {
 		if (isDesktop()) {
 			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => {
 				const desktopSettingsViewer = new DesktopSettingsViewer()
-				nativeApp?.setAppUpdateListener(() => desktopSettingsViewer.onAppUpdateAvailable())
+				locator.initialized.then(() => {
+					locator.native.setAppUpdateListener(() => desktopSettingsViewer.onAppUpdateAvailable())
+				})
 				return desktopSettingsViewer
 			}))
 		}

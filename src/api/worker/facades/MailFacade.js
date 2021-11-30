@@ -1,5 +1,12 @@
 // @flow
-import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {
+	decryptKey,
+	encryptBucketKeyForInternalRecipient,
+	encryptBytes,
+	encryptKey,
+	encryptString,
+	resolveSessionKey
+} from "../crypto/CryptoFacade"
 import {aes128RandomKey} from "../crypto/Aes"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
@@ -29,7 +36,7 @@ import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundErro
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
-import {NotFoundError} from "../../common/error/RestError"
+import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
@@ -44,7 +51,8 @@ import {
 	noOp,
 	ofClass,
 	promiseFilter,
-	promiseMap
+	promiseMap,
+	uint8ArrayToHex
 } from "@tutao/tutanota-utils"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
@@ -65,7 +73,6 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import {encryptBucketKeyForInternalRecipient} from "../utils/ReceipientKeyDataUtils"
 // $FlowIgnore[untyped-import]
 import murmurHash from "../crypto/lib/murmurhash3_32"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
@@ -80,6 +87,11 @@ import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {SysService} from "../../entities/sys/Services"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
+import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
+import {hexToPublicKey} from "../crypto/Rsa"
+import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
+import type {RsaImplementation} from "../crypto/Rsa"
 
 assertWorkerOrNode()
 

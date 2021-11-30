@@ -1,5 +1,5 @@
 // @flow
-import type {QueueCommands} from "../common/Queue"
+import type {Commands} from "../common/Queue"
 import {errorToObj, Queue, Request, WorkerTransport} from "../common/Queue"
 import {CryptoError} from "../common/error/CryptoError"
 import {BookingFacade, bookingFacade} from "./facades/BookingFacade"
@@ -66,10 +66,12 @@ export interface WorkerInterface {
 	+deviceEncryptionFacade: DeviceEncryptionFacade;
 }
 
+type WorkerRequest = Request<WorkerRequestType>
+
 export class WorkerImpl implements NativeInterface {
 
 	_scope: ?DedicatedWorkerGlobalScope
-	_queue: Queue;
+	_queue: Queue<MainRequestType, WorkerRequestType>;
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
@@ -170,7 +172,7 @@ export class WorkerImpl implements NativeInterface {
 		}
 	}
 
-	queueCommands(exposedWorker: WorkerInterface): QueueCommands {
+	queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
 		return {
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
 			testError: (message: any) => {
@@ -182,34 +184,34 @@ export class WorkerImpl implements NativeInterface {
 				let ErrorType = errorTypes[message.args[0].errorType]
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
 			},
-			reset: (message: Request) => {
+			reset: (message: WorkerRequest) => {
 				return resetLocator()
 			},
-			restRequest: (message: Request) => {
+			restRequest: (message: WorkerRequest) => {
 				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
 				return locator.restClient.request(...message.args)
 			},
-			entityRequest: (message: Request) => {
+			entityRequest: (message: WorkerRequest) => {
 				return locator.cache.entityRequest(...message.args)
 			},
-			serviceRequest: (message: Request) => {
+			serviceRequest: (message: WorkerRequest) => {
 				return _service.apply(null, message.args)
 			},
-			entropy: (message: Request) => {
+			entropy: (message: WorkerRequest) => {
 				return this.addEntropy(message.args[0])
 			},
-			tryReconnectEventBus(message: Request) {
+			tryReconnectEventBus(message: WorkerRequest) {
 				locator.eventBusClient.tryReconnect(...message.args)
 				return Promise.resolve()
 			},
 			generateSsePushIdentifer: () => {
 				return Promise.resolve(keyToBase64(aes256RandomKey()))
 			},
-			closeEventBus: (message: Request) => {
+			closeEventBus: (message: WorkerRequest) => {
 				locator.eventBusClient.close(message.args[0])
 				return Promise.resolve()
 			},
-			resolveSessionKey: (message: Request) => {
+			resolveSessionKey: (message: WorkerRequest) => {
 				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
 			},
 			getLog: () => {
@@ -220,7 +222,7 @@ export class WorkerImpl implements NativeInterface {
 					return Promise.resolve([])
 				}
 			},
-			urlify: async (message: Request) => {
+			urlify: async (message: WorkerRequest) => {
 				const html: string = message.args[0]
 				return Promise.resolve(urlify(html))
 			},
@@ -228,8 +230,8 @@ export class WorkerImpl implements NativeInterface {
 		}
 	}
 
-	invokeNative(msg: Request): Promise<any> {
-		return this._queue.postRequest(new Request("execNative", [msg.type, msg.args]))
+	invokeNative(msg: Request<NativeRequestType>): Promise<any> {
+		return this._queue.postRequest(new Request("execNative", [msg.requestType, msg.args]))
 	}
 
 
