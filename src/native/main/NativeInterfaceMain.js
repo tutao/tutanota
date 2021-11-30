@@ -1,9 +1,9 @@
 // @flow
-import {assertMainOrNode, isAdminClient, isApp, isDesktop} from "../../api/common/Env";
-import type {Message, Transport} from "../../api/common/Queue"
-import {Queue, Request} from "../../api/common/Queue";
+import {assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp} from "../../api/common/Env";
+import type {Message, Transport} from "../../api/common/MessageDispatcher"
+import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher";
 import type {Base64, DeferredObject} from "@tutao/tutanota-utils";
-import {base64ToUint8Array, defer, noOp, utf8Uint8ArrayToString} from "@tutao/tutanota-utils";
+import {base64ToUint8Array, defer, downcast, utf8Uint8ArrayToString} from "@tutao/tutanota-utils";
 import type {NativeInterface} from "../common/NativeInterface"
 import {appCommands, desktopCommands} from "./NativeWrapperCommands"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
@@ -14,13 +14,63 @@ type NativeMessage = Message<NativeRequestType>
 type JsMessage = Message<JsRequestType>
 
 /**
- * Transport for communication between android/ios native and webview
- * Messages are passed from native via eval()-type calls which invoke sendMessageFromApp, see Native.java/WebViewBridge.swift
- * window.tutao.nativeApp is injected during webview initialization on both platforms
+ * Transport for communication between android native and webview, using WebMessagePorts for two-way communication.
+ * The interface `nativeApp.startWebMessageChannel` is defined in Native.java in order to initiate the setup of the port channel
  */
-class AppTransport implements Transport<NativeRequestType, JsRequestType> {
+class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestType> {
 
-	_messageHandler: JsMessage => mixed = noOp
+	_messageHandler: ?(JsMessage => mixed) = null
+	_deferredPort: DeferredObject<MessagePort> = defer()
+
+	get port(): Promise<MessagePort> {
+		return this._deferredPort.promise
+	}
+
+	/**
+	 * Creates a global `window.onmessage` handler, and then tells native to create the messageport channel
+	 */
+	start() {
+		// We will receive a message from native after the call to
+		// window.nativeApp.startWebMessageChannel
+		window.onmessage = (message) => {
+
+			// All further messages to and from native will be via this port
+			const port = message.ports[0]
+			port.onmessage = (messageEvent) => {
+				const handler = this._messageHandler
+				if (handler) {
+					// We can be sure we have a string here, because
+					// Android only allows sending strings across MessagePorts
+					const response = JSON.parse(downcast<string>(messageEvent.data))
+					handler(response)
+				}
+			}
+			this._deferredPort.resolve(port)
+		}
+
+		// window.nativeApp is defined in Native.java using WebView.addJavaScriptInterface
+		// The native side needs to initialize the WebMessagePorts
+		// We have to tell it when we are ready, otherwise it will happen too early and we won't receive the message event
+		window.nativeApp.startWebMessageChannel()
+	}
+
+	postMessage(message: NativeMessage): void {
+		this.port.then(port => port.postMessage(JSON.stringify(message)))
+	}
+
+	setMessageHandler(handler: JsMessage => mixed): mixed {
+		this._messageHandler = handler
+	}
+}
+
+/**
+ * Transport for communication between ios native and webview
+ * Messages are passed from native via as eval()-type call which invokes sendMessageFromApp, see WebViewBridge.swift
+ * window.tutao.nativeApp is injected during webview initialization
+ */
+class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> {
+
+	_messageHandler: ?(JsMessage => mixed) = null
 
 	constructor() {
 		window.tutao.nativeApp = this
@@ -35,10 +85,14 @@ class AppTransport implements Transport<NativeRequestType, JsRequestType> {
 	}
 
 	sendMessageFromApp(msg64: Base64): void {
-		const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))
-		this._messageHandler(JSON.parse(msg))
+		const handler = this._messageHandler
+		if (handler) {
+			const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))
+			handler(JSON.parse(msg))
+		}
 	}
 }
+
 
 /**
  * Transport for communication between electron native and webview
@@ -57,13 +111,16 @@ class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
 
 export class NativeInterfaceMain implements NativeInterface {
 
-	+_queueDeferred: DeferredObject<Queue<NativeRequestType, JsRequestType>> = defer();
-	_appUpdateListener: ?() => void
+	+_dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer();
+	_appUpdateListener: ?() => void = null
 
 	async init() {
 		let transport
-		if (isApp()) {
-			transport = new AppTransport()
+		if (isAndroidApp()) {
+			transport = new AndroidNativeTransport()
+			transport.start()
+		} else if (isIOSApp()) {
+			transport = new IosNativeTransport()
 		} else if (isDesktop() || isAdminClient()) {
 			transport = new DesktopTransport()
 		} else {
@@ -72,17 +129,22 @@ export class NativeInterfaceMain implements NativeInterface {
 		const commands = isApp() ? appCommands : desktopCommands
 
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
-		const queue = new Queue(transport, commands)
+		const queue = new MessageDispatcher(transport, commands)
 		await queue.postRequest(new Request("init", []))
-		this._queueDeferred.resolve(queue)
+		this._dispatchDeferred.resolve(queue)
+	}
+
+	// for testing
+	async initWithQueue(queue: MessageDispatcher<NativeRequestType, JsRequestType>) {
+		this._dispatchDeferred.resolve(queue)
 	}
 
 	/**
 	 * Send a request to the native side
 	 */
 	async invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		const queue = await this._queueDeferred.promise
-		return queue.postRequest(msg)
+		const dispatch = await this._dispatchDeferred.promise
+		return dispatch.postRequest(msg)
 	}
 
 	/**

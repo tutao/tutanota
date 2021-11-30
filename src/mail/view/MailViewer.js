@@ -39,7 +39,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {addAll, contains, defer, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {Request} from "../../api/common/Queue.js"
+import {Request} from "../../api/common/MessageDispatcher.js"
 import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
 import {
 	createNewContact,

@@ -1,5 +1,5 @@
 //@flow
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {ContactSuggestion} from "../../misc/ContactSuggestion"

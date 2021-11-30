@@ -10,7 +10,7 @@ import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 
 assertMainOrNode()
 

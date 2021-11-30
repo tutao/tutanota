@@ -1,5 +1,5 @@
 //@flow
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonType} from "../../gui/base/ButtonN"

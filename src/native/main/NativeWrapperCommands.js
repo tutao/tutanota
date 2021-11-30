@@ -1,5 +1,5 @@
 // @flow
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"

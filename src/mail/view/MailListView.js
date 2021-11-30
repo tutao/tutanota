@@ -28,7 +28,7 @@ import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/uti
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"

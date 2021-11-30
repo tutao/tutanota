@@ -1,6 +1,6 @@
 // @flow
 
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "../../native/common/NativeInterface"

@@ -1,6 +1,6 @@
 // @flow
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import type {PrivateKey, PublicKey, RsaKeyPair} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../common/NativeInterface"
 import type {RsaImplementation} from "../../api/worker/crypto/RsaImplementation"

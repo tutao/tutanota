@@ -6,7 +6,7 @@ import {displayOverlay} from './base/Overlay'
 import {px, size} from "./size"
 import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
-import {Request} from "../api/common/Queue.js"
+import {Request} from "../api/common/MessageDispatcher.js"
 import {lang} from "../misc/LanguageViewModel"
 import {transform} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"

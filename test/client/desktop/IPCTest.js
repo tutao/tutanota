@@ -4,8 +4,8 @@ import o from "ospec"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {defer, delay, noOp} from "@tutao/tutanota-utils"
 import {IPC} from "../../../src/desktop/IPC"
-import type {Message} from "../../../src/api/common/Queue"
-import {Request, RequestError, Response} from "../../../src/api/common/Queue"
+import type {Message} from "../../../src/api/common/MessageDispatcher"
+import {Request, RequestError, Response} from "../../../src/api/common/MessageDispatcher"
 
 
 o.spec("IPC tests", function () {

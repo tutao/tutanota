@@ -3,7 +3,7 @@
  * @file Functions to automatically expose certain interfaces across the WorkerProtocol Queue.
  */
 import {downcast} from "@tutao/tutanota-utils"
-import {Queue, Request} from "./Queue"
+import {MessageDispatcher, Request} from "./MessageDispatcher"
 
 /**
  * Generates proxy where each field will be treated as an interface with async methods. Each method will delegate to the {@param queue}.
@@ -11,7 +11,7 @@ import {Queue, Request} from "./Queue"
  * You should specify T explicitly to avoid mistakes.
  */
 export function exposeRemote<T, OutgoingRequestType: "facade" | string, IncomingRequestType: string>(
-	queue: Queue<OutgoingRequestType, IncomingRequestType>
+	queue: MessageDispatcher<OutgoingRequestType, IncomingRequestType>
 ): T {
 	// Outer proxy is just used to generate individual facades
 	const workerProxy = new Proxy({}, {
@@ -39,7 +39,7 @@ export function exposeLocal<T, IncomingRequestType>(impls: T): ((message: Reques
  * Generates proxy which will generate methods which will simulate methods of the facade.
  */
 function facadeProxy<OutgoingRequestType: string, IncomingRequestType: string>(
-	queue: Queue<OutgoingRequestType, IncomingRequestType>,
+	queue: MessageDispatcher<OutgoingRequestType, IncomingRequestType>,
 	facadeName: string
 ) {
 	if (queue == null) {

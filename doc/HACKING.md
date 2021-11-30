@@ -40,10 +40,10 @@ contains most of the logic for server communication, encryption, indexing etc.
 
 ### Communication
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[WorkerProtocol](../src/api/common/Queue.js). See [WorkerClient](../src/api/main/WorkerClient.js) and
+[RemoteMessageDispatcher](../src/api/common/MessageDispatcher.js). See [WorkerClient](../src/api/main/WorkerClient.js) and
 [WorkerImpl](../src/api/worker/WorkerImpl.js) for the client and server part.
 
-Native code communicates through the [NativeWrapper](../src/native/common/NativeInterface.js).
+Native code communicates through the [NativeInterface](../src/native/common/NativeInterface.js).
 
 ### UI code
 UI code uses [Mithril](http://mithril.js.org/). It is a tiny framework which does routing & implement virtual DOM.

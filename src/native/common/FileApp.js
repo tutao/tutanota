@@ -1,5 +1,5 @@
 //@flow
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler";
 import {promiseMap} from "@tutao/tutanota-utils"

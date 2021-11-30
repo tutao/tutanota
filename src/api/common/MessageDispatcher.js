@@ -18,9 +18,15 @@ export type Message<Type> =
 	| RequestError<Type>
 
 export interface Transport<RequestCommandType, ResponseCommandType> {
+	/**
+	 * Post a message to the other side of the transport
+	 */
 	postMessage(message: Message<RequestCommandType>): void;
 
-	setMessageHandler(ev: (Message<ResponseCommandType>) => mixed): mixed;
+	/**
+	 * Set the handler for messages coming from the other end of the transport
+	 */
+	setMessageHandler(message: (Message<ResponseCommandType>) => mixed): mixed;
 }
 
 /**
@@ -80,22 +86,22 @@ export class RequestError<T> {
 	}
 }
 
-type QueuedMessageCallbacks = {resolve: (any) => void, reject: (any) => void}
+type MessageCallbacks = {resolve: (any) => void, reject: (any) => void}
 
 /**
- * Queue for the remote invocations (e.g. worker or native calls).
+ * Handles remote invocations (e.g. worker or native calls).
  */
-export class Queue<OutgoingRequestType: string, IncomingRequestType: string> {
+export class MessageDispatcher<OutgoingRequestType: string, IncomingRequestType: string> {
 	/**
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
-	_queue: {[key: string]: QueuedMessageCallbacks};
+	_messages: {[key: string]: MessageCallbacks};
 	_commands: Commands<IncomingRequestType>;
 	+_transport: Transport<OutgoingRequestType, IncomingRequestType>;
 
 	constructor(transport: ?Transport<OutgoingRequestType, IncomingRequestType>, commands: Commands<IncomingRequestType>) {
-		this._queue = {}
+		this._messages = {}
 		this._commands = commands
 		this._transport = (transport: any)
 		this._transport?.setMessageHandler(msg => this.handleMessage(msg))
@@ -103,7 +109,7 @@ export class Queue<OutgoingRequestType: string, IncomingRequestType: string> {
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
 		return new Promise((resolve, reject) => {
-			this._queue[msg.id] = {resolve, reject}
+			this._messages[msg.id] = {resolve, reject}
 			try {
 				this._transport.postMessage(msg)
 			} catch (e) {
@@ -115,11 +121,11 @@ export class Queue<OutgoingRequestType: string, IncomingRequestType: string> {
 
 	handleMessage(message: Message<IncomingRequestType>) {
 		if (message.type === 'response') {
-			this._queue[message.id].resolve(message.value)
-			delete this._queue[message.id]
+			this._messages[message.id].resolve(message.value)
+			delete this._messages[message.id]
 		} else if (message.type === 'requestError') {
-			this._queue[message.id].reject(objToError(downcast(message).error))
-			delete this._queue[message.id]
+			this._messages[message.id].reject(objToError(downcast(message).error))
+			delete this._messages[message.id]
 		} else {
 			let command = this._commands[message.requestType]
 			let request = (message: any)

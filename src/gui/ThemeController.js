@@ -238,7 +238,7 @@ export class NativeThemeStorage implements ThemeStorage {
 	}
 
 	async _callWith<R>(method: NativeRequestType, args: $ReadOnlyArray<mixed>): Promise<R> {
-		const {Request} = await import("../api/common/Queue")
+		const {Request} = await import("../api/common/MessageDispatcher")
 		const {locator} = await import("../api/main/MainLocator")
 
 		// Theme initialization happens concurrently with locator initialization, so we have to wait or native may not yet be defined when we first get here.

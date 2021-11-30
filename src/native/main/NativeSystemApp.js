@@ -1,5 +1,5 @@
 //@flow
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {isDesktop} from "../../api/common/Env"
 import type {DesktopConfigEncKeyEnum, DesktopConfigKeyEnum} from "../../desktop/config/ConfigKeys"
 import type {LanguageCode} from "../../misc/LanguageViewModel"

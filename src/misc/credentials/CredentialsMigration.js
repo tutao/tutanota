@@ -5,7 +5,7 @@ import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryp
 import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**

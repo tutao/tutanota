@@ -4,7 +4,7 @@ import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import type {Credentials} from "./Credentials"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 

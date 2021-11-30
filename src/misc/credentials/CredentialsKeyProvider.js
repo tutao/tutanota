@@ -1,7 +1,7 @@
 // @flow
 import type {CredentialsStorage} from "./CredentialsProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/MessageDispatcher"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionModeEnum} from "./CredentialEncryptionMode"
 import type {NativeInterface} from "../../native/common/NativeInterface"

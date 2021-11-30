@@ -1,6 +1,6 @@
 // @flow
-import type {Commands} from "../common/Queue"
-import {errorToObj, Queue, Request, WorkerTransport} from "../common/Queue"
+import type {Commands} from "../common/MessageDispatcher"
+import {errorToObj, MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
 import {CryptoError} from "../common/error/CryptoError"
 import {BookingFacade, bookingFacade} from "./facades/BookingFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
@@ -76,7 +76,7 @@ type WorkerRequest = Request<WorkerRequestType>
 
 export class WorkerImpl implements NativeInterface {
 	_scope: ?DedicatedWorkerGlobalScope
-	_queue: Queue<MainRequestType, WorkerRequestType>;
+	_dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>;
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
@@ -84,7 +84,7 @@ export class WorkerImpl implements NativeInterface {
 		this._scope = self
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
-		this._queue = new Queue(
+		this._dispatcher = new MessageDispatcher(
 			this._scope && new WorkerTransport(this._scope),
 			this.queueCommands(this.exposedInterface)
 		)
@@ -236,12 +236,12 @@ export class WorkerImpl implements NativeInterface {
 	}
 
 	invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		return this._queue.postRequest(new Request("execNative", [msg.requestType, msg.args]))
+		return this._dispatcher.postRequest(new Request("execNative", [msg.requestType, msg.args]))
 	}
 
 
 	getMainInterface(): MainInterface {
-		return exposeRemote(this._queue)
+		return exposeRemote(this._dispatcher)
 	}
 
 	/**
@@ -264,51 +264,51 @@ export class WorkerImpl implements NativeInterface {
 	}
 
 	entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
-		return this._queue.postRequest(new Request("entityEvent", [data, eventOwnerGroupId]))
+		return this._dispatcher.postRequest(new Request("entityEvent", [data, eventOwnerGroupId]))
 	}
 
 	sendError(e: Error): Promise<void> {
-		return this._queue.postRequest(new Request("error", [errorToObj(e)]))
+		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
 	}
 
 	sendProgress(progressPercentage: number): Promise<void> {
-		return this._queue.postRequest(new Request("progress", [progressPercentage])).then(() => {
+		return this._dispatcher.postRequest(new Request("progress", [progressPercentage])).then(() => {
 			// the worker sometimes does not send the request if it does not get time
 			return delay(0)
 		})
 	}
 
 	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
-		return this._queue.postRequest(new Request("updateIndexState", [state]))
+		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
 	}
 
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
 		console.log("ws displayed state: ", state)
-		return this._queue.postRequest(new Request("updateWebSocketState", [state]))
+		return this._dispatcher.postRequest(new Request("updateWebSocketState", [state]))
 	}
 
 	updateCounter(update: WebsocketCounterData): Promise<void> {
-		return this._queue.postRequest(new Request("counterUpdate", [update]))
+		return this._dispatcher.postRequest(new Request("counterUpdate", [update]))
 	}
 
 	infoMessage(message: InfoMessage): Promise<void> {
-		return this._queue.postRequest(new Request("infoMessage", [message]))
+		return this._dispatcher.postRequest(new Request("infoMessage", [message]))
 	}
 
 	createProgressMonitor(totalWork: number): Promise<ProgressMonitorId> {
-		return this._queue.postRequest(new Request("createProgressMonitor", [totalWork]))
+		return this._dispatcher.postRequest(new Request("createProgressMonitor", [totalWork]))
 	}
 
 	progressWorkDone(reference: ProgressMonitorId, totalWork: number): Promise<void> {
-		return this._queue.postRequest(new Request("progressWorkDone", [reference, totalWork]))
+		return this._dispatcher.postRequest(new Request("progressWorkDone", [reference, totalWork]))
 	}
 
 	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
-		return this._queue.postRequest(new Request("updateLeaderStatus", [status]))
+		return this._dispatcher.postRequest(new Request("updateLeaderStatus", [status]))
 	}
 
 	writeIndexerDebugLog(reason: string, user: User): Promise<void> {
-		return this._queue.postRequest(new Request("writeIndexerDebugLog", [reason, user]))
+		return this._dispatcher.postRequest(new Request("writeIndexerDebugLog", [reason, user]))
 	}
 }
 
