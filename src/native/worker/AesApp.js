@@ -1,6 +1,6 @@
 // @flow
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/Queue"
+import {Request} from "../../api/common/RemoteMessageDispatcher"
 import {keyToBase64} from "../../api/worker/crypto/CryptoUtils"
 import type {NativeInterface} from "../common/NativeInterface"
 

@@ -1,7 +1,7 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
-import type {Commands} from "../common/Queue"
-import {Queue, Request, WorkerTransport} from "../common/Queue"
+import type {Commands} from "../common/RemoteMessageDispatcher"
+import {RemoteMessageDispatcher, Request, WorkerTransport} from "../common/RemoteMessageDispatcher"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {CloseEventBusOptionEnum, EntropySrcEnum} from "../common/TutanotaConstants"
@@ -37,7 +37,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._deferredInitialized.promise
 	}
 
-	_queue: Queue<WorkerRequestType, MainRequestType>;
+	_dispatcher: RemoteMessageDispatcher<WorkerRequestType, MainRequestType>;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
 	+infoMessages: Stream<InfoMessage>;
@@ -61,9 +61,9 @@ export class WorkerClient implements EntityRestInterface {
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
 			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
 			const worker = new Worker(workerUrl)
-			this._queue = new Queue(new WorkerTransport(worker), this.queueCommands(locator))
+			this._dispatcher = new RemoteMessageDispatcher(new WorkerTransport(worker), this.queueCommands(locator))
 
-			await this._queue.postRequest(new Request('setup', [
+			await this._dispatcher.postRequest(new Request('setup', [
 				window.env,
 				this._getInitialEntropy(),
 				client.browserData()
@@ -80,9 +80,9 @@ export class WorkerClient implements EntityRestInterface {
 			const workerImpl = new WorkerImpl(this, true)
 			await workerImpl.init(client.browserData())
 			workerImpl._queue._transport = {
-				postMessage: msg => this._queue.handleMessage(msg)
+				postMessage: msg => this._dispatcher.handleMessage(msg)
 			}
-			this._queue = new Queue(({
+			this._dispatcher = new RemoteMessageDispatcher(({
 					postMessage: function (msg) {
 						workerImpl._queue.handleMessage(msg)
 					}
@@ -155,7 +155,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(this._queue)
+		return exposeRemote<WorkerInterface>(this._dispatcher)
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
@@ -188,7 +188,7 @@ export class WorkerClient implements EntityRestInterface {
 
 	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
-		return this._queue.postRequest(msg)
+		return this._dispatcher.postRequest(msg)
 	}
 
 	registerProgressUpdater(updater: ?progressUpdater) {
@@ -211,7 +211,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
-		return this._queue.postRequest(new Request("closeEventBus", [closeOption]))
+		return this._dispatcher.postRequest(new Request("closeEventBus", [closeOption]))
 	}
 
 	reset(): Promise<void> {
@@ -219,7 +219,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	getLog(): Promise<Array<string>> {
-		return this._queue.postRequest(new Request("getLog", []))
+		return this._dispatcher.postRequest(new Request("getLog", []))
 	}
 
 	isLeader(): boolean {

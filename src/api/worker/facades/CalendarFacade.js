@@ -51,7 +51,7 @@ import {hash} from "../crypto/Sha256"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
-import {Request} from "../../common/Queue"
+import {Request} from "../../common/RemoteMessageDispatcher"
 import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"

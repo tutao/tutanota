@@ -1,9 +1,9 @@
 // @flow
 import {assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp} from "../../api/common/Env";
-import type {Message, Transport} from "../../api/common/Queue"
-import {Queue, Request} from "../../api/common/Queue";
+import type {Message, Transport} from "../../api/common/RemoteMessageDispatcher"
+import {RemoteMessageDispatcher, Request} from "../../api/common/RemoteMessageDispatcher";
 import type {Base64, DeferredObject} from "@tutao/tutanota-utils";
-import {base64ToUint8Array, defer, downcast, noOp, utf8Uint8ArrayToString} from "@tutao/tutanota-utils";
+import {base64ToUint8Array, defer, downcast, utf8Uint8ArrayToString} from "@tutao/tutanota-utils";
 import type {NativeInterface} from "../common/NativeInterface"
 import {appCommands, desktopCommands} from "./NativeWrapperCommands"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
@@ -111,12 +111,12 @@ class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
 
 export class NativeInterfaceMain implements NativeInterface {
 
-	_queueDeferred: DeferredObject<Queue<NativeRequestType, JsRequestType>> = defer();
-	+_queue: Promise<Queue<NativeRequestType, JsRequestType>>
+	+_dispatchDeferred: DeferredObject<RemoteMessageDispatcher<NativeRequestType, JsRequestType>> = defer();
+	+_dispatch: Promise<RemoteMessageDispatcher<NativeRequestType, JsRequestType>>
 	_appUpdateListener: ?() => void
 
 	constructor() {
-		this._queue = this._queueDeferred.promise
+		this._dispatch = this._dispatchDeferred.promise
 	}
 
 	async init() {
@@ -134,17 +134,22 @@ export class NativeInterfaceMain implements NativeInterface {
 		const commands = isApp() ? appCommands : desktopCommands
 
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
-		const queue = new Queue(transport, commands)
+		const queue = new RemoteMessageDispatcher(transport, commands)
 		await queue.postRequest(new Request("init", []))
-		this._queueDeferred.resolve(queue)
+		this._dispatchDeferred.resolve(queue)
+	}
+
+	// for testing
+	async initWithQueue(queue: RemoteMessageDispatcher<NativeRequestType, JsRequestType>) {
+		this._dispatchDeferred.resolve(queue)
 	}
 
 	/**
 	 * Send a request to the native side
 	 */
 	async invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		const queue = await this._queue
-		return queue.postRequest(msg)
+		const dispatch = await this._dispatch
+		return dispatch.postRequest(msg)
 	}
 
 	/**
