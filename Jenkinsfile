@@ -116,7 +116,7 @@ pipeline {
 					   	withCredentials(
 					   		[
 					   			usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
-								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
+								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD'),
 								string(credentialsId: 'team-id', variable: 'APPLETEAMIDVAR'),
 					   		]
 						)
