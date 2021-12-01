@@ -5,4 +5,5 @@
     <string name="scheduleAlarmError_msg">Non se estableceu a alarma. Por favor actualiza a aplicación.</string>
     <string name="wantToSendReport_msg">Aconteceu algo imprevisto. Queres informar do fallo? Podes engadir unha mensaxe para axudarnos a resolver este problema.</string>
     <string name="downloadCompleted_msg">Descarga completa</string>
+    <string name="unlockCredentials_action">Desbloquear credenciais</string>
 </resources>

@@ -11,3 +11,4 @@ TutaoCancelAction = "Prekliči";
 TutaoSettingsAction = "Nastavitve";
 TutaoCalendarAlarmTitle = "Opomnik";
 TutaoScheduleAlarmError = "Alarma ni bilo mogoče nastaviti. Prosimo, posodobite aplikacijo.";
+TutaoUnlockCredentialsAction = "Odkleni poverilnice";

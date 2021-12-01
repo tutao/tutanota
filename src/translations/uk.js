@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2021-11-19T10:55:39Z",
+	"updated_at": "2021-11-20T16:34:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -296,9 +296,9 @@ export default {
 		"createEvent_label": "Подія",
 		"createTemplate_action": "Створити шаблон",
 		"createUserFailed_msg": "Не вдалося створити користувача. Зверніться до служби підтримки.",
-		"credentialsEncryptionModeBiometricsHelp_msg": "Розширений. Більш безпечний, але облікові дані стають недійсними при зміні біометричних налаштувань",
+		"credentialsEncryptionModeBiometricsHelp_msg": "Найбільш безпечний варіант. Збережені облікові дані очищаються під час додавання або видалення біометричних даних.",
 		"credentialsEncryptionModeBiometrics_label": "Тільки біометрія",
-		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "Пароль від пристрою або біометрична автентифікація, якщо доступна",
+		"credentialsEncryptionModeDeviceCredentialsHelp_msg": "Використовуйте системні пін-код, пароль або біометричні дані.",
 		"credentialsEncryptionModeDeviceCredentials_label": "Системний пароль або біометрія",
 		"credentialsEncryptionModeDeviceLockHelp_msg": "Автоматичне розблокування, коли пристрій увімкнено",
 		"credentialsEncryptionModeDeviceLock_label": "Автоматичний",

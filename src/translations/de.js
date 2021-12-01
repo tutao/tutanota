@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-11-19T10:58:17Z",
+	"updated_at": "2021-11-25T14:27:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -589,6 +589,9 @@ export default {
 		"html_action": "HTML",
 		"ignoreCase_alt": "Groß/Kleinschreibung ignorieren",
 		"importCalendar_label": "Kalender wird importiert",
+		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
+		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
+		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-11-19T10:58:11Z",
+	"updated_at": "2021-11-25T14:26:09Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -585,6 +585,9 @@ export default {
 		"html_action": "HTML",
 		"ignoreCase_alt": "Ignore case",
 		"importCalendar_label": "Importing calendar",
+		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
+		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
+		"importEventsError_msg": "{amount} of {total} events could not be imported.",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importUsers_action": "Import users",
 		"importVCardError_msg": "Can not read vCard file.",
@@ -1428,9 +1431,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"importEventsError_msg": "{amount} of {total} events could not be imported.",
-		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
-		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
+		"you_label": "You"
 	}
 }
