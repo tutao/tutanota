@@ -117,6 +117,7 @@ pipeline {
 					   		[
 					   			usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
 								string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
+								string(credentialsId: 'team-id', variable: 'APPLETEAMIDVAR'),
 					   		]
 						)
 						{
@@ -127,6 +128,7 @@ pipeline {
 									export JENKINS=TRUE;
 									export APPLEID=${APPLEIDVAR};
 									export APPLEIDPASS=${APPLEIDPASSVAR};
+									export APPLETEAMID=${APPLETEAMIDVAR};
 									node dist --existing --mac ''' + "${stage}"
 								dir('build') {
 									if (params.RELEASE) {
