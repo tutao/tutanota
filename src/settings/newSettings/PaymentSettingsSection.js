@@ -150,6 +150,7 @@ export class PaymentSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "paymentMethod_label",
 			component: TextFieldN,
 			attrs: settingsAttrs
 		}
@@ -172,6 +173,7 @@ export class PaymentSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "currentBalance_label",
 			component: TextFieldN,
 			attrs: settingsAttrs
 		}
@@ -218,6 +220,7 @@ export class PaymentSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "postings_label",
 			component: SettingsTable,
 			attrs: SettingsAttrs
 		}

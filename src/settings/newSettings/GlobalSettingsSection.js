@@ -126,6 +126,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "adminSpam_action",
 			component: SettingsTable,
 			attrs: spamRuleSettingTableAttrs
 		}
@@ -153,6 +154,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "rejectedEmails_label",
 			component: SettingsTable,
 			attrs: rejectedSenderSettingsTableAttrs
 		}
@@ -175,6 +177,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "saveEncryptedIpAddress_label",
 			component: DropDownSelectorN,
 			attrs: settingsAttrs
 		}
@@ -197,6 +200,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "enforcePasswordUpdate_title",
 			component: DropDownSelectorN,
 			attrs: settingsAttrs
 		}
@@ -233,6 +237,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "customEmailDomains_label",
 			component: SettingsTable,
 			attrs: customDomainSettingsTableAttrs
 		}
@@ -253,6 +258,7 @@ export class GlobalSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "auditLog_title",
 			component: SettingsTable,
 			attrs: auditSettingsTableAttrs
 		}

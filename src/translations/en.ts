@@ -1443,5 +1443,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"searchSettings_placeholder": "Search Settings",
+		"emptyList_msg": "No settings found"
 	}
 }

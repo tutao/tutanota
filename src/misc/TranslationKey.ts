@@ -1431,3 +1431,4 @@ export type TranslationKeyType =
 	| "sessions_label"
 	| "secondFactor_label"
 	| "searchSettings_placeholder"
+	| "emptyList_msg"

@@ -71,6 +71,7 @@ export class GiftCardSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "giftCard_label",
 			component: SettingsTable,
 			attrs: GiftCardSettingsTableAttrs
 		}

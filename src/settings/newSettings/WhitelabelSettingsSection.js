@@ -130,6 +130,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "state_label",
 			component: TextFieldN,
 			attrs: textFieldAttrs
 		}
@@ -168,6 +169,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 			onRemoveTemplate,
 		}
 		return {
+			name: "customNotificationEmails_label",
 			component: WhitelabelNotificationEmailSettings,
 			attrs: whitelabelNotificationEmailSettingsAttrs
 		}
@@ -191,6 +193,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "customColors_label",
 			component: WhitelabelThemeSettings,
 			attrs: whitelabelThemeSettingsAttrs
 		}
@@ -212,6 +215,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "whitelabelDomain_label",
 			component: WhitelabelBrandingDomainSettings,
 			attrs: whitelabelBrandingDomainSettingsAttrs
 		}
@@ -236,6 +240,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "customMetaTags_label",
 			component: WhitelabelCustomMetaTagsSettings,
 			attrs: whitelabelCustomMetaTagsSettingsAttrs
 		}
@@ -269,6 +274,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "privacyPolicyUrl_label",
 			component: WhitelabelImprintAndPrivacySettings,
 			attrs: whitelabelImprintAndPrivacySettingsAttrs
 		}
@@ -291,6 +297,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "germanLanguageFile_label",
 			component: WhitelabelGermanLanguageFileSettings,
 			attrs: whitelabelGermanLanguageFileSettingsAttrs
 		}
@@ -339,6 +346,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "whitelabelRegistrationCode_label",
 			component: WhitelabelRegistrationSettings,
 			attrs: whitelabelRegistrationSettingsAttrs
 		}

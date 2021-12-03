@@ -86,6 +86,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "language_label",
 			component: DropDownSelectorN,
 			attrs: languageDropDownAttrs
 		}
@@ -106,6 +107,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 			}
 
 			return {
+				name: "switchColorTheme_action",
 				component: DropDownSelectorN,
 				attrs: themeDropDownAttrs
 			}
@@ -126,6 +128,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 			}
 
 			return {
+				name: "switchColorTheme_action",
 				component: DropDownSelectorN,
 				attrs: themeDropDownAttrs
 			}
@@ -149,6 +152,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 				dropdownWidth: 300,
 			}
 			return {
+				name: "switchColorTheme_action",
 				component: DropDownSelectorN,
 				attrs: themeDropDownAttrs
 			}
@@ -176,6 +180,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "timeFormat_label",
 			component: DropDownSelectorN,
 			attrs: hourFormatDropDownAttrs
 		}
@@ -209,6 +214,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "weekStart_label",
 			component: DropDownSelectorN,
 			attrs: weekStartDropDownAttrs
 		}

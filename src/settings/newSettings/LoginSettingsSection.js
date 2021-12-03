@@ -154,6 +154,7 @@ export class LoginSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "secondFactor_label",
 			component: SettingsTable,
 			attrs: secondFactorTableSetting
 		}
@@ -212,6 +213,7 @@ export class SessionSettings implements SettingsSection {
 		}
 
 		return {
+			name: "activeSessions_label",
 			component: SettingsTable,
 			attrs: activeSessionSettingTableAttrs
 		}
@@ -232,6 +234,7 @@ export class SessionSettings implements SettingsSection {
 		}
 
 		return {
+			name: "closedSessions_label",
 			component: SettingsTable,
 			attrs: closedSessionSettingTableAttrs
 		}
