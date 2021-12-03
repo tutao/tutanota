@@ -1,5 +1,25 @@
 import o from "ospec"
-import {hexToPrivateKey, hexToPublicKey, rsaDecryptSync, rsaEncryptSync, sign, verifySignature} from "../../../src/api/worker/crypto/Rsa"
+import {
+	aes128Decrypt,
+	aes128Encrypt,
+	aes256Decrypt,
+	aes256DecryptKey,
+	aes256Encrypt,
+	aes256EncryptKey,
+	bitArrayToUint8Array,
+	decryptKey,
+	encryptKey,
+	generateKeyFromPassphrase,
+	hexToPrivateKey,
+	hexToPublicKey,
+	KeyLength,
+	random,
+	rsaDecryptSync,
+	rsaEncryptSync,
+	sign,
+	uint8ArrayToBitArray,
+	verifySignature
+} from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
 	hexToUint8Array,
@@ -8,13 +28,7 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString
 } from "@tutao/tutanota-utils"
-import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt} from "../../../src/api/worker/crypto/Aes"
-import {generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
-import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
-import {random} from "../../../src/api/worker/crypto/Randomizer"
 import compatibilityTestData from "./CompatibilityTestData"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
-import {aes256DecryptKey, aes256EncryptKey, decryptKey, encryptKey} from "../../../src/api/worker/crypto/CryptoFacade"
 import {uncompress} from "../../../src/api/worker/Compression"
 
 
