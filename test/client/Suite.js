@@ -55,7 +55,7 @@ import "./misc/credentials/NativeCredentialsEncryptionTest"
 import "./misc/credentials/CredentialsKeyProviderTest"
 import "./misc/credentials/CredentialsMigrationTest"
 import o from "ospec"
-import {random} from "../../src/api/worker/crypto/Randomizer"
+import {random} from "@tutao/tutanota-crypto"
 import {preTest, reportTest} from "../api/TestUtils"
 
 (async () => {
