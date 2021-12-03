@@ -112,6 +112,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "bookingItemUsers_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -134,6 +135,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "storageCapacity_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -155,6 +157,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "mailAddressAliases_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -181,6 +184,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "groups_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -211,6 +215,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "whitelabelFeature_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -247,6 +252,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "sharingFeature_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -284,6 +290,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "businessFeature_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -311,6 +318,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "contactForms_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}

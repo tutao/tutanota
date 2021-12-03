@@ -125,6 +125,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "defaultSenderMailAddress_label",
 			component: DropDownSelectorN,
 			attrs: defaultSenderAttrs
 		}
@@ -153,6 +154,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "mailName_label",
 			component: TextFieldN,
 			attrs: senderNameAttrs
 		}
@@ -174,6 +176,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "userEmailSignature_label",
 			component: TextFieldN,
 			attrs: signatureAttrs
 		}
@@ -197,6 +200,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "defaultExternalDelivery_label",
 			component: DropDownSelectorN,
 			attrs: defaultUnconfidentAttrs
 		}
@@ -220,6 +224,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "externalFormatting_label",
 			component: DropDownSelectorN,
 			attrs: sendPlaintextAttrs
 		}
@@ -243,6 +248,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "createContacts_label",
 			component: DropDownSelectorN,
 			attrs: noAutomaticContactsAttrs
 		}
@@ -272,6 +278,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "searchMailbox_label",
 			component: DropDownSelectorN,
 			attrs: enableMailIndexingAttrs
 		}
@@ -283,6 +290,7 @@ export class MailSettingsSection implements SettingsSection {
 			this.reportMovedMails, this.mailboxProperties)
 
 		return {
+			name: "spamReports_label",
 			component: DropDownSelectorN,
 			attrs: reportMovedMailsAttrs
 		}
@@ -306,6 +314,7 @@ export class MailSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "outOfOfficeNotification_title",
 			component: TextFieldN,
 			attrs: outOfOfficeAttrs
 		}
@@ -414,6 +423,7 @@ export class MailDropdownSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "mailAddressAliases_label",
 			component: SettingsTable,
 			attrs: aliasSettingsTableAttrs
 		}
@@ -442,6 +452,7 @@ export class MailDropdownSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "inboxRulesSettings_action",
 			component: SettingsTable,
 			attrs: InboxRulesSettingsTableAttrs
 		}
@@ -491,6 +502,7 @@ export class MailDropdownSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "notificationSettings_action",
 			component: SettingsTable,
 			attrs: notificationSettingsTableAttrs
 		}

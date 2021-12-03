@@ -15,6 +15,8 @@ export type AllSettingsListAttrs = {
 
 export class AllSettingsList implements MComponent<AllSettingsListAttrs> {
 
+	sectionsList: Array<SettingsSection>
+
 	view(vnode: Vnode<AllSettingsListAttrs>): Children {
 		const searchBar = neverNull(header.searchBar)
 		// TODO initiate searchBar
@@ -22,7 +24,7 @@ export class AllSettingsList implements MComponent<AllSettingsListAttrs> {
 		return m(SettingsSelectList, {
 			items: model.sections,
 			selectedItem: model.selectedSection,
-			emptyListMessage: () => "nothingFound_label",
+			emptyListMessage: () => "emptyList_msg",
 			renderItem: (setting) => m(SettingsRow, {settingObject: setting})
 		})
 	}

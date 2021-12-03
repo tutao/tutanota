@@ -16,6 +16,7 @@ import {SubscriptionSettingsSection} from "./SubscriptionSettingsSection"
 import {PaymentSettingsSection} from "./PaymentSettingsSection"
 import {GiftCardSettingsSection} from "./GiftCardSettingsSection"
 import {ExtensionsSettingsSection} from "./ExtensionsSettingsSection"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export interface SettingsSection {
 	heading: string,
@@ -26,12 +27,14 @@ export interface SettingsSection {
 }
 
 export type SettingsValue<T> = {
+	name: TranslationKey,// | lazy<string>,
 	component: Class<MComponent<T>>,
 	attrs: T
 }
 
 export class SettingsModel {
 	sections: Array<SettingsSection>
+	allSections: Array<SettingsSection>
 	selectedSection: Stream<?SettingsSection> = stream(null)
 
 	constructor(userController: IUserController) {
@@ -47,6 +50,7 @@ export class SettingsModel {
 		this.sections.push(new GiftCardSettingsSection())
 		this.sections.push(new ExtensionsSettingsSection())
 		this.sections.push(new PaymentSettingsSection())
+		this.allSections = this.sections
 	}
 
 	setSelectedSection(section: SettingsSection) {

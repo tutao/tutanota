@@ -7,7 +7,6 @@ import {inputLineHeight, px, size} from "../size"
 import {styles} from "../styles"
 import {theme} from "../theme"
 import {Keys, TabIndex} from "../../api/common/TutanotaConstants"
-import type {TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
@@ -64,12 +63,10 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 
 
 	oncreate(vnode: Vnode<SearchBarNAttrs>) {
-		console.log("SearchBarN - oncreate", vnode.attrs)
 		vnode.attrs.keyManager.registerShortcuts(this.shortcuts)
 	}
 
 	onremove(vnode: Vnode<SearchBarNAttrs>) {
-		console.log("SearchBarN - onremove", vnode.attrs)
 		vnode.attrs.keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
@@ -208,37 +205,10 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 			{
 				key: Keys.UP,
 				exec: () => handler.onKeyUpPressed(),
-				// {
-				// 	if (entities.length > 0
-				// 	) {
-				// 		let oldSelected = selected || entities[0]
-				// 		this._updateState({
-				// 			selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
-				// 		})
-				// 	}
-				// 	e.preventDefault()
-				// }
 				help: "moveUp_action"
 			}, {
 				key: Keys.DOWN,
 				exec: () => handler.onKeyDownPressed(),
-				// {
-				// 	if (entities
-				//
-				// 			.length
-				// 		>
-				// 		0
-				// 	) {
-				// 		let
-				// 			newSelected = selected || entities[0]
-				// 		this
-				// 			._updateState({
-				// 				selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
-				// 			})
-				// 	}
-				//
-				// 	e.preventDefault()
-				// }
 				help: "moveDown_action"
 			}
 		]

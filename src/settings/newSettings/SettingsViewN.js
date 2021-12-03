@@ -13,6 +13,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {SettingsFolderN} from "./SettingsFolderN"
 import {logins} from "../../api/main/LoginController"
+import type {SettingsSection, SettingsValue} from "./SettingsModel"
 import {SettingsModel} from "./SettingsModel"
 import {AllSettingsList} from "./AllSettingsList"
 import {DetailsColumnViewer} from "./DetailsColumnViewer"
@@ -21,6 +22,9 @@ import {theme} from "../../gui/theme"
 import {locator} from "../../api/main/MainLocator"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {noOp} from "../../api/common/utils/Utils"
+import {Dialog} from "../../gui/base/Dialog"
+import {AboutDialog} from "../AboutDialog"
+import {isTutanotaDomain} from "../../api/common/Env"
 
 export class SettingsViewN implements CurrentView {
 
@@ -65,8 +69,6 @@ export class SettingsViewN implements CurrentView {
 	}
 
 
-
-
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<*> {
 		const section = this._settingsModel.selectedSection()
 		return section ? section.entityEventReceived(updates, eventOwnerGroupId) : Promise.resolve(undefined)
@@ -100,7 +102,8 @@ export class SettingsViewN implements CurrentView {
 					content: m(".flex.flex-grow.col", [
 						m(SidebarSection, {
 							name: () => "new searchable settings",
-						}, this._renderSidebarSectionChildren(this._folders))
+						}, this._renderSidebarSectionChildren(this._folders)),
+						isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 					]),
 					ariaLabel: "settings_label"
 				})
@@ -156,11 +159,68 @@ export class SettingsViewN implements CurrentView {
 		}
 	}
 
+	_aboutThisSoftwareLink(): Vnode<any> {
+		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
+			m("button.text-center.small.no-text-decoration", {
+					style: {
+						backgroundColor: "transparent",
+					},
+					href: '#',
+					onclick: () => {
+						this._viewSlider.focusNextColumn()
+						setTimeout(() => {
+							Dialog.showActionDialog({
+								title: () => lang.get("about_label"),
+								child: () => m(AboutDialog),
+								allowOkWithReturn: true,
+								okAction: (dialog) => dialog.close(),
+								allowCancel: false,
+							})
+						}, 200)
+					}
+				}, [
+					m("", `Tutanota v${env.versionNumber}`),
+					m(".b", {
+						style: {color: theme.navigation_button_selected}
+					}, lang.get("about_label"))
+				]
+			)
+		])
+	}
+
+	stringIsEqualWithAttrs(settingsValues: Array<SettingsValue<any>>, value: string): boolean {
+		let result = false
+		settingsValues.forEach((section) => {
+			if (lang.get(section.name).toLowerCase().includes(value.toLowerCase())) {
+				result = true
+			}
+		})
+		return result
+	}
+
+	stringIsEqualWithSection(section: SettingsSection, value: string): boolean {
+
+		return section.heading.toLowerCase().includes(value.toLowerCase())
+			|| section.category.toLowerCase().includes(value.toLowerCase())
+			|| this.stringIsEqualWithAttrs(section.settingsValues, value);
+	}
+
 	getSearchHandler(): ?SearchHandler {
-		// TODO implement for more folders
 		return {
-			onSearch: () => {
-				console.log("search setting")
+			onSearch: (value) => {
+				this._settingsModel.selectedSection(null)
+				let sections = []
+				if (value === "") {
+					sections = this._settingsModel.allSections
+				} else {
+					this._settingsModel.allSections.forEach((section) => {
+						if (this.stringIsEqualWithSection(section, value)) {
+							sections.push(section)
+						}
+					})
+				}
+				this._settingsModel.sections = sections
+				m.redraw()
 				return Promise.resolve(undefined)
 			},
 			placeholder: "searchSettings_placeholder",

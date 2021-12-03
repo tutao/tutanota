@@ -1438,6 +1438,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"searchSettings_placeholder": "Suche nach Einstellungen"
+		"searchSettings_placeholder": "Suche nach Einstellungen",
+		"emptyList_msg": "Keine Einträge gefunden"
 	}
 }

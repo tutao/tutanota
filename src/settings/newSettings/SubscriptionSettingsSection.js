@@ -134,6 +134,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 					: null
 		}
 		return {
+			name: "subscription_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -157,6 +158,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "businessOrPrivateUsage_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -196,6 +198,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "orderProcessingAgreement_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -224,6 +227,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "subscriptionPeriod_label",
 			component: DropDownSelectorN,
 			attrs: SettingsAttrs
 		}
@@ -240,6 +244,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "priceTill_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
@@ -259,6 +264,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		}
 
 		return {
+			name: "priceFrom_label",
 			component: TextFieldN,
 			attrs: SettingsAttrs
 		}
