@@ -31,6 +31,7 @@ import "./worker/CompressionTest"
 import "../api/common/PlainTextSearchTest"
 import "../api/common/EntityUtilsTest"
 import {preTest, reportTest} from "./TestUtils"
+import {random} from "@tutao/tutanota-crypto"
 
 (async function () {
 
@@ -49,7 +50,7 @@ import {preTest, reportTest} from "./TestUtils"
 	}
 
 	// setup the Entropy for all testcases
-	random.addEntropy([{data: 36, entropy: 256, source: "key"}])
+	await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
 	preTest()
 
 	await o.run(reportTest)

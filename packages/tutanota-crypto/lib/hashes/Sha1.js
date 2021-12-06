@@ -4,8 +4,6 @@ import sjcl from "../internal/sjcl"
 
 const sha1 = new sjcl.hash.sha1()
 
-const SHA1_HASH_LENGTH_BYTES = 20
-
 /**
  * Create the hash of the given data.
  * @param uint8Array The bytes.
