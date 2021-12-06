@@ -61,7 +61,7 @@ import {preTest, reportTest} from "../api/TestUtils"
 (async () => {
 	if (typeof process != "undefined") {
 		// setup the Entropy for all testcases
-		random.addEntropy([{data: 36, entropy: 256, source: EntropySource}])
+		await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
 		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
 		await import("./desktop/ElectronUpdaterTest")
