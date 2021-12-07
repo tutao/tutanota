@@ -1,6 +1,6 @@
 {
   "name": "@tutao/tutanota-crypto",
-  "version": "3.89.23",
+  "version": "3.89.23-beta.0",
   "license": "GPL-3.0",
   "main": "./lib/index.js",
   "repository": {

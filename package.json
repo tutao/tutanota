@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.8",
-	  "@tutao/tutanota-crypto": "3.89.23",
+	  "@tutao/tutanota-crypto": "3.89.23-beta.0",
 		"@tutao/tutanota-utils": "3.89.23",
 		"dompurify": "2.3.0",
 		"keytar": "7.7.0",
