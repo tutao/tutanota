@@ -1,6 +1,5 @@
 //@flow
 import {locator} from "../WorkerLocator"
-import {decryptAndMapToInstance, encryptAndMapToLiteral, resolveServiceSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {neverNull, TypeRef} from "@tutao/tutanota-utils"
@@ -23,7 +22,7 @@ export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | Moni
 						return Promise.reject(new Error("must provide a session key for an encrypted data transfer type!: "
 							+ service))
 					}
-					return encryptAndMapToLiteral(requestTypeModel, requestEntity, sk)
+					return locator.instanceMapper.encryptAndMapToLiteral(requestTypeModel, requestEntity, sk)
 				})
 			} else {
 				p = Promise.resolve(null)
@@ -34,8 +33,8 @@ export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | Moni
 					              if (responseTypeRef) {
 						              return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
 							              let instance = JSON.parse(((data: any): string))
-							              return resolveServiceSessionKey(responseTypeModel, instance).then(resolvedSessionKey => {
-								              return decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ? resolvedSessionKey : sk)
+							              return locator.crypto.resolveServiceSessionKey(responseTypeModel, instance).then(resolvedSessionKey => {
+								              return locator.instanceMapper.decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ? resolvedSessionKey : sk)
 							              })
 						              })
 					              }

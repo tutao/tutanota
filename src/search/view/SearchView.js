@@ -33,7 +33,6 @@ import {
 } from "../model/SearchUtils"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {Dialog} from "../../gui/base/Dialog"
-import {load} from "../../api/main/Entity"
 import {locator} from "../../api/main/MainLocator"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
@@ -522,7 +521,7 @@ export class SearchView implements CurrentView {
 				return this._searchList.entityEventReceived(instanceId, operation).then(() => {
 					// run the mail or contact update after the update on the list is finished to avoid parallel loading
 					if (operation === OperationType.UPDATE && this._viewer && this._viewer.isShownEntity(id)) {
-						return load(typeRef, id).then(updatedEntity => {
+						return locator.entityClient.load(typeRef, id).then(updatedEntity => {
 							this._viewer.showEntity(updatedEntity, false)
 						}).catch(() => {
 							// ignore. might happen if a mail was just sent

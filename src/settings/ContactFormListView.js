@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
-import {load, loadAll} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -32,6 +31,7 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -48,13 +48,13 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		this._settingsView = settingsView
 
 		this._listId = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => root.contactForms)
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+				return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => root.contactForms)
 			})
 		})
 		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._customerInfo.getAsync() // trigger loading so it is available later
 
@@ -63,7 +63,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			fetch: (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
-						return loadAll(ContactFormTypeRef, listId).then(contactForms => {
+						return locator.entityClient.loadAll(ContactFormTypeRef, listId).then(contactForms => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new contact forms are inserted into the list, even at the end
 							this._setLoadedCompletely();
 
@@ -77,7 +77,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(ContactFormTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
+					return locator.entityClient.load<ContactForm>(ContactFormTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
 					}))
 				})
@@ -160,7 +160,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			let promise
 			if (!logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
 				let listEntity = this.list.getEntity(instanceId)
-				promise = load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
+				promise = locator.entityClient.load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
 					return getAdministratedGroupIds().then(allAdministratedGroupIds => {
 						if (listEntity) {
 							if (allAdministratedGroupIds.indexOf(cf.targetGroup) === -1) {
@@ -184,7 +184,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 					&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
 						neverNull(instanceListId), instanceId
 					])) {
-					return load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
+					return locator.entityClient.load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
 						this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm,
 							neverNull(getWhitelabelDomain(this._customerInfo.getLoaded())).domain,
 							contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))

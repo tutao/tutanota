@@ -1,5 +1,5 @@
 // @flow
-import {load, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import type {AccountTypeEnum, InvoiceData, PaymentData, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
@@ -57,6 +57,8 @@ import {
 	uint8ArrayToBitArray
 } from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation";
+import {locator} from "../WorkerLocator"
+
 
 assertWorkerOrNode()
 
@@ -153,8 +155,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
-		const customer = await load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
-		const customerInfo = await load(CustomerInfoTypeRef, customer.customerInfo)
+		const customer = await locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
+		const customerInfo = await locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -185,8 +187,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 
 
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return load(CustomerTypeRef, customerId).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+		return  locator.cachingEntityClient.load(CustomerTypeRef, customerId).then(customer => {
+			return  locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity);
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity);
 				let availableStorage = Math.max(includedStorage, promotionStorage)
@@ -208,7 +210,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+		return  locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			let p
 			if (customer.serverProperties) {
 				p = Promise.resolve(customer.serverProperties)
@@ -226,7 +228,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 					})
 			}
 			return p.then(cspId => {
-				return load(CustomerServerPropertiesTypeRef, cspId)
+				return  locator.cachingEntityClient.load(CustomerServerPropertiesTypeRef, cspId)
 			})
 		})
 	}
@@ -241,7 +243,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
-			return update(props)
+			return  locator.cachingEntityClient.update(props)
 				.catch(ofClass(LockedError, noOp))
 		})
 	}
@@ -255,7 +257,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
 			}
 			props.emailSenderList[index] = spamRule
-			return update(props)
+			return  locator.cachingEntityClient.update(props)
 				.catch(ofClass(LockedError, noOp))
 		})
 	}
@@ -406,9 +408,9 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
-		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				return load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+		return  locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+			return  locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				return  locator.cachingEntityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
 						service.business = false // not used, must be set to false currently, will be removed later

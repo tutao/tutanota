@@ -2,7 +2,6 @@
 import {getDisplayText} from "../../mail/model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
-import {update} from "../../api/main/Entity"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {TextFieldN} from "../../gui/base/TextFieldN"
@@ -62,7 +61,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						})
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}
-					update(userSettingsGroupRoot)
+					locator.entityClient.update(userSettingsGroupRoot)
 				})
 			}
 		})

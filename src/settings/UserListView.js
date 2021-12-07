@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
-import {load, loadAll} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -29,6 +28,7 @@ import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -48,7 +48,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		this._adminUserGroupInfoIds = []
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return customer.userGroups
 			})
 
@@ -60,7 +60,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				if (startId === GENERATED_MAX_ID) {
 					return this._loadAdmins().then(() => {
 						return this._listId.getAsync().then(listId => {
-							return loadAll(GroupInfoTypeRef, listId).then(allUserGroupInfos => {
+							return locator.entityClient.loadAll(GroupInfoTypeRef, listId).then(allUserGroupInfos => {
 								// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
 								this._setLoadedCompletely();
 
@@ -83,7 +83,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(GroupInfoTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
+					return locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
 					}))
 				})
@@ -144,7 +144,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		                                 .memberships
 		                                 .find(gm => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) return Promise.resolve()
-		const members = await loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
+		const members = await locator.entityClient.loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
 		this._adminUserGroupInfoIds = members.map((adminGroupMember) => adminGroupMember.userGroupInfo[1])
 	}
 
@@ -185,7 +185,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 				if (!logins.getUserController().isGlobalAdmin()) {
 					let listEntity = this.list.getEntity(instanceId)
-					return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+					return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
 						let localAdminGroupIds = logins.getUserController()
 						                               .getLocalAdminGroupMemberships()
 						                               .map(gm => gm.group)

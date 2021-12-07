@@ -365,7 +365,7 @@ export class SearchBar implements MComponent<SearchBarAttrs> {
 
 		const byList = groupBy(results, listIdPart)
 		return promiseMap(byList, ([listId, idTuples]) => {
-				return locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart))
+				return locator.entityClient.loadMultiple(restriction.type, listId, idTuples.map(elementIdPart))
 				              .catch(ofClass(NotFoundError, () => {
 					              console.log("mail list from search index not found")
 					              return []

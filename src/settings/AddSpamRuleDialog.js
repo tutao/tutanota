@@ -13,7 +13,6 @@ import {
 } from "../api/common/TutanotaConstants"
 import {contains, neverNull, objectEntries} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
-import {load} from "../api/main/Entity"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
@@ -32,8 +31,8 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderLi
 	let customDomains: ?string[]
 	locator.customerFacade.loadCustomerServerProperties().then(props => {
 		existingSpamRules = props.emailSenderList
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+		locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 			.then(customerInfo => {
 				customDomains = customerInfo.domainInfos.map(d => d.domain)
 				m.redraw()

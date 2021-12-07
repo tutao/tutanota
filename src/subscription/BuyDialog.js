@@ -8,7 +8,6 @@ import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "@tutao/tutanota-utils"
 import {formatDate} from "../misc/Formatter"
-import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -35,7 +34,7 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return Promise.resolve(true)
 	}
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
@@ -44,8 +43,8 @@ export function showBuyDialog(featureType: BookingItemFeatureTypeEnum, count: nu
 					return Promise.resolve(true)
 				} else {
 
-					return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-						return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+					return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+						return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 							.catch(ofClass(NotAuthorizedError, e => {})) // local admin
 							.then(accountingInfo => {
 								if (accountingInfo && (accountingInfo.paymentMethod == null)) {

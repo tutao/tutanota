@@ -1,6 +1,6 @@
 // @flow
 import {createCustomDomainCheckData} from "../api/entities/sys/CustomDomainCheckData"
-import {serviceRequest} from "../api/main/Entity"
+import {serviceRequest} from "../api/main/ServiceRequest"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {CustomDomainCheckReturn} from "../api/entities/sys/CustomDomainCheckReturn"

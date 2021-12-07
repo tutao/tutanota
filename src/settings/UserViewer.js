@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
-import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
@@ -77,13 +76,13 @@ export class UserViewer {
 		this.userGroupInfo = userGroupInfo
 		this._senderName = this.userGroupInfo.name || ""
 		this._user = new LazyLoaded(() => {
-			return load(GroupTypeRef, this.userGroupInfo.group).then(userGroup => {
-				return load(UserTypeRef, neverNull(userGroup.user))
+			return locator.entityClient.load(GroupTypeRef, this.userGroupInfo.group).then(userGroup => {
+				return locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
 			})
 		})
-		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
+		this._customer = new LazyLoaded(() => locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
-		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
+		                                                .then(customer => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)))
 
 		this._adminStatusSelector = new DropDownSelector("globalAdmin_label", null, [
 			{name: lang.get("no_label"), value: false},
@@ -158,8 +157,8 @@ export class UserViewer {
 
 
 		this._customer.getAsync().then(customer => {
-			return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
-				return loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
+			return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
+				return locator.entityClient.loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
 						let contactFormsAddButton = new Button("addResponsiblePerson_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
 						this._contactFormsTable = new Table(["contactForms_label"], [
@@ -187,7 +186,7 @@ export class UserViewer {
 				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName)
 				      .then(newName => {
 					      this.userGroupInfo.name = newName
-					      update(this.userGroupInfo)
+					      locator.entityClient.update(this.userGroupInfo)
 				      })
 			},
 			icon: () => Icons.Edit,
@@ -283,7 +282,7 @@ export class UserViewer {
 			return this._user.getAsync().then(user => {
 				return this._customer.getAsync().then(customer => {
 					return promiseMap(this._getTeamMemberships(user, customer), m => {
-						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
+						return locator.entityClient.load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
 								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group))
@@ -311,9 +310,9 @@ export class UserViewer {
 		if (this._contactFormsTable) {
 			return this._user.getAsync().then(user => {
 				let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
-				return load(MailboxGroupRootTypeRef, userMailGroupMembership.group).then(mailboxGroupRoot => {
+				return locator.entityClient.load(MailboxGroupRootTypeRef, userMailGroupMembership.group).then(mailboxGroupRoot => {
 					if (mailboxGroupRoot.participatingContactForms.length > 0) {
-						return loadMultiple(ContactFormTypeRef, mailboxGroupRoot.participatingContactForms[0][0], mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]))
+						return locator.entityClient.loadMultiple(ContactFormTypeRef, mailboxGroupRoot.participatingContactForms[0][0], mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]))
 					}
 					return []
 				}).then((forms) => {
@@ -323,7 +322,7 @@ export class UserViewer {
 							if (match) {
 								remove(cf.participantGroupInfos, match)
 							}
-							showProgressDialog("pleaseWait_msg", update(cf))
+							showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
 						}, () => Icons.Cancel)
 						return new TableLine([cf.path], removeButton)
 					})
@@ -381,8 +380,8 @@ export class UserViewer {
 	_showAddUserToContactFormDialog() {
 		this._user.getAsync().then(user => {
 			this._customer.getAsync().then(customer => {
-				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
-					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(allContactForms => {
+				return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
+					locator.entityClient.loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(allContactForms => {
 						filterContactFormsForLocalAdmin(allContactForms).then(contactForms => {
 							let dropdown = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
 								return {name: cf.path, value: cf}
@@ -393,7 +392,7 @@ export class UserViewer {
 								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
 									cf.participantGroupInfos.push(user.userGroup.groupInfo)
 								}
-								showProgressDialog("pleaseWait_msg", update(cf))
+								showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
 								dialog.close()
 							}
 
@@ -456,7 +455,7 @@ export class UserViewer {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				promise = load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+				promise = locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 					this.userGroupInfo = updatedUserGroupInfo
 					this._senderName = updatedUserGroupInfo.name
 					this._userStatusSelector.selectedValue(updatedUserGroupInfo.deleted != null)

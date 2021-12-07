@@ -2,7 +2,7 @@
 import {ReadCounterReturnTypeRef} from "../../entities/monitor/ReadCounterReturn"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
-import {serviceRequest} from "../EntityWorker"
+import {serviceRequest} from "../ServiceRequestWorker"
 import {MonitorService} from "../../entities/monitor/Services"
 import {assertWorkerOrNode} from "../../common/Env"
 

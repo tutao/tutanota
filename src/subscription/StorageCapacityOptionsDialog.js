@@ -5,7 +5,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, Keys} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
-import {load} from "../api/main/Entity"
 import {neverNull} from "@tutao/tutanota-utils"
 import {buyStorage} from "./SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -23,8 +22,8 @@ export function showStorageCapacityOptionsDialog(storageWarningTextId: ?Translat
 	if (userController.isFreeAccount() || !userController.isGlobalAdmin()) {
 		throw new ProgrammingError("changing storage options is only allowed for global admins of premium accounts")
 	}
-	return load(CustomerTypeRef, neverNull(userController.user.customer))
-		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+	return locator.entityClient.load(CustomerTypeRef, neverNull(userController.user.customer))
+		.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
 			let freeStorageCapacity = Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
 			return new Promise((resolve) => {

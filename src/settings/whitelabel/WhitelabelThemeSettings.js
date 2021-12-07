@@ -15,7 +15,6 @@ import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
-import {update} from "../../api/main/Entity"
 import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
@@ -173,7 +172,7 @@ export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettin
 
 	saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: DomainInfo) {
 		whitelabelConfig.jsonTheme = JSON.stringify(customTheme)
-		update(whitelabelConfig)
+		locator.entityClient.update(whitelabelConfig)
 		customTheme.themeId = whitelabelDomainInfo.domain
 	}
 }

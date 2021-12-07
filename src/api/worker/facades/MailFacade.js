@@ -1,6 +1,6 @@
 // @flow
-import {encryptBucketKeyForInternalRecipient, encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
-import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationTypeEnum, MailMethodEnum, ReportedMailFieldTypeEnum} from "../../common/TutanotaConstants"
@@ -72,8 +72,9 @@ import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {SysService} from "../../entities/sys/Services"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
-import {aes128RandomKey} from "@tutao/tutanota-crypto/lib/encryption/Aes"
+import {locator} from "../WorkerLocator"
 import {
+	aes128RandomKey,
 	bitArrayToUint8Array,
 	createAuthVerifier, decryptKey, encryptKey,
 	generateKeyFromPassphrase,
@@ -427,7 +428,7 @@ export class MailFacade {
 
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
+				const keyData = await locator.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
 				if (keyData) {
 					service.internalRecipientKeyData.push(keyData)
 				}
@@ -452,13 +453,13 @@ export class MailFacade {
 		return this._entity.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
-			return load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
+			return  locator.cachingEntityClient.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 				.then(externalUserReference => {
-					return load(UserTypeRef, externalUserReference.user).then(externalUser => {
+					return  locator.cachingEntityClient.load(UserTypeRef, externalUserReference.user).then(externalUser => {
 						let mailGroupId = neverNull(externalUser.memberships.find(m => m.groupType
 							=== GroupType.Mail)).group
 						return Promise.all([
-							load(GroupTypeRef, mailGroupId), load(GroupTypeRef, externalUserReference.userGroup)
+							locator.cachingEntityClient.load(GroupTypeRef, mailGroupId),  locator.cachingEntityClient.load(GroupTypeRef, externalUserReference.userGroup)
 						]).then(([externalMailGroup, externalUserGroup]) => {
 							let externalUserGroupKey = decryptKey(this._login.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
 							let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
@@ -510,7 +511,7 @@ export class MailFacade {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(MailTypeRef, update.application, update.type)
 				&& isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])) {
-				return load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
+				return  locator.cachingEntityClient.load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
 					let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
 					this._deferredDraftUpdate = null
 					deferredPromiseWrapper.resolve(mail)
@@ -545,13 +546,13 @@ export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: stri
 
 function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
 	return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
-		return load(GroupTypeRef, groupMembership.group).then(mailGroup => {
+		return  locator.cachingEntityClient.load(GroupTypeRef, groupMembership.group).then(mailGroup => {
 			if (mailGroup.user == null) {
-				return load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
+				return  locator.cachingEntityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
 					return contains(getEnabledMailAddressesForGroupInfo(mailGroupInfo), mailAddress)
 				})
 			} else if (isSameId(mailGroup.user, user._id)) {
-				return load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
+				return  locator.cachingEntityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
 					return contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), mailAddress)
 				})
 			} else {

@@ -436,7 +436,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const updatesPerList = groupBy(addedOrUpdatedEventsUpdates, (update) => update.instanceListId)
 				return promiseMap(updatesPerList, ([instanceListId, updates]) => {
 					const ids = updates.map(update => update.instanceId)
-					return this._entityClient.loadMultipleEntities(CalendarEventTypeRef, instanceListId, ids)
+					return this._entityClient.loadMultiple(CalendarEventTypeRef, instanceListId, ids)
 					           .then((events) => {
 						           events.forEach(event => {
 							           this._addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)

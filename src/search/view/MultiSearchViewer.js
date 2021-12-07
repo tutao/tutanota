@@ -6,7 +6,6 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
-import {erase, update} from "../../api/main/Entity"
 import {NotFoundError} from "../../api/common/error/RestError"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
@@ -257,8 +256,8 @@ export class MultiSearchViewer {
 					return Dialog.confirm("mergeAllSelectedContacts_msg").then(confirmed => {
 						if (confirmed) {
 							mergeContacts(keptContact, goodbyeContact)
-							return showProgressDialog("pleaseWait_msg", update(keptContact).then(() => {
-								return erase(goodbyeContact)
+							return showProgressDialog("pleaseWait_msg", locator.entityClient.update(keptContact).then(() => {
+								return locator.entityClient.erase(goodbyeContact)
 									.catch(ofClass(NotFoundError, noOp))
 									.then(() => {
 										//is needed for correct selection behavior on mobile

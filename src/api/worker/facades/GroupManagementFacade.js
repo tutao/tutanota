@@ -5,7 +5,7 @@ import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
-import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLocalAdminGroupData"
@@ -27,6 +27,7 @@ import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex} 
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {encryptString} from "../crypto/CryptoFacade"
 import type {RsaImplementation} from "../crypto/RsaImplementation";
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -194,7 +195,7 @@ export class GroupManagementFacadeImpl {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return Promise.resolve(this._login.getGroupKey(neverNull(groupId)))
 		} else {
-			return load(GroupTypeRef, groupId).then(group => {
+			return locator.cachingEntityClient.load(GroupTypeRef, groupId).then(group => {
 				return Promise.resolve().then(() => {
 					if (group.admin && this._login.hasGroup(group.admin)) {
 						// e.g. I am a member of the group that administrates group G and want to add a new member to G
@@ -203,7 +204,7 @@ export class GroupManagementFacadeImpl {
 						// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
 						let globalAdminGroupId = this._login.getGroupId(GroupType.Admin)
 						let globalAdminGroupKey = this._login.getGroupKey(globalAdminGroupId)
-						return load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+						return locator.cachingEntityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
 							if (localAdminGroup.admin === globalAdminGroupId) {
 								return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
 							} else {

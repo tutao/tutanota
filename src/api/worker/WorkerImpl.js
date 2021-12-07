@@ -40,6 +40,7 @@ import type {EntropySource} from "@tutao/tutanota-crypto"
 import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
+import type {EntityRestInterface} from "./rest/EntityRestClient"
 
 
 assertWorkerOrNode()
@@ -63,6 +64,7 @@ export interface WorkerInterface {
 	+userManagementFacade: UserManagementFacade;
 	+contactFormFacade: ContactFormFacade;
 	+deviceEncryptionFacade: DeviceEncryptionFacade;
+	+restInterface: EntityRestInterface;
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -171,6 +173,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			get deviceEncryptionFacade() {
 				return locator.deviceEncryptionFacade
+			},
+			get restInterface() {
+				return locator.cache
 			}
 		}
 	}
@@ -193,9 +198,6 @@ export class WorkerImpl implements NativeInterface {
 			restRequest: (message: WorkerRequest) => {
 				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
 				return locator.restClient.request(...message.args)
-			},
-			entityRequest: (message: WorkerRequest) => {
-				return locator.cache.entityRequest(...message.args)
 			},
 			serviceRequest: (message: WorkerRequest) => {
 				return _service.apply(null, message.args)

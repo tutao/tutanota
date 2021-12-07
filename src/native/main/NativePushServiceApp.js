@@ -1,5 +1,4 @@
 //@flow
-import {load, loadAll, setup, update} from "../../api/main/Entity"
 import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -56,7 +55,7 @@ export class NativePushServiceApp {
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
-					update(pushIdentifier)
+								                      locator.entityClient.update(pushIdentifier)
 				}
 				await this._storePushIdentifierLocally(pushIdentifier)
 				await this._scheduleAlarmsIfNeeded(pushIdentifier)
@@ -95,7 +94,7 @@ export class NativePushServiceApp {
 
 	_loadPushIdentifier(identifier: string): Promise<?PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
-		return loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
+		return locator.entityClient.loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
 			return identifiers.find(i => i.identifier === identifier)
 		})
 	}
@@ -110,9 +109,9 @@ export class NativePushServiceApp {
 		pushIdentifier.pushServiceType = pushServiceType
 		pushIdentifier.identifier = identifier
 		pushIdentifier.language = lang.code
-		return setup(neverNull(list).list, pushIdentifier).then(id => {
+		return locator.entityClient.setup(neverNull(list).list, pushIdentifier).then(id => {
 			return [neverNull(list).list, id]
-		}).then(id => load(PushIdentifierTypeRef, id))
+		}).then(id => locator.entityClient.load(PushIdentifierTypeRef, id))
 	}
 
 

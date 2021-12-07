@@ -1,8 +1,7 @@
 // @flow
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
-import {erase, load} from "../api/main/Entity"
-import {BookingItemFeatureType, InputFieldType} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
 import * as ContactFormEditor from "./ContactFormEditor"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
@@ -21,6 +20,7 @@ import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -62,7 +62,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 			value: stream(lang.get("loading_msg")),
 			disabled: true
 		}
-		load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
+		locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
 			mailGroupFieldAttrs = {
 				label: "receivingMailbox_label",
 				value: stream(getGroupInfoDisplayName(groupInfo)),
@@ -126,7 +126,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 				showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.ContactForm, -1, 0, false)
 					.then(accepted => {
 						if (accepted) {
-							return erase(this.contactForm)
+							return locator.entityClient.erase(this.contactForm)
 						}
 					}))
 			}

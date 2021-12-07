@@ -9,8 +9,7 @@ import {
 	utf8Uint8ArrayToString
 } from "@tutao/tutanota-utils"
 import {Cardinality, Type, ValueType} from "../EntityConstants"
-import type {SomeEntity} from "../../main/Entity"
-import type {ModelValue, TypeModel} from "../EntityTypes"
+import type {ModelValue, SomeEntity, TypeModel} from "../EntityTypes"
 import type {Hex} from "@tutao/tutanota-utils/"
 import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils/"
 
@@ -107,10 +106,10 @@ export function containsId(ids: $ReadOnlyArray<Id | IdTuple>, id: Id | IdTuple):
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 
-export type Element = {
+export interface Element {
 	_id: Id
 }
-export type ListElement = {
+export interface ListElement {
 	_id: IdTuple
 }
 
@@ -160,10 +159,6 @@ export function uint8arrayToCustomId(array: Uint8Array): string {
  */
 export function customIdToString(customId: string): string {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
-}
-
-export function readOnlyHeaders(): Params {
-	return {[READ_ONLY_HEADER]: "true"}
 }
 
 export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {

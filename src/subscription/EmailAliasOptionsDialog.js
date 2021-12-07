@@ -4,7 +4,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
-import {load} from "../api/main/Entity"
 import {neverNull} from "@tutao/tutanota-utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -15,8 +14,8 @@ import {showBuyDialogToBookItem} from "./BuyDialog"
 import {locator} from "../api/main/MainLocator"
 
 export function show(): Promise<void> {
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		.then(customerInfo => {
 			let dialog: Dialog
 			let freeEmailAliases = Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))

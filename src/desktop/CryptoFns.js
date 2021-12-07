@@ -5,7 +5,7 @@
  */
 import forge from "node-forge"
 import crypto from "crypto"
-import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
+import {InstanceMapper} from "../api/worker/crypto/InstanceMapper"
 import type {TypeModel} from "../api/common/EntityTypes"
 import type {Base64} from "@tutao/tutanota-utils/"
 import {
@@ -54,6 +54,8 @@ export interface CryptoFunctions {
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T>;
 }
 
+const mapper = new InstanceMapper()
+
 export const cryptoFns: CryptoFunctions = {
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 		return aes128Decrypt(key, encryptedBytes, usePadding)
@@ -94,6 +96,6 @@ export const cryptoFns: CryptoFunctions = {
 	},
 
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
-		return decryptAndMapToInstance(model, instance, sk)
+		return mapper.decryptAndMapToInstance(model, instance, sk)
 	}
 }

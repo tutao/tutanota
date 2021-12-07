@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {Type} from "../gui/base/TextFieldN"
-import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
@@ -20,6 +19,7 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -54,7 +54,7 @@ export class WhitelabelChildViewer implements MComponent<void> {
 				Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this._comment)
 				      .then(newComment => {
 					      this.whitelabelChild.comment = newComment
-					      update(this.whitelabelChild)
+					      locator.entityClient.update(this.whitelabelChild)
 				      })
 			},
 			icon: () => Icons.Edit
@@ -77,7 +77,7 @@ export class WhitelabelChildViewer implements MComponent<void> {
 			selectedValue: stream(this._isWhitelabelChildActive),
 			selectionChangedHandler: (deactivate) => {
 				this.whitelabelChild.deletedDate = deactivate ? new Date() : null
-				return showProgressDialog("pleaseWait_msg", update(this.whitelabelChild))
+				return showProgressDialog("pleaseWait_msg", locator.entityClient.update(this.whitelabelChild))
 			}
 		}
 
@@ -94,7 +94,7 @@ export class WhitelabelChildViewer implements MComponent<void> {
 		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && update.operation === OperationType.UPDATE
 				&& isSameId(this.whitelabelChild._id, [neverNull(update.instanceListId), update.instanceId])) {
-				return load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
+				return locator.entityClient.load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
 					this.whitelabelChild = updatedWhitelabelChild
 					this._mailAddress = updatedWhitelabelChild.mailAddress
 					this._isWhitelabelChildActive = updatedWhitelabelChild.deletedDate != null

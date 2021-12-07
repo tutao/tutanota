@@ -1,7 +1,7 @@
 // @flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
-import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -24,6 +24,7 @@ import {SysService} from "../../entities/sys/Services"
 import type {User} from "../../entities/sys/User"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {assertWorkerOrNode} from "../../common/Env"
+import {locator} from "../WorkerLocator"
 import {
 	aes128RandomKey,
 	createAuthVerifier, decryptKey,
@@ -71,7 +72,7 @@ export class UserManagementFacade {
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
-		const userGroup = await load(GroupTypeRef, user.userGroup.group)
+		const userGroup = await  locator.cachingEntityClient.load(GroupTypeRef, user.userGroup.group)
 		let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
 		if (admin) {
 			await this._groupManagement.addUserToGroup(user, adminGroupId)
@@ -115,9 +116,9 @@ export class UserManagementFacade {
 
 	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
-		return load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
-			return load(GroupTypeRef, groupId).then(group => {
-				return load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
+		return  locator.cachingEntityClient.load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
+			return  locator.cachingEntityClient.load(GroupTypeRef, groupId).then(group => {
+				return  locator.cachingEntityClient.load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
 					let data = createUpdateAdminshipData()
 					data.group = group._id
 					data.newAdminGroup = newAdminGroup._id

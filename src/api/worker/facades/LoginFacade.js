@@ -1,5 +1,5 @@
 // @flow
-import {load, serviceRequest, serviceRequestVoid, setup} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {SysService} from "../../entities/sys/Services"
 import {
 	base64ToBase64Ext,
@@ -29,7 +29,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
-import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {EventBusClient} from "../EventBusClient"
@@ -59,18 +59,35 @@ import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStat
 import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
+import type {Base64Url, Hex} from "@tutao/tutanota-utils/"
 import type {Credentials} from "../../../misc/credentials/Credentials"
+import {locator} from "../WorkerLocator"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
 import {
 	aes128Decrypt,
-	aes128RandomKey, aes256DecryptKey, aes256EncryptKey, aes256RandomKey, base64ToKey, bitArrayToUint8Array, createAuthVerifier,
-	createAuthVerifierAsBase64Url, decrypt256Key,
-	decryptKey, encrypt256Key, encryptKey,
-	generateKeyFromPassphrase, generateRandomSalt, KeyLength,
-	keyToUint8Array, random, sha256Hash, TotpVerifier, uint8ArrayToBitArray, uint8ArrayToKey
+	aes128RandomKey,
+	aes256DecryptKey,
+	aes256EncryptKey,
+	aes256RandomKey,
+	base64ToKey,
+	bitArrayToUint8Array,
+	createAuthVerifier,
+	createAuthVerifierAsBase64Url,
+	decrypt256Key,
+	decryptKey,
+	encrypt256Key,
+	encryptKey,
+	generateKeyFromPassphrase,
+	generateRandomSalt,
+	KeyLength,
+	keyToUint8Array,
+	random,
+	sha256Hash,
+	TotpVerifier,
+	uint8ArrayToBitArray,
+	uint8ArrayToKey
 } from "@tutao/tutanota-crypto"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import type {Base64Url, Hex} from "@tutao/tutanota-utils"
 import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandler"
 import {createSecondFactorAuthDeleteData} from "../../entities/sys/SecondFactorAuthDeleteData"
 import type {SecondFactorAuthData} from "../../entities/sys/SecondFactorAuthData"
@@ -398,46 +415,46 @@ export class LoginFacadeImpl implements LoginFacade {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 		this._accessToken = accessToken
-		return load(UserTypeRef, userId)
-			.then(user => {
-				// we check that the password is not changed
-				// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
-				// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
-				if (uint8ArrayToBase64(user.verifier)
-					!== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
-					// delete the obsolete session in parallel to make sure it can not be used any more
-					this.deleteSession(accessToken)
-					this._accessToken = null
-					console.log("password has changed")
-					throw new NotAuthenticatedError("password has changed")
-				}
-				this._user = user
-				this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
-				return load(GroupInfoTypeRef, user.userGroup.groupInfo)
-			})
-			.then(groupInfo => this._userGroupInfo = groupInfo)
-			.then(() => {
-				if (!isTest() && permanentLogin && !isAdminClient()) {
-					// index new items in background
-					console.log("_initIndexer after log in")
-					this._initIndexer()
-				}
-			})
-			.then(() => this.loadEntropy())
-			.then(() => {
-				// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
-				// close the event bus and reconnect to make sure we get all missed events
-				if (userIdFromFormerLogin) {
-					this._eventBusClient.tryReconnect(true, true)
-				} else {
-					this._eventBusClient.connect(false)
-				}
-			})
-			.then(() => this.storeEntropy())
-			.catch(e => {
-				this.resetSession()
-				throw e
-			})
+		return locator.cachingEntityClient.load(UserTypeRef, userId)
+		              .then(user => {
+			              // we check that the password is not changed
+			              // this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
+			              // we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
+			              if (uint8ArrayToBase64(user.verifier)
+				              !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
+				              // delete the obsolete session in parallel to make sure it can not be used any more
+				              this.deleteSession(accessToken)
+				              this._accessToken = null
+				              console.log("password has changed")
+				              throw new NotAuthenticatedError("password has changed")
+			              }
+			              this._user = user
+			              this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
+			              return locator.cachingEntityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+		              })
+		              .then(groupInfo => this._userGroupInfo = groupInfo)
+		              .then(() => {
+			              if (!isTest() && permanentLogin && !isAdminClient()) {
+				              // index new items in background
+				              console.log("_initIndexer after log in")
+				              this._initIndexer()
+			              }
+		              })
+		              .then(() => this.loadEntropy())
+		              .then(() => {
+			              // userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
+			              // close the event bus and reconnect to make sure we get all missed events
+			              if (userIdFromFormerLogin) {
+				              this._eventBusClient.tryReconnect(true, true)
+			              } else {
+				              this._eventBusClient.connect(false)
+			              }
+		              })
+		              .then(() => this.storeEntropy())
+		              .catch(e => {
+			              this.resetSession()
+			              throw e
+		              })
 	}
 
 	_initIndexer(): Promise<void> {
@@ -626,13 +643,13 @@ export class LoginFacadeImpl implements LoginFacade {
 			if (this._user && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(UserTypeRef, update.application, update.type)
 				&& isSameId(this._user._id, update.instanceId)) {
-				return load(UserTypeRef, this._user._id).then(updatedUser => {
+				return locator.cachingEntityClient.load(UserTypeRef, this._user._id).then(updatedUser => {
 					this._user = updatedUser
 				})
 			} else if (this._userGroupInfo && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)
 				&& isSameId(this._userGroupInfo._id, [neverNull(update.instanceListId), update.instanceId])) {
-				return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
+				return locator.cachingEntityClient.load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
 					this._userGroupInfo = updatedUserGroupInfo
 				})
 			} else {
@@ -691,7 +708,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const extraHeaders = {
 			authVerifier: createAuthVerifierAsBase64Url(key),
 		}
-		return load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
+		return locator.cachingEntityClient.load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
 			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), result.userEncRecoverCode)))
 		})
 	}
@@ -715,8 +732,8 @@ export class LoginFacadeImpl implements LoginFacade {
 
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
-		return setup(null, recoverPasswordEntity, {authVerifier})
-			.then(() => hexCode)
+		return locator.cachingEntityClient.setup(null, recoverPasswordEntity, {authVerifier})
+		              .then(() => hexCode)
 	}
 
 	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
@@ -746,39 +763,40 @@ export class LoginFacadeImpl implements LoginFacade {
 		// and therefore we would not be able to read the updated user
 		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
 		// when logging in normally after resetting the password
-		const eventRestClient = new EntityRestClient(() => ({}), this._restClient)
+		const eventRestClient = new EntityRestClient(() => ({}), this._restClient, () => locator.crypto, locator.instanceMapper)
+		const entityClient = new EntityClient(eventRestClient)
 
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
 			// Don't pass email address to avoid proposing to reset second factor when we're resetting password
 			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 			.then(sessionData => {
-				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken})
-					.then(user => {
-						if (user.auth == null || user.auth.recoverCode == null) {
-							return Promise.reject(new Error("missing recover code"))
-						}
-						const extraHeaders = {
-							accessToken: sessionData.accessToken,
-							recoverCodeVerifier: recoverCodeVerifierBase64
-						}
-						return _loadEntity(RecoverCodeTypeRef, user.auth.recoverCode, null, eventRestClient, extraHeaders)
-					})
-					.then((recoverCode) => {
-						const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
-						let salt = generateRandomSalt();
-						let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-						let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
-						let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
+				return entityClient.load(UserTypeRef, sessionData.userId, null, {accessToken: sessionData.accessToken})
+				                   .then(user => {
+					                   if (user.auth == null || user.auth.recoverCode == null) {
+						                   return Promise.reject(new Error("missing recover code"))
+					                   }
+					                   const extraHeaders = {
+						                   accessToken: sessionData.accessToken,
+						                   recoverCodeVerifier: recoverCodeVerifierBase64
+					                   }
+					                   return entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, null, extraHeaders)
+				                   })
+				                   .then((recoverCode) => {
+					                   const groupKey = aes256DecryptKey(recoverCodeKey, recoverCode.recoverCodeEncUserGroupKey)
+					                   let salt = generateRandomSalt();
+					                   let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+					                   let pwEncUserGroupKey = encryptKey(userPassphraseKey, groupKey)
+					                   let newPasswordVerifier = createAuthVerifier(userPassphraseKey)
 
-						const postData = createChangePasswordData()
-						postData.salt = salt
-						postData.pwEncUserGroupKey = pwEncUserGroupKey
-						postData.verifier = newPasswordVerifier
-						postData.recoverCodeVerifier = recoverCodeVerifier
-						const extraHeaders = {accessToken: sessionData.accessToken}
-						return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
-					})
-					.finally(() => this.deleteSession(sessionData.accessToken))
+					                   const postData = createChangePasswordData()
+					                   postData.salt = salt
+					                   postData.pwEncUserGroupKey = pwEncUserGroupKey
+					                   postData.verifier = newPasswordVerifier
+					                   postData.recoverCodeVerifier = recoverCodeVerifier
+					                   const extraHeaders = {accessToken: sessionData.accessToken}
+					                   return serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, null, null, extraHeaders)
+				                   })
+				                   .finally(() => this.deleteSession(sessionData.accessToken))
 			})
 	}
 

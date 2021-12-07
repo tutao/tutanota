@@ -2,7 +2,6 @@
 import m from "mithril"
 import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
-import {load, loadRange, update} from "../api/main/Entity"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
@@ -81,8 +80,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this._customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._domainDnsStatus = {}
 		this._spamRuleLines = stream([])
@@ -99,7 +98,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			{name: lang.get("no_label"), value: false}
 		], saveIpAddress, 250).setSelectionChangedHandler(v => {
 			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {saveEncryptedIpAddressInSession: v})
-			update(newProps)
+			locator.entityClient.update(newProps)
 		})
 
 		let requirePasswordUpdateAfterReset = stream(false)
@@ -109,7 +108,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			{name: lang.get("no_label"), value: false}
 		], requirePasswordUpdateAfterReset, 250).setSelectionChangedHandler(v => {
 			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {requirePasswordUpdateAfterReset: v})
-			update(newProps)
+			locator.entityClient.update(newProps)
 		})
 
 		this.view = () => {
@@ -231,7 +230,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.emailSenderList,
-						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
+						updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",
@@ -255,12 +254,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			// Otherwise we will just use what has been returned in the first request.
 			const senderListId = customer.rejectedSenders.items
 			const startId = timestampToGeneratedId(Date.now() - REJECTED_SENDERS_TO_LOAD_MS)
-			const loadingPromise = loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
+			const loadingPromise = locator.entityClient.loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
 				.then(rejectedSenders => {
 					if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
 						// There are more entries available, we need to load from GENERATED_MAX_ID.
 						// we don't need to sort here because we load in reverse direction
-						return loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
+						return locator.entityClient.loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
 					} else {
 						// ensure that rejected senders are sorted in descending order
 						return rejectedSenders.sort(sortCompareByReverseId)
@@ -312,9 +311,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateAuditLog(): Promise<void> {
-		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			this._customer(customer)
-			return loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
 				.then(auditLog => {
 					this._auditLogLines(auditLog.map(auditLogEntry => {
 						return {
@@ -335,7 +334,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		let groupInfo = stream()
 		let groupInfoLoadingPromises = []
 		if (entry.modifiedGroupInfo) {
-			groupInfoLoadingPromises.push(load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+			groupInfoLoadingPromises.push(locator.entityClient.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
 				.then(gi => {
 					modifiedGroupInfo(gi)
 				})
@@ -344,7 +343,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				})))
 		}
 		if (entry.groupInfo) {
-			groupInfoLoadingPromises.push(load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
+			groupInfoLoadingPromises.push(locator.entityClient.load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
 				groupInfo(gi)
 			}).catch(ofClass(NotAuthorizedError, e => {
 				// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
@@ -476,7 +475,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_editCatchAllMailbox(domainInfo: DomainInfo) {
-		showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		showProgressDialog("pleaseWait_msg", locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 			.then(customer => {
 				return loadEnabledTeamMailGroups(customer)
 					.then(teamMailGroups => loadEnabledUserMailGroups(customer)
@@ -490,10 +489,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							let selectedPromise = Promise.resolve(null) // default is no selection
 							if (domainInfo.catchAllMailGroup) {
 								// the catch all group may be a user group, so load the mail group in that case
-								selectedPromise = load(GroupTypeRef, domainInfo.catchAllMailGroup)
+								selectedPromise = locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
 									.then(catchAllGroup => {
 										if (catchAllGroup.type === GroupType.User) {
-											return load(UserTypeRef, neverNull(catchAllGroup.user))
+											return locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
 												.then(user => {
 													return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
 												})

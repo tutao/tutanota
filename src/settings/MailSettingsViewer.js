@@ -6,7 +6,6 @@ import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperti
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import type {ReportMovedMailsTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
-import {load, update} from "../api/main/Entity"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
@@ -116,7 +115,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._defaultSender,
 			selectionChangedHandler: v => {
 				logins.getUserController().props.defaultSender = v
-				update(logins.getUserController().props)
+				locator.entityClient.update(logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 250,
@@ -128,7 +127,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName())
 				      .then(newName => {
 					      logins.getUserController().userGroupInfo.name = newName
-					      update(logins.getUserController().userGroupInfo)
+					      locator.entityClient.update(logins.getUserController().userGroupInfo)
 				      })
 			},
 			icon: () => Icons.Edit,
@@ -179,7 +178,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._defaultUnconfidential,
 			selectionChangedHandler: v => {
 				logins.getUserController().props.defaultUnconfidential = v
-				update(logins.getUserController().props)
+				locator.entityClient.update(logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultExternalDeliveryInfo_msg"),
 			dropdownWidth: 250,
@@ -195,7 +194,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._sendPlaintext,
 			selectionChangedHandler: v => {
 				logins.getUserController().props.sendPlaintextOnly = v
-				update(logins.getUserController().props)
+				locator.entityClient.update(logins.getUserController().props)
 			},
 			dropdownWidth: 250,
 		}
@@ -210,7 +209,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._noAutomaticContacts,
 			selectionChangedHandler: v => {
 				logins.getUserController().props.noAutomaticContacts = v
-				update(logins.getUserController().props)
+				locator.entityClient.update(logins.getUserController().props)
 			},
 			dropdownWidth: 250
 		}
@@ -317,7 +316,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
-						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
+						updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",
@@ -351,7 +350,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			let p = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				p = load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
+				p = locator.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
 					this._updateTutanotaPropertiesSettings(props)
 					this._updateInboxRules(props)
 				})
@@ -359,7 +358,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				this._updateInboxRules(logins.getUserController().props)
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				p = load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+				p = locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this._senderName(groupInfo.name)
 					this._editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()

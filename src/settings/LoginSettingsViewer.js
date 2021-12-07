@@ -9,7 +9,6 @@ import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {erase, loadAll} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
@@ -32,6 +31,7 @@ import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -181,7 +181,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateSessions(): Promise<void> {
-		return loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
+		return locator.entityClient.loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 			this._activeSessionsTableLines(sessions
 				.filter(session => session.state === SessionState.SESSION_STATE_ACTIVE)
@@ -196,7 +196,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: thisSession ? null : {
 							label: "closeSession_action",
 							click: () => {
-								erase(session).catch(ofClass(NotFoundError, () => {
+								locator.entityClient.erase(session).catch(ofClass(NotFoundError, () => {
 									console.log(`session ${JSON.stringify(session._id)} already deleted`)
 								}))
 							},

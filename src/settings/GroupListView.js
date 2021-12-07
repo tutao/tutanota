@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
-import {load, loadAll} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -51,7 +50,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		this._settingsView = settingsView
 
 		this._listId = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return customer.teamGroups
 			})
 		})
@@ -63,7 +62,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			fetch: (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
-						return loadAll(GroupInfoTypeRef, listId).then(allGroupInfos => {
+						return locator.entityClient.loadAll(GroupInfoTypeRef, listId).then(allGroupInfos => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
 							this._setLoadedCompletely();
 
@@ -84,7 +83,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			},
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
-					return load(GroupInfoTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
+					return locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 						// we return null if the entity does not exist
 					}))
 				})
@@ -173,7 +172,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(instanceId)
-				return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+				return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController()
 					                               .getLocalAdminGroupMemberships()
 					                               .map(gm => gm.group)

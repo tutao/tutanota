@@ -33,6 +33,8 @@ import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
+import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
+import {InstanceMapper} from "./crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 
 assertWorkerOrNode()
@@ -61,8 +63,10 @@ type WorkerLocatorType = {
 	contactFormFacade: ContactFormFacade,
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	native: NativeInterface,
-	rsa: RsaImplementation,
 	secondFactorAuthenticationHandler: SecondFactorAuthHandler,
+	rsa: RsaImplementation,
+	crypto: CryptoFacade,
+	instanceMapper: InstanceMapper,
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -72,9 +76,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const suspensionHandler = new SuspensionHandler(worker, self)
 
+	locator.instanceMapper = new InstanceMapper()
+	locator.rsa = await createRsaImplementation(worker)
 	locator.restClient = new RestClient(suspensionHandler)
 
-	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient)
+	const entityRestClient = new EntityRestClient(
+		getAuthHeaders,
+		locator.restClient,
+		() => locator.crypto,
+		locator.instanceMapper
+	)
 
 	locator._browserData = browserData
 	let cache = new EntityRestCache(entityRestClient)
@@ -86,6 +97,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 
 	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient, locator.secondFactorAuthenticationHandler)
+
+	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
 		locator.indexer._groupInfo.suggestionFacade,
@@ -94,7 +107,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData)
 	locator.counters = new CounterFacade()
 
-	locator.rsa = await createRsaImplementation(worker)
 	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient, locator.rsa)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters, locator.rsa)
 	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters, locator.rsa)
@@ -109,7 +121,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cachingEntityClient)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
-	locator.share = new ShareFacade(locator.login)
+	locator.share = new ShareFacade(locator.login, locator.crypto)
 	locator.giftCards = new GiftCardFacadeImpl(locator.login)
 	locator.configFacade = new ConfigurationDatabase(locator.login)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient)

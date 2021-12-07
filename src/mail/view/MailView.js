@@ -9,7 +9,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix} from "../../gui/base/NavButtonN"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {load, serviceRequestVoid, update} from "../../api/main/Entity"
+import { serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {createMailViewer, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolderTypeEnum} from "../../api/common/TutanotaConstants"
@@ -635,7 +635,7 @@ export class MailView implements CurrentView {
 						getFolderName(folder), (name) => this._checkFolderName(name, mailGroupId))
 					             .then((newName) => {
 						             const renamedFolder: MailFolder = Object.assign({}, folder, {name: newName})
-						             return update(renamedFolder)
+						             return locator.entityClient.update(renamedFolder)
 					             })
 				}
 			},
@@ -732,7 +732,7 @@ export class MailView implements CurrentView {
 			if (this.mailViewer && !multiSelectOperation) {
 				if (mails[0].unread && !mails[0]._errors) {
 					mails[0].unread = false
-					update(mails[0])
+					locator.entityClient.update(mails[0])
 						.catch(ofClass(NotFoundError,
 							e => console.log("could not set read flag as mail has been moved/deleted already", e)))
 						.catch(ofClass(LockedError, noOp))
@@ -780,7 +780,7 @@ export class MailView implements CurrentView {
 				// update the displayed or edited mail if necessary
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
-					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
+					return locator.entityClient.load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
 						this.mailViewer = createMailViewer({
 							mail: updatedMail,
 							showFolder: false

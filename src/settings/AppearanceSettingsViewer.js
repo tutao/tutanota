@@ -11,7 +11,6 @@ import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstant
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {downcast, incrementDate, noOp, promiseMap} from "@tutao/tutanota-utils"
-import {load, update} from "../api/main/Entity"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
@@ -66,7 +65,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: stream(downcast(userSettingsGroupRoot.timeFormat)),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.timeFormat = value
-				update(userSettingsGroupRoot)
+				locator.entityClient.update(userSettingsGroupRoot)
 			}
 		}
 
@@ -86,7 +85,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: stream(downcast(userSettingsGroupRoot.startOfTheWeek)),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.startOfTheWeek = value
-				update(userSettingsGroupRoot)
+				locator.entityClient.update(userSettingsGroupRoot)
 			}
 		}
 
@@ -124,7 +123,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				return load(UserSettingsGroupRootTypeRef, update.instanceId)
+				return locator.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId)
 					.then((settings) => {
 						lang.updateFormats({hourCycle: getHourCycle(settings)})
 						m.redraw()

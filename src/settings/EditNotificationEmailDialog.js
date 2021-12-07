@@ -9,7 +9,6 @@ import m from "mithril"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {load, loadRange, update} from "../api/main/Entity"
 import {LazyLoaded} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
@@ -32,13 +31,14 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {ofClass} from "@tutao/tutanota-utils"
+import {locator} from "../api/main/MainLocator"
 
 
 export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: Stream<string>) {
 	let existingTemplate: ?NotificationMailTemplate = null
 	userController.loadCustomer().then(customer => {
 		if (customer.properties) {
-			const customerProperties = new LazyLoaded(() => load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 			return customerProperties.getAsync().then(loadedCustomerProperties => {
 				if (selectedNotificationLanguage) {
 					existingTemplate = loadedCustomerProperties.notificationMailTemplates
@@ -47,7 +47,7 @@ export function showAddOrEditNotificationEmailDialog(userController: IUserContro
 			}).then(() => {
 				return userController.loadCustomerInfo().then(customerInfo => {
 					return customerInfo.bookings
-						? loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
+						? locator.entityClient.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
 							.then(bookings => bookings.length === 1 ? bookings[0] : null)
 						: null
 				}).then(lastBooking => {
@@ -200,7 +200,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 				template.body = htmlSanitizer.sanitize(editor.getValue(), {blockExternalContent: false}).text
 				template.language = selectedLanguageStream()
 
-				return update(customerProperties)
+				return locator.entityClient.update(customerProperties)
 					.then(() => dialog.close())
 
 			}))
@@ -237,5 +237,5 @@ function getDefaultNotificationMail(): string {
 function loadCustomerInfo(): Promise<?CustomerInfo> {
 	return logins.getUserController()
 	             .loadCustomer()
-	             .then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+	             .then(customer => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
 }

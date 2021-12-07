@@ -1,10 +1,8 @@
 //@flow
 import m from "mithril"
 import {isApp, isDesktop, isBrowser} from "../api/common/Env"
-import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {erase, loadAll, update} from "../api/main/Entity"
 import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
@@ -96,7 +94,7 @@ export class IdentifierListViewer {
 
 	_disableIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
-		update(identifier).then(m.redraw)
+		locator.entityClient.update(identifier).then(m.redraw)
 	}
 
 	view(): Children {
@@ -124,7 +122,7 @@ export class IdentifierListViewer {
 						disabled: identifier.disabled,
 						identifier: identifier.identifier,
 						current: isCurrentDevice,
-						removeClicked: () => {erase(identifier).catch(ofClass(NotFoundError, noOp))},
+						removeClicked: () => {locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))},
 						formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 						disableClicked: () => this._disableIdentifier(identifier)
 					})
@@ -162,7 +160,7 @@ export class IdentifierListViewer {
 		this._currentIdentifier = locator.pushService.getPushIdentifier()
 		const list = neverNull(this._user).pushIdentifierList
 		if (list) {
-			const identifiers = await loadAll(PushIdentifierTypeRef, list.list)
+			const identifiers = await locator.entityClient.loadAll(PushIdentifierTypeRef, list.list)
 			this._identifiers(identifiers)
 			m.redraw()
 		}
@@ -199,8 +197,8 @@ export class IdentifierListViewer {
 				pushIdentifier._ownerGroup = user.userGroup.group
 				pushIdentifier._owner = user.userGroup.group // legacy
 				pushIdentifier._area = "0" // legacy
-				let p = locator.worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
-					neverNull(user.pushIdentifierList).list, null, pushIdentifier);
+				let p = locator.entityClient.setup(
+					neverNull(user.pushIdentifierList).list, pushIdentifier);
 				showProgressDialog("pleaseWait_msg", p)
 				dialog.close()
 			}

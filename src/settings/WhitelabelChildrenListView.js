@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
-import {load, loadAll} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
@@ -23,6 +22,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -40,7 +40,7 @@ export class WhitelabelChildrenListView {
 		this._settingsView = settingsView
 
 		this._listId = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return (customer.whitelabelChildren) ? customer.whitelabelChildren.items : null
 			})
 		})
@@ -51,7 +51,7 @@ export class WhitelabelChildrenListView {
 				if (startId === GENERATED_MAX_ID) {
 					return this._listId.getAsync().then(listId => {
 						if (listId) {
-							return loadAll(WhitelabelChildTypeRef, listId).then(allChildren => {
+							return locator.entityClient.loadAll(WhitelabelChildTypeRef, listId).then(allChildren => {
 								// we have to set loadedCompletely to make sure that fetch is never called again and also that new whitelabel children are inserted into the list, even at the end
 								this._setLoadedCompletely();
 
@@ -70,7 +70,7 @@ export class WhitelabelChildrenListView {
 			loadSingle: (elementId) => {
 				return this._listId.getAsync().then(listId => {
 					if (listId) {
-						return load(WhitelabelChildTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
+						return locator.entityClient.load<WhitelabelChild>(WhitelabelChildTypeRef, [listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 							// we return null if the entity does not exist
 						}))
 					} else {

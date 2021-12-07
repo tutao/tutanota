@@ -1,6 +1,6 @@
 //@flow
 
-import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
@@ -22,7 +22,7 @@ import {
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import {encryptAndMapToLiteral, resolveSessionKey} from "../crypto/CryptoFacade"
+import {resolveSessionKey} from "../crypto/CryptoFacade"
 import {_TypeModel as AlarmServicePostTypeModel, createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
 import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
@@ -45,6 +45,7 @@ import {EntityRestCache} from "../rest/EntityRestCache"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
+import type {CalendarEventUidIndex} from "../../entities/tutanota/CalendarEventUidIndex"
 import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
@@ -58,6 +59,7 @@ import type {WorkerImpl} from "../WorkerImpl"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
 import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -259,7 +261,7 @@ export class CalendarFacade {
 		await this._encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 		const requestEntity = createAlarmServicePost({alarmNotifications})
 
-		const encEntity = await encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
+		const encEntity = await locator.instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
 
 		return this._native.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
 	}
@@ -289,7 +291,7 @@ export class CalendarFacade {
 			userAlarmInfo => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
 
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
-			return this._entity.loadMultipleEntities(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
+			return this._entity.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
 				// handle NotAuthorized here because user could have been removed from group.
 				if (error instanceof NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
@@ -317,7 +319,7 @@ export class CalendarFacade {
 		return asyncFindAndMap(calendarMemberships, (membership) => {
 			return this._entity.load(CalendarGroupRootTypeRef, membership.group)
 			           .then((groupRoot) =>
-				           groupRoot.index && this._entity.load(CalendarEventUidIndexTypeRef, [
+				           groupRoot.index && this._entity.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
 					           groupRoot.index.list,
 					           uint8arrayToCustomId(hashUid(uid))
 				           ]))
@@ -326,7 +328,7 @@ export class CalendarFacade {
 		})
 			.then((indexEntry) => {
 				if (indexEntry) {
-					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)
+					return this._entity.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent)
 					           .catch(ofClass(NotFoundError, () => null))
 				}
 			})

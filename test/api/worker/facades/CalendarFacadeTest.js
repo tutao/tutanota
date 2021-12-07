@@ -20,10 +20,11 @@ import type {User} from "../../../../src/api/entities/sys/User"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createUserAlarmInfoListType} from "../../../../src/api/entities/sys/UserAlarmInfoListType"
 import {ProgressMonitor} from "../../../../src/api/common/utils/ProgressMonitor"
-import {createPushIdentifierList, PushIdentifierListTypeRef} from "../../../../src/api/entities/sys/PushIdentifierList"
+import {createPushIdentifierList} from "../../../../src/api/entities/sys/PushIdentifierList"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {ImportError} from "../../../../src/api/common/error/ImportError"
 import {PushIdentifierTypeRef} from "../../../../src/api/entities/sys/PushIdentifier"
+import {SetupMultipleError} from "../../../../src/api/common/error/SetupMultipleError"
 
 
 o.spec("CalendarFacadeTest", async function () {
@@ -132,9 +133,10 @@ o.spec("CalendarFacadeTest", async function () {
 				return entityRequest.apply(this, arguments)
 			})
 
+
 			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade._sendAlarmNotifications, () => Promise.resolve())
 			enitityClientLoadAllMock = mockAttribute(calendarFacade._entity, calendarFacade._entity.loadAll, loadAllMock)
-			entityRequestMock = mockAttribute(restClientMock, restClientMock.entityRequest, requestSpy)
+			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
 		})
 		o.afterEach(async function () {
 			unmockAttribute(enitityClientLoadAllMock)
@@ -143,14 +145,15 @@ o.spec("CalendarFacadeTest", async function () {
 		})
 
 		o("save events with alarms posts all alarms in one post multiple", async function () {
-				entityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				entityRequest = function (listId, instances) {
+					const typeRef = instances[0]?._type
 					if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
-						o(entity.length).equals(2)
-						o(entity[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
-						o(entity[1].alarmInfos).deepEquals([[userAlarmInfoListId, "2"], [userAlarmInfoListId, "3"]])
+						o(instances.length).equals(2)
+						o(instances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
+						o(instances[1].alarmInfos).deepEquals([[userAlarmInfoListId, "2"], [userAlarmInfoListId, "3"]])
 						return Promise.resolve(["eventId1", "eventId2"])
 					} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						o(entity.length).equals(3)
+						o(instances.length).equals(3)
 						return Promise.resolve(["1", "2", "3"])
 					}
 				}
@@ -172,15 +175,16 @@ o.spec("CalendarFacadeTest", async function () {
 				await calendarFacade._saveCalendarEvents(eventsWrapper)
 				o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
 				o(calendarFacade._sendAlarmNotifications.args[0].length).equals(3)
-				o(entityRestCache.entityRequest.callCount).equals(2)
+				o(entityRestCache.setupMultiple.callCount).equals(2)
 			}
 		)
 
 
 		o("If alarms cannot be saved a user error is thrown and events are not created", async function () {
-				entityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				entityRequest = function (listId, instances) {
+					const typeRef = instances[0]?._type
 					if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						return Promise.reject(new Error("could not create alarms"))
+						return Promise.reject(new SetupMultipleError("could not create alarms", [new Error("failed")], instances))
 					} else {
 						throw new Error("Wrong typeref")
 					}
@@ -203,25 +207,26 @@ o.spec("CalendarFacadeTest", async function () {
 				const result = await assertThrows(ImportError, async () => await calendarFacade._saveCalendarEvents(eventsWrapper))
 				o(result.numFailed).equals(2)
 				o(calendarFacade._sendAlarmNotifications.callCount).equals(0)
-				o(entityRestCache.entityRequest.callCount).equals(1)
+				o(entityRestCache.setupMultiple.callCount).equals(1)
 
 			}
 		)
 
-		o("If not all events can be saved a user error is thrown", async function () {
+		o("If not all events can be saved an ImportError is thrown", async function () {
 				const listId1 = "listID1"
 				const listId2 = "listID2"
-				entityRequest = function (typeRef, method, listId, id, entity, queryParameter, extraHeaders) {
+				entityRequest = function (listId, instances) {
+					const typeRef = instances[0]?._type
 					if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
 						if (listId === listId1) {
-							return Promise.reject(new Error("Could not save event"))
+							return Promise.reject(new SetupMultipleError("could not save event", [new Error("failed")], instances))
 						} else if (listId === listId2) {
 							return Promise.resolve(["eventId2"])
 						} else {
 							throw new Error("Unknown id")
 						}
 					} else if (isSameTypeRef(typeRef, UserAlarmInfoTypeRef)) {
-						o(entity.length).equals(3)
+						o(instances.length).equals(3)
 						return Promise.resolve(["1", "2", "3"])
 					}
 					throw new Error("should not be reached")
@@ -244,7 +249,7 @@ o.spec("CalendarFacadeTest", async function () {
 				o(result.numFailed).equals(1)
 				o(calendarFacade._sendAlarmNotifications.callCount).equals(1)
 				o(calendarFacade._sendAlarmNotifications.args[0].length).equals(2)
-				o(entityRestCache.entityRequest.callCount).equals(3)
+				o(entityRestCache.setupMultiple.callCount).equals(3)
 			}
 		)
 	})

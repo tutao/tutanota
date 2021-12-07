@@ -1,7 +1,7 @@
 // @flow
 import {_TypeModel as FileDataDataGetTypModel, createFileDataDataGet} from "../../entities/tutanota/FileDataDataGet"
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
-import {encryptAndMapToLiteral, encryptBytes, resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptBytes, resolveSessionKey} from "../crypto/CryptoFacade"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
 import {assert, filterInt, neverNull, TypeRef, uint8ArrayToBase64} from "@tutao/tutanota-utils"
@@ -18,7 +18,7 @@ import {convertToDataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {StorageService} from "../../entities/storage/Services"
 import {createBlobId} from "../../entities/sys/BlobId"
-import {serviceRequest} from "../EntityWorker"
+import {serviceRequest} from "../ServiceRequestWorker"
 import {createBlobAccessTokenData} from "../../entities/storage/BlobAccessTokenData"
 import {BlobAccessTokenReturnTypeRef} from "../../entities/storage/BlobAccessTokenReturn"
 import type {BlobAccessInfo} from "../../entities/sys/BlobAccessInfo"
@@ -29,6 +29,7 @@ import type {TypeModel} from "../../common/EntityTypes"
 import {aes128Decrypt, random, sha256Hash, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import type {NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
+import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -60,7 +61,7 @@ export class FileFacade {
 		requestData.base64 = false
 
 		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
-			return encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
+			return locator.instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
 				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
@@ -84,7 +85,7 @@ export class FileFacade {
 			base64: false
 		})
 		const sessionKey = await resolveSessionKey(FileTypeModel, file)
-		const entityToSend = await encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
+		const entityToSend = await locator.instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
 		const headers = this._login.createAuthHeaders()
 		headers['v'] = FileDataDataGetTypModel.version
 
@@ -200,7 +201,7 @@ export class FileFacade {
 			archiveId,
 			blobId: createBlobId({blobId})
 		})
-		const literalGetData = await encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
+		const literalGetData = await locator.instanceMapper.encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
 		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {},
 			headers, body, MediaType.Binary, null, servers[0].url)
