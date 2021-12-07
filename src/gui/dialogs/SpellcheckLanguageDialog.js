@@ -46,18 +46,18 @@ async function getItems(): Promise<Array<SelectorItem<string>>> {
 		...options.map(code => {
 
 			const [langCode, locale] = code.split("-")
+			// first, find the name for a language given a locale with a perfect match
+			const l = languages.find(language => (locale && language.code === `${langCode}_${locale.toLowerCase()}`))
+				// find the name for a language without a locale, with a perfect match
+				|| languages.find(language => language.code === langCode)
+				// try to get a missing one before splitting
+				|| getMissingLanguage(langCode)
+				// the code given by electron doesn't always have a locale when we do,
+				// e.g. for Persian we have "fa_ir" in LanguageViewModel, but electron only gives us "fa"
+				|| languages.find(language => language.code.slice(0, 2) === langCode)
+			const textId = mapNullable(l, language => language.textId)
 
-			const textId = mapNullable(languages.find(
-				language =>
-					// find the name for a language given a locale with a perfect match
-					(locale && language.code === `${langCode}_${locale.toLowerCase()}`)
-					// fine the name for a language without a locale, with a perfect match
-					|| language.code === langCode
-					// the code given by electron doesn't always have a locale when we do,
-					// e.g. for Persian we have "fa_ir" in LanguageViewModel, but electron only gives us "fa"
-					|| language.code.slice(0, 2) === langCode), language => language.textId)
-				|| getMissingLanguageLabel(langCode)
-
+			console.log(textId, langCode, locale)
 			const name = textId
 				? lang.get(textId) + ` (${code})`
 				: code
@@ -71,8 +71,8 @@ async function getItems(): Promise<Array<SelectorItem<string>>> {
  * Electron has a different selection of spellchecker languages from what our client supports,
  * so we can't get all of the names from the LanguageViewModel
  */
-function getMissingLanguageLabel(code): TranslationKey {
-	return {
+function getMissingLanguage(code): {textId: TranslationKey, code: string} | null {
+	const id = {
 		"af": "languageAfrikaans_label",
 		"cy": "languageWelsh_label",
 		"fo": "languageFaroese_label",
@@ -82,5 +82,8 @@ function getMissingLanguageLabel(code): TranslationKey {
 		"sq": "languageAlbanian_label",
 		"ta": "languageTamil_label",
 		"tg": "languageTajik_label",
+		"pt": "languagePortugese_label"
 	}[code]
+
+	return id && {textId: id, code}
 }

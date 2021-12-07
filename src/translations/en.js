@@ -711,6 +711,7 @@ export default {
 		"languagePolish_label": "Polish",
 		"languagePortugeseBrazil_label": "Portuguese, Brazil",
 		"languagePortugesePortugal_label": "Portuguese, Portugal",
+		"languagePortugese_label": "Portuguese",
 		"languageRomanian_label": "Romanian",
 		"languageRussian_label": "Russian",
 		"languageSerbian_label": "Serbian",
