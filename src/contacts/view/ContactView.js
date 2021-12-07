@@ -12,7 +12,6 @@ import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertNotNull, flat, neverNull, noOp, ofClass, promiseMap, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {erase, load, loadAll, update} from "../../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -293,7 +292,7 @@ export class ContactView implements CurrentView {
 
 	_mergeAction(): Promise<void> {
 		return showProgressDialog("pleaseWait_msg", locator.contactModel.contactListId().then(contactListId => {
-			return contactListId ? loadAll(ContactTypeRef, contactListId) : []
+			return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
 				Dialog.message("noContacts_msg")
@@ -307,7 +306,7 @@ export class ContactView implements CurrentView {
 						                      if (confirmed) {
 							                      // delete async in the background
 							                      mergeableAndDuplicates.deletable.forEach((dc) => {
-								                      erase(dc)
+								                      locator.entityClient.erase(dc)
 							                      })
 						                      }
 					                      })
@@ -341,14 +340,14 @@ export class ContactView implements CurrentView {
 				if (action === ContactMergeAction.Merge) {
 					this._removeFromMergableContacts(mergable, contact2)
 					mergeContacts(contact1, contact2)
-					return showProgressDialog("pleaseWait_msg", update(contact1).then(() => erase(contact2)))
+					return showProgressDialog("pleaseWait_msg", locator.entityClient.update(contact1).then(() => locator.entityClient.erase(contact2)))
 						.catch(ofClass(NotFoundError, noOp))
 				} else if (action === ContactMergeAction.DeleteFirst) {
 					this._removeFromMergableContacts(mergable, contact1)
-					return erase(contact1)
+					return locator.entityClient.erase(contact1)
 				} else if (action === ContactMergeAction.DeleteSecond) {
 					this._removeFromMergableContacts(mergable, contact2)
-					return erase(contact2)
+					return locator.entityClient.erase(contact2)
 				} else if (action === ContactMergeAction.Skip) {
 					this._removeFromMergableContacts(mergable, contact2)
 				} else if (action === ContactMergeAction.Cancel) {
@@ -428,7 +427,7 @@ export class ContactView implements CurrentView {
 		return Dialog.confirm("deleteContacts_msg").then(confirmed => {
 			if (confirmed) {
 				contactList.list.getSelectedEntities().forEach(contact => {
-					erase(contact)
+					locator.entityClient.erase(contact)
 						.catch(ofClass(NotFoundError, noOp))
 						.catch(ofClass(LockedError, noOp))
 				})
@@ -451,8 +450,8 @@ export class ContactView implements CurrentView {
 					if (confirmed) {
 						mergeContacts(keptContact, goodbyeContact)
 						return showProgressDialog("pleaseWait_msg",
-							update(keptContact)
-								.then(() => erase(goodbyeContact)))
+							locator.entityClient.update(keptContact)
+								.then(() => locator.entityClient.erase(goodbyeContact)))
 							.catch(ofClass(NotFoundError, noOp))
 					}
 				})
@@ -485,7 +484,7 @@ export class ContactView implements CurrentView {
 			return this._contactList.list.entityEventReceived(instanceId, operation).then(() => {
 				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id,
 					[neverNull(instanceListId), instanceId])) {
-					return load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
+					return locator.entityClient.load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
 						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()
 					})
@@ -550,7 +549,7 @@ export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 		contactModel.contactListId().then(contactListId => {
 			if (!contactListId) return 0
 
-			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
+			return locator.entityClient.loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length === 0) {
 					return 0
 				} else {

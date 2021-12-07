@@ -4,7 +4,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {Button} from "../gui/base/Button"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../api/common/TutanotaConstants"
-import {load, loadAll, setup, update} from "../api/main/Entity"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 import {neverNull} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
@@ -45,6 +44,7 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "@tutao/tutanota-utils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -209,9 +209,9 @@ export class ContactFormEditor {
 			Dialog.message("pleaseEnterValidPath_msg")
 		} else {
 			// check that the path is unique
-			showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			showProgressDialog("pleaseWait_msg", locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => {
-						return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
+						return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(root => {
 							const receivingMailbox = this._receivingMailbox()
 							if (!receivingMailbox) {
 								return Dialog.message("noReceivingMailbox_label")
@@ -222,7 +222,7 @@ export class ContactFormEditor {
 							let samePathFormCheck = Promise.resolve(false)
 							// only compare the path if this is a new contact form or it is a different existing contact form
 							if (!this._contactForm._id || !isSameId(this._contactForm._id, contactFormIdFromPath)) {
-								samePathFormCheck = load(ContactFormTypeRef, contactFormIdFromPath)
+								samePathFormCheck = locator.entityClient.load(ContactFormTypeRef, contactFormIdFromPath)
 									.then(cf => true)
 									.catch(ofClass(NotFoundError, e => false))
 							}
@@ -231,9 +231,9 @@ export class ContactFormEditor {
 									return Dialog.message("pathAlreadyExists_msg")
 								} else {
 									// check if the target mail group is already referenced by a different contact form
-									return load(GroupTypeRef, receivingMailbox.group).then(group => {
+									return locator.entityClient.load(GroupTypeRef, receivingMailbox.group).then(group => {
 										if (group.user) {
-											return load(UserTypeRef, group.user).then(user => {
+											return locator.entityClient.load(UserTypeRef, group.user).then(user => {
 												return neverNull(user.memberships.find(m => m.groupType
 													=== GroupType.Mail)).group
 											})
@@ -241,7 +241,7 @@ export class ContactFormEditor {
 											return group._id
 										}
 									}).then(mailGroupId => {
-										return load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
+										return locator.entityClient.load(MailboxGroupRootTypeRef, mailGroupId).then(mailboxGroupRoot => {
 											let contactFormIdToCheck = (this._createNew) ? contactFormIdFromPath : this._contactForm._id
 											if (mailboxGroupRoot.targetMailGroupContactForm
 												&& !isSameId(mailboxGroupRoot.targetMailGroupContactForm, contactFormIdToCheck)) {
@@ -263,14 +263,14 @@ export class ContactFormEditor {
 													p = showBuyDialog(BookingItemFeatureType.ContactForm, 1, 0, false)
 														.then(accepted => {
 															if (accepted) {
-																return setup(contactFormsListId, this._contactForm)
+																return locator.entityClient.setup(contactFormsListId, this._contactForm)
 																	.then(() => {
 																		this._newContactFormIdReceiver(customElementIdFromPath)
 																	})
 															}
 														})
 												} else {
-													p = update(this._contactForm).then(() => {
+													p = locator.entityClient.update(this._contactForm).then(() => {
 														this._newContactFormIdReceiver(customElementIdFromPath)
 													})
 												}
@@ -433,16 +433,16 @@ export class ContactFormEditor {
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
 export async function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiver: (string) => void) {
-	const customer = await load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-	const customerInfo = await load(CustomerInfoTypeRef, customer.customerInfo)
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 
 	const whitelabelDomain = getWhitelabelDomain(customerInfo)
 	if (whitelabelDomain) {
-		showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
+		showProgressDialog("loading_msg", locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 			.then(async allUserGroups => {
 				const userGroupInfos = allUserGroups.filter(g => !g.deleted)
 				// get and separate all enabled shared mail groups and shared team groups
-				const groupInfos = await loadAll(GroupInfoTypeRef, customer.teamGroups)
+				const groupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
 				const sharedMailGroupInfos = groupInfos.filter(g => !g.deleted && g.groupType === GroupType.Mail)
 				let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos,
 					whitelabelDomain.domain)

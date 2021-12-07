@@ -1,7 +1,6 @@
 // @flow
 import type {LoginController} from "../api/main/LoginController";
 import {logins} from "../api/main/LoginController"
-import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
@@ -11,6 +10,7 @@ import {isIOSApp} from "../api/common/Env"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {clickHandler} from "../gui/base/GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
+import {locator} from "../api/main/MainLocator"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
@@ -56,7 +56,7 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 		showNotAvailableForFreeDialog(included)
 		return Promise.resolve(false)
 	}
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 		if (customer.canceledPremiumAccount) {
 			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
 		} else {

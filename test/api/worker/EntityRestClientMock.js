@@ -1,13 +1,5 @@
 //@flow
-import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
-import {timestampToGeneratedId} from "../../../src/api/common/utils/EntityUtils"
-import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
-import {
-	HttpMethod,
-	resolveTypeReference
-} from "../../../src/api/common/EntityFunctions"
-import {NotFoundError} from "../../../src/api/common/error/RestError"
-import {downcast} from "@tutao/tutanota-utils"
+import {EntityRestClient, getIds} from "../../../src/api/worker/rest/EntityRestClient"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -15,22 +7,24 @@ import {
 	firstBiggerThanSecond,
 	getElementId,
 	getListId,
-	listIdPart
-} from "../../../src/api/common/utils/EntityUtils";
-import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
-import {TypeRef} from "@tutao/tutanota-utils";
+	listIdPart,
+	timestampToGeneratedId
+} from "../../../src/api/common/utils/EntityUtils"
+import {_verifyType, resolveTypeReference} from "../../../src/api/common/EntityFunctions"
+import {NotFoundError} from "../../../src/api/common/error/RestError"
+import {downcast, TypeRef} from "@tutao/tutanota-utils"
+import type {ElementEntity, ListElementEntity, SomeEntity} from "../../../src/api/common/EntityTypes"
+import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 
 export class EntityRestClientMock extends EntityRestClient {
 
-	_entities: {[id: Id]: Object} = {}
-	_listEntities: {[listId: Id]: {[id: Id]: Object}} = {}
+	_entities: {[id: Id]: ElementEntity | Error} = {}
+	_listEntities: {[listId: Id]: {[id: Id]: ListElementEntity | Error}} = {}
 	_lastIdTimestamp: number
 
 	//_listEntities: {[key: string]: {[key: Id]: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}}};
 	constructor() {
-		super(() => {
-			return {} // empty auth headers
-		}, downcast({}))
+		super(() => ({}), downcast({}), () => downcast({}), new InstanceMapper())
 		this._lastIdTimestamp = Date.now()
 	}
 
@@ -39,11 +33,11 @@ export class EntityRestClientMock extends EntityRestClient {
 		return timestampToGeneratedId(this._lastIdTimestamp, 1)
 	}
 
-	addElementInstances(...instances: Array<Element>) {
+	addElementInstances(...instances: Array<ElementEntity>) {
 		instances.forEach((instance) => this._entities[instance._id] = instance)
 	}
 
-	addListInstances(...instances: Array<ListElement>) {
+	addListInstances(...instances: Array<ListElementEntity>) {
 		instances.forEach((instance) => {
 			if (!this._listEntities[getListId(instance)]) this._listEntities[getListId(instance)] = {}
 			this._listEntities[getListId(instance)][getElementId(instance)] = instance
@@ -59,7 +53,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	_getListEntry(listId: Id, elementId: Id): ?ListElement {
+	_getListEntry(listId: Id, elementId: Id): ?ListElementEntity {
 		if (!this._listEntities[listId]) {
 			throw new NotFoundError(`Not list ${listId}`)
 		}
@@ -74,64 +68,83 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
-	                 extraHeaders?: Params
-	): Promise<any> {
-		return resolveTypeReference(typeRef).then(() => {
-			const startId = queryParameter && queryParameter["start"]
-			const idsParamter = queryParameter && queryParameter["ids"]
-			if (method === HttpMethod.GET) {
-				return this._handleGet(id, listId, startId, queryParameter, idsParamter)
-			} else if (method === HttpMethod.DELETE) {
-				this._handleDelete(id, listId)
-			} else {
-				return Promise.reject("Illegal method: " + method)
-			}
+	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T> {
+		if ((id instanceof Array) && id.length === 2) {
+			// list element request
+			const listId = id[0]
+			const elementId = id[1]
+			const listElement = this._getListEntry(listId, elementId)
+			if (listElement == null) throw new NotFoundError(`List element ${listId} ${elementId} not found`)
+			return downcast(listElement)
+
+		} else if (typeof id === "string") {
+			//element request
+			return this._handleMockElement(this._entities[id], id)
+
+		} else {
+			throw new Error("Illegal Id for ET: " + (id: any))
+		}
+
+	}
+
+	async loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		let entriesForListId = this._listEntities[listId]
+		if (!entriesForListId) return []
+		let filteredIds
+		if (reverse === true) {
+			filteredIds = Object.keys(entriesForListId).sort(compareNewestFirst).filter((id) => firstBiggerThanSecond(start, id))
+		} else {
+			filteredIds = Object.keys(entriesForListId).sort(compareOldestFirst).filter((id) => firstBiggerThanSecond(id, start))
+		}
+		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
+
+	}
+
+	async loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Array<Id>): Promise<Array<T>> {
+		const lid = listId
+		if (lid) {
+			return elementIds.map(id => {
+				return downcast(this._getListEntry(lid, id))
+			}).filter(Boolean)
+		} else {
+			return elementIds.map(id => {
+				try {
+					return this._handleMockElement(this._entities[id], id)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						return null
+					} else {
+						throw e
+					}
+				}
+			}).filter(Boolean)
+
+		}
+	}
+
+	erase<T: SomeEntity>(instance: T): Promise<void> {
+		return resolveTypeReference(instance._type).then(typeModel => {
+			_verifyType(typeModel)
+			var ids = getIds(instance, typeModel)
+			this._handleDelete(ids.id, ids.listId)
 		})
 	}
 
-	_handleGet(id: ?Id, listId: ?Id, startId: ?Id, queryParameter: ?Params, idsParamter: ?string
-	): Element | ListElement | Array<ListElement> {
-		if (listId && id) {// single list element request
-			const listElement = this._getListEntry(listId, id)
-			if (listElement == null) throw new NotFoundError(`List element ${listId} ${id} not found`)
-			return listElement
-		} else if (listId && startId) { // list range request
-			let entriesForListId = this._listEntities[listId]
-			if (!entriesForListId) return ([]: Array<ListElement>)
-			let filteredIds
-			if (queryParameter && queryParameter.reverse === "true") {
-				filteredIds = Object.keys(entriesForListId).sort(compareNewestFirst).filter((id) => firstBiggerThanSecond(startId, id))
-			} else {
-				filteredIds = Object.keys(entriesForListId).sort(compareOldestFirst).filter((id) => firstBiggerThanSecond(id, startId))
-			}
-			return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
-		} else if (id) {// element instance request
-			return this._handleMockElement(this._entities[id], id)
-		} else if (idsParamter) {
-			const ids = idsParamter.split(",")
-			const lid = listId
-			if (lid) {
-				return ids.map(id => {
-					return this._getListEntry(lid, id)
-				}).filter(Boolean)
-			} else {
-				return ids.map(id => {
-					try {
-						return this._handleMockElement(this._entities[id], id)
-					} catch (e) {
-						if (e instanceof NotFoundError) {
-							return null
-						} else {
-							throw e
-						}
-					}
-				}).filter(Boolean)
-			}
-		} else {
-			throw new Error("Invalid arguments for GET: no id passed")
-		}
+	setup<T: SomeEntity>(listId: ?Id, instance: T, extraHeaders?: Params): Promise<Id> {
+		return Promise.reject("Illegal method: setup")
+
 	}
+
+	setupMultiple<T: SomeEntity>(listId: ?Id, instances: Array<T>): Promise<Array<Id>> {
+		return Promise.reject("Illegal method: setupMultiple")
+
+	}
+
+	update<T: SomeEntity>(instance: T): Promise<void> {
+		return Promise.reject("Illegal method: update")
+
+	}
+
 
 	_handleDelete(id: ?Id, listId: ?Id) {
 		if (id && listId) {
@@ -151,7 +164,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	_handleMockElement<T: Element | ListElement>(element: ?T | Error, id: Id | IdTuple): T {
+	_handleMockElement(element: any, id: Id | IdTuple): any {
 		if (element instanceof Error) {
 			throw element
 		} else if (element != null) {

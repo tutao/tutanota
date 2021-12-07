@@ -3,7 +3,7 @@ import {size} from "../../gui/size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {serviceRequestVoid} from "../../api/main/Entity"
+import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {Button} from "../../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -931,7 +931,7 @@ export class MailViewer {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
 				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attachmentElementIds)
+				return this._entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
 				           .then(async (files) => {
 					           this._handleCalendarFile(files, mail)
 					           this._attachments = files

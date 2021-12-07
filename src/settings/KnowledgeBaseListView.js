@@ -56,7 +56,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 				return this._entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true)
 			},
 			loadSingle: (elementId) => {
-				return this._entityClient.load(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
+				return this._entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
 			},
 			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
 				var titleA = a.title.toUpperCase();

@@ -3,7 +3,6 @@ import type {BubbleHandler} from "../gui/base/BubbleTextField"
 import {Bubble} from "../gui/base/BubbleTextField"
 import {isMailAddress} from "./FormatValidator"
 import {DbError} from "../api/common/error/DbError"
-import {loadAll} from "../api/main/Entity"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Mode} from "../api/common/Env"
@@ -12,6 +11,7 @@ import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
 import {stringToNameAndMailAddress} from "./parsing/MailAddressParser"
 import {ofClass} from "@tutao/tutanota-utils"
+import {locator} from "../api/main/MainLocator"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -48,7 +48,7 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		                                         .catch(ofClass(DbError, async () => {
 			                                         const listId = await this._contactModel.contactListId()
 			                                         if (listId) {
-				                                         return loadAll(ContactTypeRef, listId)
+				                                         return locator.entityClient.loadAll(ContactTypeRef, listId)
 			                                         } else {
 				                                         return []
 			                                         }

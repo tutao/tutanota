@@ -2,7 +2,7 @@ import o from "ospec"
 
 import "./common/LoggerTest.js"
 import "./common/BirthdayUtilsTest"
-import "./common/EntityFunctionsTest"
+import "./rest/EntityRestClientTest"
 import "./crypto/CryptoFacadeTest.js"
 import "./crypto/CompatibilityTest"
 import "./error/RestErrorTest"

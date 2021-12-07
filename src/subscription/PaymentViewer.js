@@ -1,8 +1,8 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
-import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
+import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -45,7 +45,6 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -164,16 +163,16 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			])
 		}
 
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 			.then(customer => {
 				this._customer = customer
-				return load(CustomerInfoTypeRef, customer.customerInfo)
+				return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 			})
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+			.then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then(accountingInfo => {
 				this._updateAccountingInfoData(accountingInfo)
 
-				load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+				locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
 					.then((invoiceInfo) => {
 						this._invoiceInfo = invoiceInfo
 						m.redraw()
@@ -316,15 +315,15 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	processUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceId} = update
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			return load(AccountingInfoTypeRef, instanceId)
+			return locator.entityClient.load(AccountingInfoTypeRef, instanceId)
 				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return load(CustomerTypeRef, instanceId)
+			return locator.entityClient.load(CustomerTypeRef, instanceId)
 				.then(customer => {
 					this._customer = customer
 				})
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-			return load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
+			return locator.entityClient.load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
 				this._invoiceInfo = invoiceInfo
 				m.redraw()
 			})

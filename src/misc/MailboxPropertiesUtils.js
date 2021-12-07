@@ -15,7 +15,7 @@ export function loadMailboxProperties(): Promise<?MailboxProperties> {
 	const mailMembership = logins.getUserController().getUserMailGroupMembership()
 	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
 		if (grouproot.mailboxProperties) {
-			return locator.entityClient.load(MailboxPropertiesTypeRef, grouproot.mailboxProperties)
+			return locator.entityClient.load<MailboxProperties>(MailboxPropertiesTypeRef, grouproot.mailboxProperties)
 		}
 	})
 }

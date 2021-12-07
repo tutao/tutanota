@@ -1,6 +1,6 @@
 //@flow
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {load} from "../EntityWorker"
+
 import type {MailBody} from "../../entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
@@ -12,8 +12,8 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
-import {timestampToGeneratedId} from "../../common/utils/EntityUtils"
+import {flat, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
+import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {
 	_createNewIndexUpdate,
 	encryptIndexKeyBase64,
@@ -29,10 +29,8 @@ import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
-import {flat, groupBy, splitInChunks} from "@tutao/tutanota-utils"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
@@ -40,9 +38,7 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
-import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
-import {TypeRef} from "@tutao/tutanota-utils";
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import type {SomeEntity} from "../../common/EntityTypes"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -485,8 +481,8 @@ export class MailIndexer {
 	}
 
 	_getSpamFolder(mailGroup: GroupMembership): Promise<MailFolder> {
-		return load(MailboxGroupRootTypeRef, mailGroup.group)
-			.then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox))
+		return this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroup.group)
+			.then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			.then(mbox => {
 				return this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders)
 				           .then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
@@ -607,11 +603,11 @@ class IndexLoader {
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
 	}
 
-	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
+	_loadInChunks<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return promiseMap(byChunk, (chunk) => {
 			return chunk.length > 0
-				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
+				? this._entity.loadMultiple(typeRef, listId, chunk)
 				: Promise.resolve([])
 		}, {concurrency: 2})
 			.then(entityResults => flat(entityResults))

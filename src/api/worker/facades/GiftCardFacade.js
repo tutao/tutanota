@@ -3,7 +3,7 @@
 import {GroupType} from "../../common/TutanotaConstants"
 import {firstThrow} from "@tutao/tutanota-utils"
 import {createGiftCardCreateData} from "../../entities/sys/GiftCardCreateData"
-import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {SysService} from "../../entities/sys/Services"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {GiftCardCreateReturn} from "../../entities/sys/GiftCardCreateReturn"

@@ -1,7 +1,7 @@
 //@flow
-import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {encryptBucketKeyForInternalRecipient, encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {_TypeModel as GroupInfoTypeModel} from "../../entities/sys/GroupInfo"
 import type {ShareCapabilityEnum} from "../../common/TutanotaConstants"
@@ -18,6 +18,7 @@ import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInv
 import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
 import {assertWorkerOrNode} from "../../common/Env"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
+import type {CryptoFacade} from "../crypto/CryptoFacade"
 
 assertWorkerOrNode()
 
@@ -25,9 +26,11 @@ assertWorkerOrNode()
 export class ShareFacade {
 
 	_loginFacade: LoginFacadeImpl;
+	_crypto: CryptoFacade
 
-	constructor(loginFacade: LoginFacadeImpl) {
+	constructor(loginFacade: LoginFacadeImpl, crypto: CryptoFacade) {
 		this._loginFacade = loginFacade
+		this._crypto = crypto
 	}
 
 
@@ -56,7 +59,7 @@ export class ShareFacade {
 
 		const notFoundRecipients: Array<string> = []
 		for (let mailAddress of recipientMailAddresses) {
-			const keyData = await encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
+			const keyData = await this._crypto.encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
 			if (keyData) {
 				invitationData.internalKeyData.push(keyData)
 			}

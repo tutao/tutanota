@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {serviceRequestVoid, update} from "../../api/main/Entity"
+import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import type {CurrentView} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang} from "../../misc/LanguageViewModel"
@@ -577,7 +577,7 @@ export class CalendarView implements CurrentView {
 		}, "edit_action", shared, (dialog, properties) => {
 			if (!shared) {
 				groupInfo.name = properties.name
-				update(groupInfo)
+				locator.entityClient.update(groupInfo)
 			}
 			// color always set for existing calendar
 			if (existingGroupSettings) {
@@ -591,7 +591,7 @@ export class CalendarView implements CurrentView {
 				})
 				userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			}
-			update(userSettingsGroupRoot)
+			locator.entityClient.update(userSettingsGroupRoot)
 			dialog.close()
 		}, "save_action")
 	}

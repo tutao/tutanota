@@ -9,10 +9,9 @@ import {
 } from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
-import {uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
+import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
-import {assertNotNull, typedEntries} from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
@@ -29,7 +28,16 @@ export class RestClient {
 		this._suspensionHandler = suspensionHandler
 	}
 
-	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener, baseUrl?: string): Promise<any> {
+	request(
+		path: string,
+		method: HttpMethodEnum,
+		queryParams: Params,
+		headers: Params,
+		body: ?string | ?Uint8Array,
+		responseType: ?MediaTypeEnum,
+		progressListener: ?ProgressListener,
+		baseUrl?: string
+	): Promise<any> {
 		this._checkRequestSizeLimit(path, method, body)
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener, baseUrl))

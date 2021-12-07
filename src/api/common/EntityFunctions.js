@@ -6,14 +6,12 @@ import sysModelMap from "../entities/sys/sysModelMap"
 import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
 import monitorModelMap from "../entities/monitor/monitorModelMap"
 import type {ListElement} from "./utils/EntityUtils"
-import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT} from "./utils/EntityUtils"
+import {customIdToString, firstBiggerThanSecond, getElementId} from "./utils/EntityUtils"
 import accountingModelMap from "../entities/accounting/accountingModelMap"
 import baseModelMap from "../entities/base/baseModelMap"
 import gossipModelMap from "../entities/gossip/gossipModelMap"
 import storageModelMap from "../entities/storage/storageModelMap"
 import type {TypeModel} from "./EntityTypes"
-import {SetupMultipleError} from "./error/SetupMultipleError"
-import {PayloadTooLargeError} from "./error/RestError"
 
 
 export const HttpMethod = Object.freeze({
@@ -59,144 +57,6 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 	}
 }
 
-
-export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
-	return resolveTypeReference((instance: any)._type).then(typeModel => {
-		_verifyType(typeModel)
-		if (typeModel.type === Type.ListElement) {
-			if (!listId) throw new Error("List id must be defined for LETs")
-		} else {
-			if (listId) throw new Error("List id must not be defined for ETs")
-		}
-		return target.entityRequest((instance: any)._type, HttpMethod.POST, listId, null, instance, null, extraHeaders).then(val => {
-			return ((val: any): Id)
-		})
-	})
-}
-
-
-export function _setupMultipleEntities<T>(listId: ?Id, instances: Array<T>, target: EntityRestInterface, extraHeaders?: Params): Promise<Array<Id>> {
-	const count = instances.length
-	if (count < 1) {
-		return Promise.resolve([])
-	}
-	const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
-	const typeRef = (instances[0]: any)._type
-	return resolveTypeReference(typeRef).then(typeModel => {
-		_verifyType(typeModel)
-		if (typeModel.type === Type.ListElement) {
-			if (!listId) throw new Error("List id must be defined for LETs")
-		} else {
-			if (listId) throw new Error("List id must not be defined for ETs")
-		}
-		const errors = []
-		const failedInstances = []
-		return promiseMap(instanceChunks, instanceChunk => {
-			const queryParams = {count: instanceChunk.length + ""} // tell the server that this is a POST_MULTIPLE request
-			return target.entityRequest(typeRef, HttpMethod.POST, listId, null, instanceChunk, queryParams, extraHeaders)
-			             .then(idChunk => {
-				             return ((idChunk: any): Array<Id>)
-			             })
-			             .catch(ofClass(PayloadTooLargeError, e => {
-				             return promiseMap(instanceChunk, (instance) => {
-					             return target.entityRequest(typeRef, HttpMethod.POST, listId, null, instance)
-					                          .catch(e => {
-						                          errors.push(e)
-						                          failedInstances.push(instance)
-					                          })
-				             })
-			             }))
-			             .catch(e => {
-				             errors.push(e)
-				             failedInstances.push(...instanceChunk)
-			             })
-		}).then(idChunks => {
-			if (errors.length) {
-				throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
-			} else {
-				return flat(downcast(idChunks)) // ids can only be undefined in error case handled above. still we have to downcast because of flow
-			}
-		})
-	})
-}
-
-export function _updateEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
-	return resolveTypeReference((instance: any)._type).then(typeModel => {
-		_verifyType(typeModel)
-		if (!(instance: any)._id) throw new Error("Id must be defined")
-		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.PUT, ids.listId, ids.id, instance).then(noOp)
-	})
-}
-
-export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
-	return resolveTypeReference((instance: any)._type).then(typeModel => {
-		_verifyType(typeModel)
-		var ids = _getIds(instance, typeModel)
-		return target.entityRequest((instance: any)._type, HttpMethod.DELETE, ids.listId, ids.id).then(noOp)
-	})
-}
-
-export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface, extraHeaders?: Params): Promise<T> {
-	return resolveTypeReference(typeRef).then(typeModel => {
-		_verifyType(typeModel)
-		let listId = null
-		let elementId = null
-		if (typeModel.type === Type.ListElement) {
-			if ((!(id instanceof Array) || id.length !== 2)) {
-				throw new Error("Illegal IdTuple for LET: " + (id: any))
-			}
-			listId = id[0]
-			elementId = id[1]
-		} else if (typeof id === "string") {
-			elementId = id
-		} else {
-			throw new Error("Illegal Id for ET: " + (id: any))
-		}
-		return target.entityRequest(typeRef, HttpMethod.GET, listId, elementId, null, queryParams, extraHeaders).then((val) => {
-			return ((val: any): T)
-		})
-	})
-}
-
-
-/**
- * load multiple does not guarantee order or completeness of returned elements.
- */
-export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
-	// split the ids into chunks
-	let idChunks = [];
-	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
-		idChunks.push(elementIds.slice(i, i + LOAD_MULTIPLE_LIMIT))
-	}
-	return resolveTypeReference(typeRef).then(typeModel => {
-		_verifyType(typeModel)
-		return promiseMap(idChunks, idChunk => {
-			let queryParams = {
-				ids: idChunk.join(",")
-			}
-			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
-		}).then(instanceChunks => flat(instanceChunks))
-	})
-}
-
-export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
-                                    extraHeaders?: Params): Promise<T[]> {
-	return resolveTypeReference(typeRef).then(typeModel => {
-		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		let queryParams = {
-			start: start + "",
-			count: count + "",
-			reverse: reverse.toString()
-		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
-	})
-}
-
-export function firstCustomIdIsBigger(left: Id, right: Id): boolean {
-	return firstBiggerThanSecond(customIdToString(left), customIdToString(right))
-}
-
 /**
  * Return appropriate id sorting function for typeModel.
  *
@@ -209,65 +69,14 @@ export function firstCustomIdIsBigger(left: Id, right: Id): boolean {
  */
 export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((Id, Id) => boolean) {
 	if (typeModel.values["_id"].type === ValueType.CustomId) {
-		return firstCustomIdIsBigger
+		return (left, right) =>  firstBiggerThanSecond(customIdToString(left), customIdToString(right))
 	} else {
 		return firstBiggerThanSecond
 	}
 }
 
-export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
-                                                         rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
-	return resolveTypeReference(typeRef).then(typeModel => {
-		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target, extraHeaders)
-			.then(loadedEntities => {
-				const comparator = getFirstIdIsBiggerFnForType(typeModel)
-				const filteredEntities = loadedEntities.filter(entity => comparator(getElementId(entity), end))
-				if (filteredEntities.length === rangeItemLimit) {
-					const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
-					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit, extraHeaders)
-						.then(({elements: remainingEntities, loadedCompletely}) => {
-							return {elements: filteredEntities.concat(remainingEntities), loadedCompletely}
-						})
-				} else {
-					return {
-						elements: filteredEntities,
-						loadedCompletely: loadedReverseRangeCompletely(rangeItemLimit, loadedEntities, filteredEntities)
-					}
-				}
-			})
-	})
-}
-
-function loadedReverseRangeCompletely<T:ListElement>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>): boolean {
-	if (loadedEntities.length < rangeItemLimit) {
-		const lastLoaded = last(loadedEntities)
-		const lastFiltered = last(filteredEntities)
-		if (!lastLoaded) {
-			return true
-		}
-		return lastLoaded === lastFiltered
-	}
-	return false
-}
-
 export function _verifyType(typeModel: TypeModel) {
-	if (typeModel.type !== Type.Element && typeModel.type
-		!== Type.ListElement) {
-		throw new Error("only Element and ListElement types are permitted, was: "
-			+ typeModel.type)
+	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement) {
+		throw new Error("only Element and ListElement types are permitted, was: " + typeModel.type)
 	}
-}
-
-function _getIds(instance: any, typeModel) {
-	if (!instance._id) throw new Error("Id must be defined")
-	let listId = null
-	let id = null
-	if (typeModel.type === Type.ListElement) {
-		listId = instance._id[0]
-		id = instance._id[1]
-	} else {
-		id = instance._id
-	}
-	return {listId: listId, id: id};
 }

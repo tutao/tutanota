@@ -1,6 +1,5 @@
 //@flow
 import m from "mithril"
-import {loadAll} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -37,7 +36,7 @@ class LocalAdminGroupInfoModel {
 			.getUserController()
 			.loadCustomer()
 			.then(async customer => {
-				const groupInfos: Array<GroupInfo> = await loadAll(GroupInfoTypeRef, customer.teamGroups)
+				const groupInfos: Array<GroupInfo> = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
 				this.groupInfos = groupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin)
 				return this.groupInfos
 			})

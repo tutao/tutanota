@@ -6,7 +6,6 @@ import {getAliasLineAttrs, updateNbrOfAliases} from "../EditAliasesFormN"
 import type {AddDomainData} from "./AddDomainWizard"
 import type {EntityEventsListener} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
@@ -41,7 +40,7 @@ export class AddEmailAddressesPage implements MComponent<AddEmailAddressesPageAt
 				const {instanceListId, instanceId, operation} = update
 				if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 					&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-					return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+					return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 						wizardAttrs.data.editAliasFormAttrs.userGroupInfo = groupInfo
 						m.redraw()
 					})
@@ -176,8 +175,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				return true
 			} else {
 
-				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-					.then((customer) => loadAll(GroupInfoTypeRef, customer.userGroups))
+				return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
 					.then((allUserGroupInfos) => {
 						return allUserGroupInfos.some(u => neverNull(u.mailAddress).endsWith("@" + this.data.domain())
 							|| u.mailAddressAliases.some((a) => neverNull(a.mailAddress).endsWith("@" + this.data.domain())));

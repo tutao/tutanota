@@ -54,7 +54,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 				return this._entityClient.loadRange(EmailTemplateTypeRef, this.templateListId(), startId, count, true)
 			},
 			loadSingle: (elementId) => {
-				return this._entityClient.load(EmailTemplateTypeRef, [this.templateListId(), elementId])
+				return this._entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
 				var titleA = a.title.toUpperCase();

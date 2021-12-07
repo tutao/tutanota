@@ -4,7 +4,6 @@ import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
-import {update} from "../../api/main/Entity"
 import {createMailViewer, MailViewer} from "../../mail/view/MailViewer"
 import {ContactViewer} from "../../contacts/view/ContactViewer"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
@@ -58,7 +57,7 @@ export class SearchResultDetailsViewer {
 			this._viewerEntityId = mail._id
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false
-				update(mail)
+				locator.entityClient.update(mail)
 					.catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
 					.catch(ofClass(LockedError, noOp))
 			}

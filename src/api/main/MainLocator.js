@@ -202,6 +202,7 @@ class MainLocator implements IMainLocator {
 			userManagementFacade,
 			contactFormFacade,
 			deviceEncryptionFacade,
+			restInterface
 		} = this.worker.getWorkerInterface()
 
 		this.loginFacade = loginFacade
@@ -225,7 +226,7 @@ class MainLocator implements IMainLocator {
 		this.eventController = new EventController(logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
-		this.entityClient = new EntityClient(this.worker)
+		this.entityClient = new EntityClient(restInterface)
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, new WebauthnClient(), this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
 

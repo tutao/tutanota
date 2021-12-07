@@ -18,7 +18,6 @@ import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/MailboxGroupRoot"
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createMailBox} from "../../../src/api/entities/tutanota/MailBox"
-import type {WorkerClient} from "../../../src/api/main/WorkerClient"
 import {ConversationType, GroupType, MailMethod, OperationType} from "../../../src/api/common/TutanotaConstants"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import type {Customer} from "../../../src/api/entities/sys/Customer"
@@ -43,6 +42,7 @@ import {createConversationEntry} from "../../../src/api/entities/tutanota/Conver
 import {isSameId} from "../../../src/api/common/utils/EntityUtils";
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {createInternalRecipientKeyData} from "../../../src/api/entities/tutanota/InternalRecipientKeyData"
+import type {EntityRestInterface} from "../../../src/api/worker/rest/EntityRestClient"
 
 
 type TestIdGenerator = {
@@ -53,11 +53,29 @@ type TestIdGenerator = {
 let testIdGenerator: TestIdGenerator
 let internalAddresses = []
 
-function mockWorker(): WorkerClient {
+function mockRestClient(): EntityRestInterface {
 	return downcast({
-		entityRequest(...args): Promise<any> {
+		load(...args): Promise<any> {
 			return Promise.resolve()
 		},
+		loadRange(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		loadMultiple(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		setup(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		setupMultiple(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		update(...args): Promise<any> {
+			return Promise.resolve()
+		},
+		erase(...args): Promise<any> {
+			return Promise.resolve()
+		}
 	})
 }
 
@@ -146,7 +164,8 @@ o.spec("SendMailModel", function () {
 		lang.init(en)
 	})
 	// the global worker is used in various other places silently, like in call to update from _updateContacts
-	let mailFacade: MailFacade, logins: LoginController, eventController: EventController, mailModel: MailModel, contactModel: ContactModel,
+	let mailFacade: MailFacade, logins: LoginController, eventController: EventController, mailModel: MailModel,
+		contactModel: ContactModel,
 		mailboxDetails: MailboxDetail, userController: IUserController, entity: EntityClient, model: SendMailModel
 	let customer: Customer
 
@@ -167,10 +186,10 @@ o.spec("SendMailModel", function () {
 			}
 		}
 
-		const workerMock = mockWorker()
+		const restClientMock = mockRestClient()
 		mailFacade = mockMailFacade()
 
-		entity = new EntityClient(workerMock)
+		entity = new EntityClient(restClientMock)
 		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {
 			if (isSameTypeRef(typeRef, ContactListTypeRef)) {
 				return Promise.resolve(downcast({contacts: testIdGenerator.newId()}))
@@ -752,7 +771,9 @@ o.spec("SendMailModel", function () {
 			const contactForUpdate = {
 				firstName: "newfirstname",
 				lastName: "newlastname",
-				mailAddresses: [createMailAddress({address: "james@tutanota.com"}), createMailAddress({address: "address2@hotmail.com"})]
+				mailAddresses: [
+					createMailAddress({address: "james@tutanota.com"}), createMailAddress({address: "address2@hotmail.com"})
+				]
 			}
 
 			loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: IdTuple, ...args) => {
@@ -760,7 +781,13 @@ o.spec("SendMailModel", function () {
 				return Promise.resolve(createContact(Object.assign(downcast(values), contactForUpdate)))
 			})
 
-			await model._handleEntityEvent(downcast({application: app, type, operation: OperationType.UPDATE, instanceListId, instanceId}))
+			await model._handleEntityEvent(downcast({
+				application: app,
+				type,
+				operation: OperationType.UPDATE,
+				instanceListId,
+				instanceId
+			}))
 
 			unmockAttribute(loadMock)
 
@@ -786,7 +813,13 @@ o.spec("SendMailModel", function () {
 				return Promise.resolve(createContact(Object.assign(downcast(values), contactForUpdate)))
 			})
 
-			await model._handleEntityEvent(downcast({application: app, type, operation: OperationType.UPDATE, instanceListId, instanceId}))
+			await model._handleEntityEvent(downcast({
+				application: app,
+				type,
+				operation: OperationType.UPDATE,
+				instanceListId,
+				instanceId
+			}))
 
 			unmockAttribute(loadMock)
 
@@ -801,7 +834,13 @@ o.spec("SendMailModel", function () {
 			const {app, type} = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 
-			await model._handleEntityEvent(downcast({application: app, type, operation: OperationType.DELETE, instanceListId, instanceId}))
+			await model._handleEntityEvent(downcast({
+				application: app,
+				type,
+				operation: OperationType.DELETE,
+				instanceListId,
+				instanceId
+			}))
 
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find(r => r.contact

@@ -22,7 +22,7 @@ export function createInitialTemplateListIfAllowed(): Promise<?TemplateGroupRoot
 		}
 	}).then(groupId => {
 		if (groupId) {
-			return locator.entityClient.load(TemplateGroupRootTypeRef, groupId)
+			return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
 		}
 	})
 }

@@ -1,6 +1,5 @@
 // @flow
 import o from "ospec"
-import {setup} from "../../../src/api/worker/EntityWorker"
 import {GroupType} from "../../../src/api/common/TutanotaConstants"
 import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
 import {MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
@@ -60,7 +59,7 @@ o.spec("integration test", function () {
 		contact.company = "WIW"
 		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
-		await setup(contactList.contacts, contact)
+		await locator.cachingEntityClient.setup(contactList.contacts, contact)
 		const contacts = await locator.cachingEntityClient.loadAll(ContactTypeRef, contactList.contacts)
 		const firstNames = contacts.map(contact => contact.firstName)
 		o(firstNames.indexOf("Max")).notEquals(-1)

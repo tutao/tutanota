@@ -7,14 +7,12 @@ import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
 import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
 import {animations, height} from "../../gui/animation/Animations"
-import {remove} from "@tutao/tutanota-utils"
+import {downcast, neverNull, noOp, ofClass, remove} from "@tutao/tutanota-utils"
 import {windowFacade} from "../../misc/WindowFacade"
 import {progressIcon} from "../../gui/base/Icon"
 import {AccessDeactivatedError} from "../../api/common/error/RestError"
-import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
-import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/PushIdentifier"
-import {HttpMethod as HttpMethodEnum} from "../../api/common/EntityFunctions"
+import {createPushIdentifier} from "../../api/entities/sys/PushIdentifier"
 import {logins, SessionType} from "../../api/main/LoginController"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
@@ -31,7 +29,6 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
 import {createDraftRecipient} from "../../api/entities/tutanota/DraftRecipient"
 import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
-import {ofClass} from "@tutao/tutanota-utils"
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -266,10 +263,10 @@ export class ContactFormRequestDialog {
 							_owner: logins.getUserController().userGroupInfo.group, // legacy
 							_area: "0", // legacy
 						})
-						await locator.worker.entityRequest(PushIdentifierTypeRef,
-							HttpMethodEnum.POST,
+						await locator.entityClient.setup(
 							neverNull(logins.getUserController().user.pushIdentifierList).list,
-							null, pushIdentifier);
+							pushIdentifier
+						);
 					}
 
 					const name = ""

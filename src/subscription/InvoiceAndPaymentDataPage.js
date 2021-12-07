@@ -15,7 +15,6 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
-import {load, update} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -70,12 +69,12 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 		login.then(() => {
 			if (!data.accountingInfo || !data.customer) {
-				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 					.then(customer => {
 						data.customer = customer
-						return load(CustomerInfoTypeRef, customer.customerInfo)
+						return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 					})
-					.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+					.then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 						data.accountingInfo = accountingInfo
 					}))
 			}
@@ -105,7 +104,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					let customer = neverNull(a.data.customer)
 					if (customer.businessUse !== a.data.options.businessUse()) {
 						customer.businessUse = a.data.options.businessUse()
-						return update(customer)
+						return locator.entityClient.update(customer)
 					}
 				}).then(() => updatePaymentData(a.data.options.paymentInterval(), a.data.invoiceData, a.data.paymentData, null,
 					a.data.upgradeType === UpgradeType.Signup, a.data.price, neverNull(a.data.accountingInfo))

@@ -7,7 +7,6 @@ import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatVa
 import {getInboxRuleTypeNameMapping} from "../mail/model/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import {createInboxRule} from "../api/entities/tutanota/InboxRule"
-import {update} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {getArchiveFolder, getExistingRuleForType, getFolderName} from "../mail/model/MailUtils"
 import type {MailboxDetail} from "../mail/model/MailModel"
@@ -19,6 +18,7 @@ import {LockedError} from "../api/common/error/RestError"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isSameId} from "../api/common/utils/EntityUtils";
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -68,7 +68,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			props.inboxRules = isNewRule ? [
 				...inboxRules, rule
 			] : inboxRules.map(inboxRule => isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule)
-			update(props)
+			locator.entityClient.update(props)
 				.catch(error => {
 					props.inboxRules = inboxRules
 					throw error

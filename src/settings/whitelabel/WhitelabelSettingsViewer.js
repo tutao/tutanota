@@ -1,12 +1,11 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {LazyLoaded} from "@tutao/tutanota-utils"
+import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {load, loadRange, serviceRequest, update} from "../../api/main/Entity"
+import {serviceRequest} from "../../api/main/ServiceRequest"
 import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/Utils"
-import {assertNotNull, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {logins} from "../../api/main/LoginController"
@@ -44,10 +43,10 @@ import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmail
 import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
 import {WhitelabelGermanLanguageFileSettings} from "./WhitelabelGermanLanguageFileSettings"
 import type {UpdatableSettingsViewer} from "../SettingsView"
-import {promiseMap} from "@tutao/tutanota-utils"
 import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
-import {EntityClient} from "../../api/common/EntityClient"
 import {getThemeCustomizations} from "../../misc/WhitelabelCustomizations"
+import {EntityClient} from "../../api/common/EntityClient"
+import {locator} from "../../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -71,15 +70,15 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._entityClient = entityClient
 
 		this._customer = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 		})
 
 		this._customerInfo = new LazyLoaded(() => {
-			return this._customer.getAsync().then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return this._customer.getAsync().then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
 		this._customerProperties = new LazyLoaded(() =>
-			this._customer.getAsync().then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
+			this._customer.getAsync().then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
 
 		this._lastBooking = null
 
@@ -288,7 +287,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (domainInfo && domainInfo.whitelabelConfig
 		) {
 			return Promise.all([
-				load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
+				locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
 				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef)
 					.then((response) => neverNull(response.certificateInfo))
 			]).then(([whitelabelConfig, certificateInfo]) => ({whitelabelConfig, certificateInfo}))
@@ -303,13 +302,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				return this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo).then(data => {
 					this._whitelabelConfig = data && data.whitelabelConfig
 					this._certificateInfo = data && data.certificateInfo
-					return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-						.then(bookings => {
-							this._lastBooking = bookings.length === 1 ? bookings[0] : null
-							this._customJsonTheme = (this._whitelabelConfig) ? getThemeCustomizations(this._whitelabelConfig) : null
-							m.redraw()
-							this._customerProperties.getAsync().then(m.redraw)
-						})
+					return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+					              .then(bookings => {
+						              this._lastBooking = bookings.length === 1 ? bookings[0] : null
+						              this._customJsonTheme = (this._whitelabelConfig) ? getThemeCustomizations(this._whitelabelConfig) : null
+						              m.redraw()
+						              this._customerProperties.getAsync().then(m.redraw)
+					              })
 				})
 			}
 		)

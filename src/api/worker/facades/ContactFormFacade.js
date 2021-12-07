@@ -3,9 +3,10 @@ import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import type {ContactForm} from "../../entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../../entities/tutanota/ContactForm"
-import {decryptAndMapToInstance} from "../crypto/CryptoFacade"
 import {RestClient} from "../rest/RestClient"
 import {assertWorkerOrNode} from "../../common/Env"
+import {locator} from "../WorkerLocator"
+
 
 assertWorkerOrNode()
 
@@ -26,7 +27,7 @@ export class ContactFormFacadeImpl implements ContactFormFacade {
 			return this._restClient.request(path + "/" + formId, HttpMethod.GET, {}, {v: model.version}, null,
 				"application/json", null).then(json => {
 				let data = JSON.parse((json: string))
-				return decryptAndMapToInstance(model, data)
+				return locator.instanceMapper.decryptAndMapToInstance(model, data)
 			})
 		})
 	}

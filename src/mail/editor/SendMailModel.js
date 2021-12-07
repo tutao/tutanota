@@ -861,7 +861,7 @@ export class SendMailModel {
 				: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
 		}).then((draft) => {
 			this._draft = draft
-			return promiseMap(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId), {concurrency: 5})
+			return promiseMap(draft.attachments, fileId => this._entity.load<TutanotaFile>(FileTypeRef, fileId), {concurrency: 5})
 				.then(attachments => {
 					this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
 					this.attachFiles(attachments)

@@ -6,7 +6,7 @@ import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {load, serviceRequest} from "../api/main/Entity"
+import { serviceRequest} from "../api/main/ServiceRequest"
 import {logins} from "../api/main/LoginController"
 import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
 import {Const, getPaymentMethodType, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
@@ -32,6 +32,7 @@ import {SignupPage, SignupPageAttrs} from "./SignupPage"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Hex} from "@tutao/tutanota-utils/"
 import {getCampaignFromLocalStorage} from "../misc/LoginUtils"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -81,9 +82,9 @@ export function loadUpgradePrices(campaign: ?string): Promise<UpgradePriceServic
 }
 
 function loadCustomerAndInfo(): Promise<{customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo}> {
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-		.then((customer) => load(CustomerInfoTypeRef, customer.customerInfo)
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		.then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+			.then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 				.then(accountingInfo => {
 					return {customer, customerInfo, accountingInfo}
 				})))

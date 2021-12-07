@@ -65,7 +65,7 @@ export function loadOutOfOfficeNotification(): Promise<?OutOfOfficeNotification>
 	const mailMembership = logins.getUserController().getUserMailGroupMembership()
 	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
 		if (grouproot.outOfOfficeNotification) {
-			return locator.entityClient.load(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
+			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
 		}
 	})
 }

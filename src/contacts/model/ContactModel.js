@@ -82,7 +82,7 @@ export class ContactModelImpl implements ContactModel {
 		const resultsByListId = groupBy(result.results, listIdPart)
 		const loadedContacts = await promiseMap(resultsByListId, ([listId, idTuples]) => {
 			// we try to load all contacts from the same list in one request
-			return this._entityClient.loadMultipleEntities(ContactTypeRef, listId, idTuples.map(elementIdPart))
+			return this._entityClient.loadMultiple(ContactTypeRef, listId, idTuples.map(elementIdPart))
 			           .catch(ofClass(NotAuthorizedError, e => {
 				           console.log("tried to access contact without authorization", e)
 				           return []

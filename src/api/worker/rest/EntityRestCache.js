@@ -1,10 +1,9 @@
 // @flow
 import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
-import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {clone, downcast, flat, groupBy, isSameTypeRef, neverNull, ofClass, promiseMap, remove, TypeRef} from "@tutao/tutanota-utils"
+import {clone, flat, groupBy, isSameTypeRef, neverNull, promiseMap, remove, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -18,17 +17,11 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
 import type {ListElement} from "../../common/utils/EntityUtils"
-import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getElementId,
-	getLetId,
-	READ_ONLY_HEADER
-} from "../../common/utils/EntityUtils";
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {$Promisable} from "@tutao/tutanota-utils/"
+import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 
 
 assertWorkerOrNode()
@@ -99,99 +92,89 @@ export class EntityRestCache implements EntityRestInterface {
 		]
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
-		let readOnly = false
-		if (extraHeaders) {
-			readOnly = extraHeaders[READ_ONLY_HEADER] === "true"
-			delete extraHeaders[READ_ONLY_HEADER]
+	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T> {
+		const {listId, elementId} = expandId(id)
+
+		if (
+			typeRef.app === "monitor"
+			|| queryParameters?.version != null //if a specific version is requested we have to load again
+			|| !this._isInCache(typeRef, listId, elementId)
+			|| this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))
+		) {
+			return this._entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
 		}
-		if (method === HttpMethod.GET && !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))) {
-			if ((typeRef.app === "monitor") || (queryParameter && queryParameter["version"])) {
-				// monitor app and version requests are never cached
-				return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
-			} else if (!id && queryParameter && queryParameter["ids"]) {
-				return this._loadMultiple(typeRef, method, listId, id, entity, queryParameter, extraHeaders, readOnly)
-			} else if (this.isRangeRequest(listId, id, queryParameter)) {
-				// load range
-				return resolveTypeReference(typeRef).then(typeModel => {
-					if (typeModel.values["_id"].type === ValueType.GeneratedId) {
-						let params = neverNull(queryParameter)
-						return this._loadRange(downcast(typeRef), neverNull(listId), params["start"], Number(params["count"]), params["reverse"]
-							=== "true", readOnly)
-					} else {
-						// we currently only store ranges for generated ids
-						return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
-					}
-				})
-			} else if (id) {
-				// load single entity
-				if (this._isInCache(typeRef, listId, id)) {
-					return Promise.resolve(this._getFromCache(typeRef, listId, id))
-					// Some methods like "createDraft" are loading the created instance directly after the service has completed.
-					// Currently we cannot apply this optimization here because the cached is not updated directly after a service request because
-					// We don't wait for the updated/create event of the modified instance.
-					// We can add this optimization again if our service requests resolve after the cache has been updated
-					//} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
-					//return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
-				} else {
-					return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
-					           .then(entity => {
-						           if (!readOnly) {
-							           this._putIntoCache(entity)
-						           }
-						           return entity
-					           })
-				}
-			} else {
-				throw new Error("invalid request params: " + String(listId) + ", " + String(id) + ", "
-					+ String(JSON.stringify(queryParameter)))
-			}
-		} else {
-			return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
-		}
+		// Some methods like "createDraft" load the created instance directly after the service has completed.
+		// Currently we cannot apply this optimization here because the cache is not updated directly after a service request because
+		// We don't wait for the update/create event of the modified instance.
+		// We can add this optimization again if our service requests resolve after the cache has been updated
+		//} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
+		//return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
+		return this._getFromCache(typeRef, listId, elementId)
 	}
 
-	isRangeRequest(listId: ?Id, id: ?Id, queryParameter: ?Params): boolean {
-		// check for null and undefined because "" and 0 are als falsy
-		return listId != null && !id
-			&& queryParameter != null
-			&& queryParameter["start"] !== null
-			&& queryParameter["start"] !== undefined
-			&& queryParameter["count"] !== null
-			&& queryParameter["count"] !== undefined
-			&& queryParameter["reverse"] != null
+	async loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		const typeModel = await resolveTypeReference(typeRef)
+		if (
+			typeRef.app === "monitor"
+			|| this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))
+			|| typeModel.values._id.type !== ValueType.GeneratedId // we currently only store ranges for generated ids
+		) {
+			return this._entityRestClient.loadRange(typeRef, listId, start, count, reverse)
+		}
+
+		return this._loadRange(typeRef, listId, start, count, reverse)
 	}
 
-	_loadMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,
-	                 extraHeaders?: Params, readOnly: boolean): Promise<Array<T>> {
-		const ids = queryParameter["ids"].split(",")
-		const inCache = [], notInCache = []
-		ids.forEach((id) => {
+	loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Array<Id>): Promise<Array<T>> {
+		if (
+			typeRef.app === "monitor"
+			|| this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))
+		) {
+			return this._entityRestClient.loadMultiple(typeRef, listId, elementIds)
+		}
+
+		return this._loadMultiple(typeRef, listId, elementIds)
+	}
+
+	setup<T: SomeEntity>(listId: ?Id, instance: T, extraHeaders?: Params): Promise<Id> {
+		return this._entityRestClient.setup(listId, instance, extraHeaders)
+	}
+
+	setupMultiple<T: SomeEntity>(listId: ?Id, instances: Array<T>): Promise<Array<Id>> {
+		return this._entityRestClient.setupMultiple(listId, instances)
+	}
+
+	update<T: SomeEntity>(instance: T): Promise<void> {
+		return this._entityRestClient.update(instance)
+	}
+
+	erase<T: SomeEntity>(instance: T): Promise<void> {
+		return this._entityRestClient.erase(instance)
+	}
+
+	async _loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, ids: Array<Id>): Promise<Array<T>> {
+		const entitiesInCache = []
+		const idsToLoad = []
+		for (let id of ids) {
 			if (this._isInCache(typeRef, listId, id)) {
-				inCache.push(id)
+				entitiesInCache.push(this._getFromCache(typeRef, listId, id))
 			} else {
-				notInCache.push(id)
+				idsToLoad.push(id)
 			}
-		})
-		const newQuery = Object.assign({}, queryParameter, {ids: notInCache.join(",")})
-		const loadFromServerPromise = notInCache.length > 0
-			? this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, newQuery, extraHeaders)
-			      .then((response) => {
-				      const entities: Array<T> = downcast(response)
-				      if (!readOnly) {
-					      entities.forEach((e) => this._putIntoCache(e))
-				      }
-				      return entities
-			      })
-			: Promise.resolve([])
+		}
+		const entitiesFromServer = []
+		if (idsToLoad.length > 0) {
+			const entities = await this._entityRestClient.loadMultiple(typeRef, listId, idsToLoad)
+			for (let entity of entities) {
+				this._putIntoCache(entity)
+				entitiesFromServer.push(entity)
+			}
+		}
 
-		return Promise.all([
-			loadFromServerPromise,
-			inCache.map(id => this._getFromCache(typeRef, listId, id))
-		]).then(flat)
+		return entitiesFromServer.concat(entitiesInCache)
 	}
 
-	_loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, readOnly: boolean): Promise<T[]> {
+	_loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		let path = typeRefToPath(typeRef)
 		const listCache = (this._listEntities[path] && this._listEntities[path][listId]) ? this._listEntities[path][listId] : null
 		// check which range must be loaded from server
@@ -201,17 +184,8 @@ export class EntityRestCache implements EntityRestInterface {
 			// our upper range id is not MAX_ID and we now read the range starting with MAX_ID. we just replace the complete existing range with the new one because we do not want to handle multiple ranges or
 			// our lower range id is not MIN_ID and we now read the range starting with MIN_ID. we just replace the complete existing range with the new one because we do not want to handle multiple ranges
 			// this can also happen if we just have read a single element before, so the range is only that element and can be skipped
-			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
-				start: start,
-				count: String(count),
-				reverse: String(reverse)
-			}).then(result => {
-				let entities: Array<T> = downcast(result)
+			return this._entityRestClient.loadRange(typeRef, listId, start, count, reverse).then(entities => {
 				// create the list data path in the cache if not existing
-				if (readOnly) {
-					return entities;
-				}
-
 				let newListCache
 				if (!listCache) {
 					if (!this._listEntities[path]) {
@@ -231,20 +205,10 @@ export class EntityRestCache implements EntityRestInterface {
 			&& !firstBiggerThanSecond(listCache.lowerRangeId, start)) { // check if the requested start element is located in the range
 
 			// count the numbers of elements that are already in allRange to determine the number of elements to read
-			let newRequestParams = this._getNumberOfElementsToRead(listCache, start, count, reverse)
-			if (newRequestParams.newCount > 0) {
-				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
-					start: newRequestParams.newStart,
-					count: String(newRequestParams.newCount),
-					reverse: String(reverse)
-				}).then(result => {
-					let entities: Array<T> = downcast(result)
-					if (readOnly) {
-						const cachedEntities = this._provideFromCache(listCache, start, count - newRequestParams.newCount, reverse)
-						return cachedEntities.concat(entities)
-					} else {
-						return this._handleElementRangeResult(neverNull(listCache), start, count, reverse, entities, newRequestParams.newCount)
-					}
+			const {newStart, newCount} = this._recalculateRangeRequest(listCache, start, count, reverse)
+			if (newCount > 0) {
+				return this._entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse).then(entities => {
+					return this._handleElementRangeResult(neverNull(listCache), start, count, reverse, entities, newCount)
 				})
 			} else {
 				// all elements are located in the cache.
@@ -252,14 +216,6 @@ export class EntityRestCache implements EntityRestInterface {
 			}
 		} else if ((firstBiggerThanSecond(start, listCache.upperRangeId) && !reverse) // Start is outside the range.
 			|| (firstBiggerThanSecond(listCache.lowerRangeId, start) && reverse)) {
-			if (readOnly) {
-				// Doesn't make any sense to read from existing range because we know that elements are not in the cache
-				return downcast(this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
-					start: start,
-					count: String(count),
-					reverse: String(reverse)
-				}))
-			}
 			let loadStartId
 			if (firstBiggerThanSecond(start, listCache.upperRangeId) && !reverse) {
 				// start is higher than range. load from upper range id with same count. then, if all available elements have been loaded or the requested number is in cache, return from cache. otherwise load again the same way.
@@ -268,25 +224,17 @@ export class EntityRestCache implements EntityRestInterface {
 				// start is lower than range. load from lower range id with same count. then, if all available elements have been loaded or the requested number is in cache, return from cache. otherwise load again the same way.
 				loadStartId = listCache.lowerRangeId
 			}
-			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
-				start: loadStartId,
-				count: String(count),
-				reverse: String(reverse)
-			}).then(entities => {
+			return this._entityRestClient.loadRange(typeRef, listId, loadStartId, count, reverse).then(entities => {
 				// put the new elements into the cache
 				this._handleElementRangeResult(neverNull(listCache), loadStartId, count, reverse, ((entities: any): T[]), count)
 				// provide from cache with the actual start id
 				let resultElements = this._provideFromCache(neverNull(listCache), start, count, reverse)
-				if (((entities: any): T[]).length < count || resultElements.length === count) {
+				if (entities.length < count || resultElements.length === count) {
 					// either all available elements have been loaded from target or the requested number of elements could be provided from cache
 					return resultElements
 				} else {
 					// try again with the new elements in the cache
-					return this.entityRequest(typeRef, HttpMethod.GET, listId, null, null, {
-						start: start,
-						count: String(count),
-						reverse: String(reverse)
-					})
+					return this.loadRange(typeRef, listId, start, count, reverse)
 				}
 			})
 		} else {
@@ -337,7 +285,7 @@ export class EntityRestCache implements EntityRestInterface {
 	 * order to read no duplicate values.
 	 * @return returns the new start and count value.
 	 */
-	_getNumberOfElementsToRead<T>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean): {newStart: string, newCount: number} {
+	_recalculateRangeRequest<T>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean): {newStart: string, newCount: number} {
 		let allRangeList = listCache['allRange']
 		let elementsToRead = count
 		let startElementId = start
@@ -419,7 +367,7 @@ export class EntityRestCache implements EntityRestInterface {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
+	async entityEventsReceived(batch: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> {
 		// we handle post multiple create operations separately to optimize the number of requests with getMultiple
 		const createUpdatesForLETs = []
 		const regularUpdates = [] // all updates not resulting from post multiple requests
@@ -435,59 +383,67 @@ export class EntityRestCache implements EntityRestInterface {
 			}
 		})
 		const createUpdatesForLETsPerList = groupBy(createUpdatesForLETs, (update) => update.instanceListId)
+
 		// we first handle potential post multiple updates in get multiple requests
-		return promiseMap(createUpdatesForLETsPerList, ([instanceListId, updates]) => {
+		const postMultipleEventUpdates = await promiseMap(createUpdatesForLETsPerList, async ([instanceListId, updates]) => {
 			const firstUpdate = updates[0]
 			const typeRef = new TypeRef(firstUpdate.application, firstUpdate.type)
 			const path = typeRefToPath(typeRef)
 			const ids = updates.map(update => update.instanceId)
+
 			//We only want to load the instances that are in cache range
 			const idsInCacheRange = this._getInCacheRange(path, instanceListId, ids)
 			if (idsInCacheRange.length === 0) {
 				return updates
 			}
+
 			const updatesNotInCacheRange = idsInCacheRange.length === updates.length
 				? []
 				: updates.filter(update => !idsInCacheRange.includes(update.instanceId))
-			// loadMultiple is only called to cache the elements and check which ones return errors
-			return this._loadMultiple(typeRef, HttpMethod.GET, instanceListId, null, null, {ids: idsInCacheRange.join(",")}, {}, false)
-			           .then((returnedInstances) => {
-				           //We do not want to pass updates that caused an error
-				           if (returnedInstances.length !== idsInCacheRange.length) {
-					           const returnedIds = returnedInstances.map(instance => getElementId(instance))
-					           return updates.filter(update => returnedIds.includes(update.instanceId)).concat(updatesNotInCacheRange)
-				           }
-				           return updates
-			           })
-			           .catch(ofClass(NotAuthorizedError, (e) => {
-				           // return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
-				           return updatesNotInCacheRange
-			           }))
-		}).then(updatesPerList => flat(updatesPerList))
-			// process regular (not potential post multiple) updates:
-          .then((processedUpdates) => {
-	          return promiseMap(regularUpdates, (update) => {
-		          const {instanceListId, instanceId, operation, type, application} = update
-		          const typeRef = new TypeRef(application, type)
-		          switch (operation) {
-			          case OperationType.UPDATE:
-				          return this._processUpdateEvent(typeRef, update)
-			          case OperationType.DELETE:
-				          if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
-					          // move for mail is handled in create event.
-				          } else {
-					          this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
-				          }
-				          return update
-			          case OperationType.CREATE:
-				          return this._processCreateEvent(typeRef, update, batch)
-			          default:
-				          throw new ProgrammingError("Unknown operation type: " + operation)
-		          }
-	          })
-		          // merge the results
-		          .then((result) => result.filter(Boolean).concat(processedUpdates))
-          })
+
+			try {
+				// loadMultiple is only called to cache the elements and check which ones return errors
+				const returnedInstances = await this._loadMultiple(typeRef, instanceListId, idsInCacheRange)
+				//We do not want to pass updates that caused an error
+				if (returnedInstances.length !== idsInCacheRange.length) {
+					const returnedIds = returnedInstances.map(instance => getElementId(instance))
+					return updates.filter(update => returnedIds.includes(update.instanceId)).concat(updatesNotInCacheRange)
+				} else {
+					return updates
+				}
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
+					return updatesNotInCacheRange
+				} else {
+					throw e
+				}
+			}
+		})
+
+		const otherEventUpdates = await promiseMap(regularUpdates, (update) => {
+			const {instanceListId, instanceId, operation, type, application} = update
+			const typeRef = new TypeRef(application, type)
+			switch (operation) {
+				case OperationType.UPDATE:
+					return this._processUpdateEvent(typeRef, update)
+				case OperationType.DELETE:
+					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
+						// move for mail is handled in create event.
+						return null
+					} else {
+						this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
+					}
+					return update
+				case OperationType.CREATE:
+					return this._processCreateEvent(typeRef, update, batch)
+				default:
+					throw new ProgrammingError("Unknown operation type: " + operation)
+			}
+		})
+
+		// merge the results
+		return otherEventUpdates.filter(Boolean).concat(flat(postMultipleEventUpdates))
 	}
 
 	_processCreateEvent(
@@ -510,7 +466,7 @@ export class EntityRestCache implements EntityRestInterface {
 				return update
 			} else if (this._isInCacheRange(path, instanceListId, instanceId)) {
 				// No need to try to download something that's not there anymore
-				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
+				return this._entityRestClient.load(typeRef, [instanceListId, instanceId])
 				           .then(entity => this._putIntoCache(entity))
 				           .then(() => update)
 				           .catch((e) => this._handleProcessingError(e))
@@ -526,7 +482,7 @@ export class EntityRestCache implements EntityRestInterface {
 		const {instanceListId, instanceId} = update
 		if (this._isInCache(typeRef, instanceListId, instanceId)) {
 			// No need to try to download something that's not there anymore
-			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
+			return this._entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
 			           .then(entity => this._putIntoCache(entity))
 			           .then(() => update)
 			           .catch((e) => this._handleProcessingError(e))
@@ -555,7 +511,7 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_getFromCache(typeRef: TypeRef<any>, listId: ?Id, id: Id): any {
+	_getFromCache<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, id: Id): T {
 		let path = typeRefToPath(typeRef)
 		if (listId) {
 			return clone(this._listEntities[path][listId].elements[id])
@@ -631,5 +587,27 @@ export class EntityRestCache implements EntityRestInterface {
 				delete this._entities[path][id]
 			}
 		}
+	}
+}
+
+export function expandId(id: Id | IdTuple): {listId: ?Id, elementId: Id} {
+	if (typeof id === "string") {
+		return {
+			listId: null,
+			elementId: id
+		}
+	} else {
+		const [listId, elementId] = id
+		return {
+			listId, elementId
+		}
+	}
+}
+
+export function collapseId(listId: ?Id, elementId: Id): Id | IdTuple {
+	if (listId != null) {
+		return [listId, elementId]
+	} else {
+		return elementId
 	}
 }

@@ -5,7 +5,7 @@ import {CalendarMethod, FeatureType, GroupType, OperationType} from "../../api/c
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import type {WorkerClient} from "../../api/main/WorkerClient"
-import {_eraseEntity, _loadEntity, HttpMethod} from "../../api/common/EntityFunctions"
+import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -143,7 +143,7 @@ export class CalendarModelImpl implements CalendarModel {
 		) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return this._doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
-			           .then(() => _loadEntity(CalendarEventTypeRef, newEvent._id, null, this._worker))
+			           .then(() => this._entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id, null))
 		} else {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
@@ -348,7 +348,7 @@ export class CalendarModelImpl implements CalendarModel {
 						return
 					}
 					//console.log("Deleting cancelled event", uid, dbEvent._id)
-					return _eraseEntity(dbEvent, this._worker)
+					return this._entityClient.erase(dbEvent)
 				}
 			})
 		} else {
@@ -373,7 +373,7 @@ export class CalendarModelImpl implements CalendarModel {
 	_updateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
 		return Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this._logins.getUserController().user),
-			_loadEntity(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup), null, this._worker)
+			this._entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup), null)
 		]).then(([alarms, groupRoot]) => {
 			const alarmInfos = alarms.map((a) => a.alarmInfo)
 			return this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
@@ -410,7 +410,7 @@ export class CalendarModelImpl implements CalendarModel {
 		if (ids.length === 0) {
 			return Promise.resolve([])
 		}
-		return this._entityClient.loadMultipleEntities(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
+		return this._entityClient.loadMultiple(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
 	}
 
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

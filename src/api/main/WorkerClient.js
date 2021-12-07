@@ -28,7 +28,7 @@ assertMainOrNode()
 type progressUpdater = (number) => mixed;
 type MainRequest = Request<MainRequestType>
 
-export class WorkerClient implements EntityRestInterface {
+export class WorkerClient {
 
 	_deferredInitialized: DeferredObject<void> = defer()
 	_isInitialized: boolean = false
@@ -173,10 +173,6 @@ export class WorkerClient implements EntityRestInterface {
 
 	resolveSessionKey(typeModel: TypeModel, instance: Object): Promise<?string> {
 		return this._postRequest(new Request('resolveSessionKey', arguments))
-	}
-
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
-		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 
 	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {

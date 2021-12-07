@@ -22,7 +22,7 @@ import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../a
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {showServiceTerms} from "./SubscriptionUtils"
-import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"
+import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"

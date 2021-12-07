@@ -1,7 +1,6 @@
 // @flow
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
-import {load, loadRoot, setup} from "./Entity"
-import {downcast, neverNull, noOp} from "@tutao/tutanota-utils"
+import {downcast, first, mapAndFilterNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
@@ -27,12 +26,13 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils";
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
-import {first, mapAndFilterNull} from "@tutao/tutanota-utils"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import type {Base64Url} from "@tutao/tutanota-utils/"
+import {EntityClient} from "../common/EntityClient"
+
+
 
 assertMainOrNode()
 
@@ -43,6 +43,7 @@ export interface IUserController {
 	sessionId: IdTuple;
 	accessToken: string;
 	+userSettingsGroupRoot: UserSettingsGroupRoot;
+
 
 	isGlobalAdmin(): boolean;
 
@@ -87,9 +88,10 @@ export class UserController implements IUserController {
 	accessToken: Base64Url;
 	persistentSession: boolean;
 	userSettingsGroupRoot: UserSettingsGroupRoot;
+	entityClient: EntityClient
 
 	constructor(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, props: TutanotaProperties, accessToken: Base64Url, persistentSession: boolean,
-	            userSettingsGroupRoot: UserSettingsGroupRoot) {
+	            userSettingsGroupRoot: UserSettingsGroupRoot, entityClient: EntityClient) {
 		this.user = user
 		this.userGroupInfo = userGroupInfo
 		this.props = props
@@ -97,6 +99,7 @@ export class UserController implements IUserController {
 		this.accessToken = accessToken
 		this.persistentSession = persistentSession
 		this.userSettingsGroupRoot = userSettingsGroupRoot
+		this.entityClient = entityClient
 	}
 
 	/**
@@ -181,20 +184,20 @@ export class UserController implements IUserController {
 			const {instanceListId, instanceId, operation} = update
 			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update)
 				&& isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
-				return load(UserTypeRef, this.user._id).then(updatedUser => {
+				return this.entityClient.load(UserTypeRef, this.user._id).then(updatedUser => {
 					this.user = updatedUser
 				})
 			} else if (operation === OperationType.UPDATE && isUpdateForTypeRef(GroupInfoTypeRef, update)
 				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				return load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+				return this.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 					this.userGroupInfo = updatedUserGroupInfo
 				})
 			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
+				return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 					this.props = props
 				})
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				return load(UserSettingsGroupRootTypeRef, this.user.userGroup.group).then((userSettingsGroupRoot) => {
+				return this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group).then((userSettingsGroupRoot) => {
 					this.userSettingsGroupRoot = userSettingsGroupRoot
 				})
 			}
@@ -307,17 +310,18 @@ export type UserControllerInitData = {
 export function initUserController(
 	{user, userGroupInfo, sessionId, accessToken, persistentSession}: UserControllerInitData
 ): Promise<UserController> {
+	const entityClient = locator.entityClient
 	return Promise
 		.all([
-			loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
-			load(UserSettingsGroupRootTypeRef, user.userGroup.group)
-				.catch(ofClass(NotFoundError, () =>
-					setup(null, Object.assign(createUserSettingsGroupRoot(), {
-						_ownerGroup: user.userGroup.group
-					}))
-						.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group))))
+			entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
+			entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+			            .catch(ofClass(NotFoundError, () =>
+				            entityClient.setup(null, Object.assign(createUserSettingsGroupRoot(), {
+					            _ownerGroup: user.userGroup.group
+				            }))
+				                        .then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group))))
 		])
 		.then(([props, userSettingsGroupRoot]) =>
-			new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot)
+			new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot, entityClient)
 		)
 }

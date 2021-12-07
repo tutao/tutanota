@@ -6,7 +6,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../../gui/size"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {erase, load, loadMultiple} from "../../api/main/Entity"
 import {ContactRow} from "../../contacts/view/ContactListView"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
@@ -14,20 +13,17 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {locator} from "../../api/main/MainLocator"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, neverNull, noOp} from "@tutao/tutanota-utils"
+import {defer, flat, groupBy, isSameTypeRef, neverNull, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
 import {Dialog} from "../../gui/base/Dialog"
-import {flat, groupBy} from "@tutao/tutanota-utils"
-import type {ListElement} from "../../api/common/utils/EntityUtils"
 import {elementIdPart, GENERATED_MAX_ID, isSameId, listIdPart, sortCompareByReverseId} from "../../api/common/utils/EntityUtils";
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../../mail/view/MailGuiUtils";
 import {MailRow} from "../../mail/view/MailRow";
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils";
 import {compareContacts} from "../../contacts/view/ContactGuiUtils";
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import type {ListElementEntity} from "../../api/common/EntityTypes"
 
 assertMainOrNode()
 
@@ -164,7 +160,7 @@ export class SearchListView {
 					const currentResult = this._searchResult
 					let id = currentResult.results.find(r => r[1] === elementId)
 					if (id) {
-						return load(currentResult.restriction.type, id)
+						return locator.entityClient.load(currentResult.restriction.type, id)
 							.then(entity => new SearchResultListEntry(entity))
 							.catch(ofClass(NotFoundError, (e) => {
 								// we return null if the entity does not exist
@@ -264,11 +260,11 @@ export class SearchListView {
 		return Promise.resolve()
 	}
 
-	_loadAndFilterInstances<T: ListElement>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
-	                                        startIndex: number): Promise<T[]> {
+	_loadAndFilterInstances<T: ListElementEntity>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
+	                                              startIndex: number): Promise<T[]> {
 
 		const grouped = groupBy(toLoad, listIdPart)
-		return promiseMap(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)))
+		return promiseMap(grouped, ([listId, ids]) => locator.entityClient.loadMultiple(type, listId, ids.map(elementIdPart)))
 			.then(flat)
 			.then((loaded) => {
 				// Filter not found instances from the current result as well so we don’t loop trying to load them
@@ -392,7 +388,7 @@ export class SearchListView {
 							this.selectNone()
 						}
 						selectedContacts
-							.forEach((c) => erase(c)
+							.forEach((c) => locator.entityClient.erase(c)
 								.catch(ofClass(NotFoundError, e => {
 									// ignore because the delete key shortcut may be executed again while the contact is already deleted
 								})))

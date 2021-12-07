@@ -9,7 +9,6 @@ import {ParserError} from "../../misc/parsing/ParserCombinator";
 import {Dialog} from "../../gui/base/Dialog";
 import {lang} from "../../misc/LanguageViewModel";
 import {parseCalendarFile, serializeCalendar} from "./CalendarImporter";
-import {loadAll, loadMultiple} from "../../api/main/Entity"
 import {elementIdPart, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
@@ -108,7 +107,7 @@ export function exportCalendar(
 			return promiseMap(allEvents, event => {
 				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length > 0) {
-					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
+					return locator.entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
 						.then(alarms => ({event, alarms}))
 				} else {
 					return {event, alarms: []}
@@ -134,9 +133,9 @@ function exportCalendarEvents(
 }
 
 function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
-	return loadAll(CalendarEventTypeRef, groupRoot.longEvents)
+	return locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 		.then((longEvents) =>
-			loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
+			locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
 				return shortEvents.concat(longEvents)
 			}))
 }

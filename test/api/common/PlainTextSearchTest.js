@@ -254,7 +254,7 @@ o.spec("PlainTextSearchTest", function () {
 			o(_searchResult).deepEquals([entryWithNestedArray1, entryWithNestedArray2])
 		})
 
-		o("check nested attribute array", function () {
+		o("check nested attribute array one element", function () {
 			const query = "nestedEntry1"
 			const _searchResult = search(query, entries, ["contentArray.text"], false)
 			o(_searchResult).deepEquals([entryWithNestedArray1])

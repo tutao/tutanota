@@ -9,7 +9,7 @@ import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountType
 import type {PaidSubscriptionTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaConstants"
 import {SysService} from "../api/entities/sys/Services"
-import {serviceRequestVoid} from "../api/main/Entity"
+import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"

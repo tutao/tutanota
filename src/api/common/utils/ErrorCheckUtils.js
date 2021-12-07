@@ -1,7 +1,7 @@
 // @flow
 
-import type {SomeEntity} from "../../main/Entity"
 import {downcast} from "@tutao/tutanota-utils"
+import type {SomeEntity} from "../EntityTypes"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written

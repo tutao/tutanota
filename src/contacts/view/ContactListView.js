@@ -4,7 +4,6 @@ import stream from "mithril/stream/stream.js"
 import {ContactView} from "./ContactView"
 import type {VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
-import {load, loadAll} from "../../api/main/Entity"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
 import {getContactListName} from "../model/ContactUtils"
@@ -43,7 +42,7 @@ export class ContactListView {
 					return locator.contactModel.contactListId().then(contactListId => {
 						if (!contactListId) return []
 						// we have to load all contacts in order to sort them by name
-						return loadAll(ContactTypeRef, contactListId).then(allContacts => {
+						return locator.entityClient.loadAll(ContactTypeRef, contactListId).then(allContacts => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new received contacts are inserted into the list, even at the end
 							this._setLoadedCompletely();
 							return allContacts
@@ -54,7 +53,7 @@ export class ContactListView {
 				}
 			},
 			loadSingle: (elementId) => {
-				return load(ContactTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, () => {
+				return locator.entityClient.load<Contact>(ContactTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, () => {
 					// we return null if the entity does not exist
 					return null
 				}))

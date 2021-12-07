@@ -6,7 +6,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm} from "./PasswordForm"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll, neverNull, ofClass} from "@tutao/tutanota-utils"
@@ -97,8 +96,8 @@ export function show(): Promise<void> {
 }
 
 export function getAvailableDomains(onlyCustomDomains: ?boolean): Promise<string[]> {
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+		return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 			let availableDomains = getCustomMailDomains(customerInfo).map(info => info.domain)
 			if (!onlyCustomDomains && logins.getUserController().user.accountType !== AccountType.STARTER &&
 				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())) {

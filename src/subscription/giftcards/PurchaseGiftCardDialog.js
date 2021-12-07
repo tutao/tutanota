@@ -3,7 +3,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../../gui/base/Dialog"
-import {serviceRequest} from "../../api/main/Entity"
+import {serviceRequest} from "../../api/main/ServiceRequest"
 import {logins} from "../../api/main/LoginController"
 import type {AccountingInfo} from "../../api/entities/sys/AccountingInfo"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"

@@ -53,13 +53,13 @@ import {compareNewestFirst, firstBiggerThanSecond, timestampToGeneratedId} from 
 import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
 import {LoginFacadeImpl} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
-import {load} from "../EntityWorker"
 import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
 import type {TypeModel} from "../../common/EntityTypes"
+import {locator} from "../WorkerLocator"
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
@@ -164,7 +164,7 @@ export class SearchFacade {
 				} else {
 					let entity
 					try {
-						entity = await load(restriction.type, id)
+						entity = await locator.cachingEntityClient.load(restriction.type, id)
 					} catch (e) {
 						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 							continue

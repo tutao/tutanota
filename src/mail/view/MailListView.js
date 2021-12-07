@@ -4,7 +4,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
 import {HttpMethod} from "../../api/common/EntityFunctions"
-import {serviceRequestVoid} from "../../api/main/Entity"
+import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {CounterType_UnreadMails, MailFolderType} from "../../api/common/TutanotaConstants"
 import type {MailView} from "./MailView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
@@ -67,7 +67,7 @@ export class MailListView implements MComponent<void> {
 				return this._loadMailRange(start, count)
 			},
 			loadSingle: (elementId) => {
-				return locator.entityClient.load(MailTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, (e) => {
+				return locator.entityClient.load<Mail>(MailTypeRef, [this.listId, elementId]).catch(ofClass(NotFoundError, (e) => {
 					// we return null if the entity does not exist
 				}))
 			},

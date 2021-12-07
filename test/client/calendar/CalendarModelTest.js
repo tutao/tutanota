@@ -21,7 +21,6 @@ import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/
 import type {EntityUpdateData} from "../../../src/api/main/EventController"
 import {EventController} from "../../../src/api/main/EventController"
 import {Notifications} from "../../../src/gui/Notifications"
-import {WorkerClient} from "../../../src/api/main/WorkerClient"
 import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
 import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
@@ -32,7 +31,6 @@ import {createUserAlarmInfoListType} from "../../../src/api/entities/sys/UserAla
 import {createUserAlarmInfo} from "../../../src/api/entities/sys/UserAlarmInfo"
 import type {CalendarGroupRoot} from "../../../src/api/entities/tutanota/CalendarGroupRoot"
 import {createCalendarGroupRoot} from "../../../src/api/entities/tutanota/CalendarGroupRoot"
-import {_loadEntity} from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {ProgressTracker} from "../../../src/api/main/ProgressTracker"
@@ -42,8 +40,10 @@ import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
 import {CalendarFacade} from "../../../src/api/worker/facades/CalendarFacade"
 import {FileFacade} from "../../../src/api/worker/facades/FileFacade"
 import {asResult, mapToObject} from "@tutao/tutanota-test-utils"
+import {WorkerClient} from "../../../src/api/main/WorkerClient"
 
 o.spec("CalendarModel", function () {
+
 	o.spec("addDaysForEvent", function () {
 		const zone = getTimeZone()
 		let eventsForDays: Map<number, Array<CalendarEvent>>
@@ -678,7 +678,7 @@ o.spec("CalendarModel", function () {
 	})
 
 	o.spec("calendar event updates", function () {
-		let workerMock: WorkerMock
+		let restClientMock: EntityRestClientMock
 		let groupRoot: CalendarGroupRoot
 		const loginController = makeLoginController()
 		const alarmsListId = neverNull(loginController.getUserController().user.alarmInfoList).alarms
@@ -689,8 +689,9 @@ o.spec("CalendarModel", function () {
 				longEvents: "longEvents",
 				shortEvents: "shortEvents",
 			})
-			workerMock = new WorkerMock()
-			workerMock.addElementInstances(groupRoot)
+			restClientMock = new EntityRestClientMock()
+			restClientMock.addElementInstances(groupRoot)
+
 		})
 
 		o("reply but sender is not a guest", async function () {
@@ -700,10 +701,11 @@ o.spec("CalendarModel", function () {
 			})
 			const calendarFacade = makeCalendarFacade({
 				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)
-			})
-			const workerClient = makeWorkerClient({})
+			}, restClientMock)
+			const workerClient = makeWorkerClient()
 			const model = init({
 				workerClient,
+				restClientMock,
 				calendarFacade,
 			})
 
@@ -743,22 +745,15 @@ o.spec("CalendarModel", function () {
 				],
 				alarmInfos: [[alarmsListId, alarm._id]]
 			})
-			workerMock.addListInstances(createUserAlarmInfo({
+			restClientMock.addListInstances(createUserAlarmInfo({
 				_id: [alarmsListId, alarm._id],
 				alarmInfo: alarm,
 			}))
-			workerMock.eventByUid.set(uid, existingEvent)
-			const workerClient = makeWorkerClient(workerMock)
+			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade({
-				async getEventByUid(uidToLoad) {
-					if (uidToLoad === uid) {
-						return clone(existingEvent)
-					} else {
-						return null
-					}
-				}
-			})
-			const model = init({workerClient, calendarFacade})
+				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)
+			}, restClientMock)
+			const model = init({workerClient, restClientMock, calendarFacade})
 
 			await model.processCalendarUpdate(sender, {
 				summary: "v2", // should be ignored
@@ -801,10 +796,13 @@ o.spec("CalendarModel", function () {
 		o("request as a new invite", async function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
-			const workerMock = new WorkerMock()
-			const workerClient = makeWorkerClient(workerMock)
-			const calendarFacade = makeCalendarFacade()
-			const model = init({workerClient, calendarFacade})
+			const restClientMock = new EntityRestClientMock()
+			const workerClient = makeWorkerClient()
+			const calendarFacade = makeCalendarFacade({
+				getEventByUid: (loadUid) => Promise.resolve(null)
+			}, restClientMock)
+
+			const model = init({workerClient, restClientMock, calendarFacade})
 
 			await model.processCalendarUpdate(sender, {
 				summary: "1",
@@ -832,7 +830,7 @@ o.spec("CalendarModel", function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const alarm = createAlarmInfo({_id: "alarm-id"})
-			workerMock.addListInstances(createUserAlarmInfo({
+			restClientMock.addListInstances(createUserAlarmInfo({
 				_id: [alarmsListId, alarm._id],
 				alarmInfo: alarm,
 			}))
@@ -848,17 +846,11 @@ o.spec("CalendarModel", function () {
 				startTime
 			})
 
-			const workerClient = makeWorkerClient(workerMock)
+			const workerClient = makeWorkerClient()
 			const calendarFacade = makeCalendarFacade({
-				async getEventByUid(uidToLoad) {
-					if (uidToLoad === uid) {
-						return clone(existingEvent)
-					} else {
-						return null
-					}
-				}
-			})
-			const model = init({workerClient, calendarFacade})
+				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)
+			}, restClientMock)
+			const model = init({workerClient, restClientMock, calendarFacade})
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
 				uid,
@@ -883,7 +875,7 @@ o.spec("CalendarModel", function () {
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const alarm = createAlarmInfo({_id: "alarm-id"})
-			workerMock.addListInstances(createUserAlarmInfo({
+			restClientMock.addListInstances(createUserAlarmInfo({
 				_id: [alarmsListId, alarm._id],
 				alarmInfo: alarm,
 			}))
@@ -897,11 +889,13 @@ o.spec("CalendarModel", function () {
 				startTime: DateTime.fromObject({year: 2020, month: 5, day: 10, zone: "UTC"}).toJSDate(),
 				alarmInfos: [[alarmsListId, alarm._id]]
 			})
-			workerMock.eventByUid.set(uid, existingEvent)
 
-			const workerClient = makeWorkerClient(workerMock)
-			const calendarFacade = workerMock.calendarFacade
-			const model = init({workerClient, calendarFacade})
+
+			const workerClient = makeWorkerClient()
+			const calendarFacade = makeCalendarFacade({
+				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)
+			}, restClientMock)
+			const model = init({workerClient, restClientMock, calendarFacade})
 
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
@@ -937,13 +931,16 @@ o.spec("CalendarModel", function () {
 					uid,
 					organizer: createEncryptedMailAddress({address: sender}),
 				})
-				workerMock.addListInstances(existingEvent)
-				workerMock.eventByUid.set(uid, existingEvent)
+				restClientMock.addListInstances(existingEvent)
 
-				const workerClient = makeWorkerClient(workerMock)
+				const workerClient = makeWorkerClient()
+				const calendarFacade = makeCalendarFacade({
+					getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null)
+				}, restClientMock)
 				const model = init({
 					workerClient,
-					calendarFacade: workerMock.calendarFacade
+					restClientMock,
+					calendarFacade: calendarFacade
 				})
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
@@ -953,7 +950,7 @@ o.spec("CalendarModel", function () {
 						{event: sentEvent, alarms: []}
 					]
 				})
-				o(Object.getPrototypeOf(await asResult(_loadEntity(CalendarEventTypeRef, existingEvent._id, null, workerMock))))
+				o(Object.getPrototypeOf(await asResult(restClientMock.load(CalendarEventTypeRef, existingEvent._id, null, restClientMock))))
 					.equals(NotFoundError.prototype)("Calendar event was deleted")
 			})
 
@@ -967,18 +964,17 @@ o.spec("CalendarModel", function () {
 					uid,
 					organizer: createEncryptedMailAddress({address: sender}),
 				})
-				workerMock.addListInstances(existingEvent)
-				workerMock.eventByUid.set(uid, existingEvent)
+				restClientMock.addListInstances(existingEvent)
 
-				const workerClient = makeWorkerClient(workerMock)
-				const model = init({workerClient})
+				const workerClient = makeWorkerClient()
+				const model = init({workerClient, restClientMock})
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
 				await model.processCalendarUpdate("another-sender", {
 					method: CalendarMethod.CANCEL,
 					contents: [{event: sentEvent, alarms: []}]
 				})
-				o(await _loadEntity(CalendarEventTypeRef, existingEvent._id, null, workerMock))
+				o(await restClientMock.load(CalendarEventTypeRef, existingEvent._id, null, restClientMock))
 					.equals(existingEvent)("Calendar event was not deleted")
 			})
 		})
@@ -1010,8 +1006,8 @@ function makeEventController(): {eventController: EventController, sendEvent: (E
 	}
 }
 
-function makeWorkerClient(props: {}): WorkerClient {
-	return downcast(props)
+function makeWorkerClient(): WorkerClient {
+	return downcast({})
 }
 
 function makeLoginController(props: $Shape<IUserController> = {}): LoginController {
@@ -1043,21 +1039,6 @@ function createEvent(startTime: Date, endTime: Date): CalendarEvent {
 	return event
 }
 
-class WorkerMock extends EntityRestClientMock {
-	eventByUid: Map<string, CalendarEvent> = new Map();
-
-	calendarFacade: CalendarFacade = downcast({
-			saveCalendarEvent: o.spy((event) => {
-				this.addListInstances(event)
-				return Promise.resolve()
-			}),
-			updateCalendarEvent: o.spy(() => Promise.resolve()),
-			getEventByUid: (loadUid) => {
-				return Promise.resolve(this.eventByUid.get(loadUid))
-			},
-		}
-	)
-}
 
 function makeAlarmScheduler(): AlarmScheduler {
 	return {
@@ -1071,11 +1052,14 @@ function makeMailModel(): MailModel {
 	return downcast({})
 }
 
-function makeCalendarFacade({getEventByUid} = {getEventByUid: () => Promise.resolve(null)}): CalendarFacade {
+function makeCalendarFacade(getEventByUid, entityRestClient: EntityRestClientMock): CalendarFacade {
 	return downcast({
-		getEventByUid: getEventByUid,
+		getEventByUid: getEventByUid.getEventByUid,
 		updateCalendarEvent: o.spy(() => Promise.resolve()),
-		saveCalendarEvent: o.spy(() => Promise.resolve()),
+		saveCalendarEvent: o.spy((event) => {
+			entityRestClient.addListInstances(event)
+			return Promise.resolve()
+		}),
 	})
 }
 
@@ -1087,12 +1071,13 @@ function init({
 	              notifications = makeNotifications(),
 	              eventController = makeEventController().eventController,
 	              workerClient,
+	              restClientMock,
 	              loginController = makeLoginController(),
 	              progressTracker = makeProgressTracker(),
-	              entityClient = new EntityClient(workerClient),
+	              entityClient = new EntityClient(restClientMock),
 	              mailModel = makeMailModel(),
 	              alarmScheduler = makeAlarmScheduler(),
-	              calendarFacade = makeCalendarFacade(),
+	              calendarFacade = makeCalendarFacade({getEventByUid: () => Promise.resolve(null)}, restClientMock),
 	              fileFacade = makeFileFacade(),
               }): CalendarModelImpl {
 	const lazyScheduler = async () => alarmScheduler
