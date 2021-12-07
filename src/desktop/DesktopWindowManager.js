@@ -103,13 +103,7 @@ export class WindowManager {
 			this._tray.update(this._notifier)
 		}).on('zoom-changed', (ev: Event, direction: "in" | "out") => {
 			let scale = ((this._currentBounds.scale * 100) + (direction === "out" ? -5 : 5)) / 100
-			if (scale > 3) {
-				scale = 3
-			} else if (scale < 0.5) {
-				scale = 0.5
-			}
-			this._currentBounds.scale = scale
-			windows.forEach(w => w.setZoomFactor(scale))
+			this.changeZoom(scale)
 			const w = this.getEventSender(downcast(ev))
 			if (!w) return
 			this.saveBounds(w.getBounds())
@@ -171,6 +165,14 @@ export class WindowManager {
 
 	minimize() {
 		windows.forEach(w => w.minimize())
+	}
+
+	changeZoom(scale: number) {
+		if (scale > 3) {
+			scale = 3
+		} else if (scale < 0.5) scale = 0.5
+		this._currentBounds.scale = scale
+		windows.forEach(w => w.setZoomFactor(scale))
 	}
 
 	async getIcon(): Promise<NativeImage> {
