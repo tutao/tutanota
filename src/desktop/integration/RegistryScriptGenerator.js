@@ -24,23 +24,19 @@
  *
  * * there is a header line followed by a list of sections
  * * each section starts with a path in square brackets []. if the path is prefixed with a dash (-),
- *   that path and all subkeys will be removed.
- * * sections can contain default and named value assignments of the form (NAME|@)=(VALUE|-).
- *   if the value is a dash (-) the name will be removed or the default value will be unset.
+ *   that path and all its subkeys will be removed.
+ * * sections can contain
+ *     * default value assignments of the form @="VALUE"
+ *     * default value nullifications of the form @=-
+ *     * named value assignments of the form "NAME"="VALUE"
+ *     * named value deletions of the form "NAME"=-
  *
  * The script generator uses JavaScript arrays of RegistryValueTemplates as templates.
  * During application, RegistryValueTemplates will recursively written to the registry at their respective root path.
  * The removal script preserves the root keys. this means that subkeys that were created in a root key will be recursively deleted,
  * but string values that are assigned directly to a root key or a name in that subkey will only be nulled. Example:
  *
- * ```
- * const template = [{
- * 			root: "HKLM\\SOFTWARE\\CLIENTS\\MAIL",
- *			value: {"named": "val", subkey: {"": "default_value_2", "DLLPath": "C:\\dll\\path\\t.dll",}, "": "default_value_1"}
- * }]
- * ```
- *
- * Will result in the application script
+ * To generate this application script:
  * ```
  * Windows Registry Editor Version 5.00
  * [HKLM\SOFTWARE\CLIENTS\MAIL]
@@ -52,7 +48,7 @@
  * "DLLPath"="C:\dll\path\t.dll"
  * ```
  *
- * and the removal script
+ * and this removal script
  *
  * ```
  * Windows Registry Editor Version 5.00
@@ -64,7 +60,16 @@
  * [-HKLM\SOFTWARE\CLIENTS\MAIL\subkey]
  * ```
  *
- * Note that "HKLM\SOFTWARE\CLIENTS\MAIL\subkey" was removed entirely while the values
+ * We would use this template. Note the values with empty keys which get expanded to @=<value> assignments.
+ *
+ * ```
+ * const template = [{
+ * 			root: "HKLM\\SOFTWARE\\CLIENTS\\MAIL",
+ *			value: {"named": "val", subkey: {"": "default_value_2", "DLLPath": "C:\\dll\\path\\t.dll",}, "": "default_value_1"}
+ * }]
+ * ```
+ *
+ * Also note that "HKLM\SOFTWARE\CLIENTS\MAIL\subkey" was removed entirely while the values
  * directly assigned to "HKLM\SOFTWARE\CLIENTS\MAIL" are only nulled, because that path was given as a root.
  *
  *  Current Limitations:
@@ -72,16 +77,25 @@
  *  * application can only write, removal will only remove
  *  */
 
-export type RegistryTemplateDefinition = Array<RegistryValueTemplate>
+export type RegistryTemplateDefinition = $ReadOnlyArray<RegistryValueTemplate>
 export type RegistryValueTemplate = {value: RegistrySubKey, root: string}
 export type RegistrySubKey = {[string]: RegistryValue}
 export type RegistryValue = RegistrySubKey | string
 type OperationBuffer = {[string]: Array<string>}
 
 const header_line = "Windows Registry Editor Version 5.00"
-const quote = s => `"${s}"`
-const keyLine = path => `[${path}]`
-const valueLine = (path, value) => `${path === "" ? "@" : quote(path)}=${value == null ? "-" : quote(value)}`
+
+function quote(s: string): string {
+	return `"${s}"`
+}
+
+function keyLine(path: string): string {
+	return `[${path}]`
+}
+
+function valueLine(path: string, value: ?string): string {
+	return `${path === "" ? "@" : quote(path)}=${value == null ? "-" : quote(value)}`
+}
 
 /**
  * value expander for the script generators. if a value is not a string, it's another section
@@ -132,7 +146,7 @@ function bufToScript(buf: OperationBuffer): string {
 /**
  * the application and removal script generators are very similar in structure, this function abstracts over that.
  */
-function scriptBuilder(remove: boolean, template: Array<RegistryValueTemplate>): string {
+function scriptBuilder(remove: boolean, template: RegistryTemplateDefinition): string {
 	const buf = template.reduce((prev, {root, value}) => expandSection(root, value, prev, remove), {})
 	return bufToScript(buf)
 }
@@ -140,7 +154,7 @@ function scriptBuilder(remove: boolean, template: Array<RegistryValueTemplate>):
 /**
  * create a windows registry script that can be executed to apply the given template
  */
-export function applyScriptBuilder(template: Array<RegistryValueTemplate>): string {
+export function applyScriptBuilder(template: RegistryTemplateDefinition): string {
 	return scriptBuilder(false, template)
 }
 
@@ -148,6 +162,6 @@ export function applyScriptBuilder(template: Array<RegistryValueTemplate>): stri
  * create a windows registry script that can be executed to remove the values that have been
  * created by executing the script generated from the template by applyScriptBuilder
  */
-export function removeScriptBuilder(template: Array<RegistryValueTemplate>): string {
+export function removeScriptBuilder(template: RegistryTemplateDefinition): string {
 	return scriptBuilder(true, template)
 }

@@ -6,24 +6,26 @@ const esc = s => s.replace(/\\/g, '\\\\')
 const hklm = "HKEY_LOCAL_MACHINE"
 const hkcu = "HKEY_CURRENT_USER"
 const hkcr = "HKEY_CLASSES_ROOT"
-const sw_clients_mail = r => `${r}\\SOFTWARE\\Clients\\Mail`
-const sw_cls = r => `${r}\\SOFTWARE\\CLASSES`
-const sw = r => `${r}\\SOFTWARE`
-const sw_wow = r => `${r}\\SOFTWARE\\Wow6432Node`
-const sw_reg_apps = r => `${r}\\SOFTWARE\\RegisteredApplications`
-const sw_wow_reg_apps = r => `${r}\\SOFTWARE\\Wow6432Node\\RegisteredApplications`
+
+/**
+ * execPath: path for the dll to this executable
+ * dllPath: path for other apps to the dll
+ * logPath: path for the dll to log mapi activity to
+ * tmpPath: path for the dll to put temporary attachment files
+ */
+export type RegistryPaths = {
+	execPath: string,
+	dllPath: string,
+	logPath: string,
+	tmpPath: string
+}
 
 /**
  * get a registry template specific to tutanota desktop
  * https://docs.microsoft.com/en-us/windows/win32/msi/installation-context#registry-redirection
  */
-function getTemplate(
-	execPath: string,
-	dllPath: string,
-	logPath: string,
-	tmpPath: string,
-	local: boolean,
-): RegistryTemplateDefinition {
+function getTemplate(opts: RegistryPaths, local: boolean): RegistryTemplateDefinition {
+	const {execPath, dllPath, logPath, tmpPath} = opts
 	const client_template = {
 		tutanota: {
 			"": "tutanota",
@@ -64,27 +66,46 @@ function getTemplate(
 
 	const r = local ? hkcu : hklm
 	return [
-		{root: sw_clients_mail(r), value: client_template},
-		{root: sw_cls(r), value: {mailto: mailto_template, "tutanota.Mailto": mailto_template}},
-		{root: hkcr, value: {mailto: mailto_template, "tutanota.Mailto": mailto_template}},
-		{root: sw_reg_apps(r), value: {"tutanota": "SOFTWARE\\\\tutao\\\\tutanota\\\\Capabilities"}},
-		{root: sw_wow_reg_apps(r), value: {"tutanota": "SOFTWARE\\\\Wow6432Node\\\\tutao\\\\tutanota\\\\Capabilities"}},
-		{root: sw(r), value: capabilities_template},
-		{root: sw_wow(r), value: capabilities_template}
+		{
+			root: `${r}\\SOFTWARE\\Clients\\Mail`,
+			value: client_template
+		},
+		{
+			root: `${r}\\SOFTWARE\\CLASSES`,
+			value: {mailto: mailto_template, "tutanota.Mailto": mailto_template}
+		},
+		{
+			root: hkcr,
+			value: {mailto: mailto_template, "tutanota.Mailto": mailto_template}
+		},
+		{
+			root: `${r}\\SOFTWARE\\RegisteredApplications`,
+			value: {"tutanota": "SOFTWARE\\\\tutao\\\\tutanota\\\\Capabilities"}
+		},
+		{
+			root: `${r}\\SOFTWARE\\Wow6432Node\\RegisteredApplications`,
+			value: {"tutanota": "SOFTWARE\\\\Wow6432Node\\\\tutao\\\\tutanota\\\\Capabilities"}
+		},
+		{
+			root: `${r}\\SOFTWARE`,
+			value: capabilities_template
+		},
+		{
+			root: `${r}\\SOFTWARE\\Wow6432Node`,
+			value: capabilities_template
+		}
 	]
 }
 
 /**
  * produce a tmp windows registry script to register an executable as a mailto handler
- * @param execPath path to the executable that should be registered
- * @param dllPath path to the mapi dll that handles "Send as Mail..." requests
- * @param logPath path to the directory the mapi dll should put logs in
- * @param tmpPath path to the tmp dir that's managed by tutanota
+ * @param opts {RegistryPaths}
  * @param local set to true if the app was installed per-user
  * @returns {string} registry script
  */
-export function registerKeys(execPath: string, dllPath: string, logPath: string, tmpPath: string, local: boolean): string {
-	const template = getTemplate(esc(execPath), esc(dllPath), esc(logPath), esc(tmpPath), local)
+export function registerKeys(opts: RegistryPaths, local: boolean): string {
+	const {execPath, dllPath, logPath, tmpPath} = opts
+	const template = getTemplate({execPath: esc(execPath), dllPath: esc(dllPath), logPath: esc(logPath), tmpPath: esc(tmpPath)}, local)
 	return applyScriptBuilder(template)
 }
 
@@ -94,6 +115,6 @@ export function registerKeys(execPath: string, dllPath: string, logPath: string,
  */
 export function unregisterKeys(local: boolean): string {
 	// the removal script generator doesn't care about values
-	const template = getTemplate("execPath", "dllPath", "logPath", "tmpPath", local)
+	const template = getTemplate({execPath: "execPath", dllPath: "dllPath", logPath: "logPath", tmpPath: "tmpPath"}, local)
 	return removeScriptBuilder(template)
 }
