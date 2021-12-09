@@ -9,6 +9,7 @@ import {log} from "./DesktopLog"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
+import {registerKeys, unregisterKeys} from "./reg-templater"
 
 export class DesktopUtils {
 
@@ -240,24 +241,27 @@ export class DesktopUtils {
 		const logPath = path.join(appData, 'Roaming', app.getName(), 'logs')
 		const tmpPath = path.join(appData, "Local", "Temp", this._topLevelDownloadDir, "attach")
 		const isLocal = await this.checkIsPerUserInstall()
-		const tmpRegScript = (await import('./reg-templater.js')).registerKeys(
-			execPath,
-			dllPath,
-			logPath,
-			tmpPath,
-			isLocal
-		)
-		return this._executeRegistryScript(tmpRegScript)
-		           .then(() => app.setAsDefaultProtocolClient('mailto'))
-		           .then(() => this._electron.shell.openExternal('ms-settings:defaultapps').catch())
+		const tmpRegScript = registerKeys({execPath, dllPath, logPath, tmpPath}, isLocal)
+		await this._executeRegistryScript(tmpRegScript)
+		app.setAsDefaultProtocolClient('mailto')
+		await this._openDefaultAppsSettings()
 	}
 
 	async _unregisterOnWin(): Promise<void> {
 		app.removeAsDefaultProtocolClient('mailto')
 		const isLocal = await this.checkIsPerUserInstall()
-		const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys(isLocal)
-		return this._executeRegistryScript(tmpRegScript)
-		           .then(() => this._electron.shell.openExternal('ms-settings:defaultapps').catch())
+		const tmpRegScript = unregisterKeys(isLocal)
+		await this._executeRegistryScript(tmpRegScript)
+		await this._openDefaultAppsSettings()
+	}
+
+	async _openDefaultAppsSettings(): Promise<void> {
+		try {
+			await this._electron.shell.openExternal('ms-settings:defaultapps')
+		} catch (e) {
+			// ignoring, this is just a convenience for the user
+			console.error("failed to open default apps settings page:", e.message)
+		}
 	}
 
 	/**
