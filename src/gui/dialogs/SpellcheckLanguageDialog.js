@@ -1,7 +1,6 @@
 // @flow
 
 import type {SelectorItem} from "../base/DropDownSelectorN"
-import {mapNullable} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {locator} from "../../api/main/MainLocator"
 
@@ -47,7 +46,7 @@ async function getItems(): Promise<Array<SelectorItem<string>>> {
 
 			const [langCode, locale] = code.split("-")
 			// first, find the name for a language given a locale with a perfect match
-			const l = languages.find(language => (locale && language.code === `${langCode}_${locale.toLowerCase()}`))
+			const language = languages.find(language => (locale && language.code === `${langCode}_${locale.toLowerCase()}`))
 				// find the name for a language without a locale, with a perfect match
 				|| languages.find(language => language.code === langCode)
 				// try to get a missing one before splitting
@@ -55,9 +54,7 @@ async function getItems(): Promise<Array<SelectorItem<string>>> {
 				// the code given by electron doesn't always have a locale when we do,
 				// e.g. for Persian we have "fa_ir" in LanguageViewModel, but electron only gives us "fa"
 				|| languages.find(language => language.code.slice(0, 2) === langCode)
-			const textId = mapNullable(l, language => language.textId)
-
-			console.log(textId, langCode, locale)
+			const textId = language?.textId
 			const name = textId
 				? lang.get(textId) + ` (${code})`
 				: code
