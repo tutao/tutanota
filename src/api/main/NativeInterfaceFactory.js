@@ -27,7 +27,6 @@ export async function createNativeInterfaces(): Promise<NativeInterfaces> {
 		const {NativeSystemApp} = await import("../../native/main/NativeSystemApp")
 
 		const native = new NativeInterfaceMain()
-		native.init()
 		const fileApp = new NativeFileApp(native)
 		const pushService = new NativePushServiceApp(native)
 		const systemApp = new NativeSystemApp(native, fileApp)

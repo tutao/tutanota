@@ -57,13 +57,8 @@ class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
 
 export class NativeInterfaceMain implements NativeInterface {
 
-	_queueDeferred: DeferredObject<Queue<NativeRequestType, JsRequestType>> = defer();
-	+_queue: Promise<Queue<NativeRequestType, JsRequestType>>
+	+_queueDeferred: DeferredObject<Queue<NativeRequestType, JsRequestType>> = defer();
 	_appUpdateListener: ?() => void
-
-	constructor() {
-		this._queue = this._queueDeferred.promise
-	}
 
 	async init() {
 		let transport
@@ -86,7 +81,7 @@ export class NativeInterfaceMain implements NativeInterface {
 	 * Send a request to the native side
 	 */
 	async invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		const queue = await this._queue
+		const queue = await this._queueDeferred.promise
 		return queue.postRequest(msg)
 	}
 

@@ -197,6 +197,7 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 		const hasCredentials = deviceConfig.loadAll().length > 0
 		if (!hasAlreadyMigrated && hasCredentials) {
 			const migrationModule = await import("./misc/credentials/CredentialsMigration")
+			await locator.native.init()
 			const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, locator.native)
 			await migration.migrateCredentials()
 			// Reload the app just to make sure we are in the right state and don't init nativeApp twice
@@ -302,6 +303,13 @@ import("./translations/en").then((en) => lang.init(en.default)).then(async () =>
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	// flow fails to resolve RouteResolver properly
 	m.route(neverNull(document.body), startRoute, downcast(resolvers))
+
+	// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
+	// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
+	if (isApp() || isDesktop()) {
+		await locator.native.init()
+	}
+
 
 	import("./gui/InfoMessageHandler.js").then((module) => module.registerInfoMessageHandler())
 
