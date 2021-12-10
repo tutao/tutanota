@@ -46,7 +46,6 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 		type: ButtonType.Dropdown
 	}
 
-
 	const resetActionClickHandler = createDropdown(() => [resetPasswordAction, resetSecondFactorAction], 300)
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",

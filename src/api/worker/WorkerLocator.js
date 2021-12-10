@@ -33,7 +33,7 @@ import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
-import type {SecondFactorAuthHandler} from "../../misc/SecondFactorHandler"
+import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {

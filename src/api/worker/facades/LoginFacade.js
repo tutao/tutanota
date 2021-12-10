@@ -60,7 +60,6 @@ import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderSta
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import type {Credentials} from "../../../misc/credentials/Credentials"
-import type {SecondFactorAuthHandler} from "../../../misc/SecondFactorHandler"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
 import {
 	aes128Decrypt,
@@ -72,6 +71,9 @@ import {
 } from "@tutao/tutanota-crypto"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import type {Base64Url, Hex} from "@tutao/tutanota-utils"
+import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandler"
+import {createSecondFactorAuthDeleteData} from "../../entities/sys/SecondFactorAuthDeleteData"
+import type {SecondFactorAuthData} from "../../entities/sys/SecondFactorAuthData"
 
 assertWorkerOrNode()
 
@@ -112,7 +114,9 @@ export interface LoginFacade {
 
 	deleteAccount(password: string, reason: string, takeover: string): Promise<void>;
 
-	cancelCreateSession(): Promise<void>;
+	cancelCreateSession(sessionId: IdTuple): Promise<void>;
+
+	authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void>;
 
 	resetSession(): Promise<void>;
 
@@ -325,9 +329,18 @@ export class LoginFacadeImpl implements LoginFacade {
 			})
 	}
 
-	async cancelCreateSession(): Promise<void> {
+	async cancelCreateSession(sessionId: IdTuple): Promise<void> {
+		if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
+			throw new Error("Trying to cancel session creation but the state is invalid")
+		}
+		const secondFactorAuthDeleteData = createSecondFactorAuthDeleteData({session: sessionId})
+		await serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, secondFactorAuthDeleteData)
 		this._loginRequestSessionId = null
 		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
+	}
+
+	async authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void> {
+		await serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, data)
 	}
 
 	/**

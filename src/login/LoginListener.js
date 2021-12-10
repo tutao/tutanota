@@ -30,7 +30,7 @@ import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProvid
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
-import {SecondFactorHandler} from "../misc/SecondFactorHandler"
+import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 
 export async function registerLoginListener(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
 	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))

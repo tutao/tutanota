@@ -8,7 +8,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import type {TranslationText} from "../misc/LanguageViewModel"
-import {SecondFactorHandler} from "../misc/SecondFactorHandler"
+import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
 import type {LoginController} from "../api/main/LoginController"

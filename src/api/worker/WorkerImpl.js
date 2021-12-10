@@ -39,7 +39,7 @@ import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
-import type {SecondFactorAuthHandler} from "../../misc/SecondFactorHandler"
+import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 
 
 assertWorkerOrNode()

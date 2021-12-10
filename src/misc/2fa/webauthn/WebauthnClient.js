@@ -1,13 +1,13 @@
 // @flow
 import {decode} from "cborg"
 import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {getHttpOrigin} from "../../api/common/Env"
-import type {U2fRegisteredDevice} from "../../api/entities/sys/U2fRegisteredDevice"
-import {createU2fRegisteredDevice} from "../../api/entities/sys/U2fRegisteredDevice"
-import type {U2fChallenge} from "../../api/entities/sys/U2fChallenge"
-import type {WebauthnResponseData} from "../../api/entities/sys/WebauthnResponseData"
-import {createWebauthnResponseData} from "../../api/entities/sys/WebauthnResponseData"
-import {TutanotaError} from "../../api/common/error/TutanotaError"
+import {getHttpOrigin} from "../../../api/common/Env"
+import type {U2fRegisteredDevice} from "../../../api/entities/sys/U2fRegisteredDevice"
+import {createU2fRegisteredDevice} from "../../../api/entities/sys/U2fRegisteredDevice"
+import type {U2fChallenge} from "../../../api/entities/sys/U2fChallenge"
+import type {WebauthnResponseData} from "../../../api/entities/sys/WebauthnResponseData"
+import {createWebauthnResponseData} from "../../../api/entities/sys/WebauthnResponseData"
+import {TutanotaError} from "../../../api/common/error/TutanotaError"
 import type {
 	AuthenticatorAssertionResponse,
 	AuthenticatorAttestationResponse,
