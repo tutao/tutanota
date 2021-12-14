@@ -191,6 +191,7 @@ export class MailViewer {
 	_contactModel: ContactModel;
 	_delayBodyRenderingUntil: Promise<*>
 	_configFacade: ConfigurationDatabase
+	+_resizeObserver: ResizeObserver
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
 	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: ?NativeInterface) {
@@ -273,6 +274,8 @@ export class MailViewer {
 				delayIsOver = true
 				m.redraw()
 			})
+
+		this._resizeObserver = new ResizeObserver(() => this._rescale(false))
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -362,6 +365,8 @@ export class MailViewer {
 											() => this._rescale(true)
 										)
 									}
+									// Avoid redraws for this event listener, we don't need it for either opening links or rescaling
+									event.redraw = false
 								},
 								onclick: (event: MouseEvent) => {
 									if (!client.isMobileDevice()) {
@@ -397,9 +402,10 @@ export class MailViewer {
 				+ (client.isMobileDevice() ? ".break-pre" : ""), {
 				oncreate: vnode => {
 					this._domBodyDeferred.resolve(vnode.dom)
-					this._domBody = vnode.dom
+					const dom = this._domBody = vnode.dom
 					this._updateLineHeight(vnode.dom)
 					this._rescale(false)
+					this._reRegisterResizeObserver(dom)
 				},
 				onupdate: (vnode) => {
 					this._domBodyDeferred.resolve(vnode.dom)
@@ -411,6 +417,7 @@ export class MailViewer {
 						this._updateLineHeight(vnode.dom)
 					}
 					this._rescale(false)
+					this._reRegisterResizeObserver(vnode.dom)
 				},
 				onsubmit: (event: Event) => this._confirmSubmit(event),
 				style: {
@@ -433,6 +440,21 @@ export class MailViewer {
 				icon: Icons.Warning,
 				color: theme.content_message_bg,
 			})
+		}
+	}
+
+	/**
+	 * Re-initilize resize observer after children of mail body container change.
+	 * We need to observe children size because loading remote content might change the size of the children. If the size of the content
+	 * changes we need to re-scale the mail body to fit mobile screen.
+	 */
+	_reRegisterResizeObserver(dom: HTMLElement) {
+		if (!client.isMobileDevice()) {
+			return
+		}
+		this._resizeObserver.disconnect()
+		for (let child of dom.children) {
+			this._resizeObserver.observe(child)
 		}
 	}
 
@@ -532,33 +554,6 @@ export class MailViewer {
 				]
 				: null,
 		]
-	}
-
-	_showEnvelopeSenderDialog(envelopeSender: string): Dialog {
-		const dialog = Dialog.showActionDialog({
-			title: "",
-			child: () => [
-				m(".mt.mb", lang.get("envelopeSenderInfo_msg")),
-				envelopeSender,
-				m(".flex-wrap.flex-end", [
-					m(ButtonN, {
-						label: "copy_action",
-						click: () => copyToClipboard(envelopeSender),
-						type: ButtonType.Secondary,
-					}),
-					m(ButtonN, {
-						label: "addSpamRule_action",
-						click: () => {
-							dialog.close()
-							this._addSpamRule(InboxRuleType.FROM_EQUALS, envelopeSender)
-						},
-						type: ButtonType.Secondary,
-					}),
-				])
-			],
-			okAction: null,
-		})
-		return dialog
 	}
 
 	_unsubscribe(): Promise<void> {
@@ -876,29 +871,27 @@ export class MailViewer {
 		return createAsyncDropDownButton('forward_action', () => Icons.Forward, makeButtons, 250)
 	}
 
-	_replaceInlineImages() {
-		this._loadedInlineImages.then((loadedInlineImages) => {
-			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
-					const inlineAttachment = this._attachments.find(attachment => attachment.cid === cid)
-					if (inlineAttachment) {
-						const coords = getCoordsOfMouseOrTouchEvent(event)
-						showDropdownAtPosition([
-							{
-								label: "download_action",
-								click: () => this._downloadAndOpenAttachment(inlineAttachment, false),
-								type: ButtonType.Dropdown
-							},
-							{
-								label: "open_action",
-								click: () => this._downloadAndOpenAttachment(inlineAttachment, true),
-								type: ButtonType.Dropdown
-							},
-						], coords.x, coords.y)
-					}
-				})
-			})
+	async _replaceInlineImages() {
+		const [loadedInlineImages, domBody] = await Promise.all([this._loadedInlineImages, this._domBodyDeferred.promise])
+		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
+			const inlineAttachment = this._attachments.find(attachment => attachment.cid === cid)
+			if (inlineAttachment) {
+				const coords = getCoordsOfMouseOrTouchEvent(event)
+				showDropdownAtPosition([
+					{
+						label: "download_action",
+						click: () => this._downloadAndOpenAttachment(inlineAttachment, false),
+						type: ButtonType.Dropdown
+					},
+					{
+						label: "open_action",
+						click: () => this._downloadAndOpenAttachment(inlineAttachment, true),
+						type: ButtonType.Dropdown
+					},
+				], coords.x, coords.y)
+			}
 		})
+
 	}
 
 	/** @return list of inline referenced cid */
@@ -1070,8 +1063,10 @@ export class MailViewer {
 			child.style.transform = `scale(${scale})`
 			child.style.marginBottom = `${-heightDiff}px`
 		}
-
 		child.style.transition = animate ? 'transform 200ms ease-in-out' : ''
+
+		// ios 15 bug: transformOrigin magically disappears so we ensure that it's always set
+		child.style.transformOrigin = 'top left'
 	}
 
 	_setupShortcuts() {
@@ -1258,10 +1253,6 @@ export class MailViewer {
 				field: spamRuleField,
 			}))
 		})
-	}
-
-	_isEnvelopeSenderVisible(): boolean {
-		return this.mail.differentEnvelopeSender != null
 	}
 
 	_markUnread(unread: boolean) {
@@ -1581,12 +1572,12 @@ export class MailViewer {
 		locator.fileController.downloadAndOpen(file, open)
 		       .catch(ofClass(FileOpenError, (e) => {
 			       console.warn("FileOpenError", e)
-			              Dialog.message("canNotOpenFileOnDevice_msg")
+			       Dialog.message("canNotOpenFileOnDevice_msg")
 		       }))
 		       .catch(e => {
 			       const msg = e || "unknown error"
 			       console.error("could not open file:", msg)
-			              return Dialog.message("errorDuringFileOpen_msg")
+			       return Dialog.message("errorDuringFileOpen_msg")
 		       })
 	}
 
