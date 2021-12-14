@@ -84,11 +84,8 @@ type NativeRequestType = 'init'
 	| 'sendSocketMessage'
 	| 'getDeviceLog' // for mobile apps
 	| 'getLog' // for desktop
-	| 'sendGroupInvitation'
-	| 'shareGroup'
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
-	| 'unscheduleAlarms'
 	| 'setSearchOverlayState'
 	| 'changeLanguage'
 	| 'isUpdateAvailable' // check if update is ready to install

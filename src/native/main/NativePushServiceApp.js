@@ -100,12 +100,6 @@ export class NativePushServiceApp {
 		})
 	}
 
-	// _unscheduleAlarms(): Promise<void> {
-	// 	const userId = logins.getUserController().user._id
-	// 	deviceConfig.setAlarmsScheduledForUser(userId, false)
-	// 	return nativeApp.invokeNative(new Request('unscheduleAlarms', [userId]))
-	// }
-
 	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceTypeEnum): Promise<PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
 		let pushIdentifier = createPushIdentifier()
