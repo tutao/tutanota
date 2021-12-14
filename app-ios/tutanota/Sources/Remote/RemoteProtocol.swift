@@ -2,16 +2,20 @@ import Foundation
 
 /// Structure to exchange messages remotely
 enum RemoteMessage : Encodable {
-  case request(id: String, type: String, args: [Encodable])
+  /// { "type": "request", "id": "app1", "requestType": "setup", "args": ["some json object", "another json object"] }
+  case request(id: String, requestType: String, args: [Encodable])
+  /// { "type": "request", "id": "app1", "value": "some JSON object" }
   case response(id: String, value: Encodable)
+  /// { "type": "request", "id": "app1", "error": {"name": "de.tutao.TUTError", "message": "Something went wrong", "stack": "..."}}
   case requestError(id: String, error: ResponseError)
   
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: Self.CodingKeys)
     switch self {
-    case let .request(id, type, args):
+    case let .request(id, requestType, args):
+      try container.encode("request", forKey: .type)
       try container.encode(id, forKey: .id)
-      try container.encode(type, forKey: .type)
+      try container.encode(requestType, forKey: .requestType)
       var argsContainer = container.nestedUnkeyedContainer(forKey: .args)
       for arg in args {
         try arg.openEncode(into: &argsContainer)
@@ -27,9 +31,10 @@ enum RemoteMessage : Encodable {
     }
   }
   
-  // We could customize this even more by message type
+  // We could make a separate enum for each message case
   enum CodingKeys: String, CodingKey {
     case id
+    case requestType
     case type
     case value
     case error

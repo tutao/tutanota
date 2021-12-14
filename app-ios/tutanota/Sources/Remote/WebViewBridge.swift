@@ -72,7 +72,7 @@ class WebViewBridge : NSObject {
     }
     let bridgeMessage = RemoteMessage.request(
       id: requestId,
-      type: method,
+      requestType: method,
       args: args
     )
     self.postMessage(bridgeMessage: bridgeMessage)
@@ -170,7 +170,7 @@ class WebViewBridge : NSObject {
       case "reload":
         self.webviewInitialized = false
         self.viewController.loadMainPage(params: args[0] as! [String : String])
-      case "generateRsakey":
+      case "generateRsaKey":
         self.crypto.generateRsaKey(seed: args[0] as! Base64, completion: respond)
       case "openFileChooser":
         let rectDict = args[0] as! [String : Int]
@@ -323,9 +323,12 @@ extension WebViewBridge : WKScriptMessageHandler {
       self.requests.removeValue(forKey: requestId)
     case "requestError":
       fatalError(jsonString)
-    default:
+    case "request":
+      let requestType = json["requestType"] as! String
       let arguments = json["args"] as! [Any]
-      self.handleRequest(type: type, requestId: requestId, args: arguments)
+      self.handleRequest(type: requestType, requestId: requestId, args: arguments)
+    default:
+      fatalError("unknown message type \(type)")
     }
   }
 }
