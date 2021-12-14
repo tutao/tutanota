@@ -88,12 +88,12 @@ export function urlIsPrefix(prefix: URL, url: URL): boolean {
 }
 
 /**
- * replace the last component in a file path with another
+ * replace the last component in a path with another
  * @param p path to a file/folder
- * @param file the file name to put in the last path component
+ * @param newLast the name to put in the last path component
  * @param pathModule path module to use for cross platform testing
  */
-export function swapFilename(p: string, file: string, pathModule: $Exports<"path"> = path): string {
+export function replaceLastComponent(p: string, newLast: string, pathModule: $Exports<"path"> = path): string {
 	const dir = pathModule.dirname(p)
-	return pathModule.join(dir, file)
+	return pathModule.join(dir, newLast)
 }

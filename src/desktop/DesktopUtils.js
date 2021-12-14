@@ -7,7 +7,7 @@ import {app} from 'electron'
 import {defer, delay, noOp, uint8ArrayToHex} from '@tutao/tutanota-utils'
 import {log} from "./DesktopLog"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {fileExists, swapFilename} from "./PathUtils"
+import {fileExists, replaceLastComponent} from "./PathUtils"
 import url from "url"
 import {registerKeys, unregisterKeys} from "./reg-templater"
 
@@ -29,7 +29,7 @@ export class DesktopUtils {
 	}
 
 	checkIsPerUserInstall(): Promise<boolean> {
-		const markerPath = swapFilename(process.execPath, "per_user")
+		const markerPath = replaceLastComponent(process.execPath, "per_user")
 		return fileExists(markerPath)
 	}
 
@@ -217,7 +217,7 @@ export class DesktopUtils {
 	 */
 	_writeToDisk(contents: string): string {
 		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
-		const filePath = swapFilename(process.execPath, filename)
+		const filePath = replaceLastComponent(process.execPath, filename)
 		this._fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 		return filePath
 	}
@@ -234,7 +234,7 @@ export class DesktopUtils {
 		// * where to put tmp files (also user-dependent)
 		// all these must be set in the registry
 		const execPath = process.execPath
-		const dllPath = swapFilename(execPath, 'mapirs.dll')
+		const dllPath = replaceLastComponent(execPath, 'mapirs.dll')
 		// we may be a per-machine installation that's used by multiple users, so the dll will replace %USERPROFILE%
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", 'AppData')

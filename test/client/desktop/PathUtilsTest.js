@@ -1,6 +1,6 @@
 //@flow
 import o from "ospec"
-import {nonClobberingFilename, swapFilename} from "../../../src/desktop/PathUtils"
+import {nonClobberingFilename, replaceLastComponent} from "../../../src/desktop/PathUtils"
 import path from "path"
 
 o.spec("PathUtils", function () {
@@ -206,21 +206,21 @@ o.spec("PathUtils", function () {
 
 	o.spec("swapFileName Test", function () {
 		o("replace file with file, posix", function () {
-			o(swapFilename("/a/b/c.txt", "d.txt")).equals("/a/b/d.txt")
-			o(swapFilename("a/b/c.txt", "d.txt")).equals("a/b/d.txt")
-			o(swapFilename("/a/b/c.txt", "d")).equals("/a/b/d")
-			o(swapFilename("/a/b/c", "d.txt")).equals("/a/b/d.txt")
-			o(swapFilename("/a/b/c", "d.txt")).equals("/a/b/d.txt")
-			o(swapFilename("/", "bla.txt")).equals("/bla.txt")
+			o(replaceLastComponent("/a/b/c.txt", "d.txt")).equals("/a/b/d.txt")
+			o(replaceLastComponent("a/b/c.txt", "d.txt")).equals("a/b/d.txt")
+			o(replaceLastComponent("/a/b/c.txt", "d")).equals("/a/b/d")
+			o(replaceLastComponent("/a/b/c", "d.txt")).equals("/a/b/d.txt")
+			o(replaceLastComponent("/a/b/c", "d.txt")).equals("/a/b/d.txt")
+			o(replaceLastComponent("/", "bla.txt")).equals("/bla.txt")
 		})
 
 		o("replace file with file, windows", function () {
-			o(swapFilename("C:\\tmp\\file.html", "text.txt", path.win32)).equals("C:\\tmp\\text.txt")
-			o(swapFilename("C:\\tmp\\file.html", "text", path.win32)).equals("C:\\tmp\\text")
-			o(swapFilename("C:\\tmp\\folder\\", "text", path.win32)).equals("C:\\tmp\\text")
-			o(swapFilename("tmp\\file.html", "text.txt", path.win32)).equals("tmp\\text.txt")
-			o(swapFilename("tmp", "text.txt", path.win32)).equals("text.txt")
-			o(swapFilename("C:\\", "text.txt", path.win32)).equals("C:\\text.txt")
+			o(replaceLastComponent("C:\\tmp\\file.html", "text.txt", path.win32)).equals("C:\\tmp\\text.txt")
+			o(replaceLastComponent("C:\\tmp\\file.html", "text", path.win32)).equals("C:\\tmp\\text")
+			o(replaceLastComponent("C:\\tmp\\folder\\", "text", path.win32)).equals("C:\\tmp\\text")
+			o(replaceLastComponent("tmp\\file.html", "text.txt", path.win32)).equals("tmp\\text.txt")
+			o(replaceLastComponent("tmp", "text.txt", path.win32)).equals("text.txt")
+			o(replaceLastComponent("C:\\", "text.txt", path.win32)).equals("C:\\text.txt")
 		})
 	})
 })
