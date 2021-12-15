@@ -29,7 +29,7 @@ import type {TypeModel} from "../../common/EntityTypes"
 import {aes128Decrypt, random, sha256Hash, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import type {NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
-import {locator} from "../WorkerLocator"
+import {InstanceMapper} from "../crypto/InstanceMapper"
 
 assertWorkerOrNode()
 
@@ -42,13 +42,15 @@ export class FileFacade {
 	_suspensionHandler: SuspensionHandler;
 	_fileApp: NativeFileApp
 	_aesApp: AesApp
+	_instanceMapper: InstanceMapper
 
-	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler, fileApp: NativeFileApp, aesApp: AesApp) {
+	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler, fileApp: NativeFileApp, aesApp: AesApp, instanceMapper: InstanceMapper) {
 		this._login = login
 		this._restClient = restClient
 		this._suspensionHandler = suspensionHandler
 		this._fileApp = fileApp
 		this._aesApp = aesApp
+		this._instanceMapper = instanceMapper
 	}
 
 	clearFileData(): Promise<void> {
@@ -61,7 +63,7 @@ export class FileFacade {
 		requestData.base64 = false
 
 		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
-			return locator.instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
+			return this._instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
 				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
@@ -85,7 +87,7 @@ export class FileFacade {
 			base64: false
 		})
 		const sessionKey = await resolveSessionKey(FileTypeModel, file)
-		const entityToSend = await locator.instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
+		const entityToSend = await this._instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
 		const headers = this._login.createAuthHeaders()
 		headers['v'] = FileDataDataGetTypModel.version
 
@@ -201,7 +203,7 @@ export class FileFacade {
 			archiveId,
 			blobId: createBlobId({blobId})
 		})
-		const literalGetData = await locator.instanceMapper.encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
+		const literalGetData = await this._instanceMapper.encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
 		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {},
 			headers, body, MediaType.Binary, null, servers[0].url)

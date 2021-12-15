@@ -52,7 +52,7 @@ import {
 	getLetId,
 	isSameId
 } from "../common/utils/EntityUtils";
-import {locator} from "./WorkerLocator"
+import {InstanceMapper} from "./crypto/InstanceMapper"
 
 assertWorkerOrNode()
 
@@ -119,16 +119,17 @@ export class EventBusClient {
 	_serviceUnavailableRetry: ?Promise<void>;
 	_failedConnectionAttempts: number = 0;
 	_progressMonitor: IProgressMonitor;
+	_instanceMapper: InstanceMapper
 
 	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacadeImpl,
-	            entityClient: EntityClient
-	) {
+	            entityClient: EntityClient, instanceMapper: InstanceMapper) {
 		this._indexer = indexer
 		this._cache = cache
 		this._entity = entityClient
 		this._worker = worker
 		this._mail = mail
 		this._login = login
+		this._instanceMapper = instanceMapper
 
 		this._state = EventBusState.Automatic
 		this._lastEntityEventIds = new Map()
@@ -325,22 +326,22 @@ export class EventBusClient {
 		const [type, value] = downcast(message.data).split(";")
 		if (type === "entityUpdate") {
 			// specify type of decrypted entity explicitly because decryptAndMapToInstance effectively returns `any`
-			return locator.instanceMapper.decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null).then((data: WebsocketEntityData) => {
+			return this._instanceMapper.decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null).then((data: WebsocketEntityData) => {
 				this._entityUpdateMessageQueue.add(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
 			})
 		} else if (type === "unreadCounterUpdate") {
 			this._worker.updateCounter(JSON.parse(value))
 		} else if (type === "phishingMarkers") {
-			return locator.instanceMapper.decryptAndMapToInstance(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null)
-			              .then((data) => {
-				              this._lastAntiphishingMarkersId = data.lastId
-				              this._mail.phishingMarkersUpdateReceived(data.markers)
-			              })
+			return this._instanceMapper.decryptAndMapToInstance(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null)
+			           .then((data) => {
+				           this._lastAntiphishingMarkersId = data.lastId
+				           this._mail.phishingMarkersUpdateReceived(data.markers)
+			           })
 		} else if (type === "leaderStatus") {
-			return locator.instanceMapper.decryptAndMapToInstance(WebsocketLeaderStatusTypeModel, JSON.parse(value), null)
-			              .then(status => {
-				              return this._login.setLeaderStatus(status)
-			              })
+			return this._instanceMapper.decryptAndMapToInstance(WebsocketLeaderStatusTypeModel, JSON.parse(value), null)
+			           .then(status => {
+				           return this._login.setLeaderStatus(status)
+			           })
 
 		} else {
 			console.log("ws message with unknown type", type)

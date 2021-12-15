@@ -25,6 +25,7 @@ import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test
 import {ImportError} from "../../../../src/api/common/error/ImportError"
 import {PushIdentifierTypeRef} from "../../../../src/api/entities/sys/PushIdentifier"
 import {SetupMultipleError} from "../../../../src/api/common/error/SetupMultipleError"
+import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 
 
 o.spec("CalendarFacadeTest", async function () {
@@ -45,6 +46,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let entityRequestMock
 	let workerMock
 	let nativeMock
+	let instanceMapper
 
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
@@ -110,7 +112,8 @@ o.spec("CalendarFacadeTest", async function () {
 		nativeMock = downcast({
 			invokeNative: o.spy(() => Promise.resolve())
 		})
-		calendarFacade = new CalendarFacade(loginFacade, userManagementFacade, entityRestCache, nativeMock, workerMock)
+		instanceMapper = new InstanceMapper()
+		calendarFacade = new CalendarFacade(loginFacade, userManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper)
 	})
 
 
@@ -135,7 +138,7 @@ o.spec("CalendarFacadeTest", async function () {
 
 
 			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade._sendAlarmNotifications, () => Promise.resolve())
-			enitityClientLoadAllMock = mockAttribute(calendarFacade._entity, calendarFacade._entity.loadAll, loadAllMock)
+			enitityClientLoadAllMock = mockAttribute(calendarFacade._entityClient, calendarFacade._entityClient.loadAll, loadAllMock)
 			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
 		})
 		o.afterEach(async function () {

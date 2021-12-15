@@ -23,11 +23,10 @@ import type {UserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {EntityClient} from "../../common/EntityClient"
 import {assertWorkerOrNode} from "../../common/Env"
-import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex} from "@tutao/tutanota-crypto"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
+import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex} from "@tutao/tutanota-crypto"
 import {encryptString} from "../crypto/CryptoFacade"
 import type {RsaImplementation} from "../crypto/RsaImplementation";
-import {locator} from "../WorkerLocator"
 
 assertWorkerOrNode()
 
@@ -53,11 +52,12 @@ export class GroupManagementFacadeImpl {
 	_counters: CounterFacade
 	_entity: EntityClient
 	_rsa: RsaImplementation
+	_entityClient: EntityClient
 
 	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient, rsa: RsaImplementation) {
 		this._login = login
 		this._counters = counters
-		this._entity = entity
+		this._entityClient = entity
 		this._rsa = rsa
 	}
 
@@ -113,7 +113,7 @@ export class GroupManagementFacadeImpl {
 	 * @param name Name of the group
 	 */
 	generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
-		return this._entity.load(GroupTypeRef, this._login.getUserGroupId()).then(userGroup => {
+		return this._entityClient.load(GroupTypeRef, this._login.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
 			if (this._login.getAllGroupIds().indexOf(adminGroupId) !== -1) { // getGroupKey throws an error if user is not member of that group - so check first
@@ -195,7 +195,7 @@ export class GroupManagementFacadeImpl {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return Promise.resolve(this._login.getGroupKey(neverNull(groupId)))
 		} else {
-			return locator.cachingEntityClient.load(GroupTypeRef, groupId).then(group => {
+			return this._entityClient.load(GroupTypeRef, groupId).then(group => {
 				return Promise.resolve().then(() => {
 					if (group.admin && this._login.hasGroup(group.admin)) {
 						// e.g. I am a member of the group that administrates group G and want to add a new member to G
@@ -204,7 +204,7 @@ export class GroupManagementFacadeImpl {
 						// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
 						let globalAdminGroupId = this._login.getGroupId(GroupType.Admin)
 						let globalAdminGroupKey = this._login.getGroupKey(globalAdminGroupId)
-						return locator.cachingEntityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+						return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
 							if (localAdminGroup.admin === globalAdminGroupId) {
 								return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
 							} else {

@@ -18,13 +18,19 @@ import type {
 	SearchRestriction
 } from "../../../../src/api/worker/search/SearchTypes"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils"
-import {groupBy, numberRange, splitInChunks} from "@tutao/tutanota-utils"
+import {
+	compareOldestFirst,
+	elementIdPart,
+	firstBiggerThanSecond,
+	generatedIdToTimestamp,
+	listIdPart,
+	timestampToGeneratedId
+} from "../../../../src/api/common/utils/EntityUtils"
+import {downcast, groupBy, numberRange, splitInChunks} from "@tutao/tutanota-utils"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import type {BrowserData} from "../../../../src/misc/ClientConstants"
 import {browserDataStub} from "../../TestUtils"
-import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/utils/EntityUtils";
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/Indexer"
 import type {Base64} from "@tutao/tutanota-utils/"
 import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
@@ -40,6 +46,7 @@ let dbKey
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const browserData: BrowserData = browserDataStub
+const entityClinet = downcast({})
 
 o.spec("SearchFacade test", () => {
 
@@ -59,7 +66,7 @@ o.spec("SearchFacade test", () => {
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
 			currentIndexTimestamp: currentIndexTimestamp
-		}: any), [], browserData)
+		}: any), [], browserData, entityClinet)
 	}
 
 	function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {

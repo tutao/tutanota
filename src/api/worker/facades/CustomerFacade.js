@@ -48,16 +48,9 @@ import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
 import type {Hex} from "@tutao/tutanota-utils/"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
-import {
-	aes128RandomKey,
-	bitArrayToUint8Array,
-	encryptKey,
-	hexToPublicKey,
-	sha256Hash,
-	uint8ArrayToBitArray
-} from "@tutao/tutanota-crypto"
+import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation";
-import {locator} from "../WorkerLocator"
+import {EntityClient} from "../../common/EntityClient"
 
 
 assertWorkerOrNode()
@@ -119,14 +112,16 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	_counters: CounterFacade
 	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 	_rsa: RsaImplementation
+	_entityClient: EntityClient
 
-	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, userManagement: UserManagementFacade, counters: CounterFacade, rsa: RsaImplementation) {
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, userManagement: UserManagementFacade, counters: CounterFacade, rsa: RsaImplementation, entityClient: EntityClient) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
 		this._userManagement = userManagement
 		this._counters = counters
 		this._rsa = rsa
+		this._entityClient = entityClient
 	}
 
 	getDomainValidationRecord(domainName: string): Promise<string> {
@@ -155,8 +150,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
-		const customer = await locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
-		const customerInfo = await locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const customer = await this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
+		const customerInfo = await this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -187,8 +182,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 
 
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return  locator.cachingEntityClient.load(CustomerTypeRef, customerId).then(customer => {
-			return  locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+		return this._entityClient.load(CustomerTypeRef, customerId).then(customer => {
+			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity);
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity);
 				let availableStorage = Math.max(includedStorage, promotionStorage)
@@ -210,7 +205,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		return  locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			let p
 			if (customer.serverProperties) {
 				p = Promise.resolve(customer.serverProperties)
@@ -228,7 +223,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 					})
 			}
 			return p.then(cspId => {
-				return  locator.cachingEntityClient.load(CustomerServerPropertiesTypeRef, cspId)
+				return this._entityClient.load(CustomerServerPropertiesTypeRef, cspId)
 			})
 		})
 	}
@@ -243,8 +238,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
-			return  locator.cachingEntityClient.update(props)
-				.catch(ofClass(LockedError, noOp))
+			return this._entityClient.update(props)
+			           .catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -257,8 +252,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
 			}
 			props.emailSenderList[index] = spamRule
-			return  locator.cachingEntityClient.update(props)
-				.catch(ofClass(LockedError, noOp))
+			return this._entityClient.update(props)
+			           .catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -408,9 +403,9 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedInvoiceCountry: ?Country): Promise<PaymentDataServicePutReturn> {
-		return  locator.cachingEntityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return  locator.cachingEntityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				return  locator.cachingEntityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				return this._entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
 						service.business = false // not used, must be set to false currently, will be removed later

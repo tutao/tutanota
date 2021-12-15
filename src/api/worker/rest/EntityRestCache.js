@@ -430,7 +430,6 @@ export class EntityRestCache implements EntityRestInterface {
 				case OperationType.DELETE:
 					if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(batch, OperationType.CREATE, instanceId)) {
 						// move for mail is handled in create event.
-						return null
 					} else {
 						this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
 					}

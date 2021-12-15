@@ -59,7 +59,7 @@ import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
 import type {TypeModel} from "../../common/EntityTypes"
-import {locator} from "../WorkerLocator"
+import {EntityClient} from "../../common/EntityClient"
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
@@ -69,13 +69,15 @@ export class SearchFacade {
 	_mailIndexer: MailIndexer;
 	_suggestionFacades: SuggestionFacade<any>[];
 	_promiseMapCompat: PromiseMapFn;
+	_entityClient: EntityClient
 
-	constructor(loginFacade: LoginFacadeImpl, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[], browserData: BrowserData) {
+	constructor(loginFacade: LoginFacadeImpl, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[], browserData: BrowserData, entityClient: EntityClient) {
 		this._loginFacade = loginFacade
 		this._db = db
 		this._mailIndexer = mailIndexer
 		this._suggestionFacades = suggestionFacades
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
+		this._entityClient = entityClient
 	}
 
 	/****************************** SEARCH ******************************/
@@ -164,7 +166,7 @@ export class SearchFacade {
 				} else {
 					let entity
 					try {
-						entity = await locator.cachingEntityClient.load(restriction.type, id)
+						entity = await this._entityClient.load(restriction.type, id)
 					} catch (e) {
 						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 							continue

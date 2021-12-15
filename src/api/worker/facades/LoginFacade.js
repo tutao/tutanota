@@ -88,6 +88,7 @@ import {
 	uint8ArrayToKey
 } from "@tutao/tutanota-crypto"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import {InstanceMapper} from "../crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandler"
 import {createSecondFactorAuthDeleteData} from "../../entities/sys/SecondFactorAuthDeleteData"
 import type {SecondFactorAuthData} from "../../entities/sys/SecondFactorAuthData"
@@ -180,15 +181,17 @@ export class LoginFacadeImpl implements LoginFacade {
 	 */
 	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 	_restClient: RestClient;
-	_entity: EntityClient;
+	_entityClient: EntityClient;
 	_leaderStatus: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
 	_secondFactorAuthHandler: SecondFactorAuthHandler
+	_instanceMapper: InstanceMapper
 
-	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient, secondFactorAuthHandler: SecondFactorAuthHandler) {
+	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient, secondFactorAuthHandler: SecondFactorAuthHandler, instanceMapper: InstanceMapper) {
 		this._worker = worker
 		this._restClient = restClient
-		this._entity = entity
+		this._entityClient = entity
 		this._secondFactorAuthHandler = secondFactorAuthHandler
+		this._instanceMapper = instanceMapper
 		this.resetSession()
 	}
 
@@ -415,8 +418,8 @@ export class LoginFacadeImpl implements LoginFacade {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 		this._accessToken = accessToken
-		return locator.cachingEntityClient.load(UserTypeRef, userId)
-		              .then(user => {
+		return this._entityClient.load(UserTypeRef, userId)
+		           .then(user => {
 			              // we check that the password is not changed
 			              // this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
 			              // we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
@@ -430,18 +433,18 @@ export class LoginFacadeImpl implements LoginFacade {
 			              }
 			              this._user = user
 			              this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
-			              return locator.cachingEntityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+			              return this._entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 		              })
-		              .then(groupInfo => this._userGroupInfo = groupInfo)
-		              .then(() => {
+		           .then(groupInfo => this._userGroupInfo = groupInfo)
+		           .then(() => {
 			              if (!isTest() && permanentLogin && !isAdminClient()) {
 				              // index new items in background
 				              console.log("_initIndexer after log in")
 				              this._initIndexer()
 			              }
 		              })
-		              .then(() => this.loadEntropy())
-		              .then(() => {
+		           .then(() => this.loadEntropy())
+		           .then(() => {
 			              // userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
 			              // close the event bus and reconnect to make sure we get all missed events
 			              if (userIdFromFormerLogin) {
@@ -450,8 +453,8 @@ export class LoginFacadeImpl implements LoginFacade {
 				              this._eventBusClient.connect(false)
 			              }
 		              })
-		              .then(() => this.storeEntropy())
-		              .catch(e => {
+		           .then(() => this.storeEntropy())
+		           .catch(e => {
 			              this.resetSession()
 			              throw e
 		              })
@@ -607,7 +610,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	 * Loads entropy from the last logout.
 	 */
 	loadEntropy(): Promise<void> {
-		return this._entity.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
+		return this._entityClient.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
 					let entropy = aes128Decrypt(this.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
@@ -643,13 +646,13 @@ export class LoginFacadeImpl implements LoginFacade {
 			if (this._user && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(UserTypeRef, update.application, update.type)
 				&& isSameId(this._user._id, update.instanceId)) {
-				return locator.cachingEntityClient.load(UserTypeRef, this._user._id).then(updatedUser => {
+				return this._entityClient.load(UserTypeRef, this._user._id).then(updatedUser => {
 					this._user = updatedUser
 				})
 			} else if (this._userGroupInfo && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)
 				&& isSameId(this._userGroupInfo._id, [neverNull(update.instanceListId), update.instanceId])) {
-				return locator.cachingEntityClient.load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
+				return this._entityClient.load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
 					this._userGroupInfo = updatedUserGroupInfo
 				})
 			} else {
@@ -708,7 +711,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const extraHeaders = {
 			authVerifier: createAuthVerifierAsBase64Url(key),
 		}
-		return locator.cachingEntityClient.load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
+		return this._entityClient.load(RecoverCodeTypeRef, recoverCodeId, null, extraHeaders).then(result => {
 			return uint8ArrayToHex(bitArrayToUint8Array(decrypt256Key(this.getUserGroupKey(), result.userEncRecoverCode)))
 		})
 	}
@@ -732,8 +735,8 @@ export class LoginFacadeImpl implements LoginFacade {
 
 		const pwKey = generateKeyFromPassphrase(password, neverNull(user.salt), KeyLength.b128)
 		const authVerifier = createAuthVerifierAsBase64Url(pwKey)
-		return locator.cachingEntityClient.setup(null, recoverPasswordEntity, {authVerifier})
-		              .then(() => hexCode)
+		return this._entityClient.setup(null, recoverPasswordEntity, {authVerifier})
+		           .then(() => hexCode)
 	}
 
 	generateRecoveryCode(userGroupKey: Aes128Key): RecoverData {
@@ -763,7 +766,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		// and therefore we would not be able to read the updated user
 		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
 		// when logging in normally after resetting the password
-		const eventRestClient = new EntityRestClient(() => ({}), this._restClient, () => locator.crypto, locator.instanceMapper)
+		const eventRestClient = new EntityRestClient(() => ({}), this._restClient, () => locator.crypto, this._instanceMapper)
 		const entityClient = new EntityClient(eventRestClient)
 
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)

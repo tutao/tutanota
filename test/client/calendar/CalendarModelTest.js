@@ -40,7 +40,7 @@ import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
 import {CalendarFacade} from "../../../src/api/worker/facades/CalendarFacade"
 import {FileFacade} from "../../../src/api/worker/facades/FileFacade"
 import {asResult, mapToObject} from "@tutao/tutanota-test-utils"
-import {WorkerClient} from "../../../src/api/main/WorkerClient"
+import type {WorkerClient} from "../../../src/api/main/WorkerClient"
 
 o.spec("CalendarModel", function () {
 
