@@ -25,6 +25,6 @@
 		"fs-extra": "8.1.0"
 	},
 	"devDependencies": {
-		"ospec": "^4.1.1"
+		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
 	}
 }
