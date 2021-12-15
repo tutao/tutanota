@@ -24,7 +24,7 @@ import {createPermission} from "../../../src/api/entities/sys/Permission"
 import {createBucket} from "../../../src/api/entities/sys/Bucket"
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createKeyPair} from "../../../src/api/entities/sys/KeyPair"
-import {createBucketPermission} from "../../../src/api/entities/sys/BucketPermission"
+import {BucketPermissionTypeRef, createBucketPermission} from "../../../src/api/entities/sys/BucketPermission"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
@@ -55,12 +55,12 @@ o.spec("crypto facade", function () {
 
 	let login
 	let restClient
-	locator.instanceMapper = new InstanceMapper()
+	let instanceMapper = new InstanceMapper()
 
-	function createCrypto(entityClient, loaders) {
+	function createCrypto(entityClient) {
 
 		const crypto = new CryptoFacadeImpl(login, entityClient
-			?? new EntityClient(new EntityRestClientMock()), restClient, rsa, downcast(loaders))
+			?? new EntityClient(new EntityRestClientMock()), restClient, rsa)
 		locator.crypto = crypto
 
 		return crypto
@@ -69,11 +69,12 @@ o.spec("crypto facade", function () {
 	o.before(function () {
 		const suspensionHandler = downcast({})
 		restClient = new RestClient(suspensionHandler)
-		login = new LoginFacadeImpl((null: any), restClient, downcast({}), downcast({}))
+		login = new LoginFacadeImpl((null: any), restClient, downcast({}), downcast({}), instanceMapper)
 
 		locator.login = login
 		locator.restClient = restClient
 		locator.rsa = rsa
+		locator.instanceMapper = instanceMapper
 	})
 
 	o.afterEach(function () {
@@ -458,7 +459,7 @@ o.spec("crypto facade", function () {
 		let sk = aes128RandomKey()
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 
-		locator.instanceMapper.decryptAndMapToInstance(Mail._TypeModel, mail, sk).then(decrypted => {
+		instanceMapper.decryptAndMapToInstance(Mail._TypeModel, mail, sk).then(decrypted => {
 			o(isSameTypeRef(decrypted._type, Mail.MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
 			o(decrypted.sentDate.getTime()).equals(1470039021474)
@@ -495,7 +496,7 @@ o.spec("crypto facade", function () {
 		contact.company = "WIW"
 		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
-		const result: any = await locator.instanceMapper.encryptAndMapToLiteral(Contact._TypeModel, contact, sk)
+		const result: any = await instanceMapper.encryptAndMapToLiteral(Contact._TypeModel, contact, sk)
 
 		o(result._format).equals("0")
 		o(result._ownerGroup).equals(null)
@@ -516,7 +517,7 @@ o.spec("crypto facade", function () {
 
 	o("map unencrypted to instance", function (done) {
 		let userIdLiteral = {"_format": "0", "userId": "KOBqO7a----0"}
-		locator.instanceMapper.decryptAndMapToInstance(UserIdReturn._TypeModel, userIdLiteral).then(userIdReturn => {
+		instanceMapper.decryptAndMapToInstance(UserIdReturn._TypeModel, userIdLiteral).then(userIdReturn => {
 			o(userIdReturn._format).equals("0")
 			o(userIdReturn.userId).equals("KOBqO7a----0")
 			done()
@@ -529,7 +530,7 @@ o.spec("crypto facade", function () {
 		userIdReturn.userId = "KOBqO7a----0"
 
 		let userIdLiteral = {"_format": "0", "userId": "KOBqO7a----0"}
-		locator.instanceMapper.encryptAndMapToLiteral(UserIdReturn._TypeModel, userIdReturn, null).then(result => {
+		instanceMapper.encryptAndMapToLiteral(UserIdReturn._TypeModel, userIdReturn, null).then(result => {
 			o(result).deepEquals(userIdLiteral)
 			done()
 		})
@@ -537,7 +538,7 @@ o.spec("crypto facade", function () {
 
 	o("resolve session key: unencrypted instance", function (done) {
 		let userIdLiteral = {"_format": "0", "userId": "KOBqO7a----0"}
-		createCrypto(null, {}).resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral).then(sessionKey => {
+		createCrypto(null).resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral).then(sessionKey => {
 			o(sessionKey).equals(null)
 			done()
 		})
@@ -558,7 +559,7 @@ o.spec("crypto facade", function () {
 
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 
-		createCrypto(null, null).resolveSessionKey(Mail._TypeModel, mail).then(sessionKey => {
+		createCrypto(null).resolveSessionKey(Mail._TypeModel, mail).then(sessionKey => {
 			o(sessionKey).deepEquals(sk)
 		}).then(done)
 	})
@@ -615,27 +616,25 @@ o.spec("crypto facade", function () {
 		login.groupKeys['userGroupId'] = gk
 		login._leaderStatus = createWebsocketLeaderStatus({leaderStatus: true})
 
-		let loaders = {
-			loadBucketPermissions: function (listId) {
-				o(listId).equals(bucketPermission._id[0])
-				return Promise.resolve([bucketPermission])
-			},
-			loadPermissions: function (listId) {
-				o(listId).equals(permission._id[0])
-				return Promise.resolve([permission])
-			},
-			loadGroup: function (groupId) {
-				o(groupId).equals(userGroup._id)
-				return Promise.resolve(userGroup)
-			}
-		}
+		const entityClient = downcast({
+			loadAll: o.spy(async (typeRef, ...rest) => isSameTypeRef(BucketPermissionTypeRef, typeRef)
+				? [bucketPermission]
+				: [permission]),
+			load: o.spy(async () => userGroup)
+		})
+
 
 		// mock the invocation of UpdatePermissionKeyService
-		let updateMock = mockAttribute(restClient, restClient.request, () => Promise.resolve())
+		const updateMock = mockAttribute(restClient, restClient.request, () => Promise.resolve())
 		try {
-			const sessionKey = await createCrypto(null, loaders).resolveSessionKey(Mail._TypeModel, mail)
+			const sessionKey = await createCrypto(entityClient).resolveSessionKey(Mail._TypeModel, mail)
 			o(sessionKey).deepEquals(sk)
 			o((restClient.request: any).callCount).equals(1)
+			o(entityClient.loadAll.callCount).equals(2)
+
+			o(entityClient.loadAll.calls.map(call => call.args[1])).deepEquals([permission._id[0], bucketPermission._id[0]])
+			o(entityClient.load.callCount).equals(1)
+			o(entityClient.load.args[1]).equals(userGroup._id)
 		} finally {
 			unmockAttribute(updateMock)
 		}
@@ -654,7 +653,7 @@ o.spec("crypto facade", function () {
 
 		mail.subject = 'asdf'
 
-		locator.instanceMapper.decryptAndMapToInstance(Mail._TypeModel, mail, sk).then(instance => {
+		instanceMapper.decryptAndMapToInstance(Mail._TypeModel, mail, sk).then(instance => {
 			o(typeof instance._errors["subject"]).equals("string")
 			done()
 		})
@@ -678,7 +677,7 @@ o.spec("crypto facade", function () {
 
 		o("contact migration without birthday", function () {
 			const contact = createContact()
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals(null)
 				o(entityClient.update.callCount).equals(0)
 			})
@@ -687,7 +686,7 @@ o.spec("crypto facade", function () {
 		o("contact migration without existing birthday", function () {
 			const contact = createContact()
 			contact.birthdayIso = "2019-05-01"
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2019-05-01")
 				o(entityClient.update.callCount).equals(0)
 			})
@@ -698,7 +697,7 @@ o.spec("crypto facade", function () {
 			contact._id = ["listid", "id"]
 			contact.birthdayIso = "2019-05-01"
 			contact.oldBirthdayDate = new Date(2000, 4, 1)
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2019-05-01")
 				o(migratedContact.oldBirthdayAggregate).equals(null)
 				o(migratedContact.oldBirthdayDate).equals(null)
@@ -714,7 +713,7 @@ o.spec("crypto facade", function () {
 			contact.oldBirthdayAggregate.day = "01"
 			contact.oldBirthdayAggregate.month = "05"
 			contact.oldBirthdayAggregate.year = "2000"
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2019-05-01")
 				o(migratedContact.oldBirthdayAggregate).equals(null)
 				o(migratedContact.oldBirthdayDate).equals(null)
@@ -731,7 +730,7 @@ o.spec("crypto facade", function () {
 			contact.oldBirthdayAggregate.month = "05"
 			contact.oldBirthdayAggregate.year = "2000"
 			contact.oldBirthdayDate = new Date(1800, 4, 1)
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2000-05-01")
 				o(migratedContact.oldBirthdayAggregate).equals(null)
 				o(migratedContact.oldBirthdayDate).equals(null)
@@ -745,7 +744,7 @@ o.spec("crypto facade", function () {
 			contact.birthdayIso = null
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = new Date(1800, 4, 1)
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("1800-05-01")
 				o(migratedContact.oldBirthdayAggregate).equals(null)
 				o(migratedContact.oldBirthdayDate).equals(null)
@@ -762,7 +761,7 @@ o.spec("crypto facade", function () {
 			contact.oldBirthdayAggregate.month = "05"
 			contact.oldBirthdayAggregate.year = null
 			contact.oldBirthdayDate = null
-			return createCrypto(entityClient, null).applyMigrationsForInstance(contact).then(migratedContact => {
+			return createCrypto(entityClient).applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("--05-01")
 				o(migratedContact.oldBirthdayAggregate).equals(null)
 				o(migratedContact.oldBirthdayDate).equals(null)

@@ -1,15 +1,15 @@
 // @flow
 
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
+import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
 import {BadRequestError, InternalServerError, PayloadTooLargeError} from "../../../src/api/common/error/RestError"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {SetupMultipleError} from "../../../src/api/common/error/SetupMultipleError"
 import {downcast, TypeRef} from "@tutao/tutanota-utils"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../../src/api/common/EntityFunctions"
 import {HttpMethod, resolveTypeReference} from "../../../src/api/common/EntityFunctions"
-import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
-import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
+import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
+import {EntityRestClient, typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import type {CryptoFacade} from "../../../src/api/worker/crypto/CryptoFacade"
 import type {TypeModel} from "../../../src/api/common/EntityTypes"
@@ -19,44 +19,50 @@ import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {CalendarEventTypeRef} from "../../../src/api/entities/tutanota/CalendarEvent"
 
 
-// TODO
-//     - Test all methods: load, loadRange, update, delete
-//     - Test more error cases and invariants
-//         - Invalid entities (e.g. no owner group set)
-//         - No auth headers set
+const accessToken = "My cool access token"
+const authHeader = {accessToken: accessToken}
 
-const cryptoFacadeMock: CryptoFacade = {
-	applyMigrations: async <T>(typeRef: TypeRef<T>, data: any): Promise<T> => resolveTypeReference(typeRef).then(model => create(model, typeRef)),
-	applyMigrationsForInstance: async <T>(decryptedInstance: T): Promise<T> => decryptedInstance,
-	setNewOwnerEncSessionKey: (model: TypeModel, entity: Object) => [],
-	resolveServiceSessionKey: async (typeModel: TypeModel, instance: Object) => [],
-	encryptBucketKeyForInternalRecipient: async (bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>) => createInternalRecipientKeyData(),
-	resolveSessionKey: async (typeModel: TypeModel, instance: Object) => [],
-}
+function createEntityRestClientWithMocks(requestMock: Function): {
+	entityRestClient: EntityRestClient,
+	cryptoFacadeMock: CryptoFacade,
+	instanceMapperMock: InstanceMapper,
+	requestSpy: OspecSpy<typeof RestClient.prototype.request>
+} {
 
-const instanceMapperMock: InstanceMapper = downcast({
-	async encryptAndMapToLiteral(model, instance, sk) {
-		return {
-			dummyMessage: "encrypted"
-		}
-	},
-	async decryptAndMapToInstance(model, instance, sk) {
-		return {
-			dummyMessage: "decrypted"
-		}
+	const cryptoFacadeMock: CryptoFacade = {
+		applyMigrations: o.spy(async <T>(typeRef: TypeRef<T>, data: any): Promise<T> => resolveTypeReference(typeRef).then(model => create(model, typeRef))),
+		applyMigrationsForInstance: o.spy(async <T>(decryptedInstance: T): Promise<T> => decryptedInstance),
+		setNewOwnerEncSessionKey: o.spy((model: TypeModel, entity: Object) => []),
+		resolveServiceSessionKey: o.spy(async (typeModel: TypeModel, instance: Object) => []),
+		encryptBucketKeyForInternalRecipient: o.spy(async (bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>) => createInternalRecipientKeyData()),
+		resolveSessionKey: o.spy(async (typeModel: TypeModel, instance: Object) => []),
 	}
-})
 
-function createEntityRestClientWithMocks(requestMock: Function): {entityRestClient: EntityRestClient, requestSpy: OspecSpy<typeof RestClient.prototype.request>} {
+	const instanceMapperMock: InstanceMapper = downcast({
+		encryptAndMapToLiteral: o.spy(async (model, instance, sk) => {
+			return {
+				dummyMessage: "encrypted"
+			}
+		}),
+		decryptAndMapToInstance: o.spy(async (model, instance, sk) => {
+			return {
+				dummyMessage: "decrypted"
+			}
+		})
+	})
+
 	const requestSpy = o.spy(requestMock)
+
 	const entityRestClient = new EntityRestClient(
-		() => ({accessToken: "My cool access token"}), // Entity rest client doesn't allow requests without authorization
+		() => authHeader, // Entity rest client doesn't allow requests without authorization
 		downcast<RestClient>({request: async (...args) => requestSpy(...args)}),
 		() => cryptoFacadeMock,
 		instanceMapperMock,
 	)
 
 	return {
+		instanceMapperMock,
+		cryptoFacadeMock,
 		entityRestClient,
 		requestSpy
 	}
@@ -77,37 +83,91 @@ function contacts(count) {
 }
 
 o.spec("EntityRestClient", async function () {
-	o.spec("Load Range", function () {
-		o("Loads multiple entities in a single request", async function () {
-			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
-				() => JSON.stringify(["The elements that were returned from the server"])
+	o.spec("Load", function () {
+		o("loading a list element", async function () {
+			const {entityRestClient, requestSpy, instanceMapperMock, cryptoFacadeMock} = createEntityRestClientWithMocks(
+				() => JSON.stringify("The element that was returned from the server")
 			)
-			const ids = range(0, 5)
-			const result = await entityRestClient.loadRange(CalendarEventTypeRef, "listId", ids[2], 5, false)
+			const calendarListId = "calendarListId"
+			const id1 = "id1"
+			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
+
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[0]).equals(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`)("path is correct")
+			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
+			o(instanceMapperMock.decryptAndMapToInstance.callCount).equals(1)
+			o(cryptoFacadeMock.applyMigrationsForInstance.callCount).equals(1)
+		})
+		o("loading an element ", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify("The element that was returned from the server")
+			)
+			const id1 = "id1"
+			const result = await entityRestClient.load(CustomerTypeRef, id1)
+
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[0]).equals(`${typeRefToPath(CustomerTypeRef)}/${id1}`)("path is correct")
+			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
+			o(result).deepEquals({dummyMessage: "decrypted"})("decrypts and returns from the client")
+		})
+
+		o("query parameters and additional headers + access token and version are always passed to the rest client", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify("The element that was returned from the server")
+			)
+			const id1 = "id1"
+			const queryParameters = {"foo": "bar"}
+			const headers = {"baz": "quux"}
+			const result = await entityRestClient.load(CustomerTypeRef, id1, queryParameters, headers)
+
+			const {version} = await resolveTypeReference(CustomerTypeRef)
+
+			o(requestSpy.args[2]).deepEquals(queryParameters)("query parameters are passed")
+			o(requestSpy.args[3]).deepEquals({accessToken: accessToken, v: version, baz: "quux"})("headers are passed")
+		})
+
+	})
+
+
+	o.spec("Load Range", function () {
+		o("Loads a range of entities in a single request", async function () {
+			const {entityRestClient, requestSpy, instanceMapperMock, cryptoFacadeMock} = createEntityRestClientWithMocks(
+				() => JSON.stringify(["e1", "e2", "e3"])
+			)
+
+			const startId = "42"
+			const count = 5
+			await entityRestClient.loadRange(CalendarEventTypeRef, "listId", startId, count, false)
+			const {version} = await resolveTypeReference(CalendarEventTypeRef)
 
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
-			o(requestSpy.args[2]).deepEquals({start: ids[2], count: "5", reverse: "false"})("Range is passed in as query params")
-			o(result).deepEquals([{dummyMessage: "decrypted"}])("decrypts and returns from the client")
-
+			o(requestSpy.args[2]).deepEquals({
+				start: `${startId}`,
+				count: `${count}`,
+				reverse: "false"
+			})("Range is passed in as query params")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
 		})
-
 	})
 
 	o.spec("Load multiple", function () {
 		o("Less than 100 entities requested should result in a single rest request", async function () {
 
-			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
-				() => JSON.stringify(["The elements that were returned from the server"])
+			const {entityRestClient, requestSpy, instanceMapperMock, cryptoFacadeMock} = createEntityRestClientWithMocks(
+				() => JSON.stringify(["e1", "e2", "e3"])
 			)
 
 			const ids = range(0, 5)
 			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
+			const {version} = await resolveTypeReference(CustomerTypeRef)
 
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
 			o(requestSpy.args[2]).deepEquals({ids: ids.join(",")})("Requested IDs are passed in as query params")
-			o(result).deepEquals([{dummyMessage: "decrypted"}])("decrypts and returns from the client")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
+			o(instanceMapperMock.decryptAndMapToInstance.callCount).equals(3)
+			o(cryptoFacadeMock.applyMigrationsForInstance.callCount).equals(3)
 		})
 
 		o("Exactly 100 entities requested should result in a single rest request", async function () {
@@ -172,6 +232,60 @@ o.spec("EntityRestClient", async function () {
 		})
 	})
 
+	o.spec("Setup", async function () {
+		o("Setup list entity", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify({generatedId: "id"})
+			)
+
+			const newContact = createContact()
+			const result = await entityRestClient.setup("listId", newContact)
+
+			const {version} = await resolveTypeReference(ContactTypeRef)
+			o(result).deepEquals("id")
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[1]).equals(HttpMethod.POST)("The method is POST")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
+			o(requestSpy.args[4]).deepEquals(JSON.stringify({dummyMessage: "encrypted"}))("Contact were sent")
+		})
+
+		o("Setup list entity throws when no listid is passed", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify({generatedId: "id"})
+			)
+
+			const newContact = createContact()
+			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact))
+			o(result.message).equals("List id must be defined for LETs")
+		})
+
+		o("Setup entity", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify({generatedId: "id"})
+			)
+
+			const newCustomer = createCustomer()
+			const result = await entityRestClient.setup(null, newCustomer)
+
+			const {version} = await resolveTypeReference(CustomerTypeRef)
+			o(result).deepEquals("id")
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[1]).equals(HttpMethod.POST)("The method is POST")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
+			o(requestSpy.args[4]).deepEquals(JSON.stringify({dummyMessage: "encrypted"}))("Contact were sent")
+		})
+
+		o("Setup entity throws when listid is passed", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => JSON.stringify({generatedId: "id"})
+			)
+			const newCustomer = createCustomer()
+			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer))
+			o(result.message).equals("List id must not be defined for ETs")
+		})
+
+	})
+
 	o.spec("Setup multiple", async function () {
 
 		o("Less than 100 entities created should result in a single rest request", async function () {
@@ -181,10 +295,12 @@ o.spec("EntityRestClient", async function () {
 
 			const newContacts = contacts(1)
 			const result = await entityRestClient.setupMultiple("listId", newContacts)
+			const {version} = await resolveTypeReference(ContactTypeRef)
 
 			o(result).deepEquals(["someReturnedId"])
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[1]).equals(HttpMethod.POST)("The method is POST")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
 			o(requestSpy.args[4]).deepEquals(JSON.stringify(newContacts.map(() => ({dummyMessage: "encrypted"}))))("All contacts were sent")
 		})
 
@@ -321,6 +437,53 @@ o.spec("EntityRestClient", async function () {
 			o(result.failedInstances).deepEquals([instances[1]])
 		})
 	})
+
+	o.spec("Update", function () {
+		o("Update entity", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => {}
+			)
+
+			const newCustomer = createCustomer({_id: "id"})
+			await entityRestClient.update(newCustomer)
+
+			const {version} = await resolveTypeReference(CustomerTypeRef)
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[1]).equals(HttpMethod.PUT)("The method is PUT")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
+			o(requestSpy.args[4]).deepEquals(JSON.stringify({dummyMessage: "encrypted"}))("Contact were sent")
+		})
+
+		o("Update entity throws if entity does not have an id", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => {}
+			)
+
+			const newCustomer = createCustomer()
+			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
+			o(result.message).equals("Id must be defined")
+
+		})
+
+	})
+	o.spec("Delete", function () {
+		o("Delete entity", async function () {
+			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
+				() => {}
+			)
+			const id = "id"
+			const newCustomer = createCustomer({_id: id})
+			await entityRestClient.erase(newCustomer)
+
+			const {version} = await resolveTypeReference(CustomerTypeRef)
+			o(requestSpy.callCount).equals(1)
+			o(requestSpy.args[0]).equals(`${typeRefToPath(CustomerTypeRef)}/${id}`)("path is correct")
+			o(requestSpy.args[1]).equals(HttpMethod.DELETE)("The method is DELETE")
+			o(requestSpy.args[3]).deepEquals({accessToken, v: version})("access token and version are passed")
+		})
+
+	})
+
 })
 
 

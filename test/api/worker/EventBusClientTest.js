@@ -12,6 +12,7 @@ import {LoginFacade, LoginFacadeImpl} from "../../../src/api/worker/facades/Logi
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
+import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 
 o.spec("EventBusClient test", function () {
 
@@ -65,8 +66,9 @@ o.spec("EventBusClient test", function () {
 		}
 		restClient = new EntityRestClientMock()
 		const entityClient = new EntityClient(restClient)
+		const intanceMapper = new InstanceMapper()
 
-		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock, entityClient)
+		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock, entityClient, intanceMapper)
 		let e = (ebc: any)
 		e.connect = function (reconnect: boolean) {
 		}

@@ -60,6 +60,7 @@ import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
 import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
 import {locator} from "../WorkerLocator"
+import {InstanceMapper} from "../crypto/InstanceMapper"
 
 assertWorkerOrNode()
 
@@ -79,17 +80,19 @@ export class CalendarFacade {
 	_loginFacade: LoginFacadeImpl;
 	_groupManagementFacade: GroupManagementFacadeImpl;
 	_entityRestCache: EntityRestCache
-	_entity: EntityClient
+	_entityClient: EntityClient
 	_worker: WorkerImpl
 	_native: NativeInterface
+	_instanceMapper: InstanceMapper
 
-	constructor(loginFacade: LoginFacadeImpl, groupManagementFacade: GroupManagementFacadeImpl, entityRestCache: EntityRestCache, native: NativeInterface, worker: WorkerImpl) {
+	constructor(loginFacade: LoginFacadeImpl, groupManagementFacade: GroupManagementFacadeImpl, entityRestCache: EntityRestCache, native: NativeInterface, worker: WorkerImpl, instanceMapper: InstanceMapper) {
 		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
 		this._entityRestCache = entityRestCache
-		this._entity = new EntityClient(entityRestCache)
+		this._entityClient = new EntityClient(entityRestCache)
 		this._native = native
 		this._worker = worker
+		this._instanceMapper = instanceMapper
 	}
 
 	hashEventUid(event: CalendarEvent) {
@@ -130,7 +133,7 @@ export class CalendarFacade {
 		let failed = 0
 		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
 			let successfulEvents = eventsWithAlarmsOfOneList
-			await this._entity.setupMultipleEntities(listId, eventsWithAlarmsOfOneList.map(e => e.event)).catch(ofClass(SetupMultipleError, (e) => {
+			await this._entityClient.setupMultipleEntities(listId, eventsWithAlarmsOfOneList.map(e => e.event)).catch(ofClass(SetupMultipleError, (e) => {
 				failed += e.failedInstances.length
 				successfulEvents = eventsWithAlarmsOfOneList.filter(({event}) => !e.failedInstances.includes(event))
 			}))
@@ -141,7 +144,7 @@ export class CalendarFacade {
 			await this._worker.sendProgress(currentProgress)
 		}
 
-		const pushIdentifierList = await this._entity.loadAll(
+		const pushIdentifierList = await this._entityClient.loadAll(
 			PushIdentifierTypeRef,
 			neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list
 		)
@@ -161,7 +164,7 @@ export class CalendarFacade {
 		if (event.uid == null) throw new Error("no uid set on the event")
 		this.hashEventUid(event)
 		if (oldEvent) {
-			await this._entity.erase(oldEvent)
+			await this._entityClient.erase(oldEvent)
 			          .catch(ofClass(NotFoundError, noOp))
 		}
 		return await this._saveCalendarEvents([{event, alarms: alarmInfos}])
@@ -180,9 +183,9 @@ export class CalendarFacade {
 		event.alarmInfos = existingEvent.alarmInfos
 		                                .filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
 		                                .concat(alarmInfoIds)
-		await this._entity.update(event)
+		await this._entityClient.update(event)
 		if (alarmNotifications.length > 0) {
-			const pushIdentifierList = await this._entity.loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+			const pushIdentifierList = await this._entityClient.loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
 			await this._sendAlarmNotifications(alarmNotifications, pushIdentifierList)
 		}
 	}
@@ -228,13 +231,13 @@ export class CalendarFacade {
 		           .then(groupData => {
 				           const postData = createUserAreaGroupPostData({groupData})
 				           return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CreateGroupPostReturnTypeRef)
-					           .then((returnData) => this._entity.load(GroupTypeRef, returnData.group))
+					           .then((returnData) => this._entityClient.load(GroupTypeRef, returnData.group))
 					           .then((group) => {
 						           // remove the user from the cache before loading it again to make sure we get the latest version.
 						           // otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
 						           const userId = this._loginFacade.getLoggedInUser()._id
 						           this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, userId)
-						           return this._entity.load(UserTypeRef, userId)
+						           return this._entityClient.load(UserTypeRef, userId)
 						                      .then(user => {
 							                      this._loginFacade._user = user
 							                      return {user, group}
@@ -261,7 +264,7 @@ export class CalendarFacade {
 		await this._encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 		const requestEntity = createAlarmServicePost({alarmNotifications})
 
-		const encEntity = await locator.instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
+		const encEntity = await this._instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
 
 		return this._native.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
 	}
@@ -278,7 +281,7 @@ export class CalendarFacade {
 			return []
 		}
 
-		const userAlarmInfos = await this._entity.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
+		const userAlarmInfos = await this._entityClient.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
 
 		// Group referenced event ids by list id so we can load events of one list in one request.
 		const listIdToElementIds = groupByAndMapUniquely(userAlarmInfos,
@@ -291,7 +294,7 @@ export class CalendarFacade {
 			userAlarmInfo => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
 
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
-			return this._entity.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
+			return this._entityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch(error => {
 				// handle NotAuthorized here because user could have been removed from group.
 				if (error instanceof NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
@@ -317,9 +320,9 @@ export class CalendarFacade {
 		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships
 		                                .filter(m => m.groupType === GroupType.Calendar && m.capability == null)
 		return asyncFindAndMap(calendarMemberships, (membership) => {
-			return this._entity.load(CalendarGroupRootTypeRef, membership.group)
+			return this._entityClient.load(CalendarGroupRootTypeRef, membership.group)
 			           .then((groupRoot) =>
-				           groupRoot.index && this._entity.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
+				           groupRoot.index && this._entityClient.load<CalendarEventUidIndex>(CalendarEventUidIndexTypeRef, [
 					           groupRoot.index.list,
 					           uint8arrayToCustomId(hashUid(uid))
 				           ]))
@@ -328,7 +331,7 @@ export class CalendarFacade {
 		})
 			.then((indexEntry) => {
 				if (indexEntry) {
-					return this._entity.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent)
+					return this._entityClient.load<CalendarEvent>(CalendarEventTypeRef, indexEntry.calendarEvent)
 					           .catch(ofClass(NotFoundError, () => null))
 				}
 			})
@@ -360,7 +363,7 @@ export class CalendarFacade {
 			})
 		}
 		const allAlarms = flat(userAlarmInfosAndNotificationsPerEvent.map(({userAlarmInfoAndNotification}) => userAlarmInfoAndNotification.map(({alarm}) => alarm)))
-		const alarmIds = await this._entity.setupMultipleEntities(userAlarmInfoListId, allAlarms)
+		const alarmIds = await this._entityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
 		let currentIndex = 0
 		return userAlarmInfosAndNotificationsPerEvent.map(({event, userAlarmInfoAndNotification}) => {
 				return {

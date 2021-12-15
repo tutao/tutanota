@@ -108,7 +108,6 @@ export class CryptoFacadeImpl implements CryptoFacade {
 	// this especially improves the performance when indexing mail bodies
 	+_mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
 
-	+_resolveSessionKeyLoaders: ResolveSessionKeyLoaders
 
 	/**
 	 *
@@ -116,30 +115,17 @@ export class CryptoFacadeImpl implements CryptoFacade {
 	 * @param entityClient
 	 * @param restClient
 	 * @param rsa
-	 * @param sessionKeyLoaders loaders for when resolving session keys // TODO We could probably do without this now, maybe?
 	 */
 	constructor(
 		logins: LoginFacadeImpl,
 		entityClient: EntityClient,
 		restClient: RestClient,
 		rsa: RsaImplementation,
-		sessionKeyLoaders?: ResolveSessionKeyLoaders
 	) {
 		this.logins = logins
 		this.entityClient = entityClient
 		this.restClient = restClient
 		this.rsa = rsa
-		this._resolveSessionKeyLoaders = sessionKeyLoaders ?? {
-			loadPermissions: (listId: Id) => {
-				return entityClient.loadAll(PermissionTypeRef, listId)
-			},
-			loadBucketPermissions: (listId: Id) => {
-				return entityClient.loadAll(BucketPermissionTypeRef, listId)
-			},
-			loadGroup: (groupId: Id) => {
-				return entityClient.load(GroupTypeRef, groupId)
-			}
-		}
 	}
 
 	async applyMigrations<T>(typeRef: TypeRef<T>, data: any): Promise<T> {
@@ -159,7 +145,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 				return data
 			})
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
-			// TODO remove the EncryptTutanotaPropertiesService and replace with an Migration that writes the key
+			// EncryptTutanotaPropertiesService could be removed and replaced with an Migration that writes the key
 			let migrationData = createEncryptTutanotaPropertiesData()
 			data._ownerGroup = this.logins.getUserGroupId()
 			let groupEncSessionKey = encryptKey(this.logins.getUserGroupKey(), aes128RandomKey())
@@ -236,7 +222,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 				}
 				return Promise.resolve(decryptKey(gk, key))
 			} else {
-				return this._resolveSessionKeyLoaders.loadPermissions(instance._permissions).then((listPermissions: Permission[]) => {
+				return this.entityClient.loadAll(PermissionTypeRef, instance._permissions).then((listPermissions: Permission[]) => {
 					let userGroupIds = this.logins.getAllGroupIds()
 					let p: ?Permission = listPermissions.find(p => (p.type === PermissionType.Public_Symmetric || p.type
 						=== PermissionType.Symmetric) && p._ownerGroup && userGroupIds.indexOf(p._ownerGroup) !== -1)
@@ -250,7 +236,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 						throw new SessionKeyNotFoundError("could not find permission")
 					}
 					let permission = neverNull(p)
-					return this._resolveSessionKeyLoaders.loadBucketPermissions((permission.bucket: any).bucketPermissions)
+					return this.entityClient.loadAll(BucketPermissionTypeRef, (permission.bucket: any).bucketPermissions)
 					           .then((bucketPermissions: BucketPermission[]) => {
 						           let bp = bucketPermissions.find(bp => (bp.type === BucketPermissionType.Public
 								           || bp.type === BucketPermissionType.External) && permission._ownerGroup
@@ -270,7 +256,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 							           }
 							           return decryptKey(bucketKey, neverNull(permission.bucketEncSessionKey))
 						           } else {
-							           return this._resolveSessionKeyLoaders.loadGroup(bp.group).then(group => {
+							           return this.entityClient.load(GroupTypeRef, bp.group).then(group => {
 								           let keypair = group.keys[0]
 								           let privKey
 								           try {

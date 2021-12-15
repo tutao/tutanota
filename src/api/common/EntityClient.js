@@ -89,13 +89,6 @@ export class EntityClient {
 		return this._target.erase(instance)
 	}
 
-	loadVersion<T: SomeEntity>(instance: T, version: Id): Promise<T> {
-		return resolveTypeReference((instance: any)._type).then(typeModel => {
-			if (!typeModel.versioned) throw new Error("unversioned instance: can't load version")
-			return this.load(instance._type, instance._id, {version})
-		})
-	}
-
 	loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 		return resolveTypeReference(typeRef).then(typeModel => {
 			let rootId = [groupId, typeModel.rootId];

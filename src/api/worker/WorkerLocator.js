@@ -39,26 +39,26 @@ import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
-	login: LoginFacadeImpl;
-	indexer: Indexer;
-	cache: EntityRestInterface;
-	cachingEntityClient: EntityClient;
-	search: SearchFacade;
-	groupManagement: GroupManagementFacadeImpl;
-	userManagement: UserManagementFacade;
-	customer: CustomerFacadeImpl;
-	file: FileFacade;
-	mail: MailFacade;
-	calendar: CalendarFacade;
-	mailAddress: MailAddressFacade;
-	counters: CounterFacade;
-	eventBusClient: EventBusClient;
-	_indexedDbSupported: boolean;
-	_browserData: BrowserData;
-	Const: Object;
-	share: ShareFacade;
-	restClient: RestClient;
-	giftCards: GiftCardFacadeImpl;
+	login: LoginFacadeImpl,
+	indexer: Indexer,
+	cache: EntityRestInterface,
+	cachingEntityClient: EntityClient,
+	search: SearchFacade,
+	groupManagement: GroupManagementFacadeImpl,
+	userManagement: UserManagementFacade,
+	customer: CustomerFacadeImpl,
+	file: FileFacade,
+	mail: MailFacade,
+	calendar: CalendarFacade,
+	mailAddress: MailAddressFacade,
+	counters: CounterFacade,
+	eventBusClient: EventBusClient,
+	_indexedDbSupported: boolean,
+	_browserData: BrowserData,
+	Const: Object,
+	share: ShareFacade,
+	restClient: RestClient,
+	giftCards: GiftCardFacadeImpl,
 	configFacade: ConfigurationDatabase,
 	contactFormFacade: ContactFormFacade,
 	deviceEncryptionFacade: DeviceEncryptionFacade,
@@ -96,7 +96,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const mainInterface = worker.getMainInterface()
 	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 
-	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient, locator.secondFactorAuthenticationHandler)
+	locator.login = new LoginFacadeImpl(worker, locator.restClient, locator.cachingEntityClient, locator.secondFactorAuthenticationHandler, locator.instanceMapper)
 
 	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa)
 	const suggestionFacades = [
@@ -104,27 +104,27 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade
 	]
-	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData)
+	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
 	locator.counters = new CounterFacade()
 
 	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient, locator.rsa)
-	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters, locator.rsa)
-	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters, locator.rsa)
+	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters, locator.rsa, locator.cachingEntityClient)
+	locator.customer = new CustomerFacadeImpl(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters, locator.rsa, locator.cachingEntityClient)
 
 	const fileApp = new NativeFileApp(worker)
 	const aesApp = new AesApp(worker)
-	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp)
-	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient)
-	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker)
+	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper)
+	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient, locator.crypto)
+	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login,
-		locator.cachingEntityClient)
+		locator.cachingEntityClient, locator.instanceMapper)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.login, locator.crypto)
 	locator.giftCards = new GiftCardFacadeImpl(locator.login)
 	locator.configFacade = new ConfigurationDatabase(locator.login)
-	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient)
+	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacadeImpl()
 	locator.native = worker
 }

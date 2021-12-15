@@ -6,6 +6,7 @@ import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundErro
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError, PayloadTooLargeError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {lazy} from "@tutao/tutanota-utils"
 import {flat, isSameTypeRef, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils";
 import {assertWorkerOrNode} from "../../common/Env"
 import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes"
@@ -29,28 +30,39 @@ export type AuthHeadersProvider = () => Params
 export interface EntityRestInterface {
 
 	/**
-	 * Creates, reads, updates or deletes (CRUD) data on/from the server. Provided entities are encrypted before they are
-	 * sent to the server and decrypted before they are returned.
-	 * @param typeRef
-	 * @param id
-	 * @param queryParameters
-	 * @param extraHeaders
-	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
+	 * Reads a single element from the server (or cache). Entities are decrypted before they are returned.
 	 */
-	// entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T | T[], queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id | Id[]>;
-
 	load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T>;
 
+	/**
+	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
+	 */
 	loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
 
+	/**
+	 * Reads multiple elements from the server (or cache). Entities are decrypted before they are returned.
+	 */
 	loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Array<Id>): Promise<Array<T>>;
 
+	/**
+	 * Creates a single element on the server. Entities are encrypted before they are sent.
+	 */
 	setup<T: SomeEntity>(listId: ?Id, instance: T, extraHeaders?: Params): Promise<Id>;
 
+	/**
+	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
+	 */
 	setupMultiple<T: SomeEntity>(listId: ?Id, instances: Array<T>): Promise<Array<Id>>;
 
+	/**
+	 * Modifies a single element on the server. Entities are encrypted before they are sent.
+	 */
 	update<T: SomeEntity>(instance: T): Promise<void>;
 
+
+	/**
+	 * Deletes a single element on the server.
+	 */
 	erase<T: SomeEntity>(instance: T): Promise<void>;
 
 	/**
@@ -76,13 +88,13 @@ export class EntityRestClient implements EntityRestInterface {
 	_instanceMapper: InstanceMapper
 
 	// Crypto Facade is lazy due to circular dependency between EntityRestClient and CryptoFacade
-	_lazyCrypto: () => CryptoFacade
+	_lazyCrypto: lazy<CryptoFacade>
 
 	get _crypto(): CryptoFacade {
 		return this._lazyCrypto()
 	}
 
-	constructor(authHeadersProvider: AuthHeadersProvider, restClient: RestClient, crypto: () => CryptoFacade, instanceMapper: InstanceMapper) {
+	constructor(authHeadersProvider: AuthHeadersProvider, restClient: RestClient, crypto: lazy<CryptoFacade>, instanceMapper: InstanceMapper) {
 		this._authHeadersProvider = authHeadersProvider
 		this._restClient = restClient
 		this._lazyCrypto = crypto
@@ -256,13 +268,13 @@ export class EntityRestClient implements EntityRestInterface {
 		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, null, null)
 		const sessionKey = await this._crypto.resolveSessionKey(typeModel, instance)
 		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
-		return this._restClient.request(path, HttpMethod.PUT, queryParams, headers, JSON.stringify(encryptedEntity), MediaType.Json)
+		await this._restClient.request(path, HttpMethod.PUT, queryParams, headers, JSON.stringify(encryptedEntity), MediaType.Json)
 	}
 
 	async erase<T: SomeEntity>(instance: T): Promise<void> {
 		const {listId, elementId} = expandId(instance._id)
 		const {path, queryParams, headers} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, null, null)
-		return this._restClient.request(path, HttpMethod.DELETE, queryParams, headers)
+		await this._restClient.request(path, HttpMethod.DELETE, queryParams, headers)
 	}
 
 	async _validateAndPrepareRestRequest(typeRef: TypeRef<*>, listId: ?Id, elementId: ?Id, queryParameters: ?Params, extraHeaders: ?Params): Promise<{
@@ -281,7 +293,7 @@ export class EntityRestClient implements EntityRestInterface {
 			path += '/' + elementId
 		}
 		const queryParams = queryParameters ?? {}
-		const headers = Object.assign(this._authHeadersProvider(), extraHeaders)
+		const headers = Object.assign({}, this._authHeadersProvider(), extraHeaders)
 		if (Object.keys(headers).length === 0) {
 			throw new NotAuthenticatedError("user must be authenticated for entity requests")
 		}

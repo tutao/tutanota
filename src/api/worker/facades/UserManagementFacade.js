@@ -24,10 +24,10 @@ import {SysService} from "../../entities/sys/Services"
 import type {User} from "../../entities/sys/User"
 import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {assertWorkerOrNode} from "../../common/Env"
-import {locator} from "../WorkerLocator"
 import {
 	aes128RandomKey,
-	createAuthVerifier, decryptKey,
+	createAuthVerifier,
+	decryptKey,
 	encryptKey,
 	generateKeyFromPassphrase,
 	generateRandomSalt,
@@ -35,6 +35,7 @@ import {
 	random
 } from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation";
+import {EntityClient} from "../../common/EntityClient"
 
 assertWorkerOrNode()
 
@@ -45,12 +46,15 @@ export class UserManagementFacade {
 	_groupManagement: GroupManagementFacadeImpl;
 	_counters: CounterFacade
 	_rsa: RsaImplementation
-	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, counters: CounterFacade, rsa: RsaImplementation) {
+	_entityClient: EntityClient
+
+	constructor(worker: WorkerImpl, login: LoginFacadeImpl, groupManagement: GroupManagementFacadeImpl, counters: CounterFacade, rsa: RsaImplementation, entityClient: EntityClient) {
 		this._worker = worker
 		this._login = login
 		this._groupManagement = groupManagement
 		this._counters = counters
 		this._rsa = rsa
+		this._entityClient = entityClient
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -72,7 +76,7 @@ export class UserManagementFacade {
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
-		const userGroup = await  locator.cachingEntityClient.load(GroupTypeRef, user.userGroup.group)
+		const userGroup = await this._entityClient.load(GroupTypeRef, user.userGroup.group)
 		let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
 		if (admin) {
 			await this._groupManagement.addUserToGroup(user, adminGroupId)
@@ -116,9 +120,9 @@ export class UserManagementFacade {
 
 	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
-		return  locator.cachingEntityClient.load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
-			return  locator.cachingEntityClient.load(GroupTypeRef, groupId).then(group => {
-				return  locator.cachingEntityClient.load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
+		return this._entityClient.load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
+			return this._entityClient.load(GroupTypeRef, groupId).then(group => {
+				return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
 					let data = createUpdateAdminshipData()
 					data.group = group._id
 					data.newAdminGroup = newAdminGroup._id
@@ -192,22 +196,22 @@ export class UserManagementFacade {
 		let userGroupInfoSessionKey = aes128RandomKey()
 
 		return this._rsa.generateKey()
-			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
-			.then(userGroupData => {
-				return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
-				           .then(() => {
-					           let data = createUserAccountCreateData()
-					           data.date = Const.CURRENT_DATE
-					           data.userGroupData = userGroupData
-					           data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
-						           password, name, this._login.generateRecoveryCode(userGroupKey))
-					           return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
-						           .then(() => {
-							           return this._worker.sendProgress((userIndex + 1)
-								           / overallNbrOfUsersToCreate * 100)
-						           })
-				           })
-			})
+		           .then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
+		           .then(userGroupData => {
+			           return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
+			                      .then(() => {
+				                      let data = createUserAccountCreateData()
+				                      data.date = Const.CURRENT_DATE
+				                      data.userGroupData = userGroupData
+				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
+					                      password, name, this._login.generateRecoveryCode(userGroupKey))
+				                      return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
+					                      .then(() => {
+						                      return this._worker.sendProgress((userIndex + 1)
+							                      / overallNbrOfUsersToCreate * 100)
+					                      })
+			                      })
+		           })
 	}
 
 	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string,

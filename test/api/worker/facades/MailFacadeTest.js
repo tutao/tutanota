@@ -9,8 +9,9 @@ import {createPhishingMarker} from "../../../../src/api/entities/tutanota/Phishi
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
+	const cryptoFacade = downcast({})
 	o.beforeEach(function () {
-		facade = new MailFacade(downcast({}), downcast({}), downcast({}))
+		facade = new MailFacade(downcast({}), downcast({}), downcast({}), cryptoFacade)
 	})
 
 	o.spec("checkMailForPhishing", function () {
