@@ -191,7 +191,6 @@ export class MailViewer {
 	_contactModel: ContactModel;
 	_delayBodyRenderingUntil: Promise<*>
 	_configFacade: ConfigurationDatabase
-	+_resizeObserver: ResizeObserver
 
 	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel,
 	            configFacade: ConfigurationDatabase, delayBodyRenderingUntil: Promise<*>, native: ?NativeInterface) {
@@ -275,7 +274,6 @@ export class MailViewer {
 				m.redraw()
 			})
 
-		this._resizeObserver = new ResizeObserver(() => this._rescale(false))
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -405,7 +403,6 @@ export class MailViewer {
 					const dom = this._domBody = vnode.dom
 					this._updateLineHeight(vnode.dom)
 					this._rescale(false)
-					this._reRegisterResizeObserver(dom)
 				},
 				onupdate: (vnode) => {
 					this._domBodyDeferred.resolve(vnode.dom)
@@ -417,7 +414,6 @@ export class MailViewer {
 						this._updateLineHeight(vnode.dom)
 					}
 					this._rescale(false)
-					this._reRegisterResizeObserver(vnode.dom)
 				},
 				onsubmit: (event: Event) => this._confirmSubmit(event),
 				style: {
@@ -443,20 +439,6 @@ export class MailViewer {
 		}
 	}
 
-	/**
-	 * Re-initilize resize observer after children of mail body container change.
-	 * We need to observe children size because loading remote content might change the size of the children. If the size of the content
-	 * changes we need to re-scale the mail body to fit mobile screen.
-	 */
-	_reRegisterResizeObserver(dom: HTMLElement) {
-		if (!client.isMobileDevice()) {
-			return
-		}
-		this._resizeObserver.disconnect()
-		for (let child of dom.children) {
-			this._resizeObserver.observe(child)
-		}
-	}
 
 	_didErrorsOccur(): boolean {
 		return this._errorOccurred || this.mail._errors || (this._mailBody != null && this._mailBody._errors)
@@ -891,7 +873,6 @@ export class MailViewer {
 				], coords.x, coords.y)
 			}
 		})
-
 	}
 
 	/** @return list of inline referenced cid */
