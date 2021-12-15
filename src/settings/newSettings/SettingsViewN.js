@@ -35,6 +35,7 @@ export class SettingsViewN implements CurrentView {
 	view: Function;
 	_folders: SettingsFolderN[]
 	_settingsModel: SettingsModel
+	_searchValue: string
 	oncreate: Function
 	onremove: Function
 
@@ -123,7 +124,8 @@ export class SettingsViewN implements CurrentView {
 				const section = this._settingsModel.selectedSection()
 				return section
 					? m(DetailsColumnViewer, {
-						section: section
+						section: section,
+						searchValue: this._searchValue
 					})
 					: m(ColumnEmptyMessageBox, {
 						message: "noSelection_msg",
@@ -208,6 +210,7 @@ export class SettingsViewN implements CurrentView {
 	getSearchHandler(): ?SearchHandler {
 		return {
 			onSearch: (value) => {
+				this._searchValue = value
 				this._settingsModel.selectedSection(null)
 				let sections = []
 				if (value === "") {
