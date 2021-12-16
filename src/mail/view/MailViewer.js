@@ -1764,15 +1764,11 @@ export class MailViewer {
 
 /**
  * support and invoice mails can contain links to the settings page.
- * in the desktop app, all normal anchor links are opened with the default browser.
- * this fails for relative links because the desktop app prepends file://C:/ or file:///
- * and we prevent any files being opened from links in mails.
+ * we don't want normal mails to be able to link places in the app, though.
  * */
-function isSettingsLink({href, origin}: HTMLAnchorElement, mail: Mail): boolean {
-	console.log(href, origin)
-	//Electron in windows appends /<drive letter>:/ to relative urls, so we should match with or without
-	const isSettingsHref = href.startsWith(origin) && !!href.slice(origin.length).match(/^(\/[A-Z]:)?\/settings\//)
-	return isSettingsHref && isTutanotaTeamMail(mail)
+function isSettingsLink(anchor: HTMLAnchorElement, mail: Mail): boolean {
+	const href = anchor.getAttribute("href")
+	return (href != null) && href.startsWith("/settings/") && isTutanotaTeamMail(mail)
 }
 
 type CreateMailViewerOptions = {
