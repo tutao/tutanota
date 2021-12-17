@@ -136,7 +136,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 			paddingLeft = px(0)
 		}
 		return {
-			"width": "100%",
+			"width": this.expanded ? "100%" : px(0),
 			"transition": `width ${DefaultAnimationTime}ms`,
 			'padding-left': paddingLeft,
 			'padding-top': '3px',
@@ -244,7 +244,7 @@ export class SearchBarN implements MComponent<SearchBarNAttrs> {
 			"aria-autocomplete": "list",
 			tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
 			role: "combobox",
-			placeholder: handler.placeholder,
+			placeholder: lang.getMaybeLazy(handler.placeholder),
 			type: Type.Text,
 			value: this.inputStream(),
 			oncreate: (vnode) => {
