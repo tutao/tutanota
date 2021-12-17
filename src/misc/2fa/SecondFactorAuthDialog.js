@@ -85,7 +85,10 @@ export class SecondFactorAuthDialog {
 		const u2fSupported = this._webauthnClient.isSupported()
 		console.log("webauthn supported: ", u2fSupported)
 
-		const keyForThisDomainExisting = keys.filter(key => key.appId === this._webauthnClient.rpId).length > 0
+		// Because of whitelabel keys can ge registered on another domains
+		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId
+		const keyForThisDomainExisting = keys
+			.some(key => key.appId === this._webauthnClient.rpId || key.appId === this._webauthnClient.appId)
 		const canLoginWithU2f = u2fSupported && keyForThisDomainExisting
 		const otherDomainAppIds = keys.filter(key => key.appId !== this._webauthnClient.rpId).map(key => key.appId)
 		const otherLoginDomain = otherDomainAppIds.length > 0
@@ -161,7 +164,7 @@ export class SecondFactorAuthDialog {
 		this.close()
 	}
 
-	async _doWebauthn(u2fChallenge: Challenge)  {
+	async _doWebauthn(u2fChallenge: Challenge) {
 		this.webauthnState = {state: "progress"}
 		this._webauthnAbortController = new AbortController()
 		const abortSignal = this._webauthnAbortController.signal
@@ -187,6 +190,7 @@ export class SecondFactorAuthDialog {
 				console.log("Error during webAuthn: ", e)
 				this.webauthnState = {state: "error", error: "couldNotAuthU2f_msg"}
 			} else if (e instanceof NotAuthenticatedError) {
+				this.webauthnState = {state: "init"}
 				Dialog.message("loginFailed_msg")
 			} else {
 				throw e
