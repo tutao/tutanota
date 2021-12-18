@@ -175,7 +175,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					m(ExpandableTable, {
 						title: "adminSpam_action",
 						table: spamRuleTableAttrs,
-						infoMsg: "adminSpamRuleInfo_msg",
+						infoMsg: "moreInfo_msg",
 						infoLinkId: "spamRules_link"
 					}),
 					m(ExpandableTable, {

@@ -325,7 +325,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m(SettingsExpander,
 					{
 						title: "giftCards_label",
-						infoMsg: "giftCardSection_label",
+						infoMsg: "moreInfo_msg",
+						infoLinkId: "giftCardsTerms_link",
 						expanded: this._giftCardsExpanded,
 					}, renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate)),
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
@@ -759,15 +760,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 			columnWidths,
 			lines,
 			showActionButtonColumn: true,
-		}),
-		m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
-			onclick: e => {
-				if (isApp()) {
-					showServiceTerms("giftCards")
-					e.preventDefault()
-				}
-			}
-		}, lang.get("giftCardTerms_label")))
+		})
 	]
 }
 

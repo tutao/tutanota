@@ -34,7 +34,7 @@ export class SettingsExpander implements MComponent<SettingsExpanderAttrs> {
 				m(ExpanderButtonN, {label: buttonText || "show_action", expanded})
 			]),
 			m(ExpanderPanelN, {expanded}, vnode.children),
-			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)) : null,
+			infoMsg ? m("small", lang.getMaybeLazy(infoMsg)+ " ") : null,
 			infoLinkId
 				? ifAllowedTutanotaLinks(infoLinkId, link => m("small.text-break", [m(`a[href=${link}][target=_blank]`, link)]))
 				: null

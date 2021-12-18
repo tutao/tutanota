@@ -348,15 +348,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 	return m(CheckboxN, {
 		checked: confirmed,
 		label: () => [
-			m("", lang.get("termsAndConditions_label")),
-			m("div", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
-				onclick: e => {
-					if (isApp()) {
-						showServiceTerms("giftCards")
-						e.preventDefault()
-					}
-				}
-			}, lang.get("giftCardTerms_label")))
+			m("", lang.get("termsAndConditions_label"))
 		],
 	})
 }
