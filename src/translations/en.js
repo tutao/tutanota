@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2021-11-25T14:26:09Z",
+	"updated_at": "2021-12-20T14:35:08Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -1382,6 +1382,7 @@ export default {
 		"userEmailSignature_label": "Email signature",
 		"userManagementRedirect_msg": "You will be redirected to the user settings menu. You may later resume the setup process for your custom domain.",
 		"userSettings_label": "User settings",
+		"useSecurityKey_action": "Use security key",
 		"validGiftCardCountry_msg": "This gift card is only valid for use in {valid} but we have detected that you are in {actual}. Please confirm that you are using this gift card in {valid}.",
 		"validInCountry_msg": "Valid in {country}.",
 		"validInputFormat_msg": "Format ok.",

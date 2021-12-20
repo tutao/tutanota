@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2021-11-28T14:43:50Z",
+	"updated_at": "2021-12-09T09:54:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -713,6 +713,7 @@ export default {
 		"languagePolish_label": "Polaco",
 		"languagePortugeseBrazil_label": "Portugués, Brasil",
 		"languagePortugesePortugal_label": "Portugués, Portugal",
+		"languagePortugese_label": "Portugués",
 		"languageRomanian_label": "Rumano",
 		"languageRussian_label": "Ruso",
 		"languageSerbian_label": "Serbio",

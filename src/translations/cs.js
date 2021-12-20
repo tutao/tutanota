@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-11-29T12:31:40Z",
+	"updated_at": "2021-12-09T08:27:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -711,6 +711,7 @@ export default {
 		"languagePolish_label": "Polština",
 		"languagePortugeseBrazil_label": "Portugalština, Brazílie",
 		"languagePortugesePortugal_label": "Portugalština, Portugalsko",
+		"languagePortugese_label": "Portugalština",
 		"languageRomanian_label": "Rumunština",
 		"languageRussian_label": "Ruština",
 		"languageSerbian_label": "Srbština",

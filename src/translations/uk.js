@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2021-11-20T16:34:35Z",
+	"updated_at": "2021-12-19T08:01:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -585,6 +585,9 @@ export default {
 		"html_action": "HTML",
 		"ignoreCase_alt": "Ігнорувати випадок",
 		"importCalendar_label": "Імпортування календаря",
+		"importContactsError_msg": "{amount} з {total} контактів імпортувати не вдалося.",
+		"importEventExistingUid_msg": "{amount} з {total} подій вже існують і не перезаписуються. Продовжимо з рештою подій...",
+		"importEventsError_msg": "{amount} з {total} подій  імпортувати не вдалося.",
 		"importReadFileError_msg": "На жаль цей файл {filename} не придатний для читання.",
 		"importUsers_action": "Імпорт користувачів",
 		"importVCardError_msg": "Не вдається прочитати цей файл vCard.",
@@ -708,6 +711,7 @@ export default {
 		"languagePolish_label": "Польська",
 		"languagePortugeseBrazil_label": "Португальська, Бразилія ",
 		"languagePortugesePortugal_label": "Португальська, Португалія",
+		"languagePortugese_label": "Португальська",
 		"languageRomanian_label": "Румунська",
 		"languageRussian_label": "Російська",
 		"languageSerbian_label": "Сербська",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2021-11-25T14:27:45Z",
+	"updated_at": "2021-12-20T14:36:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -715,6 +715,7 @@ export default {
 		"languagePolish_label": "Polnisch",
 		"languagePortugeseBrazil_label": "Portugiesisch, Brasilien",
 		"languagePortugesePortugal_label": "Portugiesisch, Portugal",
+		"languagePortugese_label": "Portugiesisch",
 		"languageRomanian_label": "Rumänisch",
 		"languageRussian_label": "Russisch",
 		"languageSerbian_label": "Serbisch",
@@ -1385,6 +1386,7 @@ export default {
 		"userEmailSignature_label": "E-Mail-Signatur",
 		"userManagementRedirect_msg": "Du wirst zur Benutzerverwaltung weitergeleitet. Du kannst die Einrichtung deiner Domain später fortsetzen.",
 		"userSettings_label": "Benutzer-Einstellungen",
+		"useSecurityKey_action": "Sicherheitsschlüssel verwenden",
 		"validGiftCardCountry_msg": "Dieser Gutschein ist nur in {valid} gültig, du befindest dich in {actual}. Bitte bestätige, dass du diesen Gutschein in {valid} nutzt.",
 		"validInCountry_msg": "Gültig in {country}.",
 		"validInputFormat_msg": "Format ok.",

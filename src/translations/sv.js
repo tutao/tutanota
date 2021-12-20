@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2021-11-25T16:38:59Z",
+	"updated_at": "2021-12-09T10:50:54Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -711,6 +711,7 @@ export default {
 		"languagePolish_label": "Polska",
 		"languagePortugeseBrazil_label": "Portugisiska, Brasilien",
 		"languagePortugesePortugal_label": "Portugisiska, Portugal",
+		"languagePortugese_label": "Portugisiska",
 		"languageRomanian_label": "Rumänska",
 		"languageRussian_label": "Ryska",
 		"languageSerbian_label": "Serbiska",
