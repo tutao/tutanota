@@ -8,7 +8,7 @@ import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../../
 import {Dialog} from "../../gui/base/Dialog"
 import m from "mithril"
 import {SecondFactorAuthView} from "./SecondFactorAuthView"
-import {WebauthnCancelledError, WebauthnClient, WebauthnRecoverableError, WebauthnUnrecoverableError} from "./webauthn/WebauthnClient"
+import {WebauthnCancelledError, WebauthnClient, WebauthnError} from "./webauthn/WebauthnClient"
 import {appIdToLoginDomain} from "./SecondFactorHandler"
 import type {Challenge} from "../../api/entities/sys/Challenge"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
@@ -186,7 +186,7 @@ export class SecondFactorAuthDialog {
 			} else if (e instanceof AccessBlockedError && this._waitingForSecondFactorDialog?.visible) {
 				Dialog.message("loginFailedOften_msg")
 				this.close()
-			} else if ((e instanceof WebauthnUnrecoverableError || e instanceof WebauthnRecoverableError)) {
+			} else if ((e instanceof WebauthnError)) {
 				console.log("Error during webAuthn: ", e)
 				this.webauthnState = {state: "error", error: "couldNotAuthU2f_msg"}
 			} else if (e instanceof NotAuthenticatedError) {

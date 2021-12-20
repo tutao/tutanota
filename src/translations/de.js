@@ -1437,6 +1437,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"useSecurityKey_action": "Sicherheitsschlüssel verwenden"
 	}
 }

@@ -33,11 +33,16 @@ export interface PublicKeyCredentialUserEntity extends PublicKeyCredentialEntity
 	displayName: string;
 }
 
-export type COSEAlgorithmIdentifier =
-	| -7 // ES256
-	| -35 // ES384
-	| -36 // ES512
-	| -8 // EdDSA
+/** see https://www.iana.org/assignments/cose/cose.xhtml#algorithms */
+export const COSEAlgorithmIdentifierNames = Object.freeze({
+	ES256: -7,
+	ES384: -35,
+	ES512: -36,
+	EdDSA: -8,
+})
+
+// I'm breaking our naming convention with enums here to make type name the same
+export type COSEAlgorithmIdentifier = $Values<typeof COSEAlgorithmIdentifierNames>;
 
 export interface PublicKeyCredentialParameters {
 	type: string;
@@ -115,17 +120,4 @@ export interface CredentialsApi {
 	create(options: CredentialCreationOptions): Promise<Credential>;
 
 	get(options: CredentialRequestOptions): Promise<Credential>;
-}
-
-export type EncodedPublicKey = {
-	/** key type. 2 = EC */
-	"1": number,
-	/** algorithm. -7 = ES256 */
-	"3": number,
-	/** curve type. 1 = P-256 */
-	"-1": number,
-	/** x coordinate */
-	"-2": number,
-	/** y coordinate */
-	"-3": number,
 }

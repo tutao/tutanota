@@ -53,7 +53,7 @@ export class SecondFactorHandler implements SecondFactorAuthHandler {
 		this._entityClient = entityClient
 		this._webauthnClient = webauthnClient
 		this._loginFacade = loginFacade
-		
+
 		this._otherLoginSessionId = null
 		this._otherLoginDialog = null
 		this._otherLoginListenerInitialized = false
@@ -65,10 +65,10 @@ export class SecondFactorHandler implements SecondFactorAuthHandler {
 			return
 		}
 		this._otherLoginListenerInitialized = true
-		locator.eventController.addEntityListener((updates) => this._handleEntityUpdates(updates))
+		locator.eventController.addEntityListener((updates) => this._entityEventsReceived(updates))
 	}
 
-	async _handleEntityUpdates(updates: $ReadOnlyArray<EntityUpdateData>) {
+	async _entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			let sessionId = [neverNull(update.instanceListId), update.instanceId];
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
@@ -141,12 +141,11 @@ export class SecondFactorHandler implements SecondFactorAuthHandler {
 		this._otherLoginDialog = Dialog.showActionDialog({
 			title: lang.get("secondFactorConfirmLogin_label"),
 			child: {view: () => m(".text-break.pt", text)},
-			okAction: () => {
-				let serviceData = createSecondFactorAuthData()
-				serviceData.session = session._id
-				serviceData.type = null
-				serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST,
-					serviceData)
+			okAction: async () => {
+				await this._loginFacade.authenticateWithSecondFactor(createSecondFactorAuthData({
+					session: session._id,
+					type: null, // Marker for confirming another session
+				}))
 				if (this._otherLoginDialog) {
 					this._otherLoginDialog.close()
 					this._otherLoginSessionId = null

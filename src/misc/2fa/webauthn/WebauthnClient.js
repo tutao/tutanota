@@ -15,7 +15,11 @@ import type {
 	PublicKeyCredential,
 	PublicKeyCredentialCreationOptions,
 	PublicKeyCredentialRequestOptions
-} from "./WebauhnTypes"
+} from "./WebauthnTypes"
+import {ProgrammingError} from "../../../api/common/error/ProgrammingError"
+import {COSEAlgorithmIdentifierNames} from "./WebauthnTypes"
+
+const WEBAUTHN_TIMEOUT_MS = 60000
 
 export class WebauthnClient {
 	/**
@@ -59,11 +63,11 @@ export class WebauthnClient {
 				name: `${userId} ${mailAddress} ${name}`,
 				displayName: name,
 			},
-			pubKeyCredParams: [{alg: -7, type: "public-key"}],
+			pubKeyCredParams: [{alg: COSEAlgorithmIdentifierNames.ES256, type: "public-key"}],
 			authenticatorSelection: {
 				authenticatorAttachment: "cross-platform",
 			},
-			timeout: 60000,
+			timeout: WEBAUTHN_TIMEOUT_MS,
 			attestation: "none"
 		}
 		const credential = await this.api.create({publicKey: publicKeyCredentialCreationOptions, signal})
@@ -96,7 +100,7 @@ export class WebauthnClient {
 				appid: this.appId,
 			},
 			userVerification: "discouraged",
-			timeout: 60000,
+			timeout: WEBAUTHN_TIMEOUT_MS,
 		}
 		let assertion
 		try {
@@ -105,13 +109,13 @@ export class WebauthnClient {
 			if (e.name === "AbortError") {
 				throw new WebauthnCancelledError(e)
 			} else {
-				throw new WebauthnUnrecoverableError(e)
+				throw new WebauthnError(e)
 			}
 		}
 
 		const publicKeyCredential: ?PublicKeyCredential = downcast(assertion)
 		if (publicKeyCredential == null) {
-			throw new Error("TODO")
+			throw new ProgrammingError("Webauthn credential could not be unambiguously resolved")
 		}
 		const response: AuthenticatorAssertionResponse = downcast(publicKeyCredential.response)
 
@@ -124,9 +128,9 @@ export class WebauthnClient {
 	}
 
 	_getChallenge(): Uint8Array {
+		// Should be replaced with our own entropy generator in the future.
 		const random = new Uint8Array(32)
-		const c = typeof crypto !== 'undefined' ? crypto : msCrypto
-		c.getRandomValues(random)
+		crypto.getRandomValues(random)
 		return random
 	}
 
@@ -162,15 +166,9 @@ export class WebauthnClient {
 	}
 }
 
-export class WebauthnUnrecoverableError extends TutanotaError {
+export class WebauthnError extends TutanotaError {
 	constructor(error: Error) {
 		super("WebauthnUnrecoverableError", `${error.name} ${String(error)}`);
-	}
-}
-
-export class WebauthnRecoverableError extends TutanotaError {
-	constructor(error: Error) {
-		super("WebauthnRecoverableError", `${error.name} ${String(error)}`);
 	}
 }
 
