@@ -82,6 +82,14 @@ const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 export type NewSessionData = {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}
 
 export interface LoginFacade {
+	/**
+	 * Create session and log in. Changes internal state to refer to the logged in user.
+	 * @param mailAddress
+	 * @param passphrase
+	 * @param clientIdentifier
+	 * @param persistentSession
+	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
+	 */
 	createSession(
 		mailAddress: string,
 		passphrase: string,
@@ -90,6 +98,10 @@ export interface LoginFacade {
 		permanentLogin: boolean
 	): Promise<NewSessionData>;
 
+	/**
+	 * Create external (temporary mailbox for password-protected emails) session and log in.
+	 * Changes internal state to refer to the logged in user.
+	 */
 	createExternalSession(
 		userId: Id,
 		passphrase: string,
@@ -98,6 +110,7 @@ export interface LoginFacade {
 		persistentSession: boolean
 	): Promise<NewSessionData>;
 
+	/** Resumes previously created session (using persisted credentials). */
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}>;
 
 	deleteSession(accessToken: Base64Url): Promise<void>;
@@ -114,16 +127,20 @@ export interface LoginFacade {
 
 	deleteAccount(password: string, reason: string, takeover: string): Promise<void>;
 
+	/** Cancels 2FA process. */
 	cancelCreateSession(sessionId: IdTuple): Promise<void>;
 
+	/** Finishes 2FA process either using second factor or approving session on another client. */
 	authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void>;
 
 	resetSession(): Promise<void>;
 
 	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: ?Hex, targetAccountMailAddress: string): Promise<void>;
 
+	/** Changes user password to another one using recoverCode instead of the old password. */
 	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
 
+	/** Deletes second factors using recoverCode as second factor. */
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>;
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>;
@@ -179,9 +196,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		return Promise.resolve()
 	}
 
-	/**
-	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
-	 */
+	/** @inheritDoc */
 	createSession(
 		mailAddress: string,
 		passphrase: string,
@@ -278,6 +293,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			}))
 	}
 
+	/** @inheritDoc */
 	createExternalSession(
 		userId: Id,
 		passphrase: string,
@@ -329,6 +345,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			})
 	}
 
+	/** @inheritDoc */
 	async cancelCreateSession(sessionId: IdTuple): Promise<void> {
 		if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
 			throw new Error("Trying to cancel session creation but the state is invalid")
@@ -339,6 +356,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
 	}
 
+	/** @inheritDoc */
 	async authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void> {
 		await serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, data)
 	}
@@ -714,6 +732,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
+	/** @inheritDoc */
 	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
 		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
@@ -763,6 +782,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			})
 	}
 
+	/** @inheritDoc */
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
 		return this._loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
