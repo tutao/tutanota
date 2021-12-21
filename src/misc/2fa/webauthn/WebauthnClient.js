@@ -1,7 +1,7 @@
 // @flow
 import {decode} from "cborg"
 import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {getHttpOrigin} from "../../../api/common/Env"
+import {getHttpOrigin, isApp, isDesktop} from "../../../api/common/Env"
 import type {U2fRegisteredDevice} from "../../../api/entities/sys/U2fRegisteredDevice"
 import {createU2fRegisteredDevice} from "../../../api/entities/sys/U2fRegisteredDevice"
 import type {U2fChallenge} from "../../../api/entities/sys/U2fChallenge"
@@ -16,8 +16,8 @@ import type {
 	PublicKeyCredentialCreationOptions,
 	PublicKeyCredentialRequestOptions
 } from "./WebauthnTypes"
-import {ProgrammingError} from "../../../api/common/error/ProgrammingError"
 import {COSEAlgorithmIdentifierNames} from "./WebauthnTypes"
+import {ProgrammingError} from "../../../api/common/error/ProgrammingError"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -46,7 +46,9 @@ export class WebauthnClient {
 	}
 
 	isSupported(): boolean {
-		return this.api != null
+		// We explicitly disable apps and desktop because even if webauthn somehow works there it won't match our domain.
+		// For those platforms another implementation with separate webview should be used instead.
+		return !isDesktop() && !isApp() && this.api != null
 	}
 
 	async register(userId: Id, name: string, mailAddress: string, signal: AbortSignal): Promise<U2fRegisteredDevice> {

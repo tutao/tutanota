@@ -74,7 +74,7 @@ export class EditSecondFactorDialog {
 		this._webauthnSupport = webauthnSupport
 		this._totpKeys = totpKeys
 
-		this._selectedType = FactorTypes.WEBAUTHN
+		this._selectedType = webauthnSupport ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
 		this._otpInfo = new LazyLoaded(async () => {
 			const url = await this._getOtpAuthUrl(this._totpKeys.readableKey)
 			let totpQRCodeSvg
