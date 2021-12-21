@@ -95,7 +95,14 @@ class ClientDetector {
 			typeof Array.prototype.includes === "function" &&
 			typeof Object.entries === "function" &&
 			typeof Object.values === "function" &&
-			typeof Object.fromEntries === "function" &&
+//			typeof Object.fromEntries === "function" &&
+/*
+
+Attempt to workaround issue #3398 (missing "Object.fromEntries" support in Chrome 77). Effectively undoing commit a053c40ad96e5cdc2f9e70101eafac9b1143a415.
+
+For more details: [ https://github.com/tutao/tutanota/issues/3398#issuecomment-998262005 ].
+
+*/
 			typeof Symbol !== "undefined" &&
 			typeof Uint8Array !== "undefined" &&
 			typeof Proxy !== "undefined" &&
