@@ -3,6 +3,7 @@ import type {SettingsSection, SettingsValue} from "./SettingsModel"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import m from "mithril"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
+import {TextFieldN} from "../../gui/base/TextFieldN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {createNotAvailableForFreeClickHandler} from "../../misc/SubscriptionDialogs"
 import * as AddUserDialog from "../AddUserDialog"
@@ -14,34 +15,32 @@ import * as AddGroupDialog from "../AddGroupDialog"
 import {getCurrentCount} from "../../subscription/PriceUtils"
 import {BookingItemFeatureType, Const} from "../../api/common/TutanotaConstants"
 import type {Booking} from "../../api/entities/sys/Booking"
+import {BookingTypeRef} from "../../api/entities/sys/Booking"
 import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
 import {
-	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
-	isBusinessFeatureActive, isSharingActive,
+	isBusinessFeatureActive,
+	isSharingActive,
 	isWhitelabelActive
 } from "../../subscription/SubscriptionUtils"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import * as ContactFormEditor from "../ContactFormEditor"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {locator} from "../../api/main/MainLocator"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {BookingTypeRef} from "../../api/entities/sys/Booking"
 import {GENERATED_MAX_ID, getEtId} from "../../api/common/utils/EntityUtils"
-import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
-import {NotFoundError} from "../../api/common/error/RestError"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
-import {worker} from "../../api/main/WorkerClient"
+import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
+import {NotFoundError} from "../../api/common/error/RestError"
 import {formatStorageSize} from "../../misc/Formatter"
-import {serviceRequest} from "../../api/main/Entity"
 import {SysService} from "../../api/entities/sys/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {MailAddressAliasServiceReturnTypeRef} from "../../api/entities/sys/MailAddressAliasServiceReturn"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
+import type {CustomerFacade} from "../../api/worker/facades/CustomerFacade"
+import {serviceRequest} from "../../api/main/ServiceRequest"
 
 export class ExtensionsSettingsSection implements SettingsSection {
 	heading: string
@@ -59,11 +58,13 @@ export class ExtensionsSettingsSection implements SettingsSection {
 	businessFeatureFieldValue: Stream<string>
 	customer: ?Customer
 	contactFormsFieldValue: Stream<string>
+	customerFacade: CustomerFacade
 
-	constructor() {
+	constructor(customerFacade: CustomerFacade) {
 		this.heading = "Extensions"
 		this.category = "Subscription"
 		this.settingsValues = []
+		this.customerFacade = customerFacade
 
 		const loadingString = lang.get("loading_msg")
 		this.usersFieldValue = stream(loadingString)
@@ -360,7 +361,7 @@ export class ExtensionsSettingsSection implements SettingsSection {
 	}
 
 	updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
-		return worker.customerFacade.readUsedCustomerStorage(getEtId(customer)).then(usedStorage => {
+		return this.customerFacade.readUsedCustomerStorage(getEtId(customer)).then(usedStorage => {
 			const usedStorageFormatted = formatStorageSize(Number(usedStorage))
 			const totalStorageFormatted = formatStorageSize(getTotalStorageCapacity(customer, customerInfo, this.lastBooking)
 				* Const.MEMORY_GB_FACTOR)

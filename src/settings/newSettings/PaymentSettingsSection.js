@@ -9,11 +9,9 @@ import m from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "../../subscription/PriceUtils"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../../api/common/TutanotaConstants"
-import {neverNull} from "../../api/common/utils/Utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {createNotAvailableForFreeClickHandler} from "../../misc/SubscriptionDialogs"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
 import * as PaymentDataDialog from "../../subscription/PaymentDataDialog"
 import {isIOSApp} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController"
@@ -22,7 +20,6 @@ import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import type {AccountingInfo} from "../../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../../api/entities/sys/AccountingInfo"
-import {load, serviceRequest, serviceRequestVoid} from "../../api/main/Entity"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import type {InvoiceInfo} from "../../api/entities/sys/InvoiceInfo"
 import {InvoiceInfoTypeRef} from "../../api/entities/sys/InvoiceInfo"
@@ -38,14 +35,18 @@ import type {Booking} from "../../api/entities/sys/Booking"
 import {BookingTypeRef} from "../../api/entities/sys/Booking"
 import {createDebitServicePutData} from "../../api/entities/sys/DebitServicePutData"
 import {SysService} from "../../api/entities/sys/Services"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {getPreconditionFailedPaymentMsg} from "../../subscription/SubscriptionUtils"
 import {Dialog} from "../../gui/base/Dialog"
 import {_showPayConfirmDialog, getPostingTypeText} from "../../subscription/PaymentViewer"
 import type {TableAttrs} from "../../gui/base/TableN"
 import {ColumnWidth} from "../../gui/base/TableN"
-import {fileController} from "../../file/FileController"
+import {neverNull, ofClass} from "@tutao/tutanota-utils"
+import {EntityClient} from "../../api/common/EntityClient"
+import {BookingFacade} from "../../api/worker/facades/BookingFacade"
+import type {CustomerFacade} from "../../api/worker/facades/CustomerFacade"
+import {serviceRequest, serviceRequestVoid} from "../../api/main/ServiceRequest"
+import {FileController} from "../../file/FileController"
 
 export class PaymentSettingsSection implements SettingsSection {
 	heading: string
@@ -60,11 +61,19 @@ export class PaymentSettingsSection implements SettingsSection {
 	lastBooking: ?Booking
 	outstandingBookingsPrice: number
 	paymentBusy: boolean
+	entityClient: EntityClient
+	bookingFacade: BookingFacade
+	customerFacade: CustomerFacade
+	fileController: FileController
 
-	constructor() {
+	constructor(entityClient: EntityClient, bookingFacade: BookingFacade, customerFacade: CustomerFacade, fileController: FileController) {
 		this.heading = "Payment"
 		this.category = "Payment"
 		this.settingsValues = []
+		this.entityClient = entityClient
+		this.bookingFacade = bookingFacade
+		this.customerFacade = customerFacade
+		this.fileController = fileController
 
 		this.invoiceAddressField = new HtmlEditor()
 			.setMinHeight(140)
@@ -74,29 +83,29 @@ export class PaymentSettingsSection implements SettingsSection {
 			.setEnabled(false)
 			.setPlaceholderId("invoiceAddress_label")
 
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => {
-				this.customer = customer
-				return load(CustomerInfoTypeRef, customer.customerInfo)
-			})
-			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
-			.then(accountingInfo => {
-				this.updateAccountingInfoData(accountingInfo)
+		this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		    .then(customer => {
+			    this.customer = customer
+			    return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		    })
+		    .then(customerInfo => this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+		    .then(accountingInfo => {
+			    this.updateAccountingInfoData(accountingInfo)
 
-				load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
-					.then((invoiceInfo) => {
-						this.invoiceInfo = invoiceInfo
-						m.redraw()
-					})
-			})
-			.then(() => this.loadPostings())
-			.then(() => this.loadBookings())
-			.finally(() => {
-				// this.settingsValues.push(this.createInvoiceAddressFieldSetting())
-				this.settingsValues.push(this.createPaymentMethodSetting())
-				this.settingsValues.push(this.createAccountBalanceSetting())
-				this.settingsValues.push(this.createInvoicePaymentSetting())
-			})
+			    this.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+			        .then((invoiceInfo) => {
+				        this.invoiceInfo = invoiceInfo
+				        m.redraw()
+			        })
+		    })
+		    .then(() => this.loadPostings())
+		    .then(() => this.loadBookings())
+		    .finally(() => {
+			    // this.settingsValues.push(this.createInvoiceAddressFieldSetting())
+			    this.settingsValues.push(this.createPaymentMethodSetting())
+			    this.settingsValues.push(this.createAccountBalanceSetting())
+			    this.settingsValues.push(this.createInvoicePaymentSetting())
+		    })
 	}
 
 	createInvoiceAddressFieldSetting() {
@@ -118,7 +127,7 @@ export class PaymentSettingsSection implements SettingsSection {
 						let nextPayment = this.postings.length
 							? Number(this.postings[0].balance) * -1
 							: 0
-						showProgressDialog("pleaseWait_msg", worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
+						showProgressDialog("pleaseWait_msg", this.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
 						})).then(price => {
 							return PaymentDataDialog.show(neverNull(this.customer), neverNull(this.accountingInfo), price).then(success => {
@@ -202,11 +211,9 @@ export class PaymentSettingsSection implements SettingsSection {
 							label: "download_action",
 							icon: () => Icons.Download,
 							click: () => {
-								showProgressDialog("pleaseWait_msg", worker
-									.customerFacade
-									.downloadInvoice(neverNull(posting.invoiceNumber))
-								)
-									.then(pdfInvoice => fileController.open(pdfInvoice))
+								showProgressDialog("pleaseWait_msg", this.customerFacade
+								                                         .downloadInvoice(neverNull(posting.invoiceNumber))
+								).then(pdfInvoice => this.fileController.open(pdfInvoice))
 							}
 						}
 						: null
@@ -303,7 +310,7 @@ export class PaymentSettingsSection implements SettingsSection {
 			})
 			.then(errorId => {
 				if (errorId) {
-					return Dialog.error(errorId)
+					return Dialog.message(errorId)
 				}
 			})
 			.finally(() => this.paymentBusy = false)

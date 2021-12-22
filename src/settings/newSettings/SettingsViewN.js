@@ -21,10 +21,10 @@ import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {theme} from "../../gui/theme"
 import {locator} from "../../api/main/MainLocator"
 import type {EntityUpdateData} from "../../api/main/EventController"
-import {noOp} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {AboutDialog} from "../AboutDialog"
 import {isTutanotaDomain} from "../../api/common/Env"
+import {noOp} from "@tutao/tutanota-utils"
 
 export class SettingsViewN implements CurrentView {
 

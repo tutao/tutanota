@@ -1,12 +1,13 @@
 // @flow
 import type {SettingsSection, SettingsTableAttrs, SettingsValue} from "./SettingsModel"
+import {SettingsTable} from "./SettingsModel"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {logins} from "../../api/main/LoginController"
+import type {TableAttrs, TableLineAttrs} from "../../gui/base/TableN"
 import {ColumnWidth} from "../../gui/base/TableN"
 import {createNotAvailableForFreeClickHandler} from "../../misc/SubscriptionDialogs"
 import {showPurchaseGiftCardDialog} from "../../subscription/giftcards/PurchaseGiftCardDialog"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {TableAttrs, TableLineAttrs} from "../../gui/base/TableN"
 import {formatDate} from "../../misc/Formatter"
 import {formatPrice} from "../../subscription/PriceUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
@@ -19,24 +20,26 @@ import m from "mithril"
 import {GiftCardMessageEditorField} from "../../subscription/giftcards/GiftCardMessageEditorField"
 import {locator} from "../../api/main/MainLocator"
 import type {GiftCard} from "../../api/entities/sys/GiftCard"
-import {SettingsTable} from "./SettingsModel"
-import {assertNotNull} from "../../api/common/utils/Utils"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
+import type {IUserController} from "../../api/main/UserController"
+import {neverNull} from "../../../packages/tutanota-utils"
 
 export class GiftCardSettingsSection implements SettingsSection {
 	heading: string
 	category: string
+	userController: IUserController
 	settingsValues: Array<SettingsValue<any>>
 
 	giftCards: Map<Id, GiftCard>
 
-	constructor() {
+	constructor(userController: IUserController) {
 		this.heading = "Gift Cards"
 		this.category = "Gift Cards"
 		this.settingsValues = []
+		this.userController = userController
 
 		this.giftCards = new Map()
-		loadGiftCards(assertNotNull(logins.getUserController().user.customer))
+		loadGiftCards(neverNull(this.userController.user.customer))
 			.then(giftCards => {
 				giftCards.forEach(giftCard => this.giftCards.set(elementIdPart(giftCard._id), giftCard))
 			})
@@ -110,7 +113,7 @@ export class GiftCardSettingsSection implements SettingsSection {
 										giftCard.message = message()
 										locator.entityClient.update(giftCard)
 										       .then(() => dialog.close())
-										       .catch(() => Dialog.error("giftCardUpdateError_msg"))
+										       .catch(() => Dialog.message("giftCardUpdateError_msg"))
 										showGiftCardToShare(giftCard)
 									},
 									okActionTextId: "save_action",

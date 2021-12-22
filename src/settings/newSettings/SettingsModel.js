@@ -10,13 +10,13 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {GlobalSettingsSection} from "./GlobalSettingsSection"
 import {MailDropdownSettingsSection, MailSettingsSection} from "./MailSettingsSection"
-import {AppearanceSettingsSection} from "./AppearanceSettingsSection"
 import {WhitelabelSettingsSection} from "./WhitelabelSettingsSection"
 import {SubscriptionSettingsSection} from "./SubscriptionSettingsSection"
 import {PaymentSettingsSection} from "./PaymentSettingsSection"
 import {GiftCardSettingsSection} from "./GiftCardSettingsSection"
 import {ExtensionsSettingsSection} from "./ExtensionsSettingsSection"
-import type {lazy} from "../../api/common/utils/Utils"
+import {locator} from "../../api/main/MainLocator"
+import {AppearanceSettingsSection} from "./AppearanceSettingsSection"
 
 export interface SettingsSection {
 	heading: string,
@@ -43,13 +43,13 @@ export class SettingsModel {
 		this.sections.push(new SessionSettings())
 		this.sections.push(new MailSettingsSection(userController))
 		this.sections.push(new MailDropdownSettingsSection(userController))
-		this.sections.push(new AppearanceSettingsSection(userController))
+		this.sections.push(new AppearanceSettingsSection(userController, locator, locator.entityClient))
 		this.sections.push(new GlobalSettingsSection(userController))
-		this.sections.push(new WhitelabelSettingsSection(userController))
+		this.sections.push(new WhitelabelSettingsSection(userController, locator.entityClient))
 		this.sections.push(new SubscriptionSettingsSection())
-		this.sections.push(new GiftCardSettingsSection())
-		this.sections.push(new ExtensionsSettingsSection())
-		this.sections.push(new PaymentSettingsSection())
+		this.sections.push(new GiftCardSettingsSection(userController))
+		this.sections.push(new ExtensionsSettingsSection(locator.customerFacade))
+		this.sections.push(new PaymentSettingsSection(locator.entityClient, locator.bookingFacade, locator.customerFacade, locator.fileController))
 		this.allSections = this.sections
 	}
 

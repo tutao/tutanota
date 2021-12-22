@@ -6,7 +6,6 @@ import {getDefaultSenderFromUser, getFolderName} from "../../mail/model/MailUtil
 import {getSignatureType, show as showEditSignatureDialog} from "../EditSignatureDialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {locator} from "../../api/main/MainLocator"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {MailboxProperties} from "../../api/entities/tutanota/MailboxProperties"
 import {MailboxPropertiesTypeRef} from "../../api/entities/tutanota/MailboxProperties"
 import {getReportMovedMailsType, loadMailboxProperties} from "../../misc/MailboxPropertiesUtils"
@@ -60,7 +59,6 @@ export class MailSettingsSection implements SettingsSection {
 
 	defaultSender: Stream<?string>
 	senderName: Stream<string>
-	signature: Stream<string>
 	defaultUnconfidential: Stream<?boolean>
 	sendPlaintext: Stream<?boolean>
 	noAutomaticContacts: Stream<?boolean>
@@ -268,7 +266,7 @@ export class MailSettingsSection implements SettingsSection {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", worker.indexerFacade.enableMailIndexing())
 						.catch(ofClass(IndexingNotSupportedError, () => {
-							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+							Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}))
 				} else {
 					showProgressDialog("pleaseWait_msg", worker.indexerFacade.disableMailIndexing("Disabled by user"))

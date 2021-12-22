@@ -2,15 +2,13 @@
 
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import type {MaybeLazy} from "../../api/common/utils/Utils"
-import {resolveMaybeLazy} from "../../api/common/utils/Utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 
 export type SettingsSelectListAttrs<T> = {|
 	items: $ReadOnlyArray<T>,
 	selectedItem: Stream<?T>,
-	emptyListMessage: MaybeLazy<TranslationKey>,
+	emptyListMessage: TranslationKey,
 	renderItem: (T) => Children,
 |}
 
@@ -42,7 +40,7 @@ export class SettingsSelectList<T> implements MComponent<SettingsSelectListAttrs
 			},
 			a.items.length > 0
 				? a.items.map((item) => this.renderRow(item, vnode))
-				: m(".row-selected.text-center.pt", lang.get(resolveMaybeLazy(a.emptyListMessage))))
+				: m(".row-selected.text-center.pt", lang.get(a.emptyListMessage)))
 	}
 
 	onupdate(vnode: Vnode<SettingsSelectListAttrs<T>>) {

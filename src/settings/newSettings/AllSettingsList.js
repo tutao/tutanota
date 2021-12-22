@@ -4,8 +4,6 @@ import {assertMainOrNode} from "../../api/common/Env"
 import type {SettingsSection} from "./SettingsModel"
 import {SettingsModel} from "./SettingsModel"
 import {SettingsSelectList} from "./SettingsSelectList"
-import {neverNull} from "../../api/common/utils/Utils"
-import {header} from "../../gui/base/Header"
 
 assertMainOrNode()
 
@@ -18,8 +16,6 @@ export class AllSettingsList implements MComponent<AllSettingsListAttrs> {
 	sectionsList: Array<SettingsSection>
 
 	view(vnode: Vnode<AllSettingsListAttrs>): Children {
-		const searchBar = neverNull(header.searchBar)
-		// TODO initiate searchBar
 		const {model} = vnode.attrs
 		return m(SettingsSelectList, {
 			items: model.sections,
