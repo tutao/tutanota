@@ -64,7 +64,6 @@ public final class Native {
 	private final ICredentialsEncryption credentialsEncryption;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
 	private WebMessagePort webMessagePort;
-	private boolean isMessageChannelInitialized = false;
 
 	Native(MainActivity activity, SseStorage sseStorage, AlarmNotificationsManager alarmNotificationsManager) {
 		this.activity = activity;
@@ -83,13 +82,6 @@ public final class Native {
 
 	@JavascriptInterface
 	public void startWebMessageChannel() {
-
-		if (isMessageChannelInitialized) {
-			throw new RuntimeException("Native message channel must only be initialized once");
-		}
-
-		isMessageChannelInitialized = true;
-
 		// WebView.post ensures that webview methods are called on the correct thread
 		activity.getWebView().post(this::initMessageChannel);
 	}
