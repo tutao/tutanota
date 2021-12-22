@@ -5,15 +5,10 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import type {Booking} from "../../api/entities/sys/Booking"
 import {BookingTypeRef} from "../../api/entities/sys/Booking"
 import {isWhitelabelActive} from "../../subscription/SubscriptionUtils"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {load, loadRange, serviceRequest, update} from "../../api/main/Entity"
-import {assertNotNull, downcast, getCustomMailDomains, getWhitelabelDomain, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {CustomerProperties} from "../../api/entities/sys/CustomerProperties"
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
-import type {WhitelabelStatusSettingsAttrs} from "../whitelabel/WhitelabelStatusSettings"
-import {WhitelabelStatusSettings} from "../whitelabel/WhitelabelStatusSettings"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
@@ -44,7 +39,6 @@ import {FeatureType, OperationType} from "../../api/common/TutanotaConstants"
 import type {WhitelabelRegistrationSettingsAttrs} from "../whitelabel/WhitelabelRegistrationSettings"
 import {WhitelabelRegistrationSettings} from "../whitelabel/WhitelabelRegistrationSettings"
 import type {IUserController} from "../../api/main/UserController"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import m from "mithril"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {SysService} from "../../api/entities/sys/Services"
@@ -56,8 +50,12 @@ import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
 import stream from "mithril/stream/stream.js"
 import {ButtonN} from "../../gui/base/ButtonN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
+import {TextFieldN} from "../../gui/base/TextFieldN"
+import {assertNotNull, downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
+import {EntityClient} from "../../api/common/EntityClient"
+import {serviceRequest} from "../../api/main/ServiceRequest"
+import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/Utils"
 
 export class WhitelabelSettingsSection implements SettingsSection {
 	heading: string
@@ -73,21 +71,23 @@ export class WhitelabelSettingsSection implements SettingsSection {
 	certificateInfo: ?CertificateInfo
 	whitelabelDomainInfo: ?DomainInfo
 	customJsonTheme: ?Theme
+	entityClient: EntityClient
 
-	constructor(userController: IUserController) {
+	constructor(userController: IUserController, entityClient: EntityClient) {
 		this.heading = "Whitelabel"
 		this.category = "Whitelabel"
 		this.settingsValues = []
+		this.entityClient = entityClient
 
 		this.lastBooking = null
 		this.whitelabelActive = isWhitelabelActive(this.lastBooking)
 		this.customer = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(userController.user.customer))
+			return this.entityClient.load(CustomerTypeRef, neverNull(userController.user.customer))
 		})
 		this.customerProperties = new LazyLoaded(() =>
-			this.customer.getAsync().then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
+			this.customer.getAsync().then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
 		this.customerInfo = new LazyLoaded(() => {
-			return this.customer.getAsync().then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return this.customer.getAsync().then(customer => entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
 		this.settingsValues.push(this.createWhitelabelStatusSetting())
@@ -145,7 +145,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 				const index = customerProps.notificationMailTemplates.findIndex((t) => t.language === template.language)
 				if (index !== -1) {
 					customerProps.notificationMailTemplates.splice(index, 1)
-					update(customerProps)
+					this.entityClient.update(customerProps)
 				}
 			}))
 		}
@@ -181,7 +181,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		const customTheme = this.customJsonTheme
 		const onThemeChanged = (theme) => {
 			neverNull(this.whitelabelConfig).jsonTheme = JSON.stringify(theme)
-			update(neverNull(this.whitelabelConfig))
+			this.entityClient.update(neverNull(this.whitelabelConfig))
 			theme.themeId = assertNotNull(this.whitelabelDomainInfo).domain
 			// Make sure to not apply it always with realtime color change later
 			themeController.updateCustomTheme(theme, false)
@@ -189,8 +189,10 @@ export class WhitelabelSettingsSection implements SettingsSection {
 
 		const whitelabelThemeSettingsAttrs = {
 			customTheme,
-			onThemeChanged,
+			whitelabelConfig: this.whitelabelConfig,
+			whitelabelDomainInfo: assertNotNull(this.whitelabelDomainInfo),
 		}
+
 
 		return {
 			name: "customColors_label",
@@ -230,7 +232,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 			metaTags = this.whitelabelConfig.metaTags
 			onMetaTagsChanged = (metaTags) => {
 				neverNull(this.whitelabelConfig).metaTags = metaTags
-				update(neverNull(this.whitelabelConfig))
+				this.entityClient.update(neverNull(this.whitelabelConfig))
 			}
 		}
 
@@ -253,7 +255,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		if (whitelabelConfig) {
 			onPrivacyStatementUrlChanged = (privacyStatementUrl) => {
 				whitelabelConfig.privacyStatementUrl = privacyStatementUrl
-				update(whitelabelConfig)
+				this.entityClient.update(whitelabelConfig)
 			}
 		}
 
@@ -262,7 +264,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		if (whitelabelConfig) {
 			onImprintUrlChanged = (imprintUrl) => {
 				whitelabelConfig.imprintUrl = imprintUrl
-				update(whitelabelConfig)
+				this.entityClient.update(whitelabelConfig)
 			}
 		}
 
@@ -286,7 +288,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {
 			if (languageFile) {
 				neverNull(this.whitelabelConfig).germanLanguageCode = languageFile
-				update(neverNull(this.whitelabelConfig))
+				this.entityClient.update(neverNull(this.whitelabelConfig))
 				lang.setLanguage({code: languageFile, languageTag: lang.languageTag})
 			}
 		}
@@ -321,7 +323,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 					domainWrapper.value = domain
 					neverNull(this.whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
 				}
-				update(neverNull(this.whitelabelConfig))
+				this.entityClient.update(neverNull(this.whitelabelConfig))
 			}
 			if ((this.whitelabelConfig.whitelabelRegistrationDomains.length > 0)) {
 				currentRegistrationDomain = this.whitelabelConfig.whitelabelRegistrationDomains[0].value
@@ -333,7 +335,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		if (this.whitelabelConfig) {
 			onWhitelabelCodeChanged = (code) => {
 				neverNull(this.whitelabelConfig).whitelabelCode = code
-				update(neverNull(this.whitelabelConfig))
+				this.entityClient.update(neverNull(this.whitelabelConfig))
 			}
 		}
 
@@ -363,7 +365,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 		if (domainInfo && domainInfo.whitelabelConfig
 		) {
 			return Promise.all([
-				load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
+				this.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
 				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef)
 					.then((response) => neverNull(response.certificateInfo))
 			]).then(([whitelabelConfig, certificateInfo]) => ({whitelabelConfig, certificateInfo}))
@@ -378,13 +380,13 @@ export class WhitelabelSettingsSection implements SettingsSection {
 				return this.tryLoadWhitelabelConfig(this.whitelabelDomainInfo).then(data => {
 					this.whitelabelConfig = data && data.whitelabelConfig
 					this.certificateInfo = data && data.certificateInfo
-					return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-						.then(bookings => {
-							this.lastBooking = bookings.length === 1 ? bookings[0] : null
-							this.customJsonTheme = (this.whitelabelConfig) ? JSON.parse(this.whitelabelConfig.jsonTheme) : null
-							m.redraw()
-							this.customerProperties.getAsync().then(m.redraw)
-						})
+					return this.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+					           .then(bookings => {
+						           this.lastBooking = bookings.length === 1 ? bookings[0] : null
+						           this.customJsonTheme = (this.whitelabelConfig) ? JSON.parse(this.whitelabelConfig.jsonTheme) : null
+						           m.redraw()
+						           this.customerProperties.getAsync().then(m.redraw)
+					           })
 				})
 			}
 		)

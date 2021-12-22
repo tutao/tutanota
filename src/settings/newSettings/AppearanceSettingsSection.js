@@ -10,19 +10,18 @@ import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {getLanguage, lang, languageCodeToTag, languages} from "../../misc/LanguageViewModel"
 import {deviceConfig} from "../../misc/DeviceConfig"
-import {Mode} from "../../api/common/Env"
+import {isDesktop} from "../../api/common/Env"
 import {styles} from "../../gui/styles"
 import stream from "mithril/stream/stream.js"
 import type {TimeFormatEnum, WeekStartEnum} from "../../api/common/TutanotaConstants"
 import {TimeFormat, WeekStart} from "../../api/common/TutanotaConstants"
-import {downcast, noOp} from "../../api/common/utils/Utils"
-import {load, update} from "../../api/main/Entity"
-import {incrementDate} from "../../api/common/utils/DateUtils"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
+import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import {getHourCycle} from "../../misc/Formatter"
-import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/UserSettingsGroupRoot"
 import type {IUserController} from "../../api/main/UserController"
+import {downcast, incrementDate, noOp, promiseMap} from "@tutao/tutanota-utils"
+import {IMainLocator} from "../../api/main/MainLocator"
+import {EntityClient} from "../../api/common/EntityClient"
 
 export class AppearanceSettingsSection implements SettingsSection {
 	heading: string
@@ -35,10 +34,14 @@ export class AppearanceSettingsSection implements SettingsSection {
 	userSettingsGroupRoot: UserSettingsGroupRoot
 	currentHourFormat: Stream<NumberString>
 	currentWeekStart: Stream<NumberString>
+	mainLocator: IMainLocator
+	entityClient: EntityClient
 
-	constructor(userController: IUserController) {
+	constructor(userController: IUserController, mainLocator: IMainLocator, entityClient: EntityClient) {
 		this.heading = "Appearance"
 		this.category = "Mails"
+		this.mainLocator = mainLocator
+		this.entityClient = entityClient
 		this.settingsValues = []
 
 		this.userSettingsGroupRoot = userController.userSettingsGroupRoot
@@ -67,21 +70,17 @@ export class AppearanceSettingsSection implements SettingsSection {
 			                .concat({name: lang.get("automatic_label"), value: null}),
 			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
 			selectedValue: this.currentLanguage,
-			selectionChangedHandler: (value) => {
+			selectionChangedHandler: async (value) => {
 				deviceConfig.setLanguage(value)
-				this.currentLanguage(value)
 				const newLanguage = value
 					? {code: value, languageTag: languageCodeToTag(value)}
 					: getLanguage()
-				lang.setLanguage(newLanguage)
-				    .then(() => env.mode === Mode.Desktop ?
-					    import("../../native/main/SystemApp").then(({changeSystemLanguage}) => changeSystemLanguage(newLanguage))
-					    : Promise.resolve()
-				    )
-				    .then(() => {
-					    styles.updateStyle("main")
-				    })
-				    .then(m.redraw)
+				await lang.setLanguage(newLanguage)
+				if (isDesktop()) {
+					await this.mainLocator.systemApp.changeSystemLanguage(newLanguage)
+				}
+				styles.updateStyle("main")
+				m.redraw()
 			}
 		}
 
@@ -175,7 +174,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 			selectionChangedHandler: (value) => {
 				this.userSettingsGroupRoot.timeFormat = value
 				this.currentHourFormat(value)
-				update(this.userSettingsGroupRoot)
+				this.entityClient.update(this.userSettingsGroupRoot)
 			}
 		}
 
@@ -186,10 +185,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 		}
 	}
 
-	createWeekStartSettings()
-		:
-		SettingsValue<DropDownSelectorAttrs<WeekStartEnum>> {
-
+	createWeekStartSettings(): SettingsValue<DropDownSelectorAttrs<WeekStartEnum>> {
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {weekday: "long"})
 		const calcDate = new Date()
 		const sundayName = weekdayFormat.format(incrementDate(calcDate, -calcDate.getDay())) // Sunday as reference
@@ -209,7 +205,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 			selectionChangedHandler: (value) => {
 				this.userSettingsGroupRoot.startOfTheWeek = value
 				this.currentWeekStart(value)
-				update(this.userSettingsGroupRoot)
+				this.entityClient.update(this.userSettingsGroupRoot)
 			}
 		}
 
@@ -223,11 +219,11 @@ export class AppearanceSettingsSection implements SettingsSection {
 	entityEventReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<mixed> {
 		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				return load(UserSettingsGroupRootTypeRef, update.instanceId)
-					.then((settings) => {
-						lang.updateFormats({hourCycle: getHourCycle(settings)})
-						m.redraw()
-					})
+				return this.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId)
+				           .then((settings) => {
+					           lang.updateFormats({hourCycle: getHourCycle(settings)})
+					           m.redraw()
+				           })
 			}
 		}).then(noOp)
 	}

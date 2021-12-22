@@ -1,10 +1,10 @@
 // @flow
 
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import type {lazy} from "../../api/common/utils/Utils"
 import type {lazyIcon} from "../../gui/base/Icon"
 import {isSelectedPrefix} from "../../gui/base/NavButtonN"
 import {NEW_SETTINGS_PREFIX} from "../../misc/RouteChange"
+import type {lazy} from "@tutao/tutanota-utils"
 
 export class SettingsFolderN {
 	url: string; // can be changed from outside

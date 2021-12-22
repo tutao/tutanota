@@ -51,11 +51,8 @@ import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import {GroupTypeRef} from "../../api/entities/sys/Group"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import {getUserGroupMemberships} from "../../api/common/utils/GroupUtils"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import {DropDownSelector} from "../../gui/base/DropDownSelector"
 
 // Number of days for that we load rejected senders
 const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
@@ -163,7 +160,7 @@ export class GlobalSettingsSection implements SettingsSection {
 	createSaveIpSettings(): SettingsValue<DropDownSelectorAttrs<boolean>> {
 
 		const settingsAttrs: DropDownSelectorAttrs<boolean> = {
-			label:"saveEncryptedIpAddress_label",
+			label: "saveEncryptedIpAddress_label",
 			items: [
 				{name: lang.get("yes_label"), value: true},
 				{name: lang.get("no_label"), value: false}
@@ -444,12 +441,12 @@ export class GlobalSettingsSection implements SettingsSection {
 					                                                                 .whitelabelRegistrationDomains
 					                                                                 .map(domainWrapper => domainWrapper.value) : []
 					            if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-						            Dialog.error(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+						            Dialog.message(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
 					            } else {
-						            Dialog.error(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+						            Dialog.message(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
 					            }
 				            }))
-				            .catch(ofClass(LockedError, e => Dialog.error("operationStillActive_msg")))
+				            .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 			      }
 		      })
 	}
