@@ -95,20 +95,27 @@ export class EntityRestCache implements EntityRestInterface {
 	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T> {
 		const {listId, elementId} = expandId(id)
 
-		if (
-			typeRef.app === "monitor"
-			|| queryParameters?.version != null //if a specific version is requested we have to load again
-			|| !this._isInCache(typeRef, listId, elementId)
-			|| this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))
-		) {
-			return this._entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
+		if (!this._isInCache(typeRef, listId, elementId)) {
+			const entity = this._entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
+
+			if (
+				typeRef.app !== "monitor"
+				&& queryParameters?.version == null
+				&& !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))
+			) {
+				this._putIntoCache(entity)
+			}
+
+			return entity
 		}
+
 		// Some methods like "createDraft" load the created instance directly after the service has completed.
 		// Currently we cannot apply this optimization here because the cache is not updated directly after a service request because
 		// We don't wait for the update/create event of the modified instance.
 		// We can add this optimization again if our service requests resolve after the cache has been updated
 		//} else if (listId && this._isInCacheRange(typeRefToPath(typeRef), listId, id)) {
 		//return Promise.reject(new NotFoundError("Instance not found but in the cache range: " + listId + " " + id))
+
 		return this._getFromCache(typeRef, listId, elementId)
 	}
 
