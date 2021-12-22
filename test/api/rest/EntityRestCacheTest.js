@@ -24,6 +24,7 @@ import {
 import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
 import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
+import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/Permission"
 
 o.spec("entity rest cache", function () {
 
@@ -1009,6 +1010,62 @@ o.spec("entity rest cache", function () {
 				o(cache._isInCache(MailTypeRef, listId, getElementId(e))).equals(true)
 			})
 			unmockAttribute(mock)
+		})
+
+		o("load passes same parameters to entityRestClient", async function() {
+			const contactId = [createId("0"), createId("1")]
+			const contact = createContact({ _id: contactId, firstName: "greg" })
+			const client = downcast<EntityRestClient>({
+				load: o.spy(() => contact)
+			})
+
+			const cache = new EntityRestCache(client)
+
+			await cache.load(ContactTypeRef, contactId, { myParam: "param" }, { myHeader: "header"})
+
+			o(isSameTypeRef(client.load.args[0], ContactTypeRef)).equals(true)
+			o(client.load.args[1]).deepEquals(contactId)
+			o(client.load.args[2]).deepEquals({myParam: "param"})
+			o(client.load.args[3]).deepEquals({myHeader: "header"})
+
+		})
+
+		o("single entity is cached after being loaded", async function() {
+			const contactId = [createId("0"), createId("1")]
+			const contactOnTheServer = createContact({ _id: contactId, firstName: "greg" })
+			const client = downcast<EntityRestClient>({
+				load: o.spy(async () => {
+					return contactOnTheServer
+				})
+			})
+
+			const cache = new EntityRestCache(client)
+
+			const firstLoaded = await cache.load(ContactTypeRef, contactId)
+			o(firstLoaded).deepEquals(contactOnTheServer)
+			o(client.load.callCount).equals(1)("The entity rest client was called because the contact isn't in cache")
+
+			const secondLoaded = await cache.load(ContactTypeRef, contactId)
+			o(secondLoaded).deepEquals(contactOnTheServer)
+			o(client.load.callCount).equals(1)("The rest client was not called again, because the contact was loaded from the cache")
+		})
+
+		o("single entity is not cached if it is an ignored entity", async function() {
+
+			const permissionId = [createId("0"), createId("1")]
+			const permissionOnTheServer = createPermission({ _id: permissionId })
+			const client = downcast<EntityRestClient>({
+				load: o.spy(async () => {
+					return permissionOnTheServer
+				})
+			})
+
+			const cache = new EntityRestCache(client)
+
+			await cache.load(PermissionTypeRef, permissionId)
+			await cache.load(PermissionTypeRef, permissionId)
+
+			o(client.load.callCount).equals(2)("The permission was loaded both times from the server")
 		})
 	})
 })

@@ -16,12 +16,11 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
-import type {ListElement} from "../../common/utils/EntityUtils"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {$Promisable} from "@tutao/tutanota-utils/"
-import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
+import type {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 
 
 assertWorkerOrNode()
@@ -48,7 +47,15 @@ assertWorkerOrNode()
  */
 export class EntityRestCache implements EntityRestInterface {
 
-	_ignoredTypes: TypeRef<any>[];
+	_ignoredTypes: TypeRef<any>[] = [
+		EntityEventBatchTypeRef,
+		PermissionTypeRef,
+		BucketPermissionTypeRef,
+		SessionTypeRef,
+		SecondFactorTypeRef,
+		RecoverCodeTypeRef,
+		RejectedSenderTypeRef
+	]
 
 	_entityRestClient: EntityRestInterface;
 	/**
@@ -86,17 +93,13 @@ export class EntityRestCache implements EntityRestInterface {
 		this._entityRestClient = entityRestClient
 		this._entities = {}
 		this._listEntities = {}
-		this._ignoredTypes = [
-			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			SecondFactorTypeRef, RecoverCodeTypeRef, RejectedSenderTypeRef
-		]
 	}
 
 	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T> {
 		const {listId, elementId} = expandId(id)
 
 		if (!this._isInCache(typeRef, listId, elementId)) {
-			const entity = this._entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
+			const entity = await this._entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
 
 			if (
 				typeRef.app !== "monitor"
@@ -252,7 +255,7 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_handleElementRangeResult<T: ListElement>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean, elements: T[], targetCount: number): T[] {
+	_handleElementRangeResult<T: ListElementEntity>(listCache: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}, start: Id, count: number, reverse: boolean, elements: T[], targetCount: number): T[] {
 		let elementsToAdd = elements
 		if (elements.length > 0) {
 			// Ensure that elements are cached in ascending (not reverse) order
@@ -540,7 +543,7 @@ export class EntityRestCache implements EntityRestInterface {
 		return ids.filter(id => this._isInCacheRange(path, listId, id))
 	}
 
-	_putIntoCache(originalEntity: any): void {
+	_putIntoCache<T: ListElementEntity | ElementEntity>(originalEntity: T): void {
 		let entity = clone(originalEntity)
 		let path = typeRefToPath((entity: any)._type)
 		if (entity._id instanceof Array) {
