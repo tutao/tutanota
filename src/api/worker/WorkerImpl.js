@@ -241,7 +241,7 @@ export class WorkerImpl implements NativeInterface {
 
 
 	getMainInterface(): MainInterface {
-		return exposeRemote(this._dispatcher)
+		return exposeRemote<MainInterface>((request) => this._dispatcher.postRequest(request))
 	}
 
 	/**

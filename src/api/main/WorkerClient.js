@@ -160,7 +160,7 @@ export class WorkerClient {
 	}
 
 	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface, WorkerRequestType, MainRequestType>(this._dispatcher)
+		return exposeRemote<WorkerInterface>(async (request) => this._postRequest(request))
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
