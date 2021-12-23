@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CreditCard} from "./CreditCard"
@@ -108,8 +106,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPaymentDataServicePutData(values?: $Shape<$Exact<PaymentDataServicePutData>>): PaymentDataServicePutData {
-	return Object.assign(create(_TypeModel, PaymentDataServicePutDataTypeRef), values)
+export function createPaymentDataServicePutData(values?: Partial<PaymentDataServicePutData>): PaymentDataServicePutData {
+	return Object.assign(create(_TypeModel, PaymentDataServicePutDataTypeRef), downcast<PaymentDataServicePutData>(values))
 }
 
 export type PaymentDataServicePutData = {
@@ -118,15 +116,15 @@ export type PaymentDataServicePutData = {
 
 	_format: NumberString;
 	business: boolean;
-	confirmedCountry: ?string;
+	confirmedCountry: null | string;
 	invoiceAddress: string;
 	invoiceCountry: string;
 	invoiceName: string;
 	invoiceVatIdNo: string;
 	paymentInterval: NumberString;
 	paymentMethod: NumberString;
-	paymentMethodInfo: ?string;
-	paymentToken: ?string;
+	paymentMethodInfo: null | string;
+	paymentToken: null | string;
 
-	creditCard: ?CreditCard;
+	creditCard:  null | CreditCard;
 }

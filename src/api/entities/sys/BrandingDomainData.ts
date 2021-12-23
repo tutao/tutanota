@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createBrandingDomainData(values?: $Shape<$Exact<BrandingDomainData>>): BrandingDomainData {
-	return Object.assign(create(_TypeModel, BrandingDomainDataTypeRef), values)
+export function createBrandingDomainData(values?: Partial<BrandingDomainData>): BrandingDomainData {
+	return Object.assign(create(_TypeModel, BrandingDomainDataTypeRef), downcast<BrandingDomainData>(values))
 }
 
 export type BrandingDomainData = {
@@ -65,7 +63,7 @@ export type BrandingDomainData = {
 
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: ?Uint8Array;
-	sessionEncPemPrivateKey: ?Uint8Array;
+	sessionEncPemCertificateChain: null | Uint8Array;
+	sessionEncPemPrivateKey: null | Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
 }

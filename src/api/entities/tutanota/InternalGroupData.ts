@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -64,8 +62,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createInternalGroupData(values?: $Shape<$Exact<InternalGroupData>>): InternalGroupData {
-	return Object.assign(create(_TypeModel, InternalGroupDataTypeRef), values)
+export function createInternalGroupData(values?: Partial<InternalGroupData>): InternalGroupData {
+	return Object.assign(create(_TypeModel, InternalGroupDataTypeRef), downcast<InternalGroupData>(values))
 }
 
 export type InternalGroupData = {
@@ -77,5 +75,5 @@ export type InternalGroupData = {
 	ownerEncGroupInfoSessionKey: Uint8Array;
 	publicKey: Uint8Array;
 
-	adminGroup: ?Id;
+	adminGroup:  null | Id;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CalendarEventIndexRef} from "./CalendarEventIndexRef"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCalendarGroupRoot(values?: $Shape<$Exact<CalendarGroupRoot>>): CalendarGroupRoot {
-	return Object.assign(create(_TypeModel, CalendarGroupRootTypeRef), values)
+export function createCalendarGroupRoot(values?: Partial<CalendarGroupRoot>): CalendarGroupRoot {
+	return Object.assign(create(_TypeModel, CalendarGroupRootTypeRef), downcast<CalendarGroupRoot>(values))
 }
 
 export type CalendarGroupRoot = {
@@ -90,11 +88,11 @@ export type CalendarGroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	index: ?CalendarEventIndexRef;
+	index:  null | CalendarEventIndexRef;
 	longEvents: Id;
 	shortEvents: Id;
 }

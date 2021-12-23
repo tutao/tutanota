@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBirthday(values?: $Shape<$Exact<Birthday>>): Birthday {
-	return Object.assign(create(_TypeModel, BirthdayTypeRef), values)
+export function createBirthday(values?: Partial<Birthday>): Birthday {
+	return Object.assign(create(_TypeModel, BirthdayTypeRef), downcast<Birthday>(values))
 }
 
 export type Birthday = {
@@ -59,5 +57,5 @@ export type Birthday = {
 	_id: Id;
 	day: NumberString;
 	month: NumberString;
-	year: ?NumberString;
+	year: null | NumberString;
 }

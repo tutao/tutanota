@@ -1,5 +1,3 @@
-// @flow
-
-export const AccountingService = Object.freeze({
-	CustomerAccountService: "customeraccountservice"
-})
+export const enum AccountingService {
+	CustomerAccountService = "customeraccountservice"
+}

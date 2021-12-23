@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BlobAccessInfo} from "../sys/BlobAccessInfo"
@@ -38,8 +36,8 @@ export const _TypeModel: TypeModel = {
 	"version": "2"
 }
 
-export function createBlobAccessTokenReturn(values?: $Shape<$Exact<BlobAccessTokenReturn>>): BlobAccessTokenReturn {
-	return Object.assign(create(_TypeModel, BlobAccessTokenReturnTypeRef), values)
+export function createBlobAccessTokenReturn(values?: Partial<BlobAccessTokenReturn>): BlobAccessTokenReturn {
+	return Object.assign(create(_TypeModel, BlobAccessTokenReturnTypeRef), downcast<BlobAccessTokenReturn>(values))
 }
 
 export type BlobAccessTokenReturn = {

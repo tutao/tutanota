@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PriceItemData} from "./PriceItemData"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPriceData(values?: $Shape<$Exact<PriceData>>): PriceData {
-	return Object.assign(create(_TypeModel, PriceDataTypeRef), values)
+export function createPriceData(values?: Partial<PriceData>): PriceData {
+	return Object.assign(create(_TypeModel, PriceDataTypeRef), downcast<PriceData>(values))
 }
 
 export type PriceData = {

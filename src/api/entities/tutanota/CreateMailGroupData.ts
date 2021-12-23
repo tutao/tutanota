@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {InternalGroupData} from "./InternalGroupData"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCreateMailGroupData(values?: $Shape<$Exact<CreateMailGroupData>>): CreateMailGroupData {
-	return Object.assign(create(_TypeModel, CreateMailGroupDataTypeRef), values)
+export function createCreateMailGroupData(values?: Partial<CreateMailGroupData>): CreateMailGroupData {
+	return Object.assign(create(_TypeModel, CreateMailGroupDataTypeRef), downcast<CreateMailGroupData>(values))
 }
 
 export type CreateMailGroupData = {

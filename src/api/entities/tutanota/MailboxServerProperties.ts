@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailboxServerProperties(values?: $Shape<$Exact<MailboxServerProperties>>): MailboxServerProperties {
-	return Object.assign(create(_TypeModel, MailboxServerPropertiesTypeRef), values)
+export function createMailboxServerProperties(values?: Partial<MailboxServerProperties>): MailboxServerProperties {
+	return Object.assign(create(_TypeModel, MailboxServerPropertiesTypeRef), downcast<MailboxServerProperties>(values))
 }
 
 export type MailboxServerProperties = {
@@ -65,7 +63,7 @@ export type MailboxServerProperties = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	whitelistProtectionEnabled: boolean;
 }

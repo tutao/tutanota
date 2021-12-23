@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ArchiveRef} from "./ArchiveRef"
@@ -55,8 +53,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createArchiveType(values?: $Shape<$Exact<ArchiveType>>): ArchiveType {
-	return Object.assign(create(_TypeModel, ArchiveTypeTypeRef), values)
+export function createArchiveType(values?: Partial<ArchiveType>): ArchiveType {
+	return Object.assign(create(_TypeModel, ArchiveTypeTypeRef), downcast<ArchiveType>(values))
 }
 
 export type ArchiveType = {

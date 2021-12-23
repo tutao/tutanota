@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createContactAddress(values?: $Shape<$Exact<ContactAddress>>): ContactAddress {
-	return Object.assign(create(_TypeModel, ContactAddressTypeRef), values)
+export function createContactAddress(values?: Partial<ContactAddress>): ContactAddress {
+	return Object.assign(create(_TypeModel, ContactAddressTypeRef), downcast<ContactAddress>(values))
 }
 
 export type ContactAddress = {

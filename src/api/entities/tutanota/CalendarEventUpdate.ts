@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -71,8 +69,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCalendarEventUpdate(values?: $Shape<$Exact<CalendarEventUpdate>>): CalendarEventUpdate {
-	return Object.assign(create(_TypeModel, CalendarEventUpdateTypeRef), values)
+export function createCalendarEventUpdate(values?: Partial<CalendarEventUpdate>): CalendarEventUpdate {
+	return Object.assign(create(_TypeModel, CalendarEventUpdateTypeRef), downcast<CalendarEventUpdate>(values))
 }
 
 export type CalendarEventUpdate = {
@@ -81,8 +79,8 @@ export type CalendarEventUpdate = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	sender: string;
 

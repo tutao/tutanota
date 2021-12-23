@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -169,8 +167,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createAccountingInfo(values?: $Shape<$Exact<AccountingInfo>>): AccountingInfo {
-	return Object.assign(create(_TypeModel, AccountingInfoTypeRef), values)
+export function createAccountingInfo(values?: Partial<AccountingInfo>): AccountingInfo {
+	return Object.assign(create(_TypeModel, AccountingInfoTypeRef), downcast<AccountingInfo>(values))
 }
 
 export type AccountingInfo = {
@@ -180,23 +178,23 @@ export type AccountingInfo = {
 	_format: NumberString;
 	_id: Id;
 	_modified: Date;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	business: boolean;
 	invoiceAddress: string;
-	invoiceCountry: ?string;
+	invoiceCountry: null | string;
 	invoiceName: string;
 	invoiceVatIdNo: string;
 	lastInvoiceNbrOfSentSms: NumberString;
-	lastInvoiceTimestamp: ?Date;
-	paymentAccountIdentifier: ?string;
+	lastInvoiceTimestamp: null | Date;
+	paymentAccountIdentifier: null | string;
 	paymentInterval: NumberString;
-	paymentMethod: ?NumberString;
-	paymentMethodInfo: ?string;
-	paymentProviderCustomerId: ?string;
-	paypalBillingAgreement: ?string;
+	paymentMethod: null | NumberString;
+	paymentMethodInfo: null | string;
+	paymentProviderCustomerId: null | string;
+	paypalBillingAgreement: null | string;
 	secondCountryInfo: NumberString;
 
-	invoiceInfo: ?Id;
+	invoiceInfo: null | Id;
 }

@@ -1,4 +1,3 @@
-//@flow
 import linkifyHtml from "linkify/html"
 
 /**
@@ -6,14 +5,11 @@ import linkifyHtml from "linkify/html"
  * @param html The text to be checked for links.
  * @returns {string} The text with html links.
  */
-
 export function urlify(html: string): string {
-	return linkifyHtml(html, {
-		attributes: {
-			rel: "noopener noreferrer"
-		},
-		target: "_blank",
-	})
+    return linkifyHtml(html, {
+        attributes: {
+            rel: "noopener noreferrer",
+        },
+        target: "_blank",
+    })
 }
-
-

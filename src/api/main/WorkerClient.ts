@@ -1,19 +1,16 @@
-// @flow
 import {CryptoError} from "../common/error/CryptoError"
 import type {Commands} from "../common/MessageDispatcher"
 import {MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
-import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
+import type {HttpMethod, MediaType} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer, downcast, identity, TypeRef} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
-import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
-import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
@@ -21,15 +18,25 @@ import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
 import type {TypeModel} from "../common/EntityTypes"
 import type {EntropySource} from "@tutao/tutanota-crypto"
-import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
+import type {CloseEventBusOption} from "../common/TutanotaConstants"
+import stream from "mithril/stream"
+import {TutanotaService} from "../entities/tutanota/Services";
+import {SysService} from "../entities/sys/Services";
+import {AccountingService} from "../entities/accounting/Services";
+import {ProgressListener} from "../common/utils/ProgressMonitor";
+import {MonitorService} from "../entities/monitor/Services";
+import {StorageService} from "../entities/storage/Services";
 
 assertMainOrNode()
 
-type progressUpdater = (number) => mixed;
+type progressUpdater = (arg0: number) => unknown
 type MainRequest = Request<MainRequestType>
 
-export class WorkerClient {
+export const enum WsConnectionState {
+	connecting, connected, terminated
+}
 
+export class WorkerClient {
 	_deferredInitialized: DeferredObject<void> = defer()
 	_isInitialized: boolean = false
 
@@ -37,16 +44,17 @@ export class WorkerClient {
 		return this._deferredInitialized.promise
 	}
 
-	_dispatcher: MessageDispatcher<WorkerRequestType, MainRequestType>;
-	_progressUpdater: ?progressUpdater;
-	_wsConnection: Stream<WsConnectionState> = stream("terminated");
-	+infoMessages: Stream<InfoMessage>;
+	_dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
+	_progressUpdater: progressUpdater | null
+	readonly _wsConnection: stream<WsConnectionState> = stream(WsConnectionState.terminated)
+	readonly infoMessages: stream<InfoMessage> = stream({translationKey: "emptyString_msg", args: {}})
 	_leaderStatus: WebsocketLeaderStatus
 
-
 	constructor() {
-		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
-		this.infoMessages = stream()
+		this._leaderStatus = createWebsocketLeaderStatus({
+			leaderStatus: false,
+		}) //init as non-leader
+
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
@@ -59,15 +67,10 @@ export class WorkerClient {
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
+			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl)
 			this._dispatcher = new MessageDispatcher(new WorkerTransport(worker), this.queueCommands(locator))
-
-			await this._dispatcher.postRequest(new Request('setup', [
-				window.env,
-				this._getInitialEntropy(),
-				client.browserData()
-			]))
+			await this._dispatcher.postRequest(new Request("setup", [window.env, this._getInitialEntropy(), client.browserData()]))
 
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
@@ -80,37 +83,38 @@ export class WorkerClient {
 			const workerImpl = new WorkerImpl(this, true)
 			await workerImpl.init(client.browserData())
 			workerImpl._queue._transport = {
-				postMessage: msg => this._dispatcher.handleMessage(msg)
+				postMessage: msg => this._dispatcher.handleMessage(msg),
 			}
-			this._dispatcher = new MessageDispatcher(({
-					postMessage: function (msg) {
-						workerImpl._queue.handleMessage(msg)
-					}
-				}: any),
-				this.queueCommands(locator)
+			this._dispatcher = new MessageDispatcher(
+					{
+						postMessage: function (msg) {
+							workerImpl._queue.handleMessage(msg)
+						},
+					} as any,
+					this.queueCommands(locator),
 			)
 		}
 
 		this._deferredInitialized.resolve()
 	}
 
-
 	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
 		return {
-			execNative: (message: MainRequest) =>
-				locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
+			execNative: (message: MainRequest) => locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: MainRequest) => {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
 			error: (message: MainRequest) => {
-				handleUncaughtError(objToError((message).args[0]))
+				handleUncaughtError(objToError(message.args[0]))
 				return Promise.resolve()
 			},
 			progress: (message: MainRequest) => {
 				const progressUpdater = this._progressUpdater
+
 				if (progressUpdater) {
 					progressUpdater(downcast(message.args[0]))
 				}
+
 				return Promise.resolve()
 			},
 			updateIndexState: (message: MainRequest) => {
@@ -118,7 +122,8 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			updateWebSocketState: (message: MainRequest) => {
-				this._wsConnection(downcast(message.args[0]));
+				this._wsConnection(downcast(message.args[0]))
+
 				return Promise.resolve()
 			},
 			counterUpdate: (message: MainRequest) => {
@@ -154,37 +159,59 @@ export class WorkerClient {
 			facade: exposeLocal<MainInterface, MainRequestType>({
 				get secondFactorAuthenticationHandler() {
 					return locator.secondFactorHandler
-				}
+				},
 			}),
 		}
 	}
 
 	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(async (request) => this._postRequest(request))
+		return exposeRemote<WorkerInterface>(async request => this._postRequest(request))
 	}
 
-	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
-		return this._postRequest(new Request('tryReconnectEventBus', [closeIfOpen, enableAutomaticState, delay]))
+	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
+		return this._postRequest(new Request("tryReconnectEventBus", [closeIfOpen, enableAutomaticState, delay]))
 	}
 
-	restRequest<T>(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
-		return this._postRequest(new Request('restRequest', Array.from(arguments)))
+	restRequest<T>(
+			path: string,
+			method: HttpMethod,
+			queryParams: Params,
+			headers: Params,
+			body: (string | null) | (Uint8Array | null),
+			responseType: MediaType null,
+			progressListener: ProgressListener | null,
+	): Promise<any> {
+		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
 
-	resolveSessionKey(typeModel: TypeModel, instance: Object): Promise<?string> {
-		return this._postRequest(new Request('resolveSessionKey', arguments))
+	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<string | null> {
+		return this._postRequest(new Request("resolveSessionKey", arguments))
 	}
 
 	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
 		throw new Error("must not be used")
 	}
 
-	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum | StorageServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
-		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
+	serviceRequest<T>(
+			service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
+			method: HttpMethod,
+			requestEntity: any | null,
+			responseTypeRef: TypeRef<T> | null,
+			queryParameter: Params | null,
+			sk: Aes128Key | null,
+			extraHeaders?: Params,
+	): Promise<any> {
+		return this._postRequest(new Request("serviceRequest", Array.from(arguments)))
 	}
 
-	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {
-		return this._postRequest(new Request('entropy', Array.from(arguments)))
+	entropy(
+			entropyCache: {
+				source: EntropySource
+				entropy: number
+				data: number
+			}[],
+	): Promise<void> {
+		return this._postRequest(new Request("entropy", Array.from(arguments)))
 	}
 
 	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
@@ -192,11 +219,11 @@ export class WorkerClient {
 		return this._dispatcher.postRequest(msg)
 	}
 
-	registerProgressUpdater(updater: ?progressUpdater) {
+	registerProgressUpdater(updater: progressUpdater | null) {
 		this._progressUpdater = updater
 	}
 
-	unregisterProgressUpdater(updater: ?progressUpdater) {
+	unregisterProgressUpdater(updater: progressUpdater | null) {
 		// another one might have been registered in the mean time
 		if (this._progressUpdater === updater) {
 			this._progressUpdater = null
@@ -204,19 +231,19 @@ export class WorkerClient {
 	}
 
 	generateSsePushIdentifer(): Promise<string> {
-		return this._postRequest(new Request('generateSsePushIdentifer', arguments))
+		return this._postRequest(new Request("generateSsePushIdentifer", arguments))
 	}
 
 	wsConnection(): Stream<WsConnectionState> {
 		return this._wsConnection.map(identity)
 	}
 
-	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {
+	closeEventBus(closeOption: CloseEventBusOption): Promise<void> {
 		return this._dispatcher.postRequest(new Request("closeEventBus", [closeOption]))
 	}
 
 	reset(): Promise<void> {
-		return this._postRequest(new Request('reset', []))
+		return this._postRequest(new Request("reset", []))
 	}
 
 	getLog(): Promise<Array<string>> {
@@ -228,22 +255,34 @@ export class WorkerClient {
 	}
 
 	urlify(html: string): Promise<string> {
-		return this._postRequest(new Request('urlify', arguments))
+		return this._postRequest(new Request("urlify", arguments))
 	}
-
 
 	/**
 	 * Add data from either secure random source or Math.random as entropy.
 	 */
-	_getInitialEntropy(): Array<{source: EntropySource, entropy: number, data: number}> {
-
+	_getInitialEntropy(): Array<{
+		source: EntropySource
+		entropy: number
+		data: number
+	}> {
 		const valueList = new Uint32Array(16)
 		crypto.getRandomValues(valueList)
-		const entropy: Array<{source: EntropySource, entropy: number, data: number}> = []
+		const entropy: Array<{
+			source: EntropySource
+			entropy: number
+			data: number
+		}> = []
+
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array
-			entropy.push({source: "random", entropy: 32, data: valueList[i]})
+			entropy.push({
+				source: "random",
+				entropy: 32,
+				data: valueList[i],
+			})
 		}
+
 		return entropy
 	}
 }

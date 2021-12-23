@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPaymentErrorInfo(values?: $Shape<$Exact<PaymentErrorInfo>>): PaymentErrorInfo {
-	return Object.assign(create(_TypeModel, PaymentErrorInfoTypeRef), values)
+export function createPaymentErrorInfo(values?: Partial<PaymentErrorInfo>): PaymentErrorInfo {
+	return Object.assign(create(_TypeModel, PaymentErrorInfoTypeRef), downcast<PaymentErrorInfo>(values))
 }
 
 export type PaymentErrorInfo = {

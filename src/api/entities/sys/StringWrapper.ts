@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,8 +33,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createStringWrapper(values?: $Shape<$Exact<StringWrapper>>): StringWrapper {
-	return Object.assign(create(_TypeModel, StringWrapperTypeRef), values)
+export function createStringWrapper(values?: Partial<StringWrapper>): StringWrapper {
+	return Object.assign(create(_TypeModel, StringWrapperTypeRef), downcast<StringWrapper>(values))
 }
 
 export type StringWrapper = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {
-	return Object.assign(create(_TypeModel, EmailSenderListElementTypeRef), values)
+export function createEmailSenderListElement(values?: Partial<EmailSenderListElement>): EmailSenderListElement {
+	return Object.assign(create(_TypeModel, EmailSenderListElementTypeRef), downcast<EmailSenderListElement>(values))
 }
 
 export type EmailSenderListElement = {

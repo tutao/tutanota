@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Bucket} from "./Bucket"
@@ -115,8 +113,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {
-	return Object.assign(create(_TypeModel, PermissionTypeRef), values)
+export function createPermission(values?: Partial<Permission>): Permission {
+	return Object.assign(create(_TypeModel, PermissionTypeRef), downcast<Permission>(values))
 }
 
 export type Permission = {
@@ -124,16 +122,16 @@ export type Permission = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	bucketEncSessionKey: ?Uint8Array;
-	listElementApplication: ?string;
-	listElementTypeId: ?NumberString;
-	ops: ?string;
-	symEncSessionKey: ?Uint8Array;
+	bucketEncSessionKey: null | Uint8Array;
+	listElementApplication: null | string;
+	listElementTypeId: null | NumberString;
+	ops: null | string;
+	symEncSessionKey: null | Uint8Array;
 	type: NumberString;
 
-	bucket: ?Bucket;
-	group: ?Id;
+	bucket:  null | Bucket;
+	group:  null | Id;
 }

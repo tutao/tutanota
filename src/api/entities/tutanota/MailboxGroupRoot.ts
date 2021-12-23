@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
@@ -124,8 +122,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
-	return Object.assign(create(_TypeModel, MailboxGroupRootTypeRef), values)
+export function createMailboxGroupRoot(values?: Partial<MailboxGroupRoot>): MailboxGroupRoot {
+	return Object.assign(create(_TypeModel, MailboxGroupRootTypeRef), downcast<MailboxGroupRoot>(values))
 }
 
 export type MailboxGroupRoot = {
@@ -133,17 +131,17 @@ export type MailboxGroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	calendarEventUpdates: ?CalendarEventUpdateList;
-	outOfOfficeNotificationRecipientList: ?OutOfOfficeNotificationRecipientList;
-	contactFormUserContactForm: ?IdTuple;
+	calendarEventUpdates:  null | CalendarEventUpdateList;
+	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
+	contactFormUserContactForm:  null | IdTuple;
 	mailbox: Id;
-	mailboxProperties: ?Id;
-	outOfOfficeNotification: ?Id;
+	mailboxProperties:  null | Id;
+	outOfOfficeNotification:  null | Id;
 	participatingContactForms: IdTuple[];
 	serverProperties: Id;
-	targetMailGroupContactForm: ?IdTuple;
+	targetMailGroupContactForm:  null | IdTuple;
 	whitelistRequests: Id;
 }

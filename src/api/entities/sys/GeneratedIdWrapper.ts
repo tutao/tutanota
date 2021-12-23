@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,8 +33,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createGeneratedIdWrapper(values?: $Shape<$Exact<GeneratedIdWrapper>>): GeneratedIdWrapper {
-	return Object.assign(create(_TypeModel, GeneratedIdWrapperTypeRef), values)
+export function createGeneratedIdWrapper(values?: Partial<GeneratedIdWrapper>): GeneratedIdWrapper {
+	return Object.assign(create(_TypeModel, GeneratedIdWrapperTypeRef), downcast<GeneratedIdWrapper>(values))
 }
 
 export type GeneratedIdWrapper = {

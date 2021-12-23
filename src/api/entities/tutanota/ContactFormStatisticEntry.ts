@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ContactFormStatisticField} from "./ContactFormStatisticField"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createContactFormStatisticEntry(values?: $Shape<$Exact<ContactFormStatisticEntry>>): ContactFormStatisticEntry {
-	return Object.assign(create(_TypeModel, ContactFormStatisticEntryTypeRef), values)
+export function createContactFormStatisticEntry(values?: Partial<ContactFormStatisticEntry>): ContactFormStatisticEntry {
+	return Object.assign(create(_TypeModel, ContactFormStatisticEntryTypeRef), downcast<ContactFormStatisticEntry>(values))
 }
 
 export type ContactFormStatisticEntry = {

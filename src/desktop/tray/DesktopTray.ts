@@ -1,99 +1,109 @@
-// @flow
-import type {NativeImage} from 'electron'
-import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
-import type {DesktopConfig} from '../config/DesktopConfig.js'
-import type {WindowManager} from "../DesktopWindowManager.js"
-import type {DesktopNotifier} from "../DesktopNotifier.js"
+import type {NativeImage} from "electron"
+import {app, Menu, MenuItem, nativeImage, Tray} from "electron"
+import type {DesktopConfig} from "../config/DesktopConfig"
+import type {WindowManager} from "../DesktopWindowManager"
+import type {DesktopNotifier} from "../DesktopNotifier"
 import {lang} from "../../misc/LanguageViewModel"
 import {MacTray} from "./MacTray"
 import {NonMacTray} from "./NonMacTray"
 import {getResourcePath} from "../resources"
-
 export interface PlatformTray {
-	setBadge(): void,
-	clearBadge(): void,
-	getTray(WindowManager, NativeImage): ?Tray,
-	getPlatformMenuItems(): Array<MenuItem>,
-	attachMenuToTray(Menu, ?Tray): void,
-	getAppIconPathFromName(string): string,
-	needsWindowListInMenu(): boolean,
+    setBadge(): void
+    clearBadge(): void
+    getTray(arg0: WindowManager, arg1: NativeImage): Tray | null
+    getPlatformMenuItems(): Array<MenuItem>
+    attachMenuToTray(arg0: Menu, arg1: Tray | null): void
+    getAppIconPathFromName(arg0: string): string
+    needsWindowListInMenu(): boolean
 }
-
-const platformTray: PlatformTray = (process.platform === 'darwin')
-	? new MacTray()
-	: new NonMacTray()
-
+const platformTray: PlatformTray = process.platform === "darwin" ? new MacTray() : new NonMacTray()
 export class DesktopTray {
-	+_conf: DesktopConfig;
-	_wm: WindowManager;
-	_tray: ?Tray;
-	_icon: ?NativeImage
+    readonly _conf: DesktopConfig
+    _wm: WindowManager
+    _tray: Tray | null
+    _icon: NativeImage | null
 
-	constructor(config: DesktopConfig) {
-		this._conf = config
-		this.getAppIcon()
-		app.on('will-quit', (e: Event) => {
-			if (this._tray) {
-				this._tray.destroy()
-				this._tray = null
-			}
-		}).on('ready', async () => {
-			if (!this._wm) console.warn("Tray: No WM set before 'ready'!")
-			this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
-		})
-	}
+    constructor(config: DesktopConfig) {
+        this._conf = config
+        this.getAppIcon()
+        app.on("will-quit", (e: Event) => {
+            if (this._tray) {
+                this._tray.destroy()
 
-	async update(notifier: DesktopNotifier): Promise<void> {
-		const runAsTrayApp = await this._conf.getVar("runAsTrayApp")
-		if (!runAsTrayApp) return
-		const m = new Menu()
-		m.append(new MenuItem({
-			label: lang.get("openNewWindow_action"), click: () => {
-				this._wm.newWindow(true)
-			}
-		}))
-		if (platformTray.needsWindowListInMenu() && this._wm.getAll().length > 0) {
-			m.append(new MenuItem({type: 'separator'}))
-			this._wm.getAll().forEach(w => {
-				let label = w.getTitle()
-				if (notifier.hasNotificationsForWindow(w)) {
-					label = "• " + label
-				} else {
-					label = label + "  "
-				}
-				m.append(new MenuItem({
-					label: label,
-					click: () => w.show()
-				}))
-			})
-		}
-		platformTray.getPlatformMenuItems().forEach(mi => m.append(mi))
-		platformTray.attachMenuToTray(m, this._tray)
-	}
+                this._tray = null
+            }
+        }).on("ready", async () => {
+            if (!this._wm) console.warn("Tray: No WM set before 'ready'!")
+            this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
+        })
+    }
 
-	setBadge() {
-		platformTray.setBadge()
-	}
+    async update(notifier: DesktopNotifier): Promise<void> {
+        const runAsTrayApp = await this._conf.getVar("runAsTrayApp")
+        if (!runAsTrayApp) return
+        const m = new Menu()
+        m.append(
+            new MenuItem({
+                label: lang.get("openNewWindow_action"),
+                click: () => {
+                    this._wm.newWindow(true)
+                },
+            }),
+        )
 
-	clearBadge() {
-		platformTray.clearBadge()
-	}
+        if (platformTray.needsWindowListInMenu() && this._wm.getAll().length > 0) {
+            m.append(
+                new MenuItem({
+                    type: "separator",
+                }),
+            )
 
-	async getAppIcon(): Promise<NativeImage> {
-		if (!this._icon) {
-			const iconName = await this._conf.getConst('iconName')
-			const iconPath = platformTray.getAppIconPathFromName(iconName)
-			this._icon = nativeImage.createFromPath(iconPath)
-		}
-		return this._icon
-	}
+            this._wm.getAll().forEach(w => {
+                let label = w.getTitle()
 
-	getIconByName(iconName: string): NativeImage {
-		const iconPath = getResourcePath(`icons/${iconName}`)
-		return nativeImage.createFromPath(iconPath)
-	}
+                if (notifier.hasNotificationsForWindow(w)) {
+                    label = "• " + label
+                } else {
+                    label = label + "  "
+                }
 
-	setWindowManager(wm: WindowManager) {
-		this._wm = wm
-	}
+                m.append(
+                    new MenuItem({
+                        label: label,
+                        click: () => w.show(),
+                    }),
+                )
+            })
+        }
+
+        platformTray.getPlatformMenuItems().forEach(mi => m.append(mi))
+        platformTray.attachMenuToTray(m, this._tray)
+    }
+
+    setBadge() {
+        platformTray.setBadge()
+    }
+
+    clearBadge() {
+        platformTray.clearBadge()
+    }
+
+    async getAppIcon(): Promise<NativeImage> {
+        if (!this._icon) {
+            const iconName = await this._conf.getConst("iconName")
+            const iconPath = platformTray.getAppIconPathFromName(iconName)
+            this._icon = nativeImage.createFromPath(iconPath)
+        }
+
+        return this._icon
+    }
+
+    getIconByName(iconName: string): NativeImage {
+        const iconPath = getResourcePath(`icons/${iconName}`)
+        return nativeImage.createFromPath(iconPath)
+    }
+
+    setWindowManager(wm: WindowManager) {
+        this._wm = wm
+    }
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,8 +33,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPasswordMessagingReturn(values?: $Shape<$Exact<PasswordMessagingReturn>>): PasswordMessagingReturn {
-	return Object.assign(create(_TypeModel, PasswordMessagingReturnTypeRef), values)
+export function createPasswordMessagingReturn(values?: Partial<PasswordMessagingReturn>): PasswordMessagingReturn {
+	return Object.assign(create(_TypeModel, PasswordMessagingReturnTypeRef), downcast<PasswordMessagingReturn>(values))
 }
 
 export type PasswordMessagingReturn = {

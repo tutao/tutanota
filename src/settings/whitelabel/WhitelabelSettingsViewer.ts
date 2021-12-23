@@ -1,4 +1,3 @@
-// @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
@@ -47,327 +46,350 @@ import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
-
 assertMainOrNode()
-
-
 export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
-	view: Function;
+    view: (...args: Array<any>) => any
+    _whitelabelConfig: WhitelabelConfig | null
+    _certificateInfo: CertificateInfo | null
+    _whitelabelDomainInfo: DomainInfo | null
+    _customJsonTheme: ThemeCustomizations | null
+    _customer: LazyLoaded<Customer>
+    _customerInfo: LazyLoaded<CustomerInfo>
+    _customerProperties: LazyLoaded<CustomerProperties>
+    _lastBooking: Booking | null
+    _entityClient: EntityClient
 
-	_whitelabelConfig: ?WhitelabelConfig
-	_certificateInfo: ?CertificateInfo
-	_whitelabelDomainInfo: ?DomainInfo
-	_customJsonTheme: ?ThemeCustomizations
+    constructor(entityClient: EntityClient) {
+        this.view = this.view.bind(this)
+        this._entityClient = entityClient
+        this._customer = new LazyLoaded(() => {
+            return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+        })
+        this._customerInfo = new LazyLoaded(() => {
+            return this._customer.getAsync().then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+        })
+        this._customerProperties = new LazyLoaded(() =>
+            this._customer.getAsync().then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+        )
+        this._lastBooking = null
 
-	_customer: LazyLoaded<Customer>;
-	_customerInfo: LazyLoaded<CustomerInfo>;
-	_customerProperties: LazyLoaded<CustomerProperties>;
-	_lastBooking: ?Booking;
-	_entityClient: EntityClient;
+        this._updateFields()
+    }
 
-	constructor(entityClient: EntityClient) {
-		this.view = this.view.bind(this)
-		this._entityClient = entityClient
+    view(vnode: Vnode<any>): Children {
+        const brandingDomainConfig = this._renderBrandingDomainConfig()
 
-		this._customer = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-		})
+        return m(
+            "#global-settings.fill-absolute.scroll.plr-l",
+            brandingDomainConfig
+                ? [
+                      m(".h4.mt-l", lang.get("whitelabel_label")),
+                      m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
+                      m("small.text-break", [m(`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`, lang.getInfoLink("whitelabel_link"))]),
+                      this._renderWhitelabelStatusSettings(),
+                      this._renderNotificationEmailSettings(),
+                      m(".h4.mt-l", lang.get("whitelabelDomain_label")),
+                      brandingDomainConfig,
+                      this._renderThemeSettings(),
+                      this._renderCustomMetaTagsSettings(),
+                      this._renderImprintAndPrivacySettings(),
+                      this._renderDefaultGermanLanguageFileSettings(),
+                      this._renderWhitelabelRegistrationSettings(),
+                      m(".mb-l"),
+                  ]
+                : [m(".flex-center.items-center.button-height.mt-l", progressIcon())],
+        )
+    }
 
-		this._customerInfo = new LazyLoaded(() => {
-			return this._customer.getAsync().then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		})
+    _renderImprintAndPrivacySettings(): Children {
+        const whitelabelConfig = this._whitelabelConfig
+        const privacyStatementUrl = whitelabelConfig?.privacyStatementUrl ?? ""
+        let onPrivacyStatementUrlChanged = null
 
-		this._customerProperties = new LazyLoaded(() =>
-			this._customer.getAsync().then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
+        if (whitelabelConfig) {
+            onPrivacyStatementUrlChanged = privacyStatementUrl => {
+                whitelabelConfig.privacyStatementUrl = privacyStatementUrl
 
-		this._lastBooking = null
+                this._entityClient.update(whitelabelConfig)
+            }
+        }
 
-		this._updateFields()
-	}
+        const imprintUrl = whitelabelConfig?.imprintUrl ?? ""
+        let onImprintUrlChanged = null
 
-	view(vnode: Vnode<any>): Children {
-		const brandingDomainConfig = this._renderBrandingDomainConfig()
+        if (whitelabelConfig) {
+            onImprintUrlChanged = imprintUrl => {
+                whitelabelConfig.imprintUrl = imprintUrl
 
-		return m("#global-settings.fill-absolute.scroll.plr-l", (brandingDomainConfig)
-			?
-			[
-				m(".h4.mt-l", lang.get('whitelabel_label')),
-				m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
-				m("small.text-break", [
-						m(
-							`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`,
-							lang.getInfoLink("whitelabel_link"))
-					]
-				),
-				this._renderWhitelabelStatusSettings(),
-				this._renderNotificationEmailSettings(),
-				m(".h4.mt-l", lang.get('whitelabelDomain_label')),
-				brandingDomainConfig,
-				this._renderThemeSettings(),
-				this._renderCustomMetaTagsSettings(),
-				this._renderImprintAndPrivacySettings(),
-				this._renderDefaultGermanLanguageFileSettings(),
-				this._renderWhitelabelRegistrationSettings(),
-				m(".mb-l")
-			]
-			: [m(".flex-center.items-center.button-height.mt-l", progressIcon())]
-		)
-	}
+                this._entityClient.update(whitelabelConfig)
+            }
+        }
 
-	_renderImprintAndPrivacySettings(): Children {
-		const whitelabelConfig = this._whitelabelConfig
-		const privacyStatementUrl = whitelabelConfig?.privacyStatementUrl ?? ""
-		let onPrivacyStatementUrlChanged = null
-		if (whitelabelConfig) {
-			onPrivacyStatementUrlChanged = (privacyStatementUrl) => {
-				whitelabelConfig.privacyStatementUrl = privacyStatementUrl
-				this._entityClient.update(whitelabelConfig)
-			}
-		}
+        const whitelabelImprintAndPrivacySettingsAttrs: WhitelabelImprintAndPrivacySettingsAttrs = {
+            privacyStatementUrl,
+            onPrivacyStatementUrlChanged,
+            imprintUrl,
+            onImprintUrlChanged,
+        }
+        return m(WhitelabelImprintAndPrivacySettings, whitelabelImprintAndPrivacySettingsAttrs)
+    }
 
-		const imprintUrl = whitelabelConfig?.imprintUrl ?? ""
-		let onImprintUrlChanged = null
-		if (whitelabelConfig) {
-			onImprintUrlChanged = (imprintUrl) => {
-				whitelabelConfig.imprintUrl = imprintUrl
-				this._entityClient.update(whitelabelConfig)
-			}
-		}
+    _renderThemeSettings(): Children {
+        const customTheme = this._customJsonTheme
+        const whitelabelConfig = this._whitelabelConfig
+        const whitelabelDomainInfo = this._whitelabelDomainInfo
+        const whitelabelThemeSettingsAttrs = {
+            whitelabelData:
+                whitelabelConfig && whitelabelDomainInfo && customTheme
+                    ? {
+                          customTheme,
+                          whitelabelConfig,
+                          whitelabelDomainInfo,
+                      }
+                    : null,
+        }
+        return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)
+    }
 
-		const whitelabelImprintAndPrivacySettingsAttrs: WhitelabelImprintAndPrivacySettingsAttrs = {
-			privacyStatementUrl,
-			onPrivacyStatementUrlChanged,
-			imprintUrl,
-			onImprintUrlChanged,
-		}
+    _renderWhitelabelRegistrationSettings(): Children {
+        if (!this._isWhitelabelRegistrationVisible()) return null
+        const possibleRegistrationDomains = [
+            {
+                name: lang.get("deactivated_label"),
+                value: null,
+            },
+        ].concat(
+            getCustomMailDomains(this._customerInfo.getLoaded()).map(d => {
+                return {
+                    name: d.domain,
+                    value: d.domain,
+                }
+            }),
+        )
+        let onRegistrationDomainSelected = noOp
+        let currentRegistrationDomain = null
 
-		return m(WhitelabelImprintAndPrivacySettings, whitelabelImprintAndPrivacySettingsAttrs)
-	}
+        if (this._whitelabelConfig) {
+            onRegistrationDomainSelected = domain => {
+                neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.length = 0
 
-	_renderThemeSettings(): Children {
-		const customTheme = this._customJsonTheme
-		const whitelabelConfig = this._whitelabelConfig
-		const whitelabelDomainInfo = this._whitelabelDomainInfo
+                if (domain) {
+                    const domainWrapper = createStringWrapper()
+                    domainWrapper.value = domain
+                    neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
+                }
 
-		const whitelabelThemeSettingsAttrs = {
-			whitelabelData: whitelabelConfig && whitelabelDomainInfo && customTheme
-				? {
-					customTheme,
-					whitelabelConfig,
-					whitelabelDomainInfo
-				}
-				: null
-		}
+                this._entityClient.update(neverNull(this._whitelabelConfig))
+            }
 
-		return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)
-	}
+            if (this._whitelabelConfig.whitelabelRegistrationDomains.length > 0) {
+                currentRegistrationDomain = this._whitelabelConfig.whitelabelRegistrationDomains[0].value
+            }
+        }
 
-	_renderWhitelabelRegistrationSettings(): Children {
-		if (!this._isWhitelabelRegistrationVisible()) return null
+        const whitelabelCode = this._whitelabelConfig ? this._whitelabelConfig.whitelabelCode : ""
+        let onWhitelabelCodeChanged = noOp
 
-		const possibleRegistrationDomains = [{name: lang.get("deactivated_label"), value: null}]
-			.concat(getCustomMailDomains(this._customerInfo.getLoaded())
-				.map(d => {
-					return {name: d.domain, value: d.domain}
-				}))
-		let onRegistrationDomainSelected = noOp
-		let currentRegistrationDomain = null
-		if (this._whitelabelConfig) {
-			onRegistrationDomainSelected = (domain) => {
-				neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.length = 0
-				if (domain) {
-					const domainWrapper = createStringWrapper()
-					domainWrapper.value = domain
-					neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
-				}
-				this._entityClient.update(neverNull(this._whitelabelConfig))
-			}
-			if ((this._whitelabelConfig.whitelabelRegistrationDomains.length > 0)) {
-				currentRegistrationDomain = this._whitelabelConfig.whitelabelRegistrationDomains[0].value
-			}
-		}
+        if (this._whitelabelConfig) {
+            onWhitelabelCodeChanged = code => {
+                neverNull(this._whitelabelConfig).whitelabelCode = code
 
-		const whitelabelCode = (this._whitelabelConfig) ? this._whitelabelConfig.whitelabelCode : ""
-		let onWhitelabelCodeChanged = noOp
-		if (this._whitelabelConfig) {
-			onWhitelabelCodeChanged = (code) => {
-				neverNull(this._whitelabelConfig).whitelabelCode = code
-				this._entityClient.update(neverNull(this._whitelabelConfig))
-			}
-		}
+                this._entityClient.update(neverNull(this._whitelabelConfig))
+            }
+        }
 
-		const whitelabelRegistrationSettingsAttrs = {
-			whitelabelCode,
-			onWhitelabelCodeChanged,
-			possibleRegistrationDomains,
-			currentRegistrationDomain,
-			onRegistrationDomainSelected,
-		}
+        const whitelabelRegistrationSettingsAttrs = {
+            whitelabelCode,
+            onWhitelabelCodeChanged,
+            possibleRegistrationDomains,
+            currentRegistrationDomain,
+            onRegistrationDomainSelected,
+        }
+        return m(WhitelabelRegistrationSettings, whitelabelRegistrationSettingsAttrs)
+    }
 
-		return m(WhitelabelRegistrationSettings, whitelabelRegistrationSettingsAttrs)
-	}
+    _renderDefaultGermanLanguageFileSettings(): Children {
+        if (!this._whitelabelConfig) return null
+        if (!lang.code === "de" && !lang.code === "de_sie") return null
+        const customGermanLanguageFile: GermanLanguageCode | null = downcast(this._whitelabelConfig.germanLanguageCode)
 
-	_renderDefaultGermanLanguageFileSettings(): Children {
-		if (!this._whitelabelConfig) return null
-		if (!lang.code === 'de' && !lang.code === 'de_sie') return null
+        const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {
+            if (languageFile) {
+                neverNull(this._whitelabelConfig).germanLanguageCode = languageFile
 
-		const customGermanLanguageFile: ?GermanLanguageCode = downcast(this._whitelabelConfig.germanLanguageCode)
-		const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {
-			if (languageFile) {
-				neverNull(this._whitelabelConfig).germanLanguageCode = languageFile
-				this._entityClient.update(neverNull(this._whitelabelConfig))
-				lang.setLanguage({code: languageFile, languageTag: lang.languageTag})
-			}
-		}
+                this._entityClient.update(neverNull(this._whitelabelConfig))
 
-		const whitelabelGermanLanguageFileSettingsAttrs = {
-			customGermanLanguageFile,
-			onGermanLanguageFileChanged,
-		}
+                lang.setLanguage({
+                    code: languageFile,
+                    languageTag: lang.languageTag,
+                })
+            }
+        }
 
-		return m(WhitelabelGermanLanguageFileSettings, whitelabelGermanLanguageFileSettingsAttrs)
-	}
+        const whitelabelGermanLanguageFileSettingsAttrs = {
+            customGermanLanguageFile,
+            onGermanLanguageFileChanged,
+        }
+        return m(WhitelabelGermanLanguageFileSettings, whitelabelGermanLanguageFileSettingsAttrs)
+    }
 
-	_renderCustomMetaTagsSettings(): Children {
-		let metaTags = ""
-		let onMetaTagsChanged = null
+    _renderCustomMetaTagsSettings(): Children {
+        let metaTags = ""
+        let onMetaTagsChanged = null
 
-		if (this._whitelabelConfig) {
-			metaTags = this._whitelabelConfig.metaTags
-			onMetaTagsChanged = (metaTags) => {
-				neverNull(this._whitelabelConfig).metaTags = metaTags
-				this._entityClient.update(neverNull(this._whitelabelConfig))
-			}
-		}
+        if (this._whitelabelConfig) {
+            metaTags = this._whitelabelConfig.metaTags
 
-		const whitelabelCustomMetaTagsSettingsAttrs = {
-			metaTags,
-			onMetaTagsChanged
-		}
+            onMetaTagsChanged = metaTags => {
+                neverNull(this._whitelabelConfig).metaTags = metaTags
 
-		return m(WhitelabelCustomMetaTagsSettings, whitelabelCustomMetaTagsSettingsAttrs)
-	}
+                this._entityClient.update(neverNull(this._whitelabelConfig))
+            }
+        }
 
-	_renderWhitelabelStatusSettings(): Children {
-		const whitelabelActive = isWhitelabelActive(this._lastBooking)
+        const whitelabelCustomMetaTagsSettingsAttrs = {
+            metaTags,
+            onMetaTagsChanged,
+        }
+        return m(WhitelabelCustomMetaTagsSettings, whitelabelCustomMetaTagsSettingsAttrs)
+    }
 
-		const whitelabelStatusSettingsAttrs = {
-			isWhitelabelActive: whitelabelActive
-		}
+    _renderWhitelabelStatusSettings(): Children {
+        const whitelabelActive = isWhitelabelActive(this._lastBooking)
+        const whitelabelStatusSettingsAttrs = {
+            isWhitelabelActive: whitelabelActive,
+        }
+        return m(WhitelabelStatusSettings, whitelabelStatusSettingsAttrs)
+    }
 
-		return m(WhitelabelStatusSettings, whitelabelStatusSettingsAttrs)
-	}
+    _renderBrandingDomainConfig(): Children {
+        const customerInfo = this._customerInfo.getSync()
 
-	_renderBrandingDomainConfig(): Children {
-		const customerInfo = this._customerInfo.getSync()
-		if (!customerInfo) return null
-		const certificateInfo = this._certificateInfo
+        if (!customerInfo) return null
+        const certificateInfo = this._certificateInfo
+        const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking)
+        const whitelabelDomain = this._whitelabelDomainInfo ? this._whitelabelDomainInfo.domain : ""
+        const whitelabelBrandingDomainSettingsAttrs = {
+            customerInfo,
+            isWhitelabelFeatureEnabled,
+            certificateInfo,
+            whitelabelDomain,
+        }
+        return m(WhitelabelBrandingDomainSettings, whitelabelBrandingDomainSettingsAttrs)
+    }
 
-		const isWhitelabelFeatureEnabled = isWhitelabelActive(this._lastBooking)
+    _isWhitelabelRegistrationVisible(): boolean {
+        return (
+            this._customer.isLoaded() &&
+            this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) != null &&
+            this._customerInfo.isLoaded() &&
+            getWhitelabelDomain(this._customerInfo.getLoaded()) != null
+        )
+    }
 
-		const whitelabelDomain = (this._whitelabelDomainInfo) ? this._whitelabelDomainInfo.domain : ""
+    _tryLoadWhitelabelConfig(
+        domainInfo: DomainInfo | null,
+    ): Promise<
+        | {
+              whitelabelConfig: WhitelabelConfig
+              certificateInfo: CertificateInfo
+          }
+        | null
+        | undefined
+    > {
+        if (domainInfo && domainInfo.whitelabelConfig) {
+            return Promise.all([
+                locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
+                serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef).then(response =>
+                    neverNull(response.certificateInfo),
+                ),
+            ]).then(([whitelabelConfig, certificateInfo]) => ({
+                whitelabelConfig,
+                certificateInfo,
+            }))
+        } else {
+            return Promise.resolve(null)
+        }
+    }
 
-		const whitelabelBrandingDomainSettingsAttrs = {
-			customerInfo,
-			isWhitelabelFeatureEnabled,
-			certificateInfo,
-			whitelabelDomain,
-		}
-		return m(WhitelabelBrandingDomainSettings, whitelabelBrandingDomainSettingsAttrs)
-	}
+    _updateFields(): Promise<void> {
+        return this._customerInfo.getAsync().then(customerInfo => {
+            this._whitelabelDomainInfo = getWhitelabelDomain(customerInfo, null)
+            return this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo).then(data => {
+                this._whitelabelConfig = data && data.whitelabelConfig
+                this._certificateInfo = data && data.certificateInfo
+                return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
+                    this._lastBooking = bookings.length === 1 ? bookings[0] : null
+                    this._customJsonTheme = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
+                    m.redraw()
 
-	_isWhitelabelRegistrationVisible(): boolean {
-		return this._customer.isLoaded() &&
-			this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) != null &&
-			this._customerInfo.isLoaded() &&
-			getWhitelabelDomain(this._customerInfo.getLoaded()) != null
-	}
+                    this._customerProperties.getAsync().then(m.redraw)
+                })
+            })
+        })
+    }
 
-	_tryLoadWhitelabelConfig(domainInfo: ? DomainInfo): Promise<? {whitelabelConfig: WhitelabelConfig, certificateInfo: CertificateInfo}> {
-		if (domainInfo && domainInfo.whitelabelConfig
-		) {
-			return Promise.all([
-				locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
-				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef)
-					.then((response) => neverNull(response.certificateInfo))
-			]).then(([whitelabelConfig, certificateInfo]) => ({whitelabelConfig, certificateInfo}))
-		} else {
-			return Promise.resolve(null)
-		}
-	}
+    _renderNotificationEmailSettings(): Children {
+        const customerProperties = this._customerProperties.getSync()
 
-	_updateFields(): Promise<void> {
-		return this._customerInfo.getAsync().then(customerInfo => {
-				this._whitelabelDomainInfo = getWhitelabelDomain(customerInfo, null)
-				return this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo).then(data => {
-					this._whitelabelConfig = data && data.whitelabelConfig
-					this._certificateInfo = data && data.certificateInfo
-					return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-					              .then(bookings => {
-						              this._lastBooking = bookings.length === 1 ? bookings[0] : null
-						              this._customJsonTheme = (this._whitelabelConfig) ? getThemeCustomizations(this._whitelabelConfig) : null
-						              m.redraw()
-						              this._customerProperties.getAsync().then(m.redraw)
-					              })
-				})
-			}
-		)
-	}
+        if (!customerProperties) return null
+        const notificationMailTemplates = customerProperties.notificationMailTemplates
 
-	_renderNotificationEmailSettings(): Children {
-		const customerProperties = this._customerProperties.getSync()
-		if (!customerProperties) return null
+        const onAddTemplate = () => {
+            showBuyOrSetNotificationEmailDialog(this._lastBooking, this._customerProperties)
+        }
 
-		const notificationMailTemplates = customerProperties.notificationMailTemplates
+        const onEditTemplate = template => {
+            EditNotificationEmailDialog.show(template, this._customerProperties)
+        }
 
-		const onAddTemplate = () => {
-			showBuyOrSetNotificationEmailDialog(this._lastBooking, this._customerProperties)
-		}
+        const onRemoveTemplate = template => {
+            this._removeNotificationMailTemplate(template)
+        }
 
-		const onEditTemplate = (template) => {
-			EditNotificationEmailDialog.show(template, this._customerProperties)
-		}
+        const whitelabelNotificationEmailSettingsAttrs = {
+            notificationMailTemplates,
+            onAddTemplate,
+            onEditTemplate,
+            onRemoveTemplate,
+        }
+        return m(WhitelabelNotificationEmailSettings, whitelabelNotificationEmailSettingsAttrs)
+    }
 
-		const onRemoveTemplate = (template) => {
-			this._removeNotificationMailTemplate(template)
-		}
+    _removeNotificationMailTemplate(template: NotificationMailTemplate) {
+        showProgressDialog(
+            "pleaseWait_msg",
+            this._customerProperties.getAsync().then(customerProps => {
+                const index = customerProps.notificationMailTemplates.findIndex(t => t.language === template.language)
 
-		const whitelabelNotificationEmailSettingsAttrs = {
-			notificationMailTemplates,
-			onAddTemplate,
-			onEditTemplate,
-			onRemoveTemplate,
-		}
+                if (index !== -1) {
+                    customerProps.notificationMailTemplates.splice(index, 1)
 
-		return m(WhitelabelNotificationEmailSettings, whitelabelNotificationEmailSettingsAttrs)
-	}
+                    this._entityClient.update(customerProps)
+                }
+            }),
+        )
+    }
 
-	_removeNotificationMailTemplate(template: NotificationMailTemplate) {
-		showProgressDialog("pleaseWait_msg", this._customerProperties.getAsync().then((customerProps) => {
-			const index = customerProps.notificationMailTemplates.findIndex((t) => t.language === template.language)
-			if (index !== -1) {
-				customerProps.notificationMailTemplates.splice(index, 1)
-				this._entityClient.update(customerProps)
-			}
-		}))
-	}
+    entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+        return promiseMap(updates, update => {
+            if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
+                this._customer.reset()
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
-			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._customer.reset()
-				return this._customer.getAsync().then(() => m.redraw())
-			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._customerInfo.reset()
-				return this._updateFields()
-			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
-				return this._updateFields()
-			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._customerProperties.reset()
-				return this._updateFields()
-			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
-				return this._updateFields()
-			}
-		}).then(noOp)
-	}
+                return this._customer.getAsync().then(() => m.redraw())
+            } else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+                this._customerInfo.reset()
+
+                return this._updateFields()
+            } else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
+                return this._updateFields()
+            } else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+                this._customerProperties.reset()
+
+                return this._updateFields()
+            } else if (isUpdateForTypeRef(BookingTypeRef, update)) {
+                return this._updateFields()
+            }
+        }).then(noOp)
+    }
 }

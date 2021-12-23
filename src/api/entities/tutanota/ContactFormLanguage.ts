@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {InputField} from "./InputField"
@@ -73,8 +71,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createContactFormLanguage(values?: $Shape<$Exact<ContactFormLanguage>>): ContactFormLanguage {
-	return Object.assign(create(_TypeModel, ContactFormLanguageTypeRef), values)
+export function createContactFormLanguage(values?: Partial<ContactFormLanguage>): ContactFormLanguage {
+	return Object.assign(create(_TypeModel, ContactFormLanguageTypeRef), downcast<ContactFormLanguage>(values))
 }
 
 export type ContactFormLanguage = {

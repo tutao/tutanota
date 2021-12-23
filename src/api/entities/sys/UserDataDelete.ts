@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -50,15 +48,15 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUserDataDelete(values?: $Shape<$Exact<UserDataDelete>>): UserDataDelete {
-	return Object.assign(create(_TypeModel, UserDataDeleteTypeRef), values)
+export function createUserDataDelete(values?: Partial<UserDataDelete>): UserDataDelete {
+	return Object.assign(create(_TypeModel, UserDataDeleteTypeRef), downcast<UserDataDelete>(values))
 }
 
 export type UserDataDelete = {
 	_type: TypeRef<UserDataDelete>;
 
 	_format: NumberString;
-	date: ?Date;
+	date: null | Date;
 	restore: boolean;
 
 	user: Id;

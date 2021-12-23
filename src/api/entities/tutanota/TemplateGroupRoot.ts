@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -71,8 +69,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createTemplateGroupRoot(values?: $Shape<$Exact<TemplateGroupRoot>>): TemplateGroupRoot {
-	return Object.assign(create(_TypeModel, TemplateGroupRootTypeRef), values)
+export function createTemplateGroupRoot(values?: Partial<TemplateGroupRoot>): TemplateGroupRoot {
+	return Object.assign(create(_TypeModel, TemplateGroupRootTypeRef), downcast<TemplateGroupRoot>(values))
 }
 
 export type TemplateGroupRoot = {
@@ -81,8 +79,8 @@ export type TemplateGroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
 	knowledgeBase: Id;

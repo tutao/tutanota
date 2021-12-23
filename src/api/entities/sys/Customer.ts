@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {AuditLogRef} from "./AuditLogRef"
@@ -225,8 +223,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {
-	return Object.assign(create(_TypeModel, CustomerTypeRef), values)
+export function createCustomer(values?: Partial<Customer>): Customer {
+	return Object.assign(create(_TypeModel, CustomerTypeRef), downcast<Customer>(values))
 }
 
 export type Customer = {
@@ -234,30 +232,30 @@ export type Customer = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	approvalStatus: NumberString;
-	businessUse: ?boolean;
+	businessUse: null | boolean;
 	canceledPremiumAccount: boolean;
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;
 
-	auditLog: ?AuditLogRef;
-	contactFormUserAreaGroups: ?UserAreaGroups;
-	contactFormUserGroups: ?UserAreaGroups;
+	auditLog: null | AuditLogRef;
+	contactFormUserAreaGroups: null | UserAreaGroups;
+	contactFormUserGroups: null | UserAreaGroups;
 	customizations: Feature[];
-	rejectedSenders: ?RejectedSendersRef;
-	userAreaGroups: ?UserAreaGroups;
-	whitelabelChildren: ?WhitelabelChildrenRef;
-	whitelabelParent: ?WhitelabelParent;
+	rejectedSenders: null | RejectedSendersRef;
+	userAreaGroups: null | UserAreaGroups;
+	whitelabelChildren: null | WhitelabelChildrenRef;
+	whitelabelParent: null | WhitelabelParent;
 	adminGroup: Id;
 	adminGroups: Id;
 	customerGroup: Id;
 	customerGroups: Id;
 	customerInfo: IdTuple;
-	orderProcessingAgreement: ?IdTuple;
-	properties: ?Id;
-	serverProperties: ?Id;
+	orderProcessingAgreement: null | IdTuple;
+	properties: null | Id;
+	serverProperties: null | Id;
 	teamGroups: Id;
 	userGroups: Id;
 }

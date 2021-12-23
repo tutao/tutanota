@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCreateGroupPostReturn(values?: $Shape<$Exact<CreateGroupPostReturn>>): CreateGroupPostReturn {
-	return Object.assign(create(_TypeModel, CreateGroupPostReturnTypeRef), values)
+export function createCreateGroupPostReturn(values?: Partial<CreateGroupPostReturn>): CreateGroupPostReturn {
+	return Object.assign(create(_TypeModel, CreateGroupPostReturnTypeRef), downcast<CreateGroupPostReturn>(values))
 }
 
 export type CreateGroupPostReturn = {

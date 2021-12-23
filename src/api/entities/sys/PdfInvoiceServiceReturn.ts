@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPdfInvoiceServiceReturn(values?: $Shape<$Exact<PdfInvoiceServiceReturn>>): PdfInvoiceServiceReturn {
-	return Object.assign(create(_TypeModel, PdfInvoiceServiceReturnTypeRef), values)
+export function createPdfInvoiceServiceReturn(values?: Partial<PdfInvoiceServiceReturn>): PdfInvoiceServiceReturn {
+	return Object.assign(create(_TypeModel, PdfInvoiceServiceReturnTypeRef), downcast<PdfInvoiceServiceReturn>(values))
 }
 
 export type PdfInvoiceServiceReturn = {
@@ -58,7 +56,7 @@ export type PdfInvoiceServiceReturn = {
 	_errors: Object;
 
 	_format: NumberString;
-	_ownerGroup: ?Id;
-	_ownerPublicEncSessionKey: ?Uint8Array;
+	_ownerGroup: null | Id;
+	_ownerPublicEncSessionKey: null | Uint8Array;
 	data: Uint8Array;
 }

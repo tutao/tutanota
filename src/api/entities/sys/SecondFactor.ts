@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {U2fRegisteredDevice} from "./U2fRegisteredDevice"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {
-	return Object.assign(create(_TypeModel, SecondFactorTypeRef), values)
+export function createSecondFactor(values?: Partial<SecondFactor>): SecondFactor {
+	return Object.assign(create(_TypeModel, SecondFactorTypeRef), downcast<SecondFactor>(values))
 }
 
 export type SecondFactor = {
@@ -89,11 +87,11 @@ export type SecondFactor = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	name: string;
-	otpSecret: ?Uint8Array;
+	otpSecret: null | Uint8Array;
 	type: NumberString;
 
-	u2f: ?U2fRegisteredDevice;
+	u2f:  null | U2fRegisteredDevice;
 }

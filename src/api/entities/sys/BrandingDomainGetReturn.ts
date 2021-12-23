@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CertificateInfo} from "./CertificateInfo"
@@ -38,8 +36,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createBrandingDomainGetReturn(values?: $Shape<$Exact<BrandingDomainGetReturn>>): BrandingDomainGetReturn {
-	return Object.assign(create(_TypeModel, BrandingDomainGetReturnTypeRef), values)
+export function createBrandingDomainGetReturn(values?: Partial<BrandingDomainGetReturn>): BrandingDomainGetReturn {
+	return Object.assign(create(_TypeModel, BrandingDomainGetReturnTypeRef), downcast<BrandingDomainGetReturn>(values))
 }
 
 export type BrandingDomainGetReturn = {
@@ -47,5 +45,5 @@ export type BrandingDomainGetReturn = {
 
 	_format: NumberString;
 
-	certificateInfo: ?CertificateInfo;
+	certificateInfo: null | CertificateInfo;
 }

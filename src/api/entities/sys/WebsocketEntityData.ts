@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {EntityUpdate} from "./EntityUpdate"
@@ -52,8 +50,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createWebsocketEntityData(values?: $Shape<$Exact<WebsocketEntityData>>): WebsocketEntityData {
-	return Object.assign(create(_TypeModel, WebsocketEntityDataTypeRef), values)
+export function createWebsocketEntityData(values?: Partial<WebsocketEntityData>): WebsocketEntityData {
+	return Object.assign(create(_TypeModel, WebsocketEntityDataTypeRef), downcast<WebsocketEntityData>(values))
 }
 
 export type WebsocketEntityData = {

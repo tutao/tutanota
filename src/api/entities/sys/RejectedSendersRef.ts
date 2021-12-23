@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRejectedSendersRef(values?: $Shape<$Exact<RejectedSendersRef>>): RejectedSendersRef {
-	return Object.assign(create(_TypeModel, RejectedSendersRefTypeRef), values)
+export function createRejectedSendersRef(values?: Partial<RejectedSendersRef>): RejectedSendersRef {
+	return Object.assign(create(_TypeModel, RejectedSendersRefTypeRef), downcast<RejectedSendersRef>(values))
 }
 
 export type RejectedSendersRef = {

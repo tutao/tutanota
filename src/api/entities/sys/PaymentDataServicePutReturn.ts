@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Braintree3ds2Request} from "./Braintree3ds2Request"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPaymentDataServicePutReturn(values?: $Shape<$Exact<PaymentDataServicePutReturn>>): PaymentDataServicePutReturn {
-	return Object.assign(create(_TypeModel, PaymentDataServicePutReturnTypeRef), values)
+export function createPaymentDataServicePutReturn(values?: Partial<PaymentDataServicePutReturn>): PaymentDataServicePutReturn {
+	return Object.assign(create(_TypeModel, PaymentDataServicePutReturnTypeRef), downcast<PaymentDataServicePutReturn>(values))
 }
 
 export type PaymentDataServicePutReturn = {
@@ -55,5 +53,5 @@ export type PaymentDataServicePutReturn = {
 	_format: NumberString;
 	result: NumberString;
 
-	braintree3dsRequest: ?Braintree3ds2Request;
+	braintree3dsRequest:  null | Braintree3ds2Request;
 }

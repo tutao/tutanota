@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRootInstance(values?: $Shape<$Exact<RootInstance>>): RootInstance {
-	return Object.assign(create(_TypeModel, RootInstanceTypeRef), values)
+export function createRootInstance(values?: Partial<RootInstance>): RootInstance {
+	return Object.assign(create(_TypeModel, RootInstanceTypeRef), downcast<RootInstance>(values))
 }
 
 export type RootInstance = {
@@ -65,7 +63,7 @@ export type RootInstance = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	reference: Id;
 }

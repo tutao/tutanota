@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -70,18 +68,18 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createChangePasswordData(values?: $Shape<$Exact<ChangePasswordData>>): ChangePasswordData {
-	return Object.assign(create(_TypeModel, ChangePasswordDataTypeRef), values)
+export function createChangePasswordData(values?: Partial<ChangePasswordData>): ChangePasswordData {
+	return Object.assign(create(_TypeModel, ChangePasswordDataTypeRef), downcast<ChangePasswordData>(values))
 }
 
 export type ChangePasswordData = {
 	_type: TypeRef<ChangePasswordData>;
 
 	_format: NumberString;
-	code: ?string;
-	oldVerifier: ?Uint8Array;
+	code: null | string;
+	oldVerifier: null | Uint8Array;
 	pwEncUserGroupKey: Uint8Array;
-	recoverCodeVerifier: ?Uint8Array;
+	recoverCodeVerifier: null | Uint8Array;
 	salt: Uint8Array;
 	verifier: Uint8Array;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,13 +33,13 @@ export const _TypeModel: TypeModel = {
 	"version": "18"
 }
 
-export function createReadCounterReturn(values?: $Shape<$Exact<ReadCounterReturn>>): ReadCounterReturn {
-	return Object.assign(create(_TypeModel, ReadCounterReturnTypeRef), values)
+export function createReadCounterReturn(values?: Partial<ReadCounterReturn>): ReadCounterReturn {
+	return Object.assign(create(_TypeModel, ReadCounterReturnTypeRef), downcast<ReadCounterReturn>(values))
 }
 
 export type ReadCounterReturn = {
 	_type: TypeRef<ReadCounterReturn>;
 
 	_format: NumberString;
-	value: ?NumberString;
+	value: null | NumberString;
 }

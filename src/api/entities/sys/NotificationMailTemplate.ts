@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createNotificationMailTemplate(values?: $Shape<$Exact<NotificationMailTemplate>>): NotificationMailTemplate {
-	return Object.assign(create(_TypeModel, NotificationMailTemplateTypeRef), values)
+export function createNotificationMailTemplate(values?: Partial<NotificationMailTemplate>): NotificationMailTemplate {
+	return Object.assign(create(_TypeModel, NotificationMailTemplateTypeRef), downcast<NotificationMailTemplate>(values))
 }
 
 export type NotificationMailTemplate = {

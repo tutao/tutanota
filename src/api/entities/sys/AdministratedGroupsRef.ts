@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createAdministratedGroupsRef(values?: $Shape<$Exact<AdministratedGroupsRef>>): AdministratedGroupsRef {
-	return Object.assign(create(_TypeModel, AdministratedGroupsRefTypeRef), values)
+export function createAdministratedGroupsRef(values?: Partial<AdministratedGroupsRef>): AdministratedGroupsRef {
+	return Object.assign(create(_TypeModel, AdministratedGroupsRefTypeRef), downcast<AdministratedGroupsRef>(values))
 }
 
 export type AdministratedGroupsRef = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Name} from "./Name"
@@ -52,8 +50,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {
-	return Object.assign(create(_TypeModel, InputFieldTypeRef), values)
+export function createInputField(values?: Partial<InputField>): InputField {
+	return Object.assign(create(_TypeModel, InputFieldTypeRef), downcast<InputField>(values))
 }
 
 export type InputField = {

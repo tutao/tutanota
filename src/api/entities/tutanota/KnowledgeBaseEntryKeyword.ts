@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,8 +33,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createKnowledgeBaseEntryKeyword(values?: $Shape<$Exact<KnowledgeBaseEntryKeyword>>): KnowledgeBaseEntryKeyword {
-	return Object.assign(create(_TypeModel, KnowledgeBaseEntryKeywordTypeRef), values)
+export function createKnowledgeBaseEntryKeyword(values?: Partial<KnowledgeBaseEntryKeyword>): KnowledgeBaseEntryKeyword {
+	return Object.assign(create(_TypeModel, KnowledgeBaseEntryKeywordTypeRef), downcast<KnowledgeBaseEntryKeyword>(values))
 }
 
 export type KnowledgeBaseEntryKeyword = {

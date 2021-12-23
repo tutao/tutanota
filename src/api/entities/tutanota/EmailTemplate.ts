@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {EmailTemplateContent} from "./EmailTemplateContent"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createEmailTemplate(values?: $Shape<$Exact<EmailTemplate>>): EmailTemplate {
-	return Object.assign(create(_TypeModel, EmailTemplateTypeRef), values)
+export function createEmailTemplate(values?: Partial<EmailTemplate>): EmailTemplate {
+	return Object.assign(create(_TypeModel, EmailTemplateTypeRef), downcast<EmailTemplate>(values))
 }
 
 export type EmailTemplate = {
@@ -90,8 +88,8 @@ export type EmailTemplate = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	tag: string;
 	title: string;

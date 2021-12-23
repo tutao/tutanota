@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -78,8 +76,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createGroupMember(values?: $Shape<$Exact<GroupMember>>): GroupMember {
-	return Object.assign(create(_TypeModel, GroupMemberTypeRef), values)
+export function createGroupMember(values?: Partial<GroupMember>): GroupMember {
+	return Object.assign(create(_TypeModel, GroupMemberTypeRef), downcast<GroupMember>(values))
 }
 
 export type GroupMember = {
@@ -87,9 +85,9 @@ export type GroupMember = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	capability: ?NumberString;
+	capability: null | NumberString;
 
 	group: Id;
 	user: Id;

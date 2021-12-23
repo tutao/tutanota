@@ -2,7 +2,7 @@
 import m from "mithril"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonColors, isVisible} from "./ButtonN"
+import {ButtonColor, isVisible} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
 import {size} from "../size"
 import type {NavButtonAttrs} from "./NavButtonN"
@@ -48,7 +48,7 @@ export type NavBarAttrs = {
 /**
  * An advanced button bar that hides buttons behind a 'more' button if they do not fit
  */
-export class NavBarN implements MComponent<NavBarAttrs> {
+export class NavBarN implements Component<NavBarAttrs> {
 	buttonId: number;
 	buttons: ButtonWrapper[];
 	moreButtons: ButtonWrapper[]; // this button should only be visible, when the more button dropdown is visible
@@ -67,7 +67,7 @@ export class NavBarN implements MComponent<NavBarAttrs> {
 			href: () => m.route.get(),
 			icon: () => BootIcons.MoreVertical,
 			click: createDropdown(() => this.getVisibleButtons().hidden.map(wrapper => wrapper.buttonAttrs)),
-			colors: ButtonColors.Header,
+			colors: ButtonColor.Header,
 			hideLabel: true,
 		}
 		this.more = new ButtonWrapper(moreButtonAttrs, MAX_PRIO, size.button_height).setId(Number.MAX_VALUE)
@@ -143,8 +143,8 @@ export class NavBarN implements MComponent<NavBarAttrs> {
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
-		buttons.hidden.forEach(b => b.buttonAttrs.colors = ButtonColors.Content)
-		buttons.visible.forEach(b => b.buttonAttrs.colors = ButtonColors.Header)
+		buttons.hidden.forEach(b => b.buttonAttrs.colors = ButtonColor.Content)
+		buttons.visible.forEach(b => b.buttonAttrs.colors = ButtonColor.Header)
 		return buttons
 	}
 

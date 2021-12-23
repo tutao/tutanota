@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {AttachmentKeyData} from "./AttachmentKeyData"
@@ -105,20 +103,20 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSendDraftData(values?: $Shape<$Exact<SendDraftData>>): SendDraftData {
-	return Object.assign(create(_TypeModel, SendDraftDataTypeRef), values)
+export function createSendDraftData(values?: Partial<SendDraftData>): SendDraftData {
+	return Object.assign(create(_TypeModel, SendDraftDataTypeRef), downcast<SendDraftData>(values))
 }
 
 export type SendDraftData = {
 	_type: TypeRef<SendDraftData>;
 
 	_format: NumberString;
-	bucketEncMailSessionKey: ?Uint8Array;
+	bucketEncMailSessionKey: null | Uint8Array;
 	calendarMethod: boolean;
 	language: string;
-	mailSessionKey: ?Uint8Array;
+	mailSessionKey: null | Uint8Array;
 	plaintext: boolean;
-	senderNameUnencrypted: ?string;
+	senderNameUnencrypted: null | string;
 
 	attachmentKeyData: AttachmentKeyData[];
 	internalRecipientKeyData: InternalRecipientKeyData[];

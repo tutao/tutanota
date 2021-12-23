@@ -1,6 +1,3 @@
-// @flow
-
-
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {logins} from "../api/main/LoginController"
@@ -12,17 +9,24 @@ import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
 /**
  * @return True if the group has been created.
  */
-export function createInitialTemplateListIfAllowed(): Promise<?TemplateGroupRoot> {
-	return logins.getUserController().loadCustomer().then(customer => {
-		return isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
-			showBusinessFeatureRequiredDialog("businessFeatureRequiredTemplates_msg")
-	}).then(allowed => {
-		if (allowed) {
-			return locator.groupManagementFacade.createTemplateGroup("")
-		}
-	}).then(groupId => {
-		if (groupId) {
-			return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
-		}
-	})
+export function createInitialTemplateListIfAllowed(): Promise<TemplateGroupRoot | null> {
+    return logins
+        .getUserController()
+        .loadCustomer()
+        .then(customer => {
+            return (
+                isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
+                showBusinessFeatureRequiredDialog("businessFeatureRequiredTemplates_msg")
+            )
+        })
+        .then(allowed => {
+            if (allowed) {
+                return locator.groupManagementFacade.createTemplateGroup("")
+            }
+        })
+        .then(groupId => {
+            if (groupId) {
+                return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
+            }
+        })
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,8 +40,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFileDataDataPost(values?: $Shape<$Exact<FileDataDataPost>>): FileDataDataPost {
-	return Object.assign(create(_TypeModel, FileDataDataPostTypeRef), values)
+export function createFileDataDataPost(values?: Partial<FileDataDataPost>): FileDataDataPost {
+	return Object.assign(create(_TypeModel, FileDataDataPostTypeRef), downcast<FileDataDataPost>(values))
 }
 
 export type FileDataDataPost = {

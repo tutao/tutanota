@@ -1,5 +1,3 @@
-// @flow
-
 /*
  * This file helps keep registry operations for application and removal in sync by generating
  * an application registry script and a removal script from the same template.
@@ -76,25 +74,26 @@
  *  * only string values are supported
  *  * application can only write, removal will only remove
  *  */
-
-export type RegistryTemplateDefinition = $ReadOnlyArray<RegistryValueTemplate>
-export type RegistryValueTemplate = {value: RegistrySubKey, root: string}
-export type RegistrySubKey = {[string]: RegistryValue}
+export type RegistryTemplateDefinition = ReadonlyArray<RegistryValueTemplate>
+export type RegistryValueTemplate = {
+    value: RegistrySubKey
+    root: string
+}
+export type RegistrySubKey = Record<string, RegistryValue>
 export type RegistryValue = RegistrySubKey | string
-type OperationBuffer = {[string]: Array<string>}
-
+type OperationBuffer = Record<string, Array<string>>
 const header_line = "Windows Registry Editor Version 5.00"
 
 function quote(s: string): string {
-	return `"${s}"`
+    return `"${s}"`
 }
 
 function keyLine(path: string): string {
-	return `[${path}]`
+    return `[${path}]`
 }
 
-function valueLine(path: string, value: ?string): string {
-	return `${path === "" ? "@" : quote(path)}=${value == null ? "-" : quote(value)}`
+function valueLine(path: string, value: string | null): string {
+    return `${path === "" ? "@" : quote(path)}=${value == null ? "-" : quote(value)}`
 }
 
 /**
@@ -104,27 +103,30 @@ function valueLine(path: string, value: ?string): string {
  * remove is used to create value/key removal lines
  */
 function expandValue(path: string, key: string, value: RegistryValue, buf: OperationBuffer, remove?: boolean): OperationBuffer {
-	if (typeof value === "string") {
-		buf[path].push(valueLine(key, remove ? null : value))
-	} else {
-		buf = expandSection(`${path}\\${key}`, value, buf, remove)
-	}
-	return buf
+    if (typeof value === "string") {
+        buf[path].push(valueLine(key, remove ? null : value))
+    } else {
+        buf = expandSection(`${path}\\${key}`, value, buf, remove)
+    }
+
+    return buf
 }
 
 /**
  * section expander for the script generator
  */
 function expandSection(path: string, value: RegistrySubKey, buf: OperationBuffer, remove?: boolean): OperationBuffer {
-	if (buf[path] == null) buf[path] = []
-	for (const key in value) {
-		if (typeof value[key] !== "string" && remove) {
-			buf[`-${path}\\${key}`] = []
-		} else {
-			expandValue(path, key, value[key], buf, remove)
-		}
-	}
-	return buf
+    if (buf[path] == null) buf[path] = []
+
+    for (const key in value) {
+        if (typeof value[key] !== "string" && remove) {
+            buf[`-${path}\\${key}`] = []
+        } else {
+            expandValue(path, key, value[key], buf, remove)
+        }
+    }
+
+    return buf
 }
 
 /**
@@ -133,29 +135,31 @@ function expandSection(path: string, value: RegistrySubKey, buf: OperationBuffer
  * @returns {string} a windows registry script that can be imported by regex.exe to apply the operations
  */
 function bufToScript(buf: OperationBuffer): string {
-	const lines = [header_line]
-	for (const key in buf) {
-		const next = buf[key]
-		if (next.length < 1 && !key.startsWith("-")) continue
-		lines.push("", keyLine(key))
-		lines.push(...next)
-	}
-	return lines.join("\r\n").trim()
+    const lines = [header_line]
+
+    for (const key in buf) {
+        const next = buf[key]
+        if (next.length < 1 && !key.startsWith("-")) continue
+        lines.push("", keyLine(key))
+        lines.push(...next)
+    }
+
+    return lines.join("\r\n").trim()
 }
 
 /**
  * the application and removal script generators are very similar in structure, this function abstracts over that.
  */
 function scriptBuilder(remove: boolean, template: RegistryTemplateDefinition): string {
-	const buf = template.reduce((prev, {root, value}) => expandSection(root, value, prev, remove), {})
-	return bufToScript(buf)
+    const buf = template.reduce((prev, {root, value}) => expandSection(root, value, prev, remove), {})
+    return bufToScript(buf)
 }
 
 /**
  * create a windows registry script that can be executed to apply the given template
  */
 export function applyScriptBuilder(template: RegistryTemplateDefinition): string {
-	return scriptBuilder(false, template)
+    return scriptBuilder(false, template)
 }
 
 /**
@@ -163,5 +167,5 @@ export function applyScriptBuilder(template: RegistryTemplateDefinition): string
  * created by executing the script generated from the template by applyScriptBuilder
  */
 export function removeScriptBuilder(template: RegistryTemplateDefinition): string {
-	return scriptBuilder(true, template)
+    return scriptBuilder(true, template)
 }

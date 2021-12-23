@@ -1,10 +1,5 @@
-//@flow
-
-
 import {assertMainOrNode} from "../api/common/Env"
-
 assertMainOrNode()
-
 export const terms_de = `<section id="terms-de" class="content">
     <h3>Allgemeine Geschäftsbedingungen (AGB) der Tutao GmbH</h3>
     <h4>1. Allgemeines, Geltungsbereich</h4>
@@ -371,7 +366,6 @@ export const terms_de = `<section id="terms-de" class="content">
         deren wirtschaftlicher Erfolg dem der unwirksamen so weit wie möglich
         nahe kommt.</p>
 </section>`
-
 export const privacy_de = `<section id="privacy-de" class="content">
     <h3>Datenschutzerklärung der Tutao GmbH, Hannover</h3>
     <p><strong>Stand: 25. Mai 2018</strong></p>
@@ -500,7 +494,6 @@ export const privacy_de = `<section id="privacy-de" class="content">
         für Zwecke der Bearbeitung und der Kontaktaufnahme zur betroffenen Person verwendet. Es erfolgt keine Weitergabe
         dieser personenbezogenen Daten an Dritte.</p>
 </section>`
-
 export const terms_en = `
 <section id="terms-en" class="content">
     <h3>Terms and Conditions of Tutao GmbH</h3>
@@ -839,7 +832,6 @@ export const terms_en = `
         its commercial success matches the invalid one as closely
         as possible - to replace the invalid one.</p>
 </section>`
-
 export const privacy_en = `<section id="privacy-en" class="content">
     <h3>Privacy Statement of Tutao GmbH</h3>
     <p><em>This Data Privacy Statement is provided in English for your
@@ -951,7 +943,6 @@ export const privacy_en = `<section id="privacy-en" class="content">
         with the request and getting in contact with the affected person. We will not disclose this personal data to
         third parties.</p>
 </section>`
-
 // phrase key 'faq.gift-cards-terms_markdown'
 export const giftCards_en = `<section id="gift-cards-terms-en" class="content">
 <h3>Terms and conditions of Tutanota gift cards</h3>
@@ -971,7 +962,6 @@ export const giftCards_en = `<section id="gift-cards-terms-en" class="content">
 <li><p>We reserve the right to deactivate gift cards in the case that the purchasing account of said gift cards is found to have abused our service.</p></li>
 </ol>
 </section>`
-
 export const giftCards_de = `<section id="gift-cards-terms-de" class="content">
 <h3>Diese AGB für Tutanota-Gutscheine sind ab dem 14. Dezember 2020 gültig.
 <ol>

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PriceData} from "./PriceData"
@@ -68,18 +66,18 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPriceServiceReturn(values?: $Shape<$Exact<PriceServiceReturn>>): PriceServiceReturn {
-	return Object.assign(create(_TypeModel, PriceServiceReturnTypeRef), values)
+export function createPriceServiceReturn(values?: Partial<PriceServiceReturn>): PriceServiceReturn {
+	return Object.assign(create(_TypeModel, PriceServiceReturnTypeRef), downcast<PriceServiceReturn>(values))
 }
 
 export type PriceServiceReturn = {
 	_type: TypeRef<PriceServiceReturn>;
 
 	_format: NumberString;
-	currentPeriodAddedPrice: ?NumberString;
+	currentPeriodAddedPrice: null | NumberString;
 	periodEndDate: Date;
 
-	currentPriceNextPeriod: ?PriceData;
-	currentPriceThisPeriod: ?PriceData;
-	futurePriceNextPeriod: ?PriceData;
+	currentPriceNextPeriod:  null | PriceData;
+	currentPriceThisPeriod:  null | PriceData;
+	futurePriceNextPeriod:  null | PriceData;
 }

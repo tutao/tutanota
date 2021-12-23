@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCalendarEventUpdateList(values?: $Shape<$Exact<CalendarEventUpdateList>>): CalendarEventUpdateList {
-	return Object.assign(create(_TypeModel, CalendarEventUpdateListTypeRef), values)
+export function createCalendarEventUpdateList(values?: Partial<CalendarEventUpdateList>): CalendarEventUpdateList {
+	return Object.assign(create(_TypeModel, CalendarEventUpdateListTypeRef), downcast<CalendarEventUpdateList>(values))
 }
 
 export type CalendarEventUpdateList = {

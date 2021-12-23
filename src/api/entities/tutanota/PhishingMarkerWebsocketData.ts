@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PhishingMarker} from "./PhishingMarker"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPhishingMarkerWebsocketData(values?: $Shape<$Exact<PhishingMarkerWebsocketData>>): PhishingMarkerWebsocketData {
-	return Object.assign(create(_TypeModel, PhishingMarkerWebsocketDataTypeRef), values)
+export function createPhishingMarkerWebsocketData(values?: Partial<PhishingMarkerWebsocketData>): PhishingMarkerWebsocketData {
+	return Object.assign(create(_TypeModel, PhishingMarkerWebsocketDataTypeRef), downcast<PhishingMarkerWebsocketData>(values))
 }
 
 export type PhishingMarkerWebsocketData = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {InternalGroupData} from "./InternalGroupData"
@@ -126,8 +124,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCustomerAccountCreateData(values?: $Shape<$Exact<CustomerAccountCreateData>>): CustomerAccountCreateData {
-	return Object.assign(create(_TypeModel, CustomerAccountCreateDataTypeRef), values)
+export function createCustomerAccountCreateData(values?: Partial<CustomerAccountCreateData>): CustomerAccountCreateData {
+	return Object.assign(create(_TypeModel, CustomerAccountCreateDataTypeRef), downcast<CustomerAccountCreateData>(values))
 }
 
 export type CustomerAccountCreateData = {
@@ -138,7 +136,7 @@ export type CustomerAccountCreateData = {
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
 	authToken: string;
 	code: string;
-	date: ?Date;
+	date: null | Date;
 	lang: string;
 	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
 	userEncAccountGroupKey: Uint8Array;

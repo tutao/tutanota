@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -43,8 +41,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomDomainData(values?: $Shape<$Exact<CustomDomainData>>): CustomDomainData {
-	return Object.assign(create(_TypeModel, CustomDomainDataTypeRef), values)
+export function createCustomDomainData(values?: Partial<CustomDomainData>): CustomDomainData {
+	return Object.assign(create(_TypeModel, CustomDomainDataTypeRef), downcast<CustomDomainData>(values))
 }
 
 export type CustomDomainData = {
@@ -53,5 +51,5 @@ export type CustomDomainData = {
 	_format: NumberString;
 	domain: string;
 
-	catchAllMailGroup: ?Id;
+	catchAllMailGroup: null | Id;
 }

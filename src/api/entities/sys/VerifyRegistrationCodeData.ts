@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,8 +40,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createVerifyRegistrationCodeData(values?: $Shape<$Exact<VerifyRegistrationCodeData>>): VerifyRegistrationCodeData {
-	return Object.assign(create(_TypeModel, VerifyRegistrationCodeDataTypeRef), values)
+export function createVerifyRegistrationCodeData(values?: Partial<VerifyRegistrationCodeData>): VerifyRegistrationCodeData {
+	return Object.assign(create(_TypeModel, VerifyRegistrationCodeDataTypeRef), downcast<VerifyRegistrationCodeData>(values))
 }
 
 export type VerifyRegistrationCodeData = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -119,8 +117,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPushIdentifier(values?: $Shape<$Exact<PushIdentifier>>): PushIdentifier {
-	return Object.assign(create(_TypeModel, PushIdentifierTypeRef), values)
+export function createPushIdentifier(values?: Partial<PushIdentifier>): PushIdentifier {
+	return Object.assign(create(_TypeModel, PushIdentifierTypeRef), downcast<PushIdentifier>(values))
 }
 
 export type PushIdentifier = {
@@ -131,14 +129,14 @@ export type PushIdentifier = {
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	disabled: boolean;
 	displayName: string;
 	identifier: string;
 	language: string;
-	lastNotificationDate: ?Date;
+	lastNotificationDate: null | Date;
 	lastUsageTime: Date;
 	pushServiceType: NumberString;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PhotosRef} from "./PhotosRef"
@@ -73,8 +71,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createContactList(values?: $Shape<$Exact<ContactList>>): ContactList {
-	return Object.assign(create(_TypeModel, ContactListTypeRef), values)
+export function createContactList(values?: Partial<ContactList>): ContactList {
+	return Object.assign(create(_TypeModel, ContactListTypeRef), downcast<ContactList>(values))
 }
 
 export type ContactList = {
@@ -83,10 +81,10 @@ export type ContactList = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	photos: ?PhotosRef;
+	photos:  null | PhotosRef;
 	contacts: Id;
 }

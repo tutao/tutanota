@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -63,8 +61,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCalendarRepeatRule(values?: $Shape<$Exact<CalendarRepeatRule>>): CalendarRepeatRule {
-	return Object.assign(create(_TypeModel, CalendarRepeatRuleTypeRef), values)
+export function createCalendarRepeatRule(values?: Partial<CalendarRepeatRule>): CalendarRepeatRule {
+	return Object.assign(create(_TypeModel, CalendarRepeatRuleTypeRef), downcast<CalendarRepeatRule>(values))
 }
 
 export type CalendarRepeatRule = {
@@ -72,7 +70,7 @@ export type CalendarRepeatRule = {
 
 	_id: Id;
 	endType: NumberString;
-	endValue: ?NumberString;
+	endValue: null | NumberString;
 	frequency: NumberString;
 	interval: NumberString;
 	timeZone: string;

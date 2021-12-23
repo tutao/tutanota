@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {U2fKey} from "./U2fKey"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {
-	return Object.assign(create(_TypeModel, U2fChallengeTypeRef), values)
+export function createU2fChallenge(values?: Partial<U2fChallenge>): U2fChallenge {
+	return Object.assign(create(_TypeModel, U2fChallengeTypeRef), downcast<U2fChallenge>(values))
 }
 
 export type U2fChallenge = {

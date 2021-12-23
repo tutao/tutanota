@@ -1,19 +1,17 @@
-// @flow
-import m from 'mithril'
-import {logins} from '../api/main/LoginController.js'
+import m from "mithril"
+import {logins} from "../api/main/LoginController"
 import type {PositionRect} from "./base/Overlay"
-import {displayOverlay} from './base/Overlay'
+import {displayOverlay} from "./base/Overlay"
 import {px, size} from "./size"
 import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
-import {Request} from "../api/common/MessageDispatcher.js"
+import {Request} from "../api/common/MessageDispatcher"
 import {lang} from "../misc/LanguageViewModel"
 import {transform} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {FindInPageResult} from "electron"
 import {locator} from "../api/main/MainLocator"
-
 assertMainOrNode()
 
 /**
@@ -21,199 +19,215 @@ assertMainOrNode()
  * gets loaded asynchronously, shouldn't be in the web bundle
  */
 export class SearchInPageOverlay {
-	_closeFunction: (() => Promise<void>) | null;
-	_domInput: HTMLInputElement;
-	_matchCase: boolean = false;
-	_numberOfMatches: number = 0;
-	_currentMatch: number = 0;
-	_skipNextBlur: boolean = false;
+    _closeFunction: (() => Promise<void>) | null
+    _domInput: HTMLInputElement
+    _matchCase: boolean = false
+    _numberOfMatches: number = 0
+    _currentMatch: number = 0
+    _skipNextBlur: boolean = false
 
-	constructor() {
-		this._closeFunction = null
-	}
+    constructor() {
+        this._closeFunction = null
+    }
 
-	open() {
-		if (logins.isUserLoggedIn()) {
-			if (!this._closeFunction) {
-				this._closeFunction = displayOverlay(
-					() => this._getRect(),
-					this._getComponent(),
-					(dom) => transform(transform.type.translateY, dom.offsetHeight, 0),
-					(dom) => transform(transform.type.translateY, 0, dom.offsetHeight)
-				)
-			} else { //already open, refocus
-				console.log("refocusing")
-				this._domInput.focus()
-				this._domInput.select()
-			}
-			m.redraw()
-		}
-	}
+    open() {
+        if (logins.isUserLoggedIn()) {
+            if (!this._closeFunction) {
+                this._closeFunction = displayOverlay(
+                    () => this._getRect(),
+                    this._getComponent(),
+                    dom => transform(transform.type.translateY, dom.offsetHeight, 0),
+                    dom => transform(transform.type.translateY, 0, dom.offsetHeight),
+                )
+            } else {
+                //already open, refocus
+                console.log("refocusing")
 
-	close() {
-		if (this._closeFunction) {
-			this._closeFunction()
-			locator.native.invokeNative(new Request("stopFindInPage", []))
-			this._closeFunction = null
-		}
-		m.redraw()
-	}
+                this._domInput.focus()
 
-	_getRect(): PositionRect {
-		return {
-			height: px(size.navbar_height_mobile),
-			bottom: px(0),
-			right: px(0),
-			left: px(0)
-		}
-	}
+                this._domInput.select()
+            }
 
-	_inputField: (() => Children) = () => {
-		return m("input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper", {
-				placeholder: lang.get("searchPage_action"),
-				oncreate: (vnode) => {
-					this._domInput = vnode.dom
-					this._domInput.focus()
-				},
-				onblur: e => {
-					if (this._skipNextBlur) {
-						this._skipNextBlur = false
-						this._domInput.focus()
-					} else {
-						locator.native.invokeNative(new Request("setSearchOverlayState", [false, false]))
-					}
-				},
-				onfocus: e => locator.native.invokeNative(new Request("setSearchOverlayState", [true, false])),
-				oninput: e => this._find(true, true),
-				style: {
-					width: px(250),
-					top: 0,
-					height: px(size.button_height),
-					left: 0,
-				},
-			},
-			""
-		)
-	}
+            m.redraw()
+        }
+    }
 
-	_find: ((forward: boolean, findNext: boolean) => Promise<void>) = (forward, findNext) => {
-		this._skipNextBlur = true
-		return locator.native.invokeNative(new Request("findInPage", [
-			this._domInput.value, {
-				forward,
-				matchCase: this._matchCase,
-				findNext,
-			}
-		])).then(r => this.applyNextResult(r))
-	}
+    close() {
+        if (this._closeFunction) {
+            this._closeFunction()
 
-	applyNextResult(result: ?FindInPageResult): void {
-		if (result == null) {
-			this._numberOfMatches = 0
-			this._currentMatch = 0
-		} else {
-			const {activeMatchOrdinal, matches} = result
-			if (matches === 1) {
-				/* the search bar loses focus without any events when there
-				*  are no results except for the search bar itself. this enables
-				*  us to retain focus. */
-				this._domInput.blur()
-				this._domInput.focus()
-			}
-			this._numberOfMatches = matches - 1
-			this._currentMatch = activeMatchOrdinal - 1
-		}
-		m.redraw()
-	}
+            locator.native.invokeNative(new Request("stopFindInPage", []))
+            this._closeFunction = null
+        }
 
-	_getComponent(): MComponent<void> {
-		let caseButtonAttrs = {
-			label: "matchCase_alt",
-			icon: () => Icons.MatchCase,
-			type: ButtonType.Action,
-			noBubble: true,
-			isSelected: () => this._matchCase,
-			click: () => {
-				this._matchCase = !this._matchCase
-				this._find(true, false)
-			},
-		}
+        m.redraw()
+    }
 
-		let forwardButtonAttrs = {
-			label: "next_action",
-			icon: () => Icons.ArrowForward,
-			type: ButtonType.Action,
-			noBubble: true,
-			click: () => this._find(true, true),
-		}
+    _getRect(): PositionRect {
+        return {
+            height: px(size.navbar_height_mobile),
+            bottom: px(0),
+            right: px(0),
+            left: px(0),
+        }
+    }
 
-		let backwardButtonAttrs = {
-			label: "previous_action",
-			icon: () => Icons.ArrowBackward,
-			type: ButtonType.Action,
-			noBubble: true,
-			click: () => this._find(false, true),
-		}
+    _inputField: () => Children = () => {
+        return m(
+            "input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper",
+            {
+                placeholder: lang.get("searchPage_action"),
+                oncreate: vnode => {
+                    this._domInput = vnode.dom
 
-		let closeButtonAttrs = {
-			label: "close_alt",
-			icon: () => Icons.Cancel,
-			type: ButtonType.Action,
-			click: () => this.close(),
-		}
+                    this._domInput.focus()
+                },
+                onblur: e => {
+                    if (this._skipNextBlur) {
+                        this._skipNextBlur = false
 
-		const handleMouseUp = (event) => this.handleMouseUp(event)
+                        this._domInput.focus()
+                    } else {
+                        locator.native.invokeNative(new Request("setSearchOverlayState", [false, false]))
+                    }
+                },
+                onfocus: e => locator.native.invokeNative(new Request("setSearchOverlayState", [true, false])),
+                oninput: e => this._find(true, true),
+                style: {
+                    width: px(250),
+                    top: 0,
+                    height: px(size.button_height),
+                    left: 0,
+                },
+            },
+            "",
+        )
+    }
+    _find: (forward: boolean, findNext: boolean) => Promise<void> = (forward, findNext) => {
+        this._skipNextBlur = true
+        return locator.native
+            .invokeNative(
+                new Request("findInPage", [
+                    this._domInput.value,
+                    {
+                        forward,
+                        matchCase: this._matchCase,
+                        findNext,
+                    },
+                ]),
+            )
+            .then(r => this.applyNextResult(r))
+    }
 
-		return {
-			view: (vnode: Object) => {
-				return m(".flex.flex-space-between",
-					{
-						oncreate: () => window.addEventListener('mouseup', handleMouseUp),
-						onremove: () => window.removeEventListener('mouseup', handleMouseUp)
-					},
-					[
-						m(".flex-start.center-vertically",
-							{
-								onkeydown: e => {
-									let keyCode = e.which
-									if (keyCode === Keys.ESC.code) {
-										this.close()
-									}
-									// prevent key from getting picked up by shortcuts etc.
-									e.stopPropagation()
-									return true
-								},
-							},
-							[
-								this._inputField(),
-								m(ButtonN, backwardButtonAttrs),
-								m(ButtonN, forwardButtonAttrs),
-								m(ButtonN, caseButtonAttrs),
-								m("div.pl-m", this._numberOfMatches > 0
-									? `${this._currentMatch}/${this._numberOfMatches}`
-									: lang.get("searchNoResults_msg")
-								)
-							]),
-						m(ButtonN, closeButtonAttrs)
-					])
-			}
+    applyNextResult(result: FindInPageResult | null): void {
+        if (result == null) {
+            this._numberOfMatches = 0
+            this._currentMatch = 0
+        } else {
+            const {activeMatchOrdinal, matches} = result
 
-		}
-	}
-	/*
-	* we're catching enter key events on the main thread while the search overlay is open to enable
-	* next-result-via-enter behaviour.
-	*
-	* since losing focus on the overlay via issuing a search request seems to be indistinguishable
-	* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
-	* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
-	*/
-	handleMouseUp(e: Event) {
-		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
-		locator.native.invokeNative(new Request('setSearchOverlayState', [false, true]))
-	}
+            if (matches === 1) {
+                /* the search bar loses focus without any events when there
+                 *  are no results except for the search bar itself. this enables
+                 *  us to retain focus. */
+                this._domInput.blur()
+
+                this._domInput.focus()
+            }
+
+            this._numberOfMatches = matches - 1
+            this._currentMatch = activeMatchOrdinal - 1
+        }
+
+        m.redraw()
+    }
+
+    _getComponent(): Component<void> {
+        let caseButtonAttrs = {
+            label: "matchCase_alt",
+            icon: () => Icons.MatchCase,
+            type: ButtonType.Action,
+            noBubble: true,
+            isSelected: () => this._matchCase,
+            click: () => {
+                this._matchCase = !this._matchCase
+
+                this._find(true, false)
+            },
+        }
+        let forwardButtonAttrs = {
+            label: "next_action",
+            icon: () => Icons.ArrowForward,
+            type: ButtonType.Action,
+            noBubble: true,
+            click: () => this._find(true, true),
+        }
+        let backwardButtonAttrs = {
+            label: "previous_action",
+            icon: () => Icons.ArrowBackward,
+            type: ButtonType.Action,
+            noBubble: true,
+            click: () => this._find(false, true),
+        }
+        let closeButtonAttrs = {
+            label: "close_alt",
+            icon: () => Icons.Cancel,
+            type: ButtonType.Action,
+            click: () => this.close(),
+        }
+
+        const handleMouseUp = event => this.handleMouseUp(event)
+
+        return {
+            view: (vnode: Record<string, any>) => {
+                return m(
+                    ".flex.flex-space-between",
+                    {
+                        oncreate: () => window.addEventListener("mouseup", handleMouseUp),
+                        onremove: () => window.removeEventListener("mouseup", handleMouseUp),
+                    },
+                    [
+                        m(
+                            ".flex-start.center-vertically",
+                            {
+                                onkeydown: e => {
+                                    let keyCode = e.which
+
+                                    if (keyCode === Keys.ESC.code) {
+                                        this.close()
+                                    }
+
+                                    // prevent key from getting picked up by shortcuts etc.
+                                    e.stopPropagation()
+                                    return true
+                                },
+                            },
+                            [
+                                this._inputField(),
+                                m(ButtonN, backwardButtonAttrs),
+                                m(ButtonN, forwardButtonAttrs),
+                                m(ButtonN, caseButtonAttrs),
+                                m("div.pl-m", this._numberOfMatches > 0 ? `${this._currentMatch}/${this._numberOfMatches}` : lang.get("searchNoResults_msg")),
+                            ],
+                        ),
+                        m(ButtonN, closeButtonAttrs),
+                    ],
+                )
+            },
+        }
+    }
+
+    /*
+     * we're catching enter key events on the main thread while the search overlay is open to enable
+     * next-result-via-enter behaviour.
+     *
+     * since losing focus on the overlay via issuing a search request seems to be indistinguishable
+     * from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
+     * not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
+     */
+    handleMouseUp(e: Event) {
+        if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
+        locator.native.invokeNative(new Request("setSearchOverlayState", [false, true]))
+    }
 }
-
-
-
 export const searchInPageOverlay: SearchInPageOverlay = new SearchInPageOverlay()

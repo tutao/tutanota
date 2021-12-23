@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
@@ -47,8 +45,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createGroupInvitationPostData(values?: $Shape<$Exact<GroupInvitationPostData>>): GroupInvitationPostData {
-	return Object.assign(create(_TypeModel, GroupInvitationPostDataTypeRef), values)
+export function createGroupInvitationPostData(values?: Partial<GroupInvitationPostData>): GroupInvitationPostData {
+	return Object.assign(create(_TypeModel, GroupInvitationPostDataTypeRef), downcast<GroupInvitationPostData>(values))
 }
 
 export type GroupInvitationPostData = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {StringWrapper} from "./StringWrapper"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomDomainReturn(values?: $Shape<$Exact<CustomDomainReturn>>): CustomDomainReturn {
-	return Object.assign(create(_TypeModel, CustomDomainReturnTypeRef), values)
+export function createCustomDomainReturn(values?: Partial<CustomDomainReturn>): CustomDomainReturn {
+	return Object.assign(create(_TypeModel, CustomDomainReturnTypeRef), downcast<CustomDomainReturn>(values))
 }
 
 export type CustomDomainReturn = {

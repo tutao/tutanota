@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ImapSyncConfiguration} from "./ImapSyncConfiguration"
@@ -145,8 +143,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createTutanotaProperties(values?: $Shape<$Exact<TutanotaProperties>>): TutanotaProperties {
-	return Object.assign(create(_TypeModel, TutanotaPropertiesTypeRef), values)
+export function createTutanotaProperties(values?: Partial<TutanotaProperties>): TutanotaProperties {
+	return Object.assign(create(_TypeModel, TutanotaPropertiesTypeRef), downcast<TutanotaProperties>(values))
 }
 
 export type TutanotaProperties = {
@@ -155,20 +153,20 @@ export type TutanotaProperties = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	customEmailSignature: string;
-	defaultSender: ?string;
+	defaultSender: null | string;
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
-	groupEncEntropy: ?Uint8Array;
+	groupEncEntropy: null | Uint8Array;
 	lastSeenAnnouncement: NumberString;
 	noAutomaticContacts: boolean;
-	notificationMailLanguage: ?string;
+	notificationMailLanguage: null | string;
 	sendPlaintextOnly: boolean;
 
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
-	lastPushedMail: ?IdTuple;
+	lastPushedMail:  null | IdTuple;
 }

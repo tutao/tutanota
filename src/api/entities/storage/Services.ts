@@ -1,7 +1,5 @@
-// @flow
-
-export const StorageService = Object.freeze({
-	BlobService: "blobservice",
-	BlobAccessTokenService: "blobaccesstokenservice",
-	BlobReferenceService: "blobreferenceservice"
-})
+export const enum StorageService {
+	BlobService = "blobservice",
+	BlobAccessTokenService = "blobaccesstokenservice",
+	BlobReferenceService = "blobreferenceservice"
+}

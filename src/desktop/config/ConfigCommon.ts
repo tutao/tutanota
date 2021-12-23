@@ -1,3 +1,2 @@
-//@flow
-export type Config = {[string]: mixed}
-export type ConfigMigration = (Config) => Promise<void>
+export type Config = Record<string, unknown>
+export type ConfigMigration = (arg0: Config) => Promise<void>

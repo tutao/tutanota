@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -43,8 +41,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createDeleteGroupData(values?: $Shape<$Exact<DeleteGroupData>>): DeleteGroupData {
-	return Object.assign(create(_TypeModel, DeleteGroupDataTypeRef), values)
+export function createDeleteGroupData(values?: Partial<DeleteGroupData>): DeleteGroupData {
+	return Object.assign(create(_TypeModel, DeleteGroupDataTypeRef), downcast<DeleteGroupData>(values))
 }
 
 export type DeleteGroupData = {

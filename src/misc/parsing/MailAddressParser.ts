@@ -1,12 +1,10 @@
-// @flow
 import {isMailAddress} from "../FormatValidator"
 import type {Recipient, Recipients} from "../../mail/editor/SendMailModel"
-
 export type ParsedMailto = {
-	recipients: Recipients,
-	subject: ?string,
-	body: ?string,
-	attach: ?Array<string>
+    recipients: Recipients
+    subject: string | null
+    body: string | null
+    attach: Array<string> | null
 }
 
 /**
@@ -19,68 +17,74 @@ export type ParsedMailto = {
  * @returns {ParsedMailto}
  */
 export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
-	let url = new URL(mailtoUrl)
+    let url = new URL(mailtoUrl)
 
-	const createMailAddressFromString = (address: string): ?Recipient => {
-		const nameAndMailAddress = stringToNameAndMailAddress(address)
-		if (!nameAndMailAddress) return null
-		return {
-			name: nameAndMailAddress.name,
-			address: nameAndMailAddress.mailAddress
-		}
-	}
+    const createMailAddressFromString = (address: string): Recipient | null => {
+        const nameAndMailAddress = stringToNameAndMailAddress(address)
+        if (!nameAndMailAddress) return null
+        return {
+            name: nameAndMailAddress.name,
+            address: nameAndMailAddress.mailAddress,
+        }
+    }
 
-	const addresses = url.pathname.split(",").map(address => {
-		if (!address) return null
-		const decodedAddress = decodeURIComponent(address)
-		if (!decodedAddress) return null
-		return createMailAddressFromString(decodedAddress)
-	}).filter(Boolean)
+    const addresses = url.pathname
+        .split(",")
+        .map(address => {
+            if (!address) return null
+            const decodedAddress = decodeURIComponent(address)
+            if (!decodedAddress) return null
+            return createMailAddressFromString(decodedAddress)
+        })
+        .filter(Boolean)
+    const result: any = {
+        recipients: {
+            to: addresses.length > 0 ? addresses : undefined,
+            cc: undefined,
+            bcc: undefined,
+        },
+        attach: null,
+        subject: null,
+        body: null,
+    }
+    if (!url.searchParams || typeof url.searchParams.entries !== "function") return result // not supported in Edge
 
-	const result: any = {
-		recipients: {
-			to: addresses.length > 0 ? addresses : undefined,
-			cc: undefined,
-			bcc: undefined
-		},
-		attach: null,
-		subject: null,
-		body: null
-	}
+    for (let pair of url.searchParams.entries()) {
+        let paramName = pair[0].toLowerCase()
+        let paramValue = pair[1]
 
-	if (!url.searchParams || typeof url.searchParams.entries !== "function") return result // not supported in Edge
-	for (let pair of url.searchParams.entries()) {
-		let paramName = pair[0].toLowerCase()
-		let paramValue = pair[1]
-		switch (paramName) {
-			case "subject":
-				result.subject = paramValue
-				break
-			case "body":
-				result.body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
-				break
-			case "to":
-			case "cc":
-			case "bcc":
-				if (result.recipients[paramName] == null) result.recipients[paramName] = []
-				const nextAddresses = paramValue
-					.split(",")
-					.map(address => createMailAddressFromString(address))
-					.filter(Boolean)
-				result.recipients[paramName].push(...nextAddresses)
-				break
-			case "attach":
-				if (result.attach == null) result.attach = []
-				result.attach.push(paramValue)
-				break
-			default:
-				console.warn("unexpected mailto param, ignoring")
-		}
-	}
+        switch (paramName) {
+            case "subject":
+                result.subject = paramValue
+                break
 
-	return result
+            case "body":
+                result.body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
+                break
+
+            case "to":
+            case "cc":
+            case "bcc":
+                if (result.recipients[paramName] == null) result.recipients[paramName] = []
+                const nextAddresses = paramValue
+                    .split(",")
+                    .map(address => createMailAddressFromString(address))
+                    .filter(Boolean)
+                result.recipients[paramName].push(...nextAddresses)
+                break
+
+            case "attach":
+                if (result.attach == null) result.attach = []
+                result.attach.push(paramValue)
+                break
+
+            default:
+                console.warn("unexpected mailto param, ignoring")
+        }
+    }
+
+    return result
 }
-
 
 /**
  * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
@@ -88,34 +92,56 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
  * @param string The string to check.
  * @return an object with the attributes "name" and "mailAddress" or null if nothing was found.
  */
-export function stringToNameAndMailAddress(string: string): ?{name: string, mailAddress: string} {
-	string = string.trim()
-	if (string === "") {
-		return null
-	}
-	let startIndex = string.indexOf("<")
-	if (startIndex !== -1) {
-		const endIndex = string.indexOf(">", startIndex)
-		if (endIndex === -1) {
-			return null
-		}
-		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
+export function stringToNameAndMailAddress(
+    string: string,
+):
+    | {
+          name: string
+          mailAddress: string
+      }
+    | null
+    | undefined {
+    string = string.trim()
 
-		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
-			return null
-		}
-		const name = string.substring(0, startIndex).trim()
-		return {name: name, mailAddress: cleanedMailAddress}
-	} else {
-		startIndex = string.lastIndexOf(" ")
-		startIndex++
-		const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
-		if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
-			return null
-		}
-		const name = string.substring(0, startIndex).trim()
-		return {name: name, mailAddress: cleanedMailAddress}
-	}
+    if (string === "") {
+        return null
+    }
+
+    let startIndex = string.indexOf("<")
+
+    if (startIndex !== -1) {
+        const endIndex = string.indexOf(">", startIndex)
+
+        if (endIndex === -1) {
+            return null
+        }
+
+        const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex + 1, endIndex))
+
+        if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
+            return null
+        }
+
+        const name = string.substring(0, startIndex).trim()
+        return {
+            name: name,
+            mailAddress: cleanedMailAddress,
+        }
+    } else {
+        startIndex = string.lastIndexOf(" ")
+        startIndex++
+        const cleanedMailAddress = getCleanedMailAddress(string.substring(startIndex))
+
+        if (cleanedMailAddress == null || !isMailAddress(cleanedMailAddress, false)) {
+            return null
+        }
+
+        const name = string.substring(0, startIndex).trim()
+        return {
+            name: name,
+            mailAddress: cleanedMailAddress,
+        }
+    }
 }
 
 /**
@@ -124,26 +150,29 @@ export function stringToNameAndMailAddress(string: string): ?{name: string, mail
  * @param mailAddress The input mail address.
  * @return The cleaned mail address.
  */
-export function getCleanedMailAddress(mailAddress: string): ?string {
-	var cleanedMailAddress = mailAddress.toLowerCase().trim()
-	if (isMailAddress(cleanedMailAddress, false)) {
-		return cleanedMailAddress
-	}
-	return null
-}
+export function getCleanedMailAddress(mailAddress: string): string | null {
+    var cleanedMailAddress = mailAddress.toLowerCase().trim()
 
-export function getDomainPart(mailAddress: string): ?string {
-	const cleanedMailAddress = getCleanedMailAddress(mailAddress)
-	if (cleanedMailAddress) {
-		const parts = mailAddress.split("@");
-		if (parts.length === 2) {
-			return parts[1]
-		} else {
-			return null
-		}
-	} else {
-		return null;
-	}
+    if (isMailAddress(cleanedMailAddress, false)) {
+        return cleanedMailAddress
+    }
+
+    return null
+}
+export function getDomainPart(mailAddress: string): string | null {
+    const cleanedMailAddress = getCleanedMailAddress(mailAddress)
+
+    if (cleanedMailAddress) {
+        const parts = mailAddress.split("@")
+
+        if (parts.length === 2) {
+            return parts[1]
+        } else {
+            return null
+        }
+    } else {
+        return null
+    }
 }
 
 /**
@@ -151,17 +180,34 @@ export function getDomainPart(mailAddress: string): ?string {
  * @param fullName The full name to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function fullNameToFirstAndLastName(fullName: string): {firstName: string, lastName: string} {
-	fullName = fullName.trim()
-	if (fullName === "") {
-		return {firstName: "", lastName: ""}
-	}
-	var separator = fullName.indexOf(" ")
-	if (separator !== -1) {
-		return {firstName: fullName.substring(0, separator), lastName: fullName.substring(separator + 1)}
-	} else {
-		return {firstName: fullName, lastName: ""}
-	}
+export function fullNameToFirstAndLastName(
+    fullName: string,
+): {
+    firstName: string
+    lastName: string
+} {
+    fullName = fullName.trim()
+
+    if (fullName === "") {
+        return {
+            firstName: "",
+            lastName: "",
+        }
+    }
+
+    var separator = fullName.indexOf(" ")
+
+    if (separator !== -1) {
+        return {
+            firstName: fullName.substring(0, separator),
+            lastName: fullName.substring(separator + 1),
+        }
+    } else {
+        return {
+            firstName: fullName,
+            lastName: "",
+        }
+    }
 }
 
 /**
@@ -169,23 +215,34 @@ export function fullNameToFirstAndLastName(fullName: string): {firstName: string
  * @param mailAddress The email address to check.
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
-export function mailAddressToFirstAndLastName(mailAddress: string): {firstName: string, lastName: string} {
-	const addr = mailAddress.substring(0, mailAddress.indexOf("@"))
-	let nameData = []
-	if (addr.indexOf(".") !== -1) {
-		nameData = addr.split(".")
-	} else if (addr.indexOf("_") !== -1) {
-		nameData = addr.split("_")
-	} else if (addr.indexOf("-") !== -1) {
-		nameData = addr.split("-")
-	} else {
-		nameData = [addr]
-	}
-	// first character upper case
-	for (let i = 0; i < nameData.length; i++) {
-		if (nameData[i].length > 0) {
-			nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1)
-		}
-	}
-	return {firstName: nameData[0], lastName: nameData.slice(1).join(" ")}
+export function mailAddressToFirstAndLastName(
+    mailAddress: string,
+): {
+    firstName: string
+    lastName: string
+} {
+    const addr = mailAddress.substring(0, mailAddress.indexOf("@"))
+    let nameData = []
+
+    if (addr.indexOf(".") !== -1) {
+        nameData = addr.split(".")
+    } else if (addr.indexOf("_") !== -1) {
+        nameData = addr.split("_")
+    } else if (addr.indexOf("-") !== -1) {
+        nameData = addr.split("-")
+    } else {
+        nameData = [addr]
+    }
+
+    // first character upper case
+    for (let i = 0; i < nameData.length; i++) {
+        if (nameData[i].length > 0) {
+            nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1)
+        }
+    }
+
+    return {
+        firstName: nameData[0],
+        lastName: nameData.slice(1).join(" "),
+    }
 }

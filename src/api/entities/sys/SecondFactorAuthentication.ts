@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -77,8 +75,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSecondFactorAuthentication(values?: $Shape<$Exact<SecondFactorAuthentication>>): SecondFactorAuthentication {
-	return Object.assign(create(_TypeModel, SecondFactorAuthenticationTypeRef), values)
+export function createSecondFactorAuthentication(values?: Partial<SecondFactorAuthentication>): SecondFactorAuthentication {
+	return Object.assign(create(_TypeModel, SecondFactorAuthenticationTypeRef), downcast<SecondFactorAuthentication>(values))
 }
 
 export type SecondFactorAuthentication = {
@@ -86,7 +84,7 @@ export type SecondFactorAuthentication = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	code: string;
 	finished: boolean;

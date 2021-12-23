@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -35,8 +33,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPremiumFeatureReturn(values?: $Shape<$Exact<PremiumFeatureReturn>>): PremiumFeatureReturn {
-	return Object.assign(create(_TypeModel, PremiumFeatureReturnTypeRef), values)
+export function createPremiumFeatureReturn(values?: Partial<PremiumFeatureReturn>): PremiumFeatureReturn {
+	return Object.assign(create(_TypeModel, PremiumFeatureReturnTypeRef), downcast<PremiumFeatureReturn>(values))
 }
 
 export type PremiumFeatureReturn = {

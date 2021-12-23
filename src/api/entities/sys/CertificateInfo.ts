@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -57,17 +55,17 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCertificateInfo(values?: $Shape<$Exact<CertificateInfo>>): CertificateInfo {
-	return Object.assign(create(_TypeModel, CertificateInfoTypeRef), values)
+export function createCertificateInfo(values?: Partial<CertificateInfo>): CertificateInfo {
+	return Object.assign(create(_TypeModel, CertificateInfoTypeRef), downcast<CertificateInfo>(values))
 }
 
 export type CertificateInfo = {
 	_type: TypeRef<CertificateInfo>;
 
 	_id: Id;
-	expiryDate: ?Date;
+	expiryDate: null | Date;
 	state: NumberString;
 	type: NumberString;
 
-	certificate: ?Id;
+	certificate: null | Id;
 }

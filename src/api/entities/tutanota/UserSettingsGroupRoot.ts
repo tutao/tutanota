@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {GroupSettings} from "./GroupSettings"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUserSettingsGroupRoot(values?: $Shape<$Exact<UserSettingsGroupRoot>>): UserSettingsGroupRoot {
-	return Object.assign(create(_TypeModel, UserSettingsGroupRootTypeRef), values)
+export function createUserSettingsGroupRoot(values?: Partial<UserSettingsGroupRoot>): UserSettingsGroupRoot {
+	return Object.assign(create(_TypeModel, UserSettingsGroupRootTypeRef), downcast<UserSettingsGroupRoot>(values))
 }
 
 export type UserSettingsGroupRoot = {
@@ -90,8 +88,8 @@ export type UserSettingsGroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	startOfTheWeek: NumberString;
 	timeFormat: NumberString;

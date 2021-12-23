@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {EmailSenderListElement} from "./EmailSenderListElement"
@@ -105,8 +103,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomerServerProperties(values?: $Shape<$Exact<CustomerServerProperties>>): CustomerServerProperties {
-	return Object.assign(create(_TypeModel, CustomerServerPropertiesTypeRef), values)
+export function createCustomerServerProperties(values?: Partial<CustomerServerProperties>): CustomerServerProperties {
+	return Object.assign(create(_TypeModel, CustomerServerPropertiesTypeRef), downcast<CustomerServerProperties>(values))
 }
 
 export type CustomerServerProperties = {
@@ -115,8 +113,8 @@ export type CustomerServerProperties = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	requirePasswordUpdateAfterReset: boolean;
 	saveEncryptedIpAddressInSession: boolean;
@@ -124,5 +122,5 @@ export type CustomerServerProperties = {
 
 	emailSenderList: EmailSenderListElement[];
 	whitelabelRegistrationDomains: StringWrapper[];
-	whitelistedDomains: ?DomainsRef;
+	whitelistedDomains: null | DomainsRef;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {UserAccountUserData} from "./UserAccountUserData"
@@ -54,15 +52,15 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUserAccountCreateData(values?: $Shape<$Exact<UserAccountCreateData>>): UserAccountCreateData {
-	return Object.assign(create(_TypeModel, UserAccountCreateDataTypeRef), values)
+export function createUserAccountCreateData(values?: Partial<UserAccountCreateData>): UserAccountCreateData {
+	return Object.assign(create(_TypeModel, UserAccountCreateDataTypeRef), downcast<UserAccountCreateData>(values))
 }
 
 export type UserAccountCreateData = {
 	_type: TypeRef<UserAccountCreateData>;
 
 	_format: NumberString;
-	date: ?Date;
+	date: null | Date;
 
 	userData: UserAccountUserData;
 	userGroupData: InternalGroupData;

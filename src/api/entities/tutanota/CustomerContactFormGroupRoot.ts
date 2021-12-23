@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
@@ -82,8 +80,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCustomerContactFormGroupRoot(values?: $Shape<$Exact<CustomerContactFormGroupRoot>>): CustomerContactFormGroupRoot {
-	return Object.assign(create(_TypeModel, CustomerContactFormGroupRootTypeRef), values)
+export function createCustomerContactFormGroupRoot(values?: Partial<CustomerContactFormGroupRoot>): CustomerContactFormGroupRoot {
+	return Object.assign(create(_TypeModel, CustomerContactFormGroupRootTypeRef), downcast<CustomerContactFormGroupRoot>(values))
 }
 
 export type CustomerContactFormGroupRoot = {
@@ -91,11 +89,11 @@ export type CustomerContactFormGroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	contactFormConversations: ?DeleteContactFormConversationIndex;
-	statisticsLog: ?UnencryptedStatisticLogRef;
+	contactFormConversations:  null | DeleteContactFormConversationIndex;
+	statisticsLog:  null | UnencryptedStatisticLogRef;
 	contactForms: Id;
 	statisticsLog_encrypted_removed: Id;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createDomainsRef(values?: $Shape<$Exact<DomainsRef>>): DomainsRef {
-	return Object.assign(create(_TypeModel, DomainsRefTypeRef), values)
+export function createDomainsRef(values?: Partial<DomainsRef>): DomainsRef {
+	return Object.assign(create(_TypeModel, DomainsRefTypeRef), downcast<DomainsRef>(values))
 }
 
 export type DomainsRef = {

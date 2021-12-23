@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -92,8 +90,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createWhitelabelChild(values?: $Shape<$Exact<WhitelabelChild>>): WhitelabelChild {
-	return Object.assign(create(_TypeModel, WhitelabelChildTypeRef), values)
+export function createWhitelabelChild(values?: Partial<WhitelabelChild>): WhitelabelChild {
+	return Object.assign(create(_TypeModel, WhitelabelChildTypeRef), downcast<WhitelabelChild>(values))
 }
 
 export type WhitelabelChild = {
@@ -102,12 +100,12 @@ export type WhitelabelChild = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	comment: string;
 	createdDate: Date;
-	deletedDate: ?Date;
+	deletedDate: null | Date;
 	mailAddress: string;
 
 	customer: Id;

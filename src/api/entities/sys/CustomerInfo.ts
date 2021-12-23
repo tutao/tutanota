@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BookingsRef} from "./BookingsRef"
@@ -203,8 +201,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomerInfo(values?: $Shape<$Exact<CustomerInfo>>): CustomerInfo {
-	return Object.assign(create(_TypeModel, CustomerInfoTypeRef), values)
+export function createCustomerInfo(values?: Partial<CustomerInfo>): CustomerInfo {
+	return Object.assign(create(_TypeModel, CustomerInfoTypeRef), downcast<CustomerInfo>(values))
 }
 
 export type CustomerInfo = {
@@ -212,13 +210,13 @@ export type CustomerInfo = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	activationTime: ?Date;
-	company: ?string;
+	activationTime: null | Date;
+	company: null | string;
 	creationTime: Date;
-	deletionReason: ?string;
-	deletionTime: ?Date;
+	deletionReason: null | string;
+	deletionTime: null | Date;
 	domain: string;
 	erased: boolean;
 	includedEmailAliases: NumberString;
@@ -227,13 +225,13 @@ export type CustomerInfo = {
 	promotionStorageCapacity: NumberString;
 	registrationMailAddress: string;
 	source: string;
-	testEndTime: ?Date;
+	testEndTime: null | Date;
 	usedSharedEmailAliases: NumberString;
 
-	bookings: ?BookingsRef;
+	bookings: null | BookingsRef;
 	domainInfos: DomainInfo[];
-	giftCards: ?GiftCardsRef;
+	giftCards: null | GiftCardsRef;
 	accountingInfo: Id;
 	customer: Id;
-	takeoverCustomer: ?Id;
+	takeoverCustomer: null | Id;
 }

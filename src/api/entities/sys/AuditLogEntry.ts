@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -106,8 +104,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createAuditLogEntry(values?: $Shape<$Exact<AuditLogEntry>>): AuditLogEntry {
-	return Object.assign(create(_TypeModel, AuditLogEntryTypeRef), values)
+export function createAuditLogEntry(values?: Partial<AuditLogEntry>): AuditLogEntry {
+	return Object.assign(create(_TypeModel, AuditLogEntryTypeRef), downcast<AuditLogEntry>(values))
 }
 
 export type AuditLogEntry = {
@@ -116,15 +114,15 @@ export type AuditLogEntry = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	action: string;
-	actorIpAddress: ?string;
+	actorIpAddress: null | string;
 	actorMailAddress: string;
 	date: Date;
 	modifiedEntity: string;
 
-	groupInfo: ?IdTuple;
-	modifiedGroupInfo: ?IdTuple;
+	groupInfo: null | IdTuple;
+	modifiedGroupInfo: null | IdTuple;
 }

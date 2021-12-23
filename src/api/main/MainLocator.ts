@@ -1,4 +1,4 @@
-//@flow
+
 import type {WorkerClient} from "./WorkerClient"
 import {bootstrapWorker} from "./WorkerClient"
 import {EventController} from "./EventController"
@@ -47,218 +47,208 @@ import {ProgrammingError} from "../common/error/ProgrammingError"
 import type {NativeInterfaces} from "./NativeInterfaceFactory"
 import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
 import {WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
-
 assertMainOrNode()
-
 // We use interface here mostly to make things readonly from the outside.
 export interface IMainLocator {
-	+eventController: EventController;
-	+search: SearchModel;
-	+mailModel: MailModel;
-	+calendarModel: CalendarModel;
-	+minimizedMailModel: MinimizedMailEditorViewModel;
-	+contactModel: ContactModel;
-	+entityClient: EntityClient;
-	+progressTracker: ProgressTracker;
-	+credentialsProvider: ICredentialsProvider;
-	+worker: WorkerClient;
-	+native: NativeInterfaceMain;
-	+fileController: FileController;
-	+fileApp: NativeFileApp;
-	+pushService: NativePushServiceApp;
-	+systemApp: NativeSystemApp;
-	+secondFactorHandler: SecondFactorHandler;
-
-	+loginFacade: LoginFacade;
-	+customerFacade: CustomerFacade;
-	+giftCardFacade: GiftCardFacade;
-	+groupManagementFacade: GroupManagementFacade;
-	+configFacade: ConfigurationDatabase;
-	+calendarFacade: CalendarFacade;
-	+mailFacade: MailFacade;
-	+shareFacade: ShareFacade;
-	+counterFacade: CounterFacade;
-	+indexerFacade: Indexer;
-	+searchFacade: SearchFacade;
-	+bookingFacade: BookingFacade;
-	+mailAddressFacade: MailAddressFacade;
-	+fileFacade: FileFacade;
-	+userManagementFacade: UserManagementFacade;
-	+contactFormFacade: ContactFormFacade;
-	+deviceEncryptionFacade: DeviceEncryptionFacade;
-
-	+init: () => Promise<void>;
-	+initialized: Promise<void>;
+    readonly eventController: EventController
+    readonly search: SearchModel
+    readonly mailModel: MailModel
+    readonly calendarModel: CalendarModel
+    readonly minimizedMailModel: MinimizedMailEditorViewModel
+    readonly contactModel: ContactModel
+    readonly entityClient: EntityClient
+    readonly progressTracker: ProgressTracker
+    readonly credentialsProvider: ICredentialsProvider
+    readonly worker: WorkerClient
+    readonly native: NativeInterfaceMain
+    readonly fileController: FileController
+    readonly fileApp: NativeFileApp
+    readonly pushService: NativePushServiceApp
+    readonly systemApp: NativeSystemApp
+    readonly secondFactorHandler: SecondFactorHandler
+    readonly loginFacade: LoginFacade
+    readonly customerFacade: CustomerFacade
+    readonly giftCardFacade: GiftCardFacade
+    readonly groupManagementFacade: GroupManagementFacade
+    readonly configFacade: ConfigurationDatabase
+    readonly calendarFacade: CalendarFacade
+    readonly mailFacade: MailFacade
+    readonly shareFacade: ShareFacade
+    readonly counterFacade: CounterFacade
+    readonly indexerFacade: Indexer
+    readonly searchFacade: SearchFacade
+    readonly bookingFacade: BookingFacade
+    readonly mailAddressFacade: MailAddressFacade
+    readonly fileFacade: FileFacade
+    readonly userManagementFacade: UserManagementFacade
+    readonly contactFormFacade: ContactFormFacade
+    readonly deviceEncryptionFacade: DeviceEncryptionFacade
+    readonly init: () => Promise<void>
+    readonly initialized: Promise<void>
 }
 
-
 class MainLocator implements IMainLocator {
-	eventController: EventController;
-	search: SearchModel;
-	mailModel: MailModel;
-	calendarModel: CalendarModel;
-	minimizedMailModel: MinimizedMailEditorViewModel;
-	contactModel: ContactModel;
-	entityClient: EntityClient;
-	progressTracker: ProgressTracker;
-	credentialsProvider: ICredentialsProvider;
-	worker: WorkerClient;
-	fileController: FileController;
-	secondFactorHandler: SecondFactorHandler;
+    eventController: EventController
+    search: SearchModel
+    mailModel: MailModel
+    calendarModel: CalendarModel
+    minimizedMailModel: MinimizedMailEditorViewModel
+    contactModel: ContactModel
+    entityClient: EntityClient
+    progressTracker: ProgressTracker
+    credentialsProvider: ICredentialsProvider
+    worker: WorkerClient
+    fileController: FileController
+    secondFactorHandler: SecondFactorHandler
+    loginFacade: LoginFacade
+    customerFacade: CustomerFacade
+    giftCardFacade: GiftCardFacade
+    groupManagementFacade: GroupManagementFacade
+    configFacade: ConfigurationDatabase
+    calendarFacade: CalendarFacade
+    mailFacade: MailFacade
+    shareFacade: ShareFacade
+    counterFacade: CounterFacade
+    indexerFacade: Indexer
+    searchFacade: SearchFacade
+    bookingFacade: BookingFacade
+    mailAddressFacade: MailAddressFacade
+    fileFacade: FileFacade
+    userManagementFacade: UserManagementFacade
+    contactFormFacade: ContactFormFacade
+    deviceEncryptionFacade: DeviceEncryptionFacade
+    _nativeInterfaces: NativeInterfaces | null = null
 
-	loginFacade: LoginFacade;
-	customerFacade: CustomerFacade;
-	giftCardFacade: GiftCardFacade;
-	groupManagementFacade: GroupManagementFacade;
-	configFacade: ConfigurationDatabase;
-	calendarFacade: CalendarFacade;
-	mailFacade: MailFacade;
-	shareFacade: ShareFacade;
-	counterFacade: CounterFacade;
-	indexerFacade: Indexer;
-	searchFacade: SearchFacade;
-	bookingFacade: BookingFacade;
-	mailAddressFacade: MailAddressFacade;
-	fileFacade: FileFacade;
-	userManagementFacade: UserManagementFacade;
-	contactFormFacade: ContactFormFacade;
-	deviceEncryptionFacade: DeviceEncryptionFacade;
+    get native(): NativeInterfaceMain {
+        return this._getNativeInterface("native")
+    }
 
-	_nativeInterfaces: ?NativeInterfaces = null
+    get fileApp(): NativeFileApp {
+        return this._getNativeInterface("fileApp")
+    }
 
-	get native(): NativeInterfaceMain {
-		return this._getNativeInterface("native")
-	}
+    get pushService(): NativePushServiceApp {
+        return this._getNativeInterface("pushService")
+    }
 
-	get fileApp(): NativeFileApp {
-		return this._getNativeInterface("fileApp")
-	}
+    get systemApp(): NativeSystemApp {
+        return this._getNativeInterface("systemApp")
+    }
 
-	get pushService(): NativePushServiceApp {
-		return this._getNativeInterface("pushService")
-	}
+    // get an interface from native interfaces
+    // return type is `any` because of flow nonsense
+    _getNativeInterface(name: keyof NativeInterfaces): any {
+        if (!this._nativeInterfaces) {
+            throw new ProgrammingError(`Tried to use ${name} in web`)
+        }
 
-	get systemApp(): NativeSystemApp {
-		return this._getNativeInterface("systemApp")
-	}
+        return this._nativeInterfaces[name]
+    }
 
-	// get an interface from native interfaces
-	// return type is `any` because of flow nonsense
-	_getNativeInterface(name: $Keys<NativeInterfaces>): any {
-		if (!this._nativeInterfaces) {
-			throw new ProgrammingError(`Tried to use ${name} in web`)
-		}
-		return this._nativeInterfaces[name]
-	}
+    readonly _workerDeferred: DeferredObject<WorkerClient>
+    _entropyCollector: EntropyCollector
+    _deferredInitialized: DeferredObject<void> = defer()
 
-	+_workerDeferred: DeferredObject<WorkerClient>
-	_entropyCollector: EntropyCollector
+    get initialized(): Promise<void> {
+        return this._deferredInitialized.promise
+    }
 
-	_deferredInitialized: DeferredObject<void> = defer()
+    constructor() {
+        this._workerDeferred = defer()
+    }
 
-	get initialized(): Promise<void> {
-		return this._deferredInitialized.promise
-	}
+    async init(): Promise<void> {
+        // Split init in two separate parts: creating modules and causing side effects.
+        // We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
+        // worker we end up losing state on the worker side (including our session).
+        this.worker = bootstrapWorker(this)
+        await this._createInstances()
+        this._entropyCollector = new EntropyCollector(this.worker)
 
-	constructor() {
-		this._workerDeferred = defer()
-	}
+        this._entropyCollector.start()
 
-	async init(): Promise<void> {
-		// Split init in two separate parts: creating modules and causing side effects.
-		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
-		// worker we end up losing state on the worker side (including our session).
-		this.worker = bootstrapWorker(this)
+        this._deferredInitialized.resolve()
+    }
 
-		await this._createInstances()
+    async _createInstances() {
+        if (!isBrowser()) {
+            this._nativeInterfaces = await createNativeInterfaces()
+        }
 
-		this._entropyCollector = new EntropyCollector(this.worker)
-		this._entropyCollector.start()
+        const {
+            loginFacade,
+            customerFacade,
+            giftCardFacade,
+            groupManagementFacade,
+            configFacade,
+            calendarFacade,
+            mailFacade,
+            shareFacade,
+            counterFacade,
+            indexerFacade,
+            searchFacade,
+            bookingFacade,
+            mailAddressFacade,
+            fileFacade,
+            userManagementFacade,
+            contactFormFacade,
+            deviceEncryptionFacade,
+            restInterface,
+        } = this.worker.getWorkerInterface()
+        this.loginFacade = loginFacade
+        this.customerFacade = customerFacade
+        this.giftCardFacade = giftCardFacade
+        this.groupManagementFacade = groupManagementFacade
+        this.configFacade = configFacade
+        this.calendarFacade = calendarFacade
+        this.mailFacade = mailFacade
+        this.shareFacade = shareFacade
+        this.counterFacade = counterFacade
+        this.indexerFacade = indexerFacade
+        this.searchFacade = searchFacade
+        this.bookingFacade = bookingFacade
+        this.mailAddressFacade = mailAddressFacade
+        this.fileFacade = fileFacade
+        this.userManagementFacade = userManagementFacade
+        this.contactFormFacade = contactFormFacade
+        this.deviceEncryptionFacade = deviceEncryptionFacade
+        this.eventController = new EventController(logins)
+        this.progressTracker = new ProgressTracker()
+        this.search = new SearchModel(this.searchFacade)
+        this.entityClient = new EntityClient(restInterface)
+        this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, new WebauthnClient(), this.loginFacade)
+        this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
+        this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 
-		this._deferredInitialized.resolve()
-	}
+        const lazyScheduler = async () => {
+            const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
+            const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
+            const dateProvider = new DateProviderImpl()
+            return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window))
+        }
 
-	async _createInstances() {
-
-		if (!isBrowser()) {
-			this._nativeInterfaces = await createNativeInterfaces()
-		}
-
-		const {
-			loginFacade,
-			customerFacade,
-			giftCardFacade,
-			groupManagementFacade,
-			configFacade,
-			calendarFacade,
-			mailFacade,
-			shareFacade,
-			counterFacade,
-			indexerFacade,
-			searchFacade,
-			bookingFacade,
-			mailAddressFacade,
-			fileFacade,
-			userManagementFacade,
-			contactFormFacade,
-			deviceEncryptionFacade,
-			restInterface
-		} = this.worker.getWorkerInterface()
-
-		this.loginFacade = loginFacade
-		this.customerFacade = customerFacade
-		this.giftCardFacade = giftCardFacade
-		this.groupManagementFacade = groupManagementFacade
-		this.configFacade = configFacade
-		this.calendarFacade = calendarFacade
-		this.mailFacade = mailFacade
-		this.shareFacade = shareFacade
-		this.counterFacade = counterFacade
-		this.indexerFacade = indexerFacade
-		this.searchFacade = searchFacade
-		this.bookingFacade = bookingFacade
-		this.mailAddressFacade = mailAddressFacade
-		this.fileFacade = fileFacade
-		this.userManagementFacade = userManagementFacade
-		this.contactFormFacade = contactFormFacade
-		this.deviceEncryptionFacade = deviceEncryptionFacade
-
-		this.eventController = new EventController(logins)
-		this.progressTracker = new ProgressTracker()
-		this.search = new SearchModel(this.searchFacade)
-		this.entityClient = new EntityClient(restInterface)
-		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, new WebauthnClient(), this.loginFacade)
-		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native)
-
-		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
-		const lazyScheduler = async () => {
-			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
-			const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
-			const dateProvider = new DateProviderImpl()
-			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window))
-		}
-		this.calendarModel = new CalendarModelImpl(
-			notifications,
-			lazyScheduler,
-			this.eventController,
-			this.worker,
-			logins,
-			this.progressTracker,
-			this.entityClient,
-			this.mailModel,
-			this.calendarFacade,
-			this.fileFacade,
-		)
-		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
-		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.fileController = new FileController(this._nativeInterfaces?.fileApp)
-	}
+        this.calendarModel = new CalendarModelImpl(
+            notifications,
+            lazyScheduler,
+            this.eventController,
+            this.worker,
+            logins,
+            this.progressTracker,
+            this.entityClient,
+            this.mailModel,
+            this.calendarFacade,
+            this.fileFacade,
+        )
+        this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
+        this.minimizedMailModel = new MinimizedMailEditorViewModel()
+        this.fileController = new FileController(this._nativeInterfaces?.fileApp)
+    }
 }
 
 export const locator: IMainLocator = new MainLocator()
 
 if (typeof window !== "undefined") {
-	window.tutao.locator = locator
+    window.tutao.locator = locator
 }
 
 // It is critical to accept new locator here because locator is used in a lot of places and calculating all the dependencies is very
@@ -266,20 +256,22 @@ if (typeof window !== "undefined") {
 // HMR is not meant for changing models so if there is a big change then you are better off reloading but this will work with simple
 // method implementation swapping.
 const hot = typeof module !== "undefined" && module.hot
+
 if (hot) {
-	hot.accept(async () => {
-		// This should be there already
-		await locator.initialized
-		const worker = locator.worker
+    hot.accept(async () => {
+        // This should be there already
+        await locator.initialized
+        const worker = locator.worker
 
-		// Import this module again and init the locator. If someone just imports it they will get a new one
-		const newLocator = require(module.id).locator
-		newLocator.worker = worker
-		await newLocator._createInstances(worker)
+        // Import this module again and init the locator. If someone just imports it they will get a new one
+        const newLocator = require(module.id).locator
 
-		// This will patch old instances to use new classes, this is when instances are already injected
-		for (const key of Object.getOwnPropertyNames(newLocator)) {
-			Object.setPrototypeOf(downcast(locator)[key], Object.getPrototypeOf(newLocator[key]))
-		}
-	})
+        newLocator.worker = worker
+        await newLocator._createInstances(worker)
+
+        // This will patch old instances to use new classes, this is when instances are already injected
+        for (const key of Object.getOwnPropertyNames(newLocator)) {
+            Object.setPrototypeOf(downcast(locator)[key], Object.getPrototypeOf(newLocator[key]))
+        }
+    })
 }

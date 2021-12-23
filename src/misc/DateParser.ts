@@ -1,4 +1,3 @@
-//@flow
 import {lang} from "./LanguageViewModel"
 import {DateTime} from "luxon"
 import type {Birthday} from "../api/entities/tutanota/Birthday"
@@ -42,58 +41,65 @@ import {formatDate} from "./Formatter"
  * @param dateString
  * @returns The timestamp from the given date string
  */
-
 const referenceDate = new Date(2017, 5, 23)
-
 export function parseDate(dateString: string): Date {
-	let languageTag = lang.languageTag.toLowerCase()
+    let languageTag = lang.languageTag.toLowerCase()
 
-	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
-	// for finding day month and year position of locale date format  in cleanAndSplit array
-	const dayPos = referenceParts.findIndex(e => e === 23)
-	const monthPos = referenceParts.findIndex(e => e === 6)
-	const yearPos = referenceParts.findIndex(e => e === 2017)
+    let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
 
-	const parts = _cleanupAndSplit(dateString)
-	let day, month, year
+    // for finding day month and year position of locale date format  in cleanAndSplit array
+    const dayPos = referenceParts.findIndex(e => e === 23)
+    const monthPos = referenceParts.findIndex(e => e === 6)
+    const yearPos = referenceParts.findIndex(e => e === 2017)
 
-	if (parts.length === 3) {
-		// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
-		day = parts[dayPos]
-		month = parts[monthPos]
-		year = parts[yearPos]
-	} else if (parts.length === 2) {
-		// if only two numbers are provided then we interpret that as a day and a month
-		// year pos *should* only ever be 0 or 2 (at the front or the back)
-		if (yearPos === 0) {
-			day = parts[dayPos - 1]
-			month = parts[monthPos - 1]
-		} else { // yearPos === 2
-			day = parts[dayPos]
-			month = parts[monthPos]
-		}
-		year = new Date().getFullYear()
-	} else { // invalid parts length
-		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
-	}
+    const parts = _cleanupAndSplit(dateString)
 
-	// if 1 or 2 digit year, then make it be in the 2000
-	if (year < 1000) {
-		year += 2000
-	}
+    let day, month, year
 
-	if (month < 1 || month > 12) {
-		throw new Error(`Invalid value ${month} for month in ${dateString}`)
-	}
-	// maybe do better day clamping based on the month
-	if (day < 1 || day > _getNumDaysInMonth(month, year)) {
-		throw new Error(`Invalid value ${day} for day in ${dateString}`)
-	}
-	const date = new Date(year, month - 1, day)
-	if (isNaN(date.getTime())) {
-		throw new Error(`Couldn't parse date string ${dateString}`)
-	}
-	return date
+    if (parts.length === 3) {
+        // default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
+        day = parts[dayPos]
+        month = parts[monthPos]
+        year = parts[yearPos]
+    } else if (parts.length === 2) {
+        // if only two numbers are provided then we interpret that as a day and a month
+        // year pos *should* only ever be 0 or 2 (at the front or the back)
+        if (yearPos === 0) {
+            day = parts[dayPos - 1]
+            month = parts[monthPos - 1]
+        } else {
+            // yearPos === 2
+            day = parts[dayPos]
+            month = parts[monthPos]
+        }
+
+        year = new Date().getFullYear()
+    } else {
+        // invalid parts length
+        throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+    }
+
+    // if 1 or 2 digit year, then make it be in the 2000
+    if (year < 1000) {
+        year += 2000
+    }
+
+    if (month < 1 || month > 12) {
+        throw new Error(`Invalid value ${month} for month in ${dateString}`)
+    }
+
+    // maybe do better day clamping based on the month
+    if (day < 1 || day > _getNumDaysInMonth(month, year)) {
+        throw new Error(`Invalid value ${day} for day in ${dateString}`)
+    }
+
+    const date = new Date(year, month - 1, day)
+
+    if (isNaN(date.getTime())) {
+        throw new Error(`Couldn't parse date string ${dateString}`)
+    }
+
+    return date
 }
 
 /**
@@ -104,60 +110,73 @@ export function parseDate(dateString: string): Date {
  * @private
  */
 export function _getNumDaysInMonth(month: number, year: number): number {
-	return DateTime.fromObject({month, year}).daysInMonth
+    return DateTime.fromObject({
+        month,
+        year,
+    }).daysInMonth
 }
 
 /**
  * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
  * @return A birthday object containing the data form the given text or null if the text could not be parsed.
  */
-export function parseBirthday(text: string): ?Birthday {
-	try {
-		const referenceDate = new Date(2017, 5, 23)
-		let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
-		//for finding day month and year position of locale date format  in cleanAndSplit array
-		let dayPos = referenceParts.findIndex(e => e === 23)
-		let monthPos = referenceParts.findIndex(e => e === 6)
-		let yearPos = referenceParts.findIndex(e => e === 2017)
-		let birthdayValues = _cleanupAndSplit(text)
-		let birthday = createBirthday()
-		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
-			if (birthdayValues[dayPos] < 32) {
-				birthday.day = String(birthdayValues[dayPos])
-			} else {
-				return null
-			}
-			if (birthdayValues[monthPos] < 13) {
-				birthday.month = String(birthdayValues[monthPos])
-			} else {
-				return null
-			}
-		} else {
-			return null
-		}
-		if (birthdayValues[yearPos]) {
-			if (String(birthdayValues[yearPos]).length === 4) {
-				birthday.year = String(birthdayValues[yearPos])
-			} else if (String(birthdayValues[yearPos]).length === 2) {
-				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
-					birthday.year = "19" + String(birthdayValues[yearPos])
-				} else {
-					birthday.year = "20" + String(birthdayValues[yearPos])
-				}
-			} else {
-				return null
-			}
-		} else {
-			birthday.year = null
-		}
-		return birthday
-	} catch (e) {
-		return null
-	}
-}
+export function parseBirthday(text: string): Birthday | null {
+    try {
+        const referenceDate = new Date(2017, 5, 23)
 
+        let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+
+        //for finding day month and year position of locale date format  in cleanAndSplit array
+        let dayPos = referenceParts.findIndex(e => e === 23)
+        let monthPos = referenceParts.findIndex(e => e === 6)
+        let yearPos = referenceParts.findIndex(e => e === 2017)
+
+        let birthdayValues = _cleanupAndSplit(text)
+
+        let birthday = createBirthday()
+
+        if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
+            if (birthdayValues[dayPos] < 32) {
+                birthday.day = String(birthdayValues[dayPos])
+            } else {
+                return null
+            }
+
+            if (birthdayValues[monthPos] < 13) {
+                birthday.month = String(birthdayValues[monthPos])
+            } else {
+                return null
+            }
+        } else {
+            return null
+        }
+
+        if (birthdayValues[yearPos]) {
+            if (String(birthdayValues[yearPos]).length === 4) {
+                birthday.year = String(birthdayValues[yearPos])
+            } else if (String(birthdayValues[yearPos]).length === 2) {
+                if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
+                    birthday.year = "19" + String(birthdayValues[yearPos])
+                } else {
+                    birthday.year = "20" + String(birthdayValues[yearPos])
+                }
+            } else {
+                return null
+            }
+        } else {
+            birthday.year = null
+        }
+
+        return birthday
+    } catch (e) {
+        return null
+    }
+}
 export function _cleanupAndSplit(dateString: string): number[] {
-	// Clean up any characters that can't be dealt with
-	dateString = dateString.replace(/[^ 0-9.\/-]/g, "")
-	return dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0).map(part => parseInt(part))
+    // Clean up any characters that can't be dealt with
+    dateString = dateString.replace(/[^ 0-9.\/-]/g, "")
+    return dateString
+        .split(/[.\/-]/g)
+        .filter(part => part.trim().length > 0)
+        .map(part => parseInt(part))
 }

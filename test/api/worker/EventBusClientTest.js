@@ -17,7 +17,7 @@ import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 o.spec("EventBusClient test", function () {
 
 	let ebc: EventBusClient
-	let cacheMock: $Shape<EntityRestCache>
+	let cacheMock: Partial<EntityRestCache>
 	let restClient: EntityRestClientMock
 	let workerMock: WorkerImpl
 	let loginMock: LoginFacadeImpl
@@ -36,7 +36,7 @@ o.spec("EventBusClient test", function () {
 				getLoggedInUser() {
 					return user;
 				}
-			}: $Shape<LoginFacadeImpl>
+			}: Partial<LoginFacadeImpl>
 		))
 		let mailMock: any = {
 			entityEventsReceived: () => {
@@ -56,7 +56,7 @@ o.spec("EventBusClient test", function () {
 				sendError(e) {
 					throw e
 				}
-			}: $Shape<WorkerImpl>
+			}: Partial<WorkerImpl>
 		))
 
 		let indexerMock: any = {

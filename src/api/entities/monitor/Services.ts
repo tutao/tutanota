@@ -1,5 +1,3 @@
-// @flow
-
-export const MonitorService = Object.freeze({
-	CounterService: "counterservice"
-})
+export const enum MonitorService {
+	CounterService = "counterservice"
+}

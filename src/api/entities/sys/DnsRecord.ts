@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,15 +47,15 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createDnsRecord(values?: $Shape<$Exact<DnsRecord>>): DnsRecord {
-	return Object.assign(create(_TypeModel, DnsRecordTypeRef), values)
+export function createDnsRecord(values?: Partial<DnsRecord>): DnsRecord {
+	return Object.assign(create(_TypeModel, DnsRecordTypeRef), downcast<DnsRecord>(values))
 }
 
 export type DnsRecord = {
 	_type: TypeRef<DnsRecord>;
 
 	_id: Id;
-	subdomain: ?string;
+	subdomain: null | string;
 	type: NumberString;
 	value: string;
 }

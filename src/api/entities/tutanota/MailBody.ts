@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -84,8 +82,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailBody(values?: $Shape<$Exact<MailBody>>): MailBody {
-	return Object.assign(create(_TypeModel, MailBodyTypeRef), values)
+export function createMailBody(values?: Partial<MailBody>): MailBody {
+	return Object.assign(create(_TypeModel, MailBodyTypeRef), downcast<MailBody>(values))
 }
 
 export type MailBody = {
@@ -96,9 +94,9 @@ export type MailBody = {
 	_format: NumberString;
 	_id: Id;
 	_owner: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	compressedText: ?string;
-	text: ?string;
+	compressedText: null | string;
+	text: null | string;
 }

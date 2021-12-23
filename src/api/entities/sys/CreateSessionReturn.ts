@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Challenge} from "./Challenge"
@@ -52,8 +50,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCreateSessionReturn(values?: $Shape<$Exact<CreateSessionReturn>>): CreateSessionReturn {
-	return Object.assign(create(_TypeModel, CreateSessionReturnTypeRef), values)
+export function createCreateSessionReturn(values?: Partial<CreateSessionReturn>): CreateSessionReturn {
+	return Object.assign(create(_TypeModel, CreateSessionReturnTypeRef), downcast<CreateSessionReturn>(values))
 }
 
 export type CreateSessionReturn = {

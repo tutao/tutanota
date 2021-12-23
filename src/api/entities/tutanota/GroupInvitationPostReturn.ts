@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {MailAddress} from "./MailAddress"
@@ -54,8 +52,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createGroupInvitationPostReturn(values?: $Shape<$Exact<GroupInvitationPostReturn>>): GroupInvitationPostReturn {
-	return Object.assign(create(_TypeModel, GroupInvitationPostReturnTypeRef), values)
+export function createGroupInvitationPostReturn(values?: Partial<GroupInvitationPostReturn>): GroupInvitationPostReturn {
+	return Object.assign(create(_TypeModel, GroupInvitationPostReturnTypeRef), downcast<GroupInvitationPostReturn>(values))
 }
 
 export type GroupInvitationPostReturn = {

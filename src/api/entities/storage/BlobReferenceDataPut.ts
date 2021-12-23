@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {TypeInfo} from "../sys/TypeInfo"
@@ -73,8 +71,8 @@ export const _TypeModel: TypeModel = {
 	"version": "2"
 }
 
-export function createBlobReferenceDataPut(values?: $Shape<$Exact<BlobReferenceDataPut>>): BlobReferenceDataPut {
-	return Object.assign(create(_TypeModel, BlobReferenceDataPutTypeRef), values)
+export function createBlobReferenceDataPut(values?: Partial<BlobReferenceDataPut>): BlobReferenceDataPut {
+	return Object.assign(create(_TypeModel, BlobReferenceDataPutTypeRef), downcast<BlobReferenceDataPut>(values))
 }
 
 export type BlobReferenceDataPut = {
@@ -83,9 +81,9 @@ export type BlobReferenceDataPut = {
 	_format: NumberString;
 	blobReferenceToken: Uint8Array;
 	field: string;
-	instanceElementId: ?Id;
-	instanceListElementId: ?Id;
-	instanceListId: ?Id;
+	instanceElementId: null | Id;
+	instanceListElementId: null | Id;
+	instanceListId: null | Id;
 
 	type: TypeInfo;
 }

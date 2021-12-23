@@ -1,5 +1,4 @@
-//@flow
-const map: {[string]: () => mixed} = {
+const map: Record<string, unknown> = {
     KeyPair: () => import('./KeyPair'),
     Group: () => import('./Group'),
     GroupInfo: () => import('./GroupInfo'),

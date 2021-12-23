@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -78,8 +76,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSystemKeysReturn(values?: $Shape<$Exact<SystemKeysReturn>>): SystemKeysReturn {
-	return Object.assign(create(_TypeModel, SystemKeysReturnTypeRef), values)
+export function createSystemKeysReturn(values?: Partial<SystemKeysReturn>): SystemKeysReturn {
+	return Object.assign(create(_TypeModel, SystemKeysReturnTypeRef), downcast<SystemKeysReturn>(values))
 }
 
 export type SystemKeysReturn = {
@@ -92,6 +90,6 @@ export type SystemKeysReturn = {
 	systemAdminPubKey: Uint8Array;
 	systemAdminPubKeyVersion: NumberString;
 
-	freeGroup: ?Id;
-	premiumGroup: ?Id;
+	freeGroup:  null | Id;
+	premiumGroup:  null | Id;
 }
