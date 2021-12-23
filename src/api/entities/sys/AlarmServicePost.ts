@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {AlarmNotification} from "./AlarmNotification"
@@ -38,8 +36,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createAlarmServicePost(values?: $Shape<$Exact<AlarmServicePost>>): AlarmServicePost {
-	return Object.assign(create(_TypeModel, AlarmServicePostTypeRef), values)
+export function createAlarmServicePost(values?: Partial<AlarmServicePost>): AlarmServicePost {
+	return Object.assign(create(_TypeModel, AlarmServicePostTypeRef), downcast<AlarmServicePost>(values))
 }
 
 export type AlarmServicePost = {

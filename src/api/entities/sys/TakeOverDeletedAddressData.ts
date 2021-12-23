@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createTakeOverDeletedAddressData(values?: $Shape<$Exact<TakeOverDeletedAddressData>>): TakeOverDeletedAddressData {
-	return Object.assign(create(_TypeModel, TakeOverDeletedAddressDataTypeRef), values)
+export function createTakeOverDeletedAddressData(values?: Partial<TakeOverDeletedAddressData>): TakeOverDeletedAddressData {
+	return Object.assign(create(_TypeModel, TakeOverDeletedAddressDataTypeRef), downcast<TakeOverDeletedAddressData>(values))
 }
 
 export type TakeOverDeletedAddressData = {
@@ -66,6 +64,6 @@ export type TakeOverDeletedAddressData = {
 	_format: NumberString;
 	authVerifier: string;
 	mailAddress: string;
-	recoverCodeVerifier: ?string;
+	recoverCodeVerifier: null | string;
 	targetAccountMailAddress: string;
 }

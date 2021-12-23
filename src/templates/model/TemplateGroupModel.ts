@@ -1,5 +1,3 @@
-//@flow
-
 import m from "mithril"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {TemplateGroupRoot} from "../../api/entities/tutanota/TemplateGroupRoot"
@@ -17,53 +15,56 @@ import type {Group} from "../../api/entities/sys/Group"
 import {loadTemplateGroupInstances} from "./TemplatePopupModel"
 import {locator} from "../../api/main/MainLocator"
 import {promiseMap} from "@tutao/tutanota-utils"
-
 export type TemplateGroupInstance = {
-	group: Group,
-	groupInfo: GroupInfo,
-	groupRoot: TemplateGroupRoot,
-	groupMembership: GroupMembership
+    group: Group
+    groupInfo: GroupInfo
+    groupRoot: TemplateGroupRoot
+    groupMembership: GroupMembership
 }
-
-
 export class TemplateGroupModel {
-	+_eventController: EventController;
-	+_logins: LoginController;
-	+_entityClient: EntityClient;
-	_groupInstances: LazyLoaded<Array<TemplateGroupInstance>>
+    readonly _eventController: EventController
+    readonly _logins: LoginController
+    readonly _entityClient: EntityClient
+    _groupInstances: LazyLoaded<Array<TemplateGroupInstance>>
 
-	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient) {
-		this._eventController = eventController
-		this._logins = logins
-		this._entityClient = entityClient
-		this._groupInstances = new LazyLoaded(() => {
-			const templateMemberships = logins.getUserController().getTemplateMemberships()
-			return loadTemplateGroupInstances(templateMemberships, locator.entityClient)
-		}, [])
-		this._eventController.addEntityListener((updates) => {
-			return this._entityEventsReceived(updates)
-		})
-	}
+    constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient) {
+        this._eventController = eventController
+        this._logins = logins
+        this._entityClient = entityClient
+        this._groupInstances = new LazyLoaded(() => {
+            const templateMemberships = logins.getUserController().getTemplateMemberships()
+            return loadTemplateGroupInstances(templateMemberships, locator.entityClient)
+        }, [])
 
-	getGroupInstances(): Array<TemplateGroupInstance> {
-		return neverNull(this._groupInstances.getSync())
-	}
+        this._eventController.addEntityListener(updates => {
+            return this._entityEventsReceived(updates)
+        })
+    }
 
-	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<*> {
-		// const userController = logins.getUserController()
-		return promiseMap(updates, update => {
-			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
-				if (this._groupInstances.isLoaded()) {
-					const existingInstances = this.getGroupInstances().map(groupInstances => groupInstances.groupRoot._id)
-					const newMemberships = logins.getUserController().getTemplateMemberships().map(membership => membership.group)
-					if (existingInstances.length !== newMemberships.length) {
-						this._groupInstances.reset()
-						this._groupInstances.getAsync()
-						m.redraw()
-					}
-				}
-			}
-		})
-	}
+    getGroupInstances(): Array<TemplateGroupInstance> {
+        return neverNull(this._groupInstances.getSync())
+    }
+
+    _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+        // const userController = logins.getUserController()
+        return promiseMap(updates, update => {
+            if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
+                if (this._groupInstances.isLoaded()) {
+                    const existingInstances = this.getGroupInstances().map(groupInstances => groupInstances.groupRoot._id)
+                    const newMemberships = logins
+                        .getUserController()
+                        .getTemplateMemberships()
+                        .map(membership => membership.group)
+
+                    if (existingInstances.length !== newMemberships.length) {
+                        this._groupInstances.reset()
+
+                        this._groupInstances.getAsync()
+
+                        m.redraw()
+                    }
+                }
+            }
+        })
+    }
 }
-

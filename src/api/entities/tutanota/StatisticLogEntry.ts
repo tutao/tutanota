@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ContactFormEncryptedStatisticsField} from "./ContactFormEncryptedStatisticsField"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createStatisticLogEntry(values?: $Shape<$Exact<StatisticLogEntry>>): StatisticLogEntry {
-	return Object.assign(create(_TypeModel, StatisticLogEntryTypeRef), values)
+export function createStatisticLogEntry(values?: Partial<StatisticLogEntry>): StatisticLogEntry {
+	return Object.assign(create(_TypeModel, StatisticLogEntryTypeRef), downcast<StatisticLogEntry>(values))
 }
 
 export type StatisticLogEntry = {
@@ -90,8 +88,8 @@ export type StatisticLogEntry = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	date: Date;
 

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,8 +40,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createBraintree3ds2Response(values?: $Shape<$Exact<Braintree3ds2Response>>): Braintree3ds2Response {
-	return Object.assign(create(_TypeModel, Braintree3ds2ResponseTypeRef), values)
+export function createBraintree3ds2Response(values?: Partial<Braintree3ds2Response>): Braintree3ds2Response {
+	return Object.assign(create(_TypeModel, Braintree3ds2ResponseTypeRef), downcast<Braintree3ds2Response>(values))
 }
 
 export type Braintree3ds2Response = {

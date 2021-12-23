@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,14 +40,14 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRegistrationCaptchaServiceReturn(values?: $Shape<$Exact<RegistrationCaptchaServiceReturn>>): RegistrationCaptchaServiceReturn {
-	return Object.assign(create(_TypeModel, RegistrationCaptchaServiceReturnTypeRef), values)
+export function createRegistrationCaptchaServiceReturn(values?: Partial<RegistrationCaptchaServiceReturn>): RegistrationCaptchaServiceReturn {
+	return Object.assign(create(_TypeModel, RegistrationCaptchaServiceReturnTypeRef), downcast<RegistrationCaptchaServiceReturn>(values))
 }
 
 export type RegistrationCaptchaServiceReturn = {
 	_type: TypeRef<RegistrationCaptchaServiceReturn>;
 
 	_format: NumberString;
-	challenge: ?Uint8Array;
+	challenge: null | Uint8Array;
 	token: string;
 }

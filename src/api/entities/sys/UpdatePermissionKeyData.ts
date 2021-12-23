@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -57,16 +55,16 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUpdatePermissionKeyData(values?: $Shape<$Exact<UpdatePermissionKeyData>>): UpdatePermissionKeyData {
-	return Object.assign(create(_TypeModel, UpdatePermissionKeyDataTypeRef), values)
+export function createUpdatePermissionKeyData(values?: Partial<UpdatePermissionKeyData>): UpdatePermissionKeyData {
+	return Object.assign(create(_TypeModel, UpdatePermissionKeyDataTypeRef), downcast<UpdatePermissionKeyData>(values))
 }
 
 export type UpdatePermissionKeyData = {
 	_type: TypeRef<UpdatePermissionKeyData>;
 
 	_format: NumberString;
-	ownerEncSessionKey: ?Uint8Array;
-	symEncSessionKey: ?Uint8Array;
+	ownerEncSessionKey: null | Uint8Array;
+	symEncSessionKey: null | Uint8Array;
 
 	bucketPermission: IdTuple;
 	permission: IdTuple;

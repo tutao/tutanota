@@ -1,4 +1,7 @@
-// @flow
+export const enum GossipService
 
-export const GossipService: {||} = Object.freeze({
-})
+:
+{||
+}
+{
+}

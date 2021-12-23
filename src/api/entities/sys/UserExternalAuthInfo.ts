@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -64,8 +62,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUserExternalAuthInfo(values?: $Shape<$Exact<UserExternalAuthInfo>>): UserExternalAuthInfo {
-	return Object.assign(create(_TypeModel, UserExternalAuthInfoTypeRef), values)
+export function createUserExternalAuthInfo(values?: Partial<UserExternalAuthInfo>): UserExternalAuthInfo {
+	return Object.assign(create(_TypeModel, UserExternalAuthInfoTypeRef), downcast<UserExternalAuthInfo>(values))
 }
 
 export type UserExternalAuthInfo = {
@@ -74,8 +72,8 @@ export type UserExternalAuthInfo = {
 	_id: Id;
 	authUpdateCounter: NumberString;
 	autoAuthenticationId: Id;
-	autoTransmitPassword: ?string;
-	latestSaltHash: ?Uint8Array;
+	autoTransmitPassword: null | string;
+	latestSaltHash: null | Uint8Array;
 
 	variableAuthInfo: Id;
 }

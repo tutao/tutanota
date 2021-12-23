@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -70,8 +68,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRecoverCode(values?: $Shape<$Exact<RecoverCode>>): RecoverCode {
-	return Object.assign(create(_TypeModel, RecoverCodeTypeRef), values)
+export function createRecoverCode(values?: Partial<RecoverCode>): RecoverCode {
+	return Object.assign(create(_TypeModel, RecoverCodeTypeRef), downcast<RecoverCode>(values))
 }
 
 export type RecoverCode = {
@@ -79,7 +77,7 @@ export type RecoverCode = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	recoverCodeEncUserGroupKey: Uint8Array;
 	userEncRecoverCode: Uint8Array;

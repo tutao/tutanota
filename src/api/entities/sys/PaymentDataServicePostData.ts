@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Braintree3ds2Response} from "./Braintree3ds2Response"
@@ -38,8 +36,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createPaymentDataServicePostData(values?: $Shape<$Exact<PaymentDataServicePostData>>): PaymentDataServicePostData {
-	return Object.assign(create(_TypeModel, PaymentDataServicePostDataTypeRef), values)
+export function createPaymentDataServicePostData(values?: Partial<PaymentDataServicePostData>): PaymentDataServicePostData {
+	return Object.assign(create(_TypeModel, PaymentDataServicePostDataTypeRef), downcast<PaymentDataServicePostData>(values))
 }
 
 export type PaymentDataServicePostData = {

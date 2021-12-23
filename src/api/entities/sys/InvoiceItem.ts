@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -77,8 +75,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createInvoiceItem(values?: $Shape<$Exact<InvoiceItem>>): InvoiceItem {
-	return Object.assign(create(_TypeModel, InvoiceItemTypeRef), values)
+export function createInvoiceItem(values?: Partial<InvoiceItem>): InvoiceItem {
+	return Object.assign(create(_TypeModel, InvoiceItemTypeRef), downcast<InvoiceItem>(values))
 }
 
 export type InvoiceItem = {
@@ -86,10 +84,10 @@ export type InvoiceItem = {
 
 	_id: Id;
 	amount: NumberString;
-	endDate: ?Date;
-	singlePrice: ?NumberString;
+	endDate: null | Date;
+	singlePrice: null | NumberString;
 	singleType: boolean;
-	startDate: ?Date;
+	startDate: null | Date;
 	totalPrice: NumberString;
 	type: NumberString;
 }

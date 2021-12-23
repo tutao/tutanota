@@ -1,4 +1,3 @@
-// @flow
 import {SecondFactorType} from "../../api/common/TutanotaConstants"
 import type {Thunk} from "@tutao/tutanota-utils"
 import {assertNotNull} from "@tutao/tutanota-utils"
@@ -12,16 +11,25 @@ import {WebauthnCancelledError, WebauthnClient, WebauthnError} from "./webauthn/
 import {appIdToLoginDomain} from "./SecondFactorHandler"
 import type {Challenge} from "../../api/entities/sys/Challenge"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
-
 type AuthData = {
-	+sessionId: IdTuple,
-	+challenges: $ReadOnlyArray<Challenge>,
-	+mailAddress: ?string,
+    readonly sessionId: IdTuple
+    readonly challenges: ReadonlyArray<Challenge>
+    readonly mailAddress: string | null
 }
-type WebauthnState = {state: "init"} | {state: "progress"} | {state: "error", error: TranslationKey}
+type WebauthnState =
+    | {
+          state: "init"
+      }
+    | {
+          state: "progress"
+      }
+    | {
+          state: "error"
+          error: TranslationKey
+      }
 type OtpState = {
-	code: string,
-	inProgress: boolean
+    code: string
+    inProgress: boolean
 }
 
 /**
@@ -34,176 +42,190 @@ type OtpState = {
  *  - lost access button
  * */
 export class SecondFactorAuthDialog {
-	+_webauthnClient: WebauthnClient
-	+_loginFacade: LoginFacade
-	+_authData: AuthData
-	+_onClose: Thunk
+    readonly _webauthnClient: WebauthnClient
+    readonly _loginFacade: LoginFacade
+    readonly _authData: AuthData
+    readonly _onClose: Thunk
+    _webauthnAbortController: AbortController | null
+    _waitingForSecondFactorDialog: Dialog | null
+    webauthnState: WebauthnState
+    otpState: OtpState
 
-	_webauthnAbortController: ?AbortController
-	_waitingForSecondFactorDialog: ?Dialog
-	webauthnState: WebauthnState
-	otpState: OtpState
+    /** @private */
+    constructor(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk) {
+        this._webauthnClient = webauthnClient
+        this._authData = authData
+        this._onClose = onClose
+        this._loginFacade = loginFacade
+        this.webauthnState = {
+            state: "init",
+        }
+        this.otpState = {
+            code: "",
+            inProgress: false,
+        }
+    }
 
-	/** @private */
-	constructor(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk) {
-		this._webauthnClient = webauthnClient
-		this._authData = authData
-		this._onClose = onClose
-		this._loginFacade = loginFacade
+    /**
+     * @param webauthnClient
+     * @param loginFacade
+     * @param authData
+     * @param onClose will be called when the dialog is closed (one way or another).
+     */
+    static show(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk): SecondFactorAuthDialog {
+        const dialog = new SecondFactorAuthDialog(webauthnClient, loginFacade, authData, onClose)
 
-		this.webauthnState = {state: "init"}
-		this.otpState = {code: "", inProgress: false}
-	}
+        dialog._show()
 
-	/**
-	 * @param webauthnClient
-	 * @param loginFacade
-	 * @param authData
-	 * @param onClose will be called when the dialog is closed (one way or another).
-	 */
-	static show(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk): SecondFactorAuthDialog {
-		const dialog = new SecondFactorAuthDialog(webauthnClient, loginFacade, authData, onClose)
-		dialog._show()
-		return dialog
-	}
+        return dialog
+    }
 
-	close() {
-		if (this._waitingForSecondFactorDialog?.visible) {
-			this._waitingForSecondFactorDialog?.close()
-		}
-		this._webauthnAbortController?.abort()
-		this._waitingForSecondFactorDialog = null
-		this._onClose()
-	}
+    close() {
+        if (this._waitingForSecondFactorDialog?.visible) {
+            this._waitingForSecondFactorDialog?.close()
+        }
 
-	_show() {
-		const u2fChallenge = this._authData.challenges.find(challenge =>
-			challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn)
-		const otpChallenge = this._authData.challenges.find(challenge => challenge.type === SecondFactorType.totp)
-		const keys = u2fChallenge ? assertNotNull(u2fChallenge.u2f).keys : []
+        this._webauthnAbortController?.abort()
+        this._waitingForSecondFactorDialog = null
 
-		const u2fSupported = this._webauthnClient.isSupported()
-		console.log("webauthn supported: ", u2fSupported)
+        this._onClose()
+    }
 
-		// Because of whitelabel keys can ge registered on another domains
-		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId
-		const keyForThisDomainExisting = keys
-			.some(key => key.appId === this._webauthnClient.rpId || key.appId === this._webauthnClient.appId)
-		const canLoginWithU2f = u2fSupported && keyForThisDomainExisting
-		const otherDomainAppIds = keys.filter(key => key.appId !== this._webauthnClient.rpId).map(key => key.appId)
-		const otherLoginDomain = otherDomainAppIds.length > 0
-			? appIdToLoginDomain(otherDomainAppIds[0])
-			: null
+    _show() {
+        const u2fChallenge = this._authData.challenges.find(
+            challenge => challenge.type === SecondFactorType.u2f || challenge.type === SecondFactorType.webauthn,
+        )
 
-		const {mailAddress} = this._authData
+        const otpChallenge = this._authData.challenges.find(challenge => challenge.type === SecondFactorType.totp)
 
-		this._waitingForSecondFactorDialog = Dialog.showActionDialog({
-			title: "",
-			allowOkWithReturn: true,
-			child: {
-				view: () => {
-					return m(SecondFactorAuthView, {
-						webauthn: canLoginWithU2f
-							? {
-								canLogin: true,
-								state: this.webauthnState,
-								doWebauthn: () => this._doWebauthn(assertNotNull(u2fChallenge)),
-							}
-							: otherLoginDomain
-								? {
-									canLogin: false,
-									otherLoginDomain,
-								}
-								: null,
-						otp: otpChallenge
-							? {
-								codeFieldValue: this.otpState.code,
-								inProgress: this.otpState.inProgress,
-								onValueChanged: (newValue) => this.otpState.code = newValue,
-							}
-							: null,
-						onRecover: mailAddress ? () => this._recover(mailAddress) : null,
-					})
-				}
-			},
-			okAction: otpChallenge ? () => this._otpClickHandler() : null,
-			cancelAction: () => this._cancelAction()
-		})
+        const keys = u2fChallenge ? assertNotNull(u2fChallenge.u2f).keys : []
 
-	}
+        const u2fSupported = this._webauthnClient.isSupported()
 
-	async _otpClickHandler() {
-		this.otpState.inProgress = true
-		const authData = createSecondFactorAuthData({
-			type: SecondFactorType.totp,
-			session: this._authData.sessionId,
-			otpCode: this.otpState.code.replace(/ /g, ""),
-		})
-		try {
-			await this._loginFacade.authenticateWithSecondFactor(authData)
-			this._waitingForSecondFactorDialog?.close()
-		} catch (e) {
-			if (e instanceof NotAuthenticatedError) {
-				Dialog.message("loginFailed_msg")
-			} else if (e instanceof BadRequestError) {
-				Dialog.message("loginFailed_msg")
-			} else if (e in AccessBlockedError) {
-				Dialog.message("loginFailedOften_msg")
-				this.close()
-			} else {
-				throw e
-			}
-		} finally {
-			this.otpState.inProgress = false
-		}
-	}
+        console.log("webauthn supported: ", u2fSupported)
+        // Because of whitelabel keys can ge registered on another domains
+        // If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId
+        const keyForThisDomainExisting = keys.some(key => key.appId === this._webauthnClient.rpId || key.appId === this._webauthnClient.appId)
+        const canLoginWithU2f = u2fSupported && keyForThisDomainExisting
+        const otherDomainAppIds = keys.filter(key => key.appId !== this._webauthnClient.rpId).map(key => key.appId)
+        const otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
+        const {mailAddress} = this._authData
+        this._waitingForSecondFactorDialog = Dialog.showActionDialog({
+            title: "",
+            allowOkWithReturn: true,
+            child: {
+                view: () => {
+                    return m(SecondFactorAuthView, {
+                        webauthn: canLoginWithU2f
+                            ? {
+                                  canLogin: true,
+                                  state: this.webauthnState,
+                                  doWebauthn: () => this._doWebauthn(assertNotNull(u2fChallenge)),
+                              }
+                            : otherLoginDomain
+                            ? {
+                                  canLogin: false,
+                                  otherLoginDomain,
+                              }
+                            : null,
+                        otp: otpChallenge
+                            ? {
+                                  codeFieldValue: this.otpState.code,
+                                  inProgress: this.otpState.inProgress,
+                                  onValueChanged: newValue => (this.otpState.code = newValue),
+                              }
+                            : null,
+                        onRecover: mailAddress ? () => this._recover(mailAddress) : null,
+                    })
+                },
+            },
+            okAction: otpChallenge ? () => this._otpClickHandler() : null,
+            cancelAction: () => this._cancelAction(),
+        })
+    }
 
-	async _cancelAction(): Promise<void> {
-		this._webauthnAbortController?.abort()
-		await this._loginFacade.cancelCreateSession(this._authData.sessionId)
-		this.close()
-	}
+    async _otpClickHandler() {
+        this.otpState.inProgress = true
+        const authData = createSecondFactorAuthData({
+            type: SecondFactorType.totp,
+            session: this._authData.sessionId,
+            otpCode: this.otpState.code.replace(/ /g, ""),
+        })
 
-	async _doWebauthn(u2fChallenge: Challenge) {
-		this.webauthnState = {state: "progress"}
-		this._webauthnAbortController = new AbortController()
-		const abortSignal = this._webauthnAbortController.signal
-		abortSignal.addEventListener("abort", () => console.log("aborted webauthn"))
+        try {
+            await this._loginFacade.authenticateWithSecondFactor(authData)
+            this._waitingForSecondFactorDialog?.close()
+        } catch (e) {
+            if (e instanceof NotAuthenticatedError) {
+                Dialog.message("loginFailed_msg")
+            } else if (e instanceof BadRequestError) {
+                Dialog.message("loginFailed_msg")
+            } else if (e in AccessBlockedError) {
+                Dialog.message("loginFailedOften_msg")
+                this.close()
+            } else {
+                throw e
+            }
+        } finally {
+            this.otpState.inProgress = false
+        }
+    }
 
-		const sessionId = this._authData.sessionId
-		try {
-			const webauthnResponseData = await this._webauthnClient.sign(sessionId, assertNotNull(u2fChallenge.u2f), abortSignal)
-			const authData = createSecondFactorAuthData({
-				type: SecondFactorType.webauthn,
-				session: sessionId,
-				webauthn: webauthnResponseData,
-			})
-			await this._loginFacade.authenticateWithSecondFactor(authData)
-		} catch (e) {
-			if (e instanceof WebauthnCancelledError) {
-				this._webauthnAbortController = null
-				this.webauthnState = {state: "init"}
-			} else if (e instanceof AccessBlockedError && this._waitingForSecondFactorDialog?.visible) {
-				Dialog.message("loginFailedOften_msg")
-				this.close()
-			} else if ((e instanceof WebauthnError)) {
-				console.log("Error during webAuthn: ", e)
-				this.webauthnState = {state: "error", error: "couldNotAuthU2f_msg"}
-			} else if (e instanceof NotAuthenticatedError) {
-				this.webauthnState = {state: "init"}
-				Dialog.message("loginFailed_msg")
-			} else {
-				throw e
-			}
-		} finally {
-			this._webauthnAbortController = null
-			m.redraw()
-		}
-	}
+    async _cancelAction(): Promise<void> {
+        this._webauthnAbortController?.abort()
+        await this._loginFacade.cancelCreateSession(this._authData.sessionId)
+        this.close()
+    }
 
-	async _recover(mailAddress: string) {
-		this.close()
-		const dialog = await import("../../login/recover/RecoverLoginDialog")
-		dialog.show(mailAddress, "secondFactor")
-	}
+    async _doWebauthn(u2fChallenge: Challenge) {
+        this.webauthnState = {
+            state: "progress",
+        }
+        this._webauthnAbortController = new AbortController()
+        const abortSignal = this._webauthnAbortController.signal
+        abortSignal.addEventListener("abort", () => console.log("aborted webauthn"))
+        const sessionId = this._authData.sessionId
+
+        try {
+            const webauthnResponseData = await this._webauthnClient.sign(sessionId, assertNotNull(u2fChallenge.u2f), abortSignal)
+            const authData = createSecondFactorAuthData({
+                type: SecondFactorType.webauthn,
+                session: sessionId,
+                webauthn: webauthnResponseData,
+            })
+            await this._loginFacade.authenticateWithSecondFactor(authData)
+        } catch (e) {
+            if (e instanceof WebauthnCancelledError) {
+                this._webauthnAbortController = null
+                this.webauthnState = {
+                    state: "init",
+                }
+            } else if (e instanceof AccessBlockedError && this._waitingForSecondFactorDialog?.visible) {
+                Dialog.message("loginFailedOften_msg")
+                this.close()
+            } else if (e instanceof WebauthnError) {
+                console.log("Error during webAuthn: ", e)
+                this.webauthnState = {
+                    state: "error",
+                    error: "couldNotAuthU2f_msg",
+                }
+            } else if (e instanceof NotAuthenticatedError) {
+                this.webauthnState = {
+                    state: "init",
+                }
+                Dialog.message("loginFailed_msg")
+            } else {
+                throw e
+            }
+        } finally {
+            this._webauthnAbortController = null
+            m.redraw()
+        }
+    }
+
+    async _recover(mailAddress: string) {
+        this.close()
+        const dialog = await import("../../login/recover/RecoverLoginDialog")
+        dialog.show(mailAddress, "secondFactor")
+    }
 }

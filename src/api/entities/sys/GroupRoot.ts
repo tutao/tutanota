@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {UserAreaGroups} from "./UserAreaGroups"
@@ -73,8 +71,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createGroupRoot(values?: $Shape<$Exact<GroupRoot>>): GroupRoot {
-	return Object.assign(create(_TypeModel, GroupRootTypeRef), values)
+export function createGroupRoot(values?: Partial<GroupRoot>): GroupRoot {
+	return Object.assign(create(_TypeModel, GroupRootTypeRef), downcast<GroupRoot>(values))
 }
 
 export type GroupRoot = {
@@ -82,10 +80,10 @@ export type GroupRoot = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	externalUserAreaGroupInfos: ?UserAreaGroups;
+	externalUserAreaGroupInfos:  null | UserAreaGroups;
 	externalGroupInfos: Id;
 	externalUserReferences: Id;
 }

@@ -16,7 +16,7 @@ import nodemocker from "../nodemocker"
 import {downcast} from "@tutao/tutanota-utils"
 
 o.spec("MailModelTest", function () {
-	let notifications: $Shape<Notifications>
+	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
 
@@ -28,7 +28,7 @@ o.spec("MailModelTest", function () {
 	anotherFolder.mails = "anotherListId"
 	anotherFolder.folderType = MailFolderType.ARCHIVE
 
-	const mailboxDetails: $Shape<MailboxDetail>[] = [
+	const mailboxDetails: Partial<MailboxDetail>[] = [
 		{
 			folders: [inboxFolder]
 		}

@@ -1,5 +1,3 @@
-//@flow
-
 // straight from the flowlib/bom.js, flow just didn't pick it up for some reason
 // declare class Request {
 // 	constructor(input: RequestInfo, init?: RequestOptions): void;
@@ -27,198 +25,212 @@
 // 	json(): Promise<any>;
 // 	text(): Promise<string>;
 // }
-
 // set by the build script
 import {getPathBases} from "../ApplicationPaths"
-
-declare var filesToCache: () => Array<string | URL>;
-declare var version: () => string;
-declare var customDomainCacheExclusions: () => Array<string>;
-
+declare var filesToCache: () => Array<string | URL>
+declare var version: () => string
+declare var customDomainCacheExclusions: () => Array<string>
 // test case
 var versionString = typeof version === "undefined" ? "test" : version()
 
 const isTutanotaDomain = () =>
-	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
-	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
+    // *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
+    self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
 
-const urlWithoutQuery = (urlString) => {
-	const queryIndex = urlString.indexOf("?")
-	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
+const urlWithoutQuery = urlString => {
+    const queryIndex = urlString.indexOf("?")
+    return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
 }
 
-
 export class ServiceWorker {
-	_caches: CacheStorage
-	_cacheName: string
-	_selfLocation: string
-	_possibleRest: string
-	_applicationPaths: string[]
-	_isTutanotaDomain: boolean
-	_urlsToCache: string[]
-	_isBuggyChrome: boolean
+    _caches: CacheStorage
+    _cacheName: string
+    _selfLocation: string
+    _possibleRest: string
+    _applicationPaths: string[]
+    _isTutanotaDomain: boolean
+    _urlsToCache: string[]
+    _isBuggyChrome: boolean
 
-	constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[],
-	            isTutanotaDomain: boolean) {
-		this._urlsToCache = urlsToCache
-		this._caches = caches
-		this._cacheName = cacheName
-		this._selfLocation = selfLocation
-		this._possibleRest = selfLocation + "rest"
-		this._applicationPaths = applicationPaths
-		this._isTutanotaDomain = isTutanotaDomain
-		this._isBuggyChrome = false
+    constructor(urlsToCache: string[], caches: CacheStorage, cacheName: string, selfLocation: string, applicationPaths: string[], isTutanotaDomain: boolean) {
+        this._urlsToCache = urlsToCache
+        this._caches = caches
+        this._cacheName = cacheName
+        this._selfLocation = selfLocation
+        this._possibleRest = selfLocation + "rest"
+        this._applicationPaths = applicationPaths
+        this._isTutanotaDomain = isTutanotaDomain
+        this._isBuggyChrome = false
 
-		if (typeof navigator !== "undefined") {
-			const results = navigator.userAgent.match(/Chrome\/([0-9]*)\./)
-			if (results != null && results.length > 0) {
-				const numberVersion = Number(results[1])
-				if (!isNaN(numberVersion) && numberVersion < 50) {
-					// Chrome 44-49 has weird bug where ByteStreams from cache are not interpreted correctly
-					console.log("Buggy Chrome version detected. Deferring to no-op sw.js")
-					this._isBuggyChrome = true
-				}
-			}
-		}
-	}
+        if (typeof navigator !== "undefined") {
+            const results = navigator.userAgent.match(/Chrome\/([0-9]*)\./)
 
-	respond(evt: FetchEvent): void {
-		if (this._isBuggyChrome) {
-			// Defer to default browser behavior
-			return
-		}
-		const urlWithoutParams = urlWithoutQuery(evt.request.url)
-		if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
-			evt.respondWith(this._fromCache(urlWithoutParams))
-		} else if (/translation-.+-.+\.js/.test(urlWithoutParams)) {
-			evt.respondWith(this.fromCacheOrFetchAndCache(evt.request))
-		} else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
-			evt.respondWith(this._redirectToDefaultPage(evt.request.url))
-		}
-	}
+            if (results != null && results.length > 0) {
+                const numberVersion = Number(results[1])
 
+                if (!isNaN(numberVersion) && numberVersion < 50) {
+                    // Chrome 44-49 has weird bug where ByteStreams from cache are not interpreted correctly
+                    console.log("Buggy Chrome version detected. Deferring to no-op sw.js")
+                    this._isBuggyChrome = true
+                }
+            }
+        }
+    }
 
-	precache(): Promise<*> {
-		return this._caches.open(this._cacheName).then(cache =>
-			this._addAllToCache(cache, this._urlsToCache)
-			    .then(() => cache.match("index.html"))
-			    .then((r: ?Response) => {
-				    if (!r) {
-					    return
-				    }
-				    // Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response<<
-				    const clonedResponse = r.clone()
-				    const bodyPromise = 'body' in clonedResponse
-					    ? Promise.resolve(clonedResponse.body)
-					    : clonedResponse.blob();
-				    // Casting body to "any" because Flow is missing ReadableStream option for response constructor
-				    // see: https://github.com/facebook/flow/issues/6824
-				    return bodyPromise.then(body =>
-					    new Response((body: any), {
-						    headers: clonedResponse.headers,
-						    status: clonedResponse.status,
-						    statusText: clonedResponse.statusText
-					    })).then((r) => cache.put(this._selfLocation, r)).then(() => cache.delete("index.html"))
-			    }))
-	}
+    respond(evt: FetchEvent): void {
+        if (this._isBuggyChrome) {
+            // Defer to default browser behavior
+            return
+        }
 
-	deleteOldCaches(): Promise<*> {
-		return this._caches.keys()
-		           .then((cacheNames) => Promise.all(cacheNames.map((cacheName) =>
-			           cacheName
-			           !== this._cacheName ? caches.delete(cacheName) : Promise.resolve())))
-		           .catch(e => {
-			           console.log("error while deleting old caches", e)
-			           throw e
-		           })
-	}
+        const urlWithoutParams = urlWithoutQuery(evt.request.url)
 
-	fromCacheOrFetchAndCache(request: Request): Promise<Response> {
-		return this._caches.open(this._cacheName).then((cache) => {
-			return cache.match(request.url).then((response) => {
-				if (response) {
-					return response
-				} else {
-					return fetch(request, {redirect: "error"}).then((networkResponse) => {
-						return cache.put(request, networkResponse.clone())
-						            .then(() => networkResponse)
-					})
-				}
-			})
-		})
-	}
+        if (this._urlsToCache.indexOf(urlWithoutParams) !== -1 || (this._isTutanotaDomain && this._selfLocation === urlWithoutParams)) {
+            evt.respondWith(this._fromCache(urlWithoutParams))
+        } else if (/translation-.+-.+\.js/.test(urlWithoutParams)) {
+            evt.respondWith(this.fromCacheOrFetchAndCache(evt.request))
+        } else if (this._shouldRedirectToDefaultPage(urlWithoutParams)) {
+            evt.respondWith(this._redirectToDefaultPage(evt.request.url))
+        }
+    }
 
-	_fromCache(requestUrl: string): Promise<Response> {
-		return this._caches
-		           .open(this._cacheName)
-		           .then(cache => cache.match(requestUrl))
-			// Cache magically disappears on iOS 12.1 after the browser restart.
-			// See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
-			       .then(r => r || fetch(requestUrl))
-	}
+    precache(): Promise<any> {
+        return this._caches.open(this._cacheName).then(cache =>
+            this._addAllToCache(cache, this._urlsToCache)
+                .then(() => cache.match("index.html"))
+                .then((r: Response | null) => {
+                    if (!r) {
+                        return
+                    }
 
-	// needed because FF fails to cache.addAll()
-	_addAllToCache(cache: Cache, urlsToCache: string[]): Promise<*> {
-		return Promise.all(urlsToCache.map(url =>
-			cache.add(url)
-			     .catch(e => {
-				     console.log("failed to add", url, e)
-				     throw e
-			     })
-		))
-	}
+                    // Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response<<
+                    const clonedResponse = r.clone()
+                    const bodyPromise = "body" in clonedResponse ? Promise.resolve(clonedResponse.body) : clonedResponse.blob()
+                    // Casting body to "any" because Flow is missing ReadableStream option for response constructor
+                    // see: https://github.com/facebook/flow/issues/6824
+                    return bodyPromise
+                        .then(
+                            body =>
+                                new Response(body as any, {
+                                    headers: clonedResponse.headers,
+                                    status: clonedResponse.status,
+                                    statusText: clonedResponse.statusText,
+                                }),
+                        )
+                        .then(r => cache.put(this._selfLocation, r))
+                        .then(() => cache.delete("index.html"))
+                }),
+        )
+    }
 
-	_redirectToDefaultPage(url: string): Response {
-		let hash = url.indexOf('#')
-		const withoutBasePath = url.substring(this._selfLocation.length, hash != -1 ? hash : url.length)
-		const params = new URLSearchParams({r: withoutBasePath})
-		return Response.redirect(`${this._selfLocation}?${params.toString()}`)
-	}
+    deleteOldCaches(): Promise<any> {
+        return this._caches
+            .keys()
+            .then(cacheNames => Promise.all(cacheNames.map(cacheName => (cacheName !== this._cacheName ? caches.delete(cacheName) : Promise.resolve()))))
+            .catch(e => {
+                console.log("error while deleting old caches", e)
+                throw e
+            })
+    }
 
+    fromCacheOrFetchAndCache(request: Request): Promise<Response> {
+        return this._caches.open(this._cacheName).then(cache => {
+            return cache.match(request.url).then(response => {
+                if (response) {
+                    return response
+                } else {
+                    return fetch(request, {
+                        redirect: "error",
+                    }).then(networkResponse => {
+                        return cache.put(request, networkResponse.clone()).then(() => networkResponse)
+                    })
+                }
+            })
+        })
+    }
 
-	_shouldRedirectToDefaultPage(urlWithout: string): boolean {
-		return !urlWithout.startsWith(this._possibleRest)
-			&& urlWithout.startsWith(this._selfLocation)
-			&& urlWithout !== this._selfLocation // if we are already on the page we need
-			&& this._applicationPaths.includes(this._getFirstPathComponent(urlWithout))
-	}
+    _fromCache(requestUrl: string): Promise<Response> {
+        return (
+            this._caches
+                .open(this._cacheName)
+                .then(cache => cache.match(requestUrl)) // Cache magically disappears on iOS 12.1 after the browser restart.
+                // See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
+                .then(r => r || fetch(requestUrl))
+        )
+    }
 
-	_getFirstPathComponent(url: string): string {
-		const pathElements = url.substring(this._selfLocation.length).split("/")
-		return pathElements.length > 0 ? pathElements[0] : ""
-	}
+    // needed because FF fails to cache.addAll()
+    _addAllToCache(cache: Cache, urlsToCache: string[]): Promise<any> {
+        return Promise.all(
+            urlsToCache.map(url =>
+                cache.add(url).catch(e => {
+                    console.log("failed to add", url, e)
+                    throw e
+                }),
+            ),
+        )
+    }
+
+    _redirectToDefaultPage(url: string): Response {
+        let hash = url.indexOf("#")
+        const withoutBasePath = url.substring(this._selfLocation.length, hash != -1 ? hash : url.length)
+        const params = new URLSearchParams({
+            r: withoutBasePath,
+        })
+        return Response.redirect(`${this._selfLocation}?${params.toString()}`)
+    }
+
+    _shouldRedirectToDefaultPage(urlWithout: string): boolean {
+        return (
+            !urlWithout.startsWith(this._possibleRest) &&
+            urlWithout.startsWith(this._selfLocation) &&
+            urlWithout !== this._selfLocation && // if we are already on the page we need
+            this._applicationPaths.includes(this._getFirstPathComponent(urlWithout))
+        )
+    }
+
+    _getFirstPathComponent(url: string): string {
+        const pathElements = url.substring(this._selfLocation.length).split("/")
+        return pathElements.length > 0 ? pathElements[0] : ""
+    }
 }
 
 const init = (sw: ServiceWorker) => {
-	console.log("sw init", versionString)
-	self.addEventListener("install", (evt) => {
-		console.log("SW: being installed", versionString)
-		evt.waitUntil(sw.precache())
-	})
-	self.addEventListener('activate', (event) => {
-		console.log("sw activate", versionString)
-		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
-	})
-	self.addEventListener('fetch', (evt) => {
-		sw.respond(evt)
-	})
-	self.addEventListener("message", (event) => {
-		console.log("sw message", versionString, event)
-		if (event.data === "update") {
-			self.skipWaiting()
-		}
-	})
+    console.log("sw init", versionString)
+    self.addEventListener("install", evt => {
+        console.log("SW: being installed", versionString)
+        evt.waitUntil(sw.precache())
+    })
+    self.addEventListener("activate", event => {
+        console.log("sw activate", versionString)
+        event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
+    })
+    self.addEventListener("fetch", evt => {
+        sw.respond(evt)
+    })
+    self.addEventListener("message", event => {
+        console.log("sw message", versionString, event)
 
-	self.addEventListener("error", ({error}) => {
-		const serializedError = {
-			name: error.name,
-			message: error.message,
-			stack: error.stack,
-			data: error.data
-		}
-		return self.clients.matchAll()
-		           .then((allClients) => allClients.forEach((c) => c.postMessage({type: "error", value: serializedError})))
-	})
+        if (event.data === "update") {
+            self.skipWaiting()
+        }
+    })
+    self.addEventListener("error", ({error}) => {
+        const serializedError = {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            data: error.data,
+        }
+        return self.clients.matchAll().then(allClients =>
+            allClients.forEach(c =>
+                c.postMessage({
+                    type: "error",
+                    value: serializedError,
+                }),
+            ),
+        )
+    })
 }
 
 // Only exported for tests.
@@ -227,17 +239,13 @@ const init = (sw: ServiceWorker) => {
 // We hack module in dist.js by prepending `self.module` = {} so that the line below actually works.
 // We should probably split the class and the actual content into separate files and just bundle them together during the build.
 // module.exports = {ServiceWorker}-
-
 // do not add listeners for Node tests. env is not set for production
 if (typeof env === "undefined" || env.mode !== "Test") {
-	const cacheName = "CODE_CACHE-v" + versionString
-	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
-	const exclusions = customDomainCacheExclusions()
-	const urlsToCache = (isTutanotaDomain()
-		? filesToCache()
-		: filesToCache().filter(file => !exclusions.includes(file)))
-		.map(file => selfLocation + file)
-	const applicationPaths = getPathBases()
-	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
-	init(sw)
+    const cacheName = "CODE_CACHE-v" + versionString
+    const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
+    const exclusions = customDomainCacheExclusions()
+    const urlsToCache = (isTutanotaDomain() ? filesToCache() : filesToCache().filter(file => !exclusions.includes(file))).map(file => selfLocation + file)
+    const applicationPaths = getPathBases()
+    const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
+    init(sw)
 }

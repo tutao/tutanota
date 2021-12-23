@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -120,8 +118,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createReceivedGroupInvitation(values?: $Shape<$Exact<ReceivedGroupInvitation>>): ReceivedGroupInvitation {
-	return Object.assign(create(_TypeModel, ReceivedGroupInvitationTypeRef), values)
+export function createReceivedGroupInvitation(values?: Partial<ReceivedGroupInvitation>): ReceivedGroupInvitation {
+	return Object.assign(create(_TypeModel, ReceivedGroupInvitationTypeRef), downcast<ReceivedGroupInvitation>(values))
 }
 
 export type ReceivedGroupInvitation = {
@@ -130,11 +128,11 @@ export type ReceivedGroupInvitation = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	capability: NumberString;
-	groupType: ?NumberString;
+	groupType: null | NumberString;
 	inviteeMailAddress: string;
 	inviterMailAddress: string;
 	inviterName: string;

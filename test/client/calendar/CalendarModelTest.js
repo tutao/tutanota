@@ -1010,7 +1010,7 @@ function makeWorkerClient(): WorkerClient {
 	return downcast({})
 }
 
-function makeLoginController(props: $Shape<IUserController> = {}): LoginController {
+function makeLoginController(props: Partial<IUserController> = {}): LoginController {
 
 	const userController = downcast(Object.assign(props, {
 		user: createUser({

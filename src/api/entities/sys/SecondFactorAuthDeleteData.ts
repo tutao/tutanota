@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSecondFactorAuthDeleteData(values?: $Shape<$Exact<SecondFactorAuthDeleteData>>): SecondFactorAuthDeleteData {
-	return Object.assign(create(_TypeModel, SecondFactorAuthDeleteDataTypeRef), values)
+export function createSecondFactorAuthDeleteData(values?: Partial<SecondFactorAuthDeleteData>): SecondFactorAuthDeleteData {
+	return Object.assign(create(_TypeModel, SecondFactorAuthDeleteDataTypeRef), downcast<SecondFactorAuthDeleteData>(values))
 }
 
 export type SecondFactorAuthDeleteData = {

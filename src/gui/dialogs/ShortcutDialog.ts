@@ -1,5 +1,3 @@
-// @flow
-
 import {lang} from "../../misc/LanguageViewModel"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
@@ -10,57 +8,70 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {ButtonType} from "../base/ButtonN"
 
 function makeShortcutName(shortcut: Shortcut): string {
-	return ((shortcut.meta) ? Keys.META.name + " + " : "")
-		+ ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
-		+ ((shortcut.shift) ? Keys.SHIFT.name + " + " : "")
-		+ ((shortcut.alt) ? Keys.ALT.name + " + " : "")
-		+ shortcut.key.name
+    return (
+        (shortcut.meta ? Keys.META.name + " + " : "") +
+        (shortcut.ctrl ? Keys.CTRL.name + " + " : "") +
+        (shortcut.shift ? Keys.SHIFT.name + " + " : "") +
+        (shortcut.alt ? Keys.ALT.name + " + " : "") +
+        shortcut.key.name
+    )
 }
 
 /**
  * return a promise that resolves when the dialog is closed
  */
 export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
-	return new Promise(resolve => {
-		let dialog
+    return new Promise(resolve => {
+        let dialog
 
-		const close = () => {
-			dialog.close()
-			resolve()
-		}
+        const close = () => {
+            dialog.close()
+            resolve()
+        }
 
-		const headerAttrs = {
-			left: [{label: 'close_alt', click: close, type: ButtonType.Secondary}],
-			middle: () => lang.get("keyboardShortcuts_title")
-		}
-		dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {shortcuts})
-		               .addShortcut({key: Keys.ESC, exec: close, help: "close_alt"})
-		               .show()
-	})
+        const headerAttrs = {
+            left: [
+                {
+                    label: "close_alt",
+                    click: close,
+                    type: ButtonType.Secondary,
+                },
+            ],
+            middle: () => lang.get("keyboardShortcuts_title"),
+        }
+        dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {
+            shortcuts,
+        })
+            .addShortcut({
+                key: Keys.ESC,
+                exec: close,
+                help: "close_alt",
+            })
+            .show()
+    })
 }
-
 type ShortcutDialogAttrs = {
-	shortcuts: Array<Shortcut>
+    shortcuts: Array<Shortcut>
 }
-
 /**
  * The Dialog that shows the currently active Keyboard shortcuts when you press F1
  *
  *
  */
-class ShortcutDialog implements MComponent<ShortcutDialogAttrs> {
-	view(vnode: Vnode<ShortcutDialogAttrs>) {
-		const {shortcuts} = vnode.attrs
 
-		const textFieldAttrs = shortcuts
-			.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-			.map(shortcut => ({
-					label: () => makeShortcutName(shortcut),
-					value: stream(lang.get(shortcut.help)),
-					disabled: true
-				})
-			)
-
-		return m("div.pb", textFieldAttrs.map(t => m(TextFieldN, t)))
-	}
+class ShortcutDialog implements Component<ShortcutDialogAttrs> {
+    view(vnode: Vnode<ShortcutDialogAttrs>) {
+        const {shortcuts} = vnode.attrs
+        const textFieldAttrs = shortcuts
+            .filter(shortcut => shortcut.enabled == null || shortcut.enabled())
+            .map(shortcut => ({
+                label: () => makeShortcutName(shortcut),
+                value: stream(lang.get(shortcut.help)),
+                disabled: true,
+            }))
+        return m(
+            "div.pb",
+            textFieldAttrs.map(t => m(TextFieldN, t)),
+        )
+    }
 }

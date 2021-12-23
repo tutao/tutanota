@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,14 +40,14 @@ export const _TypeModel: TypeModel = {
 	"version": "1"
 }
 
-export function createPersistenceResourcePostReturn(values?: $Shape<$Exact<PersistenceResourcePostReturn>>): PersistenceResourcePostReturn {
-	return Object.assign(create(_TypeModel, PersistenceResourcePostReturnTypeRef), values)
+export function createPersistenceResourcePostReturn(values?: Partial<PersistenceResourcePostReturn>): PersistenceResourcePostReturn {
+	return Object.assign(create(_TypeModel, PersistenceResourcePostReturnTypeRef), downcast<PersistenceResourcePostReturn>(values))
 }
 
 export type PersistenceResourcePostReturn = {
 	_type: TypeRef<PersistenceResourcePostReturn>;
 
 	_format: NumberString;
-	generatedId: ?Id;
+	generatedId: null | Id;
 	permissionListId: Id;
 }

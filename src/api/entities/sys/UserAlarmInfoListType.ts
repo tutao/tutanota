@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUserAlarmInfoListType(values?: $Shape<$Exact<UserAlarmInfoListType>>): UserAlarmInfoListType {
-	return Object.assign(create(_TypeModel, UserAlarmInfoListTypeTypeRef), values)
+export function createUserAlarmInfoListType(values?: Partial<UserAlarmInfoListType>): UserAlarmInfoListType {
+	return Object.assign(create(_TypeModel, UserAlarmInfoListTypeTypeRef), downcast<UserAlarmInfoListType>(values))
 }
 
 export type UserAlarmInfoListType = {

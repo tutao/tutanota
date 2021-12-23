@@ -1,6 +1,5 @@
-//@flow
-const map: {[string]: () => mixed} = {
-    CustomerAccountPosting: () => import('./CustomerAccountPosting'),
-    CustomerAccountReturn: () => import('./CustomerAccountReturn')
+const map: Record<string, unknown> = {
+	CustomerAccountPosting: () => import('./CustomerAccountPosting'),
+	CustomerAccountReturn: () => import('./CustomerAccountReturn')
 }
 export default map

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PasswordChannelPhoneNumber} from "./PasswordChannelPhoneNumber"
@@ -94,22 +92,22 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSecureExternalRecipientKeyData(values?: $Shape<$Exact<SecureExternalRecipientKeyData>>): SecureExternalRecipientKeyData {
-	return Object.assign(create(_TypeModel, SecureExternalRecipientKeyDataTypeRef), values)
+export function createSecureExternalRecipientKeyData(values?: Partial<SecureExternalRecipientKeyData>): SecureExternalRecipientKeyData {
+	return Object.assign(create(_TypeModel, SecureExternalRecipientKeyDataTypeRef), downcast<SecureExternalRecipientKeyData>(values))
 }
 
 export type SecureExternalRecipientKeyData = {
 	_type: TypeRef<SecureExternalRecipientKeyData>;
 
 	_id: Id;
-	autoTransmitPassword: ?string;
+	autoTransmitPassword: null | string;
 	mailAddress: string;
-	ownerEncBucketKey: ?Uint8Array;
+	ownerEncBucketKey: null | Uint8Array;
 	passwordVerifier: Uint8Array;
-	pwEncCommunicationKey: ?Uint8Array;
-	salt: ?Uint8Array;
-	saltHash: ?Uint8Array;
-	symEncBucketKey: ?Uint8Array;
+	pwEncCommunicationKey: null | Uint8Array;
+	salt: null | Uint8Array;
+	saltHash: null | Uint8Array;
+	symEncBucketKey: null | Uint8Array;
 
 	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }

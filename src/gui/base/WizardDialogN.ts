@@ -1,5 +1,4 @@
-// @flow
-import m from "mithril"
+import m, {Children, Component} from "mithril"
 import {Dialog} from "./Dialog"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
@@ -13,68 +12,73 @@ import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 
-export interface WizardPageAttrs<+T> {
+export interface WizardPageAttrs<T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/
-	headerTitle(): string,
+	headerTitle(): string
 
 	/** Action that needs to be executed before switching to the next page.
 	 * @return true if the action was successful and the next page can be shown, false otherwise.
 	 **/
-	nextAction(showErrorDialog: boolean): Promise<boolean>,
+	nextAction(showErrorDialog: boolean): Promise<boolean>
 
 	/**
 	 * Checks if the page can be skipped.
 	 */
-	isSkipAvailable(): boolean,
+	isSkipAvailable(): boolean
 
 	/**
 	 * Checks if the page is enabled and can be displayed.
 	 */
-	isEnabled(): boolean,
+	isEnabled(): boolean
 
 	/**
 	 * The actual data, which is the same for the entire wizard needs to be also accessible to each page
 	 */
-	+data: T,
+	readonly data: T
 }
 
-export interface WizardPageN<T> extends MComponent<WizardPageAttrs<T>> {
+export interface WizardPageN<T> extends Component<WizardPageAttrs<T>> {
 }
 
-export const WizardEventType = Object.freeze({
-	SHOWNEXTPAGE: "showNextWizardDialogPage",
-	CLOSEDIALOG: "closeWizardDialog"
-})
-export type WizardEventTypeEnum = $Values<typeof WizardEventType>;
+export const enum WizardEventType {
+	SHOWNEXTPAGE = "showNextWizardDialogPage",
+	CLOSEDIALOG = "closeWizardDialog",
+}
 
 // A WizardPage dispatches this event to inform the parent WizardDialogN to close the dialog
-export function emitWizardEvent(dom: ?HTMLElement, eventType: WizardEventTypeEnum) {
+export function emitWizardEvent(dom: HTMLElement | null, eventType: WizardEventType) {
 	if (dom) {
-		const event = new Event(eventType, {bubbles: true, cancelable: true})
+		const event = new Event(eventType, {
+			bubbles: true,
+			cancelable: true,
+		})
 		dom.dispatchEvent(event)
 	}
 }
 
-class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
-
+class WizardDialogN<T> implements Component<WizardDialogAttrs<T>> {
 	_closeWizardDialogListener: EventListener
 	_showNextWizardDialogPageListener: EventListener
 
 	oncreate(vnode: Vnode<LifecycleAttrs<WizardDialogAttrs<T>>>) {
 		// We listen for events triggered by the child WizardPages to close the dialog or show the next page
 		const dom: HTMLElement = vnode.dom
+
 		this._closeWizardDialogListener = (e: Event) => {
 			e.stopPropagation()
 			vnode.attrs.closeAction()
 		}
+
 		this._showNextWizardDialogPageListener = (e: Event) => {
 			e.stopPropagation()
+
 			if (vnode.attrs.currentPage) {
-				vnode.attrs.currentPage.attrs.nextAction(true).then((ready) => {
+				vnode.attrs.currentPage.attrs.nextAction(true).then(ready => {
 					if (ready) vnode.attrs.goToNextPageOrCloseWizard()
 				})
 			}
 		}
+
 		dom.addEventListener(WizardEventType.CLOSEDIALOG, this._closeWizardDialogListener)
 		dom.addEventListener(WizardEventType.SHOWNEXTPAGE, this._showNextWizardDialogPageListener)
 	}
@@ -88,19 +92,24 @@ class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
 	view(vnode: Vnode<LifecycleAttrs<WizardDialogAttrs<T>>>) {
 		const a = vnode.attrs
 		return m("#wizardDialogContent.pt", [
-				m("#wizard-paging.flex-space-around.border-top", {
-					style: {
-						height: "22px",
-						marginTop: "22px"
-					}
-				}, a._getEnabledPages().map((p, index) => m(WizardPagingButton, {
-					pageIndex: index,
-					getSelectedPageIndex: () => a._getEnabledPages().indexOf(a.currentPage),
-					navigateBackHandler: (index) => a._goToPageAction(index)
-				}))),
-				a.currentPage ? a.currentPage.view() : null
-			]
-		)
+			m(
+					"#wizard-paging.flex-space-around.border-top",
+					{
+						style: {
+							height: "22px",
+							marginTop: "22px",
+						},
+					},
+					a._getEnabledPages().map((p, index) =>
+							m(WizardPagingButton, {
+								pageIndex: index,
+								getSelectedPageIndex: () => a._getEnabledPages().indexOf(a.currentPage),
+								navigateBackHandler: index => a._goToPageAction(index),
+							}),
+					),
+			),
+			a.currentPage ? a.currentPage.view() : null,
+		])
 	}
 }
 
@@ -112,35 +121,42 @@ class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
  *
  * When we use the wrapper we don't care about specific type of attrs or component.
  */
-export class WizardPageWrapper<T> {
-	+attrs: WizardPageAttrs<T>;
-	view: () => Children;
 
-	constructor<A: WizardPageAttrs<T>>(componentClass: Class<MComponent<A>>, attrs: A) {
-		this.attrs = attrs
-		this.view = () => m(componentClass, attrs)
+export interface WizardPageWrapper<T> {
+	readonly attrs: WizardPageAttrs<T>
+	readonly view: () => Children
+}
+
+export function wizardPageWrapper<T, A extends WizardPageAttrs<T>>(component: new (A) => Component<A>, attributes: A,): WizardPageWrapper<T> {
+	return {
+		attrs: attributes,
+		view: () => m(component, attributes)
 	}
 }
 
 class WizardDialogAttrs<T> {
-	+data: T
-	pages: $ReadOnlyArray<WizardPageWrapper<T>>
-	currentPage: ?WizardPageWrapper<T>
+	readonly data: T
+	pages: ReadonlyArray<WizardPageWrapper<T>>
+	currentPage: WizardPageWrapper<T> | null
 	closeAction: () => Promise<void>
 
-	constructor(data: T, pages: $ReadOnlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
+	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>) {
 		this.data = data
 		this.pages = pages
 		this.currentPage = pages.find(p => p.attrs.isEnabled())
-		this.closeAction = closeAction ? () => closeAction() : () => {
-			return Promise.resolve()
-		}
+		this.closeAction = closeAction
+				? () => closeAction()
+				: () => {
+					return Promise.resolve()
+				}
 	}
 
 	goToPreviousPageOrClose(): void {
 		let pageIndex = this._getEnabledPages().indexOf(this.currentPage)
+
 		if (pageIndex > 0) {
 			this._goToPageAction(pageIndex - 1)
+
 			m.redraw()
 		} else {
 			this.closeAction()
@@ -149,24 +165,23 @@ class WizardDialogAttrs<T> {
 
 	getHeaderBarAttrs<T>(): DialogHeaderBarAttrs {
 		const backButtonAttrs: ButtonAttrs = {
-			label: () => this._getEnabledPages().indexOf(this.currentPage) === 0
-				? lang.get("cancel_action")
-				: lang.get("back_action"),
+			label: () => (this._getEnabledPages().indexOf(this.currentPage) === 0 ? lang.get("cancel_action") : lang.get("back_action")),
 			click: () => this.goToPreviousPageOrClose(),
-			type: ButtonType.Secondary
+			type: ButtonType.Secondary,
 		}
 		const skipButtonAttrs: ButtonAttrs = {
 			label: "skip_action",
 			click: () => this.goToNextPageOrCloseWizard(),
 			type: ButtonType.Secondary,
-			isVisible: () => this.currentPage ? (this.currentPage.attrs.isSkipAvailable()
-				&& this._getEnabledPages().indexOf(this.currentPage)
-				!== (this._getEnabledPages().length - 1)) : false
+			isVisible: () =>
+					this.currentPage
+							? this.currentPage.attrs.isSkipAvailable() && this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
+							: false,
 		}
 		return {
 			left: [backButtonAttrs],
 			right: [skipButtonAttrs],
-			middle: () => this.currentPage ? this.currentPage.attrs.headerTitle() : ""
+			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),
 		}
 	}
 
@@ -176,14 +191,17 @@ class WizardDialogAttrs<T> {
 
 	_goToPageAction(targetIndex: number): void {
 		const pages = this._getEnabledPages()
+
 		this.currentPage = pages[targetIndex]
 	}
 
 	goToNextPageOrCloseWizard() {
 		const pages = this._getEnabledPages()
+
 		const currentIndex = pages.indexOf(this.currentPage)
 		const lastIndex = pages.length - 1
 		let finalAction = currentIndex === lastIndex
+
 		if (finalAction) {
 			this.closeAction()
 		} else {
@@ -192,10 +210,9 @@ class WizardDialogAttrs<T> {
 	}
 }
 
-
 type WizardPagingButtonAttrs = {
-	pageIndex: number,
-	getSelectedPageIndex: () => number,
+	pageIndex: number
+	getSelectedPageIndex: () => number
 	navigateBackHandler: (pageIndex: number) => void
 }
 
@@ -205,67 +222,80 @@ export class WizardPagingButton {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
 		const filledBg = getContentButtonIconBackground()
-		return m(".button-content.flex-center.items-center", {
-				style: {
-					marginTop: "-22px",
-					cursor: (pageIndex < selectedPageIndex) ? "pointer" : "auto"
+		return m(
+				".button-content.flex-center.items-center",
+				{
+					style: {
+						marginTop: "-22px",
+						cursor: pageIndex < selectedPageIndex ? "pointer" : "auto",
+					},
+					onclick: () => {
+						if (pageIndex < selectedPageIndex) {
+							vnode.attrs.navigateBackHandler(pageIndex)
+						}
+					},
 				},
-				onclick: () => {
-					if (pageIndex < selectedPageIndex) {
-						vnode.attrs.navigateBackHandler(pageIndex)
-					}
-				}
-			}, m(".button-icon.flex-center.items-center", {
-				style: {
-					border: selectedPageIndex === pageIndex ?
-						`2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
-					color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
-					'background-color': (pageIndex < selectedPageIndex) ? filledBg : theme.content_bg,
-
-				}
-			}, pageIndex < selectedPageIndex ? m(Icon, {
-				icon: Icons.Checkmark,
-				style: {
-					fill: theme.content_button_icon,
-					'background-color': filledBg
-				}
-			}) : "" + (pageIndex + 1))
+				m(
+						".button-icon.flex-center.items-center",
+						{
+							style: {
+								border: selectedPageIndex === pageIndex ? `2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
+								color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
+								"background-color": pageIndex < selectedPageIndex ? filledBg : theme.content_bg,
+							},
+						},
+						pageIndex < selectedPageIndex
+								? m(Icon, {
+									icon: Icons.Checkmark,
+									style: {
+										fill: theme.content_button_icon,
+										"background-color": filledBg,
+									},
+								})
+								: "" + (pageIndex + 1),
+				),
 		)
 	}
 }
 
 export type WizardDialogAttrsBuilder<T> = {
-	dialog: Dialog,
+	dialog: Dialog
 	attrs: WizardDialogAttrs<T>
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(
-	data: T,
-	pages: $ReadOnlyArray<WizardPageWrapper<T>>,
-	closeAction?: () => Promise<void>
-): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs = {}
-	let view = () => null
-	const child: MComponent<void> = {view: () => view()}
-	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
-	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, closeAction ? () => closeAction().then(wizardDialog.close()) : () => Promise.resolve(wizardDialog.close()))
 
+	let view = () => null
+
+	const child: Component<void> = {
+		view: () => view(),
+	}
+	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)
+	const wizardDialogAttrs = new WizardDialogAttrs(
+			data,
+			pages,
+			closeAction ? () => closeAction().then(wizardDialog.close()) : () => Promise.resolve(wizardDialog.close()),
+	)
 	// We replace the dummy values from dialog creation
 	const wizardDialogHeaderBarAttrs = wizardDialogAttrs.getHeaderBarAttrs()
-	Object.keys(wizardDialogHeaderBarAttrs).forEach((key) => {
+	Object.keys(wizardDialogHeaderBarAttrs).forEach(key => {
 		headerBarAttrs[key] = wizardDialogHeaderBarAttrs[key]
 	})
+
 	view = () => m(WizardDialogN, wizardDialogAttrs)
 
-	wizardDialog.addShortcut({
-		key: Keys.ESC,
-		exec: () => wizardDialogAttrs.closeAction(),
-		help: "close_alt"
-	}).setCloseHandler(() => wizardDialogAttrs.goToPreviousPageOrClose())
+	wizardDialog
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => wizardDialogAttrs.closeAction(),
+				help: "close_alt",
+			})
+			.setCloseHandler(() => wizardDialogAttrs.goToPreviousPageOrClose())
 	return {
 		dialog: wizardDialog,
-		attrs: wizardDialogAttrs
+		attrs: wizardDialogAttrs,
 	}
 }

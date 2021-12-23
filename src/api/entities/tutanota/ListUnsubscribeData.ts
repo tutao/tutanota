@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -50,8 +48,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createListUnsubscribeData(values?: $Shape<$Exact<ListUnsubscribeData>>): ListUnsubscribeData {
-	return Object.assign(create(_TypeModel, ListUnsubscribeDataTypeRef), values)
+export function createListUnsubscribeData(values?: Partial<ListUnsubscribeData>): ListUnsubscribeData {
+	return Object.assign(create(_TypeModel, ListUnsubscribeDataTypeRef), downcast<ListUnsubscribeData>(values))
 }
 
 export type ListUnsubscribeData = {

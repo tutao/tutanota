@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUnencryptedStatisticLogRef(values?: $Shape<$Exact<UnencryptedStatisticLogRef>>): UnencryptedStatisticLogRef {
-	return Object.assign(create(_TypeModel, UnencryptedStatisticLogRefTypeRef), values)
+export function createUnencryptedStatisticLogRef(values?: Partial<UnencryptedStatisticLogRef>): UnencryptedStatisticLogRef {
+	return Object.assign(create(_TypeModel, UnencryptedStatisticLogRefTypeRef), downcast<UnencryptedStatisticLogRef>(values))
 }
 
 export type UnencryptedStatisticLogRef = {

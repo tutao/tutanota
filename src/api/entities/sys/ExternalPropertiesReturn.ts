@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {File} from "./File"
@@ -60,8 +58,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createExternalPropertiesReturn(values?: $Shape<$Exact<ExternalPropertiesReturn>>): ExternalPropertiesReturn {
-	return Object.assign(create(_TypeModel, ExternalPropertiesReturnTypeRef), values)
+export function createExternalPropertiesReturn(values?: Partial<ExternalPropertiesReturn>): ExternalPropertiesReturn {
+	return Object.assign(create(_TypeModel, ExternalPropertiesReturnTypeRef), downcast<ExternalPropertiesReturn>(values))
 }
 
 export type ExternalPropertiesReturn = {
@@ -71,6 +69,6 @@ export type ExternalPropertiesReturn = {
 	accountType: NumberString;
 	message: string;
 
-	bigLogo: ?File;
-	smallLogo: ?File;
+	bigLogo:  null | File;
+	smallLogo:  null | File;
 }

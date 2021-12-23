@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BookingItem} from "./BookingItem"
@@ -108,8 +106,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createBooking(values?: $Shape<$Exact<Booking>>): Booking {
-	return Object.assign(create(_TypeModel, BookingTypeRef), values)
+export function createBooking(values?: Partial<Booking>): Booking {
+	return Object.assign(create(_TypeModel, BookingTypeRef), downcast<Booking>(values))
 }
 
 export type Booking = {
@@ -119,11 +117,11 @@ export type Booking = {
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	business: boolean;
 	createDate: Date;
-	endDate: ?Date;
+	endDate: null | Date;
 	paymentInterval: NumberString;
 	paymentMonths: NumberString;
 

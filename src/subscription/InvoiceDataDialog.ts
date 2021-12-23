@@ -1,4 +1,3 @@
-// @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -9,37 +8,43 @@ import {BadRequestError} from "../api/common/error/RestError"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import {ofClass} from "@tutao/tutanota-utils"
+export function show(
+    businessUse: boolean,
+    invoiceData: InvoiceData,
+    accountingInfo: AccountingInfo,
+    headingId: TranslationKey | null,
+    infoMessageId: TranslationKey | null,
+): Dialog {
+    const invoiceDataInput = new InvoiceDataInput(businessUse, invoiceData)
 
-export function show(businessUse: boolean, invoiceData: InvoiceData, accountingInfo: AccountingInfo, headingId: ?TranslationKey, infoMessageId: ?TranslationKey): Dialog {
+    const confirmAction = () => {
+        let error = invoiceDataInput.validateInvoiceData()
 
-	const invoiceDataInput = new InvoiceDataInput(businessUse, invoiceData)
+        if (error) {
+            Dialog.message(error)
+        } else {
+            updatePaymentData(Number(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo)
+                .then(success => {
+                    if (success) {
+                        dialog.close()
+                    }
+                })
+                .catch(
+                    ofClass(BadRequestError, e => {
+                        Dialog.message("paymentMethodNotAvailable_msg")
+                    }),
+                )
+        }
+    }
 
-	const confirmAction = () => {
-		let error = invoiceDataInput.validateInvoiceData()
-		if (error) {
-			Dialog.message(error)
-		} else {
-			updatePaymentData(Number(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo).then(success => {
-				if (success) {
-					dialog.close()
-				}
-			}).catch(ofClass(BadRequestError, e => {
-				Dialog.message("paymentMethodNotAvailable_msg")
-			}))
-		}
-	}
-
-	const dialog = Dialog.showActionDialog({
-		title: headingId ? lang.get(headingId) : lang.get("invoiceData_msg"),
-		child: {
-			view: () => m("#changeInvoiceDataDialog", [
-				infoMessageId ? m(".pt", lang.get(infoMessageId)) : null,
-				m(invoiceDataInput),
-			])
-		},
-		okAction: confirmAction,
-		allowCancel: true,
-		okActionTextId: "save_action"
-	})
-	return dialog
+    const dialog = Dialog.showActionDialog({
+        title: headingId ? lang.get(headingId) : lang.get("invoiceData_msg"),
+        child: {
+            view: () => m("#changeInvoiceDataDialog", [infoMessageId ? m(".pt", lang.get(infoMessageId)) : null, m(invoiceDataInput)]),
+        },
+        okAction: confirmAction,
+        allowCancel: true,
+        okActionTextId: "save_action",
+    })
+    return dialog
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -84,8 +82,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRejectedSender(values?: $Shape<$Exact<RejectedSender>>): RejectedSender {
-	return Object.assign(create(_TypeModel, RejectedSenderTypeRef), values)
+export function createRejectedSender(values?: Partial<RejectedSender>): RejectedSender {
+	return Object.assign(create(_TypeModel, RejectedSenderTypeRef), downcast<RejectedSender>(values))
 }
 
 export type RejectedSender = {
@@ -93,7 +91,7 @@ export type RejectedSender = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	reason: string;
 	recipientMailAddress: string;

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -64,8 +62,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFileSystem(values?: $Shape<$Exact<FileSystem>>): FileSystem {
-	return Object.assign(create(_TypeModel, FileSystemTypeRef), values)
+export function createFileSystem(values?: Partial<FileSystem>): FileSystem {
+	return Object.assign(create(_TypeModel, FileSystemTypeRef), downcast<FileSystem>(values))
 }
 
 export type FileSystem = {
@@ -74,8 +72,8 @@ export type FileSystem = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
 	files: Id;

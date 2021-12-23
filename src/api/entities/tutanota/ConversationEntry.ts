@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -78,8 +76,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createConversationEntry(values?: $Shape<$Exact<ConversationEntry>>): ConversationEntry {
-	return Object.assign(create(_TypeModel, ConversationEntryTypeRef), values)
+export function createConversationEntry(values?: Partial<ConversationEntry>): ConversationEntry {
+	return Object.assign(create(_TypeModel, ConversationEntryTypeRef), downcast<ConversationEntry>(values))
 }
 
 export type ConversationEntry = {
@@ -87,11 +85,11 @@ export type ConversationEntry = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	conversationType: NumberString;
 	messageId: string;
 
-	mail: ?IdTuple;
-	previous: ?IdTuple;
+	mail:  null | IdTuple;
+	previous:  null | IdTuple;
 }

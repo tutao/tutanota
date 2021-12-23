@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {MailAddress} from "./MailAddress"
@@ -265,8 +263,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMail(values?: $Shape<$Exact<Mail>>): Mail {
-	return Object.assign(create(_TypeModel, MailTypeRef), values)
+export function createMail(values?: Partial<Mail>): Mail {
+	return Object.assign(create(_TypeModel, MailTypeRef), downcast<Mail>(values))
 }
 
 export type Mail = {
@@ -277,15 +275,15 @@ export type Mail = {
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	authStatus: NumberString;
 	confidential: boolean;
-	differentEnvelopeSender: ?string;
+	differentEnvelopeSender: null | string;
 	listUnsubscribe: boolean;
 	method: NumberString;
-	movedTime: ?Date;
+	movedTime: null | Date;
 	phishingStatus: NumberString;
 	receivedDate: Date;
 	replyType: NumberString;
@@ -296,15 +294,15 @@ export type Mail = {
 	unread: boolean;
 
 	bccRecipients: MailAddress[];
-	bodyBlob: ?Blob;
+	bodyBlob:  null | Blob;
 	ccRecipients: MailAddress[];
-	headersBlob: ?Blob;
+	headersBlob:  null | Blob;
 	replyTos: EncryptedMailAddress[];
-	restrictions: ?MailRestriction;
+	restrictions:  null | MailRestriction;
 	sender: MailAddress;
 	toRecipients: MailAddress[];
 	attachments: IdTuple[];
 	body: Id;
 	conversationEntry: IdTuple;
-	headers: ?Id;
+	headers:  null | Id;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CreateGroupData} from "./CreateGroupData"
@@ -52,8 +50,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCreateGroupListData(values?: $Shape<$Exact<CreateGroupListData>>): CreateGroupListData {
-	return Object.assign(create(_TypeModel, CreateGroupListDataTypeRef), values)
+export function createCreateGroupListData(values?: Partial<CreateGroupListData>): CreateGroupListData {
+	return Object.assign(create(_TypeModel, CreateGroupListDataTypeRef), downcast<CreateGroupListData>(values))
 }
 
 export type CreateGroupListData = {
@@ -63,5 +61,5 @@ export type CreateGroupListData = {
 	adminEncGroupInfoListKey: Uint8Array;
 	customerEncGroupInfoListKey: Uint8Array;
 
-	createGroupData: ?CreateGroupData;
+	createGroupData: null | CreateGroupData;
 }

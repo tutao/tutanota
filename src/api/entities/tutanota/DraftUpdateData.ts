@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {DraftData} from "./DraftData"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createDraftUpdateData(values?: $Shape<$Exact<DraftUpdateData>>): DraftUpdateData {
-	return Object.assign(create(_TypeModel, DraftUpdateDataTypeRef), values)
+export function createDraftUpdateData(values?: Partial<DraftUpdateData>): DraftUpdateData {
+	return Object.assign(create(_TypeModel, DraftUpdateDataTypeRef), downcast<DraftUpdateData>(values))
 }
 
 export type DraftUpdateData = {

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -63,8 +61,8 @@ export const _TypeModel: TypeModel = {
 	"version": "4"
 }
 
-export function createCustomerAccountPosting(values?: $Shape<$Exact<CustomerAccountPosting>>): CustomerAccountPosting {
-	return Object.assign(create(_TypeModel, CustomerAccountPostingTypeRef), values)
+export function createCustomerAccountPosting(values?: Partial<CustomerAccountPosting>): CustomerAccountPosting {
+	return Object.assign(create(_TypeModel, CustomerAccountPostingTypeRef), downcast<CustomerAccountPosting>(values))
 }
 
 export type CustomerAccountPosting = {
@@ -73,7 +71,7 @@ export type CustomerAccountPosting = {
 	_id: Id;
 	amount: NumberString;
 	balance: NumberString;
-	invoiceNumber: ?string;
+	invoiceNumber: null | string;
 	type: NumberString;
 	valueDate: Date;
 }

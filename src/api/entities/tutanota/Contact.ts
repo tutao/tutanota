@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ContactAddress} from "./ContactAddress"
@@ -200,8 +198,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createContact(values?: $Shape<$Exact<Contact>>): Contact {
-	return Object.assign(create(_TypeModel, ContactTypeRef), values)
+export function createContact(values?: Partial<Contact>): Contact {
+	return Object.assign(create(_TypeModel, ContactTypeRef), downcast<Contact>(values))
 }
 
 export type Contact = {
@@ -212,25 +210,25 @@ export type Contact = {
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	autoTransmitPassword: string;
-	birthdayIso: ?string;
+	birthdayIso: null | string;
 	comment: string;
 	company: string;
 	firstName: string;
 	lastName: string;
-	nickname: ?string;
-	oldBirthdayDate: ?Date;
-	presharedPassword: ?string;
+	nickname: null | string;
+	oldBirthdayDate: null | Date;
+	presharedPassword: null | string;
 	role: string;
-	title: ?string;
+	title: null | string;
 
 	addresses: ContactAddress[];
 	mailAddresses: ContactMailAddress[];
-	oldBirthdayAggregate: ?Birthday;
+	oldBirthdayAggregate:  null | Birthday;
 	phoneNumbers: ContactPhoneNumber[];
 	socialIds: ContactSocialId[];
-	photo: ?IdTuple;
+	photo:  null | IdTuple;
 }

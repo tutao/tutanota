@@ -7,8 +7,8 @@ import {addFlash, removeFlash} from "./Flash"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
-import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
-import {ButtonColors, ButtonType, getColors} from "./ButtonN"
+import type {ButtonColor, ButtonType} from "./ButtonN"
+import {ButtonColor, ButtonType, getColors} from "./ButtonN"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -24,7 +24,7 @@ const FALSE_CLOSURE: lazy<boolean> = () => false
  * A button.
  */
 export class Button {
-	_type: ButtonTypeEnum;
+	_type: ButtonType;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
 	icon: ?lazyIcon;
@@ -35,14 +35,14 @@ export class Button {
 	_domButton: HTMLElement;
 	view: Function;
 	_staticRightText: ?string;
-	_colors: ButtonColorEnum;
+	_colors: ButtonColor;
 
 	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
 		this.icon = icon
-		this._colors = ButtonColors.Content
+		this._colors = ButtonColor.Content
 		this._staticRightText = null
 
 		this.isVisible = TRUE_CLOSURE
@@ -209,12 +209,12 @@ export class Button {
 	 * Only to be invoked by the DialogHeaderBar!
 	 * @param {ButtonType} type
 	 */
-	setType(type: ButtonTypeEnum): Button {
+	setType(type: ButtonType): Button {
 		this._type = type
 		return this
 	}
 
-	setColors(colors: ButtonColorEnum): Button {
+	setColors(colors: ButtonColor): Button {
 		this._colors = colors
 		return this
 	}

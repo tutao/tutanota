@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {File} from "./File"
@@ -90,8 +88,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomerProperties(values?: $Shape<$Exact<CustomerProperties>>): CustomerProperties {
-	return Object.assign(create(_TypeModel, CustomerPropertiesTypeRef), values)
+export function createCustomerProperties(values?: Partial<CustomerProperties>): CustomerProperties {
+	return Object.assign(create(_TypeModel, CustomerPropertiesTypeRef), downcast<CustomerProperties>(values))
 }
 
 export type CustomerProperties = {
@@ -99,12 +97,12 @@ export type CustomerProperties = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
-	lastUpgradeReminder: ?Date;
+	lastUpgradeReminder: null | Date;
 
-	bigLogo: ?File;
+	bigLogo: null | File;
 	notificationMailTemplates: NotificationMailTemplate[];
-	smallLogo: ?File;
+	smallLogo: null | File;
 }

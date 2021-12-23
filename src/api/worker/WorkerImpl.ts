@@ -1,4 +1,3 @@
-// @flow
 import type {Commands} from "../common/MessageDispatcher"
 import {errorToObj, MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
 import {CryptoError} from "../common/error/CryptoError"
@@ -15,7 +14,7 @@ import {resolveSessionKey} from "./crypto/CryptoFacade"
 import {delay, downcast} from "@tutao/tutanota-utils"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
-import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
+import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {User} from "../entities/sys/User"
 import {urlify} from "./Urlifier"
@@ -41,275 +40,294 @@ import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
-
-
 assertWorkerOrNode()
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
 export interface WorkerInterface {
-	+loginFacade: LoginFacade,
-	+customerFacade: CustomerFacade,
-	+giftCardFacade: GiftCardFacade,
-	+groupManagementFacade: GroupManagementFacade,
-	+configFacade: ConfigurationDatabase,
-	+calendarFacade: CalendarFacade,
-	+mailFacade: MailFacade,
-	+shareFacade: ShareFacade,
-	+counterFacade: CounterFacade,
-	+indexerFacade: Indexer,
-	+searchFacade: SearchFacade,
-	+bookingFacade: BookingFacade,
-	+mailAddressFacade: MailAddressFacade,
-	+fileFacade: FileFacade,
-	+userManagementFacade: UserManagementFacade;
-	+contactFormFacade: ContactFormFacade;
-	+deviceEncryptionFacade: DeviceEncryptionFacade;
-	+restInterface: EntityRestInterface;
+    readonly loginFacade: LoginFacade
+    readonly customerFacade: CustomerFacade
+    readonly giftCardFacade: GiftCardFacade
+    readonly groupManagementFacade: GroupManagementFacade
+    readonly configFacade: ConfigurationDatabase
+    readonly calendarFacade: CalendarFacade
+    readonly mailFacade: MailFacade
+    readonly shareFacade: ShareFacade
+    readonly counterFacade: CounterFacade
+    readonly indexerFacade: Indexer
+    readonly searchFacade: SearchFacade
+    readonly bookingFacade: BookingFacade
+    readonly mailAddressFacade: MailAddressFacade
+    readonly fileFacade: FileFacade
+    readonly userManagementFacade: UserManagementFacade
+    readonly contactFormFacade: ContactFormFacade
+    readonly deviceEncryptionFacade: DeviceEncryptionFacade
+    readonly restInterface: EntityRestInterface
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
 export interface MainInterface {
-	+secondFactorAuthenticationHandler: SecondFactorAuthHandler;
+    readonly secondFactorAuthenticationHandler: SecondFactorAuthHandler
 }
-
 type WorkerRequest = Request<WorkerRequestType>
-
 export class WorkerImpl implements NativeInterface {
-	_scope: ?DedicatedWorkerGlobalScope
-	_dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>;
-	_newEntropy: number;
-	_lastEntropyUpdate: number;
+    _scope: DedicatedWorkerGlobalScope | null
+    _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
+    _newEntropy: number
+    _lastEntropyUpdate: number
 
-	constructor(self: ?DedicatedWorkerGlobalScope) {
-		this._scope = self
-		this._newEntropy = -1
-		this._lastEntropyUpdate = new Date().getTime()
-		this._dispatcher = new MessageDispatcher(
-			this._scope && new WorkerTransport(this._scope),
-			this.queueCommands(this.exposedInterface)
-		)
-	}
+    constructor(self: DedicatedWorkerGlobalScope | null) {
+        this._scope = self
+        this._newEntropy = -1
+        this._lastEntropyUpdate = new Date().getTime()
+        this._dispatcher = new MessageDispatcher(this._scope && new WorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
+    }
 
-	async init(browserData: BrowserData): Promise<void> {
+    async init(browserData: BrowserData): Promise<void> {
+        await initLocator(this, browserData)
+        const workerScope = this._scope
 
-		await initLocator(this, browserData);
+        // only register oncaught error handler if we are in the *real* worker scope
+        // Otherwise uncaught error handler might end up in an infinite loop for test cases.
+        if (workerScope && !isMainOrNode()) {
+            // $FlowIssue[incompatible-call]
+            workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+                this.sendError(event.reason)
+            })
 
-		const workerScope = this._scope
+            workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
+                console.error("workerImpl.onerror", e, source, lineno, colno, error)
 
-		// only register oncaught error handler if we are in the *real* worker scope
-		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
-		if (workerScope && !isMainOrNode()) {
+                if (error instanceof Error) {
+                    this.sendError(error)
+                } else {
+                    const err = new Error(e)
+                    err.lineNumber = lineno
+                    err.columnNumber = colno
+                    err.fileName = source
+                    this.sendError(err)
+                }
 
-			// $FlowIssue[incompatible-call]
-			workerScope.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-				this.sendError(event.reason)
-			})
+                return true
+            }
+        }
+    }
 
-			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
-				console.error("workerImpl.onerror", e, source, lineno, colno, error)
-				if (error instanceof Error) {
-					this.sendError(error)
-				} else {
-					const err = new Error(e)
-					err.lineNumber = lineno
-					err.columnNumber = colno
-					err.fileName = source
-					this.sendError(err)
-				}
-				return true
-			}
-		}
-	}
+    get exposedInterface(): WorkerInterface {
+        return {
+            get loginFacade() {
+                return locator.login
+            },
 
-	get exposedInterface(): WorkerInterface {
-		return {
-			get loginFacade() {
-				return locator.login
-			},
-			get customerFacade() {
-				return locator.customer
-			},
-			get giftCardFacade() {
-				return locator.giftCards
-			},
-			get groupManagementFacade() {
-				return locator.groupManagement
-			},
-			get configFacade() {
-				return locator.configFacade
-			},
-			get calendarFacade() {
-				return locator.calendar
-			},
-			get mailFacade() {
-				return locator.mail
-			},
-			get shareFacade() {
-				return locator.share
-			},
-			get counterFacade() {
-				return locator.counters
-			},
-			get indexerFacade() {
-				return locator.indexer
-			},
-			get searchFacade() {
-				return locator.search
-			},
-			get bookingFacade() {
-				return bookingFacade
-			},
-			get mailAddressFacade() {
-				return locator.mailAddress
-			},
-			get fileFacade() {
-				return locator.file
-			},
-			get userManagementFacade() {
-				return locator.userManagement
-			},
-			get contactFormFacade() {
-				return locator.contactFormFacade
-			},
-			get deviceEncryptionFacade() {
-				return locator.deviceEncryptionFacade
-			},
-			get restInterface() {
-				return locator.cache
-			}
-		}
-	}
+            get customerFacade() {
+                return locator.customer
+            },
 
-	queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
-		return {
-			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
-			testError: (message: any) => {
-				const errorTypes = {
-					ProgrammingError,
-					CryptoError,
-					NotAuthenticatedError
-				}
-				let ErrorType = errorTypes[message.args[0].errorType]
-				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
-			},
-			reset: (message: WorkerRequest) => {
-				return resetLocator()
-			},
-			restRequest: (message: WorkerRequest) => {
-				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
-				return locator.restClient.request(...message.args)
-			},
-			serviceRequest: (message: WorkerRequest) => {
-				return _service.apply(null, message.args)
-			},
-			entropy: (message: WorkerRequest) => {
-				return this.addEntropy(message.args[0])
-			},
-			tryReconnectEventBus(message: WorkerRequest) {
-				locator.eventBusClient.tryReconnect(...message.args)
-				return Promise.resolve()
-			},
-			generateSsePushIdentifer: () => {
-				return Promise.resolve(keyToBase64(aes256RandomKey()))
-			},
-			closeEventBus: (message: WorkerRequest) => {
-				locator.eventBusClient.close(message.args[0])
-				return Promise.resolve()
-			},
-			resolveSessionKey: (message: WorkerRequest) => {
-				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
-			},
-			getLog: () => {
-				const global = downcast(self)
-				if (global.logger) {
-					return Promise.resolve(global.logger.getEntries())
-				} else {
-					return Promise.resolve([])
-				}
-			},
-			urlify: async (message: WorkerRequest) => {
-				const html: string = message.args[0]
-				return Promise.resolve(urlify(html))
-			},
-			facade: exposeLocal(exposedWorker),
-		}
-	}
+            get giftCardFacade() {
+                return locator.giftCards
+            },
 
-	invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		return this._dispatcher.postRequest(new Request("execNative", [msg.requestType, msg.args]))
-	}
+            get groupManagementFacade() {
+                return locator.groupManagement
+            },
 
+            get configFacade() {
+                return locator.configFacade
+            },
 
-	getMainInterface(): MainInterface {
-		return exposeRemote<MainInterface>((request) => this._dispatcher.postRequest(request))
-	}
+            get calendarFacade() {
+                return locator.calendar
+            },
 
-	/**
-	 * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.
-	 * @param entropy
-	 * @returns {Promise.<void>}
-	 */
-	addEntropy(entropy: {source: EntropySource, entropy: number, data: number | Array<number>}[]): Promise<void> {
-		try {
-			return random.addEntropy(entropy)
-		} finally {
-			this._newEntropy = this._newEntropy + entropy.reduce((sum, value) => value.entropy + sum, 0)
-			let now = new Date().getTime()
-			if (this._newEntropy > 5000 && (now - this._lastEntropyUpdate) > 1000 * 60 * 5) {
-				this._lastEntropyUpdate = now
-				this._newEntropy = 0
-				locator.login.storeEntropy()
-			}
-		}
-	}
+            get mailFacade() {
+                return locator.mail
+            },
 
-	entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
-		return this._dispatcher.postRequest(new Request("entityEvent", [data, eventOwnerGroupId]))
-	}
+            get shareFacade() {
+                return locator.share
+            },
 
-	sendError(e: Error): Promise<void> {
-		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
-	}
+            get counterFacade() {
+                return locator.counters
+            },
 
-	sendProgress(progressPercentage: number): Promise<void> {
-		return this._dispatcher.postRequest(new Request("progress", [progressPercentage])).then(() => {
-			// the worker sometimes does not send the request if it does not get time
-			return delay(0)
-		})
-	}
+            get indexerFacade() {
+                return locator.indexer
+            },
 
-	sendIndexState(state: SearchIndexStateInfo): Promise<void> {
-		return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
-	}
+            get searchFacade() {
+                return locator.search
+            },
 
-	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws displayed state: ", state)
-		return this._dispatcher.postRequest(new Request("updateWebSocketState", [state]))
-	}
+            get bookingFacade() {
+                return bookingFacade
+            },
 
-	updateCounter(update: WebsocketCounterData): Promise<void> {
-		return this._dispatcher.postRequest(new Request("counterUpdate", [update]))
-	}
+            get mailAddressFacade() {
+                return locator.mailAddress
+            },
 
-	infoMessage(message: InfoMessage): Promise<void> {
-		return this._dispatcher.postRequest(new Request("infoMessage", [message]))
-	}
+            get fileFacade() {
+                return locator.file
+            },
 
-	createProgressMonitor(totalWork: number): Promise<ProgressMonitorId> {
-		return this._dispatcher.postRequest(new Request("createProgressMonitor", [totalWork]))
-	}
+            get userManagementFacade() {
+                return locator.userManagement
+            },
 
-	progressWorkDone(reference: ProgressMonitorId, totalWork: number): Promise<void> {
-		return this._dispatcher.postRequest(new Request("progressWorkDone", [reference, totalWork]))
-	}
+            get contactFormFacade() {
+                return locator.contactFormFacade
+            },
 
-	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
-		return this._dispatcher.postRequest(new Request("updateLeaderStatus", [status]))
-	}
+            get deviceEncryptionFacade() {
+                return locator.deviceEncryptionFacade
+            },
 
-	writeIndexerDebugLog(reason: string, user: User): Promise<void> {
-		return this._dispatcher.postRequest(new Request("writeIndexerDebugLog", [reason, user]))
-	}
+            get restInterface() {
+                return locator.cache
+            },
+        }
+    }
+
+    queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
+        return {
+            testEcho: (message: any) =>
+                Promise.resolve({
+                    msg: ">>> " + message.args[0].msg,
+                }),
+            testError: (message: any) => {
+                const errorTypes = {
+                    ProgrammingError,
+                    CryptoError,
+                    NotAuthenticatedError,
+                }
+                let ErrorType = errorTypes[message.args[0].errorType]
+                return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
+            },
+            reset: (message: WorkerRequest) => {
+                return resetLocator()
+            },
+            restRequest: (message: WorkerRequest) => {
+                message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
+                return locator.restClient.request(...message.args)
+            },
+            serviceRequest: (message: WorkerRequest) => {
+                return _service.apply(null, message.args)
+            },
+            entropy: (message: WorkerRequest) => {
+                return this.addEntropy(message.args[0])
+            },
+
+            tryReconnectEventBus(message: WorkerRequest) {
+                locator.eventBusClient.tryReconnect(...message.args)
+                return Promise.resolve()
+            },
+
+            generateSsePushIdentifer: () => {
+                return Promise.resolve(keyToBase64(aes256RandomKey()))
+            },
+            closeEventBus: (message: WorkerRequest) => {
+                locator.eventBusClient.close(message.args[0])
+                return Promise.resolve()
+            },
+            resolveSessionKey: (message: WorkerRequest) => {
+                return resolveSessionKey.apply(null, message.args).then(sk => (sk ? keyToBase64(sk) : null))
+            },
+            getLog: () => {
+                const global = downcast(self)
+
+                if (global.logger) {
+                    return Promise.resolve(global.logger.getEntries())
+                } else {
+                    return Promise.resolve([])
+                }
+            },
+            urlify: async (message: WorkerRequest) => {
+                const html: string = message.args[0]
+                return Promise.resolve(urlify(html))
+            },
+            facade: exposeLocal(exposedWorker),
+        }
+    }
+
+    invokeNative(msg: Request<NativeRequestType>): Promise<any> {
+        return this._dispatcher.postRequest(new Request("execNative", [msg.requestType, msg.args]))
+    }
+
+    getMainInterface(): MainInterface {
+        return exposeRemote<MainInterface>(request => this._dispatcher.postRequest(request))
+    }
+
+    /**
+     * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.
+     * @param entropy
+     * @returns {Promise.<void>}
+     */
+    addEntropy(
+        entropy: {
+            source: EntropySource
+            entropy: number
+            data: number | Array<number>
+        }[],
+    ): Promise<void> {
+        try {
+            return random.addEntropy(entropy)
+        } finally {
+            this._newEntropy = this._newEntropy + entropy.reduce((sum, value) => value.entropy + sum, 0)
+            let now = new Date().getTime()
+
+            if (this._newEntropy > 5000 && now - this._lastEntropyUpdate > 1000 * 60 * 5) {
+                this._lastEntropyUpdate = now
+                this._newEntropy = 0
+                locator.login.storeEntropy()
+            }
+        }
+    }
+
+    entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
+        return this._dispatcher.postRequest(new Request("entityEvent", [data, eventOwnerGroupId]))
+    }
+
+    sendError(e: Error): Promise<void> {
+        return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
+    }
+
+    sendProgress(progressPercentage: number): Promise<void> {
+        return this._dispatcher.postRequest(new Request("progress", [progressPercentage])).then(() => {
+            // the worker sometimes does not send the request if it does not get time
+            return delay(0)
+        })
+    }
+
+    sendIndexState(state: SearchIndexStateInfo): Promise<void> {
+        return this._dispatcher.postRequest(new Request("updateIndexState", [state]))
+    }
+
+    updateWebSocketState(state: WsConnectionState): Promise<void> {
+        console.log("ws displayed state: ", state)
+        return this._dispatcher.postRequest(new Request("updateWebSocketState", [state]))
+    }
+
+    updateCounter(update: WebsocketCounterData): Promise<void> {
+        return this._dispatcher.postRequest(new Request("counterUpdate", [update]))
+    }
+
+    infoMessage(message: InfoMessage): Promise<void> {
+        return this._dispatcher.postRequest(new Request("infoMessage", [message]))
+    }
+
+    createProgressMonitor(totalWork: number): Promise<ProgressMonitorId> {
+        return this._dispatcher.postRequest(new Request("createProgressMonitor", [totalWork]))
+    }
+
+    progressWorkDone(reference: ProgressMonitorId, totalWork: number): Promise<void> {
+        return this._dispatcher.postRequest(new Request("progressWorkDone", [reference, totalWork]))
+    }
+
+    updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
+        return this._dispatcher.postRequest(new Request("updateLeaderStatus", [status]))
+    }
+
+    writeIndexerDebugLog(reason: string, user: User): Promise<void> {
+        return this._dispatcher.postRequest(new Request("writeIndexerDebugLog", [reason, user]))
+    }
 }
-
-

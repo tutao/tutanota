@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {DraftData} from "./DraftData"
@@ -66,8 +64,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createDraftCreateData(values?: $Shape<$Exact<DraftCreateData>>): DraftCreateData {
-	return Object.assign(create(_TypeModel, DraftCreateDataTypeRef), values)
+export function createDraftCreateData(values?: Partial<DraftCreateData>): DraftCreateData {
+	return Object.assign(create(_TypeModel, DraftCreateDataTypeRef), downcast<DraftCreateData>(values))
 }
 
 export type DraftCreateData = {
@@ -77,7 +75,7 @@ export type DraftCreateData = {
 	_format: NumberString;
 	conversationType: NumberString;
 	ownerEncSessionKey: Uint8Array;
-	previousMessageId: ?string;
+	previousMessageId: null | string;
 	symEncSessionKey: Uint8Array;
 
 	draftData: DraftData;

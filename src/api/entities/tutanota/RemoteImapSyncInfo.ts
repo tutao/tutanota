@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -64,8 +62,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRemoteImapSyncInfo(values?: $Shape<$Exact<RemoteImapSyncInfo>>): RemoteImapSyncInfo {
-	return Object.assign(create(_TypeModel, RemoteImapSyncInfoTypeRef), values)
+export function createRemoteImapSyncInfo(values?: Partial<RemoteImapSyncInfo>): RemoteImapSyncInfo {
+	return Object.assign(create(_TypeModel, RemoteImapSyncInfoTypeRef), downcast<RemoteImapSyncInfo>(values))
 }
 
 export type RemoteImapSyncInfo = {
@@ -73,7 +71,7 @@ export type RemoteImapSyncInfo = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	seen: boolean;
 

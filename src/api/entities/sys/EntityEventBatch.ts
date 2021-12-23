@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {EntityUpdate} from "./EntityUpdate"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createEntityEventBatch(values?: $Shape<$Exact<EntityEventBatch>>): EntityEventBatch {
-	return Object.assign(create(_TypeModel, EntityEventBatchTypeRef), values)
+export function createEntityEventBatch(values?: Partial<EntityEventBatch>): EntityEventBatch {
+	return Object.assign(create(_TypeModel, EntityEventBatchTypeRef), downcast<EntityEventBatch>(values))
 }
 
 export type EntityEventBatch = {
@@ -68,7 +66,7 @@ export type EntityEventBatch = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
 	events: EntityUpdate[];

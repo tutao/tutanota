@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -57,15 +55,15 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {
-	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), values)
+export function createNewDraftAttachment(values?: Partial<NewDraftAttachment>): NewDraftAttachment {
+	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), downcast<NewDraftAttachment>(values))
 }
 
 export type NewDraftAttachment = {
 	_type: TypeRef<NewDraftAttachment>;
 
 	_id: Id;
-	encCid: ?Uint8Array;
+	encCid: null | Uint8Array;
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BlobAccessInfo} from "../sys/BlobAccessInfo"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFileDataReturnPost(values?: $Shape<$Exact<FileDataReturnPost>>): FileDataReturnPost {
-	return Object.assign(create(_TypeModel, FileDataReturnPostTypeRef), values)
+export function createFileDataReturnPost(values?: Partial<FileDataReturnPost>): FileDataReturnPost {
+	return Object.assign(create(_TypeModel, FileDataReturnPostTypeRef), downcast<FileDataReturnPost>(values))
 }
 
 export type FileDataReturnPost = {
@@ -55,6 +53,6 @@ export type FileDataReturnPost = {
 
 	_format: NumberString;
 
-	accessInfo: ?BlobAccessInfo;
+	accessInfo:  null | BlobAccessInfo;
 	fileData: Id;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -70,8 +68,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailHeaders(values?: $Shape<$Exact<MailHeaders>>): MailHeaders {
-	return Object.assign(create(_TypeModel, MailHeadersTypeRef), values)
+export function createMailHeaders(values?: Partial<MailHeaders>): MailHeaders {
+	return Object.assign(create(_TypeModel, MailHeadersTypeRef), downcast<MailHeaders>(values))
 }
 
 export type MailHeaders = {
@@ -80,9 +78,9 @@ export type MailHeaders = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	compressedHeaders: ?string;
-	headers: ?string;
+	compressedHeaders: null | string;
+	headers: null | string;
 }

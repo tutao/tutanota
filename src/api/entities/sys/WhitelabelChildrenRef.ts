@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -36,8 +34,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createWhitelabelChildrenRef(values?: $Shape<$Exact<WhitelabelChildrenRef>>): WhitelabelChildrenRef {
-	return Object.assign(create(_TypeModel, WhitelabelChildrenRefTypeRef), values)
+export function createWhitelabelChildrenRef(values?: Partial<WhitelabelChildrenRef>): WhitelabelChildrenRef {
+	return Object.assign(create(_TypeModel, WhitelabelChildrenRefTypeRef), downcast<WhitelabelChildrenRef>(values))
 }
 
 export type WhitelabelChildrenRef = {

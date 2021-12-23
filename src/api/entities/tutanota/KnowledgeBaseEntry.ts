@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {KnowledgeBaseEntryKeyword} from "./KnowledgeBaseEntryKeyword"
@@ -80,8 +78,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createKnowledgeBaseEntry(values?: $Shape<$Exact<KnowledgeBaseEntry>>): KnowledgeBaseEntry {
-	return Object.assign(create(_TypeModel, KnowledgeBaseEntryTypeRef), values)
+export function createKnowledgeBaseEntry(values?: Partial<KnowledgeBaseEntry>): KnowledgeBaseEntry {
+	return Object.assign(create(_TypeModel, KnowledgeBaseEntryTypeRef), downcast<KnowledgeBaseEntry>(values))
 }
 
 export type KnowledgeBaseEntry = {
@@ -90,8 +88,8 @@ export type KnowledgeBaseEntry = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	description: string;
 	title: string;

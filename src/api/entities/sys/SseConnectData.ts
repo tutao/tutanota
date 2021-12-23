@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {GeneratedIdWrapper} from "./GeneratedIdWrapper"
@@ -45,8 +43,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSseConnectData(values?: $Shape<$Exact<SseConnectData>>): SseConnectData {
-	return Object.assign(create(_TypeModel, SseConnectDataTypeRef), values)
+export function createSseConnectData(values?: Partial<SseConnectData>): SseConnectData {
+	return Object.assign(create(_TypeModel, SseConnectDataTypeRef), downcast<SseConnectData>(values))
 }
 
 export type SseConnectData = {

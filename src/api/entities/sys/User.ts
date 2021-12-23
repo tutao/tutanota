@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {UserAlarmInfoListType} from "./UserAlarmInfoListType"
@@ -191,8 +189,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUser(values?: $Shape<$Exact<User>>): User {
-	return Object.assign(create(_TypeModel, UserTypeRef), values)
+export function createUser(values?: Partial<User>): User {
+	return Object.assign(create(_TypeModel, UserTypeRef), downcast<User>(values))
 }
 
 export type User = {
@@ -200,24 +198,24 @@ export type User = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	accountType: NumberString;
 	enabled: boolean;
 	requirePasswordUpdate: boolean;
-	salt: ?Uint8Array;
+	salt: null | Uint8Array;
 	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
-	alarmInfoList: ?UserAlarmInfoListType;
-	auth: ?UserAuthentication;
+	alarmInfoList:  null | UserAlarmInfoListType;
+	auth:  null | UserAuthentication;
 	authenticatedDevices: AuthenticatedDevice[];
-	externalAuthInfo: ?UserExternalAuthInfo;
+	externalAuthInfo:  null | UserExternalAuthInfo;
 	memberships: GroupMembership[];
 	phoneNumbers: PhoneNumber[];
-	pushIdentifierList: ?PushIdentifierList;
+	pushIdentifierList:  null | PushIdentifierList;
 	userGroup: GroupMembership;
-	customer: ?Id;
+	customer:  null | Id;
 	failedLogins: Id;
 	secondFactorAuthentications: Id;
 	successfulLogins: Id;

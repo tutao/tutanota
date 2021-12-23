@@ -1,4 +1,3 @@
-// @flow
 import m from "mithril"
 import {modal} from "./gui/base/Modal"
 import {overlay} from "./gui/base/Overlay"
@@ -6,32 +5,36 @@ import {styles} from "./gui/styles"
 import {assertMainOrNodeBoot} from "./api/common/Env"
 
 assertMainOrNodeBoot()
-export const LayerType = Object.freeze({
-	View: 0,
-	LowPriorityOverlay: 100, // Minimized editors, SearchBarOverlay
-	LowPriorityNotification: 150, // SnackBars, notifications that require no user interaction
-	ForegroundMenu: 200, // Foreground menu in mobile layout
-	Modal: 300, // Editors, Dialogs
-	Overlay: 400, // Error message dialogs, Notifications
-})
-export type LayerTypeEnum = $Values<typeof LayerType>;
 
+export const enum LayerType {
+	// Minimized editors, SearchBarOverlay
+	View = 0,
+	// SnackBars, notifications that require no user interaction
+	LowPriorityOverlay = 100,
+	// Foreground menu in mobile layout
+	LowPriorityNotification = 150,
+	// Editors, Dialogs
+	ForegroundMenu = 200,
+	// Error message dialogs, Notifications
+	Modal = 300,
+	Overlay = 400,
+}
 
 class RootView {
-	view: Function;
-	viewCache: {[key: string]: Function};
+	view: (...args: Array<any>) => any
+	viewCache: Record<string, (...args: Array<any>) => any>
 
 	constructor() {
 		this.viewCache = {}
 
 		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
-		let onmousedown = (e) => {
+		let onmousedown = e => {
 			if (onmousedown) {
 				console.log("disabling outline")
 				styles.registerStyle("outline", () => ({
 					"*": {
 						outline: "none",
-					}
+					},
 				}))
 				// remove event listener after the first click to not re-register style
 				onmousedown = null
@@ -42,16 +45,16 @@ class RootView {
 			}
 		}
 
-
 		this.view = (vnode): Children => {
-			return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {onmousedown}, [
-				m(overlay),
-				m(modal),
-				vnode.children,
-			])
+			return m(
+					"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
+					{
+						onmousedown,
+					},
+					[m(overlay), m(modal), vnode.children],
+			)
 		}
 	}
 }
-
 
 export const root: RootView = new RootView()

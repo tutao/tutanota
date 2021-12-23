@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRegistrationServiceData(values?: $Shape<$Exact<RegistrationServiceData>>): RegistrationServiceData {
-	return Object.assign(create(_TypeModel, RegistrationServiceDataTypeRef), values)
+export function createRegistrationServiceData(values?: Partial<RegistrationServiceData>): RegistrationServiceData {
+	return Object.assign(create(_TypeModel, RegistrationServiceDataTypeRef), downcast<RegistrationServiceData>(values))
 }
 
 export type RegistrationServiceData = {
@@ -58,6 +56,6 @@ export type RegistrationServiceData = {
 
 	_format: NumberString;
 	starterDomain: string;
-	source: ?string;
+	source: null | string;
 	state: NumberString;
 }

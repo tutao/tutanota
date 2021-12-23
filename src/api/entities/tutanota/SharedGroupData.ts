@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -84,8 +82,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSharedGroupData(values?: $Shape<$Exact<SharedGroupData>>): SharedGroupData {
-	return Object.assign(create(_TypeModel, SharedGroupDataTypeRef), values)
+export function createSharedGroupData(values?: Partial<SharedGroupData>): SharedGroupData {
+	return Object.assign(create(_TypeModel, SharedGroupDataTypeRef), downcast<SharedGroupData>(values))
 }
 
 export type SharedGroupData = {

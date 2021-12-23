@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Blob} from "../sys/Blob"
@@ -82,8 +80,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFileData(values?: $Shape<$Exact<FileData>>): FileData {
-	return Object.assign(create(_TypeModel, FileDataTypeRef), values)
+export function createFileData(values?: Partial<FileData>): FileData {
+	return Object.assign(create(_TypeModel, FileDataTypeRef), downcast<FileData>(values))
 }
 
 export type FileData = {
@@ -91,7 +89,7 @@ export type FileData = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	size: NumberString;
 	unreferenced: boolean;

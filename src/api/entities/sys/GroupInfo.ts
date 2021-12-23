@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {MailAddressAlias} from "./MailAddressAlias"
@@ -122,8 +120,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createGroupInfo(values?: $Shape<$Exact<GroupInfo>>): GroupInfo {
-	return Object.assign(create(_TypeModel, GroupInfoTypeRef), values)
+export function createGroupInfo(values?: Partial<GroupInfo>): GroupInfo {
+	return Object.assign(create(_TypeModel, GroupInfoTypeRef), downcast<GroupInfo>(values))
 }
 
 export type GroupInfo = {
@@ -132,17 +130,17 @@ export type GroupInfo = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_listEncSessionKey: ?Uint8Array;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_listEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	created: Date;
-	deleted: ?Date;
-	groupType: ?NumberString;
-	mailAddress: ?string;
+	deleted: null | Date;
+	groupType: null | NumberString;
+	mailAddress: null | string;
 	name: string;
 
 	mailAddressAliases: MailAddressAlias[];
 	group: Id;
-	localAdmin: ?Id;
+	localAdmin:  null | Id;
 }

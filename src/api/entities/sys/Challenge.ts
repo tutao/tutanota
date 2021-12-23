@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {OtpChallenge} from "./OtpChallenge"
@@ -54,8 +52,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createChallenge(values?: $Shape<$Exact<Challenge>>): Challenge {
-	return Object.assign(create(_TypeModel, ChallengeTypeRef), values)
+export function createChallenge(values?: Partial<Challenge>): Challenge {
+	return Object.assign(create(_TypeModel, ChallengeTypeRef), downcast<Challenge>(values))
 }
 
 export type Challenge = {
@@ -64,6 +62,6 @@ export type Challenge = {
 	_id: Id;
 	type: NumberString;
 
-	otp: ?OtpChallenge;
-	u2f: ?U2fChallenge;
+	otp: null | OtpChallenge;
+	u2f: null | U2fChallenge;
 }

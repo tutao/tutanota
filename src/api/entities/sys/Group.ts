@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {AdministratedGroupsRef} from "./AdministratedGroupsRef"
@@ -147,8 +145,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createGroup(values?: $Shape<$Exact<Group>>): Group {
-	return Object.assign(create(_TypeModel, GroupTypeRef), values)
+export function createGroup(values?: Partial<Group>): Group {
+	return Object.assign(create(_TypeModel, GroupTypeRef), downcast<Group>(values))
 }
 
 export type Group = {
@@ -156,20 +154,20 @@ export type Group = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	adminGroupEncGKey: ?Uint8Array;
+	adminGroupEncGKey: null | Uint8Array;
 	enabled: boolean;
 	external: boolean;
 	type: NumberString;
 
-	administratedGroups: ?AdministratedGroupsRef;
+	administratedGroups:  null | AdministratedGroupsRef;
 	archives: ArchiveType[];
 	keys: KeyPair[];
-	admin: ?Id;
-	customer: ?Id;
+	admin:  null | Id;
+	customer:  null | Id;
 	groupInfo: IdTuple;
 	invitations: Id;
 	members: Id;
-	user: ?Id;
+	user:  null | Id;
 }

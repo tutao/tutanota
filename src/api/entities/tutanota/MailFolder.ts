@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -92,8 +90,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailFolder(values?: $Shape<$Exact<MailFolder>>): MailFolder {
-	return Object.assign(create(_TypeModel, MailFolderTypeRef), values)
+export function createMailFolder(values?: Partial<MailFolder>): MailFolder {
+	return Object.assign(create(_TypeModel, MailFolderTypeRef), downcast<MailFolder>(values))
 }
 
 export type MailFolder = {
@@ -102,13 +100,13 @@ export type MailFolder = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	folderType: NumberString;
 	name: string;
 
 	mails: Id;
-	parentFolder: ?IdTuple;
+	parentFolder:  null | IdTuple;
 	subFolders: Id;
 }

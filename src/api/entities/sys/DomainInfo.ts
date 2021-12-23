@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -57,8 +55,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {
-	return Object.assign(create(_TypeModel, DomainInfoTypeRef), values)
+export function createDomainInfo(values?: Partial<DomainInfo>): DomainInfo {
+	return Object.assign(create(_TypeModel, DomainInfoTypeRef), downcast<DomainInfo>(values))
 }
 
 export type DomainInfo = {
@@ -68,6 +66,6 @@ export type DomainInfo = {
 	domain: string;
 	validatedMxRecord: boolean;
 
-	catchAllMailGroup: ?Id;
-	whitelabelConfig: ?Id;
+	catchAllMailGroup:  null | Id;
+	whitelabelConfig:  null | Id;
 }

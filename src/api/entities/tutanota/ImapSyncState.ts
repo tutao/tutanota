@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {ImapFolder} from "./ImapFolder"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createImapSyncState(values?: $Shape<$Exact<ImapSyncState>>): ImapSyncState {
-	return Object.assign(create(_TypeModel, ImapSyncStateTypeRef), values)
+export function createImapSyncState(values?: Partial<ImapSyncState>): ImapSyncState {
+	return Object.assign(create(_TypeModel, ImapSyncStateTypeRef), downcast<ImapSyncState>(values))
 }
 
 export type ImapSyncState = {
@@ -68,7 +66,7 @@ export type ImapSyncState = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 
 	folders: ImapFolder[];

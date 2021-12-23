@@ -3,14 +3,14 @@ import path from "path"
 // These are the dependencies that must be provided for the module loader systemjs
 export const dependencyMap = {
 	"mithril": path.normalize("./libs/mithril.js"),
-	"mithril/stream/stream.js": path.normalize("./libs/stream.js"),
+	"mithril/stream": path.normalize("./libs/stream.js"),
 	"squire-rte": path.normalize("./libs/squire-raw.js"),
 	"dompurify": path.normalize("./libs/purify.js"),
 	"qrcode": path.normalize("./libs/qrcode.js"),
 	"jszip": path.normalize("./libs/jszip.js"),
 	"luxon": path.normalize("./libs/luxon.js"),
-	"linkify": path.normalize("./libs/linkify.js"),
-	"linkify/html": path.normalize("./libs/linkify-html.js"),
+	"linkifyjs": path.normalize("./libs/linkify.js"),
+	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
 	"cborg": path.normalize("./libs/cborg-decode.js")
 }
 

@@ -63,7 +63,7 @@ Current preferred way looks roughly like that:
 
 type Attrs = {param1: string, paramTwo?: number}
 
-class MyComponent implements MComponent<Attrs> {
+class MyComponent implements ClassComponent<Attrs> {
 	view(vnode: Vnode<Attrs>) {
 		return m(".h1", "Hello " + vnode.attrs.param1)
 	}

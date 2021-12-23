@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -63,8 +61,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createRepeatRule(values?: $Shape<$Exact<RepeatRule>>): RepeatRule {
-	return Object.assign(create(_TypeModel, RepeatRuleTypeRef), values)
+export function createRepeatRule(values?: Partial<RepeatRule>): RepeatRule {
+	return Object.assign(create(_TypeModel, RepeatRuleTypeRef), downcast<RepeatRule>(values))
 }
 
 export type RepeatRule = {
@@ -72,7 +70,7 @@ export type RepeatRule = {
 
 	_id: Id;
 	endType: NumberString;
-	endValue: ?NumberString;
+	endValue: null | NumberString;
 	frequency: NumberString;
 	interval: NumberString;
 	timeZone: string;

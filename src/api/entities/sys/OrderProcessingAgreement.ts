@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -92,8 +90,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createOrderProcessingAgreement(values?: $Shape<$Exact<OrderProcessingAgreement>>): OrderProcessingAgreement {
-	return Object.assign(create(_TypeModel, OrderProcessingAgreementTypeRef), values)
+export function createOrderProcessingAgreement(values?: Partial<OrderProcessingAgreement>): OrderProcessingAgreement {
+	return Object.assign(create(_TypeModel, OrderProcessingAgreementTypeRef), downcast<OrderProcessingAgreement>(values))
 }
 
 export type OrderProcessingAgreement = {
@@ -102,8 +100,8 @@ export type OrderProcessingAgreement = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	customerAddress: string;
 	signatureDate: Date;

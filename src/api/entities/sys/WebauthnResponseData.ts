@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createWebauthnResponseData(values?: $Shape<$Exact<WebauthnResponseData>>): WebauthnResponseData {
-	return Object.assign(create(_TypeModel, WebauthnResponseDataTypeRef), values)
+export function createWebauthnResponseData(values?: Partial<WebauthnResponseData>): WebauthnResponseData {
+	return Object.assign(create(_TypeModel, WebauthnResponseDataTypeRef), downcast<WebauthnResponseData>(values))
 }
 
 export type WebauthnResponseData = {

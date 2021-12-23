@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -78,8 +76,8 @@ export const _TypeModel: TypeModel = {
 	"version": "18"
 }
 
-export function createApprovalMail(values?: $Shape<$Exact<ApprovalMail>>): ApprovalMail {
-	return Object.assign(create(_TypeModel, ApprovalMailTypeRef), values)
+export function createApprovalMail(values?: Partial<ApprovalMail>): ApprovalMail {
+	return Object.assign(create(_TypeModel, ApprovalMailTypeRef), downcast<ApprovalMail>(values))
 }
 
 export type ApprovalMail = {
@@ -87,11 +85,11 @@ export type ApprovalMail = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	date: ?Date;
-	range: ?string;
+	date: null | Date;
+	range: null | string;
 	text: string;
 
-	customer: ?Id;
+	customer: null | Id;
 }

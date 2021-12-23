@@ -1,14 +1,19 @@
-//@flow
 //@bundleInto:common-min
 import {TutanotaError} from "./TutanotaError"
 import type {Challenge} from "../../entities/sys/Challenge"
-
 export class SecondFactorPendingError extends TutanotaError {
-	data: {sessionId: IdTuple, challenges: Challenge[], mailAddress: ?string};
+    data: {
+        sessionId: IdTuple
+        challenges: Challenge[]
+        mailAddress: string | null
+    }
 
-	constructor(sessionId: IdTuple, challenges: Challenge[], mailAddress: ?string) {
-		super("SecondFactorPendingError", "")
-		this.data = {sessionId, challenges, mailAddress}
-	}
-
+    constructor(sessionId: IdTuple, challenges: Challenge[], mailAddress: string | null) {
+        super("SecondFactorPendingError", "")
+        this.data = {
+            sessionId,
+            challenges,
+            mailAddress,
+        }
+    }
 }

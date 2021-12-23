@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Subfiles} from "./Subfiles"
@@ -122,8 +120,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFile(values?: $Shape<$Exact<File>>): File {
-	return Object.assign(create(_TypeModel, FileTypeRef), values)
+export function createFile(values?: Partial<File>): File {
+	return Object.assign(create(_TypeModel, FileTypeRef), downcast<File>(values))
 }
 
 export type File = {
@@ -134,15 +132,15 @@ export type File = {
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	cid: ?string;
-	mimeType: ?string;
+	cid: null | string;
+	mimeType: null | string;
 	name: string;
 	size: NumberString;
 
-	subFiles: ?Subfiles;
-	data: ?Id;
-	parent: ?IdTuple;
+	subFiles:  null | Subfiles;
+	data:  null | Id;
+	parent:  null | IdTuple;
 }

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -42,8 +40,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createEncryptedMailAddress(values?: $Shape<$Exact<EncryptedMailAddress>>): EncryptedMailAddress {
-	return Object.assign(create(_TypeModel, EncryptedMailAddressTypeRef), values)
+export function createEncryptedMailAddress(values?: Partial<EncryptedMailAddress>): EncryptedMailAddress {
+	return Object.assign(create(_TypeModel, EncryptedMailAddressTypeRef), downcast<EncryptedMailAddress>(values))
 }
 
 export type EncryptedMailAddress = {

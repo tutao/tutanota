@@ -1,5 +1,3 @@
-// @flow
-
 import {downcast} from "@tutao/tutanota-utils"
 import type {SomeEntity} from "../EntityTypes"
 
@@ -10,7 +8,7 @@ import type {SomeEntity} from "../EntityTypes"
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: SomeEntity, key: ?K): boolean {
-	const downCastedInstance = downcast(instance)
-	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
+export function hasError<K>(instance: SomeEntity, key: K | null): boolean {
+    const downCastedInstance = downcast(instance)
+    return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
 }

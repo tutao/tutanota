@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -50,8 +48,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createUserAuthentication(values?: $Shape<$Exact<UserAuthentication>>): UserAuthentication {
-	return Object.assign(create(_TypeModel, UserAuthenticationTypeRef), values)
+export function createUserAuthentication(values?: Partial<UserAuthentication>): UserAuthentication {
+	return Object.assign(create(_TypeModel, UserAuthenticationTypeRef), downcast<UserAuthentication>(values))
 }
 
 export type UserAuthentication = {
@@ -59,7 +57,7 @@ export type UserAuthentication = {
 
 	_id: Id;
 
-	recoverCode: ?Id;
+	recoverCode:  null | Id;
 	secondFactors: Id;
 	sessions: Id;
 }

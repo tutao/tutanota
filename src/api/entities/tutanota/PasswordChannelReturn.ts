@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {PasswordChannelPhoneNumber} from "./PasswordChannelPhoneNumber"
@@ -38,8 +36,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPasswordChannelReturn(values?: $Shape<$Exact<PasswordChannelReturn>>): PasswordChannelReturn {
-	return Object.assign(create(_TypeModel, PasswordChannelReturnTypeRef), values)
+export function createPasswordChannelReturn(values?: Partial<PasswordChannelReturn>): PasswordChannelReturn {
+	return Object.assign(create(_TypeModel, PasswordChannelReturnTypeRef), downcast<PasswordChannelReturn>(values))
 }
 
 export type PasswordChannelReturn = {

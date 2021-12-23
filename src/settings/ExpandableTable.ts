@@ -1,5 +1,3 @@
-//@flow
-
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
@@ -7,33 +5,34 @@ import type {TableAttrs} from "../gui/base/TableN"
 import {TableN} from "../gui/base/TableN"
 import {SettingsExpander} from "./SettingsExpander"
 import type {lazy} from "@tutao/tutanota-utils"
+type ExpandableTableAttrs = {
+    title: TranslationKey | lazy<string>
+    table: TableAttrs
+    infoMsg: TranslationKey | lazy<string>
+    infoLinkId?: InfoLink
+    // ExpandableTable uses internal state whenever this isn't passed in
+    expanded?: Stream<boolean>
+    onExpand?: () => void
+}
+export class ExpandableTable implements Component<ExpandableTableAttrs> {
+    expanded: Stream<boolean>
 
-type ExpandableTableAttrs = {|
-	title: TranslationKey | lazy<string>,
-	table: TableAttrs,
-	infoMsg: TranslationKey | lazy<string>,
-	infoLinkId?: InfoLink,
-	// ExpandableTable uses internal state whenever this isn't passed in
-	expanded?: Stream<boolean>,
-	onExpand?: () => void,
-|}
+    constructor() {
+        this.expanded = stream(false)
+    }
 
-export class ExpandableTable implements MComponent<ExpandableTableAttrs> {
-	expanded: Stream<boolean>
-
-	constructor() {
-		this.expanded = stream(false)
-	}
-
-	view(vnode: Vnode<ExpandableTableAttrs>): Children {
-		const {title, table, infoLinkId, infoMsg, expanded, onExpand} = vnode.attrs
-
-		return m(SettingsExpander, {
-			title,
-			infoLinkId,
-			infoMsg,
-			onExpand,
-			expanded: expanded || this.expanded
-		}, m(TableN, table))
-	}
+    view(vnode: Vnode<ExpandableTableAttrs>): Children {
+        const {title, table, infoLinkId, infoMsg, expanded, onExpand} = vnode.attrs
+        return m(
+            SettingsExpander,
+            {
+                title,
+                infoLinkId,
+                infoMsg,
+                onExpand,
+                expanded: expanded || this.expanded,
+            },
+            m(TableN, table),
+        )
+    }
 }

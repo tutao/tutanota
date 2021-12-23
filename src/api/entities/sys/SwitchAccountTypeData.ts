@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -56,8 +54,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSwitchAccountTypeData(values?: $Shape<$Exact<SwitchAccountTypeData>>): SwitchAccountTypeData {
-	return Object.assign(create(_TypeModel, SwitchAccountTypeDataTypeRef), values)
+export function createSwitchAccountTypeData(values?: Partial<SwitchAccountTypeData>): SwitchAccountTypeData {
+	return Object.assign(create(_TypeModel, SwitchAccountTypeDataTypeRef), downcast<SwitchAccountTypeData>(values))
 }
 
 export type SwitchAccountTypeData = {
@@ -65,7 +63,7 @@ export type SwitchAccountTypeData = {
 
 	_format: NumberString;
 	accountType: NumberString;
-	campaign: ?string;
-	date: ?Date;
+	campaign: null | string;
+	date: null | Date;
 	subscriptionType: NumberString;
 }

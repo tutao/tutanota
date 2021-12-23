@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -50,8 +48,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createReportMailPostData(values?: $Shape<$Exact<ReportMailPostData>>): ReportMailPostData {
-	return Object.assign(create(_TypeModel, ReportMailPostDataTypeRef), values)
+export function createReportMailPostData(values?: Partial<ReportMailPostData>): ReportMailPostData {
+	return Object.assign(create(_TypeModel, ReportMailPostDataTypeRef), downcast<ReportMailPostData>(values))
 }
 
 export type ReportMailPostData = {

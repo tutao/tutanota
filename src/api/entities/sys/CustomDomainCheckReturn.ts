@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {DnsRecord} from "./DnsRecord"
@@ -61,8 +59,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCustomDomainCheckReturn(values?: $Shape<$Exact<CustomDomainCheckReturn>>): CustomDomainCheckReturn {
-	return Object.assign(create(_TypeModel, CustomDomainCheckReturnTypeRef), values)
+export function createCustomDomainCheckReturn(values?: Partial<CustomDomainCheckReturn>): CustomDomainCheckReturn {
+	return Object.assign(create(_TypeModel, CustomDomainCheckReturnTypeRef), downcast<CustomDomainCheckReturn>(values))
 }
 
 export type CustomDomainCheckReturn = {

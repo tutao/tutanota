@@ -1,17 +1,17 @@
-//@flow
+
 // We cannot use Flow types here because it's used during build
 
 export const Type = Object.freeze({
 	Element: "ELEMENT_TYPE",
 	ListElement: "LIST_ELEMENT_TYPE",
 	DataTransfer: "DATA_TRANSFER_TYPE",
-	Aggregated: "AGGREGATED_TYPE"
+	Aggregated: "AGGREGATED_TYPE",
 })
 
 export const Cardinality = Object.freeze({
 	ZeroOrOne: "ZeroOrOne",
 	Any: "Any",
-	One: "One"
+	One: "One",
 })
 
 export const AssociationType = Object.freeze({
@@ -34,7 +34,7 @@ export const ValueType = Object.freeze({
 
 export const ResourceType = Object.freeze({
 	Persistence: "Persistence",
-	Service: "Service"
+	Service: "Service",
 })
 
 export const ValueToFlowTypes = Object.freeze({

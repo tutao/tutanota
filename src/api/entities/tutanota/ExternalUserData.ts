@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CreateExternalUserGroupData} from "./CreateExternalUserGroupData"
@@ -108,8 +106,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {
-	return Object.assign(create(_TypeModel, ExternalUserDataTypeRef), values)
+export function createExternalUserData(values?: Partial<ExternalUserData>): ExternalUserData {
+	return Object.assign(create(_TypeModel, ExternalUserDataTypeRef), downcast<ExternalUserData>(values))
 }
 
 export type ExternalUserData = {

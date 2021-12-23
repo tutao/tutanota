@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -49,8 +47,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createKeyPair(values?: $Shape<$Exact<KeyPair>>): KeyPair {
-	return Object.assign(create(_TypeModel, KeyPairTypeRef), values)
+export function createKeyPair(values?: Partial<KeyPair>): KeyPair {
+	return Object.assign(create(_TypeModel, KeyPairTypeRef), downcast<KeyPair>(values))
 }
 
 export type KeyPair = {

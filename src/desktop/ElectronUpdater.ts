@@ -153,7 +153,7 @@ export class ElectronUpdater {
 		})
 	}
 
-	+_enableAutoUpdateListener: (() => void) = () => {this.start()}
+	readonly _enableAutoUpdateListener: (() => void) = () => {this.start()}
 
 	async start() {
 		if (!this._updater.updatesEnabledInBuild()) {

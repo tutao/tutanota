@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {SpamResults} from "./SpamResults"
@@ -110,8 +108,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
-	return Object.assign(create(_TypeModel, MailBoxTypeRef), values)
+export function createMailBox(values?: Partial<MailBox>): MailBox {
+	return Object.assign(create(_TypeModel, MailBoxTypeRef), downcast<MailBox>(values))
 }
 
 export type MailBox = {
@@ -120,14 +118,14 @@ export type MailBox = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	lastInfoDate: Date;
-	symEncShareBucketKey: ?Uint8Array;
+	symEncShareBucketKey: null | Uint8Array;
 
-	spamResults: ?SpamResults;
-	systemFolders: ?MailFolderRef;
+	spamResults:  null | SpamResults;
+	systemFolders:  null | MailFolderRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;

@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -63,8 +61,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createCreditCard(values?: $Shape<$Exact<CreditCard>>): CreditCard {
-	return Object.assign(create(_TypeModel, CreditCardTypeRef), values)
+export function createCreditCard(values?: Partial<CreditCard>): CreditCard {
+	return Object.assign(create(_TypeModel, CreditCardTypeRef), downcast<CreditCard>(values))
 }
 
 export type CreditCard = {

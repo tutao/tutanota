@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -28,8 +26,8 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPasswordAutoAuthenticationReturn(values?: $Shape<$Exact<PasswordAutoAuthenticationReturn>>): PasswordAutoAuthenticationReturn {
-	return Object.assign(create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef), values)
+export function createPasswordAutoAuthenticationReturn(values?: Partial<PasswordAutoAuthenticationReturn>): PasswordAutoAuthenticationReturn {
+	return Object.assign(create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef), downcast<PasswordAutoAuthenticationReturn>(values))
 }
 
 export type PasswordAutoAuthenticationReturn = {

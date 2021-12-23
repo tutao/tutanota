@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 
@@ -106,8 +104,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createVersionInfo(values?: $Shape<$Exact<VersionInfo>>): VersionInfo {
-	return Object.assign(create(_TypeModel, VersionInfoTypeRef), values)
+export function createVersionInfo(values?: Partial<VersionInfo>): VersionInfo {
+	return Object.assign(create(_TypeModel, VersionInfoTypeRef), downcast<VersionInfo>(values))
 }
 
 export type VersionInfo = {
@@ -115,14 +113,14 @@ export type VersionInfo = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	app: string;
 	operation: string;
-	referenceList: ?Id;
+	referenceList: null | Id;
 	timestamp: Date;
 	type: NumberString;
-	versionData: ?Uint8Array;
+	versionData: null | Uint8Array;
 
 	author: Id;
 	authorGroupInfo: IdTuple;

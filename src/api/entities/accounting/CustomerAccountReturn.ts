@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {CustomerAccountPosting} from "./CustomerAccountPosting"
@@ -59,8 +57,8 @@ export const _TypeModel: TypeModel = {
 	"version": "4"
 }
 
-export function createCustomerAccountReturn(values?: $Shape<$Exact<CustomerAccountReturn>>): CustomerAccountReturn {
-	return Object.assign(create(_TypeModel, CustomerAccountReturnTypeRef), values)
+export function createCustomerAccountReturn(values?: Partial<CustomerAccountReturn>): CustomerAccountReturn {
+	return Object.assign(create(_TypeModel, CustomerAccountReturnTypeRef), downcast<CustomerAccountReturn>(values))
 }
 
 export type CustomerAccountReturn = {
@@ -68,8 +66,8 @@ export type CustomerAccountReturn = {
 	_errors: Object;
 
 	_format: NumberString;
-	_ownerGroup: ?Id;
-	_ownerPublicEncSessionKey: ?Uint8Array;
+	_ownerGroup: null | Id;
+	_ownerPublicEncSessionKey: null | Uint8Array;
 	outstandingBookingsPrice: NumberString;
 
 	postings: CustomerAccountPosting[];

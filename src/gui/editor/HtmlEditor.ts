@@ -1,45 +1,45 @@
 //@flow
-import m from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Editor} from "./Editor.js"
 import {DropDownSelector} from "../base/DropDownSelector"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {Options as ToolbarOptions} from "../base/RichTextToolbar"
 import {RichTextToolbar} from "../base/RichTextToolbar"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 
-export const Mode = Object.freeze({
-	HTML: "html",
-	WYSIWYG: "what you see is what you get",
-})
-export type HtmlEditorModeEnum = $Values<typeof Mode>;
+export const enum HtmlEditorMode {
+	HTML = "html",
+	WYSIWYG = "what you see is what you get",
+}
 
 type RichToolbarOptions = {enabled: boolean} & ToolbarOptions
 
 export class HtmlEditor {
 	_editor: Editor;
-	_mode: Stream<HtmlEditorModeEnum>;
+	_mode: Stream<HtmlEditorMode>;
 	_active: boolean;
 	_disabled: boolean;
 	_domTextArea: HTMLTextAreaElement;
 	_borderDomElement: HTMLElement;
 	_showBorders: boolean;
-	_minHeight: ?number;
-	_placeholderId: ?TranslationKey;
+	_minHeight: number | null;
+	_placeholderId: TranslationKey | null;
 	view: Function;
 	_placeholderDomElement: HTMLElement;
 	_value: Stream<string>;
-	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
+	_modeSwitcher: DropDownSelector<HtmlEditorMode> | null;
 	_htmlMonospace: boolean;
 	_richToolbarOptions: RichToolbarOptions;
 
-	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false},
+	constructor(labelIdOrLabelFunction: TranslationText | null, richToolbarOptions: RichToolbarOptions = {enabled: false},
 	            injections?: () => Children) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).html)
-		this._mode = stream(Mode.WYSIWYG)
+		this._mode = stream(HtmlEditorMode.WYSIWYG)
 		this._active = false
 		this._disabled = false
 		this._showBorders = false
@@ -65,7 +65,7 @@ export class HtmlEditor {
 
 		let blur = () => {
 			this._active = false
-			if (this._mode() === Mode.WYSIWYG) {
+			if (this._mode() === HtmlEditorMode.WYSIWYG) {
 				this._value(this._editor.getValue())
 			} else {
 				this._value(this._domTextArea.value)
@@ -75,7 +75,7 @@ export class HtmlEditor {
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					oncreate: vnode => this._placeholderDomElement = vnode.dom,
-					onclick: () => this._mode() === Mode.WYSIWYG
+					onclick: () => this._mode() === HtmlEditorMode.WYSIWYG
 						? this._editor._domElement.focus()
 						: this._domTextArea.focus()
 				},
@@ -97,14 +97,14 @@ export class HtmlEditor {
 				: ""
 			const renderedInjections = injections && injections() || null
 
-			return m(".html-editor" + (this._mode() === Mode.WYSIWYG ? ".text-break" : ""), [
+			return m(".html-editor" + (this._mode() === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
 				(label)
 					? m(".small.mt-form", lang.getMaybeLazy(label))
 					: null,
 				m(borderClasses, [
 					getPlaceholder(),
-					this._mode() === Mode.WYSIWYG
+					this._mode() === HtmlEditorMode.WYSIWYG
 						? m(".wysiwyg.rel.overflow-hidden.selectable", [
 							(this._editor.isEnabled() && (this._richToolbarOptions.enabled || renderedInjections))
 								? [
@@ -149,8 +149,8 @@ export class HtmlEditor {
 
 	setModeSwitcher(label: TranslationKey | lazy<string>): this {
 		this._modeSwitcher = new DropDownSelector(label, null, [
-			{name: lang.get("richText_label"), value: Mode.WYSIWYG},
-			{name: lang.get("htmlSourceCode_label"), value: Mode.HTML}
+			{name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG},
+			{name: lang.get("htmlSourceCode_label"), value: HtmlEditorMode.HTML}
 		], this._mode).setSelectionChangedHandler(v => {
 			this._mode(v)
 		})
@@ -175,7 +175,7 @@ export class HtmlEditor {
 	}
 
 	getValue(): string {
-		if (this._mode() === Mode.WYSIWYG) {
+		if (this._mode() === HtmlEditorMode.WYSIWYG) {
 			if (this._editor.isAttached()) {
 				return this._editor.getHTML()
 			} else {
@@ -191,7 +191,7 @@ export class HtmlEditor {
 	}
 
 	setValue(html: string): HtmlEditor {
-		if (this._mode() === Mode.WYSIWYG) {
+		if (this._mode() === HtmlEditorMode.WYSIWYG) {
 			this._editor.initialized.promise.then(() => this._editor.setHTML(html))
 		} else if (this._domTextArea) {
 			this._domTextArea.value = html
@@ -218,7 +218,7 @@ export class HtmlEditor {
 		return this
 	}
 
-	setMode(mode: HtmlEditorModeEnum): HtmlEditor {
+	setMode(mode: HtmlEditorMode): HtmlEditor {
 		this._mode(mode)
 		return this
 	}

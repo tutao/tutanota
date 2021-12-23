@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {Challenge} from "./Challenge"
@@ -115,8 +113,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createSession(values?: $Shape<$Exact<Session>>): Session {
-	return Object.assign(create(_TypeModel, SessionTypeRef), values)
+export function createSession(values?: Partial<Session>): Session {
+	return Object.assign(create(_TypeModel, SessionTypeRef), downcast<Session>(values))
 }
 
 export type Session = {
@@ -125,13 +123,13 @@ export type Session = {
 
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	accessKey: ?Uint8Array;
+	accessKey: null | Uint8Array;
 	clientIdentifier: string;
 	lastAccessTime: Date;
-	loginIpAddress: ?string;
+	loginIpAddress: null | string;
 	loginTime: Date;
 	state: NumberString;
 

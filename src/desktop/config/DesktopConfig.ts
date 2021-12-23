@@ -6,8 +6,7 @@ import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import {DesktopConfigMigrator} from "./migrations/DesktopConfigMigrator"
 import fs from "fs"
 import type {Config} from "./ConfigCommon"
-import type {BuildConfigKeyEnum, DesktopConfigEncKeyEnum, DesktopConfigKeyEnum} from "./ConfigKeys"
-import {DesktopConfigEncKeyValues, DesktopConfigKeyValues} from "./ConfigKeys"
+import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./ConfigKeys"
 import type {App} from "electron"
 import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
@@ -18,9 +17,9 @@ import type {ConfigFileType} from "./ConfigFile"
 import {getConfigFile} from "./ConfigFile"
 
 
-type AllConfigKeysEnum = DesktopConfigKeyEnum | DesktopConfigEncKeyEnum
+type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
-type ConfigValue = string | number | {} | boolean | $ReadOnlyArray<ConfigValue>
+type ConfigValue = string | number | {} | boolean | ReadonlyArray<ConfigValue>
 
 /**
  * manages build and user config
@@ -33,7 +32,7 @@ export class DesktopConfig {
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
-	_onValueSetListeners: {[AllConfigKeysEnum]: Array<(val: ?ConfigValue) => void>}
+	_onValueSetListeners: {[k in AllConfigKeys]: Array<(val: ?ConfigValue) => void>}
 
 	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DesktopDeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
 		this._deviceKeyProvider = deviceKeyProvider
@@ -49,7 +48,7 @@ export class DesktopConfig {
 	async init() {
 		try {
 			const packageJsonFile = getConfigFile(path.join(this._app.getAppPath(), 'package.json'), fs)
-			const packageJson = downcast<{[string]: mixed}>(await packageJsonFile.readJSON())
+			const packageJson = downcast<Record<string, unknown>>(await packageJsonFile.readJSON())
 			this._buildConfig.resolve(downcast<Config>(packageJson['tutao-config']))
 		} catch (e) {
 			throw new Error("Could not load build config: " + e)
@@ -72,22 +71,22 @@ export class DesktopConfig {
 		this._desktopConfig.resolve(desktopConfig)
 	}
 
-	async getConst(key?: BuildConfigKeyEnum): Promise<any> {
+	async getConst(key?: BuildConfigKey): Promise<any> {
 		const config = await this._buildConfig.promise
 		return key ? config[key] : config
 	}
 
-	async getVar(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum): Promise<any> {
+	async getVar<K extends AllConfigKeys>(key: K): Promise<any> {
 		const desktopConfig = await this._desktopConfig.promise
 
-		if (DesktopConfigKeyValues.has(downcast(key))) {
+		if (key in DesktopConfigKey) {
 			return desktopConfig[key]
-		} else if (DesktopConfigEncKeyValues.has(downcast(key))) {
+		} else if (key in DesktopConfigEncKey) {
 			return this._getEncryptedVar(key)
 		}
 	}
 
-	async _getEncryptedVar(key: DesktopConfigEncKeyEnum): Promise<any> {
+	async _getEncryptedVar(key: DesktopConfigEncKey): Promise<any> {
 		const desktopConfig = await this._desktopConfig.promise
 		const encryptedValue = desktopConfig[key]
 
@@ -107,7 +106,7 @@ export class DesktopConfig {
 		}
 	}
 
-	async _setEncryptedVar(key: DesktopConfigEncKeyEnum, value: ?ConfigValue) {
+	async _setEncryptedVar(key: DesktopConfigEncKey, value: ?ConfigValue) {
 		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
 		let encryptedValue
 		if (value != null) {
@@ -125,7 +124,7 @@ export class DesktopConfig {
 	 * @param value the new value
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
-	async setVar(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, value: ?ConfigValue): Promise<void> {
+	async setVar(key: DesktopConfigKey DesktopConfigEncKey, value: ?ConfigValue): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
 
 		if (DesktopConfigKeyValues.has(downcast(key))) {
@@ -143,7 +142,7 @@ export class DesktopConfig {
 		await this._saveAndNotify(key, value)
 	}
 
-	async _saveAndNotify(key: AllConfigKeysEnum, value: ?ConfigValue): Promise<void> {
+	async _saveAndNotify(key: AllConfigKeys, value: ?ConfigValue): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
 		await this._desktopConfigFile.writeJSON(desktopConfig)
 		this._notifyChangeListeners(key, value)
@@ -155,7 +154,7 @@ export class DesktopConfig {
 	 * @param cb a function that's called when the config changes. argument is the new value or the entire config object in case of the "any" event.
 	 * @returns {DesktopConfig}
 	 */
-	on(key: DesktopConfigKeyEnum | DesktopConfigEncKeyEnum, cb: (val: any) => void): DesktopConfig {
+	on(key: AllConfigKeys, cb: (val: any) => void): DesktopConfig {
 		if (!this._onValueSetListeners[key]) {
 			this._onValueSetListeners[key] = [cb]
 		} else {
@@ -164,7 +163,7 @@ export class DesktopConfig {
 		return this
 	}
 
-	removeAllListeners(key?: DesktopConfigKeyEnum): this {
+	removeAllListeners(key?: DesktopConfigKey): this {
 		if (key) {
 			this._onValueSetListeners[key] = []
 		} else {
@@ -174,13 +173,13 @@ export class DesktopConfig {
 		return this
 	}
 
-	removeListener(key: AllConfigKeysEnum, cb: (val: any)=>void): this {
+	removeListener(key: AllConfigKeys, cb: (val: any)=>void): this {
 		if (!this._onValueSetListeners[key]) return this
 		this._onValueSetListeners[key].splice(this._onValueSetListeners[key].indexOf(cb), 1)
 		return this
 	}
 
-	_notifyChangeListeners(key: AllConfigKeysEnum, value: ?ConfigValue) {
+	_notifyChangeListeners(key: AllConfigKeys, value: ?ConfigValue) {
 		if (this._onValueSetListeners[key]) {
 			for (const cb of this._onValueSetListeners[key]) {
 				cb(value)

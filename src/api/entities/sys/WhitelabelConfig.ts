@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {BootstrapFeature} from "./BootstrapFeature"
@@ -119,8 +117,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createWhitelabelConfig(values?: $Shape<$Exact<WhitelabelConfig>>): WhitelabelConfig {
-	return Object.assign(create(_TypeModel, WhitelabelConfigTypeRef), values)
+export function createWhitelabelConfig(values?: Partial<WhitelabelConfig>): WhitelabelConfig {
+	return Object.assign(create(_TypeModel, WhitelabelConfigTypeRef), downcast<WhitelabelConfig>(values))
 }
 
 export type WhitelabelConfig = {
@@ -128,16 +126,16 @@ export type WhitelabelConfig = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerGroup: ?Id;
+	_ownerGroup: null | Id;
 	_permissions: Id;
-	germanLanguageCode: ?string;
-	imprintUrl: ?string;
+	germanLanguageCode: null | string;
+	imprintUrl: null | string;
 	jsonTheme: string;
 	metaTags: string;
-	privacyStatementUrl: ?string;
+	privacyStatementUrl: null | string;
 	whitelabelCode: string;
 
 	bootstrapCustomizations: BootstrapFeature[];
-	certificateInfo: ?CertificateInfo;
+	certificateInfo:  null | CertificateInfo;
 	whitelabelRegistrationDomains: StringWrapper[];
 }

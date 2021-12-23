@@ -1,4 +1,7 @@
-// @flow
+export const enum BaseService
 
-export const BaseService: {||} = Object.freeze({
-})
+:
+{||
+}
+{
+}

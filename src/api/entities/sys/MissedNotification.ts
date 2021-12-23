@@ -1,7 +1,5 @@
-// @flow
-
 import {create} from "../../common/utils/EntityUtils"
-import {TypeRef} from "@tutao/tutanota-utils"
+import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes"
 
 import type {AlarmNotification} from "./AlarmNotification"
@@ -96,8 +94,8 @@ export const _TypeModel: TypeModel = {
 	"version": "71"
 }
 
-export function createMissedNotification(values?: $Shape<$Exact<MissedNotification>>): MissedNotification {
-	return Object.assign(create(_TypeModel, MissedNotificationTypeRef), values)
+export function createMissedNotification(values?: Partial<MissedNotification>): MissedNotification {
+	return Object.assign(create(_TypeModel, MissedNotificationTypeRef), downcast<MissedNotification>(values))
 }
 
 export type MissedNotification = {
@@ -106,12 +104,12 @@ export type MissedNotification = {
 
 	_format: NumberString;
 	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
 	_permissions: Id;
 	changeTime: Date;
 	confirmationId: Id;
-	lastProcessedNotificationId: ?Id;
+	lastProcessedNotificationId: null | Id;
 
 	alarmNotifications: AlarmNotification[];
 	notificationInfos: NotificationInfo[];
