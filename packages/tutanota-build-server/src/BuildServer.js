@@ -3,12 +3,8 @@ import fs from "fs-extra"
 import {default as path} from "path"
 import {DevServer} from "./DevServer.js"
 import {Watchers} from "./Watchers.js"
+import {BuildServerConfig} from "./BuildServerConfig.js";
 
-
-const STATUS_OK = "ok"
-const STATUS_ERROR = "error"
-const STATUS_INFO = "info"
-const STATUS_CONFIG = "config"
 /**
  * Contains the definition of status codes that are sent with each message the server sends to its client.
  *
@@ -18,16 +14,13 @@ const STATUS_CONFIG = "config"
  * <p><b>CONFIG</b> - Status code that indicates that the message contains a dump of the server config.</p>
  * @type {{ERROR: string, OK: string, INFO: string, CONFIG: string}}
  */
-export const BuildServerStatus = {
-	OK: STATUS_OK,
-	ERROR: STATUS_ERROR,
-	INFO: STATUS_INFO,
-	CONFIG: STATUS_CONFIG
+export enum BuildServerStatus {
+	OK = "ok",
+	ERROR = "error",
+	INFO = "info",
+	CONFIG = "config",
 }
 
-const COMMAND_SHUTDOWN = "shutdown"
-const COMMAND_BUILD = "build"
-const COMMAND_DUMP_CONFIG = "config"
 /**
  * <p>Contains the definition of commands the server accepts</p>.
  *
@@ -36,31 +29,40 @@ const COMMAND_DUMP_CONFIG = "config"
  * <p><b>CONFIG</b> - Command to have the server dump the current build config</p>.
  * @type {{BUILD: string, SHUTDOWN: string}}
  */
-export const BuildServerCommand = {
-	SHUTDOWN: COMMAND_SHUTDOWN,
-	BUILD: COMMAND_BUILD,
-	CONFIG: COMMAND_DUMP_CONFIG
+export enum BuildServerCommand {
+	SHUTDOWN = "shutdown",
+	BUILD = "build",
+	CONFIG = "config",
 }
 
-const SOCKET = "socket"
-const MESSAGE_SEPARATOR = String.fromCharCode(23)
-const LOGFILE = 'build.log'
-/**
- * Contains static configuration parameters of the server.
- *
- * <p><b>MESSAGE_SEPARATOR</b> - Seperator used between server messages sent to the client (currently EOM https://en.wikipedia.org/wiki/End_of_message)</p>
- * <p><b>SOCKET</b> - Name of the socket that the server will create within the directory passed via the BuildServer constructor</p>
- * <p><b>LOGFILE</b> - Name of the logfile.</p>
- * @type {{SOCKET: string, MESSAGE_SEPARATOR: string}}
+/*
+Name of the socket that the server will create within the directory passed via the BuildServer constructor
  */
-export const BuildServerConfiguration = {
-	SOCKET,
-	MESSAGE_SEPARATOR,
-	LOGFILE
-}
+export const SOCKET = "socket"
 
+/*
+Seperator used between server messages sent to the client (currently EOM https://en.wikipedia.org/wiki/End_of_message)
+ */
+export const MESSAGE_SEPARATOR = String.fromCharCode(23)
+
+/*
+Name of the logfile.
+ */
+export const LOGFILE = "build.log"
 
 export class BuildServer {
+	private buildServerConfig: BuildServerConfig
+	private builder
+	private serverSocket
+	private watchers
+	private socketPath: string
+	private logFilePath: string
+	private builderConfig
+	private socketServer
+	private bundleWrappers
+	private devServer: DevServer
+	private logStream
+
 	/**
 	 * @param config A BuildServerConfig object
 	 */
@@ -75,10 +77,8 @@ export class BuildServer {
 		 */
 		this.builderConfig = null
 		this.builder = null
-
 		this.serverSocket = null
 		this.watchers = new Watchers()
-
 		this.socketPath = path.join(this.buildServerConfig.directory, SOCKET)
 		this.logFilePath = path.join(this.buildServerConfig.directory, LOGFILE)
 	}
@@ -88,23 +88,24 @@ export class BuildServer {
 	 * @returns {Promise<void>}
 	 */
 	async start() {
-		await this._createTempDir()
-		await this._initLog()
-
+		await this.createTempDir()
+		await this.initLog()
 		this.builder = await import(this.buildServerConfig.builderPath)
-		if (await fs.exists(this.socketPath)) {
+
+		if (fs.existsSync(this.socketPath)) {
 			this.log("Socket already exists, removing", this.socketPath)
 			await fs.remove(this.socketPath)
 		}
-		this.socketServer = createServer(this._connectionListener.bind(this))
-			.listen(this.socketPath)
-			.on("connection", (socket) => {
-				this.serverSocket = socket
-				this.log("Client connected to build server")
-			})
+
+		this.socketServer = createServer(this.connectionListener.bind(this))
+				.listen(this.socketPath)
+				.on("connection", socket => {
+					this.serverSocket = socket
+					this.log("Client connected to build server")
+				})
 		this.log("Build server listening on ", this.socketPath)
 
-		this._startDevServer(this.buildServerConfig.webRoot, this.buildServerConfig.devServerPort)
+		this.startDevServer()
 	}
 
 	/**
@@ -112,123 +113,139 @@ export class BuildServer {
 	 * @returns {Promise<void>}
 	 */
 	async stop() {
-		this._stopDevServer()
+		this.stopDevServer()
 
 		if (this.socketServer) {
 			await this.socketServer.close()
 		}
+
 		if (this.watchers) {
 			this.watchers.stop()
 		}
+
 		if (this.serverSocket) {
 			this.log("Removing build server socket")
 			this.serverSocket.end()
 			this.serverSocket.destroy()
 		}
-		await this._removeSocket()
+
+		await this.removeSocket()
+
 		if (!this.buildServerConfig.preserveLogs) {
 			this.log("Removing build server directory")
-			await this._removeTempDir()
+			await this.removeTempDir()
 		}
+
 		this.logStream.end()
 		this.logStream.destroy()
 	}
 
-
-	async _connectionListener(socket) {
-		socket.on("data", (data) => this._onData(data, (...args) => this._logTee(args)))
-		      .on("error", (data) => this._onError(data, (...args) => this._logTee(args)))
-		      .on("close", (data) => this._onClose(data, (...args) => this._logTee(args)))
+	private async connectionListener(socket) {
+		socket
+				.on("data", data => this.onData(data, (...args) => this.logTee(args)))
+				.on("error", data => this.onError(data, (...args) => this.logTee(args)))
+				.on("close", data => this.onClose(data, (...args) => this.logTee(args)))
 	}
 
 	/**
 	 * Sends a message to the client.
-	 * @param socket
 	 * @param status
 	 * @param message
 	 * @returns {Promise<void>}
 	 * @private
 	 */
-	async _sendToClient(status, message) {
+	private async sendToClient(status, message) {
 		if (this.serverSocket && !this.serverSocket.writable) {
 			return
 		}
+
 		this.serverSocket.write(
-			JSON.stringify({
-				status,
-				message
-			}) + MESSAGE_SEPARATOR
+				JSON.stringify({
+					status,
+					message,
+				}) + MESSAGE_SEPARATOR,
 		)
 	}
 
-	async _onSrcDirChanged(event, path, log) {
+	private async onSrcDirChanged(event, path, log) {
 		try {
-			const normalizedPath = await fs.promises.realpath(path)
+			const normalizedPath = await fs.realpath(path)
 			log("invalidating", normalizedPath)
 			this.bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(normalizedPath))
+
 			if (this.buildServerConfig.autoRebuild) {
 				log("Rebuilding ...")
 				await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
-				const updates = await this._generateBundles()
+				const updates = await this.generateBundles()
 				await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
 				this.devServer?.updateBundles(updates)
 			}
-		} catch (e) {
-			this._sendToClient(STATUS_ERROR, String(e) + e.stack)
+		} catch (e: any) {
+			this.sendToClient(BuildServerStatus.ERROR, String(e) + e.stack)
 		}
 	}
 
-	async _onBuilderChanged() {
+	private async onBuilderChanged() {
 		this.log("Builder code has changed, restarting server ...")
 		// If the builder code changes, we need to force a restart
-		await this._shutdown((...args) => this.log(args))
+		await this.shutdown((...args) => this.log(args))
 	}
 
-	async _setupWatchers(log) {
-		this.watchers.start(log, this.buildServerConfig.watchFolders, (event, path) => this._onSrcDirChanged(event, path, log), this.buildServerConfig.builderPath, this._onBuilderChanged.bind(this))
+	private async setupWatchers(log) {
+		this.watchers.start(
+				log,
+				this.buildServerConfig.watchFolders,
+				(event, path) => this.onSrcDirChanged(event, path, log),
+				this.buildServerConfig.builderPath,
+				this.onBuilderChanged.bind(this),
+		)
 	}
 
-	async _runInitialBuild(log) {
+	private async runInitialBuild(log) {
 		this.log("initial build")
-		this._stopDevServer()
+
+		this.stopDevServer()
+
 		if (this.buildServerConfig.devServerPort) {
-			this._startDevServer()
+			this.startDevServer()
 		}
 
 		await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
-		this.bundleWrappers = await this.builder.build(
-			this.builderConfig,
-			this.buildServerConfig,
-			(...message) => {log("Builder: " + message.join(" "))}
-		)
-		await this._generateBundles(log)
+		this.bundleWrappers = await this.builder.build(this.builderConfig, this.buildServerConfig, (...message) => {
+			log("Builder: " + message.join(" "))
+		})
+		await this.generateBundles()
 		await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
-		await this._setupWatchers(log)
+		await this.setupWatchers(log)
 	}
 
-	async _generateBundles(log) {
+	private async generateBundles() {
 		const result = []
+
 		if (this.bundleWrappers && Array.isArray(this.bundleWrappers)) {
 			for (const wrapper of this.bundleWrappers) {
 				result.push(await wrapper.generate())
 			}
 		}
+
 		return result
 	}
 
-	_parseClientMessage(data) {
+	private parseClientMessage(data) {
 		const dataAsString = data.toString()
 		const {command, options} = JSON.parse(dataAsString)
-		return {command, options}
+		return {
+			command,
+			options,
+		}
 	}
 
 	/**
 	 * Stops the server and ends the process it is running in
-	 * @param socket
 	 * @returns {Promise<void>}
 	 * @private
 	 */
-	async _shutdown(log) {
+	private async shutdown(log) {
 		try {
 			log("Shutting down server")
 			await this.stop()
@@ -241,35 +258,43 @@ export class BuildServer {
 		}
 	}
 
-	async _onData(data, log) {
-		const {command, options} = this._parseClientMessage(data)
+	private async onData(data, log) {
+		const {command, options} = this.parseClientMessage(data)
+
 		try {
-			if (command === COMMAND_SHUTDOWN) {
-				await this._shutdown(log)
-			} else if (command === COMMAND_BUILD) {
+			if (command === BuildServerCommand.SHUTDOWN) {
+				await this.shutdown(log)
+			} else if (command === BuildServerCommand.BUILD) {
 				log("New build request with parameters: " + JSON.stringify(options))
 				const newConfig = options
-				if (!this.builderConfig || !this._isSameConfig(newConfig, this.builderConfig)) {
-					log(`Config has changed, rebuilding old: ${JSON.stringify(this.builderConfig)}, new: ${JSON.stringify(newConfig)}`)
+
+				if (!this.builderConfig || !this.isSameConfig(newConfig, this.builderConfig)) {
+					log(
+							`Config has changed, rebuilding old: ${JSON.stringify(
+									this.builderConfig,
+							)}, new: ${JSON.stringify(newConfig)}`,
+					)
 					this.bundleWrappers = null
 					this.builderConfig = newConfig
 				}
+
 				if (this.bundleWrappers == null) {
-					await this._runInitialBuild(log)
+					await this.runInitialBuild(log)
 				} else {
 					await this.builder.preBuild?.(this.builderConfig, this.buildServerConfig, log)
-					await this._generateBundles(log)
+					await this.generateBundles()
 					await this.builder.postBuild?.(this.builderConfig, this.buildServerConfig, log)
 				}
-				this._sendToClient(STATUS_OK, "Build finished")
-			} else if (command === COMMAND_DUMP_CONFIG) {
-				await this._sendToClient(STATUS_CONFIG, this.buildServerConfig)
+
+				this.sendToClient(BuildServerStatus.OK, "Build finished")
+			} else if (command === BuildServerCommand.CONFIG) {
+				await this.sendToClient(BuildServerStatus.CONFIG, this.buildServerConfig)
 			} else {
 				log("Unknown command: " + command)
 			}
-		} catch (e) {
+		} catch (e: any) {
 			log("Error:", String(e), e.stack)
-			await this._sendToClient(STATUS_ERROR, String(e) + e.stack)
+			await this.sendToClient(BuildServerStatus.ERROR, String(e) + e.stack)
 		}
 	}
 
@@ -278,57 +303,63 @@ export class BuildServer {
 	 * @param args
 	 * @private
 	 */
-	_logTee(...args) {
+	private logTee(...args): void {
 		if (!args || !Array.isArray(args)) {
 			return
 		}
 
 		const message = args.join(" ").trimRight()
 
-		if (this._canWriteToSocket()) {
-			this._sendToClient(STATUS_INFO, message)
+		if (this.canWriteToSocket()) {
+			this.sendToClient(BuildServerStatus.INFO, message)
 		}
+
 		this.log(args)
 	}
 
-	async _onError(error, log) {
+	private async onError(error, log): Promise<void> {
 		log("Socket error: ", error)
 	}
 
-	async _onClose(data, log) {
+	private async onClose(data, log) {
 		log("Client close")
 	}
 
-	_stopDevServer() {
+	private stopDevServer() {
 		if (this.devServer) {
 			this.devServer.stop()
 			this.devServer = null
 		}
 	}
 
-	_startDevServer() {
-		this.devServer = new DevServer(this.buildServerConfig.webRoot, this.buildServerConfig.spaRedirect, this.buildServerConfig.devServerPort, this._logTee.bind(this))
+	private startDevServer() {
+		this.devServer = new DevServer(
+				this.buildServerConfig.webRoot,
+				this.buildServerConfig.spaRedirect,
+				this.buildServerConfig.devServerPort,
+				this.logTee.bind(this),
+		)
 		this.devServer.start()
 	}
 
-	async _initLog() {
+	private async initLog() {
 		this.logStream = fs.createWriteStream(this.logFilePath)
 	}
 
-	async _createTempDir() {
-		await fs.mkdirs(this.buildServerConfig.directory)
+	private async createTempDir() {
+		await fs.mkdirSync(this.buildServerConfig.directory, {recursive: true})
 	}
 
-	async _removeTempDir() {
-		await fs.rm(this.buildServerConfig.directory, {recursive: true})
+	private async removeTempDir() {
+		await fs.rmdirSync(this.buildServerConfig.directory)
 	}
 
-	async _removeSocket() {
+	private async removeSocket() {
 		// there appears to be no reasonable way to check for the existence of a file, so we just empty catch an error if it does not exist
 		try {
 			await fs.unlink(this.socketPath)
-		} catch (e) {
-			this._logTee("Could not remove socket:", e.message)
+		} catch (e: any) {
+			this.logTee("Could not remove socket:", e.message)
 		}
 	}
 
@@ -340,20 +371,22 @@ export class BuildServer {
 		}
 	}
 
-	_canWriteToSocket() {
+	private canWriteToSocket() {
 		if (this.serverSocket && this.serverSocket.writable) {
 			return true
 		}
+
 		return false
 	}
 
-	_isSameConfig(oldConfig, newConfig) {
+	private isSameConfig(oldConfig, newConfig) {
 		// Assuming all keys are specified in both
 		for (const [oldKey, oldValue] of Object.entries(oldConfig)) {
 			if (newConfig[oldKey] !== oldValue) {
 				return false
 			}
 		}
+
 		return true
 	}
 }

@@ -1,4 +1,4 @@
-import {BuildServer, BuildServerCommand, BuildServerConfiguration, BuildServerStatus} from "../index.js"
+import {BuildServer, BuildServerCommand, BuildServerStatus, MESSAGE_SEPARATOR, SOCKET} from "../src/index.js"
 import o from "ospec"
 import os from "os"
 import path from "path"
@@ -6,6 +6,7 @@ import fs from "fs"
 import {createConnection} from "net"
 import http from "http"
 import {BuildServerConfig} from "../src/BuildServerConfig.js"
+import {LOGFILE} from "../src/BuildServer.js";
 
 const directoryPrefix = path.join(os.tmpdir(), 'tutanota-build-tools-test-')
 
@@ -13,25 +14,26 @@ const directoryPrefix = path.join(os.tmpdir(), 'tutanota-build-tools-test-')
  is already bound to another process and hence prevent the tests from randomly failing ...
  **/
 const devServerPort = 43124
-const builderPath = path.resolve('test/DummyBuilder.js')
+const builderPath = path.resolve('DummyBuilder.js')
 const preserveLogs = true
 const directory = fs.mkdtempSync(directoryPrefix)
 const watchFolders = path.resolve('test')
-const webRoot = path.resolve('test/dummy_webroot/')
+const webRoot = path.resolve('resources/dummy_webroot/')
 const spaRedirect = true
 
 const buildServerConfig = new BuildServerConfig(
-	builderPath,
-	watchFolders,
-	devServerPort,
-	webRoot,
-	spaRedirect,
-	preserveLogs,
-	directory,
+		builderPath,
+		[watchFolders],
+		devServerPort,
+		webRoot,
+		spaRedirect,
+		preserveLogs,
+		directory,
+		false
 )
 
-const logFile = path.join(directory, BuildServerConfiguration.LOGFILE)
-const socketPath = path.join(directory, BuildServerConfiguration.SOCKET)
+const logFile = path.join(directory, LOGFILE)
+const socketPath = path.join(directory, SOCKET)
 
 const BUILD_STATUS_WAITING = "waiting"
 const BUILD_STATUS_SUCCESS = "success"
@@ -48,7 +50,7 @@ o.spec("BuildServer", function () {
 		await buildServer.start()
 		clientSocket = await connectToServer((data) => {
 			const dataAsString = data.toString()
-			const messagesAsJSON = dataAsString.split(BuildServerConfiguration.MESSAGE_SEPARATOR)
+			const messagesAsJSON = dataAsString.split(MESSAGE_SEPARATOR)
 			messagesAsJSON.forEach((serverMessage) => {
 				if (serverMessage.length > 1) {
 					const {status, message} = JSON.parse(serverMessage)
@@ -88,7 +90,7 @@ o.spec("BuildServer", function () {
 					reject()
 				})
 				res.on('data', (data) => {
-					resolve()
+					resolve(null)
 				})
 			})
 			request.end()
@@ -110,7 +112,7 @@ o.spec("BuildServer", function () {
 					reject()
 				})
 				res.on('data', (data) => {
-					resolve()
+					resolve(null)
 				})
 			})
 			request.end()
@@ -120,10 +122,10 @@ o.spec("BuildServer", function () {
 	o("Server should execute build", async function () {
 		buildStatus = BUILD_STATUS_WAITING
 		const data = JSON.stringify(
-			{
-				command: BuildServerCommand.BUILD,
-				options: {success: true}
-			}
+				{
+					command: BuildServerCommand.BUILD,
+					options: {success: true}
+				}
 		)
 
 		clientSocket.write(data)
@@ -136,9 +138,9 @@ o.spec("BuildServer", function () {
 
 	o("Server should dump config", async function () {
 		const data = JSON.stringify(
-			{
-				command: BuildServerCommand.CONFIG
-			}
+				{
+					command: BuildServerCommand.CONFIG
+				}
 		)
 
 		clientSocket.write(data)
@@ -147,6 +149,7 @@ o.spec("BuildServer", function () {
 			await new Promise(r => setTimeout(r, 50));
 		}
 
+		// @ts-ignore
 		o(buildServerConfig.equals(configDump)).deepEquals(true)
 	})
 
@@ -167,12 +170,12 @@ o.spec("BuildServer", function () {
 async function connectToServer(onData) {
 	return new Promise((resolve, reject) => {
 		const clientSocket = createConnection(socketPath)
-			.on("data", onData)
-			.on("error", function (data) {
-				reject(new Error(data.toString()))
-			})
-			.on("connect", function (data) {
-				resolve(clientSocket)
-			})
+				.on("data", onData)
+				.on("error", function (data) {
+					reject(new Error(data.toString()))
+				})
+				.on("connect", function (data) {
+					resolve(clientSocket)
+				})
 	})
 }
