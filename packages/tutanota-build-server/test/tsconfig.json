@@ -1,0 +1,14 @@
+{
+  "extends": "../../../tsconfig_common.json",
+  "files": [
+	"index.ts",
+	"DummyBuilder.ts"
+  ],
+  "include": [
+	"dummy_webroot/"
+  ],
+  "compilerOptions": {
+	"outDir": "../build",
+	"declaration": false
+  }
+}
