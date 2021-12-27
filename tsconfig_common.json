@@ -5,6 +5,8 @@
 	  "webworker",
 	  "dom"
 	],
+	"allowJs": true,
+	"checkJs": false,
 	"target": "ES2020",
 	"module": "ES2020",
 	"moduleResolution": "node",
@@ -19,12 +21,6 @@
 	"noUnusedParameters": false,
 	"esModuleInterop": true,
 	"strict": false,
-	"strictBindCallApply": false,
-	"strictFunctionTypes": false,
-	"strictPropertyInitialization": false,
-	"noStrictGenericChecks": false,
-	"strictNullChecks": false,
-	"useUnknownInCatchVariables": false,
 	"paths": {
 	  "global": [
 		"./types/globals.d.ts"
