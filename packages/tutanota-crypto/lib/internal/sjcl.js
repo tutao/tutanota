@@ -8,7 +8,7 @@
  * @author Dan Boneh
  */
 
-
+// FORKED from SJCL 1.0.7
 // CHANGED (tutao.arm)
 // - added option to not use padding in encrypt/decrypt in cbc mode
 // Configured with: ./configure --with-codecArrayBuffer --with-cbc --with-sha1 --with-sha512 --with-codecBytes --without-ccm --without-ocb2 --without-pbkdf2 --without-convenience --compress=none
@@ -19,6 +19,7 @@
 /**
  * The Stanford Javascript Crypto Library, top-level namespace.
  * @namespace
+ * @type any
  */
 var sjcl = {
 	/**

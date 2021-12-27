@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig_common.json",
+  "files": [
+	"Suite.ts"
+  ],
+  "compilerOptions": {
+	"outDir": "../build",
+	"declaration": false
+  }
+}

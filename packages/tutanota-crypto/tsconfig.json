@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig_common.json",
+  "include": [
+	"lib/encryption",
+	"lib/hashes",
+	"lib/misc",
+	"lib/random"
+  ],
+  "files": [
+	"lib/index.ts"
+  ],
+  "compilerOptions": {
+	"outDir": "dist"
+  }
+}

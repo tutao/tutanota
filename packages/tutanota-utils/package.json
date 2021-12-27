@@ -2,7 +2,7 @@
   "name": "@tutao/tutanota-utils",
   "version": "3.91.0",
   "license": "GPL-3.0",
-  "main": "./lib/index.js",
+  "main": "./dist/index.js",
   "repository": {
 	"type": "git",
 	"url": "https://github.com/tutao/tutanota.git",
