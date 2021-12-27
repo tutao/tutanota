@@ -1,25 +1,21 @@
-// @flow
-import {TypeRef} from "./TypeRef"
+import {TypeRef} from "./TypeRef.js"
 
-
-export type lazy<T> = () => T;
-export type lazyAsync<T> = () => Promise<T>;
-export type Thunk = () => mixed
-
+export type lazy<T> = () => T
+export type lazyAsync<T> = () => Promise<T>
+export type Thunk = () => unknown
 export type DeferredObject<T> = {
-	resolve: (T) => void,
-	reject: (Error) => void,
-	promise: Promise<T>,
+	resolve: (arg0: T) => void
+	reject: (arg0: Error) => void
+	promise: Promise<T>
 }
-
 export type DeferredObjectWithHandler<T, U> = {
-	resolve: (T) => void,
-	reject: (Error) => void,
-	promise: Promise<U>,
+	resolve: (arg0: T) => void
+	reject: (arg0: Error) => void
+	promise: Promise<U>
 }
 
 export function defer<T>(): DeferredObject<T> {
-	let ret = {}
+	let ret: DeferredObject<T> = {} as DeferredObject<T>
 	ret.promise = new Promise((resolve, reject) => {
 		ret.resolve = resolve
 		ret.reject = reject
@@ -27,46 +23,55 @@ export function defer<T>(): DeferredObject<T> {
 	return ret
 }
 
-export function deferWithHandler<T, U>(handler: T => U): DeferredObjectWithHandler<T, U> {
-	const deferred = {}
-	deferred.promise = new Promise((resolve, reject) => {
-		deferred.resolve = resolve
-		deferred.reject = reject
-	}).then(handler)
+export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectWithHandler<T, U> {
+	const deferred = {} as DeferredObjectWithHandler<T, U>
+	deferred.promise = new Promise(
+			(resolve: (T) => void, reject) => {
+				deferred.resolve = resolve
+				deferred.reject = reject
+			}).then(handler)
 	return deferred
 }
 
 export async function asyncFind<T>(
-	array: $ReadOnlyArray<T>,
-	finder: (item: T, index: number, arrayLength: number) => Promise<boolean>
-): Promise<?T> {
+		array: ReadonlyArray<T>,
+		finder: (item: T, index: number, arrayLength: number) => Promise<boolean>,
+): Promise<T | null | undefined> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
+
 		if (await finder(item, i, array.length)) {
 			return item
 		}
 	}
+
 	return null
 }
 
 export async function asyncFindAndMap<T, R>(
-	array: $ReadOnlyArray<T>,
-	finder: (item: T, index: number, arrayLength: number) => Promise<?R>
-): Promise<?R> {
+		array: ReadonlyArray<T>,
+		finder: (item: T, index: number, arrayLength: number) => Promise<R | null | undefined>,
+): Promise<R | null | undefined> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 		const mapped = await finder(item, i, array.length)
+
 		if (mapped) {
 			return mapped
 		}
 	}
+
 	return null
 }
 
 /**
  * Calls an executor function for slices of nbrOfElementsInGroup items of the given array until the executor function returns false.
  */
-export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, executor: (items: T[]) => Promise<boolean>): Promise<void> {
+export function executeInGroups<T>(
+		array: T[],
+		nbrOfElementsInGroup: number,
+		executor: (items: T[]) => Promise<boolean>,
+): Promise<void> {
 	if (array.length > 0) {
 		let nextSlice = Math.min(array.length, nbrOfElementsInGroup)
 		return executor(array.slice(0, nextSlice)).then(doContinue => {
@@ -79,14 +84,15 @@ export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, exe
 	}
 }
 
-export function neverNull<T>(object: ?T): T {
-	return (object: any)
+export function neverNull<T>(object: T | null | undefined): T {
+	return object as any
 }
 
-export function assertNotNull<T>(object: ?T, message: string = "null"): T {
+export function assertNotNull<T>(object: T | null | undefined, message: string = "null"): T {
 	if (object == null) {
 		throw new Error("AssertNotNull failed : " + message)
 	}
+
 	return object
 }
 
@@ -96,8 +102,8 @@ export function assert(assertion: MaybeLazy<boolean>, message: string) {
 	}
 }
 
-export function downcast<R>(object: *): R {
-	return (object: any)
+export function downcast<R>(object: any): R {
+	return object as any
 }
 
 export function clone<T>(instance: T): T {
@@ -106,17 +112,19 @@ export function clone<T>(instance: T): T {
 	} else if (instance instanceof Array) {
 		return downcast<T>(instance.map(i => clone(i)))
 	} else if (instance instanceof Date) {
-		return (new Date(instance.getTime()): any)
+		return new Date(instance.getTime()) as any
 	} else if (instance instanceof TypeRef) {
 		return instance
 	} else if (instance instanceof Object) {
 		// Can only pass null or Object, cannot pass undefined
 		const copy = Object.create(Object.getPrototypeOf(instance) || null)
 		Object.assign(copy, instance)
+
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
 		}
-		return (copy: any)
+
+		return copy as any
 	} else {
 		return instance
 	}
@@ -136,7 +144,7 @@ export function lazyMemoized<T>(source: () => T): () => T {
 			return value
 		} else {
 			cached = true
-			return value = source()
+			return (value = source())
 		}
 	}
 }
@@ -147,16 +155,17 @@ export function lazyMemoized<T>(source: () => T): () => T {
  * If the cached argument has changed then {@param fn} will be called with new argument and result will be cached again.
  * Only remembers the last argument.
  */
-export function memoized<T, R>(fn: (T) => R): (T) => R {
+export function memoized<T, R>(fn: (arg0: T) => R): (arg0: T) => R {
 	let lastArg: T
 	let lastResult: R
 	let didCache = false
-	return (arg) => {
+	return arg => {
 		if (!didCache || arg !== lastArg) {
 			lastArg = arg
 			didCache = true
 			lastResult = fn(arg)
 		}
+
 		return lastResult
 	}
 }
@@ -171,20 +180,22 @@ export function identity<T>(t: T): T {
 /**
  * Function which does nothing.
  */
-export function noOp() {}
+export function noOp() {
+}
 
 /**
  * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
  * Executes function with the last passed arguments
  * @return {Function}
  */
-export function debounce<F: (...args: any) => void>(timeout: number, toThrottle: F): F {
+export function debounce<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
 	let timeoutId
-	let toInvoke: (...args: any) => void;
+	let toInvoke: (...args: any) => void
 	return downcast((...args) => {
 		if (timeoutId) {
 			clearTimeout(timeoutId)
 		}
+
 		toInvoke = toThrottle.bind(null, ...args)
 		timeoutId = setTimeout(toInvoke, timeout)
 	})
@@ -197,8 +208,8 @@ export function debounce<F: (...args: any) => void>(timeout: number, toThrottle:
  * So the first and the last invocations in a series of invocations always take place
  * but ones in the middle (which happen too often) are discarded.}
  */
-export function debounceStart<F: (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: ?TimeoutID
+export function debounceStart<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
+	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
 	let lastInvoked = 0
 	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
@@ -210,30 +221,34 @@ export function debounceStart<F: (...args: any) => void>(timeout: number, toThro
 		} else {
 			toThrottle.apply(null, args)
 		}
+
 		lastInvoked = Date.now()
 	})
 }
 
 export function randomIntFromInterval(min: number, max: number): number {
-	return Math.floor(Math.random() * (max - min + 1) + min);
+	return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 export function errorToString(error: Error): string {
 	let errorString = error.name ? error.name : "?"
+
 	if (error.message) {
 		errorString += `\n Error message: ${error.message}`
 	}
+
 	if (error.stack) {
 		// the error id is included in the stacktrace
 		errorString += `\nStacktrace: \n${error.stack}`
 	}
+
 	return errorString
 }
 
 /**
  * Like {@link Object.entries} but preserves the type of the key and value
  */
-export function objectEntries<A: (string | Symbol), B>(object: {[A]: B}): Array<[A, B]> {
+export function objectEntries<A extends string | symbol, B>(object: Record<A, B>): Array<[A, B]> {
 	return downcast(Object.entries(object))
 }
 
@@ -243,34 +258,48 @@ export function objectEntries<A: (string | Symbol), B>(object: {[A]: B}): Array<
 export function deepEqual(a: any, b: any): boolean {
 	if (a === b) return true
 	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
+
 	if (typeof a === "object" && typeof b === "object") {
-		const aIsArgs = isArguments(a), bIsArgs = isArguments(b)
-		if (a.length === b.length && (a instanceof Array && b instanceof Array || aIsArgs && bIsArgs)) {
-			const aKeys = Object.getOwnPropertyNames(a), bKeys = Object.getOwnPropertyNames(b)
+		const aIsArgs = isArguments(a),
+				bIsArgs = isArguments(b)
+
+		if (a.length === b.length && ((a instanceof Array && b instanceof Array) || (aIsArgs && bIsArgs))) {
+			const aKeys = Object.getOwnPropertyNames(a),
+					bKeys = Object.getOwnPropertyNames(b)
 			if (aKeys.length !== bKeys.length) return false
+
 			for (let i = 0; i < aKeys.length; i++) {
 				if (!hasOwn.call(b, aKeys[i]) || !deepEqual(a[aKeys[i]], b[aKeys[i]])) return false
 			}
+
 			return true
 		}
+
 		if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+
 		if (a instanceof Object && b instanceof Object && !aIsArgs && !bIsArgs) {
 			for (let i in a) {
-				if ((!(i in b)) || !deepEqual(a[i], b[i])) return false
+				if (!(i in b) || !deepEqual(a[i], b[i])) return false
 			}
+
 			for (let i in b) {
 				if (!(i in a)) return false
 			}
+
 			return true
 		}
+
 		if (typeof Buffer === "function" && a instanceof Buffer && b instanceof Buffer) {
 			for (let i = 0; i < a.length; i++) {
 				if (a[i] !== b[i]) return false
 			}
+
 			return true
 		}
+
 		if (a.valueOf() === b.valueOf()) return true
 	}
+
 	return false
 }
 
@@ -283,11 +312,12 @@ function xor(a, b): boolean {
 function isArguments(a) {
 	if ("callee" in a) {
 		for (let i in a) if (i === "callee") return false
+
 		return true
 	}
 }
 
-const hasOwn = ({}).hasOwnProperty
+const hasOwn = {}.hasOwnProperty
 
 /**
  * returns an array of top-level properties that are in both objA and objB, but differ in value
@@ -297,9 +327,9 @@ const hasOwn = ({}).hasOwnProperty
 export function getChangedProps(objA: any, objB: any): Array<string> {
 	if (objA == null || objB == null || objA === objB) return []
 	return Object.keys(objA)
-	             .filter(k => Object.keys(objB).includes(k))
-	             .filter(k => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
-	             .filter(k => !deepEqual(objA[k], objB[k]))
+			.filter(k => Object.keys(objB).includes(k))
+			.filter(k => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
+			.filter(k => !deepEqual(objA[k], objB[k]))
 }
 
 /**
@@ -309,25 +339,23 @@ export function getChangedProps(objA: any, objB: any): Array<string> {
  * @return {unknown}
  */
 export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
-	function mapSet(key) {
-		throw new Error('Can\'t add property ' + key + ', map is not extensible')
+	function mapSet(key: K, value: V): Map<K, V> {
+		throw new Error("Can't add property " + key + ", map is not extensible")
 	}
 
-	function mapDelete(key) {
-		throw new Error('Can\'t delete property ' + key + ', map is frozen')
+	function mapDelete(key: K): boolean {
+		throw new Error("Can't delete property " + key + ", map is frozen")
 	}
 
 	function mapClear() {
-		throw new Error('Can\'t clear map, map is frozen')
+		throw new Error("Can't clear map, map is frozen")
 	}
 
-	const anyMap = downcast(myMap)
+	const anyMap = downcast<Map<K, V>>(myMap)
 	anyMap.set = mapSet
 	anyMap.delete = mapDelete
 	anyMap.clear = mapClear
-
 	Object.freeze(anyMap)
-
 	return anyMap
 }
 
@@ -338,35 +366,35 @@ export function addressDomain(senderAddress: string): string {
 /**
  * Ignores the fact that Object.keys returns also not owned properties.
  */
-export function typedKeys<K: string, V>(obj: {[K]: V}): Array<K> {
+export function typedKeys<K extends string, V>(obj: Record<K, V>): Array<K> {
 	return downcast(Object.keys(obj))
 }
 
 /**
  * Ignores the fact that Object.keys returns also not owned properties.
  */
-export function typedEntries<K: string, V>(obj: {[K]: V}): Array<[K, V]> {
+export function typedEntries<K extends string, V>(obj: Record<K, V>): Array<[K, V]> {
 	return downcast(Object.entries(obj))
 }
 
 /**
  * Ignores the fact that Object.keys returns also not owned properties.
  */
-export function typedValues<K: string, V>(obj: {[K]: V}): Array<V> {
+export function typedValues<K extends string, V>(obj: Record<K, V>): Array<V> {
 	return downcast(Object.values(obj))
 }
 
-export type MaybeLazy<T> = T | lazy<T>;
+export type MaybeLazy<T> = T | lazy<T>
 
 export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {
-	return (typeof maybe === "function" ? downcast(maybe)() : maybe)
+	return typeof maybe === "function" ? (maybe as Function)() : maybe
 }
 
 export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {
-	return (typeof maybe === "function" ? downcast(maybe) : () => maybe)
+	return typeof maybe === "function" ? downcast(maybe) : () => maybe
 }
 
-export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (T) => U): lazy<U> {
+export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (arg0: T) => U): lazy<U> {
 	return () => mapping(resolveMaybeLazy(maybe))
 }
 
@@ -376,41 +404,42 @@ export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (T) => U): lazy<U>
  */
 export function filterInt(value: string): number {
 	if (/^\d+$/.test(value)) {
-		return parseInt(value, 10);
+		return parseInt(value, 10)
 	} else {
-		return NaN;
+		return NaN
 	}
 }
 
 interface Positioned {
-	x: number,
-	y: number,
+	x: number
+	y: number
 }
 
 interface Sized {
-	top: number,
-	left: number,
-	bottom: number,
-	right: number,
+	top: number
+	left: number
+	bottom: number
+	right: number
 }
 
 export function insideRect(point: Positioned, rect: Sized): boolean {
-	return point.x >= rect.left && point.x < rect.right
-		&& point.y >= rect.top && point.y < rect.bottom
+	return point.x >= rect.left && point.x < rect.right && point.y >= rect.top && point.y < rect.bottom
 }
 
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-export function mapNullable<T, U>(val: ?T, action: T => ?U): U | null {
+export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) => U | null | undefined): U | null {
 	if (val != null) {
 		const result = action(val)
+
 		if (result != null) {
 			return result
 		}
 	}
+
 	return null
 }
 
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
-export type TimeoutSetter = (fn: () => mixed, number) => TimeoutID
+export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>

@@ -1,4 +1,3 @@
-// @flow
 export {
 	concat,
 	numberRange,
@@ -37,16 +36,9 @@ export {
 	difference,
 	symmetricDifference,
 	partition,
-} from "./ArrayUtils"
-
-export {
-	AsyncResult,
-} from "./AsyncResult"
-
-export {
-	intersection,
-} from "./CollectionUtils"
-
+} from "./ArrayUtils.js"
+export {AsyncResult} from "./AsyncResult.js"
+export {intersection} from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
 	getStartOfNextDay,
@@ -66,8 +58,7 @@ export {
 	isValidDate,
 	millisToDays,
 	daysToMillis,
-} from "./DateUtils"
-
+} from "./DateUtils.js"
 export {
 	uint8ArrayToArrayBuffer,
 	hexToBase64,
@@ -87,34 +78,12 @@ export {
 	decodeQuotedPrintable,
 	decodeBase64,
 	stringToBase64,
-} from "./Encoding"
-
-export type {
-	Base64,
-	Base64Ext,
-	Base64Url,
-	Hex
-} from "./Encoding"
-
-export {
-	LazyLoaded
-} from "./LazyLoaded"
-
-export {
-	mergeMaps,
-	getFromMap,
-	addMapEntry,
-	deleteMapEntry,
-} from "./MapUtils"
-
-export {
-	pMap,
-} from "./PromiseMap"
-
-export type {
-	Mapper,
-} from "./PromiseMap"
-
+} from "./Encoding.js"
+export type {Base64, Base64Ext, Base64Url, Hex} from "./Encoding.js"
+export {LazyLoaded} from "./LazyLoaded.js"
+export {mergeMaps, getFromMap, addMapEntry, deleteMapEntry} from "./MapUtils.js"
+export {pMap} from "./PromiseMap.js"
+export type {Mapper} from "./PromiseMap.js"
 export {
 	mapInCallContext,
 	promiseMap,
@@ -124,21 +93,10 @@ export {
 	tap,
 	ofClass,
 	promiseFilter,
-} from "./PromiseUtils"
-
-export type {
-	PromiseMapFn,
-	$Promisable
-} from "./PromiseUtils"
-
-export {
-	SortedArray,
-} from "./SortedArray"
-
-export type {
-	CompareFn
-} from "./SortedArray"
-
+} from "./PromiseUtils.js"
+export type {PromiseMapFn, $Promisable} from "./PromiseUtils.js"
+export {SortedArray} from "./SortedArray.js"
+export type {CompareFn} from "./SortedArray.js"
 export {
 	pad,
 	startsWith,
@@ -153,14 +111,8 @@ export {
 	localeCompare,
 	byteLength,
 	replaceAll,
-} from "./StringUtils"
-
-export {
-	TypeRef,
-	isSameTypeRefByAttr,
-	isSameTypeRef
-} from "./TypeRef"
-
+} from "./StringUtils.js"
+export {TypeRef, isSameTypeRefByAttr, isSameTypeRef} from "./TypeRef.js"
 export {
 	defer,
 	deferWithHandler,
@@ -194,14 +146,7 @@ export {
 	filterInt,
 	insideRect,
 	mapNullable,
-} from "./Utils"
-
+} from "./Utils.js"
 export type {
-	DeferredObject,
-	lazy,
-	lazyAsync,
-	Thunk,
-	DeferredObjectWithHandler,
-	MaybeLazy,
-	TimeoutSetter
-} from "./Utils"
+	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter
+} from "./Utils.js"
