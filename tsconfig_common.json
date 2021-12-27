@@ -2,7 +2,8 @@
   "compilerOptions": {
 	"lib": [
 	  "ES2020",
-	  "webworker"
+	  "webworker",
+	  "dom"
 	],
 	"target": "ES2020",
 	"module": "ES2020",
@@ -23,6 +24,11 @@
 	"strictPropertyInitialization": false,
 	"noStrictGenericChecks": false,
 	"strictNullChecks": false,
-	"useUnknownInCatchVariables": false
+	"useUnknownInCatchVariables": false,
+	"paths": {
+	  "global": [
+		"./types/globals.d.ts"
+	  ]
+	}
   }
 }

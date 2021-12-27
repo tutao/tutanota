@@ -1,6 +1,5 @@
-// @flow
-import type {lazyAsync} from "./Utils"
-import {neverNull} from "./Utils"
+import type {lazyAsync} from "./Utils.js"
+import {neverNull} from "./Utils.js"
 
 /**
  * A wrapper for an object that shall be lazy loaded asynchronously. If loading the object is triggered in parallel (getAsync()) the object is actually only loaded once but returned to all calls of getAsync().
@@ -9,15 +8,15 @@ import {neverNull} from "./Utils"
 export class LazyLoaded<T> {
 
 	_isLoaded: boolean
-	_loadingPromise: ?Promise<T>; // null if loading is not started yet
-	_loadedObject: ?T;
+	_loadingPromise: Promise<T> | null; // null if loading is not started yet
+	_loadedObject: T | null;
 	_loadFunction: lazyAsync<T>;
 
 	/**
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
 	 * @param defaultValue The value that shall be returned by getSync() or getLoaded() as long as the object is not loaded yet.
 	 */
-	constructor(loadFunction: lazyAsync<T>, defaultValue: ?T) {
+	constructor(loadFunction: lazyAsync<T>, defaultValue: T | null) {
 		this._isLoaded = false
 		this._loadFunction = loadFunction
 		this._loadingPromise = null
@@ -54,7 +53,7 @@ export class LazyLoaded<T> {
 	/**
 	 * Returns null if the object is not loaded yet.
 	 */
-	getSync(): ?T {
+	getSync(): T | null {
 		return this._loadedObject
 	}
 

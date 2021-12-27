@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig_common.json",
+  "include": ["lib"],
+  "compilerOptions": {
+	"outDir": "dist"
+  }
+}
