@@ -408,8 +408,8 @@ o.spec("EntityRestClient", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(
 				function (path: string,
 				          method: HttpMethodEnum,
-				          queryParams: Params,
-				          headers: Params,
+				          queryParams: Dict,
+				          headers: Dict,
 				          body: ?string,
 				          responseType: ?MediaTypeEnum,
 				          progressListener: ?ProgressListener,

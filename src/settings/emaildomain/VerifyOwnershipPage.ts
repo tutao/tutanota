@@ -1,6 +1,6 @@
 
 import {CustomDomainValidationResult} from "../../api/common/TutanotaConstants"
-import m, {Children, Vnode} from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import type {AddDomainData} from "./AddDomainWizard"
 import {createDnsRecordTable} from "./AddDomainWizard"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -22,7 +22,9 @@ export const enum CustomDomainFailureReasons {
 }
 
 export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
-    oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	private dom!: HTMLElement
+    oncreate(vnode: VnodeDOM<WizardPageAttrs<AddDomainData>>) {
+		this.dom = vnode.dom as HTMLElement
         // We expect that the page is created again each time when domain is changed so we only need to load it in oncreate.
         const {data} = vnode.attrs
         locator.customerFacade.getDomainValidationRecord(data.domain()).then(recordValue => {
@@ -55,7 +57,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
                     m(ButtonN, {
                         type: ButtonType.Login,
                         label: "next_action",
-                        click: () => emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE),
+                        click: () => emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE),
                     }),
                 ),
             ),

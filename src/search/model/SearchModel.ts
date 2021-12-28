@@ -8,6 +8,7 @@ import {ofClass} from "@tutao/tutanota-utils"
 import {arrayEquals} from "@tutao/tutanota-utils"
 import type {SearchFacade} from "../../api/worker/search/SearchFacade"
 import {assertMainOrNode} from "../../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export type SearchQuery = {
     query: string
@@ -22,7 +23,7 @@ export class SearchModel {
     indexingSupported: boolean
     _searchFacade: SearchFacade
     _lastQuery: SearchQuery | null
-    _lastSearchPromise: Promise<SearchResult | null>
+    _lastSearchPromise: Promise<SearchResult | void>
 
     constructor(searchFacade: SearchFacade) {
         this._searchFacade = searchFacade
@@ -38,10 +39,10 @@ export class SearchModel {
             failedIndexingUpTo: null,
         })
         this._lastQuery = null
-        this._lastSearchPromise = Promise.resolve()
+        this._lastSearchPromise = Promise.resolve(null)
     }
 
-    async search(searchQuery: SearchQuery): Promise<SearchResult | null> {
+    async search(searchQuery: SearchQuery): Promise<SearchResult | void> {
         if (this._lastQuery && searchQueryEquals(searchQuery, this._lastQuery)) {
             return this._lastSearchPromise
         }
@@ -70,6 +71,7 @@ export class SearchModel {
                 maxResults: 0,
                 matchWordOrder: false,
                 moreResults: [],
+				moreResultsEntries: []
             }
             this.result(result)
             this._lastSearchPromise = Promise.resolve(result)

@@ -8,6 +8,7 @@ import type {Indexer} from "../api/worker/search/Indexer"
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
 export type windowSizeListener = (width: number, height: number) => unknown
+import {Params} from "mithril"
 
 class WindowFacade {
     _windowSizeListeners: windowSizeListener[]
@@ -89,8 +90,10 @@ class WindowFacade {
 
     openLink(href: string): typeof window {
         if (env.mode === Mode.App) {
+			// @ts-ignore
             return window.open(href, "_system")
         } else {
+			// @ts-ignore
             return window.open(href, "_blank")
         }
     }
@@ -123,8 +126,9 @@ class WindowFacade {
             window.addEventListener("keydown", e => {
                 if (!e.metaKey || e.key === "Meta") return
 
+				const target = e.target as HTMLElement | null
                 // prevent history nav if the active element is an input / squire editor
-                if (e.target && (e.target.tagName === "INPUT" || e.target.contentEditable === "true")) {
+                if (target?.tagName === "INPUT" || target?.contentEditable === "true") {
                     e.stopPropagation()
                 } else if (e.key === "ArrowLeft") {
                     window.history.back()
@@ -219,7 +223,7 @@ class WindowFacade {
         window.addEventListener("offline", listener)
     }
 
-    async reload(args: Record<string, QueryValue>) {
+    async reload(args: Params) {
         if (isApp() || isDesktop() || isAdminClient()) {
             if (!args.hasOwnProperty("noAutoLogin")) {
                 args.noAutoLogin = true

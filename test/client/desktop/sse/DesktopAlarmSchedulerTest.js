@@ -6,7 +6,6 @@ import {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmSch
 import type {AlarmScheduler} from "../../../../src/calendar/date/AlarmScheduler"
 import {CryptoError} from "../../../../src/api/common/error/CryptoError"
 import {lastThrow} from "@tutao/tutanota-utils"
-import {NotificationResult} from "../../../../src/desktop/DesktopConstants"
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
 const oldTimezone = process.env.TZ

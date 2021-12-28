@@ -231,7 +231,7 @@ o.spec("Animations", function () {
 		o("translateX with constant y", function () {
 			const target = newTarget()
 
-			let m = transform(transform.type.translateX, 0, 120).chain(transform.type.translateY, 8, 8)
+			let m = transform(TransformEnum.TranslateX, 0, 120).chain(TransformEnum.TranslateY, 8, 8)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -254,7 +254,7 @@ o.spec("Animations", function () {
 		o("translateY", function () {
 			const target = newTarget()
 
-			let m = transform(transform.type.translateY, 0, 120)
+			let m = transform(TransformEnum.TranslateY, 0, 120)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -267,7 +267,7 @@ o.spec("Animations", function () {
 		o("force gpu on mobile devices (not on desktop)", function () {
 			const target = newTarget()
 
-			let m = transform(transform.type.translateX, 0, 120)
+			let m = transform(TransformEnum.TranslateX, 0, 120)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -281,7 +281,7 @@ o.spec("Animations", function () {
 		o("rotate", function () {
 			const target = newTarget()
 
-			let m = transform(transform.type.rotateY, 0, 120)
+			let m = transform(TransformEnum.RotateY, 0, 120)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -296,7 +296,7 @@ o.spec("Animations", function () {
 		o("background-color", function () {
 			const target = newTarget()
 
-			let m = alpha(alpha.type.backgroundColor, '#000000', 0, 1)
+			let m = alpha(AlphaEnum.BackgroundColor, '#000000', 0, 1)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -318,7 +318,7 @@ o.spec("Animations", function () {
 		o("color", function () {
 			const target = newTarget()
 
-			let m = alpha(alpha.type.color, '#ffffff', 0, 1)
+			let m = alpha(AlphaEnum.Color, '#ffffff', 0, 1)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)

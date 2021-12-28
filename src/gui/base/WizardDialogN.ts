@@ -1,4 +1,4 @@
-import m, {Children, Component} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {Dialog} from "./Dialog"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
@@ -60,9 +60,9 @@ class WizardDialogN<T> implements Component<WizardDialogAttrs<T>> {
 	_closeWizardDialogListener: EventListener
 	_showNextWizardDialogPageListener: EventListener
 
-	oncreate(vnode: Vnode<LifecycleAttrs<WizardDialogAttrs<T>>>) {
+	oncreate(vnode) {
 		// We listen for events triggered by the child WizardPages to close the dialog or show the next page
-		const dom: HTMLElement = vnode.dom
+		const dom: HTMLElement = vnode.dom as HTMLElement
 
 		this._closeWizardDialogListener = (e: Event) => {
 			e.stopPropagation()
@@ -83,13 +83,13 @@ class WizardDialogN<T> implements Component<WizardDialogAttrs<T>> {
 		dom.addEventListener(WizardEventType.SHOWNEXTPAGE, this._showNextWizardDialogPageListener)
 	}
 
-	onremove(vnode: Vnode<LifecycleAttrs<WizardDialogAttrs<T>>>) {
-		const dom: HTMLElement = vnode.dom
+	onremove(vnode) {
+		const dom: HTMLElement = vnode.dom as HTMLElement
 		if (this._closeWizardDialogListener) dom.removeEventListener(WizardEventType.CLOSEDIALOG, this._closeWizardDialogListener)
 		if (this._showNextWizardDialogPageListener) dom.removeEventListener(WizardEventType.SHOWNEXTPAGE, this._showNextWizardDialogPageListener)
 	}
 
-	view(vnode: Vnode<LifecycleAttrs<WizardDialogAttrs<T>>>) {
+	view(vnode) {
 		const a = vnode.attrs
 		return m("#wizardDialogContent.pt", [
 			m(
@@ -277,7 +277,9 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 	const wizardDialogAttrs = new WizardDialogAttrs(
 			data,
 			pages,
-			closeAction ? () => closeAction().then(wizardDialog.close()) : () => Promise.resolve(wizardDialog.close()),
+			closeAction
+					? () => closeAction().then(() => wizardDialog.close())
+					: async () => wizardDialog.close(),
 	)
 	// We replace the dummy values from dialog creation
 	const wizardDialogHeaderBarAttrs = wizardDialogAttrs.getHeaderBarAttrs()
@@ -290,7 +292,9 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 	wizardDialog
 			.addShortcut({
 				key: Keys.ESC,
-				exec: () => wizardDialogAttrs.closeAction(),
+				exec: () => {
+					wizardDialogAttrs.closeAction()
+				},
 				help: "close_alt",
 			})
 			.setCloseHandler(() => wizardDialogAttrs.goToPreviousPageOrClose())

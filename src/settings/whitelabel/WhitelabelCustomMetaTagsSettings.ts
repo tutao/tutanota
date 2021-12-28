@@ -2,7 +2,7 @@ import stream from "mithril/stream/stream.js"
 import {TextFieldType} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonN} from "../../gui/base/ButtonN"
@@ -29,7 +29,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
                 oninput: value => {
                     metaTags = value
                 },
-            }
+            } as const
             editCustomMetaTagsButtonAttrs = {
                 label: "edit_action",
                 click: () => {
@@ -56,7 +56,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
             value: stream(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")),
             disabled: true,
             injectionsRight: () => [editCustomMetaTagsButtonAttrs ? m(ButtonN, editCustomMetaTagsButtonAttrs) : null],
-        }
+        } as const
         return m(TextFieldN, customMetaTagsTextfieldAttrs)
     }
 }

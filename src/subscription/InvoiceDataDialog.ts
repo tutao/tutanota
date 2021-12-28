@@ -12,8 +12,8 @@ export function show(
     businessUse: boolean,
     invoiceData: InvoiceData,
     accountingInfo: AccountingInfo,
-    headingId: TranslationKey | null,
-    infoMessageId: TranslationKey | null,
+    headingId?: TranslationKey,
+    infoMessageId?: TranslationKey,
 ): Dialog {
     const invoiceDataInput = new InvoiceDataInput(businessUse, invoiceData)
 

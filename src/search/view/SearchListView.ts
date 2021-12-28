@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {List} from "../../gui/base/List"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
@@ -23,6 +23,7 @@ import {MailRow} from "../../mail/view/MailRow"
 import {compareContacts} from "../../contacts/view/ContactGuiUtils"
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
 import type {ListElementEntity} from "../../api/common/EntityTypes"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class SearchResultListEntry {
     _id: IdTuple
@@ -141,7 +142,7 @@ export class SearchListView {
                 }
 
                 // save to a local var because flow complains at about it being nullable when returning
-                const deferredResult = defer()
+                const deferredResult = defer<SearchResultListEntry[]>()
                 this._lastSearchResults = deferredResult
 
                 this._loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count).then(results => {

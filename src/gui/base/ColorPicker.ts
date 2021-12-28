@@ -1,4 +1,5 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
+import Stream from "mithril/stream";
 export type ColorPickerAttrs = {
     value: Stream<string>
 }

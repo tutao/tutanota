@@ -3,7 +3,6 @@ import {isTutanotaMailAddress, RecipientInfoType} from "../../api/common/Recipie
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import {createContact} from "../../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../../api/entities/tutanota/ContactMailAddress"
-import type {ConversationType, MailFolderType} from "../../api/common/TutanotaConstants"
 import {
     ContactAddressType,
     ConversationType,

@@ -68,7 +68,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Params, extraHeaders?: Params): Promise<T> {
+	async load<T: SomeEntity>(typeRef: TypeRef<T>, id: $PropertyType<T, "_id">, queryParameters: ?Dict, extraHeaders?: Dict): Promise<T> {
 		if ((id instanceof Array) && id.length === 2) {
 			// list element request
 			const listId = id[0]
@@ -130,7 +130,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		})
 	}
 
-	setup<T: SomeEntity>(listId: ?Id, instance: T, extraHeaders?: Params): Promise<Id> {
+	setup<T: SomeEntity>(listId: ?Id, instance: T, extraHeaders?: Dict): Promise<Id> {
 		return Promise.reject("Illegal method: setup")
 
 	}

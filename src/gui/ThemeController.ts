@@ -9,6 +9,7 @@ import {logo_text_bright_grey, logo_text_dark_grey, themes} from "./builtinTheme
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {getLogoSvg} from "./base/Logo"
+import Stream from "mithril/stream";
 assertMainOrNodeBoot()
 export interface ThemeStorage {
     getSelectedTheme(): Promise<ThemeId | null>
@@ -154,7 +155,7 @@ export class ThemeController {
         if (theme.logo) {
             const logo = theme.logo
             const htmlSanitizer = await this._htmlSanitizer()
-            theme.logo = htmlSanitizer.sanitize(logo).text
+            theme.logo = htmlSanitizer.sanitizeHTML(logo).text
         }
     }
 
@@ -189,7 +190,7 @@ export class ThemeController {
      */
     assembleTheme(customizations: ThemeCustomizations): Theme {
         if (!customizations.base) {
-            return Object.assign({}, customizations)
+            return Object.assign({}, customizations as Theme)
         } else if (customizations.base && customizations.logo) {
             return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
         } else {

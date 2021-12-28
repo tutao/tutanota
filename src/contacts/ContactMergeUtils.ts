@@ -1,4 +1,3 @@
-import type {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "@tutao/tutanota-utils"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
@@ -107,7 +106,7 @@ export function mergeContacts(keptContact: Contact, eliminatedContact: Contact):
  * Otherwise the result is unique
  * Export for testing
  */
-export function _compareContactsForMerge(contact1: Contact, contact2: Contact): ContactComparisonResult
+export function _compareContactsForMerge(contact1: Contact, contact2: Contact): ContactComparisonResult {
     let nameResult = _compareFullName(contact1, contact2)
 
     let mailResult = _compareMailAddresses(contact1.mailAddresses, contact2.mailAddresses)
@@ -157,7 +156,7 @@ export function _compareContactsForMerge(contact1: Contact, contact2: Contact): 
  * Returns null if the contacts names are not comparable, i.e. one of the contacts first and last names are empty.
  * Export for testing
  */
-export function _compareFullName(contact1: Contact, contact2: Contact): ContactComparisonResult IndifferentContactComparisonResult
+export function _compareFullName(contact1: Contact, contact2: Contact): ContactComparisonResult | IndifferentContactComparisonResult {
     if (contact1.firstName === contact2.firstName && contact1.lastName === contact2.lastName && (contact1.lastName || contact1.firstName)) {
         return ContactComparisonResult.Equal
     } else if (!contact1.firstName && !contact1.lastName && !contact2.firstName && !contact2.lastName) {
@@ -200,7 +199,7 @@ export function _getMergedNameField(name1: string, name2: string): string {
 export function _compareMailAddresses(
     contact1MailAddresses: ContactMailAddress[],
     contact2MailAddresses: ContactMailAddress[],
-): ContactComparisonResult IndifferentContactComparisonResult
+): ContactComparisonResult | IndifferentContactComparisonResult {
     return _compareValues(
         contact1MailAddresses.map(m => m.address),
         contact2MailAddresses.map(m => m.address),
@@ -223,7 +222,7 @@ export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], m
 export function _comparePhoneNumbers(
     contact1PhoneNumbers: ContactPhoneNumber[],
     contact2PhoneNumbers: ContactPhoneNumber[],
-): ContactComparisonResult IndifferentContactComparisonResult
+): ContactComparisonResult | IndifferentContactComparisonResult {
     return _compareValues(
         contact1PhoneNumbers.map(m => m.number),
         contact2PhoneNumbers.map(m => m.number),
@@ -300,7 +299,7 @@ export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: Co
 /**
  * Export for testing
  */
-export function _compareBirthdays(contact1: Contact, contact2: Contact): ContactComparisonResult IndifferentContactComparisonResult
+export function _compareBirthdays(contact1: Contact, contact2: Contact): ContactComparisonResult | IndifferentContactComparisonResult {
     const b1 = _convertIsoBirthday(contact1.birthdayIso)
 
     const b2 = _convertIsoBirthday(contact2.birthdayIso)
@@ -338,7 +337,7 @@ function _convertIsoBirthday(isoBirthday: string | null): Birthday | null {
     }
 }
 
-function _compareValues(values1: string[], values2: string[]): ContactComparisonResult IndifferentContactComparisonResult
+function _compareValues(values1: string[], values2: string[]): ContactComparisonResult | IndifferentContactComparisonResult {
     if (values1.length === 0 && values2.length === 0) {
         return IndifferentContactComparisonResult.BothEmpty
     } else if (values1.length === 0 || values2.length === 0) {

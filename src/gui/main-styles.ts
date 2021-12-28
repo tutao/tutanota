@@ -215,10 +215,10 @@ styles.registerStyle("main", () => {
             "background-color": theme.content_border,
         },
         ".border": {
-            border: `1px solid ${theme.content_border}`,
+            "border": `1px solid ${theme.content_border}`,
         },
         ".border-top": {
-            borderTop: `1px solid ${theme.content_border}`,
+            "border-top": `1px solid ${theme.content_border}`,
         },
         "#mail-body.break-pre pre": {
             "white-space": "pre-wrap",
@@ -536,12 +536,6 @@ styles.registerStyle("main", () => {
         // borders
         ".password-indicator-border": {
             border: `1px solid ${theme.content_button}`,
-        },
-        ".border": {
-            border: `1px solid ${theme.content_border}`,
-        },
-        ".border-top": {
-            "border-top": `1px solid ${theme.content_border}`,
         },
         ".border-bottom": {
             "border-bottom": `1px solid ${theme.content_border}`,

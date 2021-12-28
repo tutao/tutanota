@@ -1,13 +1,13 @@
-import m from "mithril"
-import {alpha, animations} from "./../animation/Animations"
+import m, {Children, Vnode} from "mithril"
+import {alpha, AlphaEnum, animations} from "./../animation/Animations"
 import {theme} from "../theme"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
-import {remove} from "@tutao/tutanota-utils"
-import {downcast, insideRect} from "@tutao/tutanota-utils"
+import {downcast, insideRect, remove} from "@tutao/tutanota-utils"
 import {LayerType} from "../../RootView"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
+
 assertMainOrNodeBoot()
 type ModalComponentWrapper = {
     key: number
@@ -38,7 +38,7 @@ class Modal {
                 "#modal.fill-absolute",
                 {
                     oncreate: vnode => {
-                        this._domModal = vnode.dom // TODO
+                        this._domModal = vnode.dom as HTMLElement
                         // const lastComponent = last(this.components)
                         // if (lastComponent) {
                         // 	lastComponent.component.backgroundClick(e)
@@ -60,7 +60,7 @@ class Modal {
                                 // UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
                                 this.visible = true
                                 m.redraw()
-                                if (wrapper.needsBg) this.addAnimation(vnode.dom, true)
+                                if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
                             },
                             onclick: (event: MouseEvent) => {
                                 // flow only recognizes currentTarget as an EventTarget, but we know here that it's an HTMLElement
@@ -85,7 +85,7 @@ class Modal {
                                     this._closingComponents.push(wrapper.component)
 
                                     return Promise.all([
-                                        this.addAnimation(vnode.dom, false).then(() => {
+                                        this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
                                             remove(this._closingComponents, wrapper.component)
 
                                             if (this.components.length === 0 && this._closingComponents.length === 0) {
@@ -188,7 +188,7 @@ class Modal {
         return entry && entry.component
     }
 
-    remove(component: ModalComponent) {
+    remove(component: ModalComponent): void {
         let componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
 
         if (componentIndex === -1) {
@@ -222,7 +222,7 @@ class Modal {
     addAnimation(domLayer: HTMLElement, fadein: boolean): Promise<void> {
         let start = 0
         let end = 0.5
-        return animations.add(domLayer, alpha(alpha.type.backgroundColor, theme.modal_bg, fadein ? start : end, fadein ? end : start))
+        return animations.add(domLayer, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, fadein ? start : end, fadein ? end : start))
     }
 }
 

@@ -177,14 +177,13 @@ export type SubscriptionData = {
 	options: SubscriptionOptions
 	planPrices: SubscriptionPlanPrices
 }
-export const UpgradePriceType = Object.freeze({
-	PlanReferencePrice: "0",
-	PlanActualPrice: "1",
-	PlanNextYearsPrice: "2",
-	AdditionalUserPrice: "3",
-	ContactFormPrice: "4",
-})
-export type UpgradePriceTypeEnum = Values<typeof UpgradePriceType>
+export enum UpgradePriceType {
+	PlanReferencePrice = "0",
+	PlanActualPrice = "1",
+	PlanNextYearsPrice = "2",
+	AdditionalUserPrice = "3",
+	ContactFormPrice = "4",
+}
 
 export function getPlanPrices(prices: SubscriptionPlanPrices, subscription: SubscriptionType): PlanPrices | null {
 	switch (subscription) {
@@ -214,21 +213,21 @@ export function getPlanPrices(prices: SubscriptionPlanPrices, subscription: Subs
 /**
  * @returns the corresponding subscription for business customer (Premium -> PremiumBusiness etc.)
  */
-export function getBusinessUsageSubscriptionType(subscription: SubscriptionType): SubscriptionType
+export function getBusinessUsageSubscriptionType(subscription: SubscriptionType): SubscriptionType {
 
-switch (subscription) {
-	case SubscriptionType.Free:
-		throw new ProgrammingError("there is no business counterpart for free")
+	switch (subscription) {
+		case SubscriptionType.Free:
+			throw new ProgrammingError("there is no business counterpart for free")
 
-	case SubscriptionType.Premium:
-		return SubscriptionType.PremiumBusiness
+		case SubscriptionType.Premium:
+			return SubscriptionType.PremiumBusiness
 
-	case SubscriptionType.Teams:
-		return SubscriptionType.TeamsBusiness
+		case SubscriptionType.Teams:
+			return SubscriptionType.TeamsBusiness
 
-	default:
-		return subscription
-}
+		default:
+			return subscription
+	}
 }
 
 /**
@@ -323,25 +322,25 @@ export function isBusinessSubscription(subscription: SubscriptionType): boolean 
 	}
 }
 
-export function getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType
+export function getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
 
-if (customer.type !== AccountType.PREMIUM) {
-	return SubscriptionType.Free
-}
+	if (customer.type !== AccountType.PREMIUM) {
+		return SubscriptionType.Free
+	}
 
-const currentSubscription = {
-	nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-	orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-	// dummy value
-	storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-	orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-	// dummy value
-	sharing: isSharingActive(lastBooking),
-	business: isBusinessFeatureActive(lastBooking),
-	whitelabel: isWhitelabelActive(lastBooking),
-}
-const foundPlan = descendingSubscriptionOrder.find(plan => hasAllFeaturesInPlan(currentSubscription, subscriptions[plan]))
-return foundPlan || SubscriptionType.Premium
+	const currentSubscription = {
+		nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
+		orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
+		// dummy value
+		storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
+		orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
+		// dummy value
+		sharing: isSharingActive(lastBooking),
+		business: isBusinessFeatureActive(lastBooking),
+		whitelabel: isWhitelabelActive(lastBooking),
+	}
+	const foundPlan = descendingSubscriptionOrder.find(plan => hasAllFeaturesInPlan(currentSubscription, subscriptions[plan]))
+	return foundPlan || SubscriptionType.Premium
 }
 
 export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, planSubscription: SubscriptionConfig): boolean {
@@ -485,7 +484,7 @@ export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 					label: () => "EN/DE",
 					click: () => {
 						visibleLang = visibleLang === "de" ? "en" : "de"
-						sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], {
+						sanitizedTerms = htmlSanitizer.sanitizeHTML(terms[section + "_" + visibleLang], {
 							blockExternalContent: false,
 						}).text
 						m.redraw()
@@ -501,7 +500,7 @@ export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 				},
 			],
 		}
-		sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], {
+		sanitizedTerms = htmlSanitizer.sanitizeHTML(terms[section + "_" + visibleLang], {
 			blockExternalContent: false,
 		}).text
 		dialog = Dialog.largeDialog(headerBarAttrs, {

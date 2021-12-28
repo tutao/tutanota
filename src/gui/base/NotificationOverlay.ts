@@ -1,7 +1,7 @@
 
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {px} from "../size"
-import {DefaultAnimationTime, transform} from "../animation/Animations"
+import {DefaultAnimationTime, transform, TransformEnum} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
@@ -66,8 +66,8 @@ function showNextNotification() {
                     buttons: allButtons,
                 }),
         },
-        dom => transform(transform.type.translateY, -dom.offsetHeight, 0),
-        dom => transform(transform.type.translateY, 0, -dom.offsetHeight),
+        dom => transform(TransformEnum.TranslateY, -dom.offsetHeight, 0),
+        dom => transform(TransformEnum.TranslateY, 0, -dom.offsetHeight),
     )
 
     const closeAndOpenNext = () => {

@@ -13,9 +13,9 @@ export function serviceRequest<T>(
     method: HttpMethod,
     requestEntity: any,
     responseTypeRef?: TypeRef<T>,
-    queryParams?: Params,
+    queryParams?: Dict,
     sk?: Aes128Key,
-    extraHeaders?: Params,
+    extraHeaders?: Dict,
 ): Promise<T> {
     return _service(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
@@ -23,9 +23,9 @@ export function serviceRequestVoid<T>(
     service: SysService | TutanotaService | MonitorService | AccountingService,
     method: HttpMethod,
     requestEntity: any,
-    queryParams?: Params,
+    queryParams?: Dict,
     sk?: Aes128Key,
-    extraHeaders?: Params,
+    extraHeaders?: Dict,
 ): Promise<void> {
     return _service(service, method, requestEntity, null, queryParams, sk, extraHeaders)
 }

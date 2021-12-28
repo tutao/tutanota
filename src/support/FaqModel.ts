@@ -61,7 +61,7 @@ export class FaqModel {
             assert(typeof entry === "string", "invalid translation entry")
             const unsanitizedText = downcast(entry)
             // Declaring some types manually because there seem to be a bug where types are not checked
-            const sanitized: SanitizeResult = htmlSanitizer.sanitize(unsanitizedText, {
+            const sanitized: SanitizeResult = htmlSanitizer.sanitizeHTML(unsanitizedText, {
                 blockExternalContent: false,
             })
             // Delay to spread sanitize() calls between event loops.

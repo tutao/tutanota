@@ -1,4 +1,4 @@
-import m, {Children, Component } from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButtonColor, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
@@ -20,385 +20,391 @@ import type {ProgressTracker} from "../../api/main/ProgressTracker"
 import type {ViewSlider} from "./ViewSlider"
 import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient";
+
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
+
 export interface CurrentView extends Component<void> {
-    readonly headerView?: () => Children
-    readonly headerRightView?: () => Children
-    readonly getViewSlider?: () => ViewSlider | null
+	readonly headerView?: () => Children
+	readonly headerRightView?: () => Children
+	readonly getViewSlider?: () => ViewSlider | null
 
-    /** @return true if view handled press itself */
-    readonly handleBackButton?: () => boolean
+	/** @return true if view handled press itself */
+	readonly handleBackButton?: () => boolean
 
-    /** @return true if "back/up" icon should be shown, false if menu icon */
-    readonly overrideBackIcon?: () => boolean
+	/** @return true if "back/up" icon should be shown, false if menu icon */
+	readonly overrideBackIcon?: () => boolean
 }
+
 const PROGRESS_HIDDEN = -1
 const PROGRESS_DONE = 1
 
 class Header {
-    view: (...args: Array<any>) => any
-    _currentView: CurrentView | null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+	view: (...args: Array<any>) => any
+	_currentView: CurrentView | null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 
-    oncreate: (...args: Array<any>) => any
-    onremove: (...args: Array<any>) => any
-    _shortcuts: Shortcut[]
-    searchBar: SearchBar | null
-    _wsState = WsConnectionState.terminated
-    _loadingProgress: number = PROGRESS_HIDDEN
+	oncreate: (...args: Array<any>) => any
+	onremove: (...args: Array<any>) => any
+	_shortcuts: Shortcut[]
+	searchBar: SearchBar | null
+	_wsState = WsConnectionState.terminated
+	_loadingProgress: number = PROGRESS_HIDDEN
 
-    constructor() {
-        this._currentView = null
+	constructor() {
+		this._currentView = null
 
-        this._setupShortcuts()
+		this._setupShortcuts()
 
-        this.view = (): Children => {
-            // Do not return undefined if headerView is not present
-            const injectedView = this._currentView && this._currentView.headerView ? this._currentView.headerView() : null
-            return m(
-                ".header-nav.overflow-hidden.flex.items-end.flex-center",
-                [m(".abs.full-width", this._connectionIndicator() || this._entityEventProgress())].concat(
-                    injectedView
-                        ? m(".flex-grow", injectedView)
-                        : [
-                              m(
-                                  ".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden",
-                                  {
-                                      style: styles.isUsingBottomNavigation()
-                                          ? {
-                                                "margin-left": px(-15),
-                                            }
-                                          : null, // manual margin to align the hamburger icon on mobile devices
-                                  },
-                                  this._getLeftElements(),
-                              ),
-                              styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
-                              styles.isUsingBottomNavigation()
-                                  ? m(
-                                        ".header-right.pr-s.flex-end.items-center",
-                                        this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null,
-                                    )
-                                  : m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
-                                        this._renderDesktopSearchBar(),
-                                        m(NavBar, this._renderButtons()),
-                                    ]),
-                          ],
-                ),
-            )
-        }
+		this.view = (): Children => {
+			// Do not return undefined if headerView is not present
+			const injectedView = this._currentView && this._currentView.headerView ? this._currentView.headerView() : null
+			return m(
+					".header-nav.overflow-hidden.flex.items-end.flex-center",
+					[
+						m(".abs.full-width", this._connectionIndicator() || this._entityEventProgress()),
+						injectedView
+								? m(".flex-grow", injectedView)
+								: [
+									m(
+											".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden",
+											{
+												style: styles.isUsingBottomNavigation()
+														? {
+															"margin-left": px(-15),
+														}
+														: null, // manual margin to align the hamburger icon on mobile devices
+											},
+											this._getLeftElements(),
+									),
+									styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
+									styles.isUsingBottomNavigation()
+											? m(
+													".header-right.pr-s.flex-end.items-center",
+													this._currentView && this._currentView.headerRightView
+															? this._currentView.headerRightView()
+															: null,
+											)
+											: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
+												this._renderDesktopSearchBar(),
+												m(NavBar, this._renderButtons()),
+											]),
+								],
+					],
+			)
+		}
 
-        // load worker and search bar one after another because search bar uses worker.
-        import("../../api/main/MainLocator").then(async ({locator}) => {
-            await locator.initialized
-            const worker = locator.worker
-            worker.wsConnection().map(state => {
-                this._wsState = state
-                m.redraw()
-            })
-            await worker.initialized
-            import("../../search/SearchBar.js").then(({SearchBar}) => {
-                this.searchBar = new SearchBar()
-            })
-            const progressTracker: ProgressTracker = locator.progressTracker
+		// load worker and search bar one after another because search bar uses worker.
+		import("../../api/main/MainLocator").then(async ({locator}) => {
+			await locator.initialized
+			const worker = locator.worker
+			worker.wsConnection().map(state => {
+				this._wsState = state
+				m.redraw()
+			})
+			await worker.initialized
+			import("../../search/SearchBar.js").then(({SearchBar}) => {
+				this.searchBar = new SearchBar()
+			})
+			const progressTracker: ProgressTracker = locator.progressTracker
 
-            if (progressTracker.totalWork() !== 0) {
-                this._loadingProgress = progressTracker.completedAmount()
-            }
+			if (progressTracker.totalWork() !== 0) {
+				this._loadingProgress = progressTracker.completedAmount()
+			}
 
-            progressTracker.onProgressUpdate.map(amount => {
-                if (this._loadingProgress !== amount) {
-                    this._loadingProgress = amount
-                    m.redraw()
+			progressTracker.onProgressUpdate.map(amount => {
+				if (this._loadingProgress !== amount) {
+					this._loadingProgress = amount
+					m.redraw()
 
-                    if (this._loadingProgress >= PROGRESS_DONE) {
-                        // progress is done but we still want to finish the complete animation and then dismiss the progress bar.
-                        setTimeout(() => {
-                            this._loadingProgress = PROGRESS_HIDDEN
-                            m.redraw()
-                        }, 500)
-                    }
-                }
-            })
-        })
-    }
+					if (this._loadingProgress >= PROGRESS_DONE) {
+						// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
+						setTimeout(() => {
+							this._loadingProgress = PROGRESS_HIDDEN
+							m.redraw()
+						}, 500)
+					}
+				}
+			})
+		})
+	}
 
-    _renderDesktopSearchBar(): Children {
-        return this.searchBar && this._desktopSearchBarVisible()
-            ? m(this.searchBar, {
-                  spacer: true,
-                  placeholder: this._searchPlaceholder(),
-              })
-            : null
-    }
+	_renderDesktopSearchBar(): Children {
+		return this.searchBar && this._desktopSearchBarVisible()
+				? m(this.searchBar, {
+					spacer: true,
+					placeholder: this._searchPlaceholder(),
+				})
+				: null
+	}
 
-    _focusMain() {
-        const viewSlider = this._currentView && this._currentView.getViewSlider && this._currentView.getViewSlider()
+	_focusMain() {
+		const viewSlider = this._currentView && this._currentView.getViewSlider && this._currentView.getViewSlider()
 
-        viewSlider && viewSlider.getMainColumn().focus()
-    }
+		viewSlider && viewSlider.getMainColumn().focus()
+	}
 
-    _renderButtons(): Children {
-        // We assign click listeners to buttons to move focus correctly if the view is already open
-        return logins.isInternalUserLoggedIn() && isNotSignup()
-            ? [
-                  m(NavButtonN, {
-                      label: "emails_label",
-                      icon: () => BootIcons.Mail,
-                      href: navButtonRoutes.mailUrl,
-                      isSelectedPrefix: MAIL_PREFIX,
-                      colors: NavButtonColor.Header,
-                      click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain(),
-                  }),
-                  !logins.isEnabled(FeatureType.DisableContacts)
-                      ? m(NavButtonN, {
-                            label: "contacts_label",
-                            icon: () => BootIcons.Contacts,
-                            href: navButtonRoutes.contactsUrl,
-                            isSelectedPrefix: CONTACTS_PREFIX,
-                            colors: NavButtonColor.Header,
-                            click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain(),
-                        })
-                      : null,
-                  !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
-                      ? m(NavButtonN, {
-                            label: "calendar_label",
-                            icon: () => BootIcons.Calendar,
-                            href: CALENDAR_PREFIX,
-                            colors: NavButtonColor.Header,
-                            click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain(),
-                        })
-                      : null,
-              ]
-            : null
-    }
+	_renderButtons(): Children {
+		// We assign click listeners to buttons to move focus correctly if the view is already open
+		return logins.isInternalUserLoggedIn() && isNotSignup()
+				? [
+					m(NavButtonN, {
+						label: "emails_label",
+						icon: () => BootIcons.Mail,
+						href: navButtonRoutes.mailUrl,
+						isSelectedPrefix: MAIL_PREFIX,
+						colors: NavButtonColor.Header,
+						click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain(),
+					}),
+					!logins.isEnabled(FeatureType.DisableContacts)
+							? m(NavButtonN, {
+								label: "contacts_label",
+								icon: () => BootIcons.Contacts,
+								href: navButtonRoutes.contactsUrl,
+								isSelectedPrefix: CONTACTS_PREFIX,
+								colors: NavButtonColor.Header,
+								click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain(),
+							})
+							: null,
+					!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+							? m(NavButtonN, {
+								label: "calendar_label",
+								icon: () => BootIcons.Calendar,
+								href: CALENDAR_PREFIX,
+								colors: NavButtonColor.Header,
+								click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain(),
+							})
+							: null,
+				]
+				: null
+	}
 
-    _mobileSearchBarVisible(): boolean {
-        let route = m.route.get()
-        let locator: IMainLocator | null = window.tutao.locator
-        return (
-            this.searchBar != null &&
-            locator != null &&
-            !locator.search.indexState().initializing &&
-            styles.isUsingBottomNavigation() &&
-            logins.isInternalUserLoggedIn() &&
-            route.startsWith(SEARCH_PREFIX)
-        )
-    }
+	_mobileSearchBarVisible(): boolean {
+		let route = m.route.get()
+		let locator: IMainLocator | null = window.tutao.locator
+		return (
+				this.searchBar != null &&
+				locator != null &&
+				!locator.search.indexState().initializing &&
+				styles.isUsingBottomNavigation() &&
+				logins.isInternalUserLoggedIn() &&
+				route.startsWith(SEARCH_PREFIX)
+		)
+	}
 
-    _setupShortcuts() {
-        this._shortcuts = [
-            {
-                key: Keys.M,
-                enabled: () => logins.isUserLoggedIn(),
-                exec: key => m.route.set(navButtonRoutes.mailUrl),
-                help: "mailView_action",
-            },
-            {
-                key: Keys.C,
-                enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
-                exec: key => m.route.set(navButtonRoutes.contactsUrl),
-                help: "contactView_action",
-            },
-            {
-                key: Keys.O,
-                enabled: () => logins.isInternalUserLoggedIn(),
-                exec: key => m.route.set(navButtonRoutes.calendarUrl),
-                help: "calendarView_action",
-            },
-            {
-                key: Keys.S,
-                enabled: () => logins.isInternalUserLoggedIn(),
-                exec: key => m.route.set(navButtonRoutes.settingsUrl),
-                help: "settingsView_action",
-            },
-            {
-                key: Keys.L,
-                shift: true,
-                ctrl: true,
-                enabled: () => logins.isUserLoggedIn(),
-                exec: key => m.route.set(LogoutUrl),
-                help: "logout_label",
-            },
-        ]
+	_setupShortcuts() {
+		this._shortcuts = [
+			{
+				key: Keys.M,
+				enabled: () => logins.isUserLoggedIn(),
+				exec: key => m.route.set(navButtonRoutes.mailUrl),
+				help: "mailView_action",
+			},
+			{
+				key: Keys.C,
+				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
+				exec: key => m.route.set(navButtonRoutes.contactsUrl),
+				help: "contactView_action",
+			},
+			{
+				key: Keys.O,
+				enabled: () => logins.isInternalUserLoggedIn(),
+				exec: key => m.route.set(navButtonRoutes.calendarUrl),
+				help: "calendarView_action",
+			},
+			{
+				key: Keys.S,
+				enabled: () => logins.isInternalUserLoggedIn(),
+				exec: key => m.route.set(navButtonRoutes.settingsUrl),
+				help: "settingsView_action",
+			},
+			{
+				key: Keys.L,
+				shift: true,
+				ctrl: true,
+				enabled: () => logins.isUserLoggedIn(),
+				exec: key => m.route.set(LogoutUrl),
+				help: "logout_label",
+			},
+		]
 
-        this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
+		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
 
-        this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
-    }
+		this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
+	}
 
-    _getCenterContent(): Children {
-        const viewSlider = this._getViewSlider()
+	_getCenterContent(): Children {
+		const viewSlider = this._getViewSlider()
 
-        const header = (title, left, right) => {
-            return m(".flex-center.header-middle.items-center.text-ellipsis.b", [left || null, title, right || null])
-        }
+		const header = (title, left?, right?) => {
+			return m(".flex-center.header-middle.items-center.text-ellipsis.b", [left || null, title, right || null])
+		}
 
-        if (this._mobileSearchBarVisible()) {
-            return this._renderMobileSearchBar()
-        } else if (viewSlider) {
-            const firstVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
+		if (this._mobileSearchBarVisible()) {
+			return this._renderMobileSearchBar()
+		} else if (viewSlider) {
+			const firstVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
 
-            if (firstVisibleBgColumn) {
-                const title = firstVisibleBgColumn.getTitle()
-                const buttonLeft = firstVisibleBgColumn.getTitleButtonLeft()
-                const buttonRight = firstVisibleBgColumn.getTitleButtonRight()
-                return header(title, buttonLeft, buttonRight)
-            } else {
-                return header("")
-            }
-        } else if (m.route.get().startsWith("/login")) {
-            return header(lang.get("login_label"))
-        } else if (m.route.get().startsWith("/signup")) {
-            return header(lang.get("registrationHeadline_msg"))
-        } else {
-            return null
-        }
-    }
+			if (firstVisibleBgColumn) {
+				const title = firstVisibleBgColumn.getTitle()
+				const buttonLeft = firstVisibleBgColumn.getTitleButtonLeft()
+				const buttonRight = firstVisibleBgColumn.getTitleButtonRight()
+				return header(title, buttonLeft, buttonRight)
+			} else {
+				return header("")
+			}
+		} else if (m.route.get().startsWith("/login")) {
+			return header(lang.get("login_label"))
+		} else if (m.route.get().startsWith("/signup")) {
+			return header(lang.get("registrationHeadline_msg"))
+		} else {
+			return null
+		}
+	}
 
-    _renderMobileSearchBar(): Vnode<any> {
-        let placeholder
-        const route = m.route.get()
+	_renderMobileSearchBar(): Vnode<any> {
+		let placeholder
+		const route = m.route.get()
 
-        if (route.startsWith("/search/mail")) {
-            placeholder = lang.get("searchEmails_placeholder")
-        } else if (route.startsWith("/search/contact")) {
-            placeholder = lang.get("searchContacts_placeholder")
-        } else {
-            placeholder = null
-        }
+		if (route.startsWith("/search/mail")) {
+			placeholder = lang.get("searchEmails_placeholder")
+		} else if (route.startsWith("/search/contact")) {
+			placeholder = lang.get("searchContacts_placeholder")
+		} else {
+			placeholder = null
+		}
 
-        return m(neverNull(this.searchBar), {
-            alwaysExpanded: true,
-            classes: ".flex-center",
-            placeholder,
-            style: {
-                height: "100%",
-                "margin-left": px(sizes.navbar_edge_width_mobile),
-                "margin-right": px(sizes.navbar_edge_width_mobile),
-            },
-        })
-    }
+		return m(neverNull(this.searchBar), {
+			alwaysExpanded: true,
+			classes: ".flex-center",
+			placeholder,
+			style: {
+				height: "100%",
+				"margin-left": px(sizes.navbar_edge_width_mobile),
+				"margin-right": px(sizes.navbar_edge_width_mobile),
+			},
+		})
+	}
 
-    _getLeftElements(): Children {
-        const viewSlider = this._getViewSlider()
+	_getLeftElements(): Children {
+		const viewSlider = this._getViewSlider()
 
-        if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-            return m(NavButtonN, {
-                label: () => {
-                    const prevColumn = viewSlider.getPreviousColumn()
-                    return prevColumn ? prevColumn.getTitle() : ""
-                },
-                icon: () =>
-                    (
-                        this._currentView && this._currentView.overrideBackIcon
-                            ? this._currentView.overrideBackIcon()
-                            : !viewSlider.getBackgroundColumns()[0].visible
-                    )
-                        ? BootIcons.Back
-                        : BootIcons.MoreVertical,
-                colors: NavButtonColor.Header,
-                href: () => m.route.get(),
-                click: () => {
-                    if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
-                        viewSlider.focusPreviousColumn()
-                    }
-                },
-                hideLabel: true,
-            })
-        } else {
-            if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
-                return m(
-                    ".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
-                    {
-                        style: {
-                            "margin-left": px(sizes.drawer_menu_width),
-                        },
-                    },
-                    m.trust(theme.logo),
-                ) // the custom logo is already sanitized in theme.js
-            } else {
-                return null
-            }
-        }
-    }
+		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
+			return m(NavButtonN, {
+				label: () => {
+					const prevColumn = viewSlider.getPreviousColumn()
+					return prevColumn ? prevColumn.getTitle() : ""
+				},
+				icon: () =>
+						(
+								this._currentView && this._currentView.overrideBackIcon
+										? this._currentView.overrideBackIcon()
+										: !viewSlider.getBackgroundColumns()[0].visible
+						)
+								? BootIcons.Back
+								: BootIcons.MoreVertical,
+				colors: NavButtonColor.Header,
+				href: () => m.route.get(),
+				click: () => {
+					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
+						viewSlider.focusPreviousColumn()
+					}
+				},
+				hideLabel: true,
+			})
+		} else {
+			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
+				return m(
+						".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
+						{
+							style: {
+								"margin-left": px(sizes.drawer_menu_width),
+							},
+						},
+						m.trust(theme.logo),
+				) // the custom logo is already sanitized in theme.js
+			} else {
+				return null
+			}
+		}
+	}
 
-    updateCurrentView(currentView: CurrentView) {
-        this._currentView = currentView
-    }
+	updateCurrentView(currentView: CurrentView) {
+		this._currentView = currentView
+	}
 
-    _getViewSlider(): ViewSlider | null {
-        if (this._currentView && this._currentView.getViewSlider) {
-            return this._currentView.getViewSlider()
-        } else {
-            return null
-        }
-    }
+	_getViewSlider(): ViewSlider | null {
+		if (this._currentView && this._currentView.getViewSlider) {
+			return this._currentView.getViewSlider()
+		} else {
+			return null
+		}
+	}
 
-    _connectionIndicator(): Children {
-        if (this._wsState === "connected" || this._wsState === "terminated") {
-            return null
-        } else {
-            // Use key so that mithril does not reuse dom element and transition works correctly
-            return m(".indefinite-progress", {
-                key: "connection-indicator",
-            })
-        }
-    }
+	_connectionIndicator(): Children {
+		if (this._wsState === WsConnectionState.connecting || this._wsState === WsConnectionState.terminated) {
+			return null
+		} else {
+			// Use key so that mithril does not reuse dom element and transition works correctly
+			return m(".indefinite-progress", {
+				key: "connection-indicator",
+			})
+		}
+	}
 
-    _entityEventProgress(): Children {
-        if (this._loadingProgress !== PROGRESS_HIDDEN) {
-            // Use key so that mithril does not reuse dom element and transition works correctly
-            return m(".accent-bg", {
-                key: "loading-indicator",
-                style: {
-                    transition: "width 500ms",
-                    width: this._loadingProgress * 100 + "%",
-                    height: "3px",
-                },
-            })
-        } else {
-            return null
-        }
-    }
+	_entityEventProgress(): Children {
+		if (this._loadingProgress !== PROGRESS_HIDDEN) {
+			// Use key so that mithril does not reuse dom element and transition works correctly
+			return m(".accent-bg", {
+				key: "loading-indicator",
+				style: {
+					transition: "width 500ms",
+					width: this._loadingProgress * 100 + "%",
+					height: "3px",
+				},
+			})
+		} else {
+			return null
+		}
+	}
 
-    _searchPlaceholder(): string | null {
-        const route = m.route.get()
+	_searchPlaceholder(): string | null {
+		const route = m.route.get()
 
-        if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
-            return lang.get("searchEmails_placeholder")
-        } else if (route.startsWith(CONTACTS_PREFIX) || route.startsWith("/search/contact")) {
-            return lang.get("searchContacts_placeholder")
-        } else if (route.startsWith("/settings/users")) {
-            return lang.get("searchUsers_placeholder")
-        } else if (route.startsWith("/settings/groups")) {
-            return lang.get("searchGroups_placeholder")
-        } else {
-            return null
-        }
-    }
+		if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
+			return lang.get("searchEmails_placeholder")
+		} else if (route.startsWith(CONTACTS_PREFIX) || route.startsWith("/search/contact")) {
+			return lang.get("searchContacts_placeholder")
+		} else if (route.startsWith("/settings/users")) {
+			return lang.get("searchUsers_placeholder")
+		} else if (route.startsWith("/settings/groups")) {
+			return lang.get("searchGroups_placeholder")
+		} else {
+			return null
+		}
+	}
 
-    _desktopSearchBarVisible(): boolean {
-        let route = m.route.get()
-        let locator: IMainLocator | null = window.tutao.locator
-        return (
-            this.searchBar != null &&
-            locator != null &&
-            !locator.search.indexState().initializing &&
-            styles.isDesktopLayout() &&
-            logins.isInternalUserLoggedIn() &&
-            (route.startsWith(SEARCH_PREFIX) ||
-                route.startsWith(MAIL_PREFIX) ||
-                route.startsWith(CONTACTS_PREFIX) ||
-                route.startsWith("/settings/users") ||
-                route.startsWith("/settings/groups") ||
-                route.startsWith("/settings/whitelabelaccounts"))
-        )
-    }
+	_desktopSearchBarVisible(): boolean {
+		let route = m.route.get()
+		let locator: IMainLocator | null = window.tutao.locator
+		return (
+				this.searchBar != null &&
+				locator != null &&
+				!locator.search.indexState().initializing &&
+				styles.isDesktopLayout() &&
+				logins.isInternalUserLoggedIn() &&
+				(route.startsWith(SEARCH_PREFIX) ||
+						route.startsWith(MAIL_PREFIX) ||
+						route.startsWith(CONTACTS_PREFIX) ||
+						route.startsWith("/settings/users") ||
+						route.startsWith("/settings/groups") ||
+						route.startsWith("/settings/whitelabelaccounts"))
+		)
+	}
 }
 
 function isNotSignup(): boolean {
-    return !m.route.get().startsWith("/signup") && !m.route.get().startsWith("/giftcard")
+	return !m.route.get().startsWith("/signup") && !m.route.get().startsWith("/giftcard")
 }
 
 export const header: Header = new Header()

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {getStartOfDay, incrementDate, isSameDay} from "@tutao/tutanota-utils"
 import {formatTime} from "../../misc/Formatter"
 import {
@@ -23,7 +23,6 @@ import {
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
-import type {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import {lastThrow} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
@@ -40,7 +39,7 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {styles} from "../../gui/styles"
 import {ofClass} from "@tutao/tutanota-utils"
 import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
-import type {CalendarEventBubbleClickHandler, CalendarViewType, EventsOnDays} from "./CalendarViewModel"
+import type {CalendarEventBubbleClickHandler, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -61,7 +60,7 @@ export type Attrs = {
     dragHandlerCallbacks: EventDragHandlerCallbacks
 }
 export class MultiDayCalendarView implements Component<Attrs> {
-    _redrawIntervalId: IntervalID | null
+    _redrawIntervalId: NodeJS.Timer | null
     _longEventsDom: HTMLElement | null
     _domElements: HTMLElement[] = []
     _scrollPosition: number
@@ -73,15 +72,15 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
     constructor({attrs}: Vnode<Attrs>) {
         this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
-        this._eventDragHandler = new EventDragHandler(neverNull(document.body), attrs.dragHandlerCallbacks)
+        this._eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
     }
 
-    oncreate(vnode: Vnode<Attrs>) {
-        this._viewDom = vnode.dom
+    oncreate(vnode: VnodeDOM<Attrs>) {
+        this._viewDom = vnode.dom as HTMLElement
     }
 
-    onupdate(vnode: Vnode<Attrs>) {
-        this._viewDom = vnode.dom
+    onupdate(vnode: VnodeDOM<Attrs>) {
+        this._viewDom = vnode.dom as HTMLElement
     }
 
     view({attrs}: Vnode<Attrs>): Children {
@@ -164,7 +163,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
                         oncreate: vnode => {
                             vnode.dom.scrollTop = this._scrollPosition
 
-                            this._domElements.push(vnode.dom)
+                            this._domElements.push(vnode.dom as HTMLElement)
                         },
                         onscroll: event => {
                             if (thisWeek === mainWeek) {
@@ -280,14 +279,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
                 },
                 oncreate: vnode => {
                     if (mainPageEvents === thisPageEvents) {
-                        this._longEventsDom = vnode.dom
+                        this._longEventsDom = vnode.dom as HTMLElement
                     }
 
                     m.redraw()
                 },
                 onupdate: vnode => {
                     if (mainPageEvents === thisPageEvents) {
-                        this._longEventsDom = vnode.dom
+                        this._longEventsDom = vnode.dom as HTMLElement
                     }
                 },
             },
@@ -347,14 +346,14 @@ export class MultiDayCalendarView implements Component<Attrs> {
             {
                 oncreate: vnode => {
                     if (mainPageEvents === thisPageEvents) {
-                        this._longEventsDom = vnode.dom
+                        this._longEventsDom = vnode.dom as HTMLElement
                     }
 
                     m.redraw()
                 },
                 onupdate: vnode => {
                     if (mainPageEvents === thisPageEvents) {
-                        this._longEventsDom = vnode.dom
+                        this._longEventsDom = vnode.dom as HTMLElement
                     }
                 },
                 style: {
@@ -543,7 +542,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
     renderLongEventBubble(
         event: CalendarEvent,
-        showTime: EventTextTimeOption null,
+        showTime: EventTextTimeOption | null,
         startsBefore: boolean,
         endsAfter: boolean,
         groupColors: GroupColors,

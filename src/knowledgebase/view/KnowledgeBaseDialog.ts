@@ -17,6 +17,7 @@ import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export function createKnowledgeBaseDialogInjection(
     knowledgeBase: KnowledgeBaseModel,
     templateModel: TemplatePopupModel,

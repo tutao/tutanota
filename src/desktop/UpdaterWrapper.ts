@@ -6,11 +6,12 @@ import {downcast, noOp} from "@tutao/tutanota-utils"
 import path from "path"
 import fs from "fs"
 import {app} from "electron"
+import {AppUpdater} from "electron-updater";
 
 export interface UpdaterWrapper {
 	updatesEnabledInBuild(): boolean,
 
-	electronUpdater: Promise<AutoUpdater>,
+	electronUpdater: Promise<AppUpdater>,
 }
 
 export class UpdaterWrapperImpl implements UpdaterWrapper {
@@ -27,9 +28,9 @@ export class UpdaterWrapperImpl implements UpdaterWrapper {
 		}
 	}
 
-	electronUpdater: Promise<AutoUpdater> = env.dist
+	electronUpdater: Promise<AppUpdater> = env.dist
 		? import("electron-updater").then((m) => m.autoUpdater)
-		: Promise.resolve(downcast<AutoUpdater>(fakeAutoUpdater))
+		: Promise.resolve(downcast<AppUpdater>(fakeAutoUpdater))
 }
 
 

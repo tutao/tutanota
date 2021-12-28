@@ -10,7 +10,7 @@ export function getDefaultSignature(): string {
     // add one line break to the default signature to add one empty line between signature and body
     return (
         LINE_BREAK +
-        htmlSanitizer.sanitize(
+        htmlSanitizer.sanitizeHTML(
             lang.get("defaultEmailSignature_msg", {
                 "{1}": lang.getInfoLink("homePage_link"),
             }),

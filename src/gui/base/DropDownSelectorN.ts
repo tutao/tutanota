@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "./TextFieldN"
 import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
@@ -11,6 +11,7 @@ import {noOp} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export type SelectorItem<T> = {
     name: string

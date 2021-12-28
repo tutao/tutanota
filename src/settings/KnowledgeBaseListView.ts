@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/KnowledgeBaseEntry"
@@ -83,7 +83,6 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
                 swipeRight: listElement => Promise.resolve(false),
                 enabled: false,
             },
-            elementsDraggable: false,
             multiSelectionAllowed: false,
             emptyMessage: lang.get("noEntries_msg"),
         }
@@ -168,7 +167,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
         return [
             m(".top", [
                 m(".name.text-ellipsis", {
-                    oncreate: vnode => (this._domEntryTitle = vnode.dom),
+                    oncreate: vnode => (this._domEntryTitle = vnode.dom as HTMLElement),
                 }),
             ]),
         ]
@@ -184,7 +183,7 @@ class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsViewer {
         this.readonly = readonly
     }
 
-    view(vnode) {
+    view(vnode: Vnode<void>): Children {
         return m(
             ".plr-l",
             m(KnowledgeBaseEntryView, {

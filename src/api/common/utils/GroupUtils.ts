@@ -1,6 +1,5 @@
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import type {User} from "../../entities/sys/User"
-import type {GroupType} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {

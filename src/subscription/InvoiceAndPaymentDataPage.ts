@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
@@ -24,11 +24,12 @@ import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import type {Country} from "../api/common/CountryList"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import type {Braintree3ds2Request} from "../api/entities/sys/Braintree3ds2Request"
-import {isUpdateForTypeRef} from "../api/main/EventController"
+import {EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {getPaymentWebRoot} from "../api/common/Env"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {promiseMap} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -39,6 +40,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
     _availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>>
     _selectedPaymentMethod: Stream<PaymentMethodType>
     _upgradeData: UpgradeSubscriptionData
+	private dom!: HTMLElement;
 
     constructor(upgradeData: UpgradeSubscriptionData) {
         this._upgradeData = upgradeData
@@ -57,7 +59,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
         }
     }
 
-    oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+    oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
+
+		this.dom = vnode.dom as HTMLElement
         const data = vnode.attrs.data
 
         // TODO check if correct place to update these
@@ -66,7 +70,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
             data.paymentData = this._paymentMethodInput.getPaymentData()
         }
 
-        let login = Promise.resolve()
+        let login = Promise.resolve(null)
 
         if (!logins.isUserLoggedIn()) {
             login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
@@ -109,7 +113,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
                 this._paymentMethodInput.updatePaymentMethod(data.paymentData.paymentMethod, data.paymentData)
             })
     }
-
     view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
         const a = vnode.attrs
 
@@ -143,7 +146,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
                                 neverNull(a.data.accountingInfo),
                             ).then(success => {
                                 if (success) {
-                                    emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+                                    emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
                                 }
                             }),
                         ),
@@ -331,7 +334,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
                 help: "close_alt",
             })
 
-        let entityEventListener = updates => {
+        let entityEventListener = (updates: Array<EntityUpdateData>) => {
             return promiseMap(updates, update => {
                 if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
                     return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {

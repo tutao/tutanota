@@ -1,5 +1,6 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
+import Stream from "mithril/stream";
 const GIFT_CARD_MESSAGE_COLS = 26
 const GIFT_CARD_MESSAGE_HEIGHT = 5
 type GiftCardMessageEditorFieldAttrs = {
@@ -24,7 +25,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
                 cols: a.cols || GIFT_CARD_MESSAGE_COLS,
                 rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
                 oncreate: vnode => {
-                    this.textAreaDom = vnode.dom
+                    this.textAreaDom = vnode.dom as HTMLTextAreaElement
                     this.textAreaDom.value = a.message()
                 },
                 onfocus: () => {

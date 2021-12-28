@@ -40,6 +40,7 @@ import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
+import {WsConnectionState} from "../main/WorkerClient";
 assertWorkerOrNode()
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
@@ -69,6 +70,7 @@ export interface MainInterface {
     readonly secondFactorAuthenticationHandler: SecondFactorAuthHandler
 }
 type WorkerRequest = Request<WorkerRequestType>
+
 export class WorkerImpl implements NativeInterface {
     _scope: DedicatedWorkerGlobalScope | null
     _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
@@ -94,16 +96,21 @@ export class WorkerImpl implements NativeInterface {
                 this.sendError(event.reason)
             })
 
+			// @ts-ignore
             workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
                 console.error("workerImpl.onerror", e, source, lineno, colno, error)
 
                 if (error instanceof Error) {
                     this.sendError(error)
                 } else {
-                    const err = new Error(e)
-                    err.lineNumber = lineno
-                    err.columnNumber = colno
-                    err.fileName = source
+					// @ts-ignore
+					const err = new Error(e)
+					// @ts-ignore
+					err.lineNumber = lineno
+					// @ts-ignore
+					err.columnNumber = colno
+					// @ts-ignore
+					err.fileName = source
                     this.sendError(err)
                 }
 
@@ -190,6 +197,9 @@ export class WorkerImpl implements NativeInterface {
 
     queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
         return {
+			setup: async (message: any) => {
+				console.error("WorkerImpl: setup was called after bootstrap! message: ", message)
+			},
             testEcho: (message: any) =>
                 Promise.resolve({
                     msg: ">>> " + message.args[0].msg,
@@ -208,7 +218,16 @@ export class WorkerImpl implements NativeInterface {
             },
             restRequest: (message: WorkerRequest) => {
                 message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
-                return locator.restClient.request(...message.args)
+                return locator.restClient.request(
+						message.args[0],
+						message.args[1],
+						message.args[2],
+						message.args[3],
+						message.args[4],
+						message.args[5],
+						message.args[6],
+						message.args[7],
+				)
             },
             serviceRequest: (message: WorkerRequest) => {
                 return _service.apply(null, message.args)
@@ -218,7 +237,11 @@ export class WorkerImpl implements NativeInterface {
             },
 
             tryReconnectEventBus(message: WorkerRequest) {
-                locator.eventBusClient.tryReconnect(...message.args)
+                locator.eventBusClient.tryReconnect(
+						message.args[0],
+						message.args[1],
+						message.args[2],
+				)
                 return Promise.resolve()
             },
 

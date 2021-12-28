@@ -1,9 +1,8 @@
-import m from "mithril"
+import m, {ChildArray, Children} from "mithril"
 import {Dialog} from "../../gui/base/Dialog"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {ContactAddressType, ContactMergeAction} from "../../api/common/TutanotaConstants"
-import {ContactMergeAction, getContactSocialType, Keys} from "../../api/common/TutanotaConstants"
+import {ContactAddressType, ContactMergeAction, getContactSocialType, Keys} from "../../api/common/TutanotaConstants"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
@@ -16,6 +15,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
 import {delay} from "@tutao/tutanota-utils"
+import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
 export class ContactMergeView {
     dialog: Dialog
     contact1: Contact
@@ -49,11 +49,14 @@ export class ContactMergeView {
             ],
             middle: () => lang.get("merge_action"),
         }
-        this.dialog = Dialog.largeDialog(headerBarAttrs, this)
+        this.dialog = Dialog.largeDialog(headerBarAttrs as DialogHeaderBarAttrs, this)
             .setCloseHandler(cancelAction)
             .addShortcut({
                 key: Keys.ESC,
-                exec: () => this._close(ContactMergeAction.Cancel),
+                exec: () => {
+					this._close(ContactMergeAction.Cancel)
+					return false
+				},
                 help: "close_alt",
             })
     }
@@ -70,7 +73,13 @@ export class ContactMergeView {
             disabled: true,
         })
         let emptyHTMLFieldPlaceholder = m(
-            new HtmlEditor("emptyString_msg").showBorders().setValue("").setEnabled(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
+		// @ts-ignore
+            new HtmlEditor("emptyString_msg")
+					.showBorders()
+					.setValue("")
+					.setEnabled(false)
+					.setMode(HtmlEditorMode.HTML)
+					.setHtmlMonospace(false),
         )
 
         let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
@@ -282,7 +291,7 @@ export class ContactMergeView {
 
     show(): Promise<ContactMergeAction> {
         this.dialog.show()
-        let d = defer()
+        let d = defer<ContactMergeAction>()
         this.resolveFunction = d.resolve
         return d.promise
     }

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Vnode} from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {lang} from "../misc/LanguageViewModel"
@@ -22,6 +22,7 @@ import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const className = "whitelabelchildren-list"
 export class WhitelabelChildrenListView {
@@ -182,17 +183,17 @@ export class WhitelabelChildRow implements VirtualRow<WhitelabelChild> {
         let elements = [
             m(".top", [
                 m(".name", {
-                    oncreate: vnode => (this._domMailAddress = vnode.dom),
+                    oncreate: vnode => (this._domMailAddress = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small", {
-                    oncreate: vnode => (this._domCreatedDate = vnode.dom),
+                    oncreate: vnode => (this._domCreatedDate = vnode.dom as HTMLElement),
                 }),
                 m(".icons.flex", [
                     m(Icon, {
                         icon: Icons.Trash,
-                        oncreate: vnode => (this._domDeletedIcon = vnode.dom),
+                        oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
                         style: {
                             display: "none",

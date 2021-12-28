@@ -19,6 +19,7 @@ import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TemplateGrou
 import type {TemplateGroupInstance} from "./TemplateGroupModel"
 import {GroupTypeRef} from "../../api/entities/sys/Group"
 import {UserTypeRef} from "../../api/entities/sys/User"
+import Stream from "mithril/stream";
 
 /**
  *   Model that holds main logic for the Template Feature.

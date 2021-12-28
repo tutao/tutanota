@@ -40,14 +40,16 @@ const enum VerificationStatus {
 }
 
 /** Enum with user-visible types because we don't allow adding SecondFactorType.u2f anymore */
-const enum FactorTypes {
-	WEBAUTHN= "WEBAUTHN",
-	TOTP = "TOTP",
-}
+const FactorTypes = {
+	WEBAUTHN: SecondFactorType.webauthn,
+	TOTP: SecondFactorType.totp,
+} as const
+
+type FactorTypesEnum = Values<typeof FactorTypes>
 
 export class EditSecondFactorDialog {
 	_dialog: Dialog
-	_selectedType: FactorTypes
+	_selectedType: FactorTypesEnum
 	_verificationStatus: VerificationStatus
 	_u2fRegistrationData: U2fRegisteredDevice | null
 	_name: string = ""
@@ -80,7 +82,7 @@ export class EditSecondFactorDialog {
 					width: 150,
 					content: url,
 				})
-				totpQRCodeSvg = htmlSanitizer.sanitize(qrcodeGenerator.svg(), {
+				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg(), {
 					blockExternalContent: false,
 				}).text
 			} else {
@@ -167,7 +169,7 @@ export class EditSecondFactorDialog {
 	}
 
 	_render(): Children {
-		const options: Array<SelectorItem<FactorTypes>> = []
+		const options: Array<SelectorItem<FactorTypesEnum>> = []
 		options.push({
 			name: lang.get("totpAuthenticator_label"),
 			value: FactorTypes.TOTP,
@@ -180,7 +182,7 @@ export class EditSecondFactorDialog {
 			})
 		}
 
-		const typeDropdownAttrs: DropDownSelectorAttrs<FactorTypes> = {
+		const typeDropdownAttrs: DropDownSelectorAttrs<FactorTypesEnum> = {
 			label: "type_label",
 			selectedValue: stream(this._selectedType),
 			selectionChangedHandler: newValue => this._onTypeSelected(newValue),
@@ -283,7 +285,7 @@ export class EditSecondFactorDialog {
 		}
 	}
 
-	_onTypeSelected(newValue: FactorTypes) {
+	_onTypeSelected(newValue: FactorTypesEnum) {
 		this._selectedType = newValue
 		this._verificationStatus = newValue === FactorTypes.WEBAUTHN ? VerificationStatus.Initial : VerificationStatus.Progress
 

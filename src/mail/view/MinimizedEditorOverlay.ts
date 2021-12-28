@@ -1,9 +1,9 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {CounterBadge} from "../../gui/base/CounterBadge"
 import {getNavButtonIconBackground, theme} from "../../gui/theme"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import type {MinimizedEditor, MinimizedMailEditorViewModel, SaveStatus} from "../model/MinimizedMailEditorViewModel"
+import type {MinimizedEditor, MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
 import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {px} from "../../gui/size"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -112,6 +112,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
                 ),
                 m(
                     ".flex.items-center.justify-right",
+					// @ts-ignore
                     buttons.map(b => (b.isVisible && !b.isVisible() ? null : m(ButtonN, b))),
                 ),
             ]),

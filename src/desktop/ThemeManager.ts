@@ -37,7 +37,7 @@ export class ThemeManager {
     }
 
     async getCurrentThemeWithFallback(): Promise<Theme> {
-        let theme = await this.getCurrentTheme()
+        let theme: Record<string, string> = await this.getCurrentTheme()
 
         if (theme == null) {
             theme = {

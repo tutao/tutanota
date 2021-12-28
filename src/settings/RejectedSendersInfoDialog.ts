@@ -53,6 +53,6 @@ export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
         allowCancel: true,
         allowOkWithReturn: false,
         cancelActionTextId: "close_alt",
-    }
+    } as const
     Dialog.showActionDialog(actionDialogProperties)
 }

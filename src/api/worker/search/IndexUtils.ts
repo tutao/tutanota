@@ -196,10 +196,10 @@ export function htmlToText(html: string | null): string {
         let replacement
 
         if (match.startsWith("&#")) {
-            let charCode = match.substring(2, match.length - 1) // remove &# and ;
+            let charCode = Number(match.substring(2, match.length - 1)) // remove &# and ;
 
             if (!isNaN(charCode)) {
-                replacement = String.fromCharCode(Number(charCode))
+                replacement = String.fromCharCode(charCode)
             }
         } else {
             replacement = HTML_ENTITIES[match]

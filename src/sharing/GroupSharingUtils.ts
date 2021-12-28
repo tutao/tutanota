@@ -74,7 +74,7 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation,
 
 function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
     import("../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-        const sanitizedBody = htmlSanitizer.sanitize(body, {
+        const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
             blockExternalContent: false,
             allowRelativeLinks: false,
             usePlaceholderForInlineImages: false,

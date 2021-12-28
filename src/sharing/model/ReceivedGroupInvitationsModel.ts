@@ -10,6 +10,7 @@ import {OperationType} from "../../api/common/TutanotaConstants"
 import type {LoginController} from "../../api/main/LoginController"
 import {getLetId, isSameId} from "../../api/common/utils/EntityUtils"
 import {promiseMap} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export class ReceivedGroupInvitationsModel {
     readonly invitations: Stream<Array<ReceivedGroupInvitation>>
     readonly groupType: GroupType
@@ -39,7 +40,7 @@ export class ReceivedGroupInvitationsModel {
     entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
         return promiseMap(updates, update => {
             if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
-                const updateId = [update.instanceListId, update.instanceId]
+                const updateId = [update.instanceListId, update.instanceId] as const
 
                 if (update.operation === OperationType.CREATE) {
                     return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then(invitation => {

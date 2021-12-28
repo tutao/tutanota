@@ -104,6 +104,6 @@ export type AlarmNotification = {
 
 	alarmInfo: AlarmInfo;
 	notificationSessionKeys: NotificationSessionKey[];
-	repeatRule: null | RepeatRule;
+	repeatRule:  null | RepeatRule;
 	user: Id;
 }

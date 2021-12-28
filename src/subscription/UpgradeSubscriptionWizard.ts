@@ -13,7 +13,7 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
 import m from "mithril"
-import type {SubscriptionOptions, SubscriptionPlanPrices, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionPlanPrices} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream/stream.js"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -23,7 +23,7 @@ import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceSe
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
-import {createWizardDialog, WizardPageWrapper} from "../gui/base/WizardDialogN"
+import {createWizardDialog, wizardPageWrapper, WizardPageWrapper} from "../gui/base/WizardDialogN"
 import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
@@ -67,7 +67,7 @@ export type UpgradeSubscriptionData = {
     campaignInfoTextId: TranslationKey | null
     upgradeType: UpgradeType
     planPrices: SubscriptionPlanPrices
-    currentSubscription: SubscriptionType null
+    currentSubscription: SubscriptionType | null
     subscriptionParameters: SubscriptionParameters | null
 }
 export function loadUpgradePrices(campaign: string | null): Promise<UpgradePriceServiceReturn> {
@@ -134,9 +134,9 @@ export function showUpgradeWizard(): void {
                 subscriptionParameters: null,
             }
             const wizardPages = [
-                new WizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
-                new WizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-                new WizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
+                wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+				wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
+				wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
             ]
             const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
             wizardBuilder.dialog.show()
@@ -180,10 +180,10 @@ export function loadSignupWizard(subscriptionParameters: SubscriptionParameters 
             subscriptionParameters: subscriptionParameters,
         }
         const wizardPages = [
-            new WizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
-            new WizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
-            new WizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
-            new WizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
+			wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
+			wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
+			wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
+			wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
         ]
         const wizardBuilder = createWizardDialog(signupData, wizardPages, () => {
             let promise

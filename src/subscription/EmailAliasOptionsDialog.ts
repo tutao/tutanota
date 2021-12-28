@@ -81,7 +81,7 @@ function createEmailAliasPackageBox(
         height: 210,
         paymentInterval: null,
         showReferenceDiscount: false,
-    }
+    } as const
     updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Alias, amount, attrs)
     return {
         amount,

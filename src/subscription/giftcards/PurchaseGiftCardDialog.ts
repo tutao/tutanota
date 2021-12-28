@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {serviceRequest} from "../../api/main/ServiceRequest"
@@ -17,7 +17,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
+import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
@@ -36,6 +36,7 @@ import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type GiftCardPurchaseViewAttrs = {
     purchaseLimit: number
     purchasePeriodMonths: number
@@ -88,9 +89,9 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
                                     this.selectedPackage(index)
                                 },
                                 type: ButtonType.Login,
-                            }
+                            } as const
                         },
-                        price: formatPrice(parseFloat(value), true),
+                        price: formatPrice(value, true),
                         helpLabel: () =>
                             lang.get(withSubscriptionAmount === 0 ? "giftCardOptionTextA_msg" : "giftCardOptionTextB_msg", {
                                 "{remainingCredit}": formatPrice(withSubscriptionAmount, true),
@@ -253,7 +254,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
                             options: {
                                 businessUse: () => false,
                                 paymentInterval: () => 12,
-                            },
+                            } as SubscriptionOptions,
                             planPrices: priceData,
                         }
                         let dialog

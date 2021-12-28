@@ -7,6 +7,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {MacTray} from "./MacTray"
 import {NonMacTray} from "./NonMacTray"
 import {getResourcePath} from "../resources"
+import {BuildConfigKey, DesktopConfigKey} from "../config/ConfigKeys";
 export interface PlatformTray {
     setBadge(): void
     clearBadge(): void
@@ -39,7 +40,7 @@ export class DesktopTray {
     }
 
     async update(notifier: DesktopNotifier): Promise<void> {
-        const runAsTrayApp = await this._conf.getVar("runAsTrayApp")
+        const runAsTrayApp = await this._conf.getVar(DesktopConfigKey.runAsTrayApp)
         if (!runAsTrayApp) return
         const m = new Menu()
         m.append(
@@ -90,7 +91,7 @@ export class DesktopTray {
 
     async getAppIcon(): Promise<NativeImage> {
         if (!this._icon) {
-            const iconName = await this._conf.getConst("iconName")
+            const iconName = await this._conf.getConst(BuildConfigKey.iconName)
             const iconPath = platformTray.getAppIconPathFromName(iconName)
             this._icon = nativeImage.createFromPath(iconPath)
         }

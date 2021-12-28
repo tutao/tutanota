@@ -6,7 +6,7 @@ import {AssociationType, Cardinality, Type, ValueType} from "../../common/Entity
 import {compress, uncompress} from "../Compression"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
-import type {ModelValue, TypeModel, ValueType} from "../../common/EntityTypes"
+import type {ModelValue, TypeModel} from "../../common/EntityTypes"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {Base64} from "@tutao/tutanota-utils/"
@@ -20,7 +20,7 @@ export class InstanceMapper {
      * @param sk The session key, must be provided for encrypted instances
      * @returns The decrypted and mapped instance
      */
-    decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: Aes128Key | null): Promise<T> {
+    decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk?: Aes128Key): Promise<T> {
         let decrypted: any = {
             _type: new TypeRef(model.app, model.name),
         }
@@ -82,7 +82,7 @@ export class InstanceMapper {
     }
 
     encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: Aes128Key | null): Promise<Record<string, unknown>> {
-        let encrypted = {}
+        let encrypted: Record<string, unknown> = {}
         let i = instance as any
 
         for (let key of Object.keys(model.values)) {
@@ -156,7 +156,7 @@ export function encryptValue(valueName: string, valueType: ModelValue, value: an
     } else {
         const dbType = convertJsToDbType(valueType.type, value)
 
-        if (typeof dbType === "string" || dbType == null) {
+        if (typeof dbType === "string") {
             return dbType
         } else {
             return uint8ArrayToBase64(dbType)
@@ -194,7 +194,7 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
  * @param value
  * @returns {string|string|NodeJS.Global.Uint8Array|*}
  */
-function convertJsToDbType(type: Values<typeof ValueType>, value: any): Uint8Array | string | null {
+function convertJsToDbType(type: Values<typeof ValueType>, value: any): Uint8Array | string {
     if (type === ValueType.Bytes && value != null) {
         return value
     } else if (type === ValueType.Boolean) {
@@ -235,7 +235,7 @@ function decompressString(compressed: Uint8Array): string {
     return utf8Uint8ArrayToString(output)
 }
 
-function valueToDefault(type: ValueType): Date | Uint8Array | string | boolean {
+function valueToDefault(type: Values<typeof ValueType>): Date | Uint8Array | string | boolean {
     switch (type) {
         case ValueType.String:
             return ""

@@ -1,11 +1,10 @@
-import type {WebContentsEvent} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
 import {Request, Response, RequestError} from "../api/common/MessageDispatcher"
-import type {DesktopConfig} from "./config/DesktopConfig"
+import type {AllConfigKeys, DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from "./sse/DesktopSseClient"
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
@@ -24,6 +23,8 @@ import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {ThemeManager} from "./ThemeManager"
 import type {ThemeId} from "../gui/theme"
+import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
+import {DataFile} from "../api/common/DataFile";
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -39,7 +40,7 @@ export class IPC {
     readonly _crypto: DesktopCryptoFacade
     readonly _dl: DesktopDownloadManager
     readonly _updater: ElectronUpdater | null
-    readonly _electron: $Exports<"electron">
+    readonly _electron: ElectronExports
     readonly _desktopUtils: DesktopUtils
     readonly _err: DesktopErrorHandler
     readonly _integrator: DesktopIntegrator
@@ -58,7 +59,7 @@ export class IPC {
         desktopCryptoFacade: DesktopCryptoFacade,
         dl: DesktopDownloadManager,
         updater: ElectronUpdater | null,
-        electron: $Exports<"electron">,
+        electron: ElectronExports,
         desktopUtils: DesktopUtils,
         errorHandler: DesktopErrorHandler,
         integrator: DesktopIntegrator,
@@ -124,7 +125,7 @@ export class IPC {
         })
     }
 
-    async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Record<string, any>>): any {
+    async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<any>): Promise<any> {
         switch (method) {
             case "init":
                 // Mark ourselves as initialized *after* we answer.
@@ -175,7 +176,7 @@ export class IPC {
                 return this._integrator.unintegrate()
 
             case "getConfigValue":
-                return this._conf.getVar(args[0])
+                return this._conf.getVar(args[0] as unknown as AllConfigKeys)
 
             case "getSpellcheckLanguages": {
                 const ses = this._electron.session.defaultSession
@@ -221,7 +222,7 @@ export class IPC {
 
             case "download":
                 // sourceUrl, filename, headers
-                return this._dl.downloadNative(...args.slice(0, 3))
+                return this._dl.downloadNative(args[0], args[1], args[2])
 
             case "saveBlob":
                 // args: [data.name, uint8ArrayToBase64(data.data)]
@@ -231,7 +232,7 @@ export class IPC {
 
             case "aesDecryptFile":
                 // key, path
-                return this._crypto.aesDecryptFile(...args.slice(0, 2))
+                return this._crypto.aesDecryptFile(args[0], args[1])
 
             case "setConfigValue":
                 const [key, value] = args.slice(0, 2)

@@ -4,19 +4,20 @@ import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
 import {log} from "./DesktopLog"
 import type {TimeoutSetter} from "@tutao/tutanota-utils"
+import {NetExports} from "./ElectronExportTypes";
+import {Server, Socket} from "net"
 const SOCKET_PATH = "/tmp/tutadb.sock"
-type net = $Exports<"net">
 
 /**
  * this is used to control our administration tool
  */
 export class Socketeer {
-    _server: net$Server | null
-    _connection: net$Socket | null
+    _server: Server | null
+    _connection: Socket | null
     _delayHandler: TimeoutSetter
-    _net: net
+    _net: NetExports
 
-    constructor(net: net, app: App, delayHandler: TimeoutSetter = setTimeout) {
+    constructor(net: NetExports, app: App, delayHandler: TimeoutSetter = setTimeout) {
         this._net = net
         this._delayHandler = delayHandler
         app.on("will-quit", () => {
@@ -67,6 +68,7 @@ export class Socketeer {
             .on("error", e => {
                 log.warn("Socketeer: server error", e)
 
+				// @ts-ignore Should be name or message instead?
                 if (e.code === "EADDRINUSE") {
                     this._delayHandler(() => {
                         try {
@@ -113,6 +115,7 @@ export class Socketeer {
                 this._tryReconnect(ondata)
             })
             .on("error", e => {
+				// @ts-ignore Should be name or message instead?
                 if (e.code !== "ENOENT") {
                     console.error("Unexpected Socket Error:", e)
                 }

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
@@ -245,7 +245,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
                 })
             },
             icon: () => Icons.Edit,
-        }
+        } as const
         return {
             label: "name_label",
             value: stream(this._name),
@@ -291,7 +291,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
                         }),
                         selectedValue: stream(availableUserGroupInfos[0]),
                         dropdownWidth: 250,
-                    }
+                    } as const
 
                     let addUserToGroupOkAction = dialog => {
                         showProgressDialog("pleaseWait_msg", this._addUserToGroup(dropdownAttrs.selectedValue().group))
@@ -392,7 +392,7 @@ export class GroupViewer implements UpdatableSettingsViewer {
             label: "addUserToGroup_label",
             click: () => this._showAddMember(),
             icon: () => Icons.Add,
-        }
+        } as const
         let lines = []
 
         if (this._members.isLoaded()) {

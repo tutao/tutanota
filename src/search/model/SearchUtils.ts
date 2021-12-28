@@ -66,14 +66,14 @@ export const SEARCH_MAIL_FIELDS = [
         field: "attachment",
         attributeIds: [MailModel.associations["attachments"].id as number],
     },
-]
+] as const
 const routeSetThrottled = throttleRoute()
 export function setSearchUrl(url: string) {
     if (url !== m.route.get()) {
         routeSetThrottled(url)
     }
 }
-export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectedId: Id | null): string {
+export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectedId?: Id): string {
     let category = neverNull(SEARCH_CATEGORIES.find(c => isSameTypeRef(c.typeRef, restriction.type))).name
     let url = "/search/" + category + (selectedId ? "/" + selectedId : "") + "?query=" + encodeURIComponent(query || "")
 
@@ -104,10 +104,10 @@ export function getFreeSearchStartDate(): Date {
  */
 export function createRestriction(
     searchCategory: string,
-    start: number | null,
-    end: number | null,
-    field: string | null,
-    listId: string | null,
+    start?: number | null,
+    end?: number | null,
+    field?: string | null,
+    listId?: string | null,
 ): SearchRestriction {
     if (logins.getUserController().isFreeAccount() && searchCategory === "mail") {
         start = null

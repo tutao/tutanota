@@ -51,7 +51,7 @@ export function reportTest(results: mixed, stats: mixed) {
 		const p = assertNotNull(document.getElementById("report"))
 		// errCount includes bailCount
 		p.textContent = errCount === 0 ? "No errors" : `${errCount} error(s) (see console)`
-		p.style.color = errCount === 0 ? "green" : "red"
+		p.style.Color = errCount === 0 ? "green" : "red"
 	})()
 }
 

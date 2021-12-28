@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {Icons} from "../base/icons/Icons"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear} from "../../misc/Formatter"
@@ -7,8 +7,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
 import {BootIcons} from "../base/icons/BootIcons"
-import type {lazy} from "@tutao/tutanota-utils"
-import {neverNull} from "@tutao/tutanota-utils"
 import {Icon} from "../base/Icon"
 import {getStartOfDay, isSameDayOfDate} from "@tutao/tutanota-utils"
 import {DateTime} from "luxon"
@@ -18,6 +16,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
+import Stream from "mithril/stream";
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -41,7 +40,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
     inputText: string = ""
     showingDropdown: boolean = false
     domInput: HTMLElement | null = null
-    documentClickListener: MouseEventListener | null = null
+    documentClickListener: EventListener | null = null
     textFieldHasFocus: boolean = false
 
     constructor({attrs}: Vnode<DatePickerAttrs>) {
@@ -82,7 +81,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
                 },
             },
             m(TextFieldN, {
-                value: () => this.inputText,
+                value: Stream(this.inputText),
                 label,
                 helpLabel: () => this._renderHelpLabel(date, nullSelectionText),
                 disabled,
@@ -95,7 +94,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
                     this.textFieldHasFocus = false
                 },
                 oncreate: vnode => {
-                    this.domInput = vnode.dom
+                    this.domInput = vnode.dom as HTMLElement
                 },
                 keyHandler: key => {
                     if (key.keyCode === Keys.TAB.code) {
@@ -130,7 +129,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
                 },
                 onblur: () => (this.showingDropdown = false),
                 oncreate: vnode => {
-                    const listener: MouseEventListener = e => {
+                    const listener = e => {
                         if (!vnode.dom.contains(e.target)) {
                             this.showingDropdown = false
                             m.redraw()
@@ -206,12 +205,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
         }
     }
 }
-type VisualDatePickerAttrs = $Attrs<{
+type VisualDatePickerAttrs = {
     selectedDate: Date | null
     onDateSelected?: (date: Date, dayClick: boolean) => unknown
     wide: boolean
     startOfTheWeekOffset: number
-}>
+}
+
 export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
     _displayingDate: Date
     _lastSelectedDate: Date | null

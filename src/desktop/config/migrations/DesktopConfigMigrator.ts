@@ -13,12 +13,14 @@ import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
 export type MigrationKind = "migrateClient" | "migrateAdmin"
+export type ElectronExports = typeof Electron.CrossProcessExports;
+
 export class DesktopConfigMigrator {
     readonly crypto: DesktopCryptoFacade
     _deviceKeyProvider: DesktopDeviceKeyProvider
-    _electron: $Exports<"electron">
+    _electron: ElectronExports
 
-    constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: $Exports<"electron">) {
+    constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: ElectronExports) {
         this.crypto = crypto
         this._deviceKeyProvider = deviceKeyProvider
         this._electron = electron

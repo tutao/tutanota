@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component} from "mithril"
 import {logins} from "../api/main/LoginController"
 import type {PositionRect} from "./base/Overlay"
 import {displayOverlay} from "./base/Overlay"
@@ -7,11 +7,11 @@ import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
 import {Request} from "../api/common/MessageDispatcher"
 import {lang} from "../misc/LanguageViewModel"
-import {transform} from "./animation/Animations"
+import {transform, TransformEnum} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {FindInPageResult} from "electron"
 import {locator} from "../api/main/MainLocator"
+import Result = Electron.Result;
 assertMainOrNode()
 
 /**
@@ -36,8 +36,8 @@ export class SearchInPageOverlay {
                 this._closeFunction = displayOverlay(
                     () => this._getRect(),
                     this._getComponent(),
-                    dom => transform(transform.type.translateY, dom.offsetHeight, 0),
-                    dom => transform(transform.type.translateY, 0, dom.offsetHeight),
+                    dom => transform(TransformEnum.TranslateY, dom.offsetHeight, 0),
+                    dom => transform(TransformEnum.TranslateY, 0, dom.offsetHeight),
                 )
             } else {
                 //already open, refocus
@@ -78,7 +78,7 @@ export class SearchInPageOverlay {
             {
                 placeholder: lang.get("searchPage_action"),
                 oncreate: vnode => {
-                    this._domInput = vnode.dom
+                    this._domInput = vnode.dom as HTMLInputElement
 
                     this._domInput.focus()
                 },
@@ -119,7 +119,7 @@ export class SearchInPageOverlay {
             .then(r => this.applyNextResult(r))
     }
 
-    applyNextResult(result: FindInPageResult | null): void {
+    applyNextResult(result: Result | null): void {
         if (result == null) {
             this._numberOfMatches = 0
             this._currentMatch = 0
@@ -143,7 +143,7 @@ export class SearchInPageOverlay {
     }
 
     _getComponent(): Component<void> {
-        let caseButtonAttrs = {
+		const caseButtonAttrs = {
             label: "matchCase_alt",
             icon: () => Icons.MatchCase,
             type: ButtonType.Action,
@@ -154,27 +154,27 @@ export class SearchInPageOverlay {
 
                 this._find(true, false)
             },
-        }
-        let forwardButtonAttrs = {
+		} as const
+		const forwardButtonAttrs = {
             label: "next_action",
             icon: () => Icons.ArrowForward,
             type: ButtonType.Action,
             noBubble: true,
             click: () => this._find(true, true),
-        }
-        let backwardButtonAttrs = {
+        } as const
+		const backwardButtonAttrs = {
             label: "previous_action",
             icon: () => Icons.ArrowBackward,
             type: ButtonType.Action,
             noBubble: true,
             click: () => this._find(false, true),
-        }
-        let closeButtonAttrs = {
+		} as const
+		const closeButtonAttrs = {
             label: "close_alt",
             icon: () => Icons.Cancel,
             type: ButtonType.Action,
             click: () => this.close(),
-        }
+		} as const
 
         const handleMouseUp = event => this.handleMouseUp(event)
 

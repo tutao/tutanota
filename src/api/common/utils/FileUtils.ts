@@ -2,6 +2,7 @@ import {downcast, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/File"
 import {intersection} from "@tutao/tutanota-utils/"
+import {DataFile} from "../DataFile";
 type StringPredicate = (arg0: string) => boolean
 
 export interface FileReference {

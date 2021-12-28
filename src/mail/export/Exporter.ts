@@ -9,7 +9,7 @@ import {
     stringToUtf8Uint8Array,
     uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import {createDataFile, getCleanedMimeType} from "../../api/common/DataFile"
+import {createDataFile, DataFile, getCleanedMimeType} from "../../api/common/DataFile"
 import type {MailBundle} from "./Bundler"
 import {makeMailBundle} from "./Bundler"
 import {isDesktop} from "../../api/common/Env"

@@ -1,10 +1,7 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
-import stream from "mithril/stream/stream.js"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {Icons} from "../gui/base/icons/Icons"
 import {KnowledgeBaseEditorModel} from "./KnowledgeBaseEditorModel"
 import {noOp} from "@tutao/tutanota-utils"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -12,9 +9,6 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {Dialog} from "../gui/base/Dialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import type {KeyPress} from "../misc/KeyManager"
-import {Keys} from "../api/common/TutanotaConstants"
-import {Icon} from "../gui/base/Icon"
 import {locator} from "../api/main/MainLocator"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -128,6 +122,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
                 label: "keywords_label",
                 value: model.keywords,
             }),
+			// @ts-ignore
             m(this.entryContentEditor),
         ])
     }

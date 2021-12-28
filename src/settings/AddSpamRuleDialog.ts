@@ -16,7 +16,7 @@ import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListEl
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 assertMainOrNode()
-export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderListElement | null) {
+export function showAddSpamRuleDialog(existingSpamRuleOrTemplate?: EmailSenderListElement) {
     let existingSpamRules: EmailSenderListElement[] | null = null
     let customDomains: string[] | null
     locator.customerFacade.loadCustomerServerProperties().then(props => {

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 export type ListColumnAttrs = {
     headerContent: Children
     padHorizontal?: boolean | null

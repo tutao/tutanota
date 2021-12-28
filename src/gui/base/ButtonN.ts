@@ -1,15 +1,21 @@
-
 import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
+import {
+	getContentButtonIconBackground,
+	getElevatedBackground,
+	getNavButtonIconBackground,
+	getNavigationMenuIcon,
+	theme
+} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
 import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+
 assertMainOrNode()
 export const enum ButtonType {
     Action = "action",
@@ -97,17 +103,19 @@ export function getColors(
             }
     }
 }
+
 export type ButtonAttrs = {
     label: TranslationKey | lazy<string>
     title?: TranslationKey | lazy<string>
-    click: clickHandler
+    click?: clickHandler
     icon?: lazyIcon | null
     type?: ButtonType
     colors?: ButtonColor
     isVisible?: lazy<boolean>
     isSelected?: lazy<boolean>
     noBubble?: boolean
-    staticRightText?: string
+    staticRightText?: string,
+	style?: Record<string, string>
 }
 
 /**
@@ -131,7 +139,7 @@ export class ButtonN implements Component<ButtonAttrs> {
                         ? lang.getMaybeLazy(a.label)
                         : title,
                 oncreate: vnode => {
-                    this._domButton = vnode.dom
+                    this._domButton = vnode.dom as HTMLButtonElement
                 },
                 onremove: vnode => removeFlash(vnode.dom),
             },
@@ -209,7 +217,7 @@ export class ButtonN implements Component<ButtonAttrs> {
             return theme.button_bubble_fg
         } else if (type === ButtonType.Login) {
             return theme.content_button_icon_selected
-        } else if (isSelected(a) || type === ButtonType.Floating) {
+        } else if (a.isSelected() || type === ButtonType.Floating) {
             return getColors(a.colors).icon_selected
         } else {
             return getColors(a.colors).icon
@@ -221,7 +229,7 @@ export class ButtonN implements Component<ButtonAttrs> {
 
         if ([ButtonType.Toggle, ButtonType.Bubble, ButtonType.Login].includes(type)) {
             return "initial"
-        } else if (isSelected(a) || type === ButtonType.Floating) {
+        } else if (a.isSelected() || type === ButtonType.Floating) {
             return getColors(a.colors).button_selected
         } else if (type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.ActionLarge) {
             return getColors(a.colors).button_icon_bg
@@ -291,7 +299,7 @@ export class ButtonN implements Component<ButtonAttrs> {
         }
 
         if (type === ButtonType.Toggle) {
-            wrapperClasses.push(isSelected(a) ? "on" : "off")
+            wrapperClasses.push(a.isSelected() ? "on" : "off")
         }
 
         return wrapperClasses
@@ -354,7 +362,7 @@ export class ButtonN implements Component<ButtonAttrs> {
                 break
 
             default:
-                color = isSelected(a) ? getColors(a.colors).button_selected : getColors(a.colors).button
+                color = a.isSelected() ? getColors(a.colors).button_selected : getColors(a.colors).button
         }
 
         return {
@@ -370,10 +378,4 @@ export class ButtonN implements Component<ButtonAttrs> {
             event.stopPropagation()
         }
     }
-}
-export function isVisible(a: NavButtonAttrs | ButtonAttrs): boolean {
-    return typeof a.isVisible !== "function" || a.isVisible()
-}
-export function isSelected(a: NavButtonAttrs | ButtonAttrs): boolean {
-    return typeof a.isSelected === "function" ? a.isSelected() : false
 }

@@ -3,6 +3,8 @@ import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler"
 import {promiseMap} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "./NativeInterface"
+import {FileReference} from "../../api/common/utils/FileUtils";
+import {DataFile} from "../../api/common/DataFile";
 export type DataTaskResponse = {
     statusCode: number
     errorId: string | null

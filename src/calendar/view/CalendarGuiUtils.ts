@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Child} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -35,7 +35,7 @@ export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no
                 alertDialog.close()
             },
             type: ButtonType.Secondary,
-        }
+        } as const
         const noButton = {
             label: "no_label",
             click: () => {
@@ -43,7 +43,7 @@ export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no
                 alertDialog.close()
             },
             type: ButtonType.Secondary,
-        }
+        } as const
         const yesButton = {
             label: "yes_label",
             click: () => {
@@ -51,7 +51,7 @@ export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no
                 alertDialog.close()
             },
             type: ButtonType.Primary,
-        }
+        } as const
 
         const onclose = positive => (positive ? resolve("yes") : resolve("cancel"))
 

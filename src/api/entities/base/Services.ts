@@ -1,7 +1,3 @@
-export const enum BaseService
+export const enum BaseService {
 
-:
-{||
-}
-{
 }

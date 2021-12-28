@@ -51,5 +51,5 @@ export type CustomDomainData = {
 	_format: NumberString;
 	domain: string;
 
-	catchAllMailGroup: null | Id;
+	catchAllMailGroup:  null | Id;
 }

@@ -17,14 +17,14 @@ export function showDeleteAccountDialog() {
         value: stream(why),
         oninput: value => (why = value),
         helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
-    }
+    } as const
     let takeover = ""
     const takeoverFieldAttrs = {
         label: "targetAddress_label",
         value: stream(takeover),
         oninput: value => (takeover = value),
         helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
-    }
+    } as const
     let password = ""
     const passwordFieldAttrs = {
         label: "password_label",
@@ -32,7 +32,7 @@ export function showDeleteAccountDialog() {
         oninput: value => (password = value),
         helpLabel: () => lang.get("passwordEnterNeutral_msg"),
         type: TextFieldType.Password,
-    }
+    } as const
     Dialog.showActionDialog({
         title: lang.get("adminDeleteAccount_action"),
         child: {

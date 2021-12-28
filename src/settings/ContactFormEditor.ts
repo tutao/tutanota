@@ -12,7 +12,7 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import type {TableAttrs} from "../gui/base/TableN"
+import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {ContactFormTypeRef, createContactForm} from "../api/entities/tutanota/ContactForm"
@@ -44,6 +44,7 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
 let PATH_PATTERN = /^[a-zA-Z0-9_\\-]+$/
@@ -221,8 +222,11 @@ export class ContactFormEditor {
                     m(TextFieldN, this._createPathFieldAttrs()),
                     m(TextFieldN, this._createLanguageFieldAttrs()),
                     m(TextFieldN, this._createPageTitleAttrs()),
+						// @ts-ignore
                     m(this._headerField),
+					// @ts-ignore
                     m(this._footerField),
+					// @ts-ignore
                     m(this._helpField),
                 ],
             )
@@ -271,7 +275,7 @@ export class ContactFormEditor {
 
                         let contactFormsListId = root.contactForms
                         let customElementIdFromPath = stringToCustomId(this._path)
-                        let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath]
+                        let contactFormIdFromPath = [contactFormsListId, customElementIdFromPath] as const
                         let samePathFormCheck = Promise.resolve(false)
 
                         // only compare the path if this is a new contact form or it is a different existing contact form
@@ -421,7 +425,8 @@ export class ContactFormEditor {
             label: "language_label",
             value: stream(this._languageDisplayValue),
             disabled: true,
-            injectionsRight: () => [m(selectLanguageButton), this._languages.length > 1 ? m(deleteLanguageButton) : null],
+			// @ts-ignore
+			injectionsRight: () => [m(selectLanguageButton), this._languages.length > 1 ? m(deleteLanguageButton) : null],
         }
     }
 
@@ -486,7 +491,8 @@ export class ContactFormEditor {
             label: "receivingMailbox_label",
             value: stream(this._receivingMailboxDisplayValue),
             disabled: true,
-            injectionsRight: () => (groupsDropdown ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]),
+			// @ts-ignore
+			injectionsRight: () => (groupsDropdown ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]),
         }
     }
 
@@ -529,14 +535,14 @@ export class ContactFormEditor {
                 }
             },
             icon: () => Icons.Add,
-        }
+        } as const
 
-        const lines = this._participantGroupInfoList.map(groupInfo => {
+        const lines: TableLineAttrs[] = this._participantGroupInfoList.map(groupInfo => {
             const removeButtonAttrs = {
                 label: "removeGroup_action",
                 click: () => remove(this._participantGroupInfoList, groupInfo),
                 icon: () => Icons.Cancel,
-            }
+            } as const
             return {
                 cells: [getGroupInfoDisplayName(groupInfo)],
                 actionButtonAttrs: removeButtonAttrs,

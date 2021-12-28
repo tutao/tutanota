@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
 import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
@@ -10,7 +10,7 @@ import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "./Pri
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
@@ -44,6 +44,8 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
+import Stream from "mithril/stream";
+import {TranslationKeyType} from "../misc/TranslationKey";
 assertMainOrNode()
 export class PaymentViewer implements UpdatableSettingsViewer {
     _invoiceAddressField: HtmlEditor
@@ -86,7 +88,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                 () => logins.getUserController().isPremiumAccount(),
             ),
             icon: () => Icons.Edit,
-        }
+        } as const
         this._postings = []
         this._lastBooking = null
         this._paymentBusy = false
@@ -123,13 +125,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                     () => !isIOSApp() && logins.getUserController().isPremiumAccount(),
                 ),
                 icon: () => Icons.Edit,
-            }
+            } as const
             const invoiceVatId = this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg")
             const invoiceVatNumberFieldAttrs = {
                 label: "invoiceVatIdNo_label",
                 value: stream(invoiceVatId),
                 disabled: true,
-            }
+            } as const
 
             const paymentMethodHelpLabel = () => {
                 if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
@@ -148,7 +150,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                 helpLabel: paymentMethodHelpLabel,
                 disabled: true,
                 injectionsRight: () => [m(ButtonN, changePaymentDataButtonAttrs)],
-            }
+            } as const
             return m(
                 "#invoicing-settings.fill-absolute.scroll.plr-l",
                 {
@@ -159,6 +161,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                         m(".h4", lang.get("invoiceData_msg")),
                         m(".mr-negative-s", m(ButtonN, changeInvoiceDataButtonAttrs)),
                     ]),
+					// @ts-ignore
                     m(this._invoiceAddressField),
                     this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0 ? m(TextFieldN, invoiceVatNumberFieldAttrs) : null,
                     m(TextFieldN, paymentMethodFieldAttrs),
@@ -270,7 +273,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                                               },
                                           }
                                         : null,
-                            }
+                            } as TableLineAttrs
                         }),
                     }),
                 ),
@@ -395,7 +398,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
                     )
                 }
             })
-            .then(errorId => {
+            .then((errorId: TranslationKeyType | void) => {
                 if (errorId) {
                     return Dialog.message(errorId)
                 }

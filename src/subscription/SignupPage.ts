@@ -1,18 +1,21 @@
-import m from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionUtils"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {SignupForm} from "./SignupForm"
-import {neverNull} from "@tutao/tutanota-utils"
 type ConfirmStatus = {
     type: string
     text: TranslationKey
 }
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
-    view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+	private dom!: HTMLElement;
+	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		this.dom = vnode.dom as HTMLElement
+	}
+
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
         const data = vnode.attrs.data
         const newAccountData = data.newAccountData
         let mailAddress
@@ -20,7 +23,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
         return m(SignupForm, {
             newSignupHandler: newAccountData => {
                 if (newAccountData) data.newAccountData = newAccountData
-                emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+                emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
             },
             isBusinessUse: data.options.businessUse,
             isPaidSubscription: () => data.type !== SubscriptionType.Free,

@@ -1,4 +1,3 @@
-// @flow
 import path from 'path'
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer, downcast} from "@tutao/tutanota-utils"
@@ -16,10 +15,11 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import type {ConfigFileType} from "./ConfigFile"
 import {getConfigFile} from "./ConfigFile"
 
-
-type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
+export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
 type ConfigValue = string | number | {} | boolean | ReadonlyArray<ConfigValue>
+
+type OnValueSetListeners = { [k in AllConfigKeys]: Array<(val: ConfigValue | null) => void> };
 
 /**
  * manages build and user config
@@ -32,7 +32,7 @@ export class DesktopConfig {
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
-	_onValueSetListeners: {[k in AllConfigKeys]: Array<(val: ?ConfigValue) => void>}
+	_onValueSetListeners: OnValueSetListeners
 
 	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DesktopDeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
 		this._deviceKeyProvider = deviceKeyProvider
@@ -40,7 +40,7 @@ export class DesktopConfig {
 		this._app = app
 		this._migrator = migrator
 		this._desktopConfigFile = getConfigFile(path.join(app.getPath('userData'), 'conf.json'), fs)
-		this._onValueSetListeners = {}
+		this._onValueSetListeners = {} as OnValueSetListeners
 		this._buildConfig = defer()
 		this._desktopConfig = defer()
 	}
@@ -82,7 +82,7 @@ export class DesktopConfig {
 		if (key in DesktopConfigKey) {
 			return desktopConfig[key]
 		} else if (key in DesktopConfigEncKey) {
-			return this._getEncryptedVar(key)
+			return this._getEncryptedVar(key as DesktopConfigEncKey)
 		}
 	}
 
@@ -106,7 +106,7 @@ export class DesktopConfig {
 		}
 	}
 
-	async _setEncryptedVar(key: DesktopConfigEncKey, value: ?ConfigValue) {
+	async _setEncryptedVar(key: DesktopConfigEncKey, value: ConfigValue | null) {
 		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
 		let encryptedValue
 		if (value != null) {
@@ -124,16 +124,16 @@ export class DesktopConfig {
 	 * @param value the new value
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
-	async setVar(key: DesktopConfigKey DesktopConfigEncKey, value: ?ConfigValue): Promise<void> {
+	async setVar(key: DesktopConfigKey | DesktopConfigEncKey, value: ConfigValue | null): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
 
-		if (DesktopConfigKeyValues.has(downcast(key))) {
+		if (Object.values(DesktopConfigKey).includes(downcast(key))) {
 			desktopConfig[key] = value
-		} else if (DesktopConfigEncKeyValues.has(downcast(key))) {
+		} else if (Object.values(DesktopConfigEncKey).includes(downcast(key))) {
 			if (value == null) {
 				desktopConfig[key] = value
 			} else {
-				await this._setEncryptedVar(key, value)
+				await this._setEncryptedVar(key as DesktopConfigEncKey, value)
 			}
 		} else {
 			throw new ProgrammingError("Unknown config key: " + key)
@@ -142,7 +142,7 @@ export class DesktopConfig {
 		await this._saveAndNotify(key, value)
 	}
 
-	async _saveAndNotify(key: AllConfigKeys, value: ?ConfigValue): Promise<void> {
+	async _saveAndNotify(key: AllConfigKeys, value: ConfigValue | null): Promise<void> {
 		const desktopConfig = await this._desktopConfig.promise
 		await this._desktopConfigFile.writeJSON(desktopConfig)
 		this._notifyChangeListeners(key, value)
@@ -167,7 +167,7 @@ export class DesktopConfig {
 		if (key) {
 			this._onValueSetListeners[key] = []
 		} else {
-			this._onValueSetListeners = {}
+			this._onValueSetListeners = {} as OnValueSetListeners
 		}
 
 		return this
@@ -179,7 +179,7 @@ export class DesktopConfig {
 		return this
 	}
 
-	_notifyChangeListeners(key: AllConfigKeys, value: ?ConfigValue) {
+	_notifyChangeListeners(key: AllConfigKeys, value: ConfigValue | null) {
 		if (this._onValueSetListeners[key]) {
 			for (const cb of this._onValueSetListeners[key]) {
 				cb(value)

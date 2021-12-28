@@ -125,10 +125,10 @@ export class GroupInfoIndexer {
     }
 
     processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-        return promiseMap(events, event => {
+        return promiseMap(events, async event => {
             if (userIsLocalOrGlobalAdmin(user)) {
                 if (event.operation === OperationType.CREATE) {
-                    return this.processNewGroupInfo(event).then(result => {
+                    await this.processNewGroupInfo(event).then(result => {
                         if (result) {
                             this._core.encryptSearchIndexEntries(
                                 result.groupInfo._id,
@@ -139,7 +139,7 @@ export class GroupInfoIndexer {
                         }
                     })
                 } else if (event.operation === OperationType.UPDATE) {
-                    return Promise.all([
+					await Promise.all([
                         this._core._processDeleted(event, indexUpdate),
                         this.processNewGroupInfo(event).then(result => {
                             if (result) {
@@ -153,7 +153,7 @@ export class GroupInfoIndexer {
                         }),
                     ])
                 } else if (event.operation === OperationType.DELETE) {
-                    return this._core._processDeleted(event, indexUpdate)
+					await this._core._processDeleted(event, indexUpdate)
                 }
             }
         }).then(noOp)

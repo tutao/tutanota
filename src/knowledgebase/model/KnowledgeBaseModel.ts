@@ -16,6 +16,7 @@ import type {TemplateGroupInstance} from "../../templates/model/TemplateGroupMod
 import {loadTemplateGroupInstance} from "../../templates/model/TemplatePopupModel"
 import type {IUserController} from "../../api/main/UserController"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
+import Stream from "mithril/stream";
 export const SELECT_NEXT_ENTRY = "next"
 
 function compareKnowledgeBaseEntriesForSort(entry1: KnowledgeBaseEntry, entry2: KnowledgeBaseEntry): number {

@@ -9,13 +9,15 @@ import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
 import {registerKeys, unregisterKeys} from "./reg-templater"
+import type {ElectronExports, FsExports} from "./ElectronExportTypes";
+import {DataFile} from "../api/common/DataFile";
 export class DesktopUtils {
-    readonly _fs: $Exports<"fs">
-    readonly _electron: $Exports<"electron">
+    readonly _fs: FsExports
+    readonly _electron: ElectronExports
     readonly _desktopCrypto: DesktopCryptoFacade
     readonly _topLevelDownloadDir: string = "tutanota"
 
-    constructor(fs: $Exports<"fs">, electron: $Exports<"electron">, desktopCrypto: DesktopCryptoFacade) {
+    constructor(fs: FsExports, electron: ElectronExports, desktopCrypto: DesktopCryptoFacade) {
         this._fs = fs
         this._electron = electron
         this._desktopCrypto = desktopCrypto
@@ -75,7 +77,8 @@ export class DesktopUtils {
                     if (!isAdmin && tryToElevate) {
                         // We require admin rights in windows, so we will recursively run the tutanota client with admin privileges
                         // and then call this method again at startup of the elevated app
-                        return _elevateWin(process.execPath, ["-r"])
+                        _elevateWin(process.execPath, ["-r"])
+						return
                     } else if (isAdmin) {
                         return this._registerOnWin()
                     }
@@ -99,8 +102,9 @@ export class DesktopUtils {
             case "win32":
                 return checkForAdminStatus().then(isAdmin => {
                     if (!isAdmin && tryToElevate) {
-                        return _elevateWin(process.execPath, ["-u"])
-                    } else if (isAdmin) {
+                        _elevateWin(process.execPath, ["-u"])
+						return
+					} else if (isAdmin) {
                         return this._unregisterOnWin()
                     }
                 })
@@ -189,7 +193,7 @@ export class DesktopUtils {
      * @private
      */
     _executeRegistryScript(script: string): Promise<void> {
-        const deferred = defer()
+        const deferred = defer<void>()
 
         const file = this._writeToDisk(script)
 
@@ -200,7 +204,7 @@ export class DesktopUtils {
             this._fs.unlinkSync(file)
 
             if (code === 0) {
-                deferred.resolve()
+                deferred.resolve(undefined)
             } else {
                 deferred.reject(new Error("couldn't execute registry script"))
             }
@@ -326,7 +330,7 @@ function _elevateWin(command: string, args: Array<string>) {
         detached: false,
     }).on("exit", (code, signal) => {
         if (code === 0) {
-            deferred.resolve()
+            deferred.resolve(undefined)
         } else {
             deferred.reject(new Error("couldn't elevate permissions"))
         }

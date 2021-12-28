@@ -1,13 +1,11 @@
-// @flow
 import {size} from "../size"
-import m from "mithril"
+import m, {Children} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
-import type {ButtonColor, ButtonType} from "./ButtonN"
 import {ButtonColor, ButtonType, getColors} from "./ButtonN"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -27,17 +25,17 @@ export class Button {
 	_type: ButtonType;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
-	icon: ?lazyIcon;
+	icon: lazyIcon | null;
 	isVisible: lazy<boolean>;
 	isActive: boolean;
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
 	_domButton: HTMLElement;
 	view: Function;
-	_staticRightText: ?string;
+	_staticRightText: string | null;
 	_colors: ButtonColor;
 
-	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon: ?lazyIcon) {
+	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon?: lazyIcon) {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
@@ -52,7 +50,7 @@ export class Button {
 		this.getLabel = typeof labelTextIdOrTextFunction === "function"
 						? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
-		this.view = (): ?Children => {
+		this.view = (): Children => {
 
 			return m("button.limit-width.noselect" + ((this._type === ButtonType.Bubble) ? ".print" : ""
 				+ (this._type === ButtonType.Floating ? ".z2" : "")), {
@@ -69,7 +67,7 @@ export class Button {
 						? this.getLabel()
 						: "",
 					oncreate: (vnode) => {
-						this._domButton = vnode.dom
+						this._domButton = vnode.dom as HTMLButtonElement
 					},
 					onremove: (vnode) => removeFlash(vnode.dom)
 				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
@@ -199,7 +197,7 @@ export class Button {
 	/**
 	 * This text is shown on the right of the main button label and never cut off (no ellipsis)
 	 */
-	setStaticRightText(text: string): this {
+	setStaticRightText(text: string): Button {
 		this._staticRightText = text
 		m.redraw()
 		return this
@@ -233,7 +231,7 @@ export class Button {
 		return this;
 	}
 
-	disableBubbling(): this {
+	disableBubbling(): Button {
 		this.propagateClickEvents = false
 		return this
 	}

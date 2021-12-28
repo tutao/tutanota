@@ -120,10 +120,10 @@ export class WhitelabelChildIndexer {
     }
 
     processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate, user: User): Promise<void> {
-        return promiseMap(events, (event, index) => {
+        return promiseMap(events, async (event) => {
             if (userIsGlobalAdmin(user)) {
                 if (event.operation === OperationType.CREATE) {
-                    return this.processNewWhitelabelChild(event).then(result => {
+                    await this.processNewWhitelabelChild(event).then(result => {
                         if (result) {
                             this._core.encryptSearchIndexEntries(
                                 result.whitelabelChild._id,
@@ -134,7 +134,7 @@ export class WhitelabelChildIndexer {
                         }
                     })
                 } else if (event.operation === OperationType.UPDATE) {
-                    return Promise.all([
+					await Promise.all([
                         this._core._processDeleted(event, indexUpdate),
                         this.processNewWhitelabelChild(event).then(result => {
                             if (result) {
@@ -148,7 +148,7 @@ export class WhitelabelChildIndexer {
                         }),
                     ])
                 } else if (event.operation === OperationType.DELETE) {
-                    return this._core._processDeleted(event, indexUpdate)
+					await this._core._processDeleted(event, indexUpdate)
                 }
             }
         }).then(noOp)

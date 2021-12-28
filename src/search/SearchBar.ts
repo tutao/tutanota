@@ -1,6 +1,5 @@
-
 import {TextFieldType} from "../gui/base/TextFieldN"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
 import {inputLineHeight, px, size} from "../gui/size"
@@ -47,6 +46,7 @@ import {compareContacts} from "../contacts/view/ContactGuiUtils"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {LayerType} from "../RootView"
 import {mod} from "@tutao/tutanota-utils/lib/MathUtils"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export type ShowMoreAction = {
     resultCount: number
@@ -135,7 +135,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
                         ".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search),
                         {
                             oncreate: vnode => {
-                                this._domWrapper = vnode.dom
+                                this._domWrapper = vnode.dom as HTMLElement
                                 shortcuts = this._setupShortcuts()
                                 keyManager.registerShortcuts(shortcuts)
                                 indexStateStream = locator.search.indexState.map(indexState => {
@@ -437,11 +437,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
         if (result != null) {
             this._domInput.blur()
 
-            let type: TypeRef<any> | null = result._type != null ? result._type : null
+            let type: TypeRef<any> | null = "_type" in result ? result._type : null
 
             if (!type) {
                 // click on SHOW MORE button
-                if (result.allowShowMore) {
+                if ((result as ShowMoreAction).allowShowMore) {
                     this._updateSearchUrl(query)
                 }
             } else if (isSameTypeRef(MailTypeRef, type)) {
@@ -468,7 +468,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
         return getRestriction(m.route.get())
     }
 
-    _updateSearchUrl(query: string, selected: ListElement | null) {
+    _updateSearchUrl(query: string, selected?: ListElement) {
         setSearchUrl(getSearchUrl(query, this._getRestriction(), selected && getElementId(selected)))
     }
 
@@ -545,19 +545,19 @@ export class SearchBar implements Component<SearchBarAttrs> {
                     minSuggestionCount: useSuggestions ? 10 : 0,
                     maxResults: limit,
                 })
-                .then(result => this._loadAndDisplayResult(query, result, limit))
+                .then(result => this._loadAndDisplayResult(query, result ? result : null, limit))
                 .finally(() => cb())
         },
     )
 
     /** Given the result from the search load additional results if needed and then display them or set URL. */
-    _loadAndDisplayResult(query: string, result: SearchResult | null, limit: number | null) {
+    _loadAndDisplayResult(query: string, result: SearchResult | null , limit: number | null) {
         // Let Flow know that they're constants
         const safeResult = result,
             safeLimit = limit
 
         this._updateState({
-            searchResult: result,
+            searchResult: safeResult,
         })
 
         if (!safeResult || locator.search.isNewSearch(query, safeResult.restriction)) {
@@ -666,7 +666,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
             type: TextFieldType.Text,
             value: this._state().query,
             oncreate: vnode => {
-                this._domInput = vnode.dom
+                this._domInput = vnode.dom as HTMLInputElement
             },
             onclick: () => this.focus(),
             onfocus: () => {

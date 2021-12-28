@@ -1,8 +1,9 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "./Expander"
 import {theme} from "../theme"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type FolderExpanderAttrs = {
     label: TranslationKey | lazy<string>
     expanded: Stream<boolean>

@@ -1,10 +1,9 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {px} from "../gui/size"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"
 import {neverNull} from "@tutao/tutanota-utils"
-import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
@@ -13,6 +12,8 @@ import {ButtonN} from "../gui/base/ButtonN"
 import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
+import Stream from "mithril/stream";
+import {Icons} from "../gui/base/icons/Icons";
 const PaymentIntervalItems: SegmentControlItem<number>[] = [
     {
         name: lang.get("pricing.yearly_label"),

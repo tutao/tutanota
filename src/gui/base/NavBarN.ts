@@ -1,12 +1,11 @@
 // @flow
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonColor, isVisible} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
 import {size} from "../size"
 import type {NavButtonAttrs} from "./NavButtonN"
-import {NavButtonN} from "./NavButtonN"
+import {NavButtonColor, NavButtonN} from "./NavButtonN"
 import {BootIcons} from "./icons/BootIcons"
 import {assertMainOrNode} from "../../api/common/Env"
 
@@ -55,21 +54,21 @@ export class NavBarN implements Component<NavBarAttrs> {
 	more: ButtonWrapper;
 	maxWidth: number;
 	resizeListener: windowSizeListener;
-	_domNavBar: ?HTMLElement;
+	_domNavBar: HTMLElement | null;
 
 	constructor(vnode: Vnode<NavBarAttrs>) {
 		this.buttonId = 0
 		this.buttons = vnode.attrs.buttons
 		this.moreButtons = vnode.attrs.moreButtons ? vnode.attrs.moreButtons : []
 
-		let moreButtonAttrs = {
+		const moreButtonAttrs = {
 			label: "more_label",
 			href: () => m.route.get(),
 			icon: () => BootIcons.MoreVertical,
 			click: createDropdown(() => this.getVisibleButtons().hidden.map(wrapper => wrapper.buttonAttrs)),
-			colors: ButtonColor.Header,
+			colors: NavButtonColor.Header,
 			hideLabel: true,
-		}
+		} as NavButtonAttrs
 		this.more = new ButtonWrapper(moreButtonAttrs, MAX_PRIO, size.button_height).setId(Number.MAX_VALUE)
 
 		this.maxWidth = 0;
@@ -85,7 +84,7 @@ export class NavBarN implements Component<NavBarAttrs> {
 	view(vnode: Vnode<NavBarAttrs>): Children {
 		let buttons = this.getVisibleButtons()
 		return m("nav.nav-bar.flex-end", {
-			oncreate: (vnode) => this._setDomNavBar(vnode.dom)
+			oncreate: (vnode) => this._setDomNavBar(vnode.dom as HTMLElement)
 		}, buttons.visible.map((wrapper: ButtonWrapper) => m(".plr-nav-button", {
 			key: wrapper.id,
 			oncreate: vnode => {
@@ -96,7 +95,7 @@ export class NavBarN implements Component<NavBarAttrs> {
 	}
 
 	createButton(wrapper: ButtonWrapper): Children {
-		return m(NavButtonN, ((wrapper.buttonAttrs: any): NavButtonAttrs))
+		return m(NavButtonN, wrapper.buttonAttrs)
 	}
 
 	/**
@@ -122,8 +121,8 @@ export class NavBarN implements Component<NavBarAttrs> {
 	}
 
 	getVisibleButtons(): SortedButtons {
-		let visible = this.buttons.filter((b: ButtonWrapper) => isVisible(b.buttonAttrs))
-		let hidden = this.moreButtons.filter((b: ButtonWrapper) => isVisible(b.buttonAttrs))
+		let visible = this.buttons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible?.())
+		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible?.())
 		let remainingSpace = this._domNavBar ? this._domNavBar.scrollWidth : 0
 
 		let buttons: SortedButtons = {
@@ -143,8 +142,8 @@ export class NavBarN implements Component<NavBarAttrs> {
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
-		buttons.hidden.forEach(b => b.buttonAttrs.colors = ButtonColor.Content)
-		buttons.visible.forEach(b => b.buttonAttrs.colors = ButtonColor.Header)
+		buttons.hidden.forEach(b => b.buttonAttrs.colors = NavButtonColor.Content)
+		buttons.visible.forEach(b => b.buttonAttrs.colors = NavButtonColor.Header)
 		return buttons
 	}
 

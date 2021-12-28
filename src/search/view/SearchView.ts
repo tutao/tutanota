@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
@@ -6,7 +6,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {FeatureType, FULL_INDEXED_TIMESTAMP, Keys, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/common/Env"
-import {keyManager} from "../../misc/KeyManager"
+import {keyManager, Shortcut} from "../../misc/KeyManager"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
@@ -357,13 +357,13 @@ export class SearchView implements CurrentView {
                 }
             },
             icon: () => Icons.Edit,
-        }
+        } as const
         const timeDisplayAttrs = {
             label: "periodOfTime_label",
             value: stream(timeDisplayValue),
             disabled: true,
             injectionsRight: () => [m(ButtonN, changeTimeButtonAttrs)],
-        }
+        } as const
         return m(TextFieldN, timeDisplayAttrs)
     }
 
@@ -476,7 +476,7 @@ export class SearchView implements CurrentView {
                 exec: () => this._searchList.moveSelectedToInbox(),
                 help: "moveToInbox_action",
             },
-        ]
+        ] as Array<Shortcut>
 
         this.oncreate = () => {
             keyManager.registerShortcuts(shortcuts)
@@ -570,7 +570,7 @@ export class SearchView implements CurrentView {
     entityEventReceived<T>(update: EntityUpdateData): Promise<void> {
         if (isUpdateForTypeRef(MailTypeRef, update) || isUpdateForTypeRef(ContactTypeRef, update)) {
             const {instanceListId, instanceId, operation} = update
-            let id = [neverNull(instanceListId), instanceId]
+            const id = [neverNull(instanceListId), instanceId] as const
             const typeRef = new TypeRef(update.application, update.type)
 
             if (this._searchList.isInSearchResult(typeRef, id)) {

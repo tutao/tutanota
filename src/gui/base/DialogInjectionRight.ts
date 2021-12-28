@@ -1,17 +1,20 @@
 
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {px} from "../size"
 import type {MaybeLazy} from "@tutao/tutanota-utils"
 import {resolveMaybeLazy} from "@tutao/tutanota-utils"
-export type DialogInjectionRightAttrs<T extends Attrs> = {
+import Stream from "mithril/stream";
+import {Class} from "global"
+
+export type DialogInjectionRightAttrs<T> = {
     visible: Stream<boolean>
     headerAttrs: MaybeLazy<DialogHeaderBarAttrs>
-    component: Class<Component<$Attrs<T>>>
+    component: Class<Component<T>>
     componentAttrs: T
 }
-export class DialogInjectionRight<T extends Attrs> implements Component<DialogInjectionRightAttrs<T>> {
+export class DialogInjectionRight<T> implements Component<DialogInjectionRightAttrs<T>> {
     view(vnode: Vnode<DialogInjectionRightAttrs<T>>): Children {
         const {attrs} = vnode
         const {component, componentAttrs} = attrs

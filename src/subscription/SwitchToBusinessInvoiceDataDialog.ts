@@ -37,7 +37,7 @@ export function show(
             if (isUpdateForTypeRef(CustomerTypeRef, update)) {
                 return locator.entityClient.load(CustomerTypeRef, customer._id).then(updatedCustomer => {
                     customer = updatedCustomer
-                    entityEventUpdateForCustomer.resolve()
+                    entityEventUpdateForCustomer.resolve(null)
                 })
             }
         }).then(noOp)
@@ -56,7 +56,7 @@ export function show(
             if (!currentlyBusinessOrdered) {
                 p = showBusinessBuyDialog(true)
             } else {
-                entityEventUpdateForCustomer.resolve()
+                entityEventUpdateForCustomer.resolve(null)
             }
 
             p.then(failed => {

@@ -29,7 +29,7 @@ import {
 	CalendarAttendeeStatus,
 	CalendarMethod,
 	EndType,
-	RepeatPeriod
+	RepeatPeriod, reverse
 } from "../../api/common/TutanotaConstants"
 
 function parseDateString(
@@ -95,7 +95,7 @@ const escapedStringValueParser: Parser<string> = (iterator: StringIterator) => {
         value += neverNull(iterator.next().value)
     }
 
-    if (!iterator.peek() === "") {
+    if (!(iterator.peek() === "")) {
         throw new Error("Not a quoted value, does not end with quote: " + value)
     }
 
@@ -424,7 +424,7 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
     [CalendarAttendeeStatus.DECLINED]: "DECLINED",
     [CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
 }
-export const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
+const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
     const methodProp = icalObject.properties.find(prop => prop.name === "METHOD")
     const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
@@ -665,7 +665,7 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
 }
 export function parseTime(
     value: string,
-    zone: string | null,
+    zone?: string,
 ): {
     date: Date
     allDay: boolean
@@ -741,7 +741,7 @@ type WeekDuration = {
     type: "week"
     week: number
 }
-const durationTimeParser = mapParser(
+const durationTimeParser: Parser<TimeDuration> = mapParser(
     combineParsers(makeCharacterParser("T"), makeEitherParser(hourDurationParser, makeEitherParser(minuteDurationParser, secondDurationParser))),
     ([t, value]) => {
         let minuteTuple, secondTuple
@@ -785,7 +785,7 @@ const durationDateParser: Parser<DateDuration> = mapParser(combineParsers(durati
         type: "date",
         day: parsed[0][0],
         time: parsed[1],
-    }
+    } as DateDuration
 })
 const durationParser = mapParser(
     combineParsers(

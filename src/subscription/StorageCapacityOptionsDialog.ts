@@ -15,7 +15,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {showBuyDialog} from "./BuyDialog"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {locator} from "../api/main/MainLocator"
-export function showStorageCapacityOptionsDialog(storageWarningTextId: TranslationKey | null): Promise<void> {
+export function showStorageCapacityOptionsDialog(storageWarningTextId?: TranslationKey): Promise<void> {
     const userController = logins.getUserController()
 
     if (userController.isFreeAccount() || !userController.isGlobalAdmin()) {
@@ -93,7 +93,7 @@ function createStorageCapacityBoxAttr(
     amount: number
     buyOptionBoxAttr: BuyOptionBoxAttr
 } {
-    let attrs = {
+    const attrs = {
         heading: formatStorageCapacity(Math.max(amount, freeAmount)),
         actionButton: {
             view: () => {
@@ -111,7 +111,7 @@ function createStorageCapacityBoxAttr(
         height: 210,
         paymentInterval: null,
         showReferenceDiscount: false,
-    }
+    } as const
     updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Storage, amount, attrs)
     return {
         amount,

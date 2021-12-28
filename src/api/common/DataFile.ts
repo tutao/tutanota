@@ -25,23 +25,21 @@ export function createDataFile(name: string, mimeType: string, data: Uint8Array,
     }
 }
 export function convertToDataFile(file: File | TutanotaFile, data: Uint8Array): DataFile {
-    if (file._type && isSameTypeRef((file as any)._type, FileTypeRef)) {
-        const tutanotaFile = (file as any) as TutanotaFile
+    if ("_type" in file) {
         return {
             _type: "DataFile",
-            name: tutanotaFile.name,
-            mimeType: getCleanedMimeType(tutanotaFile.mimeType),
+            name: file.name,
+            mimeType: getCleanedMimeType(file.mimeType),
             data: data,
             size: data.byteLength,
-            id: tutanotaFile._id,
-            cid: tutanotaFile.cid,
+            id: file._id,
+            cid: file.cid,
         }
     } else {
-        const nativeFile = (file as any) as File
         return {
             _type: "DataFile",
-            name: nativeFile.name,
-            mimeType: getCleanedMimeType(nativeFile.type),
+            name: file.name,
+            mimeType: getCleanedMimeType(file.type),
             data: data,
             size: data.byteLength,
             id: null, // file read from filesystem, does not have an id because it has not been stored in tutanota.

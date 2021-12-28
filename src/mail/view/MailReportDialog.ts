@@ -4,10 +4,9 @@ import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {lang} from "../../misc/LanguageViewModel"
 import m from "mithril"
-import type {MailReportType} from "../../api/common/TutanotaConstants"
 import {MailReportType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
 import {loadMailboxProperties, saveReportMovedMails} from "../../misc/MailboxPropertiesUtils"
-import {ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailModel} from "../model/MailModel"
 import type {Mail} from "../../api/entities/tutanota/Mail"
@@ -34,12 +33,12 @@ function confirmMailReportDialog(mailboxProperties: MailboxProperties | null): P
             dialog.close()
         }
 
-        const yesButton = {
+        const yesButton: ButtonAttrs = {
             label: "yes_label",
             click: () => updateSpamReportSetting(true),
             type: ButtonType.Primary,
         }
-        const noButton = {
+        const noButton: ButtonAttrs = {
             label: "no_label",
             click: () => updateSpamReportSetting(false),
             type: ButtonType.Secondary,

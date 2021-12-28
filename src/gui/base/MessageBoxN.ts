@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../theme"
 import {assertMainOrNode} from "../../api/common/Env"
 assertMainOrNode()

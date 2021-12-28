@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {
     AccessBlockedError,
@@ -11,7 +11,7 @@ import {
 import {base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {keyManager} from "../misc/KeyManager"
+import {keyManager, Shortcut} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Keys} from "../api/common/TutanotaConstants"
@@ -30,6 +30,7 @@ import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class ExternalLoginView {
     readonly _credentialsProvider: ICredentialsProvider
@@ -94,7 +95,7 @@ export class ExternalLoginView {
     }
 
     _setupShortcuts() {
-        let shortcuts = [
+        let shortcuts: Shortcut[] = [
             {
                 key: Keys.RETURN,
                 exec: () => {

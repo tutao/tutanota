@@ -1,7 +1,6 @@
 import type {User} from "../api/entities/sys/User"
 import type {Group} from "../api/entities/sys/Group"
-import type {GroupType, ShareCapability} from "../api/common/TutanotaConstants"
-import {GroupType, groupTypeToString, ShareCapability} from "../api/common/TutanotaConstants"
+import {GroupType, ShareCapability} from "../api/common/TutanotaConstants"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils"
 import {lang} from "../misc/LanguageViewModel"
@@ -46,7 +45,7 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 export function isSharedGroupOwner(sharedGroup: Group, user: Id | User): boolean {
     return !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
 }
-export function getCapabilityText(capability: ShareCapability null): string {
+export function getCapabilityText(capability: ShareCapability): string {
     switch (capability) {
         case ShareCapability.Invite:
             return lang.get("groupCapabilityInvite_label")
@@ -70,7 +69,7 @@ export type GroupMemberInfo = {
     member: GroupMember
     info: GroupInfo
 }
-export function getMemberCabability(memberInfo: GroupMemberInfo, group: Group): ShareCapability null {
+export function getMemberCabability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
     if (isSharedGroupOwner(group, memberInfo.member.user)) {
         return ShareCapability.Invite
     }
@@ -113,7 +112,7 @@ export function loadReceivedGroupInvitations(
 }
 // Group invitations without a type set were sent when Calendars were the only shareable kind of user group
 const DEFAULT_GROUP_TYPE = GroupType.Calendar
-export function getInvitationGroupType(invitation: ReceivedGroupInvitation): GroupType
+export function getInvitationGroupType(invitation: ReceivedGroupInvitation): GroupType {
     return invitation.groupType === null ? DEFAULT_GROUP_TYPE : downcast(invitation.groupType)
 }
 export function groupRequiresBusinessFeature(groupType: GroupType): boolean {

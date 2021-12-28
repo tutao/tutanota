@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component} from "mithril"
 import {px, size} from "../../gui/size"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {createMail} from "../../api/entities/tutanota/Mail"
@@ -101,7 +101,7 @@ export class CustomColorEditorPreview implements Component<void> {
                     ".list-row.pl.pr-l.odd-row.pt-m.pb-m",
                     {
                         oncreate: vnode => {
-                            this._mailRow.domElement = vnode.dom
+                            this._mailRow.domElement = vnode.dom as HTMLElement
                             requestAnimationFrame(() => this._mailRow.update(mail, false))
                         },
                     },
@@ -111,7 +111,7 @@ export class CustomColorEditorPreview implements Component<void> {
                     ".list-row.pl.pr-l.pt-m.pb-m",
                     {
                         oncreate: vnode => {
-                            this._mailRow2.domElement = vnode.dom
+                            this._mailRow2.domElement = vnode.dom as HTMLElement
                             requestAnimationFrame(() => this._mailRow2.update(mail2, true))
                         },
                         style: {

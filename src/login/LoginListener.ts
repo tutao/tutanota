@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import type {LoggedInEvent, LoginEventHandler} from "../api/main/LoginController"
 import {logins, SessionType} from "../api/main/LoginController"
 import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"

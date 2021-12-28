@@ -204,7 +204,8 @@ export const appCommands = {
     keyboardSizeChanged,
     visibilityChange,
     handleBackPress,
-}
+} as const
+
 export const desktopCommands = {
     createMailEditor,
     showAlertDialog,
@@ -220,4 +221,4 @@ export const desktopCommands = {
     openCustomer,
     updateTargetUrl,
     showSpellcheckDropdown,
-}
+} as const

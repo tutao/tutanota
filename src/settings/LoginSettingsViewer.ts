@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -24,13 +24,13 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import type {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
     _mailAddress: Stream<string>
@@ -252,7 +252,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
             [CredentialEncryptionMode.DEVICE_LOCK]: "credentialsEncryptionModeDeviceLock_label",
             [CredentialEncryptionMode.SYSTEM_PASSWORD]: "credentialsEncryptionModeDeviceCredentials_label",
             [CredentialEncryptionMode.BIOMETRICS]: "credentialsEncryptionModeBiometrics_label",
-        }
+        } as const
         return lang.get(mapping[credentialsEncryptionMode])
     }
 }

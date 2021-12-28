@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {ButtonType} from "../../gui/base/ButtonN"
@@ -16,6 +16,8 @@ import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {replaceInlineImagesWithCids} from "../view/MailGuiUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
+import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
+import Stream from "mithril/stream";
 type PressContact = {
     email: string
     greeting: string
@@ -82,7 +84,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
                         oncreate(vnode) {
                             // We need to delay so that the eelement is attached to the parent
                             setTimeout(() => {
-                                vnode.dom.focus()
+								(vnode.dom as HTMLElement).focus()
                             }, 10)
                         },
                     },
@@ -148,7 +150,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
         subject: stream(""),
         recipientsJson: stream("[\n    \n]"),
     }
-    const header = {
+    const header: DialogHeaderBarAttrs = {
         left: [
             {
                 label: "close_alt",

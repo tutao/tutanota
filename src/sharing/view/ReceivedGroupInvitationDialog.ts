@@ -1,7 +1,7 @@
 import {getDisplayText} from "../../mail/model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
-import m from "mithril"
+import m, {Children} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
@@ -19,6 +19,7 @@ import {getTextsForGroupType} from "../GroupGuiUtils"
 import {FeatureType, GroupType} from "../../api/common/TutanotaConstants"
 import {ColorPicker} from "../../gui/base/ColorPicker"
 import {locator} from "../../api/main/MainLocator"
+import Stream from "mithril/stream";
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
     const groupType = getInvitationGroupType(invitation)
     const texts = getTextsForGroupType(groupType)

@@ -5,7 +5,6 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {getElementId, getEtId, isSameId} from "../../api/common/utils/EntityUtils"
 import type {SentGroupInvitation} from "../../api/entities/sys/SentGroupInvitation"
 import {SentGroupInvitationTypeRef} from "../../api/entities/sys/SentGroupInvitation"
-import type {ShareCapability} from "../../api/common/TutanotaConstants"
 import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {findAndRemove} from "@tutao/tutanota-utils"
@@ -30,6 +29,7 @@ import {noOp} from "@tutao/tutanota-utils"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import type {ShareFacade} from "../../api/worker/facades/ShareFacade"
 import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade"
+import Stream from "mithril/stream";
 export class GroupSharingModel {
     readonly info: GroupInfo
     readonly group: Group

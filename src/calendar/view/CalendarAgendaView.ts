@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, {Children, CommonAttributes, Component, Vnode} from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {incrementDate} from "@tutao/tutanota-utils"
 import {styles} from "../../gui/styles"
@@ -26,6 +26,7 @@ type Attrs = {
      * maps start of day timestamp to events on that day
      */
     eventsForDays: Map<number, Array<CalendarEvent>>
+	amPmFormat: boolean
     onEventClicked: CalendarEventBubbleClickHandler
     groupColors: GroupColors
     hiddenCalendars: ReadonlySet<Id>
@@ -87,7 +88,7 @@ export class CalendarAgendaView implements Component<Attrs> {
                         return m(
                             ".flex.mlr-l.calendar-agenda-row.mb-s.col",
                             {
-                                key: day,
+                                key: day.getTime(),
                             },
                             [
                                 m(
@@ -112,7 +113,7 @@ export class CalendarAgendaView implements Component<Attrs> {
                                               return m(
                                                   ".darker-hover.mb-s",
                                                   {
-                                                      key: ev._id,
+                                                      key: ev._id.toString(),
                                                   },
                                                   m(CalendarEventBubble, {
                                                       text: ev.summary,

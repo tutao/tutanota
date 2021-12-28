@@ -196,5 +196,5 @@ export type AccountingInfo = {
 	paypalBillingAgreement: null | string;
 	secondCountryInfo: NumberString;
 
-	invoiceInfo: null | Id;
+	invoiceInfo:  null | Id;
 }

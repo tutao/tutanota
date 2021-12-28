@@ -1,4 +1,3 @@
-import type {OperationType} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
@@ -8,10 +7,10 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {log} from "../DesktopLog"
 import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
-import {NotificationResult} from "../DesktopConstants"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
+import {NotificationResult} from "../DesktopNotifier";
 export type NotificationSessionKey = {
     pushIdentifierSessionEncSessionKey: string
     pushIdentifier: IdTuple
@@ -75,7 +74,7 @@ export class DesktopAlarmScheduler {
                 continue
             }
 
-            const decAn = await this._crypto.decryptAndMapToInstance(
+            const decAn: AlarmNotification = await this._crypto.decryptAndMapToInstance(
                 AlarmNotificationTypeModel,
                 an,
                 pushIdentifierSessionKey,

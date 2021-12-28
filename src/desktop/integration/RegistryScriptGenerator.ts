@@ -79,7 +79,7 @@ export type RegistryValueTemplate = {
     value: RegistrySubKey
     root: string
 }
-export type RegistrySubKey = Record<string, RegistryValue>
+export type RegistrySubKey = {[key: string]: RegistryValue}
 export type RegistryValue = RegistrySubKey | string
 type OperationBuffer = Record<string, Array<string>>
 const header_line = "Windows Registry Editor Version 5.00"

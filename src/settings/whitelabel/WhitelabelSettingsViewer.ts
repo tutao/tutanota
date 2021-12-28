@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../../api/entities/sys/Customer"
@@ -60,7 +60,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
     _entityClient: EntityClient
 
     constructor(entityClient: EntityClient) {
-        this.view = this.view.bind(this)
+        this.view = this._view.bind(this)
         this._entityClient = entityClient
         this._customer = new LazyLoaded(() => {
             return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -76,7 +76,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
         this._updateFields()
     }
 
-    view(vnode: Vnode<any>): Children {
+    _view(vnode: Vnode<any>): Children {
         const brandingDomainConfig = this._renderBrandingDomainConfig()
 
         return m(
@@ -166,8 +166,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
                 }
             }),
         )
-        let onRegistrationDomainSelected = noOp
-        let currentRegistrationDomain = null
+        let onRegistrationDomainSelected: (string) => void = noOp
+        let currentRegistrationDomain: (string) = null
 
         if (this._whitelabelConfig) {
             onRegistrationDomainSelected = domain => {
@@ -188,7 +188,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
         }
 
         const whitelabelCode = this._whitelabelConfig ? this._whitelabelConfig.whitelabelCode : ""
-        let onWhitelabelCodeChanged = noOp
+        let onWhitelabelCodeChanged: (string) => void = noOp
 
         if (this._whitelabelConfig) {
             onWhitelabelCodeChanged = code => {
@@ -210,7 +210,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
     _renderDefaultGermanLanguageFileSettings(): Children {
         if (!this._whitelabelConfig) return null
-        if (!lang.code === "de" && !lang.code === "de_sie") return null
+        if (lang.code !== "de" && lang.code !== "de_sie") return null
         const customGermanLanguageFile: GermanLanguageCode | null = downcast(this._whitelabelConfig.germanLanguageCode)
 
         const onGermanLanguageFileChanged = (languageFile: GermanLanguageCode) => {

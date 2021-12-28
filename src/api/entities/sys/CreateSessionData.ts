@@ -91,5 +91,5 @@ export type CreateSessionData = {
 	mailAddress: null | string;
 	recoverCodeVerifier: null | string;
 
-	user: null | Id;
+	user:  null | Id;
 }

@@ -1,9 +1,9 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
-import type {SubscriptionActionButtons, SubscriptionOptions, SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionActionButtons, SubscriptionOptions, SubscriptionPlanPrices} from "./SubscriptionUtils"
 import {
     getActionButtonBySubscription,
     getDisplayNameOfSubscriptionType,
@@ -32,7 +32,7 @@ export type SubscriptionSelectorAttr = {
     actionButtons: SubscriptionActionButtons
     boxWidth: number
     boxHeight: number
-    currentSubscriptionType?: SubscriptionType null
+    currentSubscriptionType?: SubscriptionType
     currentlySharingOrdered: boolean
     currentlyBusinessOrdered: boolean
     currentlyWhitelabelOrdered: boolean
@@ -94,7 +94,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
                 ".flex.center-horizontally.wrap",
                 {
                     oncreate: vnode => {
-                        this._containerDOM = vnode.dom
+                        this._containerDOM = vnode.dom as HTMLElement
                         m.redraw()
                     },
                 },

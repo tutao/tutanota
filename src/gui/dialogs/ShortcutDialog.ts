@@ -1,11 +1,12 @@
 import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../base/Dialog"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {TextFieldN} from "../base/TextFieldN"
 import type {Shortcut} from "../../misc/KeyManager"
 import {ButtonType} from "../base/ButtonN"
+import {DialogHeaderBarAttrs} from "../base/DialogHeaderBar";
 
 function makeShortcutName(shortcut: Shortcut): string {
     return (
@@ -38,7 +39,7 @@ export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
                 },
             ],
             middle: () => lang.get("keyboardShortcuts_title"),
-        }
+        } as DialogHeaderBarAttrs
         dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {
             shortcuts,
         })

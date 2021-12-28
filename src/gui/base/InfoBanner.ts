@@ -1,5 +1,5 @@
 
-import {AllIconsEnum, Icon} from "./Icon"
+import {AllIcons, Icon} from "./Icon"
 import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../theme"
 import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
@@ -19,7 +19,7 @@ export const enum BannerType{
 
 export type InfoBannerAttrs = {
     message: TranslationKey | lazy<string>
-    icon: AllIconsEnum
+    icon: AllIcons
     helpLink?: InfoLink | null
     buttons?: ReadonlyArray<ButtonAttrs | null> | null
     type?: BannerType
@@ -67,7 +67,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
         )
     }
 
-    renderIcon(icon: AllIconsEnum, type: BannerType |  null): Children {
+    renderIcon(icon: AllIcons, type: BannerType |  null): Children {
         return m(Icon, {
             icon,
             style: {

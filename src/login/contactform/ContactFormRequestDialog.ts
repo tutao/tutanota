@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {Button} from "../../gui/base/Button"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
@@ -31,6 +31,9 @@ import {makeRecipientDetails, RecipientInfoType} from "../../api/common/Recipien
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
+import {DataFile} from "../../api/common/DataFile";
+import {FileReference} from "../../api/common/utils/FileUtils";
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class ContactFormRequestDialog {
     _subject: string
@@ -157,11 +160,13 @@ export class ContactFormRequestDialog {
                 m(
                     ".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtons.length > 0 ? ".pt" : ""),
                     !this._loadingAttachments
+							// @ts-ignore
                         ? this._attachmentButtons.map(b => m(b))
                         : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
                 ),
                 this._attachmentButtons.length > 0 ? m("hr") : null,
                 m(this._passwordForm),
+					// @ts-ignore
                 m(".pt-l.text", m(this._editor)),
                 notificationEmailAddress,
                 getPrivacyStatementLink()
@@ -373,7 +378,8 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
                 m("", [
                     m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
                     m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), requestId),
-                    m(confirm),
+                    // @ts-ignore
+					m(confirm),
                 ]),
         })
             .setCloseHandler(() => {

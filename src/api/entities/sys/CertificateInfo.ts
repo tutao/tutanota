@@ -67,5 +67,5 @@ export type CertificateInfo = {
 	state: NumberString;
 	type: NumberString;
 
-	certificate: null | Id;
+	certificate:  null | Id;
 }

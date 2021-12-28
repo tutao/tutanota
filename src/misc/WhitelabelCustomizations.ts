@@ -20,7 +20,8 @@ export type WhitelabelCustomizations = {
  * window.whitelabelCustomizations is defined when the user has logged in via a whitelabel domain. index.js is rewritten to have the definition
  * this happens at WhitelabelResourceRewriter.java
  */
-export function getWhitelabelCustomizations(window: typeof window): WhitelabelCustomizations | null {
+export function getWhitelabelCustomizations(window: Window): WhitelabelCustomizations | null {
+	// @ts-ignore
     return window.whitelabelCustomizations
 }
 export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {

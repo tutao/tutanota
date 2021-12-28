@@ -9,7 +9,7 @@ import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {px} from "../gui/size"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {getClientType, getPaymentMethodType, PaymentMethodType} from "../api/common/TutanotaConstants"
+import {getClientType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "@tutao/tutanota-utils"
 import {serviceRequest} from "../api/main/ServiceRequest"
 import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
@@ -19,6 +19,7 @@ import {neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {createPaymentDataServiceGetData} from "../api/entities/sys/PaymentDataServiceGetData"
 import type {Customer} from "../api/entities/sys/Customer"
+import {downcast} from "@tutao/tutanota-utils/dist";
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -36,7 +37,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
     }
     const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
     const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
-    const paymentMethod = getPaymentMethodType(accountingInfo)
+    const paymentMethod = downcast<PaymentMethodType>(accountingInfo.paymentMethod)
     const selectedPaymentMethod = stream(paymentMethod)
     paymentMethodInput.updatePaymentMethod(paymentMethod)
     const paymentMethodSelector = new DropDownSelector("paymentMethod_label", null, availablePaymentMethods, selectedPaymentMethod, 250)

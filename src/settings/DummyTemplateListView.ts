@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"

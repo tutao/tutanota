@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {modal} from "./gui/base/Modal"
 import {overlay} from "./gui/base/Overlay"
 import {styles} from "./gui/styles"
@@ -20,7 +20,7 @@ export const enum LayerType {
 	Overlay = 400,
 }
 
-class RootView {
+export class RootView {
 	view: (...args: Array<any>) => any
 	viewCache: Record<string, (...args: Array<any>) => any>
 

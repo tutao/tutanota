@@ -4,10 +4,9 @@ import {base64ToBase64Url, filterInt, neverNull, randomIntFromInterval, remove, 
 import type {DesktopNotifier} from "../DesktopNotifier"
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopConfig} from "../config/DesktopConfig"
-import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
-import type {DesktopClientRequest, DesktopNetworkClient} from "../DesktopNetworkClient"
+import type { DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
@@ -16,7 +15,9 @@ import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError, ServiceUnavailableError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
-import {DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
+import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
+import {NotificationResult} from "../DesktopNotifier";
+import http from "http";
 export type SseInfo = {
     identifier: string
     sseOrigin: string
@@ -36,7 +37,7 @@ export class DesktopSseClient {
     _lang: LanguageViewModelType
     _crypto: DesktopCryptoFacade
     _connectedSseInfo: SseInfo | null
-    _connection: http$ClientRequest<any> | null
+    _connection: http.ClientRequest | null
     _readTimeoutInSeconds: number
     _nextReconnect: TimeoutID | null
     _tryToReconnect: boolean
@@ -153,8 +154,8 @@ export class DesktopSseClient {
             return this.resetStoredState()
         }
 
-        const initialConnectTimeoutSeconds = await this._conf.getConst("initialSseConnectTimeoutInSeconds")
-        const maxConnectTimeoutSeconds = await this._conf.getConst("maxSseConnectTimeoutInSeconds")
+        const initialConnectTimeoutSeconds = await this._conf.getConst(BuildConfigKey.initialSseConnectTimeoutInSeconds)
+        const maxConnectTimeoutSeconds = await this._conf.getConst(BuildConfigKey.maxSseConnectTimeoutInSeconds)
         // double the connection timeout with each attempt to connect, capped by maxConnectTimeoutSeconds
         const connectionTimeoutInSeconds = Math.min(initialConnectTimeoutSeconds * Math.pow(2, this._reconnectAttempts), maxConnectTimeoutSeconds)
         this._reconnectAttempts++
@@ -173,8 +174,6 @@ export class DesktopSseClient {
         const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
 
         log.debug("starting sse connection")
-        // webstorm seems to think that ClientRequest.end() returns void.
-        // noinspection JSVoidFunctionReturnValueUsed
         this._connection = this._net
             .request(url, {
                 headers: {
@@ -187,7 +186,7 @@ export class DesktopSseClient {
                 },
                 method: "GET",
             })
-            .on("socket", s => {
+		this._connection.on("socket", s => {
                 // We add this listener purely as a workaround for some problem with net module.
                 // The problem is that sometimes request gets stuck after handshake - does not process unless some event
                 // handler is called (and it works more reliably with console.log()).
@@ -277,7 +276,7 @@ export class DesktopSseClient {
             if (typeof newTimeout === "number" && !Number.isNaN(newTimeout)) {
                 this._readTimeoutInSeconds = newTimeout
 
-                this._conf.setVar("heartbeatTimeoutInSeconds", newTimeout)
+                this._conf.setVar(DesktopConfigKey.heartbeatTimeoutInSeconds, newTimeout)
             } else {
                 log.error("got invalid heartbeat timeout from server")
             }
@@ -414,7 +413,7 @@ export class DesktopSseClient {
 
     _downloadMissedNotification(userId: string): Promise<any> {
         return new Promise(async (resolve, reject) => {
-            const fail = (req: DesktopClientRequest, res: http$IncomingMessage<net$Socket> | null, e: TutanotaError | null) => {
+            const fail = (req: http.ClientRequest, res: http.IncomingMessage | null, e: TutanotaError | null) => {
                 if (res) {
                     res.destroy()
                 }
@@ -465,7 +464,7 @@ export class DesktopSseClient {
                         (res.headers["retry-after"] || res.headers["suspension-time"])
                     ) {
                         // headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
-                        const time = filterInt(res.headers["retry-after"] || res.headers["suspension-time"])
+                        const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
                         log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
                         res.destroy()
                         req.abort()
@@ -476,7 +475,7 @@ export class DesktopSseClient {
 
                         return
                     } else if (res.statusCode !== 200) {
-                        const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
+                        const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"] as string, null)
                         fail(req, res, tutanotaError)
                         return
                     }

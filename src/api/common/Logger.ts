@@ -1,5 +1,6 @@
 //@bundleInto:common-min
 import {errorToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {DataFile} from "./DataFile";
 export const LOG_SIZE = 1000
 export class Logger {
     // Circular buffer with next writable position pointed by _index

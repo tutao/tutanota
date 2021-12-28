@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/common/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
@@ -13,7 +13,6 @@ import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {ButtonColor} from "../gui/base/ButtonN"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {ContactFormListView} from "./ContactFormListView"
@@ -62,9 +61,10 @@ import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/UserAreaGroupDeleteData"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
+import {NavButtonColor} from "../gui/base/NavButtonN";
 assertMainOrNode()
 export interface UpdatableSettingsViewer {
-    view(): Children
+    view(vnode?: Vnode<void>): Children
     entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any>
 }
 export class SettingsView implements CurrentView {
@@ -85,7 +85,7 @@ export class SettingsView implements CurrentView {
     _customDomains: LazyLoaded<string[]>
     _templateInvitations: ReceivedGroupInvitationsModel
 
-    constructor(nativeApp: NativeInterfaceMain | null) {
+    constructor(nativeApp?: NativeInterfaceMain) {
         this._userFolders = [
             new SettingsFolder(
                 "login_label",
@@ -191,7 +191,7 @@ export class SettingsView implements CurrentView {
 
             if (logins.getUserController().isGlobalAdmin()) {
                 this._adminFolders.push(
-                    new SettingsFolder(
+                    new SettingsFolder<void>(
                         "adminSubscription_action",
                         () => BootIcons.Premium,
                         "subscription",
@@ -200,7 +200,7 @@ export class SettingsView implements CurrentView {
                 )
 
                 this._adminFolders.push(
-                    new SettingsFolder(
+                    new SettingsFolder<void>(
                         "adminPayment_action",
                         () => Icons.Cash,
                         "invoice",
@@ -354,7 +354,7 @@ export class SettingsView implements CurrentView {
             label: folder.name,
             icon: folder.icon,
             href: folder.url,
-            colors: ButtonColor.Nav,
+            colors: NavButtonColor.Nav,
             click: () => this.viewSlider.focus(this._settingsColumn),
             isVisible: () => folder.isVisible(),
         }
@@ -492,7 +492,7 @@ export class SettingsView implements CurrentView {
             !hasOwnTemplates ? [this._dummyTemplateFolder] : [],
             this._templateFolders,
             this._knowledgeBaseFolders,
-        ])
+        ] as Array<ReadonlyArray<SettingsFolder<any>>>)
     }
 
     _setUrl(url: string) {

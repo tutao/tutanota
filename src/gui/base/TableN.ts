@@ -1,11 +1,11 @@
 
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px, size} from "../size"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType, isVisible} from "./ButtonN"
+import {ButtonN, ButtonType} from "./ButtonN"
 import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
@@ -140,7 +140,7 @@ export class TableN implements Component<TableAttrs> {
                             width: px(size.button_height),
                         },
                     },
-                    lineAttrs.actionButtonAttrs && isVisible(lineAttrs.actionButtonAttrs)
+                    lineAttrs.actionButtonAttrs?.isVisible?.()
                         ? [
                               m(
                                   "",

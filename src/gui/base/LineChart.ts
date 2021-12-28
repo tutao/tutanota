@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {theme} from "../theme"
 import {size} from "../size"
 import {NBSP} from "@tutao/tutanota-utils"
@@ -90,12 +90,12 @@ export class LineChart implements Component<LineChartAttrs> {
             "div.line-chart-example.mlr-l.mt-l.mb-l",
             {
                 oncreate: vnode => {
-                    this._domWrapper = vnode.dom
+                    this._domWrapper = vnode.dom as HTMLElement
                 },
             },
             [
                 m("div.positions.abs.mlr-l.mt-l.text-pre", {
-                    oncreate: vnode => (this._domPositions = vnode.dom),
+                    oncreate: vnode => (this._domPositions = vnode.dom as HTMLElement),
                     style: {
                         right: "5px",
                         top: 0,
@@ -141,12 +141,12 @@ export class LineChart implements Component<LineChartAttrs> {
                               "g",
                               {
                                   oncreate: vnode => {
-                                      this._domAll = vnode.dom
+                                      this._domAll = vnode.dom as HTMLElement
                                   },
                               },
                               [
                                   m("circle", {
-                                      oncreate: vnode => (this._circle = vnode.dom),
+                                      oncreate: vnode => (this._circle = vnode.dom as HTMLElement),
                                       style: {
                                           display: "none",
                                       },
@@ -336,8 +336,8 @@ export class LineChart implements Component<LineChartAttrs> {
         }
     }
 
-    onDomUpdated(vnode: Vnode<LineChartAttrs>) {
-        this._domSvg = vnode.dom
+    onDomUpdated(vnode: VnodeDOM<LineChartAttrs>) {
+        this._domSvg = vnode.dom as HTMLElement
         // _domSvg is actually SVGGraphicsElement but flow doesn't have the definition
         this._bounds = (this._domSvg as any).getBBox()
         this._pos = [this._bounds.x, this._bounds.y]

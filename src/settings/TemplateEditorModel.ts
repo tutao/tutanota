@@ -1,5 +1,5 @@
 import type {Language, LanguageCode} from "../misc/LanguageViewModel"
-import {getLanguage, lang, languageByCode, languages} from "../misc/LanguageViewModel"
+import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {createEmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
@@ -11,7 +11,7 @@ import {difference, firstThrow, remove} from "@tutao/tutanota-utils"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 import type {EntityClient} from "../api/common/EntityClient"
 import {UserError} from "../api/main/UserError"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
+import Stream from "mithril/stream";
 export class TemplateEditorModel {
     template: EmailTemplate
     title: Stream<string>
@@ -103,7 +103,7 @@ export class TemplateEditorModel {
         this.updateContent()
         this.template.title = this.title().trim()
         this.template.tag = this.tag().trim()
-        return this.tagAlreadyExists().then(exists => {
+        return this.tagAlreadyExists().then(async exists => {
             if (exists) {
                 return Promise.reject(new UserError("templateShortcutExists_msg"))
             } else if (this.template._id) {

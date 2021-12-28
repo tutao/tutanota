@@ -9,6 +9,7 @@ import {getLetId} from "../../api/common/utils/EntityUtils"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "@tutao/tutanota-utils"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
+import {DataFile} from "../../api/common/DataFile";
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -51,7 +52,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileFacad
         .then(getMailBodyText)
         .then(
             body =>
-                sanitizer.sanitize(body, {
+                sanitizer.sanitizeHTML(body, {
                     blockExternalContent: false,
                     allowRelativeLinks: false,
                     usePlaceholderForInlineImages: false,

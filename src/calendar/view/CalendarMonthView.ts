@@ -1,6 +1,5 @@
-import m from "mithril"
+import m, {Children, ClassComponent, Component, Vnode, VnodeDOM} from "mithril"
 import {px, size} from "../../gui/size"
-import type {WeekStart} from "../../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import type {CalendarDay, CalendarMonth} from "../date/CalendarUtils"
 import {
@@ -38,7 +37,7 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {theme} from "../../gui/theme"
 import {getDateFromMousePos, renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
-import type {CalendarEventBubbleClickHandler, CalendarViewType, EventsOnDays} from "./CalendarViewModel"
+import type {CalendarEventBubbleClickHandler, EventsOnDays} from "./CalendarViewModel"
 import {CalendarViewType} from "./CalendarViewModel"
 import {Time} from "../../api/common/utils/Time"
 import {client} from "../../misc/ClientDetector"
@@ -68,7 +67,7 @@ const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
 const spaceBetweenEvents = () => (styles.isDesktopLayout() ? 2 : 1)
 
 const EVENT_BUBBLE_VERTICAL_OFFSET = 5
-export class CalendarMonthView implements Component<CalendarMonthAttrs>, Lifecycle<CalendarMonthAttrs> {
+export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassComponent<CalendarMonthAttrs> {
     _monthDom: HTMLElement | null
     _resizeListener: () => unknown
     _zone: string
@@ -83,7 +82,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, Lifecyc
         this._zone = getTimeZone()
         this._lastHeight = 0
         this._lastHeight = 0
-        this._eventDragHandler = new EventDragHandler(neverNull(document.body), attrs.dragHandlerCallbacks)
+        this._eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
     }
 
     oncreate() {
@@ -163,13 +162,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, Lifecyc
                 {
                     oncreate: vnode => {
                         if (month === currentlyVisibleMonth) {
-                            this._monthDom = vnode.dom
+                            this._monthDom = vnode.dom as HTMLElement
                             m.redraw()
                         }
                     },
                     onupdate: vnode => {
                         if (month === currentlyVisibleMonth) {
-                            this._monthDom = vnode.dom
+                            this._monthDom = vnode.dom as HTMLElement
                         }
                     },
                     onmousemove: mouseEvent => {

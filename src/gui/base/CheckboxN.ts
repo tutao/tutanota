@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {BootIcons} from "./icons/BootIcons"
 import {Icon} from "./Icon"
@@ -6,6 +6,7 @@ import {addFlash, removeFlash} from "./Flash"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type CheckboxAttrs = {
     label: lazy<string | Children>
     checked: Stream<boolean>
@@ -43,7 +44,7 @@ export class CheckboxN implements Component<CheckboxAttrs> {
                     [
                         // the real checkbox is transparent and only used to allow keyboard focusing and selection
                         m("input[type=checkbox]", {
-                            oncreate: vnode => (this._domInput = vnode.dom),
+                            oncreate: vnode => (this._domInput = vnode.dom as HTMLElement),
                             onchange: e => this.toggle(e, a),
                             checked: a.checked(),
                             onfocus: () => this.focused(true),
@@ -63,8 +64,7 @@ export class CheckboxN implements Component<CheckboxAttrs> {
                         m(Icon, {
                             icon: a.checked() ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
                             class: this.focused() ? "svg-content-accent-fg" : "svg-content-fg",
-                            oncreate: vnode => (this._domIcon = vnode.dom),
-                            onclick: e => this.toggle(e, a),
+                            oncreate: vnode => (this._domIcon = vnode.dom as HTMLElement),
                         }),
                         m(
                             ".pl",

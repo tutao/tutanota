@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {assertMainOrNode} from "../api/common/Env"
@@ -276,17 +276,17 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
         let elements = [
             m(".top", [
                 m(".name", {
-                    oncreate: vnode => (this._domPageTitle = vnode.dom),
+                    oncreate: vnode => (this._domPageTitle = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small.mail-address", {
-                    oncreate: vnode => (this._domUrl = vnode.dom),
+                    oncreate: vnode => (this._domUrl = vnode.dom as HTMLElement),
                 }),
                 m(".icons.flex", [
                     m(Icon, {
                         icon: Icons.Trash,
-                        oncreate: vnode => (this._domDeletedIcon = vnode.dom),
+                        oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
                         style: {
                             display: "none",
                         },

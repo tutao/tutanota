@@ -1,4 +1,4 @@
-import type {BookingItemFeatureType, PaymentMethodType} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -6,9 +6,9 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"
 import type {Booking} from "../api/entities/sys/Booking"
-import type {SubscriptionData, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import type {SubscriptionData, SubscriptionType } from "./SubscriptionUtils"
 import {getPlanPrices, UpgradePriceType} from "./SubscriptionUtils"
-export function getPaymentMethodName(paymentMethod: PaymentMethodType null): string {
+export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
     if (paymentMethod === PaymentMethodType.Invoice) {
         return lang.get("paymentMethodOnAccount_label")
     } else if (paymentMethod === PaymentMethodType.CreditCard) {

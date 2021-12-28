@@ -1,7 +1,6 @@
 import http from "http"
 import https from "https"
 import {downcast} from "@tutao/tutanota-utils"
-export type DesktopClientRequest = http$ClientRequest<any>
 
 /**
  * Manually re-doing http$requestOptions because built-in definition is crap.
@@ -23,7 +22,7 @@ export type ClientRequestOptions = {
     timeout?: number
 }
 export class DesktopNetworkClient {
-    request(url: string, opts: ClientRequestOptions): DesktopClientRequest {
+    request(url: string, opts: ClientRequestOptions): http.ClientRequest {
         // It's impossible to play smart here, you can't satisfy type constraints with all
         // the Object.assign() in the world.
         if (url.startsWith("https")) {

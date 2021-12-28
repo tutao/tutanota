@@ -1,9 +1,9 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import type {TableLineAttrs} from "../../gui/base/TableN"
 import {ColumnWidth, TableN} from "../../gui/base/TableN"
-import {assert, assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
+import {assert, assertNotNull, downcast, neverNull, ofClass, remove} from "@tutao/tutanota-utils"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
@@ -12,9 +12,7 @@ import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "
 import type {DropdownChildAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {ButtonType} from "../../gui/base/ButtonN"
-import {remove} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {ShareCapability} from "../../api/common/TutanotaConstants"
 import {ShareCapability} from "../../api/common/TutanotaConstants"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {PreconditionFailedError, TooManyRequestsError} from "../../api/common/error/RestError"
@@ -22,7 +20,14 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
-import {getCapabilityText, getMemberCabability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner} from "../GroupUtils"
+import {
+	getCapabilityText,
+	getMemberCabability,
+	getSharedGroupName,
+	hasCapabilityOnGroup,
+	isShareableGroupType,
+	isSharedGroupOwner
+} from "../GroupUtils"
 import {sendShareNotificationEmail} from "../GroupSharingUtils"
 import {GroupSharingModel} from "../model/GroupSharingModel"
 import {logins} from "../../api/main/LoginController"
@@ -32,7 +37,7 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
-import {ofClass} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 // the maximum number of BTF suggestions so the suggestions dropdown does not overflow the dialog
 const SHOW_CONTACT_SUGGESTIONS_MAX = 3
 export function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
@@ -146,7 +151,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 } // This is a separate function because "this" inside bubble handler object is "any"
 
 function _createBubbleContextButtons(bubbles: Array<Bubble<RecipientInfo>>, name: string, mailAddress: string): Array<DropdownChildAttrs> {
-    let buttonAttrs = [
+    let buttonAttrs: Array<DropdownChildAttrs> = [
         {
             info: mailAddress,
             center: false,
@@ -163,7 +168,7 @@ function _createBubbleContextButtons(bubbles: Array<Bubble<RecipientInfo>>, name
                 remove(bubbles, bubbleToRemove)
             }
         },
-    })
+    } )
     return buttonAttrs
 }
 
@@ -177,7 +182,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 
                 const childAttrs = () => _createBubbleContextButtons(invitePeopleValueTextField.bubbles, recipientInfo.name, mailAddress)
 
-                bubbleWrapper.buttonAttrs = attachDropdown(
+                const buttonAttrs = attachDropdown(
                     {
                         label: () => getDisplayText(recipientInfo.name, mailAddress, false),
                         type: ButtonType.TextBubble,
@@ -185,8 +190,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
                     },
                     childAttrs,
                 )
-                bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
-                return bubbleWrapper.bubble
+				return new Bubble(recipientInfo, neverNull(buttonAttrs), mailAddress)
             },
         },
         locator.contactModel,

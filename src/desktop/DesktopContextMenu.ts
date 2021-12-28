@@ -1,7 +1,7 @@
 import type {ContextMenuParams, Menu, WebContents} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {IPC} from "./IPC"
-type Electron = $Exports<"electron">
+type Electron = typeof Electron.CrossProcessExports
 export class DesktopContextMenu {
     _ipc: IPC
     _electron: Electron

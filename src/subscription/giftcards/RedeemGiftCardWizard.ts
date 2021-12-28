@@ -1,8 +1,14 @@
-import m from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
-import {createWizardDialog, emitWizardEvent, WizardEventType, WizardPageWrapper} from "../../gui/base/WizardDialogN"
+import {
+	createWizardDialog,
+	emitWizardEvent,
+	WizardEventType,
+	wizardPageWrapper,
+	WizardPageWrapper
+} from "../../gui/base/WizardDialogN"
 import {logins, SessionType} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
@@ -11,7 +17,7 @@ import {LoginForm} from "../../login/LoginForm"
 import type {CredentialsSelectorAttrs} from "../../login/CredentialsSelector"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {SignupFormAttrs} from "../SignupForm"
 import {SignupForm} from "../SignupForm"
 import {NotAuthorizedError} from "../../api/common/error/RestError"
@@ -27,15 +33,17 @@ import {lang} from "../../misc/LanguageViewModel"
 import {getLoginErrorMessage} from "../../misc/LoginUtils"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
-import {getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
-import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
+import {PaymentMethodType} from "../../api/common/TutanotaConstants"
+import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider"
+import Stream from "mithril/stream";
+import {downcast} from "@tutao/tutanota-utils/dist";
 type GetCredentialsMethod = "login" | "signup"
 type RedeemGiftCardWizardData = {
     mailAddress: Stream<string>
@@ -51,13 +59,17 @@ type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardWizardData>
  */
 
 class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
+	private dom!: HTMLElement;
+	oncreate(vnodeDOM: VnodeDOM<GiftCardRedeemAttrs>) {
+		this.dom = vnodeDOM.dom as HTMLElement
+	}
     view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
         const a = vnode.attrs
 
         const nextPage = (method: GetCredentialsMethod) => {
             logins.logout(false).then(() => {
                 a.data.credentialsMethod = method
-                emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+                emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
             })
         }
 
@@ -140,8 +152,8 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
         })
     }
 
-    oncreate(vnode: Vnode<GiftCardRedeemAttrs>) {
-        this._domElement = vnode.dom
+    oncreate(vnode: VnodeDOM<GiftCardRedeemAttrs>) {
+        this._domElement = vnode.dom as HTMLElement
     }
 
     view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
@@ -292,6 +304,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
     isConfirmed: Stream<boolean>
     paymentMethod: string
+	private dom!: HTMLElement;
 
     constructor() {
         this.isConfirmed = stream(false)
@@ -301,16 +314,19 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
             .loadAccountingInfo()
             .then(accountingInfo => {
                 this.paymentMethod = accountingInfo.paymentMethod
-                    ? getPaymentMethodName(getPaymentMethodType(accountingInfo))
+                    ? getPaymentMethodName(downcast<PaymentMethodType>(accountingInfo.paymentMethod))
                     : getPaymentMethodName(PaymentMethodType.AccountBalance)
                 m.redraw()
             })
     }
 
+	oncreate(vnodeDOM: VnodeDOM) {
+		this.dom = vnodeDOM.dom as HTMLElement
+	}
     view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
         const data = vnode.attrs.data
         const wasFree = logins.getUserController().isFreeAccount()
-        const confirmButtonAttrs = {
+        const confirmButtonAttrs : ButtonAttrs = {
             label: "redeem_label",
             click: () => {
                 if (!this.isConfirmed()) {
@@ -319,7 +335,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
                 }
 
                 redeemGiftCard(data.giftCardInfo.giftCard, data.key, data.giftCardInfo.country, Dialog.confirm)
-                    .then(() => emitWizardEvent(vnode.dom, WizardEventType.CLOSEDIALOG))
+                    .then(() => emitWizardEvent(this.dom, WizardEventType.CLOSEDIALOG))
                     .catch(ofClass(UserError, showUserError))
                     .catch(ofClass(CancelledError, noOp))
             },
@@ -351,22 +367,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
                                   label: "subscription_label",
                                   value: () => "Premium",
                                   disabled: true,
-                              }),
+                              } as TextFieldAttrs),
                               m(TextFieldN, {
                                   label: "subscriptionPeriod_label",
                                   value: () => `${lang.get("pricing.yearly_label")}, ${lang.get("automaticRenewal_label")}`,
                                   disabled: true,
-                              }),
+                              } as TextFieldAttrs),
                               m(TextFieldN, {
                                   label: "price_label",
                                   value: () => formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
                                   disabled: true,
-                              }),
+                              } as TextFieldAttrs),
                               m(TextFieldN, {
                                   label: "paymentMethod_label",
                                   value: () => this.paymentMethod,
                                   disabled: true,
-                              }),
+                              } as TextFieldAttrs),
                           ]),
                           m(
                               ".flex-grow-shrink-half.plr-l.flex-center.items-end",
@@ -435,7 +451,7 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
             options: {
                 businessUse: () => false,
                 paymentInterval: () => 12,
-            },
+            } as SubscriptionOptions,
             planPrices: priceData,
         }
         const giftCardRedeemData: RedeemGiftCardWizardData = {
@@ -443,26 +459,25 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
             mailAddress: stream(""),
             credentialsMethod: "signup",
             giftCardInfo: giftCardInfo,
-            credentials: stream(null),
             key,
             premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
         }
         const wizardPages = [
-            new WizardPageWrapper(GiftCardWelcomePage, {
+            wizardPageWrapper(GiftCardWelcomePage, {
                 data: giftCardRedeemData,
                 headerTitle: () => lang.get("giftCard_label"),
                 nextAction: _ => Promise.resolve(true),
                 isSkipAvailable: () => false,
                 isEnabled: () => true,
             }),
-            new WizardPageWrapper(GiftCardCredentialsPage, {
+            wizardPageWrapper(GiftCardCredentialsPage, {
                 data: giftCardRedeemData,
                 headerTitle: () => lang.get(giftCardRedeemData.credentialsMethod === "signup" ? "register_label" : "login_label"),
                 nextAction: (showErrorDialog: boolean) => Promise.resolve(true),
                 isSkipAvailable: () => false,
                 isEnabled: () => true,
             }),
-            new WizardPageWrapper(RedeemGiftCardPage, {
+            wizardPageWrapper(RedeemGiftCardPage, {
                 data: giftCardRedeemData,
                 headerTitle: () => lang.get("redeem_label"),
                 nextAction: _ => Promise.resolve(true),

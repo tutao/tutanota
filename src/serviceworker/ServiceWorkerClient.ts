@@ -1,7 +1,7 @@
 import {assertMainOrNodeBoot, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
-import m from "mithril"
+import m, {Component} from "mithril"
 import {handleUncaughtError} from "../misc/ErrorHandler"
 import {isSecurityError, objToError} from "../api/common/utils/Utils"
 assertMainOrNodeBoot()

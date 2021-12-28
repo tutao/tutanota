@@ -1,9 +1,9 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Country} from "../api/common/CountryList"
 import {CountryType} from "../api/common/CountryList"
-import type {PaymentData, PaymentMethodType} from "../api/common/TutanotaConstants"
+import type {PaymentData } from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardAttrs, CreditCardInput} from "./CreditCardInput"
 import {PayPalLogo} from "../gui/base/icons/Icons"
@@ -20,6 +20,7 @@ import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
 import {noOp} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -159,7 +160,7 @@ export class PaymentMethodInput {
         }
     }
 
-    updatePaymentMethod(value: PaymentMethodType, paymentData: PaymentData | null) {
+    updatePaymentMethod(value: PaymentMethodType, paymentData?: PaymentData) {
         this._selectedPaymentMethod = value
 
         if (value === PaymentMethodType.CreditCard) {

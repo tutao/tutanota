@@ -3,7 +3,7 @@ import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {locator} from "../../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
-import type {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
+import type {CalendarAttendeeStatus } from "../../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
 import {assertNotNull, clone, filterInt, noOp} from "@tutao/tutanota-utils"
 import {findPrivateCalendar, getEventStart, getTimeZone} from "./CalendarUtils"
@@ -15,6 +15,7 @@ import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {ofClass} from "@tutao/tutanota-utils"
 import {createCalendarEventViewModel} from "./CalendarEventViewModel"
+import {DataFile} from "../../api/common/DataFile";
 
 function getParsedEvent(
     fileData: DataFile,

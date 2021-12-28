@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {isDomainName} from "../../misc/FormatValidator"
 import {Dialog} from "../../gui/base/Dialog"
@@ -11,6 +11,12 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {assertMainOrNode} from "../../api/common/Env"
 assertMainOrNode()
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
+	private dom: HTMLElement
+
+	oncreate(vnode) {
+		this.dom = vnode.dom
+	}
+
     view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
         return m("", [
             m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
@@ -44,7 +50,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
                     m(ButtonN, {
                         type: ButtonType.Login,
                         label: "next_action",
-                        click: () => emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE),
+                        click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
                     }),
                 ),
             ),

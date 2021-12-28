@@ -46,6 +46,7 @@ export function show(props: TutanotaProperties) {
         })
         let form = {
             view: () => {
+				// @ts-ignore
                 return [m(typeField), m(editor)]
             },
         }

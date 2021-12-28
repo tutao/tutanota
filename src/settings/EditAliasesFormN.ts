@@ -1,8 +1,8 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {noOp} from "@tutao/tutanota-utils"
@@ -25,13 +25,14 @@ import {firstThrow} from "@tutao/tutanota-utils"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
-export type EditAliasesFormAttrs = LifecycleAttrs<{
+export type EditAliasesFormAttrs = {
     userGroupInfo: GroupInfo
     aliasCount: AliasCount
     expanded: Stream<boolean>
-}>
+}
 type AliasCount = {
     availableToCreate: number
     availableToEnable: number
@@ -195,7 +196,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
     let promise = Promise.resolve(true)
 
     if (!restore) {
-        let message = isTutanotaMailAddress(alias.mailAddress) ? "deactivateAlias_msg" : "deleteAlias_msg"
+        const message: TranslationKey = isTutanotaMailAddress(alias.mailAddress) ? "deactivateAlias_msg" : "deleteAlias_msg"
         promise = Dialog.confirm(() =>
             lang.get(message, {
                 "{1}": alias.mailAddress,

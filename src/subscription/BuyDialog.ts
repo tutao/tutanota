@@ -1,5 +1,5 @@
-import m from "mithril"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import m, {Children} from "mithril"
+import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -56,19 +56,19 @@ export function showBuyDialog(featureType: BookingItemFeatureType, count: number
                                 } else {
                                     let buy = _isBuy(price, featureType)
 
-                                    const orderFieldAttrs = {
+                                    const orderFieldAttrs: TextFieldAttrs = {
                                         label: "bookingOrder_label",
                                         value: stream(_getBookingText(price, featureType, count, freeAmount)),
                                         type: TextFieldType.Area,
                                         disabled: true,
                                     }
-                                    const buyFieldAttrs = {
+                                    const buyFieldAttrs: TextFieldAttrs = {
                                         label: "subscription_label",
                                         helpLabel: () => _getSubscriptionInfoText(price),
                                         value: stream(_getSubscriptionText(price)),
                                         disabled: true,
                                     }
-                                    const priceFieldAttrs = {
+                                    const priceFieldAttrs: TextFieldAttrs = {
                                         label: "price_label",
                                         helpLabel: () => _getPriceInfoText(price, featureType),
                                         value: stream(_getPriceText(price, featureType)),
@@ -265,7 +265,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
         let newPackageCount = 0
 
         if (item != null) {
-            newPackageCount = item.count
+            newPackageCount = Number(item.count)
         }
 
         let visibleAmount = Math.max(count, freeAmount)

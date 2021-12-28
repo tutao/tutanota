@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {px} from "../size"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {lazy} from "@tutao/tutanota-utils"

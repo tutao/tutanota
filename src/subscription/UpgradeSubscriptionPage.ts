@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
@@ -8,7 +8,7 @@ import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {SubscriptionActionButtons, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
@@ -20,8 +20,8 @@ import {getSubscriptionPrice} from "./PriceUtils"
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
     _dom: HTMLElement | null
 
-    oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): void {
-        this._dom = vnode.dom
+    oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+        this._dom = vnode.dom as HTMLElement
         const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 
         if (subscriptionParameters && (subscriptionParameters.interval === "12" || subscriptionParameters.interval === "1")) {

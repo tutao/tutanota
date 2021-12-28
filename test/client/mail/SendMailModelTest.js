@@ -356,7 +356,7 @@ o.spec("SendMailModel", function () {
 		})
 
 		o("initWithDraft with blank data", async function () {
-			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params) => {
+			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Dict, extraHeaders?: Dict) => {
 				const values = {_id: id}
 				const ce = createConversationEntry()
 				ce.conversationType = ConversationType.REPLY
@@ -387,7 +387,7 @@ o.spec("SendMailModel", function () {
 		})
 
 		o("initWithDraft with some data", async function () {
-			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params) => {
+			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Dict, extraHeaders?: Dict) => {
 				const values = {_id: id}
 				const ce = createConversationEntry()
 				ce.conversationType = ConversationType.FORWARD

@@ -1,5 +1,5 @@
 import stream from "mithril/stream/stream.js"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 export type GermanLanguageCode = "de" | "de_sie"
 export type WhitelabelGermanLanguageFileSettingsAttrs = {
@@ -34,7 +34,7 @@ export class WhitelabelGermanLanguageFileSettings implements Component<Whitelabe
             items,
             selectedValue: stream(selectedValue),
             selectionChangedHandler: onGermanLanguageFileChanged,
-        }
+        } as const
         return m(DropDownSelectorN, defaultGermanLanguageFileDropDownAttrs)
     }
 }

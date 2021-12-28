@@ -1,6 +1,6 @@
 import type {TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../theme"
 export type RadioSelectorOption<T> = {
     name: TranslationText

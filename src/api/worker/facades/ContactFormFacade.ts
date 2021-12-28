@@ -1,10 +1,9 @@
-import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import type {ContactForm} from "../../entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../../entities/tutanota/ContactForm"
 import {RestClient} from "../rest/RestClient"
 import {assertWorkerOrNode} from "../../common/Env"
-import {locator} from "../WorkerLocator"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 assertWorkerOrNode()
 export interface ContactFormFacade {
@@ -31,7 +30,7 @@ export class ContactFormFacadeImpl implements ContactFormFacade {
                         v: model.version,
                     },
                     null,
-                    "application/json",
+                    MediaType.Json,
                     null,
                 )
                 .then(json => {

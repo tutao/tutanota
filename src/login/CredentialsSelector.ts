@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {CredentialsInfo} from "../misc/credentials/CredentialsProvider"
 export type CredentialsSelectorAttrs = {

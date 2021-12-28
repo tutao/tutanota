@@ -10,7 +10,7 @@ import {showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
@@ -38,7 +38,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
                 whitelabelDomain ? this._renderDeactivateButton(whitelabelDomain) : null,
                 customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
             ],
-        }
+        } as const
         return m(TextFieldN, whitelabelDomainConfigAttrs)
     }
 
@@ -63,7 +63,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
                 })
             },
             icon: () => Icons.Cancel,
-        }
+        } as const
         return m(ButtonN, deactivateButtonAttrs)
     }
 
@@ -83,7 +83,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
                 }
             },
             icon: () => Icons.Edit,
-        }
+        } as const
         return m(ButtonN, editActionAttrs)
     }
 

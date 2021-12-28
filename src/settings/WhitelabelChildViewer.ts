@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component} from "mithril"
 import {TextFieldType} from "../gui/base/TextFieldN"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
@@ -37,12 +37,12 @@ export class WhitelabelChildViewer implements Component<void> {
             label: "mailAddress_label",
             value: stream(this._mailAddress),
             disabled: true,
-        }
+        } as const
         const createdAttrs = {
             label: "created_label",
             value: stream(formatDateWithMonth(this.whitelabelChild.createdDate)),
             disabled: true,
-        }
+        } as const
         const editCommentButtonAttrs = {
             label: "edit_action",
             click: () => {
@@ -52,14 +52,14 @@ export class WhitelabelChildViewer implements Component<void> {
                 })
             },
             icon: () => Icons.Edit,
-        }
+        } as const
         const commentAttrs = {
             label: "comment_label",
             value: stream(this._comment),
             disabled: true,
             type: TextFieldType.Area,
             injectionsRight: () => [m(ButtonN, editCommentButtonAttrs)],
-        }
+        } as const
         const deactivatedDropDownAttrs = {
             label: "state_label",
             items: [
@@ -77,7 +77,7 @@ export class WhitelabelChildViewer implements Component<void> {
                 this.whitelabelChild.deletedDate = deactivate ? new Date() : null
                 return showProgressDialog("pleaseWait_msg", locator.entityClient.update(this.whitelabelChild))
             },
-        }
+        } as const
         return m("#whitelabel-child-viewer.fill-absolute.scroll.plr-l", [
             m(".h4.mt-l", lang.get("whitelabelAccount_label")),
             m(TextFieldN, mailAddressAttrs),

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {px, size} from "../size"
 import type {clickHandler} from "./GuiUtils"
 export type Attrs = {

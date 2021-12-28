@@ -1,9 +1,10 @@
 import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type SettingsExpanderAttrs = {
     title: TranslationKey | lazy<string>
     buttonText?: TranslationKey | lazy<string>

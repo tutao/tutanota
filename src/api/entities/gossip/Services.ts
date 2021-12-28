@@ -1,7 +1,3 @@
-export const enum GossipService
+export const enum GossipService {
 
-:
-{||
-}
-{
 }

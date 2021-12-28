@@ -45,5 +45,5 @@ export type BrandingDomainGetReturn = {
 
 	_format: NumberString;
 
-	certificateInfo: null | CertificateInfo;
+	certificateInfo:  null | CertificateInfo;
 }

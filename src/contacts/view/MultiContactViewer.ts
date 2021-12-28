@@ -68,7 +68,7 @@ export class MultiContactViewer {
     }
 
     createActionBarButtons(actionCallback: () => void = () => {}, prependCancel: boolean = false): ButtonAttrs[] {
-        const cancel = prependCancel
+        const cancel: ButtonAttrs[] = prependCancel
             ? [
                   {
                       label: "cancel_action",

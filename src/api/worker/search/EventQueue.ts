@@ -10,6 +10,7 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {isSameId} from "../../common/utils/EntityUtils"
 import {isSameTypeRefByAttr} from "@tutao/tutanota-utils"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
+import {EntityUpdateData} from "../../main/EventController";
 export type QueuedBatch = {
     events: EntityUpdate[]
     groupId: Id
@@ -40,12 +41,13 @@ function isMovableEventType(event: EntityUpdate): boolean {
  * @param batch entity updates of the batch.
  * @param entityId
  */
-export function batchMod(batch: ReadonlyArray<EntityUpdate>, entityId: Id): EntityModificationType
+export function batchMod(batch: ReadonlyArray<EntityUpdate>, entityId: Id): EntityModificationType {
+	const batchAsUpdateData = batch as readonly EntityUpdateData[]
     for (const event of batch) {
         if (isSameId(event.instanceId, entityId)) {
             switch (event.operation) {
                 case OperationType.CREATE:
-                    return isMovableEventType(event) && containsEventOfType(batch, OperationType.DELETE, entityId)
+                    return isMovableEventType(event) && containsEventOfType(batchAsUpdateData, OperationType.DELETE, entityId)
                         ? EntityModificationType.MOVE
                         : EntityModificationType.CREATE
 
@@ -53,7 +55,7 @@ export function batchMod(batch: ReadonlyArray<EntityUpdate>, entityId: Id): Enti
                     return EntityModificationType.UPDATE
 
                 case OperationType.DELETE:
-                    return isMovableEventType(event) && containsEventOfType(batch, OperationType.CREATE, entityId)
+                    return isMovableEventType(event) && containsEventOfType(batchAsUpdateData, OperationType.CREATE, entityId)
                         ? EntityModificationType.MOVE
                         : EntityModificationType.DELETE
 
@@ -197,7 +199,7 @@ export class EventQueue {
                 } else if (newEntityModification === EntityModificationType.DELETE) {
                     // find first move or delete (at different list) operation
                     const firstMoveIndex = this._eventQueue.findIndex(
-                        queuedBatch => this._processingBatch !== queuedBatch && containsEventOfType(queuedBatch.events, OperationType.DELETE, elementId),
+                        queuedBatch => this._processingBatch !== queuedBatch && containsEventOfType(queuedBatch.events as readonly EntityUpdateData[], OperationType.DELETE, elementId),
                     )
 
                     if (firstMoveIndex !== -1) {

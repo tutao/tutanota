@@ -62,6 +62,6 @@ export type Challenge = {
 	_id: Id;
 	type: NumberString;
 
-	otp: null | OtpChallenge;
-	u2f: null | U2fChallenge;
+	otp:  null | OtpChallenge;
+	u2f:  null | U2fChallenge;
 }

@@ -47,8 +47,8 @@ export class ViewColumn implements Component<Attrs> {
         columnType: ColumnType,
         minWidth: number,
         maxWidth: number,
-        headerCenter: lazy<string | HeaderCenter> | null,
-        ariaLabel: lazy<string> | null,
+        headerCenter?: lazy<string | HeaderCenter>,
+        ariaLabel?: lazy<string>,
     ) {
         this.component = component
         this.columnType = columnType
@@ -72,7 +72,7 @@ export class ViewColumn implements Component<Attrs> {
                 {
                     "aria-hidden": this.visible || this.isInForeground ? "false" : "true",
                     oncreate: vnode => {
-                        this._domColumn = vnode.dom
+                        this._domColumn = vnode.dom as HTMLElement
                         this._domColumn.style.transform =
                             this.columnType === ColumnType.Foreground ? "translateX(" + this.getOffsetForeground(this.isInForeground) + "px)" : null
 

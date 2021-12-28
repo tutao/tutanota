@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
@@ -169,6 +169,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
             m(TextFieldN, this._enterTitleAttrs),
             m(TextFieldN, this._enterTagAttrs),
             m(TextFieldN, this._chooseLanguageAttrs),
+			// @ts-ignore
             m(this._templateContentEditor),
         ])
     }

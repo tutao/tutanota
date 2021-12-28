@@ -3,13 +3,12 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {WindowManager} from "../DesktopWindowManager"
 import {log} from "../DesktopLog"
 import type {DesktopIntegrator} from "./DesktopIntegrator"
-type Electron = $Exports<"electron">
-type Fs = $Exports<"fs">
-type ChildProcess = $Exports<"child_process">
+import {ChildProcessExports, ElectronExports, FsExports} from "../ElectronExportTypes";
+
 export class DesktopIntegratorLinux implements DesktopIntegrator {
-    _electron: Electron
-    _fs: Fs
-    _childProcess: ChildProcess
+    _electron: ElectronExports
+    _fs: FsExports
+    _childProcess: ChildProcessExports
     DATA_HOME: string
     CONFIG_HOME: string
     executablePath: string
@@ -24,7 +23,7 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
     iconSourcePath512: string
     nointegrationpath: string
 
-    constructor(electron: Electron, fs: Fs, childProcess: ChildProcess) {
+    constructor(electron: ElectronExports, fs: FsExports, childProcess: ChildProcessExports) {
         this._electron = electron
         this._fs = fs
         this._childProcess = childProcess

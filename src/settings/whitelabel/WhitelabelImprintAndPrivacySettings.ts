@@ -1,7 +1,7 @@
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonN} from "../../gui/base/ButtonN"
@@ -30,7 +30,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
                 label: "privacyPolicyUrl_label",
                 value: stream(privacyStatementUrl),
                 oninput: value => (privacyStatementUrl = value.trim()),
-            }
+            } as const
             editPrivacyUrlButtonAttrs = {
                 label: "edit_action",
                 click: () => {
@@ -57,7 +57,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
             value: stream(privacyStatementUrl),
             disabled: true,
             injectionsRight: () => [editPrivacyUrlButtonAttrs ? m(ButtonN, editPrivacyUrlButtonAttrs) : null],
-        }
+        } as const
         return m(TextFieldN, privacyPolicyConfigTextfieldAttrs)
     }
 
@@ -69,7 +69,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
                 label: "imprintUrl_label",
                 value: stream(imprintUrl),
                 oninput: value => (imprintUrl = value.trim()),
-            }
+            } as const
             editImprintUrlButtonAttrs = {
                 label: "edit_action",
                 click: () => {
@@ -96,7 +96,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
             value: stream(imprintUrl),
             disabled: true,
             injectionsRight: () => [editImprintUrlButtonAttrs ? m(ButtonN, editImprintUrlButtonAttrs) : null],
-        }
+        } as const
         return m(TextFieldN, whitelabelImprintTextfieldAttrs)
     }
 }

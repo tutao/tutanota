@@ -4,7 +4,7 @@ import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 export type WhitelabelStatusSettingsAttrs = {
@@ -27,7 +27,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
                 () => logins.getUserController().isPremiumAccount(),
             ),
             icon: () => Icons.Edit,
-        }
+        } as const
         const disableWhiteLabelAction = {
             label: "whitelabelDomain_label",
             click: createNotAvailableForFreeClickHandler(
@@ -36,14 +36,14 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
                 () => logins.getUserController().isPremiumAccount(),
             ),
             icon: () => Icons.Cancel,
-        }
+        } as const
         const value = isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label")
         const textFieldAttrs = {
             label: "state_label",
             value: stream(value),
             disabled: true,
             injectionsRight: () => (isWhitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)),
-        }
+        } as const
         return m(TextFieldN, textFieldAttrs)
     }
 }

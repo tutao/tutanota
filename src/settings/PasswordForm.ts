@@ -39,7 +39,7 @@ export class PasswordForm {
         validateOldPassword: boolean,
         enforcePasswordStrength: boolean,
         repeatPassword: boolean,
-        passwordInfoTextId: TranslationKey | null,
+        passwordInfoTextId?: TranslationKey,
     ) {
         this._validateOldPassword = validateOldPassword
         this._enforcePasswordStrength = enforcePasswordStrength
@@ -62,7 +62,7 @@ export class PasswordForm {
             oninput: value => this._onOldPasswordInput(value),
             preventAutoFill: true,
             type: TextFieldType.Password,
-        }
+        } as const
         const passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
         const newPasswordFieldAttrs = {
             label: "newPassword_label",
@@ -75,7 +75,7 @@ export class PasswordForm {
             type: TextFieldType.Password,
             preventAutofill: true,
             injectionsRight: () => m(".mb-s.mlr", m(passwordIndicator)),
-        }
+        } as const
         const repeatedPasswordFieldAttrs = {
             label: "repeatedPassword_label",
             value: stream(this._repeatedPassword),
@@ -85,7 +85,7 @@ export class PasswordForm {
                 }),
             oninput: value => this._onRepeatedPasswordInput(value),
             type: TextFieldType.Password,
-        }
+        } as const
 
         this.view = () => {
             return m(

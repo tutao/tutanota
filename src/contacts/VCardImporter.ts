@@ -1,7 +1,6 @@
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactAddress} from "../api/entities/tutanota/ContactAddress"
-import type {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"

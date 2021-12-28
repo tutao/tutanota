@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -6,12 +6,18 @@ import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import {AccountType, BookingItemFeatureByCode, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
+import {
+	AccountType,
+	BookingItemFeatureByCode,
+	Const,
+	Keys,
+	UnsubscribeFailureReason
+} from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {SubscriptionActionButtons, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {
     buyAliases,
     buyBusiness,

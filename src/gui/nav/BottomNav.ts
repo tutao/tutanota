@@ -1,10 +1,10 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {NavButtonN} from "../base/NavButtonN"
-import {BootIcons} from "../base/icons/BootIcons"
 import {size} from "../size"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
+import {BootIcons} from "../base/icons/BootIcons";
 type Attrs = void
 const fontSize = size.font_size_small
 export class BottomNav implements Component<Attrs> {
