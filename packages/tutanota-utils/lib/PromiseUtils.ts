@@ -61,7 +61,7 @@ function flatWrapper<T>(value: PromisableWrapper<T> | T): $Promisable<T> {
 
 // It kinda implements 'thenable' protocol so you can freely pass it around as a generic promise
 export class PromisableWrapper<T> {
-	static from<U>(value: $Promisable<U>): PromisableWrapper<U> {
+	static from<U>(value?: $Promisable<U>): PromisableWrapper<U> {
 		return new PromisableWrapper(value)
 	}
 

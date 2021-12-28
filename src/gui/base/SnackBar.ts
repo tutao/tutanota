@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component, Vnode} from "mithril"
 import {px, size} from "../size"
 import {DefaultAnimationTime, transform} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
@@ -84,7 +84,8 @@ function showNextNotification() {
 
     currentAnimationTimeout = null
     const bottomOffset = styles.isUsingBottomNavigation() ? size.bottom_nav_bar + size.hpad : size.hpad_medium
-    const closeFunction = displayOverlay(
+	let TransformEnum;
+	const closeFunction = displayOverlay(
         () => getSnackBarPosition(),
         {
             view: () =>
@@ -93,8 +94,8 @@ function showNextNotification() {
                     button,
                 }),
         },
-        dom => transform(transform.type.translateY, 0, -(bottomOffset + dom.offsetHeight)),
-        dom => transform(transform.type.translateY, -(bottomOffset + dom.offsetHeight), 0),
+        dom => transform(TransformEnum.TranslateY, 0, -(bottomOffset + dom.offsetHeight)),
+        dom => transform(TransformEnum.TranslateY, -(bottomOffset + dom.offsetHeight), 0),
         "minimized-shadow",
     )
 

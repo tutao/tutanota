@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ContactView} from "./ContactView"
 import type {VirtualRow} from "../../gui/base/List"
@@ -151,12 +151,12 @@ export class ContactRow implements VirtualRow<Contact> {
         let elements = [
             m(".top", [
                 m(".name.text-ellipsis", {
-                    oncreate: vnode => (this._domName = vnode.dom),
+                    oncreate: vnode => (this._domName = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small.mail-address", {
-                    oncreate: vnode => (this._domAddress = vnode.dom),
+                    oncreate: vnode => (this._domAddress = vnode.dom as HTMLElement),
                 }),
             ]),
         ]

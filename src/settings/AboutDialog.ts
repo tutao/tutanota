@@ -51,7 +51,7 @@ export class AboutDialog implements Component<void> {
 	async _sendDeviceLogs(): Promise<void> {
 		const attachments: Array<Attachment> = []
 		const timestamp = new Date()
-		const global = downcast(window)
+		const global = downcast<Window>(window)
 
 		if (global.logger) {
 			const mainEntries = global.logger.getEntries()

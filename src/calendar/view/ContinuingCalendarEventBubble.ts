@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {formatEventTime, hasAlarmsForTheUser} from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -11,7 +11,7 @@ type ContinuingCalendarEventBubbleAttrs = {
     endsAfter: boolean
     color: string
     onEventClicked: CalendarEventBubbleClickHandler
-    showTime: EventTextTimeOption null
+    showTime: EventTextTimeOption | null
     user: User
     fadeIn: boolean
     opacity: number

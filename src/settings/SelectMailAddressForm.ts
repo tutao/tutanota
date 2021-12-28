@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -19,6 +19,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 export type SelectMailAddressFormAttrs = {
@@ -91,7 +92,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
             value: this._username,
             alignRight: true,
             helpLabel: () => this._addressHelpLabel(),
-            oncreate: validate,
             oninput: validate,
             injectionsRight: () => [
                 m(

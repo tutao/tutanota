@@ -2,6 +2,7 @@ import path from "path"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {neverNull} from "@tutao/tutanota-utils"
 import {promises as fs} from "fs"
+import {PathExports} from "./ElectronExportTypes";
 
 /**
  * Can be used when you want to ensure only valid file extensions are being provided. feel free to add some
@@ -121,7 +122,7 @@ export function urlIsPrefix(prefix: URL, url: URL): boolean {
  * @param file the file name to put in the last path component
  * @param pathModule path module to use for cross platform testing
  */
-export function swapFilename(p: string, file: string, pathModule: $Exports<"path"> = path): string {
+export function swapFilename(p: string, file: string, pathModule: PathExports = path): string {
     const dir = pathModule.dirname(p)
     return pathModule.join(dir, file)
 }

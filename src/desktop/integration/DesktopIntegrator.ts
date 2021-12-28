@@ -1,4 +1,6 @@
 import type {WindowManager} from "../DesktopWindowManager"
+import type {ChildProcessExports, ElectronExports, FsExports, WinregExports} from "../ElectronExportTypes";
+
 export interface DesktopIntegrator {
     readonly enableAutoLaunch: () => Promise<void>
     readonly disableAutoLaunch: () => Promise<void>
@@ -9,10 +11,10 @@ export interface DesktopIntegrator {
     readonly unintegrate: () => Promise<void>
 }
 export async function getDesktopIntegratorForPlatform(
-    electron: $Exports<"electron">,
-    fs: $Exports<"fs">,
-    childProcess: $Exports<"child_process">,
-    _winreg: () => Promise<$Exports<"winreg">>,
+    electron: ElectronExports,
+    fs: FsExports,
+    childProcess: ChildProcessExports,
+    _winreg: () => Promise<WinregExports>,
 ): Promise<DesktopIntegrator> {
     switch (process.platform) {
         case "win32":

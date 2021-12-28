@@ -1,5 +1,5 @@
 
-// We cannot use Flow types here because it's used during build
+// We cannot use TS types here because it's used during build
 
 export const Type = Object.freeze({
 	Element: "ELEMENT_TYPE",

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang, languageByCode} from "../../misc/LanguageViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
@@ -9,6 +9,7 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
 import {downcast} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
+import Stream from "mithril/stream";
 export type WhitelabelNotificationEmailSettingsAttrs = {
     notificationMailTemplates: Array<NotificationMailTemplate>
     onAddTemplate: () => unknown

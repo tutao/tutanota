@@ -91,5 +91,5 @@ export type ApprovalMail = {
 	range: null | string;
 	text: string;
 
-	customer: null | Id;
+	customer:  null | Id;
 }

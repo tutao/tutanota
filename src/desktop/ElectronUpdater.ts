@@ -1,6 +1,4 @@
-// @flow
 import type {DesktopNotifier} from "./DesktopNotifier"
-import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
 import {downcast, neverNull} from "@tutao/tutanota-utils"
@@ -10,6 +8,9 @@ import {log} from "./DesktopLog";
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {App} from "electron"
 import type {UpdaterWrapper} from "./UpdaterWrapper"
+import {UpdateInfo} from "electron-updater";
+import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
+import {NotificationResult} from "./DesktopNotifier";
 
 
 /**
@@ -27,24 +28,26 @@ import type {UpdaterWrapper} from "./UpdaterWrapper"
 type LoggerFn = (string, ...args: any) => void
 type UpdaterLogger = {debug: LoggerFn, info: LoggerFn, warn: LoggerFn, error: LoggerFn, silly: LoggerFn, verbose: LoggerFn}
 
+type IntervalID = ReturnType<typeof setTimeout>
+
 // re-do the type as opposed to doing typeof because... flow
-export type IntervalSetter = (fn: (...Array<mixed>) => mixed, time?: number) => IntervalID
+export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: number) => IntervalID
 
 export class ElectronUpdater {
 	_conf: DesktopConfig;
 	_notifier: DesktopNotifier;
 	_crypto: DesktopCryptoFacade;
-	_updatePollInterval: ?IntervalID;
+	_updatePollInterval: IntervalID | null;
 	_checkUpdateSignature: boolean;
 	_errorCount: number;
 	_setInterval: IntervalSetter;
-	_updateInfo: ?UpdateInfo = null;
+	_updateInfo: UpdateInfo | null = null;
 	_logger: UpdaterLogger;
 	_app: App;
 	_tray: DesktopTray
 	_updater: UpdaterWrapper
 
-	get updateInfo(): ?UpdateInfo {
+	get updateInfo(): UpdateInfo | void {
 		return this._updateInfo
 	}
 
@@ -87,7 +90,7 @@ export class ElectronUpdater {
 			}).on('update-available', async updateInfo => {
 				this._logger.info("update-available")
 				this._stopPolling()
-				const publicKeys = await this._conf.getConst("pubKeys")
+				const publicKeys = await this._conf.getConst(BuildConfigKey.pubKeys)
 				const verified = publicKeys.some(pk => this._verifySignature(pk, downcast(updateInfo)))
 				if (verified) {
 					this._downloadUpdate()
@@ -97,7 +100,7 @@ export class ElectronUpdater {
 				}
 			}).on('update-not-available', info => {
 				this._logger.info("update not available:", info)
-			}).on("download-progress", (prg: DownloadProgressInfo) => {
+			}).on("download-progress", (prg) => {
 				log.debug('update dl progress:', prg)
 			}).on('update-downloaded', info => {
 				this._updateInfo = downcast({version: info.version})
@@ -158,19 +161,19 @@ export class ElectronUpdater {
 	async start() {
 		if (!this._updater.updatesEnabledInBuild()) {
 			log.debug("no update info on disk, disabling updater.")
-			this._conf.setVar('showAutoUpdateOption', false)
+			this._conf.setVar(DesktopConfigKey.showAutoUpdateOption, false)
 			return
 		}
 
 		// if we got here, we could theoretically download updates.
 		// show the option in the settings menu
-		this._conf.setVar('showAutoUpdateOption', true)
+		this._conf.setVar(DesktopConfigKey.showAutoUpdateOption, true)
 
 		// if user changes auto update setting, we want to know
-		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)
-		    .on('enableAutoUpdate', this._enableAutoUpdateListener)
+		this._conf.removeListener(DesktopConfigKey.enableAutoUpdate, this._enableAutoUpdateListener)
+		    .on(DesktopConfigKey.enableAutoUpdate, this._enableAutoUpdateListener)
 
-		if (!(await this._conf.getVar("enableAutoUpdate"))) {
+		if (!(await this._conf.getVar(DesktopConfigKey.enableAutoUpdate))) {
 			this._stopPolling()
 			return
 		}
@@ -179,7 +182,7 @@ export class ElectronUpdater {
 			return
 		}
 
-		this._checkUpdateSignature = await this._conf.getConst('checkUpdateSignature')
+		this._checkUpdateSignature = await this._conf.getConst(BuildConfigKey.checkUpdateSignature)
 		this._startPolling()
 		// the first check is immediate, all others are done with a delay
 		// and random exponential backoff
@@ -192,6 +195,7 @@ export class ElectronUpdater {
 		} else {
 			try {
 				let hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
+				// @ts-ignore Where does signature come from?
 				let signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
 				let publicKey = this._crypto.publicKeyFromPem(pubKey)
 
@@ -216,7 +220,7 @@ export class ElectronUpdater {
 			// sets the poll interval at a random multiple of (base value)
 			// between (base value) and (base value) * 2^(errorCount)
 			const multiplier = Math.floor(Math.random() * Math.pow(2, this._errorCount)) + 1
-			const interval = await this._conf.getConst("pollingInterval")
+			const interval = await this._conf.getConst(BuildConfigKey.pollingInterval)
 			this._updatePollInterval = this._setInterval(() => this._checkUpdate(), interval * multiplier)
 		}
 	}
@@ -292,7 +296,7 @@ export class ElectronUpdater {
 		    .showOneShot({
 			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
 			    body: lang.get('clickToUpdate_msg'),
-			    icon: await this._tray.getIconByName(await this._conf.getConst('iconName'))
+			    icon: await this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
@@ -321,7 +325,7 @@ export class ElectronUpdater {
 		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
-			icon: this._tray.getIconByName(await this._conf.getConst('iconName'))
+			icon: this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
 		}).catch(e => this._logger.error("Error Notification failed,", e.message))
 	}
 }

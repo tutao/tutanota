@@ -1,6 +1,4 @@
-//@flow
 import {app, BrowserWindow} from "electron"
-import type {WebContentsEvent} from "electron"
 import isAccelerator from "./IsAccelerator"
 import equals from "./KeyboardEventsAreEqual"
 import {toKeyEvent} from "./KeyboardeventFromElectronAccelerator"
@@ -17,7 +15,7 @@ export class LocalShortcutManager {
 		disableAll(win)
 	}
 
-	register(win: BrowserWindow, accelerator: Accelerator, callback: () => ?boolean): void {
+	register(win: BrowserWindow, accelerator: Accelerator, callback: () => boolean | void): void {
 		register(win, accelerator, callback)
 	}
 
@@ -31,7 +29,7 @@ export class LocalShortcutManager {
 export const ANY_WINDOW: symbol = Symbol("any-window");
 
 type Shortcut = {
-	eventStamp: mixed,
+	eventStamp: unknown,
 	callback: () => void,
 	enabled: boolean,
 }
@@ -39,9 +37,9 @@ type Shortcut = {
 // I give up on typing this, this is a mess
 
 type ShortcutsList = any //Array<Shortcut> & {removeListener?: () => void}
-const windowsWithShortcuts = new WeakMap<any, any>();
+const windowsWithShortcuts: WeakMap<any, any> = new WeakMap()
 
-const title = (win: ?BrowserWindow | typeof ANY_WINDOW) => {
+const title = (win: BrowserWindow | typeof ANY_WINDOW | null) => {
 	if (win instanceof BrowserWindow) {
 		try {
 			return win.getTitle();
@@ -56,7 +54,7 @@ const title = (win: ?BrowserWindow | typeof ANY_WINDOW) => {
 
 function _checkAccelerator(accelerator: string) {
 	if (!isAccelerator(accelerator)) {
-		const w = {};
+		const w: any = {};
 		Error.captureStackTrace(w);
 		const stack = w.stack ? w.stack.split('\n').slice(4).join('\n') : w.message;
 		const msg = `
@@ -124,11 +122,11 @@ function _normalizeEvent(input: Input) {
 		key: input.key,
 	};
 
-	['alt', 'shift', 'meta'].forEach((prop) => {
-		if (typeof (input: any)[prop] !== 'undefined') {
-			normalizedEvent[`${prop}Key`] = (input: any)[prop];
+	for (let prop of ['alt', 'shift', 'meta']) {
+		if (typeof input[prop] !== 'undefined') {
+			normalizedEvent[`${prop}Key`] = input[prop]
 		}
-	});
+	}
 
 	if (typeof input.control !== 'undefined') {
 		normalizedEvent.ctrlKey = input.control;
@@ -189,7 +187,7 @@ interface Input {
 	meta: boolean;
 }
 
-const _onBeforeInput = shortcutsOfWindow => (e: WebContentsEvent, input: Input): void => {
+const _onBeforeInput = shortcutsOfWindow => (e, input: Input): void => {
 	if (input.type === 'keyUp') {
 		return;
 	}
@@ -220,7 +218,7 @@ type Accelerator = string | Array<string>
  * @param  {Function} callback    This function is called when the shortcut is pressed
  * and the window is focused and not minimized.
  */
-export function register(win: BrowserWindow, accelerator: Accelerator, callback: () => ?boolean) {
+export function register(win: BrowserWindow, accelerator: Accelerator, callback: () => boolean | void) {
 	let wc = win.webContents;
 
 	if (Array.isArray(accelerator)) {
@@ -238,13 +236,13 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 
 	debug(`${acceleratorString} seems to be a valid shortcut sequence`);
 
-	let shortcutsOfWindow: ?ShortcutsList = windowsWithShortcuts.get(wc)
+	let shortcutsOfWindow: ShortcutsList = windowsWithShortcuts.get(wc)
 	if (shortcutsOfWindow == null) {
 		debug('This is the first shortcut of the window');
-		shortcutsOfWindow = ([]: any);
+		shortcutsOfWindow = []
 		windowsWithShortcuts.set(wc, shortcutsOfWindow);
 
-		if (wc === ANY_WINDOW) {
+		if (wc as any === ANY_WINDOW) {
 			const keyHandler = _onBeforeInput(shortcutsOfWindow);
 			const enableAppShortcuts = (e, win) => {
 				const wc = win.webContents;
@@ -273,6 +271,7 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 
 			// Save a reference to allow remove of listener from elsewhere
 			shortcutsOfWindow.removeListener = () => {wc.removeListener('before-input-event', keyHandler)};
+			// @ts-ignore
 			wc.once('closed', shortcutsOfWindow.removeListener);
 		}
 	}

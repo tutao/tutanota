@@ -1,9 +1,8 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
-import type {ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
@@ -49,6 +48,7 @@ import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {MailboxProperties} from "../api/entities/tutanota/MailboxProperties"
 import {MailboxPropertiesTypeRef} from "../api/entities/tutanota/MailboxProperties"
 import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class MailSettingsViewer implements UpdatableSettingsViewer {
     _senderName: Stream<string>

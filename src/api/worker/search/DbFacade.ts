@@ -15,8 +15,8 @@ export type DatabaseEntry = {
 }
 export interface DbTransaction {
     getAll(objectStore: ObjectStoreName): Promise<Array<DatabaseEntry>>
-    get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T | null>
-    getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]>
+    get<T = any>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T | null>
+    getAsList<T = any>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]>
     put(objectStore: ObjectStoreName, key: DbKey | null, value: any): Promise<any>
     delete(objectStore: ObjectStoreName, key: DbKey): Promise<void>
     abort(): void
@@ -127,8 +127,8 @@ export class DbFacade {
                 return new Promise((resolve, reject) => {
                     let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
 
-                    deleteRequest.onerror = event => {
-                        reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
+                    deleteRequest.onerror = (event: ErrorEvent) => {
+                        reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, event as unknown as Error))
                     }
 
                     deleteRequest.onsuccess = event => {
@@ -266,8 +266,9 @@ export class IndexedDbTransaction implements DbTransaction {
         })
     }
 
-    getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
-        return this.get(objectStore, key, indexName).then(result => result || [])
+    async getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
+		const result = await this.get<T>(objectStore, key, indexName)
+        return result ? [result] : []
     }
 
     put(objectStore: ObjectStoreName, key: DbKey | null, value: any): Promise<any> {
@@ -279,8 +280,10 @@ export class IndexedDbTransaction implements DbTransaction {
                     this._handleDbError(event, request, "put().onerror " + objectStore, reject)
                 }
 
-                request.onsuccess = event => {
-                    resolve(event.target.result)
+                request.onsuccess = (event) => {
+					// event.target.result isn't known by typescript definitions
+					// see: https://github.com/Microsoft/TypeScript/issues/30669
+                    resolve((event.target as any).result)
                 }
             } catch (e) {
                 this._handleDbError(e, null, "put().catch", reject)

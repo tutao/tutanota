@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
 import {px, size} from "../../gui/size"
 import {Keys} from "../../api/common/TutanotaConstants"

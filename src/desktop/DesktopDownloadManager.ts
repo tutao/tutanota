@@ -1,4 +1,4 @@
-import type {ElectronSession} from "electron"
+import type {Session} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {assertNotNull, downcast, noOp} from "@tutao/tutanota-utils"
@@ -8,10 +8,21 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {log} from "./DesktopLog"
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
-import {promises as fs} from "fs"
+import type * as FsModule from "fs"
 import type {DateProvider} from "../calendar/date/CalendarUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
+import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
+
+type FsExports = typeof FsModule
+type ElectronExports = typeof Electron.CrossProcessExports
+
 const TAG = "[DownloadManager]"
+type DownloadNativeResult = {
+	statusCode: string
+	statusMessage: string
+	encryptedFileUri: string
+};
+
 export class DesktopDownloadManager {
     _conf: DesktopConfig
     _net: DesktopNetworkClient
@@ -20,16 +31,16 @@ export class DesktopDownloadManager {
     /** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
     _lastOpenedFileManagerAt: number | null
     _desktopUtils: DesktopUtils
-    _fs: $Exports<"fs">
-    _electron: $Exports<"electron">
+    _fs: FsExports
+    _electron: ElectronExports
 
     constructor(
         conf: DesktopConfig,
         net: DesktopNetworkClient,
         desktopUtils: DesktopUtils,
         dateProvider: DateProvider,
-        fs: $Exports<"fs">,
-        electron: $Exports<"electron">,
+        fs: FsExports,
+        electron: ElectronExports,
     ) {
         this._conf = conf
         this._net = net
@@ -40,7 +51,7 @@ export class DesktopDownloadManager {
         this._electron = electron
     }
 
-    manageDownloadsForSession(session: ElectronSession, dictUrl: string) {
+    manageDownloadsForSession(session: Session, dictUrl: string) {
         dictUrl = dictUrl + "/dictionaries/"
         log.debug(TAG, "getting dictionaries from:", dictUrl)
         session.setSpellCheckerDictionaryDownloadURL(dictUrl)
@@ -59,12 +70,8 @@ export class DesktopDownloadManager {
             v: string
             accessToken: string
         },
-    ): Promise<{
-        statusCode: string
-        statusMessage: string
-        encryptedFileUri: string
-    }> {
-        return new Promise(async (resolve, reject) => {
+    ): Promise<DownloadNativeResult> {
+        return new Promise(async (resolve: (DownloadNativeResult) => void, reject) => {
             const downloadDirectory = await this.getTutanotaTempDirectory("download")
             const encryptedFileUri = path.join(downloadDirectory, fileName)
 
@@ -103,7 +110,7 @@ export class DesktopDownloadManager {
 
                     if (response.statusCode !== 200) {
                         // causes 'error' event
-                        response.destroy(response.statusCode)
+                        response.destroy(new Error('' + response.statusCode))
                         return
                     }
 
@@ -159,7 +166,7 @@ export class DesktopDownloadManager {
         await this._fs.promises.writeFile(savePath, data)
         // See doc for _lastOpenedFileManagerAt on why we do this throttling.
         const lastOpenedFileManagerAt = this._lastOpenedFileManagerAt
-        const fileManagerTimeout = await this._conf.getConst("fileManagerTimeout")
+        const fileManagerTimeout = await this._conf.getConst(BuildConfigKey.fileManagerTimeout)
 
         if (lastOpenedFileManagerAt == null || this._dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
             this._lastOpenedFileManagerAt = this._dateProvider.now()
@@ -168,7 +175,7 @@ export class DesktopDownloadManager {
     }
 
     async _pickSavePath(filename: string): Promise<string> {
-        const defaultDownloadPath = await this._conf.getVar("defaultDownloadPath")
+        const defaultDownloadPath = await this._conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
         if (defaultDownloadPath != null) {
             const fileName = path.basename(filename)

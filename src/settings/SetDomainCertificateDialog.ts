@@ -63,7 +63,7 @@ export function show(customerInfo: CustomerInfo): void {
         label: "whitelabelDomain_label",
         value: domain,
         disabled: whitelabelDomainInfo ? true : false,
-    }
+    } as const
     let form = {
         view: () => {
             return [m(TextFieldN, domainFieldAttrs)]

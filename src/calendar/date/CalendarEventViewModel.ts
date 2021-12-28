@@ -115,7 +115,7 @@ export class CalendarEventViewModel {
     endTime: Time | null
     readonly allDay: Stream<boolean>
     repeat: RepeatData | null
-    calendars: Readonly<Map<Id, CalendarInfo>>
+    calendars: ReadonlyMap<Id, CalendarInfo>
     readonly attendees: Stream<ReadonlyArray<Guest>>
     organizer: EncryptedMailAddress | null
     readonly possibleOrganizers: ReadonlyArray<EncryptedMailAddress>
@@ -162,9 +162,9 @@ export class CalendarEventViewModel {
         date: Date,
         zone: string,
         calendars: ReadonlyMap<Id, CalendarInfo>,
-        existingEvent?: CalendarEvent | null,
-        responseTo: Mail | null,
-        resolveRecipientsLazily: boolean,
+        existingEvent?: CalendarEvent,
+        responseTo?: Mail,
+        resolveRecipientsLazily?: boolean,
     ) {
         this._distributor = distributor
         this._calendarModel = calendarModel
@@ -978,7 +978,7 @@ export class CalendarEventViewModel {
         } else if (stopType === EndType.UntilDate) {
             const repeatEndDate = getStartOfNextDayWithZone(new Date(repeat.endValue), this._zone)
 
-            if (repeatEndDate.getTime() < getEventStart(newEvent, this._zone)) {
+            if (repeatEndDate < getEventStart(newEvent, this._zone)) {
                 throw new UserError("startAfterEnd_label")
             } else {
                 // We have to save repeatEndDate in the same way we save start/end times because if one is timzone

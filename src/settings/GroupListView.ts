@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {lang} from "../misc/LanguageViewModel"
@@ -31,6 +31,7 @@ import {locator} from "../api/main/MainLocator"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const className = "group-list"
 export class GroupListView implements UpdatableSettingsViewer {
@@ -275,17 +276,17 @@ export class GroupRow implements VirtualRow<GroupInfo> {
         let elements = [
             m(".top", [
                 m(".name", {
-                    oncreate: vnode => (this._domName = vnode.dom),
+                    oncreate: vnode => (this._domName = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small.mail-address", {
-                    oncreate: vnode => (this._domAddress = vnode.dom),
+                    oncreate: vnode => (this._domAddress = vnode.dom as HTMLElement),
                 }),
                 m(".icons.flex", [
                     m(Icon, {
                         icon: Icons.Trash,
-                        oncreate: vnode => (this._domDeletedIcon = vnode.dom),
+                        oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
                         style: {
                             display: "none",
@@ -293,7 +294,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
                     }),
                     m(Icon, {
                         icon: BootIcons.Settings,
-                        oncreate: vnode => (this._domLocalAdminIcon = vnode.dom),
+                        oncreate: vnode => (this._domLocalAdminIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
                         style: {
                             display: "none",
@@ -301,7 +302,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
                     }),
                     m(Icon, {
                         icon: BootIcons.Mail,
-                        oncreate: vnode => (this._domMailIcon = vnode.dom),
+                        oncreate: vnode => (this._domMailIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
                         style: {
                             display: "none",

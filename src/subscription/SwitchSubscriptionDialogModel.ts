@@ -1,4 +1,4 @@
-import type {SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionPlanPrices} from "./SubscriptionUtils"
 import {
     getIncludedAliases,
     getIncludedStorageCapacity,
@@ -206,7 +206,7 @@ export class SwitchSubscriptionDialogModel {
         planPrices.contactFormPriceMonthly = String(contactFormPrice)
         planPrices.firstYearDiscount = "0"
 
-        if (currentSubscription === targetSubscription) {
+        if (currentSubscription.subscriptionType === targetSubscription) {
             // show the price we are currently paying
             monthlyPrice = Number((monthlyPrice * paymentIntervalFactor).toFixed(2))
             planPrices.includedAliases = String(currentSubscription.currentTotalAliases)

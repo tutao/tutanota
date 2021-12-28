@@ -122,5 +122,5 @@ export type CustomerServerProperties = {
 
 	emailSenderList: EmailSenderListElement[];
 	whitelabelRegistrationDomains: StringWrapper[];
-	whitelistedDomains: null | DomainsRef;
+	whitelistedDomains:  null | DomainsRef;
 }

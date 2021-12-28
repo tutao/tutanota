@@ -20,6 +20,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import {ButtonAttrs} from "../gui/base/ButtonN";
 assertMainOrNode()
 export class ContactFormViewer implements UpdatableSettingsViewer {
     view: (...args: Array<any>) => any
@@ -29,7 +30,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
     constructor(contactForm: ContactForm, brandingDomain: string, newContactFormIdReceiver: (...args: Array<any>) => any) {
         this.contactForm = contactForm
         this._newContactFormIdReceiver = newContactFormIdReceiver
-        const actionBarButtons = [
+        const actionBarButtons: ButtonAttrs[] = [
             {
                 label: "edit_action",
                 click: () => ContactFormEditor.show(this.contactForm, false, this._newContactFormIdReceiver),
@@ -50,12 +51,12 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
             label: "url_label",
             value: stream(getContactFormUrl(brandingDomain, contactForm.path)),
             disabled: true,
-        }
+        } as const
         let mailGroupFieldAttrs = {
             label: "receivingMailbox_label",
             value: stream(lang.get("loading_msg")),
             disabled: true,
-        }
+        } as const
         locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
             mailGroupFieldAttrs = {
                 label: "receivingMailbox_label",
@@ -82,7 +83,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
             label: "pageTitle_label",
             value: stream(language.pageTitle),
             disabled: true,
-        }
+        } as const
 
         this.view = () => {
             return [

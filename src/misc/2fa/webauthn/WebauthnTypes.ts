@@ -1,6 +1,7 @@
-
-
 /** @file Types from Credential Management API. */
+import {TypedArray} from "global";
+
+
 export interface AuthenticatorResponse {
     clientDataJSON: ArrayBuffer
 }
@@ -11,9 +12,6 @@ export interface AuthenticatorAssertionResponse extends AuthenticatorResponse {
     authenticatorData: ArrayBuffer
     signature: ArrayBuffer
     userHandle?: ArrayBuffer | null
-}
-export interface CredMgmtPublicKeyCredential extends CredMgmtCredential {
-    response: AuthenticatorAttestationResponse
 }
 export interface PublicKeyCredentialEntity {
     name: string
@@ -85,7 +83,7 @@ export interface CredentialRequestOptions {
     publicKey: PublicKeyCredentialRequestOptions
 }
 export interface PublicKeyCredentialRequestOptions {
-    challenge: $TypedArray
+    challenge: TypedArray
     timeout?: number
     rpId?: string
     allowCredentials?: Array<PublicKeyCredentialDescriptor>

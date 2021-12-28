@@ -1,9 +1,8 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {DomMutation} from "../animation/Animations"
 import {animations} from "../animation/Animations"
 import {requiresStatusBarHack} from "../main-styles"
 import {ease} from "../animation/Easing"
-import type {LayerType} from "../../RootView"
 import {LayerType} from "../../RootView"
 import {remove} from "@tutao/tutanota-utils"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -26,7 +25,9 @@ type OverlayAttrs = {
     closeAnimation?: AnimationProvider
     shadowClass: string
 }
-const overlays: Array<[OverlayAttrs, HTMLElement | null, number]> = []
+
+type Overlay = [OverlayAttrs, HTMLElement | null, number]
+const overlays: Array<Overlay> = []
 let key = 0
 export function displayOverlay(
     position: lazy<PositionRect>,
@@ -42,7 +43,7 @@ export function displayOverlay(
         closeAnimation,
         shadowClass,
     }
-    const pair = [newAttrs, null, key++]
+    const pair = [newAttrs, null, key++] as Overlay
     overlays.push(pair)
     return async () => {
         const dom = pair[1]
@@ -87,11 +88,12 @@ export const overlay: Component<void> = {
                             "z-index": position.zIndex ? position.zIndex : LayerType.Overlay,
                             "margin-top": requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)", // insets for iPhone X
                         },
-                        oncreate: (vnode: Vnode<OverlayAttrs>) => {
-                            overlayAttrs[1] = vnode.dom
+                        oncreate: (vnode) => {
+							const dom = vnode.dom as HTMLElement
+                            overlayAttrs[1] = dom
 
                             if (attrs.createAnimation) {
-                                animations.add(vnode.dom, attrs.createAnimation(vnode.dom))
+                                animations.add(dom, attrs.createAnimation(dom))
                             }
                         },
                         onremove: () => {

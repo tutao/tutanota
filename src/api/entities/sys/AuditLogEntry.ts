@@ -123,6 +123,6 @@ export type AuditLogEntry = {
 	date: Date;
 	modifiedEntity: string;
 
-	groupInfo: null | IdTuple;
-	modifiedGroupInfo: null | IdTuple;
+	groupInfo:  null | IdTuple;
+	modifiedGroupInfo:  null | IdTuple;
 }

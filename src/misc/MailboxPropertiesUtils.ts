@@ -1,7 +1,6 @@
 import type {MailboxProperties} from "../api/entities/tutanota/MailboxProperties"
 import {createMailboxProperties, MailboxPropertiesTypeRef} from "../api/entities/tutanota/MailboxProperties"
 import {locator} from "../api/main/MainLocator"
-import type {ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
@@ -46,7 +45,7 @@ export function saveMailboxProperties(props: MailboxProperties) {
 /**
  * @returns ALWAYS_ASK if not set yet.
  */
-export function getReportMovedMailsType(props: MailboxProperties | null): ReportMovedMailsType
+export function getReportMovedMailsType(props: MailboxProperties | null): ReportMovedMailsType {
     if (!props) {
         return ReportMovedMailsType.ALWAYS_ASK
     }

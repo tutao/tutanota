@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import type {VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
 import {lang} from "../misc/LanguageViewModel"
@@ -28,6 +28,7 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const className = "user-list"
 export class UserListView implements UpdatableSettingsViewer {
@@ -268,26 +269,25 @@ export class UserRow implements VirtualRow<GroupInfo> {
         let elements = [
             m(".top", [
                 m(".name", {
-                    oncreate: vnode => (this._domName = vnode.dom),
+                    oncreate: vnode => (this._domName = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small.mail-address", {
-                    oncreate: vnode => (this._domAddress = vnode.dom),
+                    oncreate: vnode => (this._domAddress = vnode.dom as HTMLElement),
                 }),
                 m(".icons.flex", [
                     m(Icon, {
                         icon: BootIcons.Settings,
-                        oncreate: vnode => (this._domAdminIcon = vnode.dom),
+                        oncreate: vnode => (this._domAdminIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
-                        title: lang.get("administrator_label"),
                         style: {
                             display: "none",
                         },
                     }),
                     m(Icon, {
                         icon: Icons.Trash,
-                        oncreate: vnode => (this._domDeletedIcon = vnode.dom),
+                        oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
                         class: "svg-list-accent-fg",
                         style: {
                             display: "none",

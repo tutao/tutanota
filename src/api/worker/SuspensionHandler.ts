@@ -76,7 +76,7 @@ export class SuspensionHandler {
 
         // do wee need to delay those requests?
         for (let deferredRequest of deferredRequests) {
-            deferredRequest.resolve()
+            deferredRequest.resolve(null)
             // Ignore all errors here, any errors should be caught by whoever is handling the deferred request
             await deferredRequest.promise.catch(noOp)
         }

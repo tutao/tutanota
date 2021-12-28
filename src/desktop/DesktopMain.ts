@@ -36,6 +36,7 @@ import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
+import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 mp()
 type Components = {
     readonly wm: WindowManager
@@ -139,7 +140,7 @@ async function createComponents(): Promise<Components> {
         themeManager,
     )
     wm.setIPC(ipc)
-    conf.getConst("appUserModelId").then(appUserModelId => {
+    conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
         app.setAppUserModelId(appUserModelId)
     })
     log.debug("version:  ", app.getVersion())
@@ -205,14 +206,14 @@ async function onAppReady(components: Components) {
         electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
     })
     app.on("window-all-closed", async () => {
-        if (!(await conf.getVar("runAsTrayApp"))) {
+        if (!(await conf.getVar(DesktopConfigKey.runAsTrayApp))) {
             app.quit()
         }
     })
     err.init(wm, ipc)
     // only create a window if there are none (may already have created one, e.g. for mailto handling)
     // also don't show the window when we're an autolaunched tray app
-    const w = await wm.getLastFocused(!((await conf.getVar("runAsTrayApp")) && opts.wasAutoLaunched))
+    const w = await wm.getLastFocused(!((await conf.getVar(DesktopConfigKey.runAsTrayApp)) && opts.wasAutoLaunched))
     log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
     ipc.initialized(w.id).then(() => main(components))
 }

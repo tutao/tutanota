@@ -1,11 +1,14 @@
+import type * as FsModule from "fs"
 const instances: Record<string, ConfigFile> = {}
+
+type FsExports = typeof FsModule
 
 /**
  * get an instance of ConfigFile pointing at a certain path
  * @param p {string} path to file the configFile should write to
- * @param fsthe fs object returned by "import fs from ''fs"
+ * @param fs the fs object returned by "import fs from ''fs"
  */
-export function getConfigFile(p: string, fs: $Exports<"fs">): ConfigFile {
+export function getConfigFile(p: string, fs: FsExports): ConfigFile {
     if (!Object.keys(instances).includes(p)) {
         instances[p] = new ConfigFile(p, fs)
     }
@@ -17,13 +20,13 @@ export type ConfigFileType = ConfigFile
 class ConfigFile {
     _path: string
     _accessPromise: Promise<any>
-    readonly _fs: $Exports<"fs">
+    readonly _fs: FsExports
 
     /**
      * @param p path to the file the json objects should be stored in
      * @param fs
      **/
-    constructor(p: string, fs: $Exports<"fs">) {
+    constructor(p: string, fs: FsExports) {
         this._path = p
         this._accessPromise = Promise.resolve()
         this._fs = fs

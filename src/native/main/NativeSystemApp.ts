@@ -4,6 +4,7 @@ import type {DesktopConfigEncKey, DesktopConfigKey} from "../../desktop/config/C
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 import type {NativeInterface} from "../common/NativeInterface"
 import type {NativeFileApp} from "../common/FileApp"
+import {FileReference} from "../../api/common/utils/FileUtils";
 export type IntegrationInfo = {
     isMailtoHandler: boolean
     isAutoLaunchEnabled: boolean
@@ -53,7 +54,7 @@ export class NativeSystemApp {
         return this._native.invokeNative(new Request("getLog", []))
     }
 
-    getConfigValue(key: DesktopConfigKey DesktopConfigEncKey): Promise<any> {
+    getConfigValue(key: DesktopConfigKey | DesktopConfigEncKey): Promise<any> {
         return this._native.invokeNative(new Request("getConfigValue", [key]))
     }
 
@@ -61,7 +62,7 @@ export class NativeSystemApp {
         return this._native.invokeNative(new Request("getIntegrationInfo", []))
     }
 
-    setConfigValue(key: DesktopConfigKey DesktopConfigEncKey, value: any): Promise<any> {
+    setConfigValue(key: DesktopConfigKey | DesktopConfigEncKey, value: any): Promise<any> {
         return this._native.invokeNative(new Request("setConfigValue", [key, value]))
     }
 

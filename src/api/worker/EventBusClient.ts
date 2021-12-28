@@ -1,4 +1,3 @@
-
 import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
@@ -28,12 +27,14 @@ import {
 } from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import type {Indexer} from "./search/Indexer"
-import type {CloseEventBusOption} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
 import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
-import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
+import {
+	_TypeModel as PhishingMarkerWebsocketDataTypeModel,
+	PhishingMarkerWebsocketData
+} from "../entities/tutanota/PhishingMarkerWebsocketData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityClient} from "../common/EntityClient"
@@ -41,7 +42,8 @@ import type {QueuedBatch} from "./search/EventQueue"
 import {EventQueue} from "./search/EventQueue"
 import {
 	_TypeModel as WebsocketLeaderStatusTypeModel,
-	createWebsocketLeaderStatus
+	createWebsocketLeaderStatus,
+	WebsocketLeaderStatus
 } from "../entities/sys/WebsocketLeaderStatus"
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
@@ -56,6 +58,7 @@ import {
 	isSameId
 } from "../common/utils/EntityUtils"
 import {InstanceMapper} from "./crypto/InstanceMapper"
+import {WsConnectionState} from "../main/WorkerClient";
 
 assertWorkerOrNode()
 export const enum EventBusState {
@@ -69,9 +72,9 @@ export const enum EventBusState {
 const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
-const LARGE_RECONNECT_INTERVAL = [60, 120]
-const SMALL_RECONNECT_INTERVAL = [5, 10]
-const MEDIUM_RECONNECT_INTERVAL = [20, 40]
+const LARGE_RECONNECT_INTERVAL = [60, 120] as const
+const SMALL_RECONNECT_INTERVAL = [5, 10] as const
+const MEDIUM_RECONNECT_INTERVAL = [20, 40] as const
 
 export class EventBusClient {
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number
@@ -209,7 +212,7 @@ export class EventBusClient {
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this._serviceUnavailableRetry = null
 
-		this._worker.updateWebSocketState("connecting")
+		this._worker.updateWebSocketState(WsConnectionState.connecting)
 
 		// Task for updating events are number of groups + 2. Use 2 as base for reconnect state.
 		if (this._progressMonitor) {
@@ -264,7 +267,7 @@ export class EventBusClient {
 
 		const p = this._initEntityEvents(reconnect)
 
-		this._worker.updateWebSocketState("connected")
+		this._worker.updateWebSocketState(WsConnectionState.connected)
 
 		return p
 	}
@@ -348,12 +351,12 @@ export class EventBusClient {
 			case CloseEventBusOption.Pause:
 				this._state = EventBusState.Suspended
 
-				this._worker.updateWebSocketState("connecting")
+				this._worker.updateWebSocketState(WsConnectionState.connecting)
 
 				break
 
 			case CloseEventBusOption.Reconnect:
-				this._worker.updateWebSocketState("connecting")
+				this._worker.updateWebSocketState(WsConnectionState.connecting)
 
 				break
 		}
@@ -373,7 +376,7 @@ export class EventBusClient {
 
 		this._reset()
 
-		this._worker.updateWebSocketState("terminated")
+		this._worker.updateWebSocketState(WsConnectionState.terminated)
 	}
 
 	_error(error: any) {
@@ -392,13 +395,13 @@ export class EventBusClient {
 		} else if (type === "unreadCounterUpdate") {
 			this._worker.updateCounter(JSON.parse(value))
 		} else if (type === "phishingMarkers") {
-			return this._instanceMapper.decryptAndMapToInstance(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null).then(data => {
+			return this._instanceMapper.decryptAndMapToInstance<PhishingMarkerWebsocketData>(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null).then(data => {
 				this._lastAntiphishingMarkersId = data.lastId
 
 				this._mail.phishingMarkersUpdateReceived(data.markers)
 			})
 		} else if (type === "leaderStatus") {
-			return this._instanceMapper.decryptAndMapToInstance(WebsocketLeaderStatusTypeModel, JSON.parse(value), null).then(status => {
+			return this._instanceMapper.decryptAndMapToInstance<WebsocketLeaderStatus>(WebsocketLeaderStatusTypeModel, JSON.parse(value), null).then(status => {
 				return this._login.setLeaderStatus(status)
 			})
 		} else {
@@ -431,15 +434,15 @@ export class EventBusClient {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this._state = EventBusState.Suspended
 
-			this._worker.updateWebSocketState("connecting")
+			this._worker.updateWebSocketState(WsConnectionState.connecting)
 		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
-			this._worker.updateWebSocketState("connecting")
+			this._worker.updateWebSocketState(WsConnectionState.connecting)
 
 			if (this._immediateReconnect) {
 				this._immediateReconnect = false
 				this.tryReconnect(false, false)
 			} else {
-				let reconnectionInterval: [number, number]
+				let reconnectionInterval: readonly [number, number]
 
 				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE) {
 					reconnectionInterval = LARGE_RECONNECT_INTERVAL

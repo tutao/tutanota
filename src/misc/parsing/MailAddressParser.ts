@@ -47,8 +47,10 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
         subject: null,
         body: null,
     }
+	// @ts-ignore
     if (!url.searchParams || typeof url.searchParams.entries !== "function") return result // not supported in Edge
 
+	// @ts-ignore
     for (let pair of url.searchParams.entries()) {
         let paramName = pair[0].toLowerCase()
         let paramValue = pair[1]

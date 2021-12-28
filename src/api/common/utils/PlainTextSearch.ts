@@ -1,5 +1,5 @@
-type SearchMatch = {
-    entry: any
+type SearchMatch<T> = {
+    entry: T
     // the input entry in which we searches
     completeMatch: number
     //the number of occurences of the entire queryString in the searched entry
@@ -21,9 +21,7 @@ export function search<T>(queryString: string, entries: ReadonlyArray<T>, attrib
     entries = entries.map(e => Object.assign({}, e)) // create a copy in order to not override the original values
 
     if (queryString) {
-        let matchingEntries = _search(queryString, entries, attributeNames, markHits)
-
-        matchingEntries = matchingEntries
+        return _search<T>(queryString, entries, attributeNames, markHits)
             .filter(match => match.matchedWords.length > 0) // a and be are two matches that refer to entries (e.g. faqs)
             .sort((a, b) => {
                 if (a.completeMatch !== b.completeMatch) {
@@ -41,18 +39,17 @@ export function search<T>(queryString: string, entries: ReadonlyArray<T>, attrib
                 }
             })
             .map(match => match.entry)
-        return matchingEntries
     } else {
         return entries
     }
 }
 
-function _findMatchInEntry(
+function _findMatchInEntry<T>(
     nestedEntry: Record<string, any>,
     attributeName: string,
     queryString: string,
     queryWords: Array<string>,
-    searchMatch: SearchMatch,
+    searchMatch: SearchMatch<T>,
     markHits: boolean,
 ) {
     const value = nestedEntry[attributeName]
@@ -90,7 +87,7 @@ function _findMatchInEntry(
 }
 
 //export only for testing
-export function _search(queryString: string, entries: ReadonlyArray<Record<string, any>>, attributeNames: string[], markHits: boolean): SearchMatch[] {
+export function _search<T>(queryString: string, entries: ReadonlyArray<T>, attributeNames: string[], markHits: boolean): SearchMatch<T>[] {
     let queryWords = queryString
         .toLocaleLowerCase()
         .split(" ")

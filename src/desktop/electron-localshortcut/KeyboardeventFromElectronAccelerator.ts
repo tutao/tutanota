@@ -12,7 +12,7 @@ export type ReducedEvent = {
     event: Event
     accelerator: string
 }
-export const UNSUPPORTED: ReducedEvent = {}
+export const UNSUPPORTED = {} as ReducedEvent
 type Modifier = "CommandOrControl" | "CmdOrCtrl" | "Command" | "Cmd" | "Control" | "Ctrl" | "AltGr" | "Option" | "Alt" | "Shift" | "Super"
 
 function _command(accelerator, event, modifier): ReducedEvent {

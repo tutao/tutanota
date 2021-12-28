@@ -9,7 +9,7 @@ import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
  */
 export class ProgressTracker {
     // Will stream a number between 0 and 1
-    onProgressUpdate: Stream<number>
+    onProgressUpdate: stream<number>
     _monitors: Map<ProgressMonitorId, ProgressMonitor>
     _idCounter: ProgressMonitorId
 

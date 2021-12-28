@@ -57,7 +57,6 @@ import type {WorkerImpl} from "../WorkerImpl"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
 import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
-import {locator} from "../WorkerLocator"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 assertWorkerOrNode()
 

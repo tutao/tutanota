@@ -173,9 +173,13 @@ export class EditOutOfOfficeNotificationDialogModel {
     saveOutOfOfficeNotification(): Promise<any> {
         return Promise.resolve()
             .then(() => this.getNotificationFromData())
-            .then(sendableNotification => {
+            .then(async sendableNotification => {
                 // Error messages are already shown if sendableNotification is null. We do not close the dialog.
-                return this._isNewNotification() ? this._entityClient.setup(null, sendableNotification) : this._entityClient.update(sendableNotification)
+				if (this._isNewNotification()) {
+					await this._entityClient.setup(null, sendableNotification)
+				} else {
+					await this._entityClient.update(sendableNotification)
+				}
             })
             .catch(
                 ofClass(InvalidDataError, e => {

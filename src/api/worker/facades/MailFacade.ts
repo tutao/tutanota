@@ -3,7 +3,7 @@ import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFa
 import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {LoginFacadeImpl} from "./LoginFacade"
-import type {ConversationType, MailMethod, ReportedMailFieldType} from "../../common/TutanotaConstants"
+import type {ConversationType} from "../../common/TutanotaConstants"
 import {
     GroupType,
     MailAuthenticationStatus as MailAuthStatus,
@@ -85,6 +85,8 @@ import {
     random,
     sha256Hash,
 } from "@tutao/tutanota-crypto"
+import {DataFile} from "../../common/DataFile";
+import {FileReference} from "../../common/utils/FileUtils";
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
 export class MailFacade {

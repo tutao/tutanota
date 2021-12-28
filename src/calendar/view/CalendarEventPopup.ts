@@ -1,5 +1,5 @@
 import type {Shortcut} from "../../misc/KeyManager"
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import {px} from "../../gui/size"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -45,7 +45,7 @@ export class CalendarEventPopup implements ModalComponent {
         const preparedDescription = prepareCalendarDescription(calendarEvent.description)
         // We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
         this._sanitizedDescription = preparedDescription
-            ? htmlSanitizer.sanitize(preparedDescription, {
+            ? htmlSanitizer.sanitizeHTML(preparedDescription, {
                   blockExternalContent: true,
               }).text
             : ""
@@ -102,7 +102,8 @@ export class CalendarEventPopup implements ModalComponent {
                         // see hack description below
                         margin: "1px", // because calendar event bubbles have 1px border, we want to align
                     },
-                    oncreate: ({dom}) => {
+                    oncreate: (vnode) => {
+						const dom = vnode.dom as HTMLElement
                         // This is a hack to get "natural" view size but render it without opacity first and then show dropdown with inferred
                         // size.
                         setTimeout(() => showDropdown(this._eventBubbleRect, dom, dom.offsetHeight, 400), 24)

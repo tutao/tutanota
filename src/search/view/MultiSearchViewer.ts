@@ -198,13 +198,13 @@ export class MultiSearchViewer {
                 () => [
                     {
                         label: "markUnread_action",
-                        click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(this._searchListView.selectNone()),
+                        click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
                         icon: () => Icons.NoEye,
                         type: ButtonType.Dropdown,
                     },
                     {
                         label: "markRead_action",
-                        click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(this._searchListView.selectNone()),
+                        click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
                         icon: () => Icons.Eye,
                         type: ButtonType.Dropdown,
                     },

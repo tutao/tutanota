@@ -21,7 +21,7 @@ import {OperationType} from "../../api/common/TutanotaConstants"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
-import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
+import {IProgressMonitor, NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import stream from "mithril/stream/stream.js"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
@@ -53,6 +53,7 @@ import {DeviceConfig} from "../../misc/DeviceConfig"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
 import type {EventDragHandlerCallbacks} from "./EventDragHandler"
 import Stream from "mithril/stream";
+import {$Promisable} from "@tutao/tutanota-utils/dist";
 export type EventsOnDays = {
     days: Array<Date>
     shortEvents: Array<Array<CalendarEvent>>
@@ -126,7 +127,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
         const workPerCalendar = 3 + 3
         const totalWork = loginController.getUserController().getCalendarMemberships().length * workPerCalendar
         const monitorHandle = progressTracker.registerMonitor(totalWork)
-        let progressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
+        let progressMonitor: IProgressMonitor = neverNull(progressTracker.getMonitor(monitorHandle))
         this._calendarInfos = new LazyLoaded(() =>
             this._calendarModel.loadOrCreateCalendarInfo(progressMonitor).then(it => {
                 this._redraw()

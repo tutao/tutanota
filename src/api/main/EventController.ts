@@ -7,6 +7,7 @@ import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import {isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export type EntityUpdateData = {
     application: string
@@ -46,7 +47,7 @@ export class EventController {
 
         if (this._logins.isUserLoggedIn()) {
             // the UserController must be notified first as other event receivers depend on it to be up-to-date
-            loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
+            loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates as ReadonlyArray<EntityUpdateData>, eventOwnerGroupId)
         }
 
         return loginsUpdates

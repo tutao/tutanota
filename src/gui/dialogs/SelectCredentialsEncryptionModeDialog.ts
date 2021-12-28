@@ -1,8 +1,7 @@
-import type {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
 import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
 import {Dialog, DialogType} from "../base/Dialog"
 import type {ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {theme} from "../theme"
 import {DialogHeaderBar} from "../base/DialogHeaderBar"
@@ -26,13 +25,13 @@ class CredentialEncryptionMethodDialog {
     readonly _finished: DeferredObject<void>
     readonly _dialog: Dialog
     readonly _supportedModes: ReadonlyArray<CredentialEncryptionMode>
-    readonly _previousSelection: CredentialEncryptionMode null
+    readonly _previousSelection: CredentialEncryptionMode | null
 
     /** @private */
     constructor(
         credentialsProvider: ICredentialsProvider,
         supportedModes: ReadonlyArray<CredentialEncryptionMode>,
-        previousSelection: CredentialEncryptionMode null,
+        previousSelection: CredentialEncryptionMode | null,
     ) {
         this._credentialsProvider = credentialsProvider
         this._supportedModes = supportedModes
@@ -56,7 +55,7 @@ class CredentialEncryptionMethodDialog {
                                           label: "skip_action",
                                           click: () => this._onModeSelected(DEFAULT_MODE),
                                           type: ButtonType.Secondary,
-                                      },
+                                      } as const,
                                   ],
                               }),
                           )
@@ -145,7 +144,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
                         m(RadioSelector, {
                             options,
                             selectedOption: this._currentMode,
-                            onOptionSelected: mode => {
+                            onOptionSelected: (mode: CredentialEncryptionMode) => {
                                 this._currentMode = mode
                             },
                         }),
@@ -173,7 +172,7 @@ class SelectCredentialsEncryptionModeView implements Component<SelectCredentialE
                 value: CredentialEncryptionMode.BIOMETRICS,
                 helpText: "credentialsEncryptionModeBiometricsHelp_msg",
             },
-        ]
+        ] as const
         return options.filter(option => attrs.supportedModes.includes(option.value))
     }
 

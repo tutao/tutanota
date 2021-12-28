@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Child, Children, Component, Vnode} from "mithril"
 import {colorForBg} from "../date/CalendarUtils"
 import {px, size} from "../../gui/size"
 import {Icon} from "../../gui/base/Icon"

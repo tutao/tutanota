@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"

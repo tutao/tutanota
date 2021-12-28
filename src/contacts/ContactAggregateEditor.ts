@@ -2,12 +2,13 @@ import type {TextFieldType} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import m from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
 import type {AnimationPromise} from "../gui/animation/Animations"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {attachDropdown} from "../gui/base/DropdownN"
+import Stream from "mithril/stream";
 export type AggregateEditorAttrs<AggregateType> = {
     value: Stream<string>
     cancelAction: () => unknown
@@ -23,13 +24,13 @@ export type AggregateEditorAttrs<AggregateType> = {
     onTypeSelected: (arg0: AggregateType) => unknown
 }
 export class ContactAggregateEditor implements Component<AggregateEditorAttrs<any>> {
-    oncreate(vnode: Vnode<AggregateEditorAttrs<any>>) {
+    oncreate(vnode: VnodeDOM<AggregateEditorAttrs<any>>) {
         const animate = typeof vnode.attrs.animateCreate === "boolean" ? vnode.attrs.animateCreate : true
-        if (animate) this.animate(vnode.dom, true)
+        if (animate) this.animate(vnode.dom as HTMLElement, true)
     }
 
-    async onbeforeremove(vnode: Vnode<AggregateEditorAttrs<any>>): Promise<void> {
-        await this.animate(vnode.dom, false)
+    async onbeforeremove(vnode: VnodeDOM<AggregateEditorAttrs<any>>): Promise<void> {
+        await this.animate(vnode.dom as HTMLElement, false)
     }
 
     view(vnode: Vnode<AggregateEditorAttrs<any>>): Children {
@@ -87,7 +88,11 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
             domElement.style.opacity = "0"
         }
 
-        const opacityP = animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true))
+        const opacityP = animations.add(
+				domElement, fadein
+						? opacity(0, 1, true)
+						: opacity(1, 0, true)
+		)
         const heightP = animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
         heightP.then(() => {
             domElement.style.height = ""

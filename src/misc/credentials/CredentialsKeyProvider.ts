@@ -47,7 +47,7 @@ export class CredentialsKeyProvider implements ICredentialsKeyProvider {
         }
     }
 
-    _getEncryptionMode(): CredentialEncryptionMode
+    _getEncryptionMode(): CredentialEncryptionMode {
         const encryptionMode = this._credentialsStorage.getCredentialEncryptionMode()
 
         if (!encryptionMode) {

@@ -1,6 +1,5 @@
 import type {TranslationKey, TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import type {GroupType} from "../api/common/TutanotaConstants"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {getDefaultGroupName} from "./GroupUtils"

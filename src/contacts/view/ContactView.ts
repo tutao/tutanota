@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {ViewSlider} from "../../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
@@ -237,6 +237,7 @@ export class ContactView implements CurrentView {
                     icon: () => BootIcons.Contacts,
                     href: () => m.route.get(),
                 }),
+				// @ts-ignore
                 m(folderMoreButton),
             ]),
         ])

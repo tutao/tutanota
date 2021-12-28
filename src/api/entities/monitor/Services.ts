@@ -1,3 +1,3 @@
 export const enum MonitorService {
-	CounterService = "counterservice"
+    CounterService = "counterservice",
 }

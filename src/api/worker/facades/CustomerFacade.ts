@@ -1,5 +1,5 @@
 import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
-import type {AccountType, InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
+import type {InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
@@ -50,6 +50,7 @@ import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation"
 import {EntityClient} from "../../common/EntityClient"
+import {DataFile} from "../../common/DataFile";
 assertWorkerOrNode()
 export interface CustomerFacade {
     generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]>

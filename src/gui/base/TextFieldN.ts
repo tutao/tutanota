@@ -70,7 +70,7 @@ export class TextFieldN implements Component<TextFieldAttrs> {
             ".text-field.rel.overflow-hidden",
             {
                 id: vnode.attrs.id,
-                oncreate: vnode => (this._domWrapper = vnode.dom),
+                oncreate: vnode => (this._domWrapper = vnode.dom as HTMLElement),
                 onclick: e => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
                 class: a.class != null ? a.class : "text pt",
                 style: maxWidth
@@ -85,7 +85,7 @@ export class TextFieldN implements Component<TextFieldAttrs> {
                     {
                         class: this.active ? "content-accent-fg" : "",
                         oncreate: vnode => {
-                            this._domLabel = vnode.dom
+                            this._domLabel = vnode.dom as HTMLElement
                         },
                         style: {
                             fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
@@ -113,7 +113,7 @@ export class TextFieldN implements Component<TextFieldAttrs> {
                             m(
                                 ".inputWrapper.flex-space-between.items-end",
                                 {
-                                    oncreate: vnode => (this._domInputWrapper = vnode.dom),
+                                    oncreate: vnode => (this._domInputWrapper = vnode.dom as HTMLElement),
                                 },
                                 [
                                     a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
@@ -195,7 +195,7 @@ export class TextFieldN implements Component<TextFieldAttrs> {
                         type: a.type === TextFieldType.ExternalPassword ? TextFieldType.Text : a.type,
                         "aria-label": lang.getMaybeLazy(a.label),
                         oncreate: vnode => {
-                            this.domInput = vnode.dom
+                            this.domInput = vnode.dom as HTMLInputElement
                             this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
                             this.domInput.value = a.value()
 
@@ -288,7 +288,7 @@ export class TextFieldN implements Component<TextFieldAttrs> {
             return m("textarea.input-area.text-pre", {
                 "aria-label": lang.getMaybeLazy(a.label),
                 oncreate: vnode => {
-                    this.domInput = vnode.dom
+                    this.domInput = vnode.dom as HTMLInputElement
                     this.domInput.value = a.value()
                     this.domInput.style.height = px(Math.max(a.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
                 },

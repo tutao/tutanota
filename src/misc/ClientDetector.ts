@@ -3,7 +3,7 @@ import {BrowserData, BrowserType, DeviceType} from "./ClientConstants"
 import {neverNull} from "@tutao/tutanota-utils"
 assertMainOrNodeBoot()
 
-class ClientDetector {
+export class ClientDetector {
     userAgent: string
     browser: BrowserType
     browserVersion: number
@@ -219,6 +219,7 @@ class ClientDetector {
 
         try {
             window.document.addEventListener("test", null, {
+				// @ts-ignore
                 get passive() {
                     supportsPassive = true
                 },

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {modal} from "./Modal"
 import {px, size} from "../size"
 import {Button} from "./Button"
@@ -18,6 +18,7 @@ import type {clickHandler} from "./GuiUtils"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 import {mod} from "@tutao/tutanota-utils/lib/MathUtils"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export interface PosRect {
     readonly height: number
@@ -141,10 +142,11 @@ export class Dropdown {
                 ".dropdown-content.plr-l.scroll.abs",
                 {
                     oncreate: vnode => {
-                        this.show(vnode.dom)
+                        this.show(vnode.dom as HTMLElement)
                         window.requestAnimationFrame(() => {
-                            if (document.activeElement && typeof document.activeElement.blur === "function") {
-                                document.activeElement.blur()
+							const active = document.activeElement as HTMLElement | null
+                            if (active && typeof active.blur === "function") {
+								active.blur()
                             }
                         })
                     },
@@ -167,7 +169,10 @@ export class Dropdown {
                     },
                 },
                 this._visibleItems().map(button =>
-                    typeof button === "string" ? m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button) : m(button),
+                    typeof button === "string"
+							? m(".flex-v-center.center.button-height.b.text-break.doNotClose.selectable", button)
+							// @ts-ignore
+							: m(button),
                 ),
             )
         }
@@ -177,8 +182,8 @@ export class Dropdown {
                 ".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow",
                 {
                     oncreate: vnode => {
-                        this._domDropdown = vnode.dom
-                        vnode.dom.style.opacity = "0"
+                        this._domDropdown = vnode.dom as HTMLElement
+						this._domDropdown.style.opacity = "0"
                     },
                     onkeypress: e => {
                         if (this._domInput) {
@@ -206,15 +211,15 @@ export class Dropdown {
 
     _createShortcuts(): Array<Shortcut> {
         const next = () => {
-            let visibleElements = this._visibleItems().filter(b => typeof b !== "string")
+            const visibleElements = this._visibleItems()
+					.filter(b => typeof b !== "string")
+					.map((b: Button) => b._domButton)
 
-            visibleElements = ((visibleElements as any) as Array<Button>).map(b => b._domButton)
+			if (this._domInput != null) {
+				visibleElements.unshift(this._domInput)
+			}
 
-            if (this._domInput) {
-                visibleElements = [this._domInput].concat(visibleElements)
-            }
-
-            let selected = visibleElements.find(b => document.activeElement === b)
+			const selected = visibleElements.find(b => document.activeElement === b)
 
             if (selected) {
                 visibleElements[mod(visibleElements.indexOf(selected) + 1, visibleElements.length)].focus()
@@ -224,15 +229,15 @@ export class Dropdown {
         }
 
         const previous = () => {
-            let visibleElements = this._visibleItems().filter(b => typeof b !== "string")
+			const visibleElements = this._visibleItems()
+					.filter(b => typeof b !== "string")
+					.map((b: Button) => b._domButton)
 
-            visibleElements = ((visibleElements as any) as Array<Button>).map(b => b._domButton)
+			if (this._domInput != null) {
+				visibleElements.unshift(this._domInput)
+			}
 
-            if (this._domInput) {
-                visibleElements = [this._domInput].concat(visibleElements)
-            }
-
-            let selected = visibleElements.find(b => document.activeElement === b)
+			const selected = visibleElements.find(b => document.activeElement === b)
 
             if (selected) {
                 visibleElements[mod(visibleElements.indexOf(selected) - 1, visibleElements.length)].focus()
@@ -356,7 +361,7 @@ export function createDropDownButton(
     icon: lazy<AllIcons> | null,
     lazyButtons: lazy<ReadonlyArray<string | Button>>,
     width: number = 200,
-    originOverride: (() => PosRect) | null,
+    originOverride?: (() => PosRect),
 ): Button {
     return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width, originOverride)
 }
@@ -365,7 +370,7 @@ export function createAsyncDropDownButton(
     icon: lazyIcon | null,
     lazyButtons: lazyAsync<ReadonlyArray<string | Button>>,
     width: number = 200,
-    originOverride: (() => PosRect) | null,
+    originOverride?: (() => PosRect),
 ): Button {
     let mainButton = new Button(
         labelTextIdOrTextFunction,

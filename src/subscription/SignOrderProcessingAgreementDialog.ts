@@ -65,6 +65,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
         child: () =>
             m(".pt", [
                 m.trust(agreementTexts[version].heading),
+				// @ts-ignore
                 m(".flex-center", m(".dialog-width-s", [m(addressEditor), m(".small", lang.get("contractorInfo_msg"))])),
                 m.trust(agreementTexts[version].content),
                 m.trust(agreementTexts[version].appendix),

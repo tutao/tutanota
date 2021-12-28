@@ -102,7 +102,7 @@ export function assert(assertion: MaybeLazy<boolean>, message: string) {
 	}
 }
 
-export function downcast<R>(object: any): R {
+export function downcast<R = any>(object: any): R {
 	return object as any
 }
 

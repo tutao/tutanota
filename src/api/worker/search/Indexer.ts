@@ -1,4 +1,3 @@
-import type {GroupType} from "../../common/TutanotaConstants"
 import {ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -124,7 +123,7 @@ export class Indexer {
     _indexedGroupIds: Array<Id>
 
     constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
-        let deferred = defer()
+        let deferred = defer<void>()
         this._dbInitializedDeferredObject = deferred
         this.db = {
             dbFacade: newSearchIndexDB(),
@@ -430,7 +429,7 @@ export class Indexer {
      */
     _loadGroupData(
         user: User,
-        restrictToTheseGroups: Id[] | null,
+        restrictToTheseGroups?: Id[],
     ): Promise<
         {
             groupId: Id
@@ -617,7 +616,7 @@ export class Indexer {
     _processEntityEvents(batch: QueuedBatch): Promise<any> {
         const {events, groupId, batchId} = batch
         return this.db.initialized
-            .then(() => {
+            .then(async () => {
                 if (!this.db.dbFacade.indexingSupported) {
                     return Promise.resolve()
                 }

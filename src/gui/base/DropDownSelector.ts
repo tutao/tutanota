@@ -9,6 +9,7 @@ import {createDropDownButton} from "./Dropdown"
 import {TextFieldN} from "./TextFieldN"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export class DropDownSelector<T> {
     view: (...args: Array<any>) => any
@@ -28,7 +29,7 @@ export class DropDownSelector<T> {
             value: T
         }[],
         selectedValue: Stream<T>,
-        dropdownWidth: number | null,
+        dropdownWidth?: number,
     ) {
         this.selectedValue = selectedValue
         this._items = items
@@ -73,6 +74,7 @@ export class DropDownSelector<T> {
                 helpLabel: helpLabel,
                 disabled: true,
                 value: stream(this._selectedValueDisplayValue),
+				// @ts-ignore
                 injectionsRight: () => [m(itemChooser)],
             }
             return m(TextFieldN, textFieldAttrs)

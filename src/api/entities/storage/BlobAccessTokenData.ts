@@ -53,5 +53,5 @@ export type BlobAccessTokenData = {
 	_format: NumberString;
 	readArchiveId: null | Id;
 
-	write: null | BlobWriteData;
+	write:  null | BlobWriteData;
 }

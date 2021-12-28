@@ -20,12 +20,13 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {client} from "../misc/ClientDetector"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/model/ContactUtils"
 import {getMailFolderIcon} from "../mail/view/MailGuiUtils"
 import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 type SearchBarOverlayAttrs = {
     state: SearchBarState
     isQuickSearch: boolean
@@ -157,7 +158,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
     }
 
     renderResult(state: SearchBarState, result: Entry): Children {
-        let type: TypeRef<any> | null = result._type ? result._type : null
+        let type: TypeRef<any> | null = "_type" in result ? result._type : null
 
         if (!type) {
             // show more action

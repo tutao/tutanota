@@ -2,17 +2,17 @@ import {px, size} from "../../gui/size"
 import stream from "mithril/stream/stream.js"
 import {DatePicker} from "../../gui/date/DatePicker"
 import {Dialog} from "../../gui/base/Dialog"
-import m from "mithril"
+import m, {Children} from "mithril"
 import {TextFieldN, TextFieldType as TextFieldType} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
-import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {downcast, memoized, noOp} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys} from "../../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "@tutao/tutanota-utils"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
@@ -20,8 +20,7 @@ import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../../api/entities/tutanota/Contact"
 import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
-import type {AllIcons} from "../../gui/base/Icon"
-import {Icon} from "../../gui/base/Icon"
+import {AllIcons, Icon} from "../../gui/base/Icon"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
@@ -99,17 +98,16 @@ export function showCalendarEventDialog(
     date: Date,
     calendars: ReadonlyMap<Id, CalendarInfo>,
     mailboxDetail: MailboxDetail,
-    existingEvent: CalendarEvent | null,
-    responseMail: Mail | null,
+    existingEvent?: CalendarEvent,
+    responseMail?: Mail,
 ) {
     Promise.all([import("../../gui/editor/HtmlEditor"), createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent, responseMail, false)]).then(
         ([{HtmlEditor}, viewModel]) => {
             const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-            const repeatValues = createRepeatRuleFrequencyValues()
+            const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
             const intervalValues = createIntevalValues()
             const endTypeValues = createRepeatRuleEndTypeValues()
             let finished = false
-            const endOccurrencesStream = memoized(stream)
 
             function renderEndValue(): Children {
                 if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
@@ -118,7 +116,7 @@ export function showCalendarEventDialog(
                     return m(DropDownSelectorN, {
                         label: "emptyString_msg",
                         items: intervalValues,
-                        selectedValue: endOccurrencesStream(viewModel.repeat.endValue),
+                        selectedValue: stream(viewModel.repeat.endValue),
                         selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
                         icon: BootIcons.Expand,
                     })
@@ -374,7 +372,7 @@ export function showCalendarEventDialog(
                     selectionChangedHandler: period => viewModel.onRepeatPeriodSelected(period),
                     icon: BootIcons.Expand,
                     disabled: viewModel.isReadOnlyEvent(),
-                })
+                } as DropDownSelectorAttrs<RepeatPeriod | null>)
             }
 
             function renderRepeatInterval() {
@@ -385,7 +383,7 @@ export function showCalendarEventDialog(
                     selectionChangedHandler: period => viewModel.onRepeatIntervalChanged(period),
                     icon: BootIcons.Expand,
                     disabled: viewModel.isReadOnlyEvent(),
-                })
+                } as DropDownSelectorAttrs<number>)
             }
 
             function renderEndType(repeat) {
@@ -396,7 +394,7 @@ export function showCalendarEventDialog(
                     selectionChangedHandler: period => viewModel.onRepeatEndTypeChanged(period),
                     icon: BootIcons.Expand,
                     disabled: viewModel.isReadOnlyEvent(),
-                })
+                } as DropDownSelectorAttrs<EndType>)
             }
 
             const renderRepeatRulePicker = () =>
@@ -462,7 +460,7 @@ export function showCalendarEventDialog(
                                               items: alarmIntervalItems,
                                               selectedValue: stream(downcast(a.trigger)),
                                               icon: BootIcons.Expand,
-                                              selectionChangedHandler: value => viewModel.changeAlarm(a.alarmIdentifier, value),
+                                              selectionChangedHandler: (value: AlarmInterval) => viewModel.changeAlarm(a.alarmIdentifier, value),
                                               key: a.alarmIdentifier,
                                           }),
                                       ),
@@ -471,12 +469,13 @@ export function showCalendarEventDialog(
                                           items: alarmIntervalItems,
                                           selectedValue: stream(null),
                                           icon: BootIcons.Expand,
-                                          selectionChangedHandler: value => value && viewModel.addAlarm(value),
+                                          selectionChangedHandler: (value: AlarmInterval) => value && viewModel.addAlarm(value),
                                       }),
                                   ])
                                 : m(".flex.flex-half.pl-s"),
                         ]),
                         renderLocationField(),
+						// @ts-ignore #2559
                         m(descriptionEditor),
                     ],
                 )
@@ -564,7 +563,7 @@ function renderStatusIcon(viewModel: CalendarEventViewModel, attendee: Guest): C
     })
 }
 
-function createIntevalValues() {
+function createIntevalValues(): Array<{name: string, value: number}> {
     return numberRange(1, 256).map(n => {
         return {
             name: String(n),
@@ -574,21 +573,20 @@ function createIntevalValues() {
 }
 
 function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<RecipientInfo> {
-    function createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | DropdownInfoAttrs> {
-        let buttonAttrs = [
+    function createBubbleContextButtons(name: string, mailAddress: string): [DropdownInfoAttrs, ButtonAttrs] {
+        return [
             {
                 info: mailAddress,
                 center: true,
                 bold: true,
             },
+			{
+				label: "remove_action",
+				click: () => {
+					findAndRemove(invitePeopleValueTextField.bubbles, bubble => bubble.entity.mailAddress === mailAddress)
+				},
+			}
         ]
-        buttonAttrs.push({
-            label: "remove_action",
-            click: () => {
-                findAndRemove(invitePeopleValueTextField.bubbles, bubble => bubble.entity.mailAddress === mailAddress)
-            },
-        })
-        return buttonAttrs
     }
 
     const bubbleHandler = new RecipientInfoBubbleHandler(
@@ -736,7 +734,7 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
                               items: attendingItems,
                               selectedValue: stream(guest.status),
                               class: "",
-                              selectionChangedHandler: value => {
+                              selectionChangedHandler: (value: CalendarAttendeeStatus) => {
                                   if (value == null) return
                                   viewModel.selectGoing(value)
                               },

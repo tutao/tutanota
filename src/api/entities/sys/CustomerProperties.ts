@@ -102,7 +102,7 @@ export type CustomerProperties = {
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: null | Date;
 
-	bigLogo: null | File;
+	bigLogo:  null | File;
 	notificationMailTemplates: NotificationMailTemplate[];
-	smallLogo: null | File;
+	smallLogo:  null | File;
 }

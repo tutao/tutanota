@@ -50,7 +50,7 @@ export function dialogAttrs(labeledBy: string, describedBy: string): string {
 export function liveDataAttrs(): string {
     return `[aria-live="${AriaLiveData.Polite}"][aria-atomic=true]`
 }
-export function landmarkAttrs(role: AriaLandmarks, label: string | null): string {
+export function landmarkAttrs(role: AriaLandmarks, label?: string): string {
     // We disable outline for landmarks. Outlines are useful as a visual clue for users who use keyboard navigation (or similar). Landmarks
     // are screen reader function and can only be focused using special landmark menu, they are not in the tab index. This makes them
     // redundant.

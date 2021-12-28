@@ -1,9 +1,9 @@
 import {inputLineHeight, px, size} from "../size"
-import m from "mithril"
-import {animations, fontSize, transform} from "../animation/Animations"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
+import {animations, fontSize, transform, TransformEnum} from "../animation/Animations"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, isSelected} from "./ButtonN"
+import {ButtonN} from "./ButtonN"
 import type {keyHandler, KeyPress} from "../../misc/KeyManager"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -11,12 +11,13 @@ import stream from "mithril/stream/stream.js"
 import {theme} from "../theme"
 import {TabIndex} from "../../api/common/TutanotaConstants"
 import {ease} from "../animation/Easing"
-import type {TextFieldType} from "./TextFieldN"
 import {TextFieldType} from "./TextFieldN"
 import {windowFacade} from "../../misc/WindowFacade"
 import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import Stream from "mithril/stream";
+
 assertMainOrNode()
 
 /**
@@ -83,8 +84,8 @@ export class BubbleTextField<T> implements Component<void> {
     selectedSuggestion: Stream<Suggestion | null>
     suggestionAnimation: Promise<void>
     bubbleHandler: BubbleHandler<T, Suggestion>
-    view: (arg0: Vnode<void>) => Children
-    oncreate: (arg0: VnodeDOM<void>) => void
+    view: (vnode: Vnode<void>) => Children
+    oncreate: (vnode: VnodeDOM<void>) => void
     _textField: TextField
     _domSuggestions: HTMLElement
     _keyboardHeight: number
@@ -182,7 +183,7 @@ export class BubbleTextField<T> implements Component<void> {
                     `.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${this.suggestions.length ? ".dropdown-shadow" : ""}`,
                     {
                         oncreate: vnode => {
-                            this._domSuggestions = vnode.dom
+                            this._domSuggestions = vnode.dom as HTMLElement
                             this._selectedSuggestionChangedListener = this.selectedSuggestion.map(
                                 makeListSelectionChangedScrollHandler(this._domSuggestions, this.bubbleHandler.suggestionHeight, () =>
                                     this._getSelectedSuggestionIndex(),
@@ -294,7 +295,8 @@ export class BubbleTextField<T> implements Component<void> {
 
             case 32:
                 // whitespace
-                return this.createBubbles() || false
+				this.createBubbles()
+                return false
 
             case 8:
                 return this.handleBackspace()
@@ -325,7 +327,8 @@ export class BubbleTextField<T> implements Component<void> {
 
         // Handle commas
         if (key.key === ",") {
-            return this.createBubbles() || false
+			this.createBubbles()
+            return false
         }
 
         this.removeBubbleSelection()
@@ -376,7 +379,7 @@ export class BubbleTextField<T> implements Component<void> {
     }
 
     handleDelete(): boolean {
-        let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
+        let selected = this.bubbles.find(b => b.buttonAttrs.isSelected())
 
         if (selected) {
             let selectedIndex = this.bubbles.indexOf(selected as any)
@@ -393,7 +396,7 @@ export class BubbleTextField<T> implements Component<void> {
     }
 
     handleLeftArrow(): boolean {
-        let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
+        let selected = this.bubbles.find(b => b.buttonAttrs.isSelected())
 
         if (selected) {
             let selectedIndex = this.bubbles.indexOf(selected as any)
@@ -411,7 +414,7 @@ export class BubbleTextField<T> implements Component<void> {
     }
 
     handleRightArrow(): boolean {
-        let selected = this.bubbles.find(b => isSelected(b.buttonAttrs))
+        let selected = this.bubbles.find(b => b.buttonAttrs.isSelected())
 
         if (selected) {
             let selectedIndex = this.bubbles.indexOf(selected as any)
@@ -478,7 +481,7 @@ export class BubbleTextField<T> implements Component<void> {
 
     deleteSelectedBubbles(): void {
         for (var i = this.bubbles.length - 1; i >= 0; i--) {
-            if (isSelected(this.bubbles[i].buttonAttrs)) {
+            if (this.bubbles[i].buttonAttrs.isSelected()) {
                 var deletedBubble = this.bubbles.splice(i, 1)[0]
                 this.bubbleHandler.bubbleDeleted(deletedBubble)
             }
@@ -486,7 +489,7 @@ export class BubbleTextField<T> implements Component<void> {
     }
 
     isBubbleSelected(): boolean {
-        return this.bubbles.find(b => isSelected(b.buttonAttrs)) != null
+        return this.bubbles.find(b => b.buttonAttrs.isSelected()) != null
     }
 
     selectLastBubble(): void {
@@ -545,7 +548,7 @@ class TextField {
     autocomplete: string
     isEmpty: (...args: Array<any>) => any
 
-    constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, helpLabel: lazy<Children> | null) {
+    constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, helpLabel?: lazy<Children>) {
         this.label = labelIdOrLabelTextFunction
         this.active = false
         this.webkitAutofill = false
@@ -574,7 +577,7 @@ class TextField {
             return m(
                 ".text-field.rel.overflow-hidden.pt",
                 {
-                    oncreate: vnode => (this._domWrapper = vnode.dom),
+                    oncreate: vnode => (this._domWrapper = vnode.dom as HTMLElement),
                     onclick: e => this.focus(),
                     class: !this.disabled ? "text" : null,
                 },
@@ -584,7 +587,7 @@ class TextField {
                         {
                             class: this.active ? "content-accent-fg" : "",
                             oncreate: vnode => {
-                                this._domLabel = vnode.dom
+                                this._domLabel = vnode.dom as HTMLElement
                                 this._baseLabel = this.isEmpty() && !this.disabled // needed for BubbleTextField in Firefox. BubbleTextField overwrites isEmpty() so it must be called initially
 
                                 if (this._baseLabel) {
@@ -716,10 +719,10 @@ class TextField {
                         type: typeAttr,
                         "aria-label": lang.getMaybeLazy(this.label),
                         oncreate: vnode => {
-                            this._domInput = vnode.dom
+                            this._domInput = vnode.dom as HTMLInputElement
 
                             if (this.type !== TextFieldType.Area) {
-                                vnode.dom.addEventListener("animationstart", e => {
+								this._domInput.addEventListener("animationstart", e => {
                                     if (e.animationName === "onAutoFillStart") {
                                         this.webkitAutofill = true
                                         this.animate()
@@ -731,7 +734,7 @@ class TextField {
                             }
 
                             if (this.type !== TextFieldType.Password) {
-                                vnode.dom.value = this.value() // chrome autofill does not work on password fields if the value has been set before
+								this._domInput.value = this.value() // chrome autofill does not work on password fields if the value has been set before
                             }
                         },
                         onfocus: e => this.focus(),
@@ -807,9 +810,9 @@ class TextField {
             return m("textarea.input-area.text-pre", {
                 "aria-label": lang.getMaybeLazy(this.label),
                 oncreate: vnode => {
-                    this._domInput = vnode.dom
-                    vnode.dom.value = this.value()
-                    vnode.dom.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+                    this._domInput = vnode.dom as HTMLInputElement
+					this._domInput.value = this.value()
+					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
                 },
                 onfocus: e => this.focus(),
                 onblur: e => this.blur(e),
@@ -911,14 +914,14 @@ class TextField {
                 let fontSizes = [size.font_size_base, size.font_size_small]
                 let top = [this.baseLabelPosition, 0]
                 this._baseLabel = false
-                return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(transform.type.translateY, top[0], top[1])], {
+                return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])], {
                     easing: ease.out,
                 })
             } else if (!this._baseLabel && this.isEmpty() && !this.disabled && !this.webkitAutofill && !this.active) {
                 let fontSizes = [size.font_size_small, size.font_size_base]
                 let top = [0, this.baseLabelPosition]
                 this._baseLabel = true
-                return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(transform.type.translateY, top[0], top[1])], {
+                return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])], {
                     easing: ease.out,
                 })
             }

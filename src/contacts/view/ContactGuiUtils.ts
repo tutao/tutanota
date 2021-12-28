@@ -1,4 +1,3 @@
-import type {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../../api/common/TutanotaConstants"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"

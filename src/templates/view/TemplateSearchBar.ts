@@ -1,10 +1,11 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {inputLineHeight, px} from "../../gui/size"
 import type {keyHandler} from "../../misc/KeyManager"
 import {theme} from "../../gui/theme"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type TemplateSearchBarAttrs = {
     value: Stream<string>
     placeholder?: TranslationKey | lazy<string>
@@ -31,7 +32,7 @@ export class TemplateSearchBar implements Component<TemplateSearchBarAttrs> {
         return m("input.input", {
             placeholder: a.placeholder && lang.getMaybeLazy(a.placeholder),
             oncreate: vnode => {
-                this.domInput = vnode.dom
+                this.domInput = vnode.dom as HTMLInputElement
                 this.domInput.value = a.value()
                 this.domInput.focus()
             },

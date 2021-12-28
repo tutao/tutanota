@@ -3,11 +3,15 @@ import type {CryptoFunctions} from "./CryptoFns"
 import {cryptoFns} from "./CryptoFns"
 import type {TypeModel} from "../api/common/EntityTypes"
 import {base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
+import type * as FsModule from "fs"
+
+type FsExports = typeof FsModule
+
 export class DesktopCryptoFacade {
-    readonly fs: $Exports<"fs">
+    readonly fs: typeof FsModule
     readonly cryptoFns: CryptoFunctions
 
-    constructor(fs: $Exports<"fs">, cryptoFns: CryptoFunctions) {
+    constructor(fs: FsExports, cryptoFns: CryptoFunctions) {
         this.fs = fs
         this.cryptoFns = cryptoFns
     }

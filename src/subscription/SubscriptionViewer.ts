@@ -1,6 +1,5 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
-import type {AccountType} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -9,7 +8,7 @@ import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {serviceRequest} from "../api/main/ServiceRequest"
 import {logins} from "../api/main/LoginController"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
@@ -69,6 +68,7 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
 export class SubscriptionViewer implements UpdatableSettingsViewer {
@@ -113,17 +113,17 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
             label: "upgrade_action",
             click: showUpgradeWizard,
             icon: () => Icons.Edit,
-        }
+        } as const
         const usageTypeActionAttrs = {
             label: "pricing.businessUse_label",
             click: () => this._switchToBusinessUse(),
             icon: () => Icons.Edit,
-        }
+        } as const
         const signOrderAgreementActionAttrs = {
             label: "sign_action",
             click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
             icon: () => Icons.Edit,
-        }
+        } as const
         const showOrderAgreementActionAttrs = {
             label: "show_action",
             click: () =>
@@ -131,7 +131,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
                     .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
                     .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
             icon: () => Icons.Download,
-        }
+        } as const
         let subscriptionPeriods = [
             {
                 name: lang.get("pricing.yearly_label") + ", " + lang.get("automaticRenewal_label"),
@@ -150,79 +150,79 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
             click: createNotAvailableForFreeClickHandler(false, AddUserDialog.show, isPremiumPredicate),
             icon: () => Icons.Add,
             type: ButtonType.Action,
-        }
+        } as const
         const editUsersButtonAttrs = {
             label: "bookingItemUsers_label",
             click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/users"), isPremiumPredicate),
             icon: () => Icons.Edit,
             type: ButtonType.Action,
-        }
+        } as const
         const changeStorageCapacityButtonAttrs = {
             label: "storageCapacity_label",
             click: createNotAvailableForFreeClickHandler(false, () => showStorageCapacityOptionsDialog(), isPremiumPredicate),
             icon: () => Icons.Edit,
             type: ButtonType.Action,
-        }
+        } as const
         const changeEmailAliasPackageButtonAttrs = {
             label: "emailAlias_label",
             click: createNotAvailableForFreeClickHandler(true, EmailAliasOptionsDialog.show, isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const addGroupsActionAttrs = {
             label: "addGroup_label",
             click: createNotAvailableForFreeClickHandler(false, AddGroupDialog.show, isPremiumPredicate),
             icon: () => Icons.Add,
-        }
+        } as const
         const editGroupsActionAttrs = {
             label: "groups_label",
             click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/groups"), isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const addContactFormActionAttrs = {
             label: "createContactForm_label",
             click: createNotAvailableForFreeClickHandler(false, () => ContactFormEditor.show(null, true, noOp), isPremiumPredicate),
             icon: () => Icons.Add,
-        }
+        } as const
         const editContactFormsActionAttrs = {
             label: "contactForms_label",
             click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/contactforms"), isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const enableWhiteLabelActionAttrs = {
             label: "activate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showWhitelabelBuyDialog(true), isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const disableWhiteLabelActionAttrs = {
             label: "deactivate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showWhitelabelBuyDialog(false), isPremiumPredicate),
             icon: () => Icons.Cancel,
-        }
+        } as const
         const enableSharingActionAttrs = {
             label: "activate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showSharingBuyDialog(true), isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const disableSharingActionAttrs = {
             label: "deactivate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showSharingBuyDialog(false), isPremiumPredicate),
             icon: () => Icons.Cancel,
-        }
+        } as const
         const enableBusinessActionAttrs = {
             label: "activate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showBusinessBuyDialog(true), isPremiumPredicate),
             icon: () => Icons.Edit,
-        }
+        } as const
         const disableBusinessActionAttrs = {
             label: "deactivate_action",
             click: createNotAvailableForFreeClickHandler(false, () => showBusinessBuyDialog(false), isPremiumPredicate),
             icon: () => Icons.Cancel,
-        }
+        } as const
         const deleteButtonAttrs = {
             label: "adminDeleteAccount_action",
             click: showDeleteAccountDialog,
             type: ButtonType.Login,
-        }
+        } as const
         const deleteAccountExpanded = stream(false)
         this._giftCards = new Map()
         loadGiftCards(assertNotNull(logins.getUserController().user.customer)).then(giftCards => {
@@ -238,6 +238,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
                     value: this._subscriptionFieldValue,
                     disabled: true,
                     injectionsRight: () =>
+							// @ts-ignore
                         logins.getUserController().isFreeAccount() ? m(ButtonN, upgradeActionAttrs) : !this._isCancelled ? [m(subscriptionAction)] : null,
                 }),
                 this._showPriceData()
@@ -282,7 +283,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
                           items: subscriptionPeriods,
                           selectedValue: this._selectedSubscriptionInterval,
                           dropdownWidth: 300,
-                          selectionChangedHandler: value => {
+                          selectionChangedHandler: (value: number) => {
                               if (this._accountingInfo) {
                                   changeSubscriptionInterval(this._accountingInfo, value, this._periodEndDate)
                               }
@@ -775,8 +776,8 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
         label: "buyGiftCard_label",
         click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
         icon: () => Icons.Add,
-    }
-    const columnHeading = ["purchaseDate_label", "value_label"]
+    } as const
+    const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
     const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
     const lines = giftCards
         .filter(giftCard => giftCard.usable)

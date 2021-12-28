@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
@@ -39,7 +39,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
                   }
                 : null,
             disabled: !onRegistrationDomainSelected,
-        }
+        } as const
         return m(DropDownSelectorN, registrationDomainsAttrs)
     }
 
@@ -63,7 +63,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
             value: stream(whitelabelCode),
             disabled: true,
             injectionsRight: () => [editButtonAttrs ? m(ButtonN, editButtonAttrs) : null],
-        }
+        } as const
         return m(TextFieldN, whitelabelRegistrationTextfieldAttrs)
     }
 }

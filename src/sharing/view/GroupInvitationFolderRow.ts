@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {size} from "../../gui/size"
 import {getCapabilityText} from "../GroupUtils"
 import {downcast} from "@tutao/tutanota-utils"

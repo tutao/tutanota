@@ -1,7 +1,7 @@
 type Registry = typeof import("winreg").default
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopIntegrator} from "./DesktopIntegrator"
-type Electron = $Exports<"electron">
+type Electron = typeof Electron.CrossProcessExports
 export class DesktopIntegratorWin32 implements DesktopIntegrator {
     _electron: Electron
     _registry: Registry
@@ -18,7 +18,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 
     isAutoLaunchEnabled(): Promise<boolean> {
         // can't promisify here because it screws with autoRunKeys 'this' semantics
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve: (boolean) => void, reject) => {
             this._autoRunKey.get(this._electron.app.name, (err, item) => {
                 if (err) {
                     reject(err)

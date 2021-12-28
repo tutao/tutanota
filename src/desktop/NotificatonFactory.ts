@@ -1,7 +1,6 @@
 import type {NativeImage} from "electron"
 import {Notification} from "electron"
-import type {NotificationResult} from "./DesktopConstants"
-import {NotificationResult} from "./DesktopConstants"
+import {NotificationResult} from "./DesktopNotifier";
 type Dismisser = () => void
 export class ElectronNotificationFactory {
     isSupported(): boolean {

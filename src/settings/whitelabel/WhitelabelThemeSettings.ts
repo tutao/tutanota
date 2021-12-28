@@ -6,9 +6,9 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaConstants"
 import {contains} from "@tutao/tutanota-utils"
 import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
@@ -16,6 +16,7 @@ import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
+import Stream from "mithril/stream";
 export type WhitelabelData = {
     customTheme: ThemeCustomizations
     whitelabelConfig: WhitelabelConfig
@@ -33,7 +34,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
     _renderCustomColorsField(data: WhitelabelData | null): Children {
         return m(TextFieldN, {
             label: "customColors_label",
-            value: () => (this.areCustomColorsDefined(data?.customTheme) ? lang.get("activated_label") : lang.get("deactivated_label")),
+            value: Stream(this.areCustomColorsDefined(data?.customTheme) ? lang.get("activated_label") : lang.get("deactivated_label")),
             disabled: true,
             injectionsRight: () => (data ? this.renderCustomColorsFieldButtons(data) : null),
         })
@@ -72,10 +73,10 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
     }
 
     renderCustomLogoField(data: WhitelabelData | null): Children {
-        const customLogoTextfieldAttrs = {
+        const customLogoTextfieldAttrs: TextFieldAttrs = {
             label: "customLogo_label",
             helpLabel: () => lang.get("customLogoInfo_msg"),
-            value: () => lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label"),
+            value: Stream(lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label")),
             disabled: true,
             injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
         }

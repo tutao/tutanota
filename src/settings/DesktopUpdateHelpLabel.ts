@@ -1,8 +1,9 @@
-import m from "mithril"
+import m, {Child, Children, Vnode} from "mithril"
 import {Icon} from "../gui/base/Icon"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {delay} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type UpdateHelpLabelAttrs = {
     updateAvailable: Stream<boolean>
     manualUpdate(): Promise<boolean>

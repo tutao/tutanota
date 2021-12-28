@@ -3,7 +3,7 @@ import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {neverNull} from "@tutao/tutanota-utils"
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
@@ -12,6 +12,7 @@ import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/Res
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import type {Hex} from "@tutao/tutanota-utils/"
+import Stream from "mithril/stream";
 type Action = "get" | "create"
 assertMainOrNode()
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {

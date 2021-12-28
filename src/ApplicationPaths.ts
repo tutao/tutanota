@@ -1,17 +1,19 @@
 // @bundleInto:boot
-export type ApplicationPaths = Record<string, RouteResolverMatch>
+import {RouteResolver} from "mithril";
+
+export type ApplicationPaths = Record<string, RouteResolver>
 type ViewResolvers = {
-    loginViewResolver: RouteResolverMatch
-    mailViewResolver: RouteResolverMatch
-    externalLoginViewResolver: RouteResolverMatch
-    contactViewResolver: RouteResolverMatch
-    searchViewResolver: RouteResolverMatch
-    settingsViewResolver: RouteResolverMatch
-    contactFormViewResolver: RouteResolverMatch
-    calendarViewResolver: RouteResolverMatch
-    signupViewResolver: RouteResolverMatch
-    giftcardViewResolver: RouteResolverMatch
-    recoverViewResolver: RouteResolverMatch
+    loginViewResolver: RouteResolver
+    mailViewResolver: RouteResolver
+    externalLoginViewResolver: RouteResolver
+    contactViewResolver: RouteResolver
+    searchViewResolver: RouteResolver
+    settingsViewResolver: RouteResolver
+    contactFormViewResolver: RouteResolver
+    calendarViewResolver: RouteResolver
+    signupViewResolver: RouteResolver
+    giftcardViewResolver: RouteResolver
+    recoverViewResolver: RouteResolver
 }
 export function applicationPaths({
     loginViewResolver,

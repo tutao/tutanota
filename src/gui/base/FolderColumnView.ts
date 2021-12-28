@@ -1,6 +1,6 @@
 import {DrawerMenu} from "../nav/DrawerMenu"
 import {theme} from "../theme"
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"

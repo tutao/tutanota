@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
@@ -53,7 +53,7 @@ export class SearchResultDetailsViewer {
 
     showEntity(entity: Record<string, any>, entitySelected: boolean): void {
         if (isSameTypeRef(MailTypeRef, entity._type)) {
-            const mail: Mail = entity
+            const mail = entity as Mail
             this._viewer = createMailViewer({
                 mail,
                 showFolder: true,

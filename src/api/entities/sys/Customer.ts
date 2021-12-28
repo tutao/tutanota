@@ -240,22 +240,22 @@ export type Customer = {
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;
 
-	auditLog: null | AuditLogRef;
-	contactFormUserAreaGroups: null | UserAreaGroups;
-	contactFormUserGroups: null | UserAreaGroups;
+	auditLog:  null | AuditLogRef;
+	contactFormUserAreaGroups:  null | UserAreaGroups;
+	contactFormUserGroups:  null | UserAreaGroups;
 	customizations: Feature[];
-	rejectedSenders: null | RejectedSendersRef;
-	userAreaGroups: null | UserAreaGroups;
-	whitelabelChildren: null | WhitelabelChildrenRef;
-	whitelabelParent: null | WhitelabelParent;
+	rejectedSenders:  null | RejectedSendersRef;
+	userAreaGroups:  null | UserAreaGroups;
+	whitelabelChildren:  null | WhitelabelChildrenRef;
+	whitelabelParent:  null | WhitelabelParent;
 	adminGroup: Id;
 	adminGroups: Id;
 	customerGroup: Id;
 	customerGroups: Id;
 	customerInfo: IdTuple;
-	orderProcessingAgreement: null | IdTuple;
-	properties: null | Id;
-	serverProperties: null | Id;
+	orderProcessingAgreement:  null | IdTuple;
+	properties:  null | Id;
+	serverProperties:  null | Id;
 	teamGroups: Id;
 	userGroups: Id;
 }

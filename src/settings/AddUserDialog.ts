@@ -13,7 +13,7 @@ import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/Progr
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream/stream.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 assertMainOrNode()
@@ -24,7 +24,7 @@ export function show(): Promise<void> {
         let isVerificationBusy = false
         let userName = ""
         const passwordForm = new PasswordForm(false, false, false, null)
-        const nameFieldAttrs = {
+        const nameFieldAttrs: TextFieldAttrs = {
             label: "name_label",
             helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
             value: stream(userName),
@@ -87,7 +87,7 @@ export function show(): Promise<void> {
         })
     })
 }
-export function getAvailableDomains(onlyCustomDomains: boolean | null): Promise<string[]> {
+export function getAvailableDomains(onlyCustomDomains?: boolean): Promise<string[]> {
     return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
         return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
             let availableDomains = getCustomMailDomains(customerInfo).map(info => info.domain)

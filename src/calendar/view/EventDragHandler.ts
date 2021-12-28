@@ -157,8 +157,8 @@ export class EventDragHandler {
     getDayUnderMouseDiff(dragData: DragData, adjustedDateUnderMouse: Date): number {
         const {originalEvent, originalDateUnderMouse} = dragData
         return isAllDayEvent(originalEvent)
-            ? getAllDayDateUTC(adjustedDateUnderMouse) - getAllDayDateUTC(originalDateUnderMouse)
-            : adjustedDateUnderMouse - originalDateUnderMouse
+            ? getAllDayDateUTC(adjustedDateUnderMouse).getTime() - getAllDayDateUTC(originalDateUnderMouse).getTime()
+            : adjustedDateUnderMouse.getTime() - originalDateUnderMouse.getTime()
     }
 
     cancelDrag() {

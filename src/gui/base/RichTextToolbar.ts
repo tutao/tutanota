@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, VnodeDOM} from "mithril"
 import {Icons} from "./icons/Icons"
 import type {Editor} from "../editor/Editor"
 import stream from "mithril/stream/stream.js"
@@ -7,11 +7,12 @@ import type {ButtonAttrs} from "./ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
 import {size} from "../size"
 import {noOp} from "@tutao/tutanota-utils"
-import {attachDropdown} from "./DropdownN"
+import {attachDropdown, DropdownButtonAttrs} from "./DropdownN"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
 import {BrowserType} from "../../misc/ClientConstants"
+import Stream from "mithril/stream";
 export type Options = {
     imageButtonClickHandler?: ((ev: Event, editor: Editor) => unknown) | null
     alignmentEnabled?: boolean
@@ -24,7 +25,7 @@ export class RichTextToolbar {
 
     constructor(editor: Editor, options?: Options) {
         this.selectedSize = stream(size.font_size_base)
-        const styleToggleAttrs: Array<ButtonAttrs> = [
+        const styleToggleAttrs: Array<ButtonAttrs> = ([
             {
                 style: "b",
                 title: () => lang.get("formatTextBold_msg") + " (Ctrl + B)",
@@ -50,7 +51,7 @@ export class RichTextToolbar {
                 title: () => (editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action")),
                 icon: Icons.Link,
             },
-        ].map(o => ({
+        ] as const).map(o => ({
             label: "emptyString_msg",
             title: o.title,
             click: () => editor.setStyle(!editor.hasStyle(o.style), o.style),
@@ -60,7 +61,7 @@ export class RichTextToolbar {
             isSelected: () => editor.hasStyle(o.style),
             colors: ButtonColor.Elevated,
         }))
-        const alignToggleAttrs = [
+        const alignToggleAttrs: Array<ButtonAttrs> = ([
             {
                 name: "left",
                 title: "formatTextLeft_msg",
@@ -81,7 +82,7 @@ export class RichTextToolbar {
                 title: "formatTextJustify_msg",
                 icon: Icons.AlignJustified,
             },
-        ].map(o => ({
+        ] as const).map(o => ({
             label: "emptyString_msg",
             title: o.title,
             click: () => {
@@ -146,34 +147,36 @@ export class RichTextToolbar {
             })
         }
 
+		const buttonAttrs: DropdownButtonAttrs = {
+			label: () => "▼",
+			title: "formatTextAlignment_msg",
+			icon: () => {
+				switch (editor.styles.alignment) {
+					case "left":
+						return Icons.AlignLeft
+
+					case "center":
+						return Icons.AlignCenter
+
+					case "right":
+						return Icons.AlignRight
+
+					default:
+						return Icons.AlignJustified
+				}
+			},
+			type: ButtonType.Toggle,
+			noBubble: true,
+			colors: ButtonColor.Elevated,
+
+		}
         const alignDropdownAttrs = attachDropdown(
-            {
-                label: () => "▼",
-                title: "formatTextAlignment_msg",
-                icon: () => {
-                    switch (editor.styles.alignment) {
-                        case "left":
-                            return Icons.AlignLeft
-
-                        case "center":
-                            return Icons.AlignCenter
-
-                        case "right":
-                            return Icons.AlignRight
-
-                        default:
-                            return Icons.AlignJustified
-                    }
-                },
-                type: ButtonType.Toggle,
-                noBubble: true,
-                colors: ButtonColor.Elevated,
-            },
+            buttonAttrs,
             () => alignToggleAttrs,
             () => true,
             2 * size.hpad_large + size.button_height,
         )
-        const removeFormattingButtonAttrs = {
+        const removeFormattingButtonAttrs: ButtonAttrs = {
             label: "emptyString_msg",
             title: "removeFormatting_action",
             icon: () => Icons.Cancel,
@@ -254,14 +257,15 @@ export class RichTextToolbar {
         }
     }
 
-    oncreate(vnode: Vnode<any>): void {
-        vnode.dom.style.height = "0"
+    oncreate(vnode: VnodeDOM<any>): void {
+		const dom = vnode.dom as HTMLElement
+		dom.style.height = "0"
 
-        this._animate(vnode.dom, true)
+        this._animate(dom, true)
     }
 
-    onbeforeremove(vnode: Vnode<any>): Promise<void> {
-        return this._animate(vnode.dom, false)
+    onbeforeremove(vnode: VnodeDOM<any>): Promise<void> {
+        return this._animate(vnode.dom as HTMLElement, false)
     }
 
     _animate(dom: HTMLElement, appear: boolean): Promise<any> {

@@ -37,6 +37,7 @@ import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPo
 import {base64ToUint8Array} from "@tutao/tutanota-utils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
+import Stream from "mithril/stream";
 export type MailboxDetail = {
     mailbox: MailBox
     folders: MailFolder[]
@@ -304,13 +305,13 @@ export class MailModel {
                 if (folder && folder.folderType === MailFolderType.INBOX && !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
                     // If we don't find another delete operation on this email in the batch, then it should be a create operation,
                     // otherwise it's a move
-                    const mailId = [update.instanceListId, update.instanceId]
-                    const mail = await this._entityClient.load(MailTypeRef, mailId)
-                    await this.getMailboxDetailsForMailListId(update.instanceListId)
+                    const mail = await this._entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
+					await this.getMailboxDetailsForMailListId(update.instanceListId)
                         .then(mailboxDetail => {
                             // We only apply rules on server if we are the leader in case of incoming messages
                             return findAndApplyMatchingRule(this._worker, this._entityClient, mailboxDetail, mail, this._worker.isLeader())
                         })
+                    // @ts-ignore
                         .then(newId => this._showNotification(newId || mailId))
                         .catch(noOp)
                 }

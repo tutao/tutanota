@@ -30,6 +30,7 @@ import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import type {SomeEntity} from "../../common/EntityTypes"
+import {EntityUpdateData} from "../../main/EventController";
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -118,10 +119,9 @@ export class MailIndexer {
               keyToIndexEntries: Map<string, SearchIndexEntry[]>
           }
         | null
-        | undefined
     > {
         if (this._isExcluded(event)) {
-            return Promise.resolve()
+            return Promise.resolve(null)
         }
 
         return this._defaultCachingEntity
@@ -408,7 +408,7 @@ export class MailIndexer {
         }
 
         const mailboxesToWrite = dataPerMailbox.filter(mboxData => batchEnd < mboxData.newestTimestamp)
-        const batchRange = [rangeStart, batchEnd]
+        const batchRange = [rangeStart, batchEnd] as TimeRange
 
         // rangeStart is what we have indexed at the previous step. If it's equals to rangeEnd then we're done.
         // If it's less then we overdid a little bit but we've covered the range and we will write down rangeStart so
@@ -425,7 +425,7 @@ export class MailIndexer {
         }
 
         return this._prepareMailDataForTimeBatch(mailboxesToWrite, batchRange, indexUpdate, indexLoader).then(() => {
-            const nextRange = [batchEnd, rangeEnd]
+            const nextRange = [batchEnd, rangeEnd] as TimeRange
 
             if (this._processedEnough(indexUpdate)) {
                 // only write to database if we have collected enough entities
@@ -602,7 +602,7 @@ export class MailIndexer {
         if (!this.mailIndexingEnabled) return Promise.resolve()
         return promiseMap(events, event => {
             if (event.operation === OperationType.CREATE) {
-                if (containsEventOfType(events, OperationType.DELETE, event.instanceId)) {
+                if (containsEventOfType(events as readonly EntityUpdateData[], OperationType.DELETE, event.instanceId)) {
                     // do not execute move operation if there is a delete event or another move event.
                     return this.processMovedMail(event, indexUpdate)
                 } else {
@@ -634,7 +634,7 @@ export class MailIndexer {
                     })
                     .catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
             } else if (event.operation === OperationType.DELETE) {
-                if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) {
+                if (!containsEventOfType(events as readonly EntityUpdateData[], OperationType.CREATE, event.instanceId)) {
                     // Check that this is *not* a move event. Move events are handled separately.
                     return this._core._processDeleted(event, indexUpdate)
                 }

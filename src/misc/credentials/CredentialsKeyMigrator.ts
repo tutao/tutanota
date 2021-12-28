@@ -44,7 +44,7 @@ export class CredentialsKeyMigrator implements ICredentialsKeyMigrator {
  * It will throw an error when called, since no key migration should ever be triggered on platforms that don't support the feature.
  */
 export class CredentialsKeyMigratorStub implements ICredentialsKeyMigrator {
-    migrateCredentialsKey(oldKeyEncrypted: Uint8Array, oldMode: CredentialEncryptionMode, newMode: CredentialEncryptionMode) {
+    migrateCredentialsKey(oldKeyEncrypted: Uint8Array, oldMode: CredentialEncryptionMode, newMode: CredentialEncryptionMode): Promise<Uint8Array> {
         throw new Error("Should not be used")
     }
 }

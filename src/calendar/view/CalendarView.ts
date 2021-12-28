@@ -18,7 +18,7 @@ import {downcast, memoized} from "@tutao/tutanota-utils"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
-import {NavButtonN} from "../../gui/base/NavButtonN"
+import {NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../../api/common/error/RestError"
@@ -57,6 +57,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import {client} from "../../misc/ClientDetector"
+import {DropdownChildAttrs} from "../../gui/base/DropdownN";
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
 // noinspection JSUnusedGlobalSymbols
@@ -435,7 +436,7 @@ export class CalendarView implements CurrentView {
     }
 
     _renderCalendarViewButtons(): Children {
-        const calendarViewValues = [
+        const calendarViewValues: Array<{name: string, value: CalendarViewType, icon: Icons, href: string}> = [
             {
                 name: lang.get("month_label"),
                 value: CalendarViewType.MONTH,
@@ -478,7 +479,7 @@ export class CalendarView implements CurrentView {
                         icon: () => viewType.icon,
                         href: m.route.get(),
                         isSelectedPrefix: viewType.href,
-                        colors: ButtonColor.Nav,
+                        colors: NavButtonColor.Nav,
                         // Close side menu
                         click: () => {
                             this._setUrl(viewType.value, this._calendarViewModel.selectedDate())
@@ -647,7 +648,7 @@ export class CalendarView implements CurrentView {
                         click: () => this._confirmDeleteCalendar(calendarInfo),
                         isVisible: () => !sharedCalendar,
                     },
-                ].filter(Boolean),
+                ].filter(Boolean) as ReadonlyArray<DropdownChildAttrs> ,
             ),
         )
     }

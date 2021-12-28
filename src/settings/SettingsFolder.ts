@@ -14,14 +14,14 @@ type SettingsFolderPath =
 export class SettingsFolder<T> {
     url: string // can be changed from outside
 
-    readonly data: T
+    readonly data?: T
     readonly name: TranslationKey | lazy<string>
     readonly icon: lazyIcon
     readonly path: SettingsFolderPath
     readonly viewerCreator: lazy<UpdatableSettingsViewer>
     _isVisibleHandler: lazy<boolean>
 
-    constructor(name: TranslationKey | lazy<string>, icon: lazyIcon, path: SettingsFolderPath, viewerCreator: lazy<UpdatableSettingsViewer>, data: T) {
+    constructor(name: TranslationKey | lazy<string>, icon: lazyIcon, path: SettingsFolderPath, viewerCreator: lazy<UpdatableSettingsViewer>, data?: T) {
         this.data = data
         this.name = name
         this.icon = icon

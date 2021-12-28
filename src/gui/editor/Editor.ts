@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import SquireEditor from "squire-rte"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
@@ -14,9 +14,10 @@ type Style = "b" | "i" | "u" | "c" | "a"
 type Alignment = "left" | "center" | "right" | "justify"
 type Listing = "ol" | "ul"
 type Styles = {
-    alignment: Alignment
-    listing: Listing | null
-    [key: Style]: boolean
+	[key in Style]: boolean
+} & {
+	alignment: Alignment
+	listing: Listing | null
 }
 export class Editor implements ImageHandler {
     _squire: Squire
@@ -75,7 +76,7 @@ export class Editor implements ImageHandler {
                 role: "textbox",
                 "aria-multiline": "true",
                 tabindex: TabIndex.Default,
-                oncreate: vnode => this.initSquire(vnode.dom),
+                oncreate: vnode => this.initSquire(vnode.dom as HTMLElement),
                 style: this._minHeight
                     ? {
                           "min-height": px(this._minHeight),

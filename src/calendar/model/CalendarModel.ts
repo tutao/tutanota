@@ -41,6 +41,7 @@ import m from "mithril"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import type {CalendarFacade} from "../../api/worker/facades/CalendarFacade"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
+import {DataFile} from "../../api/common/DataFile";
 export type CalendarInfo = {
     groupRoot: CalendarGroupRoot
     // We use LazyLoaded so that we don't get races for loading these events which is
@@ -195,7 +196,6 @@ export class CalendarModelImpl implements CalendarModel {
                 calendarInfos.set(groupRoot._id, {
                     groupRoot,
                     groupInfo,
-                    shortEvents: [],
                     longEvents: new LazyLoaded(() => this._entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
                     group: group,
                     shared: !isSameId(group.user, user._id),
@@ -249,7 +249,7 @@ export class CalendarModelImpl implements CalendarModel {
         zone: string,
         groupRoot: CalendarGroupRoot,
         alarmInfos: Array<AlarmInfo>,
-        existingEvent: CalendarEvent | null,
+        existingEvent?: CalendarEvent,
     ): Promise<void> {
         return import("../date/CalendarUtils").then(({assignEventId}) => {
             // if values of the existing events have changed that influence the alarm time then delete the old event and create a new
@@ -443,7 +443,6 @@ export class CalendarModelImpl implements CalendarModel {
         return promiseMap(updates, entityEventData => {
             if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
                 if (entityEventData.operation === OperationType.CREATE) {
-                    const userAlarmInfoId = [entityEventData.instanceListId, entityEventData.instanceId]
                     // Updates for UserAlarmInfo and CalendarEvent come in a
                     // separate batches and there's a race between loading of the
                     // UserAlarmInfo and creation of the event.
@@ -451,7 +450,7 @@ export class CalendarModelImpl implements CalendarModel {
                     // CalendarEvent is there (which might already be true)
                     // and load it.
                     return this._entityClient
-                        .load(UserAlarmInfoTypeRef, userAlarmInfoId)
+                        .load(UserAlarmInfoTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
                         .then(userAlarmInfo => {
                             const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
                             const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
@@ -481,7 +480,7 @@ export class CalendarModelImpl implements CalendarModel {
                 (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)
             ) {
                 const deferredEvent = getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer)
-                deferredEvent.resolve()
+                deferredEvent.resolve(null)
                 return deferredEvent.promise
             } else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
                 return this._entityClient

@@ -2,20 +2,22 @@
  * Hey you! Don't import anything in this file, or all these declarations will cease to be global!
  */
 
-declare type TimeoutID = any
+declare type TimeoutID = ReturnType<setTimeout>
+declare type AnimationFrameID = ReturnType<requestAnimationFrame>
 declare type NumberString = string
 declare type Id = string
-declare type IdTuple = [string, string]
-declare type Params = { [key: string]: string }
+declare type IdTuple = Readonly<[string, string]>
+declare type Dict = { [key: string]: string }
 
 /** Requests from main web thread to worker */
-declare type WorkerRequestType = 'setup'
-		| 'generateSignupKeys'
+declare type WorkerRequestType =
+		| 'setup'
+		// | 'generateSignupKeys'
 		| 'reset'
 		| 'testEcho'
 		| 'testError'
 		| 'restRequest'
-		| 'entityRequest'
+		// | 'entityRequest'
 		| 'serviceRequest'
 		| 'entropy'
 		| 'tryReconnectEventBus'
@@ -125,6 +127,7 @@ declare type JsRequestType = 'createMailEditor'
 
 // TODO these two should be declared under test/
 declare function browser(f: Function): Function
+
 declare function node(f: Function): Function
 
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
@@ -135,6 +138,3 @@ declare type Aes128Key = BitArray
 declare type Aes256Key = BitArray
 declare type SignedBytes = number[]
 declare type Base32 = string
-
-declare type Values<T> = T[keyof T]
-declare type PropertyType<T, K> = K extends keyof T ? T[K] : never;

@@ -5,7 +5,8 @@ import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMI
 import {Type, ValueType} from "./EntityConstants"
 import {last, TypeRef} from "@tutao/tutanota-utils"
 import {getFirstIdIsBiggerFnForType, resolveTypeReference} from "./EntityFunctions"
-import type {ListElementEntity, SomeEntity} from "./EntityTypes"
+import type {ElementEntity, ListElementEntity, SomeEntity} from "./EntityTypes"
+import {downcast} from "@tutao/tutanota-utils/dist";
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -14,7 +15,7 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Params, extraHeaders?: Params): Promise<T> {
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, query?: Dict, extraHeaders?: Dict): Promise<T> {
 		return this._target.load(typeRef, id, query, extraHeaders)
 	}
 
@@ -78,7 +79,7 @@ export class EntityClient {
 		return this._target.loadMultiple(typeRef, listId, elementIds)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Params): Promise<Id> {
+	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict): Promise<Id> {
 		return this._target.setup(listId, instance, extraHeaders)
 	}
 
@@ -94,11 +95,11 @@ export class EntityClient {
 		return this._target.erase(instance)
 	}
 
-	async loadRoot<T extends SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
+	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 		const typeModel = await resolveTypeReference(typeRef)
-		let rootId = [groupId, typeModel.rootId]
+		const rootId = [groupId, typeModel.rootId] as const
 		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId)
-		return this.load<T>(typeRef, root.reference)
+		return this.load<T>(typeRef, downcast(root.reference)) // FIXME Passing in Id here should be allowed?
 	}
 }
 

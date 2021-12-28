@@ -1,15 +1,14 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {ColumnType, ViewColumn} from "./ViewColumn"
 import {windowFacade} from "../../misc/WindowFacade"
 import {size} from "../size"
-import {alpha, animations, transform} from "../animation/Animations"
+import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "@tutao/tutanota-utils"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
 import {styles} from "../styles"
-import type {AriaLandmarks} from "../AriaUtils"
 import {AriaLandmarks} from "../AriaUtils"
 import {LayerType} from "../../RootView"
 import type {windowSizeListener} from "../../misc/WindowFacade"
@@ -78,7 +77,7 @@ export class ViewSlider {
                 ".fill-absolute.flex.col",
                 {
                     oncreate: vnode => {
-                        this._attachTouchHandler(vnode.dom)
+                        this._attachTouchHandler(vnode.dom as HTMLElement)
                     },
                     onremove: () => {
                         if (this.columns[0].columnType === ColumnType.Foreground && this.columns[0].isInForeground) {
@@ -93,7 +92,7 @@ export class ViewSlider {
                         ".view-columns.backface_fix.flex-grow.rel",
                         {
                             oncreate: vnode => {
-                                this._domSlidingPart = vnode.dom
+                                this._domSlidingPart = vnode.dom as HTMLElement
                             },
                             style: {
                                 width: this.getWidth() + "px",
@@ -145,10 +144,10 @@ export class ViewSlider {
                         zIndex: LayerType.ForegroundMenu,
                     },
                     oncreate: vnode => {
-                        this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
+                        this._busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0, 0.5)))
                     },
                     onbeforeremove: vnode => {
-                        return this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0.5, 0)))
+                        return this._busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0.5, 0)))
                     },
                     onclick: (event: MouseEvent) => {
                         this.focus(this._visibleBackgroundColumns[0])
@@ -305,8 +304,8 @@ export class ViewSlider {
      */
     _slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
         return animations
-            .add(this._domSlidingPart, transform(transform.type.translateX, oldOffset, newOffset), {
-                easingFunction: ease.inOut,
+            .add(this._domSlidingPart, transform(TransformEnum.TranslateX, oldOffset, newOffset), {
+                easing: ease.inOut,
             })
             .finally(() => {
                 // replace the visible column
@@ -329,8 +328,8 @@ export class ViewSlider {
         let newOffset = foregroundColumn.getOffsetForeground(toForeground)
         this._isModalBackgroundVisible = toForeground
         return animations
-            .add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
-                easingFunction: ease.in,
+            .add(neverNull(foregroundColumn._domColumn), transform(TransformEnum.TranslateX, oldOffset, newOffset), {
+				easing: ease.in,
             })
             .finally(() => {
                 foregroundColumn.isInForeground = toForeground

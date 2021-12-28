@@ -1,5 +1,5 @@
 import {assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp} from "../../api/common/Env"
-import type {Message, Transport} from "../../api/common/MessageDispatcher"
+import type {Commands, Message, Transport} from "../../api/common/MessageDispatcher"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher"
 import type {Base64, DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
@@ -56,7 +56,7 @@ class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestTy
         this.port.then(port => port.postMessage(JSON.stringify(message)))
     }
 
-    setMessageHandler(handler: (arg0: JsMessage) => unknown): unknown {
+    setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
         this._messageHandler = handler
     }
 }
@@ -77,7 +77,7 @@ class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> 
         window.nativeApp.invoke(JSON.stringify(message))
     }
 
-    setMessageHandler(handler: (arg0: JsMessage) => unknown): unknown {
+    setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
         this._messageHandler = handler
     }
 
@@ -101,7 +101,7 @@ class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
         window.nativeApp.invoke(message)
     }
 
-    setMessageHandler(handler: (arg0: JsMessage) => unknown): unknown {
+    setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
         window.nativeApp.attach(handler)
     }
 }
@@ -124,7 +124,9 @@ export class NativeInterfaceMain implements NativeInterface {
             throw new ProgrammingError("Tried to create a native interface in the browser")
         }
 
-        const commands = isApp() ? appCommands : desktopCommands
+		// All possible commands are in a big pile together, but we only need certain ones for either app or desktop
+		// Typescript doesn't like this, we could be more specific
+        const commands = downcast<Commands<JsRequestType>>(isApp() ? appCommands : desktopCommands)
         // Ensure that we have messaged native with "init" before we allow anyone else to make native requests
         const queue = new MessageDispatcher(transport, commands)
         await queue.postRequest(new Request("init", []))

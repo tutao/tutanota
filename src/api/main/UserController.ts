@@ -51,7 +51,7 @@ export interface IUserController {
     getUserMailGroupMembership(): GroupMembership
     getLocalAdminGroupMemberships(): GroupMembership[]
     getTemplateMemberships(): GroupMembership[]
-    entityEventsReceived(arg0: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>
+    entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>
     deleteSession(sync: boolean): Promise<void>
     loadWhitelabelConfig(): Promise<
         | {

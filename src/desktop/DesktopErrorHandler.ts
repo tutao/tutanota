@@ -34,7 +34,7 @@ export class DesktopErrorHandler {
             .on("uncaughtException", error => {
                 this.handleUnexpectedFailure(error)
             })
-            .on("unhandledRejection", (error, p) => {
+            .on("unhandledRejection", (error: Error, p) => {
                 this.handleUnexpectedFailure(error)
             })
 

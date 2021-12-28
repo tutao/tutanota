@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import type {ModalComponent} from "../../gui/base/Modal"
 import {modal} from "../../gui/base/Modal"
 import {px} from "../../gui/size"
@@ -32,6 +32,7 @@ import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
 import type {windowSizeListener} from "../../misc/WindowFacade"
+import Stream from "mithril/stream";
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
 export const TEMPLATE_LIST_ENTRY_HEIGHT = 47
@@ -252,7 +253,7 @@ export class TemplatePopup implements ModalComponent {
                 this._debounceFilter(value)
             },
             oncreate: vnode => {
-                this._inputDom = vnode.dom.firstElementChild // firstElementChild is the input field of the input wrapper
+                this._inputDom = vnode.dom.firstElementChild as HTMLElement // firstElementChild is the input field of the input wrapper
             },
         })
     }
@@ -405,7 +406,7 @@ export class TemplatePopup implements ModalComponent {
             selectedItem: this._templateModel.selectedTemplate,
             emptyListMessage: () => (this._templateModel.isLoaded() ? "nothingFound_label" : "loadingTemplates_label"),
             width: TEMPLATE_LIST_ENTRY_WIDTH,
-            renderItem: template =>
+            renderItem: (template: EmailTemplate) =>
                 m(TemplatePopupResultRow, {
                     template: template,
                 }),

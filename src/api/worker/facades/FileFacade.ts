@@ -13,7 +13,7 @@ import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
 import {handleRestError} from "../../common/error/RestError"
-import {convertToDataFile} from "../../common/DataFile"
+import {convertToDataFile, DataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {StorageService} from "../../entities/storage/Services"
 import {createBlobId} from "../../entities/sys/BlobId"
@@ -29,6 +29,9 @@ import {aes128Decrypt, random, sha256Hash, uint8ArrayToKey} from "@tutao/tutanot
 import type {NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
 import {InstanceMapper} from "../crypto/InstanceMapper"
+import {FileReference} from "../../common/utils/FileUtils";
+import {TutanotaService} from "../../entities/tutanota/Services";
+
 assertWorkerOrNode()
 const REST_PATH = "/rest/tutanota/filedataservice"
 const STORAGE_REST_PATH = `/rest/storage/${StorageService.BlobService}`
@@ -132,7 +135,7 @@ export class FileFacade {
         fileData.size = dataFile.data.byteLength.toString()
         fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
 
-        return _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
+        return _service(TutanotaService.FileDataService, HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey).then(fileDataPostReturn => {
             // upload the file content
             let fileDataId = fileDataPostReturn.fileData
 
@@ -167,7 +170,7 @@ export class FileFacade {
             size: encryptedFileInfo.unencSize.toString(),
             group: this._login.getGroupId(GroupType.Mail), // currently only used for attachments
         })
-        const fileDataPostReturn = await _service("filedataservice", HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
+        const fileDataPostReturn = await _service(TutanotaService.FileDataService, HttpMethod.POST, fileData, FileDataReturnPostTypeRef, null, sessionKey)
         const fileDataId = fileDataPostReturn.fileData
 
         const headers = this._login.createAuthHeaders()

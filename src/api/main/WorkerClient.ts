@@ -26,6 +26,7 @@ import {AccountingService} from "../entities/accounting/Services";
 import {ProgressListener} from "../common/utils/ProgressMonitor";
 import {MonitorService} from "../entities/monitor/Services";
 import {StorageService} from "../entities/storage/Services";
+import {User} from "../entities/sys/User";
 
 assertMainOrNode()
 
@@ -139,20 +140,20 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			createProgressMonitor: (message: MainRequest) => {
-				const work = downcast(message.args[0])
+				const work = downcast<number>(message.args[0])
 				const reference = locator.progressTracker.registerMonitor(work)
 				return Promise.resolve(reference)
 			},
 			progressWorkDone: (message: MainRequest) => {
-				const reference = downcast(message.args[0])
-				const workDone = downcast(message.args[1])
+				const reference = downcast<number>(message.args[0])
+				const workDone = downcast<number>(message.args[1])
 				const monitor = locator.progressTracker.getMonitor(reference)
 				monitor && monitor.workDone(workDone)
 				return Promise.resolve()
 			},
 			writeIndexerDebugLog: (message: MainRequest) => {
-				const reason = downcast(message.args[0])
-				const user = downcast(message.args[1])
+				const reason = downcast<string>(message.args[0])
+				const user = downcast<User>(message.args[1])
 				addSearchIndexDebugEntry(reason, user)
 				return Promise.resolve()
 			},
@@ -175,17 +176,17 @@ export class WorkerClient {
 	restRequest<T>(
 			path: string,
 			method: HttpMethod,
-			queryParams: Params,
-			headers: Params,
+			queryParams: Dict,
+			headers: Dict,
 			body: (string | null) | (Uint8Array | null),
-			responseType: MediaType null,
-			progressListener: ProgressListener | null,
+			responseType: MediaType | null,
+			progressListener?: ProgressListener,
 	): Promise<any> {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
 
 	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<string | null> {
-		return this._postRequest(new Request("resolveSessionKey", arguments))
+		return this._postRequest(new Request("resolveSessionKey", [...arguments]))
 	}
 
 	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
@@ -195,11 +196,11 @@ export class WorkerClient {
 	serviceRequest<T>(
 			service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
 			method: HttpMethod,
-			requestEntity: any | null,
-			responseTypeRef: TypeRef<T> | null,
-			queryParameter: Params | null,
-			sk: Aes128Key | null,
-			extraHeaders?: Params,
+			requestEntity?: any,
+			responseTypeRef?: TypeRef<T>,
+			queryParameter?: Dict,
+			sk?: Aes128Key,
+			extraHeaders?: Dict,
 	): Promise<any> {
 		return this._postRequest(new Request("serviceRequest", Array.from(arguments)))
 	}
@@ -231,10 +232,10 @@ export class WorkerClient {
 	}
 
 	generateSsePushIdentifer(): Promise<string> {
-		return this._postRequest(new Request("generateSsePushIdentifer", arguments))
+		return this._postRequest(new Request("generateSsePushIdentifer", [...arguments]))
 	}
 
-	wsConnection(): Stream<WsConnectionState> {
+	wsConnection(): stream<WsConnectionState> {
 		return this._wsConnection.map(identity)
 	}
 
@@ -255,7 +256,7 @@ export class WorkerClient {
 	}
 
 	urlify(html: string): Promise<string> {
-		return this._postRequest(new Request("urlify", arguments))
+		return this._postRequest(new Request("urlify", [...arguments]))
 	}
 
 	/**

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -6,6 +6,7 @@ import {Icon} from "./base/Icon"
 import {Icons} from "./base/icons/Icons"
 import type {MaybeLazy} from "@tutao/tutanota-utils"
 import {resolveMaybeLazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type ScrollSelectListAttrs<T> = {
     items: ReadonlyArray<T>
     selectedItem: Stream<T | null>
@@ -45,11 +46,11 @@ export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> 
         )
     }
 
-    onupdate(vnode: Vnode<ScrollSelectListAttrs<T>>) {
+    onupdate(vnode) {
         const newSelectedItem = vnode.attrs.selectedItem()
 
         if (newSelectedItem !== this._selectedItem) {
-            this._onSelectionChanged(newSelectedItem, vnode.attrs.items, vnode.dom)
+            this._onSelectionChanged(newSelectedItem, vnode.attrs.items, vnode.dom as HTMLElement)
         }
     }
 

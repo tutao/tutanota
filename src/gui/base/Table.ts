@@ -1,12 +1,13 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import TableLine from "./TableLine"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Button} from "./Button"
 import {px, size} from "../size"
 import {progressIcon} from "./Icon"
 import type {ColumnWidth} from "./TableN"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/common/Env"
+
 assertMainOrNode()
 
 /**
@@ -14,101 +15,102 @@ assertMainOrNode()
  * The table shows a loading spinner until updateEntries() is called the first time.
  */
 export class Table {
-    _lines: TableLine[]
-    _loading: boolean
-    view: (...args: Array<any>) => any
+	_lines: TableLine[]
+	_loading: boolean
+	view: (...args: Array<any>) => any
 
-    /**
-     * @param columnHeadingTextIds The texts that shall appear as headers of each column.
-     * @param columnWidths The sizes of the columns in px. If 0 is specified the column shares the remaining space with all other '0' width columns.
-     * @param showActionButtonColumn True if addButton is specified or the table lines may contain action buttons.
-     * @param addButton If set, this button appears beside the expander button.
-     */
-    constructor(
-        columnHeadingTextIds: TranslationKey[],
-        columnWidths: ColumnWidth[],
-        showActionButtonColumn: boolean,
-        addButton: Button | null,
-    ) {
-        this._lines = []
-        this._loading = true
+	/**
+	 * @param columnHeadingTextIds The texts that shall appear as headers of each column.
+	 * @param columnWidths The sizes of the columns in px. If 0 is specified the column shares the remaining space with all other '0' width columns.
+	 * @param showActionButtonColumn True if addButton is specified or the table lines may contain action buttons.
+	 * @param addButton If set, this button appears beside the expander button.
+	 */
+	constructor(
+			columnHeadingTextIds: TranslationKey[],
+			columnWidths: ColumnWidth[],
+			showActionButtonColumn: boolean,
+			addButton: Button | null,
+	) {
+		this._lines = []
+		this._loading = true
 
-        this.view = (): Children => {
-            return m("", [
-                m("table.table", [
-                    [
-                        this._createLine(
-                            columnHeadingTextIds.map(textId => lang.get(textId)),
-                            showActionButtonColumn,
-                            this._loading ? null : addButton,
-                            columnWidths,
-                            true,
-                        ),
-                    ].concat(this._createContentLines(showActionButtonColumn, columnWidths)),
-                ]),
-                this._loading ? m(".flex-center.items-center.button-height", progressIcon()) : null,
-                !this._loading && this._lines.length === 0 ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null,
-            ])
-        }
-    }
+		this.view = (): Children => {
+			return m("", [
+				m("table.table", [
+					[
+						this._createLine(
+								columnHeadingTextIds.map(textId => lang.get(textId)),
+								showActionButtonColumn,
+								this._loading ? null : addButton,
+								columnWidths,
+								true,
+						),
+					].concat(this._createContentLines(showActionButtonColumn, columnWidths)),
+				]),
+				this._loading ? m(".flex-center.items-center.button-height", progressIcon()) : null,
+				!this._loading && this._lines.length === 0 ? m(".flex-center.items-center.button-height", lang.get("noEntries_msg")) : null,
+			])
+		}
+	}
 
-    _createContentLines(showActionButtonColumn: boolean, columnWidths: ColumnWidth[]): Children[] {
-        return this._lines.map(line => {
-            return this._createLine(line.cells, showActionButtonColumn, showActionButtonColumn ? line.actionButton : null, columnWidths, false)
-        })
-    }
+	_createContentLines(showActionButtonColumn: boolean, columnWidths: ColumnWidth[]): Children[] {
+		return this._lines.map(line => {
+			return this._createLine(line.cells, showActionButtonColumn, showActionButtonColumn ? line.actionButton : null, columnWidths, false)
+		})
+	}
 
-    _createLine(
-        texts: string[],
-        showActionButtonColumn: boolean,
-        actionButton: Button | null,
-        columnWidths: ColumnWidth[],
-        bold: boolean,
-    ): Children {
-        let cells = texts.map((text, index) =>
-            m(
-                "td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index] + (bold ? ".b" : ""),
-                {
-                    title: text, // show the text as tooltip, so ellipsed lines can be shown
-                },
-                text,
-            ),
-        )
+	_createLine(
+			texts: string[],
+			showActionButtonColumn: boolean,
+			actionButton: Button | null,
+			columnWidths: ColumnWidth[],
+			bold: boolean,
+	): Children {
+		let cells = texts.map((text, index) =>
+				m(
+						"td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index] + (bold ? ".b" : ""),
+						{
+							title: text, // show the text as tooltip, so ellipsed lines can be shown
+						},
+						text,
+				),
+		)
 
-        if (showActionButtonColumn) {
-            cells.push(
-                m(
-                    "td",
-                    {
-                        style: {
-                            width: px(size.button_height),
-                        },
-                    },
-                    actionButton
-                        ? [
-                              m(
-                                  "",
-                                  {
-                                      style: {
-                                          position: "relative",
-                                          right: px(-size.hpad_button), // same as .mr-negative-s
-                                      },
-                                  },
-                                  m(actionButton),
-                              ),
-                          ]
-                        : [],
-                ),
-            )
-        }
+		if (showActionButtonColumn) {
+			cells.push(
+					m(
+							"td",
+							{
+								style: {
+									width: px(size.button_height),
+								},
+							},
+							actionButton
+									? [
+										m(
+												"",
+												{
+													style: {
+														position: "relative",
+														right: px(-size.hpad_button), // same as .mr-negative-s
+													},
+												},
+												// @ts-ignore
+												m(actionButton),
+										),
+									]
+									: [],
+					),
+			)
+		}
 
-        return m("tr.selectable", cells)
-    }
+		return m("tr.selectable", cells)
+	}
 
-    updateEntries(lines: TableLine[]) {
-        this._lines = lines
-        this._loading = false
-        // wait for the animation frame, otherwise there is a problem when this function is called before the containing view is rendered
-        window.requestAnimationFrame(() => m.redraw())
-    }
+	updateEntries(lines: TableLine[]) {
+		this._lines = lines
+		this._loading = false
+		// wait for the animation frame, otherwise there is a problem when this function is called before the containing view is rendered
+		window.requestAnimationFrame(() => m.redraw())
+	}
 }

@@ -1,11 +1,10 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import type {PaidSubscriptionType} from "../api/common/TutanotaConstants"
 import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaConstants"
 import {SysService} from "../api/entities/sys/Services"
 import {serviceRequestVoid} from "../api/main/ServiceRequest"
@@ -15,7 +14,7 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
-import type {SubscriptionOptions, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
@@ -26,7 +25,14 @@ import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
-    view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+
+	dom!: HTMLElement
+
+	oncreate(vnode) {
+		this.dom = vnode.dom
+	}
+
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
         const attrs = vnode.attrs
         const isYearly = isYearlyPayment(attrs.data.options.paymentInterval())
         const newAccountData = attrs.data.newAccountData
@@ -34,23 +40,23 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
             label: "subscription_label",
             value: stream(getDisplayNameOfSubscriptionType(attrs.data.type)),
             disabled: true,
-        }
+        } as const
         const subscription = (isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label")
         const subscriptionFieldAttrs = {
             label: "subscriptionPeriod_label",
             value: stream(subscription),
             disabled: true,
-        }
+        } as const
         const priceFieldAttrs = {
             label: isYearly ? "priceFirstYear_label" : "price_label",
             value: stream(buildPriceString(attrs.data.price, attrs.data.options)),
             disabled: true,
-        }
+        } as const
         const paymentMethodFieldAttrs = {
             label: "paymentMethod_label",
             value: stream(getPaymentMethodName(attrs.data.paymentData.paymentMethod)),
             disabled: true,
-        }
+        } as const
 
         const upgrade = () => {
             const serviceData = createSwitchAccountTypeData()
@@ -66,7 +72,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
             )
                 .then(() => {
                     deleteCampaign()
-                    return this.close(attrs.data, vnode.dom)
+                    return this.close(attrs.data, this.dom)
                 })
                 .catch(
                     ofClass(PreconditionFailedError, e => {
@@ -121,7 +127,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
                               },
                               m(ButtonN, {
                                   label: "ok_action",
-                                  click: () => this.close(attrs.data, vnode.dom),
+                                  click: () => this.close(attrs.data, this.dom),
                                   type: ButtonType.Login,
                               }),
                           ),
@@ -168,7 +174,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
         ]
     }
 
-    _subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType
+    _subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType {
         if (subscriptionType === SubscriptionType.Premium) {
             return PaidSubscriptionType.Premium
         } else if (subscriptionType === SubscriptionType.PremiumBusiness) {

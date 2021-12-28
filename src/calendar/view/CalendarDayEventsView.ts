@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {ChildArray, Children, Component, Vnode} from "mithril"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "@tutao/tutanota-utils"
@@ -49,7 +49,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
             ".col.rel",
             {
                 oncreate: vnode => {
-                    this._dayDom = vnode.dom
+                    this._dayDom = vnode.dom as HTMLElement
                     m.redraw()
                 },
                 onmousemove: (mouseEvent: MouseEvent) => {

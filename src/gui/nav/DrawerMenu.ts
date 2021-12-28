@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {ButtonColor, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../base/Header"

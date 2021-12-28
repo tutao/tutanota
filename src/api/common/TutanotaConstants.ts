@@ -9,6 +9,10 @@ import {isAdminClient, isApp, isDesktop} from "./Env"
 import type {Country} from "./CountryList"
 import type {CreditCard} from "../entities/sys/CreditCard"
 import {ProgrammingError} from "./error/ProgrammingError";
+import {MailFolder} from "../entities/tutanota/MailFolder";
+import {ContactSocialId} from "../entities/tutanota/ContactSocialId";
+import {Customer} from "../entities/sys/Customer";
+import {AccountingInfo} from "../entities/sys/AccountingInfo";
 // export const reverse = <K, V>(objectMap: Record<K, V>): Record<V, K> =>
 //     Object.keys(objectMap).reduce((r, k) => {
 //         const v = objectMap[downcast(k)]
@@ -25,6 +29,15 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
 	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
 ])
+
+export const getMailFolderType = (folder: MailFolder): MailFolderType => downcast(folder.folderType)
+
+type ObjectPropertyKey = string | number | symbol;
+export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> => Object.keys(objectMap )
+		.reduce((r, k) => {
+			const v = objectMap[downcast(k)]
+			return Object.assign(r, {[v]: k})
+		}, {} as Record<V, K>)
 
 export const enum OutOfOfficeNotificationMessageType {
 	Default = "0",
@@ -106,13 +119,15 @@ export enum ContactSocialType {
 	CUSTOM = "5",
 }
 
+export const getContactSocialType = (contactSocialId: ContactSocialId): ContactSocialType => downcast(contactSocialId.type)
+
 export const enum OperationType {
 	CREATE = "0",
 	UPDATE = "1",
 	DELETE = "2",
 }
 
-export const enum AccountType {
+export enum AccountType {
 	SYSTEM = "0",
 	FREE = "1",
 	STARTER = "2",
@@ -131,7 +146,7 @@ export const enum PaidSubscriptionType {
 	Teams_Business = "5",
 }
 
-export const enum BookingItemFeatureType {
+export enum BookingItemFeatureType {
 	Users = "0",
 	Storage = "1",
 	Alias = "2",
@@ -144,6 +159,8 @@ export const enum BookingItemFeatureType {
 	Sharing = "9",
 	Business = "10",
 }
+export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
+export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
 
 export enum PaymentMethodType {
 	Invoice = "0",
@@ -193,6 +210,10 @@ export const enum ApprovalStatus {
 	PAID_SUBSCRIPTION_NEEDED = "8",
 	INITIAL_PAYMENT_PENDING = "9",
 	NO_ACTIVITY = "10",
+}
+
+export function getCustomerApprovalStatus(customer: Customer): ApprovalStatus {
+	return downcast(customer.approvalStatus)
 }
 
 export const enum InboxRuleType {
@@ -283,7 +304,7 @@ export const enum InputFieldType {
 	ENUM = "2",
 }
 
-export const enum SecondFactorType {
+export enum SecondFactorType {
 	u2f = "0",
 	totp = "1",
 	webauthn = "2",
@@ -782,7 +803,7 @@ export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAtte
 	return downcast(attendee.status)
 }
 
-export const enum CalendarMethod {
+export enum CalendarMethod {
 	PUBLISH = "PUBLISH",
 	REQUEST = "REQUEST",
 	REPLY = "REPLY",

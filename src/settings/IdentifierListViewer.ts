@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {isApp, isDesktop, isBrowser} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -25,6 +25,7 @@ import type {User} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
 type IdentifierRowAttrs = {
     name: string
     identifier: string

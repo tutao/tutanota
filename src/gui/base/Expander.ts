@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
@@ -9,6 +9,7 @@ import {theme} from "../theme"
 import {px} from "../size"
 import {DefaultAnimationTime} from "../animation/Animations"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export type ExpanderAttrs = {
     label: TranslationKey | lazy<string>
     expanded: Stream<boolean>
@@ -138,7 +139,7 @@ export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
                     ".expander-child-wrapper",
                     {
                         oncreate: vnode => {
-                            this.childDiv = vnode.dom
+                            this.childDiv = vnode.dom as HTMLElement
                             this.observer.observe(this.childDiv, {
                                 childList: true,
                                 subtree: true,

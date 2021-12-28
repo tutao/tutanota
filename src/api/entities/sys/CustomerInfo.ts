@@ -228,10 +228,10 @@ export type CustomerInfo = {
 	testEndTime: null | Date;
 	usedSharedEmailAliases: NumberString;
 
-	bookings: null | BookingsRef;
+	bookings:  null | BookingsRef;
 	domainInfos: DomainInfo[];
-	giftCards: null | GiftCardsRef;
+	giftCards:  null | GiftCardsRef;
 	accountingInfo: Id;
 	customer: Id;
-	takeoverCustomer: null | Id;
+	takeoverCustomer:  null | Id;
 }

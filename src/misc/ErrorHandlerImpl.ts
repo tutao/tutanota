@@ -10,7 +10,7 @@ import {
     SessionExpiredError,
 } from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
@@ -33,6 +33,7 @@ import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
+import Stream from "mithril/stream";
 assertMainOrNode()
 type FeedbackContent = {
     message: string
@@ -173,13 +174,13 @@ function ignoredError(e: Error): boolean {
     return e.message != null && ignoredMessages.some(s => e.message.includes(s))
 }
 
-export function promptForFeedbackAndSend(e: Error): Promise<FeedbackContent | null> {
+export function promptForFeedbackAndSend(e: Error): Promise<FeedbackContent | void> {
     const loggedIn = logins.isUserLoggedIn()
     return new Promise(resolve => {
         const preparedContent = prepareFeedbackContent(e, loggedIn)
         const detailsExpanded = stream(false)
         let userMessage = ""
-        const userMessageTextFieldAttrs = {
+        const userMessageTextFieldAttrs: TextFieldAttrs = {
             label: "yourMessage_label",
             helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
             value: stream(userMessage),
@@ -211,7 +212,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<FeedbackContent | nu
                 click: () => {
                     addToIgnored()
                     unknownErrorDialogActive = false
-                    resolve()
+                    resolve(null)
                 },
             },
             [
@@ -272,7 +273,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<FeedbackContent | nu
         }
     }).then(content => {
         if (content) {
-            sendFeedbackMail(content)
+            sendFeedbackMail(content as FeedbackContent)
         }
     })
 }
@@ -305,20 +306,13 @@ export function clientInfoString(
         : "UNKNOWN"
 
     const client = (() => {
-        let client = env.platformId
-
         switch (env.mode) {
-            case Mode.App:
-            case Mode.Desktop:
-                client = env.platformId
-                break
-
             case Mode.Browser:
             case Mode.Test:
-                client = env.mode
+                return env.mode
+			default:
+                return env.platformId ?? ""
         }
-
-        return client ? client : ""
     })()
 
     let message = `\n\n Client: ${client}`
@@ -459,6 +453,7 @@ function handleImportError() {
 }
 
 if (typeof window !== "undefined") {
+	// @ts-ignore
     window.tutao.testError = () => handleUncaughtError(new Error("test error!"))
 }
 

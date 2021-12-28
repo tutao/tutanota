@@ -1,10 +1,11 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import type {TableAttrs} from "../gui/base/TableN"
 import {TableN} from "../gui/base/TableN"
 import {SettingsExpander} from "./SettingsExpander"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 type ExpandableTableAttrs = {
     title: TranslationKey | lazy<string>
     table: TableAttrs

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import {Dialog, DialogType} from "../base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import {DatePicker} from "./DatePicker"

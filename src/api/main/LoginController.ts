@@ -32,7 +32,7 @@ export type LoggedInEvent = {
 export interface LoginController {
     createSession(username: string, password: string, sessionType: SessionType): Promise<Credentials>
     createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
-    resumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null): Promise<void>
+    resumeSession(credentials: Credentials, externalUserSalt?: Uint8Array): Promise<void>
     isUserLoggedIn(): boolean
     waitForUserLogin(): Promise<LoggedInEvent>
     isInternalUserLoggedIn(): boolean

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../LanguageViewModel"
 import {lang} from "../LanguageViewModel"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -77,7 +77,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
             return null
         }
 
-        if (webauthn.canLogin) {
+        if (webauthn.canLogin === true) {
             return this.renderWebauthnLogin(webauthn)
         } else {
             return this._renderOtherDomainLogin(webauthn)

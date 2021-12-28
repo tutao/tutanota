@@ -50,7 +50,7 @@ import {CredentialAuthenticationError} from "../error/CredentialAuthenticationEr
 import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidatedError"
 import type {FeatureType, OperationType} from "../TutanotaConstants"
 import {ImportError} from "../error/ImportError"
-export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName: string | null): DomainInfo | null {
+export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
     return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName))
 }
 export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {

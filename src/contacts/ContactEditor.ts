@@ -44,6 +44,7 @@ import {ContactAggregateEditor} from "./ContactAggregateEditor"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar";
 assertMainOrNode()
 export class ContactEditor {
     contact: Contact
@@ -72,8 +73,8 @@ export class ContactEditor {
     constructor(
         entityClient: EntityClient,
         contact: Contact | null,
-        listId: Id | null,
-        newContactIdReceiver: ((contactId: Id) => unknown) | null,
+        listId?: Id,
+        newContactIdReceiver?: ((contactId: Id) => unknown),
     ) {
         this.entityClient = entityClient
         this.contact = contact ? clone(contact) : createContact()
@@ -498,7 +499,7 @@ export class ContactEditor {
 
     _createDialog(): Dialog {
         const name: Stream<string> = stream.merge([this.firstName, this.lastName]).map(names => names.join(" "))
-        const headerBarAttrs = {
+        const headerBarAttrs: DialogHeaderBarAttrs = {
             left: [this._createCloseButtonAttrs()],
             middle: name,
             right: [

@@ -1,7 +1,7 @@
 import m from "mithril"
 import {px, size} from "../../gui/size"
 import {displayOverlay} from "../../gui/base/Overlay"
-import {DefaultAnimationTime, transform} from "../../gui/animation/Animations"
+import {DefaultAnimationTime, transform, TransformEnum} from "../../gui/animation/Animations"
 import {EventController} from "../../api/main/EventController"
 import {styles} from "../../gui/styles"
 import {LayerType} from "../../RootView"
@@ -12,6 +12,8 @@ import {MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewMode
 import {MinimizedEditorOverlay} from "./MinimizedEditorOverlay"
 import {windowFacade} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
+import Stream from "mithril/stream";
+
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
 const MINIMIZED_OVERLAY_WIDTH_SMALL = 220
@@ -59,11 +61,11 @@ function showMinimizedEditorOverlay(
         },
         dom => {
             overlayDom = dom
-            return transform(transform.type.translateY, 0, -getVerticalOverlayPosition())
+            return transform(TransformEnum.TranslateY, 0, -getVerticalOverlayPosition())
         },
         dom => {
             windowFacade.removeResizeListener(resizeListener)
-            return transform(transform.type.translateY, -getVerticalOverlayPosition(), 0)
+            return transform(TransformEnum.TranslateY, -getVerticalOverlayPosition(), 0)
         },
         "minimized-shadow",
     )

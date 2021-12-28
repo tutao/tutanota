@@ -14,11 +14,11 @@ assertWorkerOrNode()
 export function _service<T>(
 		service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
 		method: HttpMethod,
-		requestEntity: any | null,
-		responseTypeRef: TypeRef<T> | null,
-		queryParameter: Params | null,
-		sk: Aes128Key | null,
-		extraHeaders?: Params,
+		requestEntity?:any,
+		responseTypeRef?: TypeRef<T>,
+		queryParameter?: Dict,
+		sk?: Aes128Key,
+		extraHeaders?: Dict,
 ): Promise<any> {
 	return resolveTypeReference(requestEntity ? requestEntity._type : (responseTypeRef as any)).then(modelForAppAndVersion => {
 		let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`

@@ -6,7 +6,6 @@ import {Metadata} from "../search/Indexer"
 import {LazyLoaded} from "@tutao/tutanota-utils"
 import type {User} from "../../entities/sys/User"
 import {assertNotNull} from "@tutao/tutanota-utils"
-import type {ExternalImageRule} from "../../common/TutanotaConstants"
 import {ExternalImageRule} from "../../common/TutanotaConstants"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 const VERSION: number = 1

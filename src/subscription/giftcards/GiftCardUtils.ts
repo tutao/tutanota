@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import QRCode from "qrcode"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
@@ -8,7 +8,7 @@ import {locator} from "../../api/main/MainLocator"
 import type {GiftCard} from "../../api/entities/sys/GiftCard"
 import {_TypeModel as GiftCardTypeModel, GiftCardTypeRef} from "../../api/entities/sys/GiftCard"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
+import {lang, TranslationText} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/main/UserError"
 import {showServiceTerms} from "../SubscriptionUtils"
 import {Dialog} from "../../gui/base/Dialog"
@@ -36,6 +36,7 @@ import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtil
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
 import type {Base64} from "@tutao/tutanota-utils/"
+import Stream from "mithril/stream";
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
 export function getTokenFromUrl(url: string): [Id, string] {
@@ -228,7 +229,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
                                   })
                                 : null,
                         ]),
-                        m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage))),
+                        m(".flex-center", m("small.noprint", lang.getMaybeLazy(infoMessage as TranslationText))),
                     ]),
             },
         )
@@ -255,9 +256,8 @@ export function renderGiftCardSvg(price: number, country: Country, link: string 
         const svg = qrcodeGenerator.svg({
             container: null,
         })
-        qrCode = htmlSanitizer.sanitize(svg, {
+        qrCode = htmlSanitizer.sanitizeSVG(svg, {
             blockExternalContent: false,
-            useSvgNamespace: true,
         }).text
     }
 

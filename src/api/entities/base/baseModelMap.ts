@@ -1,4 +1,4 @@
 const map: Record<string, unknown> = {
-	PersistenceResourcePostReturn: () => import('./PersistenceResourcePostReturn')
+    PersistenceResourcePostReturn: () => import('./PersistenceResourcePostReturn')
 }
 export default map

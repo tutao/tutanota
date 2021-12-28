@@ -101,7 +101,7 @@ export function formatStorageSize(sizeInBytes: number): string {
 export function urlEncodeHtmlTags(text: string): string {
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
 }
-export function formatNameAndAddress(name: string, address: string, countryCode: string | null): string {
+export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
     let result = ""
 
     if (name) {
@@ -126,7 +126,7 @@ export function formatNameAndAddress(name: string, address: string, countryCode:
 
     return result
 }
-export function getHourCycle(userSettings: UserSettingsGroupRoot): string {
+export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
     return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
 export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {

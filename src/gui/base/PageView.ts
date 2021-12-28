@@ -1,6 +1,6 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {SwipeHandler} from "./SwipeHandler"
-import {animations, transform} from "../animation/Animations"
+import {animations, transform, TransformEnum} from "../animation/Animations"
 type Page = {
     key: string | number
     nodes: Children
@@ -23,8 +23,8 @@ export class PageView implements Component<Attrs> {
             ".fill-absolute",
             {
                 oncreate: vnode => {
-                    this._viewDom = vnode.dom
-                    this._swipeHandler = new PageSwipeHandler(vnode.dom, next => this._onChangePage(next))
+                    this._viewDom = vnode.dom as HTMLElement
+                    this._swipeHandler = new PageSwipeHandler(this._viewDom, next => this._onChangePage(next))
                 },
             },
             [
@@ -88,7 +88,7 @@ export class PageSwipeHandler extends SwipeHandler {
         if (Math.abs(delta.x) > 100) {
             this._xoffset = 0
             return animations
-                .add(this.touchArea, transform(transform.type.translateX, delta.x, this.touchArea.offsetWidth * (delta.x > 0 ? 1 : -1)))
+                .add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, this.touchArea.offsetWidth * (delta.x > 0 ? 1 : -1)))
                 .then(() => {
                     this._onGestureCompleted(delta.x < 0)
 
@@ -103,7 +103,7 @@ export class PageSwipeHandler extends SwipeHandler {
 
     reset(delta: {x: number; y: number}): Promise<any> {
         if (Math.abs(this._xoffset) > 40) {
-            animations.add(this.touchArea, transform(transform.type.translateX, delta.x, 0))
+            animations.add(this.touchArea, transform(TransformEnum.TranslateX, delta.x, 0))
         } else {
             this.touchArea.style.transform = ""
         }

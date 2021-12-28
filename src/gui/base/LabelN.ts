@@ -1,5 +1,5 @@
 
-import m from "mithril"
+import m, {Component, Vnode} from "mithril"
 import {px, size} from "../size"
 import {inputLineHeight} from "./TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
@@ -9,7 +9,7 @@ export type LabelAttrs = {
     label: TranslationKey | lazy<string>
 }
 
-class _LabelN {
+export class LabelN implements Component<LabelAttrs> {
     view(vnode: Vnode<LabelAttrs>) {
         return m(".rel.pt", [
             m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s.small", lang.getMaybeLazy(vnode.attrs.label)),
@@ -36,5 +36,3 @@ class _LabelN {
         ])
     }
 }
-
-export const LabelN: Class<Component<LabelAttrs>> = _LabelN

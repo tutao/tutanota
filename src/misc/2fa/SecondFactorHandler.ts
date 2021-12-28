@@ -63,7 +63,7 @@ export class SecondFactorHandler implements SecondFactorAuthHandler {
 
     async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
         for (const update of updates) {
-            let sessionId = [neverNull(update.instanceListId), update.instanceId]
+            const sessionId: IdTuple = [neverNull(update.instanceListId), update.instanceId]
 
             if (isUpdateForTypeRef(SessionTypeRef, update)) {
                 if (update.operation === OperationType.CREATE) {

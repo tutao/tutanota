@@ -6,7 +6,7 @@ export class CryptoError extends TutanotaError {
      * @param message An information about the exception.
      * @param error The original error that was thrown.
      */
-    constructor(message: string, error: Error | null) {
+    constructor(message: string, error?: Error) {
         super("CryptoError", error ? message + "> " + (error.stack ? error.stack : error.message) : message)
     }
 }

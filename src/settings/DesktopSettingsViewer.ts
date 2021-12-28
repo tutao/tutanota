@@ -1,5 +1,4 @@
-
-import m from "mithril"
+import m, {Children} from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {Request} from "../api/common/MessageDispatcher"
@@ -17,13 +16,14 @@ import {Dialog} from "../gui/base/Dialog"
 import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 import type {MailExportMode} from "../mail/export/Exporter"
-import type {DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog} from "../gui/dialogs/SpellcheckLanguageDialog"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import Stream from "mithril/stream";
+
 assertMainOrNode()
 const DownloadLocationStrategy = Object.freeze({
     ALWAYS_ASK: 0,
@@ -41,7 +41,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
     _updateAvailable: Stream<boolean>
     _mailExportMode: Stream<MailExportMode>
     _isPathDialogOpen: boolean
-    _configKeys: Promise<DesktopConfigKey>
 
     constructor() {
         this._isDefaultMailtoHandler = stream(false)
@@ -53,8 +52,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
         this._showAutoUpdateOption = true
         this._updateAvailable = stream(false)
         this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
-
-        this._configKeys = import("../desktop/config/ConfigKeys").then(configKeys => configKeys.DesktopConfigKey)
     }
 
     oninit() {
@@ -107,7 +104,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
             selectionChangedHandler: v => {
                 this._runAsTrayApp(v)
 
-                this.updateConfigBoolean("runAsTrayApp", v)
+                this.updateConfigBoolean(DesktopConfigKey.runAsTrayApp, v)
             },
         }
         const setRunOnStartupAttrs: DropDownSelectorAttrs<boolean> = {
@@ -184,7 +181,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
             selectionChangedHandler: v => {
                 this._mailExportMode(v)
 
-                this.updateConfig("mailExportMode", v)
+                this.updateConfig(DesktopConfigKey.mailExportMode, v)
             },
         }
         const updateHelpLabelAttrs: UpdateHelpLabelAttrs = {
@@ -208,7 +205,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
             selectionChangedHandler: v => {
                 this._isAutoUpdateEnabled(v)
 
-                this.updateConfigBoolean("enableAutoUpdate", v)
+                this.updateConfigBoolean(DesktopConfigKey.enableAutoUpdate, v)
             },
         }
         const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown(
@@ -276,7 +273,6 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
     async _requestDesktopConfig() {
         this._defaultDownloadPath = stream(lang.get("alwaysAsk_action"))
-        const DesktopConfigKey = await this._configKeys
         const [
             integrationInfo,
             defaultDownloadPath,
@@ -334,7 +330,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
         this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get("alwaysAsk_action"))
 
-        await this._configKeys.then(DesktopConfigKey => this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0]))
+        await this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0])
         this._isPathDialogOpen = false
     }
 

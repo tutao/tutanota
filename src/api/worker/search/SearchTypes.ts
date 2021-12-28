@@ -1,9 +1,9 @@
 import type {DbFacade} from "./DbFacade"
 import type {GroupType} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
+import type {lazy} from "@tutao/tutanota-utils"
 import {TypeRef} from "@tutao/tutanota-utils"
 import type {ModelAssociation, ModelValue} from "../../common/EntityTypes"
-import type {lazy} from "@tutao/tutanota-utils"
 import type {Base64} from "@tutao/tutanota-utils/"
 // db types
 
@@ -17,23 +17,23 @@ export type EncryptedSearchIndexEntry = Uint8Array
  */
 export type SearchIndexDbRow = Uint8Array
 export type SearchIndexMetaDataDbRow = {
-    id: number
-    word: string
-    rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...] encoded and encrypted SearchIndexMetadataEntry
+	id: number
+	word: string
+	rows: Uint8Array // sequences of numbers like: [app, type, indexRowId, size, app, type, ...] encoded and encrypted SearchIndexMetadataEntry
 }
 export type ElementDataDbRow = [
-    Id, // first list id
-    Uint8Array, // second is enc meta row keys encoded in binary format
-    Id, // third is owner group id
+	Id, // first list id
+	Uint8Array, // second is enc meta row keys encoded in binary format
+	Id, // third is owner group id
 ]
 export type EncryptedSearchIndexEntryWithHash = {
-    encEntry: EncryptedSearchIndexEntry
-    idHash: number
+	encEntry: EncryptedSearchIndexEntry
+	idHash: number
 }
 export type GroupData = {
-    lastBatchIds: Id[]
-    indexTimestamp: number
-    groupType: GroupType
+	lastBatchIds: Id[]
+	indexTimestamp: number
+	groupType: GroupType
 }
 // runtime types
 export type B64EncIndexKey = Base64
@@ -41,113 +41,115 @@ type EncIndexKey = Uint8Array
 type EncInstanceId = Uint8Array
 export type B64EncInstanceId = Base64
 export type AttributeHandler = {
-    attribute: ModelValue | ModelAssociation
-    value: lazy<string>
+	attribute: ModelValue | ModelAssociation
+	value: lazy<string>
 }
 export type ElementDataSurrogate = {
-    listId: Id
-    // we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail
-    encWordsB64: Array<B64EncIndexKey>
-    ownerGroup: Id
+	listId: Id
+	// we store it here instead of SearchIndexEntry to allow moving mails without changing the SearchIndexEntries for the mail
+	encWordsB64: Array<B64EncIndexKey>
+	ownerGroup: Id
 }
 export type KeyToIndexEntries = {
-    indexKey: Base64
-    indexEntries: DecryptedSearchIndexEntry[]
+	indexKey: Base64
+	indexEntries: DecryptedSearchIndexEntry[]
 }
 export type KeyToEncryptedIndexEntries = {
-    indexKey: Base64
-    indexEntries: EncryptedSearchIndexEntryWithHash[]
+	indexKey: Base64
+	indexEntries: EncryptedSearchIndexEntryWithHash[]
 }
 export type SearchIndexEntry = {
-    id: Id
-    attribute: number
-    positions: number[]
+	id: Id
+	attribute: number
+	positions: number[]
 }
 export type DecryptedSearchIndexEntry = SearchIndexEntry & {
-    encId: Uint8Array
+	encId: Uint8Array
 }
 // We calculate timestamp upfront because we need it for sorting when inserting
 export type EncSearchIndexEntryWithTimestamp = {
-    entry: EncryptedSearchIndexEntry
-    timestamp: number
+	entry: EncryptedSearchIndexEntry
+	timestamp: number
 }
 export type EncWordToMetaRow = Record<Base64, number>
 export type EncInstanceIdWithTimestamp = {
-    encInstanceId: Uint8Array
-    timestamp: number
-    appId: number
-    typeId: number
+	encInstanceId: Uint8Array
+	timestamp: number
+	appId: number
+	typeId: number
 }
 export type IndexUpdate = {
-    typeInfo: TypeInfo
-    // index update must be unique for type
-    create: {
-        encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>
-        // For each word there's a list of entries we want to insert
-        indexMap: Map<B64EncIndexKey, Array<EncSearchIndexEntryWithTimestamp>>
-    }
-    move: Array<{
-        encInstanceId: B64EncInstanceId
-        newListId: Id
-    }>
-    delete: {
-        // For each metadata row there's a list of entries we want to delete
-        searchMetaRowToEncInstanceIds: Map<number, Array<EncInstanceIdWithTimestamp>>
-        encInstanceIds: B64EncInstanceId[]
-    }
+	typeInfo: TypeInfo
+	// index update must be unique for type
+	create: {
+		encInstanceIdToElementData: Map<B64EncInstanceId, ElementDataSurrogate>
+		// For each word there's a list of entries we want to insert
+		indexMap: Map<B64EncIndexKey, Array<EncSearchIndexEntryWithTimestamp>>
+	}
+	move: Array<{
+		encInstanceId: B64EncInstanceId
+		newListId: Id
+	}>
+	delete: {
+		// For each metadata row there's a list of entries we want to delete
+		searchMetaRowToEncInstanceIds: Map<number, Array<EncInstanceIdWithTimestamp>>
+		encInstanceIds: B64EncInstanceId[]
+	}
 }
 export type Db = {
-    key: Aes256Key
-    // @pre: must not be accessed before initialized promise is resolved.
-    iv: Uint8Array
-    // fixed iv for all search index entries
-    dbFacade: DbFacade
-    initialized: Promise<void>
+	key: Aes256Key
+	// @pre: must not be accessed before initialized promise is resolved.
+	iv: Uint8Array
+	// fixed iv for all search index entries
+	dbFacade: DbFacade
+	initialized: Promise<void>
 }
 export type SearchIndexMetaDataRow = {
-    id: number
-    word: B64EncIndexKey
-    rows: Array<SearchIndexMetadataEntry>
+	id: number
+	word: B64EncIndexKey
+	rows: Array<SearchIndexMetadataEntry>
 }
 export type SearchIndexMetadataEntry = {
-    key: number
-    size: number
-    app: number
-    type: number
-    // we have app and type in search index meta to filter for type (mail, contact, users) before loading and decrypting index rows.
-    oldestElementTimestamp: number
+	key: number
+	size: number
+	app: number
+	type: number
+	// we have app and type in search index meta to filter for type (mail, contact, users) before loading and decrypting index rows.
+	oldestElementTimestamp: number
 }
 export type MoreResultsIndexEntry = {
-    id: Id
-    encId: Uint8Array
+	id: Id
+	encId: Uint8Array
 }
 export type SearchRestriction = {
-    type: TypeRef<any>
-    start: number | null
-    // timestamp
-    end: number | null
-    // timestamp
-    field: string | null
-    // must be kept in sync with attributeIds
-    attributeIds: number[] | null
-    // must be kept in sync with field
-    listId: Id | null
+	type: TypeRef<any>
+	start: number | null
+	// timestamp
+	end: number | null
+	// timestamp
+	field: string | null
+	// must be kept in sync with attributeIds
+	attributeIds: number[] | null
+	// must be kept in sync with field
+	listId: Id | null
 }
 export type SearchResult = {
-    query: string
-    restriction: SearchRestriction
-    results: IdTuple[]
-    currentIndexTimestamp: number
-    moreResults: Array<MoreResultsIndexEntry>
-    lastReadSearchIndexRow: Array<[string, number | null]>
-    // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
-    matchWordOrder: boolean
+	query: string
+	restriction: SearchRestriction
+	results: IdTuple[]
+	currentIndexTimestamp: number
+	maxResults?: number
+	moreResults: Array<MoreResultsIndexEntry>
+	moreResultsEntries: []
+	lastReadSearchIndexRow: Array<[string, number | null]>
+	// array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	matchWordOrder: boolean
 }
 export type SearchIndexStateInfo = {
-    initializing: boolean
-    mailIndexEnabled: boolean
-    progress: number
-    currentMailIndexTimestamp: number
-    indexedMailCount: number
-    failedIndexingUpTo: number | null
+	initializing: boolean
+	mailIndexEnabled: boolean
+	progress: number
+	currentMailIndexTimestamp: number
+	indexedMailCount: number
+	failedIndexingUpTo: number | null
 }

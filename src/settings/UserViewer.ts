@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Vnode} from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
@@ -67,6 +67,7 @@ export class UserViewer {
     _usedStorage: number | null
 
     constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
+		this.view = (vnode) => this._view(vnode)
         // used storage is unknown initially
         this._usedStorage = null
         this.userGroupInfo = userGroupInfo
@@ -214,7 +215,7 @@ export class UserViewer {
         this._updateUsedStorageAndAdminFlag()
     }
 
-    view(vnode: Vnode<any>): Children {
+    _view(vnode: Vnode<any>): Children {
         const editSenderNameButtonAttrs: ButtonAttrs = {
             label: "edit_action",
             click: () => {
@@ -224,39 +225,39 @@ export class UserViewer {
                 })
             },
             icon: () => Icons.Edit,
-        }
+        } as const
         const senderNameFieldAttrs = {
             label: "mailName_label",
             value: stream(this._senderName),
             disabled: true,
             injectionsRight: () => [m(ButtonN, editSenderNameButtonAttrs)],
-        }
+        } as const
         const mailAddressFieldAttrs = {
             label: "mailAddress_label",
             value: stream(this.userGroupInfo.mailAddress ?? ""),
             disabled: true,
-        }
+        } as const
         const createdFieldAttrs = {
             label: "created_label",
             value: stream(formatDateWithMonth(this.userGroupInfo.created)),
             disabled: true,
-        }
+        } as const
         const usedStorageFieldAttrs = {
             label: "storageCapacityUsed_label",
             value: this._usedStorage ? stream(formatStorageSize(this._usedStorage)) : stream(lang.get("loading_msg")),
             disabled: true,
-        }
+        } as const
         const changePasswordButtonAttrs: ButtonAttrs = {
             label: "changePassword_label",
             click: () => this._changePassword(),
             icon: () => Icons.Edit,
-        }
+        } as const
         const passwordFieldAttrs = {
             label: "password_label",
             value: stream("***"),
             injectionsRight: () => [m(ButtonN, changePasswordButtonAttrs)],
             disabled: true,
-        }
+        } as const
         const whitelistProtection = this._whitelistProtection
         return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
             m(".h4.mt-l", lang.get("userSettings_label")),
@@ -587,6 +588,7 @@ export function showUserImportDialog(customDomains: string[]) {
     let editor = new Editor("enterAsCSV_msg").showBorders().setMode(HtmlEditorMode.HTML).setValue(CSV_USER_FORMAT).setMinHeight(200)
     let form = {
         view: () => {
+			// @ts-ignore
             return [m(editor)]
         },
     }

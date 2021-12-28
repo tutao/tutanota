@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -29,6 +29,7 @@ import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/Regis
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
+import Stream from "mithril/stream"
 export type SignupFormAttrs = {
     /** Handle a new account signup. if readonly then the argument will always be null */
     newSignupHandler: (arg0: NewAccountData | null) => void
@@ -107,7 +108,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
                         a.isPaidSubscription(),
                         a.campaign(),
                     ).then(newAccountData => {
-                        a.newSignupHandler(newAccountData)
+                        a.newSignupHandler(newAccountData ? newAccountData : null)
                     })
                 }
             })
@@ -193,7 +194,7 @@ function signup(
     isBusinessUse: boolean,
     isPaidSubscription: boolean,
     campaign: string | null,
-): Promise<NewAccountData | null> {
+): Promise<NewAccountData | void> {
     const {customerFacade} = locator
     return showWorkerProgressDialog(
         locator.worker,
@@ -247,7 +248,7 @@ function runCaptcha(
     isBusinessUse: boolean,
     isPaidSubscription: boolean,
     campaignToken: string | null,
-): Promise<string | null> {
+): Promise<string | void> {
     let captchaInput = ""
     let data = createRegistrationCaptchaServiceGetData()
     data.token = campaignToken
@@ -260,7 +261,7 @@ function runCaptcha(
             let regDataId = captchaReturn.token
 
             if (captchaReturn.challenge) {
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve: (string) => void, reject) => {
                     let dialog: Dialog
 
                     const cancelAction = () => {

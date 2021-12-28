@@ -253,7 +253,7 @@ export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: s
         return startTime
     }
 }
-export function getValidTimeZone(zone: string, fallback: string | null): string {
+export function getValidTimeZone(zone: string, fallback?: string): string {
     if (IANAZone.isValidZone(zone)) {
         return zone
     } else {
@@ -631,7 +631,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
     }
 
     let calcStartTime = eventStartTime
-    const calcDuration = allDay ? getDiffInDays(eventStartTime, eventEndTime) : eventEndTime - eventStartTime
+    const calcDuration = allDay ? getDiffInDays(eventStartTime, eventEndTime) : eventEndTime.getTime() - eventStartTime.getTime()
     let calcEndTime = eventEndTime
     let iteration = 1
 
@@ -1000,7 +1000,7 @@ export function combineDateWithTime(date: Date, time: Time): Date {
 export function isEventBetweenDays(event: CalendarEvent, firstDay: Date, lastDay: Date, zone: string): boolean {
     return !(eventEndsBefore(firstDay, zone, event) || eventStartsAfter(getEndOfDay(lastDay), zone, event))
 }
-export function createRepeatRuleFrequencyValues(): SelectorItemList<RepeatPeriod null> {
+export function createRepeatRuleFrequencyValues(): SelectorItemList<RepeatPeriod | null> {
     return [
         {
             name: lang.get("calendarRepeatIntervalNoRepeat_label"),

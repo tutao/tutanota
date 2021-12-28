@@ -11,7 +11,7 @@ export {
 } from "./encryption/Aes.js"
 export {generateRandomSalt, generateKeyFromPassphrase} from "./hashes/Bcrypt.js"
 export {CryptoError} from "./misc/CryptoError.js"
-export type {KeyLength, EntropySource} from "./misc/Constants.js"
+export {KeyLength, EntropySource} from "./misc/Constants.js"
 export {
 	encryptKey,
 	decryptKey,
@@ -35,12 +35,12 @@ export {
 	publicKeyToHex,
 	rsaEncrypt,
 } from "./encryption/Rsa.js"
-export type {RsaKeyPair, PrivateKey, PublicKey} from "./encryption/RsaKeyPair.js"
+export {RsaKeyPair, PrivateKey, PublicKey} from "./encryption/RsaKeyPair.js"
 export {sha1Hash} from "./hashes/Sha1.js"
 export {sha256Hash} from "./hashes/Sha256.js"
 export {sha512Hash} from "./hashes/Sha512.js"
 export {TotpVerifier} from "./misc/TotpVerifier.js"
-export type {TotpSecret} from "./misc/TotpVerifier.js"
+export {TotpSecret} from "./misc/TotpVerifier.js"
 export {
 	createAuthVerifier,
 	fixedIv,

@@ -11,6 +11,7 @@ import type {WorkerClient} from "../../api/main/WorkerClient"
 import {TabIndex} from "../../api/common/TutanotaConstants"
 import {delay} from "@tutao/tutanota-utils"
 import type {lazy} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 assertMainOrNode()
 export async function showProgressDialog<T>(
     messageIdOrMessageFunction: TranslationKey | lazy<string>,
@@ -36,7 +37,7 @@ export async function showProgressDialog<T>(
                     oncreate(vnode) {
                         // We need to delay so that the eelement is attached to the parent
                         setTimeout(() => {
-                            vnode.dom.focus()
+                            (vnode.dom as HTMLElement).focus()
                         }, 10)
                     },
                 },

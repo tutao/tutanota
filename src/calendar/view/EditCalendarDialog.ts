@@ -1,5 +1,5 @@
 import {Dialog} from "../../gui/base/Dialog"
-import m from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream/stream.js"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {TEMPLATE_LIST_ENTRY_HEIGHT} from "./TemplatePopup"
 import {px} from "../../gui/size"
 import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"

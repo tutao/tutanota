@@ -13,6 +13,7 @@ import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServi
 import {createCountryDropdown} from "../gui/base/GuiUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
+import Stream from "mithril/stream";
 export class InvoiceDataInput {
     view: (...args: Array<any>) => any
     oncreate: (...args: Array<any>) => any
@@ -35,7 +36,7 @@ export class InvoiceDataInput {
             value: stream(this._vatNumber),
             helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
             oninput: value => (this._vatNumber = value),
-        }
+        } as const
         this.selectedCountry = stream(null)
         const countryInput = createCountryDropdown(this.selectedCountry, () => lang.get("invoiceCountryInfoConsumer_msg"))
 
@@ -44,6 +45,7 @@ export class InvoiceDataInput {
         this.selectedCountry(invoiceData.country)
 
         this.view = () => [
+				// @ts-ignore
             m(".pt", m(this._invoiceAddressComponent)),
             m(".small", lang.get(businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
             m(countryInput),

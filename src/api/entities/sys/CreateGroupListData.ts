@@ -61,5 +61,5 @@ export type CreateGroupListData = {
 	adminEncGroupInfoListKey: Uint8Array;
 	customerEncGroupInfoListKey: Uint8Array;
 
-	createGroupData: null | CreateGroupData;
+	createGroupData:  null | CreateGroupData;
 }

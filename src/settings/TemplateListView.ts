@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {lang} from "../misc/LanguageViewModel"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -79,7 +79,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
                 swipeRight: listElement => Promise.resolve(false),
                 enabled: false,
             },
-            elementsDraggable: false,
             multiSelectionAllowed: false,
             emptyMessage: lang.get("noEntries_msg"),
         }
@@ -209,12 +208,12 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
         return [
             m(".top", [
                 m(".name.text-ellipsis", {
-                    oncreate: vnode => (this._domTemplateTitle = vnode.dom),
+                    oncreate: vnode => (this._domTemplateTitle = vnode.dom as HTMLElement),
                 }),
             ]),
             m(".bottom.flex-space-between", [
                 m("small.templateContent", {
-                    oncreate: vnode => (this._domTemplateId = vnode.dom),
+                    oncreate: vnode => (this._domTemplateId = vnode.dom as HTMLElement),
                 }),
             ]),
         ]

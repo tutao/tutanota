@@ -1,8 +1,8 @@
-import m from "mithril"
+import m, {Child, Children, ClassComponent, VnodeDOM} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ContactEditor} from "../ContactEditor"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
-import {keyManager} from "../../misc/KeyManager"
+import {keyManager, Shortcut} from "../../misc/KeyManager"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import {NotFoundError} from "../../api/common/error/RestError"
@@ -21,9 +21,10 @@ import {appendEmailSignature} from "../../mail/signature/Signature"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
 import stream from "mithril/stream/stream.js"
 import type {ContactAddress} from "../../api/entities/tutanota/ContactAddress"
-import {ButtonN} from "../../gui/base/ButtonN"
+import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
 import type {ContactPhoneNumber} from "../../api/entities/tutanota/ContactPhoneNumber"
 import {assertMainOrNode} from "../../api/common/Env"
+import {clickHandler} from "../../gui/base/GuiUtils";
 assertMainOrNode()
 
 function insertBetween(array: any[], spacer: () => Children) {
@@ -42,7 +43,7 @@ function insertBetween(array: any[], spacer: () => Children) {
     return ret
 }
 
-export class ContactViewer implements Lifecycle<void> {
+export class ContactViewer implements ClassComponent<void> {
     contact: Contact
     contactAppellation: string
     readonly oncreate: (vnode: VnodeDOM<void>) => any
@@ -56,7 +57,7 @@ export class ContactViewer implements Lifecycle<void> {
         let fullName = this.contact.firstName + " " + this.contact.lastName
         this.contactAppellation = (title + fullName + nickname).trim()
         this.formattedBirthday = this._hasBirthday() ? formatBirthdayOfContact(this.contact) : null
-        let shortcuts = [
+        let shortcuts: Array<Shortcut> = [
             {
                 key: Keys.E,
                 exec: () => this.edit(),
@@ -134,7 +135,7 @@ export class ContactViewer implements Lifecycle<void> {
     }
 
     _createActionbar(): Children {
-        const actionBarButtons = [
+        const actionBarButtons: ButtonAttrs[] = [
             {
                 label: "edit_action",
                 click: () => this.edit(),

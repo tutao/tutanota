@@ -1,11 +1,17 @@
 import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isWorker} from "../../common/Env"
 import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
-import type {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
 assertWorkerOrNode()
+
+interface ProgressListener {
+	upload(percent: number): void;
+
+	download(percent: number): void;
+}
+
 export class RestClient {
     url: string
     id: number
@@ -22,13 +28,13 @@ export class RestClient {
     request(
         path: string,
         method: HttpMethod,
-        queryParams: Params,
-        headers: Params,
-        body: (string | null) | (Uint8Array | null),
-        responseType: MediaType null,
-        progressListener: ProgressListener | null,
+        queryParams: Dict,
+        headers: Dict,
+        body?: string | Uint8Array,
+        responseType?: MediaType,
+        progressListener?: ProgressListener,
         baseUrl?: string,
-    ): Promise<any> {
+    ): Promise<any | null> {
         this._checkRequestSizeLimit(path, method, body)
 
         if (this._suspensionHandler.isSuspended()) {
@@ -88,7 +94,7 @@ export class RestClient {
                         } else if (responseType === MediaType.Binary) {
                             resolve(new Uint8Array(xhr.response))
                         } else {
-                            resolve()
+                            resolve(null)
                         }
                     } else {
                         const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
@@ -223,9 +229,9 @@ export class RestClient {
 
     _setHeaders(
         xhr: XMLHttpRequest,
-        headers: Params,
+        headers: Dict,
         body: (string | null) | (Uint8Array | null),
-        responseType: MediaType null,
+        responseType: MediaType | null,
     ) {
         headers["cv"] = env.versionNumber
 
@@ -244,7 +250,7 @@ export class RestClient {
         }
     }
 }
-export function addParamsToUrl(url: URL, urlParams: Params): URL {
+export function addParamsToUrl(url: URL, urlParams: Dict): URL {
     if (urlParams) {
         for (const [key, value] of typedEntries(urlParams)) {
             url.searchParams.set(key, value)

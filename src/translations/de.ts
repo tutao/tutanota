@@ -1556,6 +1556,5 @@ export default {
         yourFolders_action: "DEINE ORDNER",
         yourMessage_label: "Deine Nachricht",
         you_label: "Du",
-        useSecurityKey_action: "Sicherheitsschlüssel verwenden",
     },
 }

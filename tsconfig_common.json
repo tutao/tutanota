@@ -3,7 +3,8 @@
 	"lib": [
 	  "ES2020",
 	  "webworker",
-	  "dom"
+	  "dom",
+	  "es2015.proxy"
 	],
 	"allowJs": true,
 	"checkJs": false,
@@ -16,11 +17,17 @@
 	"noErrorTruncation": true,
 	"allowSyntheticDefaultImports": true,
 	"noImplicitAny": false,
-	"noImplicitThis": true,
+	"noImplicitThis": false,
 	"noUnusedLocals": false,
 	"noUnusedParameters": false,
 	"esModuleInterop": true,
 	"strict": false,
+	"strictBindCallApply": false,
+	"strictFunctionTypes": false,
+	"strictPropertyInitialization": false,
+	"noStrictGenericChecks": false,
+	"strictNullChecks": false,
+	"useUnknownInCatchVariables": false,
 	"paths": {
 	  "global": [
 		"./types/globals.d.ts"

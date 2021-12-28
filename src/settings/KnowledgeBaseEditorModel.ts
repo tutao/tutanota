@@ -15,6 +15,7 @@ import {createKnowledgeBaseEntryKeyword} from "../api/entities/tutanota/Knowledg
 import {deduplicate} from "@tutao/tutanota-utils"
 import {localeCompare} from "@tutao/tutanota-utils"
 import {ofClass} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream";
 export class KnowledgeBaseEditorModel {
     title: Stream<string>
     keywords: Stream<string>

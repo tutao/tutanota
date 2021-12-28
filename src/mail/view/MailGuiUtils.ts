@@ -6,7 +6,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {MailFolder} from "../../api/entities/tutanota/MailFolder"
 import {locator} from "../../api/main/MainLocator"
 import {getArchiveFolder, getFolderIcon, getInboxFolder} from "../model/MailUtils"
-import type {AllIcons} from "../../gui/base/Icon"
+import {AllIcons} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
@@ -17,6 +17,7 @@ import {MailFolderType, MailReportType} from "../../api/common/TutanotaConstants
 import {getElementId} from "../../api/common/utils/EntityUtils"
 import {reportMailsAutomatically} from "./MailReportDialog"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
+import {DataFile} from "../../api/common/DataFile";
 export function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
     let groupedMails = mails.reduce(
         (all, mail) => {
@@ -114,7 +115,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
         return Promise.resolve()
     }
 }
-export function getMailFolderIcon(mail: Mail): AllIcons
+export function getMailFolderIcon(mail: Mail): AllIcons {
     let folder = locator.mailModel.getMailFolder(mail._id[0])
 
     if (folder) {
@@ -189,7 +190,7 @@ export function replaceCidsWithInlineImages(
     return elementsWithCid
 }
 export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
-    const domClone: HTMLElement = dom.cloneNode(true)
+    const domClone = dom.cloneNode(true) as HTMLElement
     const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
     inlineImages.forEach(inlineImage => {
         const cid = inlineImage.getAttribute("cid")

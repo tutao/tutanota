@@ -1,7 +1,13 @@
 {
-  "extends": "tsconfig_common.json",
+  "extends": "./tsconfig_common.json",
+  "compilerOptions": {
+	"declaration": false
+  },
   "include": [
 	"src",
 	"libs"
+  ],
+  "exclude": [
+	"node_modules"
   ]
 }

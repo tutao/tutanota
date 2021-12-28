@@ -255,6 +255,7 @@ if (typeof window !== "undefined") {
 // slow during HMR.
 // HMR is not meant for changing models so if there is a big change then you are better off reloading but this will work with simple
 // method implementation swapping.
+// @ts-ignore
 const hot = typeof module !== "undefined" && module.hot
 
 if (hot) {

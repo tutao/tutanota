@@ -8,7 +8,7 @@ import {downcast} from "@tutao/tutanota-utils"
 import {objToError} from "./utils/Utils"
 import {isWorker} from "./Env"
 export type Command<T> = (msg: Request<T>) => Promise<any>
-export type Commands<T> = Record<T, Command<T>>
+export type Commands<T extends string> = Record<T, Command<T>>
 export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
 export interface Transport<RequestCommandType, ResponseCommandType> {
     /**

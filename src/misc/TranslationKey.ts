@@ -1367,7 +1367,6 @@ export type TranslationKeyType =
     | "userEmailSignature_label"
     | "userManagementRedirect_msg"
     | "userSettings_label"
-    | "useSecurityKey_action"
     | "validGiftCardCountry_msg"
     | "validInCountry_msg"
     | "validInputFormat_msg"

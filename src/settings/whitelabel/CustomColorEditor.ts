@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Child, Children, Component, Vnode, VnodeDOM} from "mithril"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
@@ -11,6 +11,8 @@ import {CustomColorEditorPreview} from "./CustomColorEditorPreview"
 import {downcast} from "@tutao/tutanota-utils"
 import {expandHexTriplet} from "../../gui/base/Color"
 import {px} from "../../gui/size"
+import Stream from "mithril/stream";
+import {BaseThemeId} from "../../gui/theme";
 export type SimpleCustomColorEditorAttrs = {
     model: CustomColorsEditorViewModel
 }
@@ -47,7 +49,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
                         m.redraw()
                     },
                     vnode.attrs.model.accentColor,
-                    ({dom}) => (this._colorPickerDom = downcast(dom)),
+                    ({dom}) => (this._colorPickerDom = dom as HTMLInputElement),
                 ),
             maxWidth: COLOR_PICKER_WIDTH,
             disabled: true,
@@ -87,7 +89,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
                                 },
                             ],
                             selectedValue: stream(vnode.attrs.model.baseThemeId),
-                            selectionChangedHandler: v => {
+                            selectionChangedHandler: (v: BaseThemeId) => {
                                 vnode.attrs.model.changeBaseTheme(v)
                             },
                         }),
@@ -177,7 +179,7 @@ function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value
     )
 }
 
-function renderColorPicker(onInput: (arg0: Event) => unknown, value: string, oncreate?: (arg0: Vnode<void>) => void): Child {
+function renderColorPicker(onInput: (arg0: Event) => unknown, value: string, oncreate?: (vnode: VnodeDOM<void>) => void): Child {
     return m("input.color-picker.mb-xs.mr-s", {
         type: "color",
         value: value,

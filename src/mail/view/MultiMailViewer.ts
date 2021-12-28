@@ -38,7 +38,7 @@ export class MultiMailViewer {
                     ".fill-absolute.mt-xs.plr-l",
                     {
                         oncreate: vnode => {
-                            this._domMailViewer = vnode.dom
+                            this._domMailViewer = vnode.dom as HTMLElement
                         },
                     },
                     mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
