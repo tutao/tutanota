@@ -4,16 +4,19 @@
 import type {User} from "../api/entities/sys/User"
 import {getEtId} from "../api/common/utils/EntityUtils"
 import {client} from "./ClientDetector"
-const LOG_KEY = "indexedDebugLogs"
-export function getSearchIndexDebugLogs(): string | null {
-    return client.localStorage() ? window.localStorage.getItem(LOG_KEY) : null
-}
-export function addSearchIndexDebugEntry(message: string, user: User) {
-    const entry = `${Date()}: User [${getEtId(user)}]: ${message}`
-    console.warn(entry)
 
-    if (client.localStorage()) {
-        const logs = window.localStorage.getItem(LOG_KEY)
-        window.localStorage.setItem(LOG_KEY, `${logs || ""}${entry}\n`)
-    }
+const LOG_KEY = "indexedDebugLogs"
+
+export function getSearchIndexDebugLogs(): string | null {
+	return client.localStorage() ? window.localStorage.getItem(LOG_KEY) : null
+}
+
+export function addSearchIndexDebugEntry(message: string, user: User) {
+	const entry = `${Date()}: User [${getEtId(user)}]: ${message}`
+	console.warn(entry)
+
+	if (client.localStorage()) {
+		const logs = window.localStorage.getItem(LOG_KEY)
+		window.localStorage.setItem(LOG_KEY, `${logs || ""}${entry}\n`)
+	}
 }

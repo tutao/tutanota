@@ -1,6 +1,3 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="ES2020" />
-/// <reference lib="webworker" />
 import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {Indexer} from "./search/Indexer"
@@ -38,6 +35,7 @@ import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
+
 
 assertWorkerOrNode()
 export type WorkerLocatorType = {
@@ -89,11 +87,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const mainInterface = worker.getMainInterface()
 	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 	locator.login = new LoginFacadeImpl(
-			worker,
-			locator.restClient,
-			locator.cachingEntityClient,
-			locator.secondFactorAuthenticationHandler,
-			locator.instanceMapper,
+		worker,
+		locator.restClient,
+		locator.cachingEntityClient,
+		locator.secondFactorAuthenticationHandler,
+		locator.instanceMapper,
+		() => locator.crypto,
 	)
 	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa)
 	const suggestionFacades = [
@@ -105,21 +104,21 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.counters = new CounterFacade()
 	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient, locator.rsa)
 	locator.userManagement = new UserManagementFacade(
-			worker,
-			locator.login,
-			locator.groupManagement,
-			locator.counters,
-			locator.rsa,
-			locator.cachingEntityClient,
+		worker,
+		locator.login,
+		locator.groupManagement,
+		locator.counters,
+		locator.rsa,
+		locator.cachingEntityClient,
 	)
 	locator.customer = new CustomerFacadeImpl(
-			worker,
-			locator.login,
-			locator.groupManagement,
-			locator.userManagement,
-			locator.counters,
-			locator.rsa,
-			locator.cachingEntityClient,
+		worker,
+		locator.login,
+		locator.groupManagement,
+		locator.userManagement,
+		locator.counters,
+		locator.rsa,
+		locator.cachingEntityClient,
 	)
 	const fileApp = new NativeFileApp(worker)
 	const aesApp = new AesApp(worker)
@@ -128,13 +127,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(
-			worker,
-			locator.indexer,
-			locator.cache,
-			locator.mail,
-			locator.login,
-			locator.cachingEntityClient,
-			locator.instanceMapper,
+		worker,
+		locator.indexer,
+		locator.cache,
+		locator.mail,
+		locator.login,
+		locator.cachingEntityClient,
+		locator.instanceMapper,
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const

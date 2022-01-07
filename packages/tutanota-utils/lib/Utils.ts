@@ -26,7 +26,7 @@ export function defer<T>(): DeferredObject<T> {
 export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectWithHandler<T, U> {
 	const deferred = {} as DeferredObjectWithHandler<T, U>
 	deferred.promise = new Promise(
-			(resolve: (T) => void, reject) => {
+			(resolve, reject) => {
 				deferred.resolve = resolve
 				deferred.reject = reject
 			}).then(handler)
@@ -50,7 +50,7 @@ export async function asyncFind<T>(
 
 export async function asyncFindAndMap<T, R>(
 		array: ReadonlyArray<T>,
-		finder: (item: T, index: number, arrayLength: number) => Promise<R | null | undefined>,
+		finder: (item: T, index: number, arrayLength: number) => Promise<R | null>,
 ): Promise<R | null | undefined> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
@@ -84,7 +84,7 @@ export function executeInGroups<T>(
 	}
 }
 
-export function neverNull<T>(object: T | null | undefined): T {
+export function neverNull<T>(object: T): NonNullable<T> {
 	return object as any
 }
 
@@ -94,6 +94,10 @@ export function assertNotNull<T>(object: T | null | undefined, message: string =
 	}
 
 	return object
+}
+
+export function isNotNull<T>(t: T | null | undefined): t is T {
+	return t != null
 }
 
 export function assert(assertion: MaybeLazy<boolean>, message: string) {
@@ -138,7 +142,7 @@ export function clone<T>(instance: T): T {
 export function lazyMemoized<T>(source: () => T): () => T {
 	// Using separate variable for tracking because value can be undefined and we want to the function call only once
 	let cached = false
-	let value
+	let value: T
 	return () => {
 		if (cached) {
 			return value
@@ -189,9 +193,9 @@ export function noOp() {
  * @return {Function}
  */
 export function debounce<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId
+	let timeoutId: TimeoutID
 	let toInvoke: (...args: any) => void
-	return downcast((...args) => {
+	return downcast((...args: any[]) => {
 		if (timeoutId) {
 			clearTimeout(timeoutId)
 		}
@@ -303,13 +307,13 @@ export function deepEqual(a: any, b: any): boolean {
 	return false
 }
 
-function xor(a, b): boolean {
+function xor(a: boolean, b: boolean): boolean {
 	const aBool = !!a
 	const bBool = !!b
 	return (aBool && !bBool) || (bBool && !aBool)
 }
 
-function isArguments(a) {
+function isArguments(a: any) {
 	if ("callee" in a) {
 		for (let i in a) if (i === "callee") return false
 

@@ -12,6 +12,7 @@ import type * as FsModule from "fs"
 import type {DateProvider} from "../calendar/date/CalendarUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
+import {WriteStream} from "fs-extra"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
@@ -24,196 +25,194 @@ type DownloadNativeResult = {
 };
 
 export class DesktopDownloadManager {
-    _conf: DesktopConfig
-    _net: DesktopNetworkClient
-    _dateProvider: DateProvider
+	_conf: DesktopConfig
+	_net: DesktopNetworkClient
+	_dateProvider: DateProvider
 
-    /** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
-    _lastOpenedFileManagerAt: number | null
-    _desktopUtils: DesktopUtils
-    _fs: FsExports
-    _electron: ElectronExports
+	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
+	_lastOpenedFileManagerAt: number | null
+	_desktopUtils: DesktopUtils
+	_fs: FsExports
+	_electron: ElectronExports
 
-    constructor(
-        conf: DesktopConfig,
-        net: DesktopNetworkClient,
-        desktopUtils: DesktopUtils,
-        dateProvider: DateProvider,
-        fs: FsExports,
-        electron: ElectronExports,
-    ) {
-        this._conf = conf
-        this._net = net
-        this._dateProvider = dateProvider
-        this._lastOpenedFileManagerAt = null
-        this._desktopUtils = desktopUtils
-        this._fs = fs
-        this._electron = electron
-    }
+	constructor(
+		conf: DesktopConfig,
+		net: DesktopNetworkClient,
+		desktopUtils: DesktopUtils,
+		dateProvider: DateProvider,
+		fs: FsExports,
+		electron: ElectronExports,
+	) {
+		this._conf = conf
+		this._net = net
+		this._dateProvider = dateProvider
+		this._lastOpenedFileManagerAt = null
+		this._desktopUtils = desktopUtils
+		this._fs = fs
+		this._electron = electron
+	}
 
-    manageDownloadsForSession(session: Session, dictUrl: string) {
-        dictUrl = dictUrl + "/dictionaries/"
-        log.debug(TAG, "getting dictionaries from:", dictUrl)
-        session.setSpellCheckerDictionaryDownloadURL(dictUrl)
-        session
-            .removeAllListeners("spellcheck-dictionary-download-failure")
-            .on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
-            .on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
-            .on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
-            .on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
-    }
+	manageDownloadsForSession(session: Session, dictUrl: string) {
+		dictUrl = dictUrl + "/dictionaries/"
+		log.debug(TAG, "getting dictionaries from:", dictUrl)
+		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
+		session
+			.removeAllListeners("spellcheck-dictionary-download-failure")
+			.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+			.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
+			.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
+			.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
+	}
 
-    async downloadNative(
-        sourceUrl: string,
-        fileName: string,
-        headers: {
-            v: string
-            accessToken: string
-        },
-    ): Promise<DownloadNativeResult> {
-        return new Promise(async (resolve: (DownloadNativeResult) => void, reject) => {
-            const downloadDirectory = await this.getTutanotaTempDirectory("download")
-            const encryptedFileUri = path.join(downloadDirectory, fileName)
+	async downloadNative(
+		sourceUrl: string,
+		fileName: string,
+		headers: {
+			v: string
+			accessToken: string
+		},
+	): Promise<DownloadNativeResult> {
+		return new Promise(async (resolve: (_: DownloadNativeResult) => void, reject) => {
+			const downloadDirectory = await this.getTutanotaTempDirectory("download")
+			const encryptedFileUri = path.join(downloadDirectory, fileName)
 
-            const fileStream = this._fs
-                .createWriteStream(encryptedFileUri, {
-                    emitClose: true,
-                })
-                .on("finish", () => fileStream.close())
+			const fileStream: WriteStream = this._fs
+				.createWriteStream(encryptedFileUri, {
+					emitClose: true,
+				})
+				.on("finish", () => fileStream.close())
 
-            // .end() was called, contents is flushed -> release file desc
-            let cleanup = e => {
-                cleanup = noOp
-                fileStream
-                    .removeAllListeners("close")
-                    .on("close", () => {
-                        // file descriptor was released
-                        fileStream.removeAllListeners("close")
+			// .end() was called, contents is flushed -> release file desc
+			let cleanup = (e: Error) => {
+				cleanup = noOp
+				fileStream
+					.removeAllListeners("close")
+					.on("close", () => {
+						// file descriptor was released
+						fileStream.removeAllListeners("close")
 
-                        // remove file if it was already created
-                        this._fs.promises
-                            .unlink(encryptedFileUri)
-                            .catch(noOp)
-                            .then(() => reject(e))
-                    })
-                    .end() // {end: true} doesn't work when response errors
-            }
+						// remove file if it was already created
+						this._fs.promises
+							.unlink(encryptedFileUri)
+							.catch(noOp)
+							.then(() => reject(e))
+					})
+					.end() // {end: true} doesn't work when response errors
+			}
 
-            this._net
-                .request(sourceUrl, {
-                    method: "GET",
-                    timeout: 20000,
-                    headers,
-                })
-                .on("response", response => {
-                    response.on("error", cleanup)
+			this._net
+				.request(sourceUrl, {
+					method: "GET",
+					timeout: 20000,
+					headers,
+				})
+				.on("response", response => {
+					response.on("error", cleanup)
 
-                    if (response.statusCode !== 200) {
-                        // causes 'error' event
-                        response.destroy(new Error('' + response.statusCode))
-                        return
-                    }
+					if (response.statusCode !== 200) {
+						// causes 'error' event
+						response.destroy(new Error('' + response.statusCode))
+						return
+					}
 
-                    response.pipe(fileStream, {
-                        end: true,
-                    }) // automatically .end() fileStream when dl is done
+					response.pipe(fileStream, {
+						end: true,
+					}) // automatically .end() fileStream when dl is done
 
-                    const result = {
-                        statusCode: response.statusCode,
-                        statusMessage: response.statusMessage,
-                        encryptedFileUri,
-                    }
-                    fileStream.on("close", () => resolve(result))
-                })
-                .on("error", cleanup)
-                .end()
-        })
-    }
+					const result: DownloadNativeResult = {
+						statusCode: response.statusCode.toString(),
+						statusMessage: response.statusMessage?.toString() ?? "",
+						encryptedFileUri,
+					}
+					fileStream.on("close", () => resolve(result))
+				})
+				.on("error", cleanup)
+				.end()
+		})
+	}
 
-    open(itemPath: string): Promise<void> {
-        const tryOpen = () =>
-            this._electron.shell
-                .openPath(itemPath) // may resolve with "" or an error message
-                .catch(() => "failed to open path.")
-                .then(errMsg => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))))
+	open(itemPath: string): Promise<void> {
+		const tryOpen = () =>
+			this._electron.shell
+				.openPath(itemPath) // may resolve with "" or an error message
+				.catch(() => "failed to open path.")
+				.then(errMsg => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))))
 
-        if (looksExecutable(itemPath)) {
-            return this._electron.dialog
-                .showMessageBox(null, {
-                    type: "warning",
-                    buttons: [lang.get("yes_label"), lang.get("no_label")],
-                    title: lang.get("executableOpen_label"),
-                    message: lang.get("executableOpen_msg"),
-                    defaultId: 1, // default button
-                })
-                .then(({response}) => {
-                    if (response === 0) {
-                        return tryOpen()
-                    } else {
-                        return Promise.resolve()
-                    }
-                })
-        } else {
-            return tryOpen()
-        }
-    }
+		if (looksExecutable(itemPath)) {
+			return this._electron.dialog
+				.showMessageBox({
+					type: "warning",
+					buttons: [lang.get("yes_label"), lang.get("no_label")],
+					title: lang.get("executableOpen_label"),
+					message: lang.get("executableOpen_msg"),
+					defaultId: 1, // default button
+				})
+				.then(({response}) => {
+					if (response === 0) {
+						return tryOpen()
+					} else {
+						return Promise.resolve()
+					}
+				})
+		} else {
+			return tryOpen()
+		}
+	}
 
-    async saveBlob(filename: string, data: Uint8Array): Promise<void> {
-        const savePath = await this._pickSavePath(filename)
-        await this._fs.promises.mkdir(path.dirname(savePath), {
-            recursive: true,
-        })
-        await this._fs.promises.writeFile(savePath, data)
-        // See doc for _lastOpenedFileManagerAt on why we do this throttling.
-        const lastOpenedFileManagerAt = this._lastOpenedFileManagerAt
-        const fileManagerTimeout = await this._conf.getConst(BuildConfigKey.fileManagerTimeout)
+	async saveBlob(filename: string, data: Uint8Array): Promise<void> {
+		const savePath = await this._pickSavePath(filename)
+		await this._fs.promises.mkdir(path.dirname(savePath), {
+			recursive: true,
+		})
+		await this._fs.promises.writeFile(savePath, data)
+		// See doc for _lastOpenedFileManagerAt on why we do this throttling.
+		const lastOpenedFileManagerAt = this._lastOpenedFileManagerAt
+		const fileManagerTimeout = await this._conf.getConst(BuildConfigKey.fileManagerTimeout)
 
-        if (lastOpenedFileManagerAt == null || this._dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
-            this._lastOpenedFileManagerAt = this._dateProvider.now()
-            await this._electron.shell.openPath(path.dirname(savePath))
-        }
-    }
+		if (lastOpenedFileManagerAt == null || this._dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
+			this._lastOpenedFileManagerAt = this._dateProvider.now()
+			await this._electron.shell.openPath(path.dirname(savePath))
+		}
+	}
 
-    async _pickSavePath(filename: string): Promise<string> {
-        const defaultDownloadPath = await this._conf.getVar(DesktopConfigKey.defaultDownloadPath)
+	async _pickSavePath(filename: string): Promise<string> {
+		const defaultDownloadPath = await this._conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
-        if (defaultDownloadPath != null) {
-            const fileName = path.basename(filename)
-            return path.join(defaultDownloadPath, nonClobberingFilename(await this._fs.promises.readdir(defaultDownloadPath), fileName))
-        } else {
-            const {canceled, filePath} = await this._electron.dialog.showSaveDialog(null, {
-                defaultPath: path.join(this._electron.app.getPath("downloads"), filename),
-            })
+		if (defaultDownloadPath != null) {
+			const fileName = path.basename(filename)
+			return path.join(defaultDownloadPath, nonClobberingFilename(await this._fs.promises.readdir(defaultDownloadPath), fileName))
+		} else {
+			const {canceled, filePath} = await this._electron.dialog.showSaveDialog({
+				defaultPath: path.join(this._electron.app.getPath("downloads"), filename),
+			})
 
-            if (canceled) {
-                throw new CancelledError("Path selection cancelled")
-            } else {
-                return assertNotNull(filePath)
-            }
-        }
-    }
+			if (canceled) {
+				throw new CancelledError("Path selection cancelled")
+			} else {
+				return assertNotNull(filePath)
+			}
+		}
+	}
 
-    /**
-     * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
-     * @returns {Promise<string>}
-     * @param subdirs
-     */
-    async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
-        const dirPath = this._desktopUtils.getTutanotaTempPath(...subdirs)
+	/**
+	 * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
+	 * @returns {Promise<string>}
+	 * @param subdirs
+	 */
+	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
+		const dirPath = this._desktopUtils.getTutanotaTempPath(...subdirs)
 
-        await this._fs.promises.mkdir(dirPath, {
-            recursive: true,
-        })
-        return dirPath
-    }
+		await this._fs.promises.mkdir(dirPath, {
+			recursive: true,
+		})
+		return dirPath
+	}
 
-    deleteTutanotaTempDirectory() {
-        // TODO Flow doesn't know about recent fs changes
-        // Using sync version because this could get called on app shutdown and it may not complete if async
-        if (this._fs.existsSync(this._desktopUtils.getTutanotaTempPath())) {
-            downcast(this._fs).rmSync(this._desktopUtils.getTutanotaTempPath(), {
-                recursive: true,
-            })
-        }
-    }
+	deleteTutanotaTempDirectory() {
+		if (this._fs.existsSync(this._desktopUtils.getTutanotaTempPath())) {
+			this._fs.rmSync(this._desktopUtils.getTutanotaTempPath(), {
+				recursive: true,
+			})
+		}
+	}
 }

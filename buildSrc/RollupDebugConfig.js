@@ -1,10 +1,9 @@
-import pluginBabel from "@rollup/plugin-babel"
+import typescript from "@rollup/plugin-typescript"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import fs from "fs-extra"
-import {babelPlugins, dependencyMap} from "./RollupConfig.js";
+import {dependencyMap} from "./RollupConfig.js";
 
-const {babel} = pluginBabel
 
 function resolveLibs(baseDir = ".") {
 	return {
@@ -16,13 +15,13 @@ function resolveLibs(baseDir = ".") {
 	}
 }
 
-export function rollupDebugPlugins(baseDir, pluginsForBabel = babelPlugins) {
+export function rollupDebugPlugins(baseDir, tsOptions) {
 	return [
-		babel({
-			plugins: pluginsForBabel,
-			inputSourceMap: false,
-			babelHelpers: "bundled",
-			retainLines: true,
+		typescript({
+			tsconfig: "tsconfig.json",
+			// We need this so that we include files which are not in our cwd() (like tests which import stuff from "..")
+			filterRoot: baseDir,
+			...tsOptions,
 		}),
 		resolveLibs(baseDir),
 		commonjs({

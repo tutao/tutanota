@@ -59,12 +59,12 @@ export async function createBuildServer(options: BuildServerConfig, runDetached:
     }
     console.log(`Spawning build server process with args: ${args} and options: ${JSON.stringify(spawnOptions)}`)
     const buildServerProcess = await spawn("node", args, spawnOptions)
-    buildServerProcess.stdout.on("data", data => {
+    buildServerProcess.stdout!.on("data", data => {
         if (data && data.length > 0) {
             console.log("Server: " + data.toString())
         }
     })
-    buildServerProcess.stderr.on("data", data => {
+    buildServerProcess.stderr!.on("data", data => {
         if (data && data.length > 0) {
             console.error("Server: " + data.toString())
         }
@@ -73,8 +73,8 @@ export async function createBuildServer(options: BuildServerConfig, runDetached:
     buildServerProcess.unref()
     return {
         disconnectStdIo: function () {
-            buildServerProcess.stdout.destroy()
-            buildServerProcess.stderr.destroy()
+            buildServerProcess.stdout?.destroy()
+            buildServerProcess.stderr?.destroy()
         },
         stop: async function () {
             return await buildServerProcess.kill()

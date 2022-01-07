@@ -33,7 +33,7 @@ export class NativePushServiceApp {
 				const identifier = (await this._loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
 				const pushIdentifier =
-						(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
+					(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
 				await this._storePushIdentifierLocally(pushIdentifier)
 				await this._scheduleAlarmsIfNeeded(pushIdentifier)
 				await this._initPushNotifications()
@@ -50,7 +50,7 @@ export class NativePushServiceApp {
 			if (identifier) {
 				this._currentIdentifier = identifier
 				const pushIdentifier =
-						(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.IOS))
+					(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.IOS))
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
@@ -78,7 +78,7 @@ export class NativePushServiceApp {
 
 	_loadPushIdentifierFromNative(): Promise<string | null> {
 		return this._native.invokeNative(
-				new Request("getPushIdentifier", [logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress]),
+			new Request("getPushIdentifier", [logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress]),
 		)
 	}
 
@@ -87,7 +87,7 @@ export class NativePushServiceApp {
 
 		return locator.worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
 			return this._native.invokeNative(
-					new Request("storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]),
+				new Request("storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]),
 			)
 		})
 	}
@@ -95,7 +95,7 @@ export class NativePushServiceApp {
 	_loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
 		let list = logins.getUserController().user.pushIdentifierList
 		return locator.entityClient.loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-			return identifiers.find(i => i.identifier === identifier)
+			return identifiers.find(i => i.identifier === identifier) ?? null
 		})
 	}
 
@@ -111,21 +111,21 @@ export class NativePushServiceApp {
 		pushIdentifier.identifier = identifier
 		pushIdentifier.language = lang.code
 		return locator.entityClient
-				.setup(neverNull(list).list, pushIdentifier)
-				.then(id => locator.entityClient.load(PushIdentifierTypeRef, [neverNull(list).list, id]))
+					  .setup(neverNull(list).list, pushIdentifier)
+					  .then(id => locator.entityClient.load(PushIdentifierTypeRef, [neverNull(list).list, id]))
 	}
 
 	updateBadge(newValue: number): void {
 		if (this._pushNotification != null) {
 			// not supported on all android devices.
 			this._pushNotification.setApplicationIconBadgeNumber(
-					() => {
-						//success
-					},
-					() => {
-						//error
-					},
-					newValue,
+				() => {
+					//success
+				},
+				() => {
+					//error
+				},
+				newValue,
 			)
 		}
 	}

@@ -12,52 +12,52 @@ import type {NativeInterface} from "../../native/common/NativeInterface"
  * encrypt the credentials stored on the device. The intermediate key in turn is encrypted using the native keychain.
  */
 export class NativeCredentialsEncryption implements CredentialsEncryption {
-    readonly _credentialsKeyProvider: ICredentialsKeyProvider
-    readonly _deviceEncryptionFacade: DeviceEncryptionFacade
-    readonly _nativeApp: NativeInterface
+	readonly _credentialsKeyProvider: ICredentialsKeyProvider
+	readonly _deviceEncryptionFacade: DeviceEncryptionFacade
+	readonly _nativeApp: NativeInterface
 
-    constructor(credentialsKeyProvider: ICredentialsKeyProvider, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
-        this._credentialsKeyProvider = credentialsKeyProvider
-        this._deviceEncryptionFacade = deviceEncryptionFacade
-        this._nativeApp = nativeApp
-    }
+	constructor(credentialsKeyProvider: ICredentialsKeyProvider, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
+		this._credentialsKeyProvider = credentialsKeyProvider
+		this._deviceEncryptionFacade = deviceEncryptionFacade
+		this._nativeApp = nativeApp
+	}
 
-    async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
-        const {encryptedPassword} = credentials
+	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
+		const {encryptedPassword} = credentials
 
-        if (encryptedPassword == null) {
-            throw new Error("Trying to encrypt non-persistent credentials")
-        }
+		if (encryptedPassword == null) {
+			throw new Error("Trying to encrypt non-persistent credentials")
+		}
 
-        const credentialsKey = await this._credentialsKeyProvider.getCredentialsKey()
-        const base64accessToken = stringToUtf8Uint8Array(credentials.accessToken)
-        const encryptedAccessToken = await this._deviceEncryptionFacade.encrypt(credentialsKey, base64accessToken)
-        const encryptedAccessTokenBase64 = uint8ArrayToBase64(encryptedAccessToken)
-        return {
-            credentialInfo: {
-                login: credentials.login,
-                userId: credentials.userId,
-                type: credentials.type,
-            },
-            encryptedPassword,
-            accessToken: encryptedAccessTokenBase64,
-        }
-    }
+		const credentialsKey = await this._credentialsKeyProvider.getCredentialsKey()
+		const base64accessToken = stringToUtf8Uint8Array(credentials.accessToken)
+		const encryptedAccessToken = await this._deviceEncryptionFacade.encrypt(credentialsKey, base64accessToken)
+		const encryptedAccessTokenBase64 = uint8ArrayToBase64(encryptedAccessToken)
+		return {
+			credentialInfo: {
+				login: credentials.login,
+				userId: credentials.userId,
+				type: credentials.type,
+			},
+			encryptedPassword,
+			accessToken: encryptedAccessTokenBase64,
+		}
+	}
 
-    async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
-        const credentialsKey = await this._credentialsKeyProvider.getCredentialsKey()
-        const decryptedAccessToken = await this._deviceEncryptionFacade.decrypt(credentialsKey, base64ToUint8Array(encryptedCredentials.accessToken))
-        const accessToken = utf8Uint8ArrayToString(decryptedAccessToken)
-        return {
-            login: encryptedCredentials.credentialInfo.login,
-            userId: encryptedCredentials.credentialInfo.userId,
-            type: encryptedCredentials.credentialInfo.type,
-            encryptedPassword: encryptedCredentials.encryptedPassword,
-            accessToken,
-        }
-    }
+	async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
+		const credentialsKey = await this._credentialsKeyProvider.getCredentialsKey()
+		const decryptedAccessToken = await this._deviceEncryptionFacade.decrypt(credentialsKey, base64ToUint8Array(encryptedCredentials.accessToken))
+		const accessToken = utf8Uint8ArrayToString(decryptedAccessToken)
+		return {
+			login: encryptedCredentials.credentialInfo.login,
+			userId: encryptedCredentials.credentialInfo.userId,
+			type: encryptedCredentials.credentialInfo.type,
+			encryptedPassword: encryptedCredentials.encryptedPassword,
+			accessToken,
+		}
+	}
 
-    async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-        return this._nativeApp.invokeNative(new Request("getSupportedEncryptionModes", []))
-    }
+	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
+		return this._nativeApp.invokeNative(new Request("getSupportedEncryptionModes", []))
+	}
 }

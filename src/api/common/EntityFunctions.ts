@@ -39,12 +39,13 @@ const modelMaps = {
 } as const
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
+	// @ts-ignore
 	const modelMap = modelMaps[typeRef.app]
 
 	if (modelMap[typeRef.type] == null) {
 		return Promise.reject(new Error("Cannot find TypeRef: " + JSON.stringify(typeRef)))
 	} else {
-		return modelMap[typeRef.type]().then(module => {
+		return modelMap[typeRef.type]().then((module: any) => {
 			return module._TypeModel
 		})
 	}

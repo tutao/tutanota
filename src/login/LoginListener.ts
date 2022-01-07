@@ -30,210 +30,212 @@ import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
+
 export async function registerLoginListener(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
-    logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
+	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
 }
+
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
 class LoginListener implements LoginEventHandler {
-    readonly _credentialsProvider: ICredentialsProvider
-    _secondFactorHandler: SecondFactorHandler
+	readonly _credentialsProvider: ICredentialsProvider
+	_secondFactorHandler: SecondFactorHandler
 
-    constructor(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
-        this._credentialsProvider = credentialsProvider
-        this._secondFactorHandler = secondFactorHandler
-    }
+	constructor(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
+		this._credentialsProvider = credentialsProvider
+		this._secondFactorHandler = secondFactorHandler
+	}
 
-    async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-        // We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
-        windowFacade.addOnlineListener(() => {
-            console.log(new Date().toISOString(), "online - try reconnect")
-            // When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
-            locator.worker.tryReconnectEventBus(true, true, 2000)
-        })
-        windowFacade.addOfflineListener(() => {
-            console.log(new Date().toISOString(), "offline - pause event bus")
-            locator.worker.closeEventBus(CloseEventBusOption.Pause)
-        })
+	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
+		windowFacade.addOnlineListener(() => {
+			console.log(new Date().toISOString(), "online - try reconnect")
+			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
+			locator.worker.tryReconnectEventBus(true, true, 2000)
+		})
+		windowFacade.addOfflineListener(() => {
+			console.log(new Date().toISOString(), "offline - pause event bus")
+			locator.worker.closeEventBus(CloseEventBusOption.Pause)
+		})
 
-        if (loggedInEvent.sessionType === SessionType.Temporary) {
-            return
-        }
+		if (loggedInEvent.sessionType === SessionType.Temporary) {
+			return
+		}
 
-        // only show "Tutanota" after login if there is no custom title set
-        if (!logins.getUserController().isInternalUser()) {
-            if (document.title === LOGIN_TITLE) {
-                document.title = "Tutanota"
-            }
+		// only show "Tutanota" after login if there is no custom title set
+		if (!logins.getUserController().isInternalUser()) {
+			if (document.title === LOGIN_TITLE) {
+				document.title = "Tutanota"
+			}
 
-            return
-        } else {
-            let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
-            document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
-        }
+			return
+		} else {
+			let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
+			document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
+		}
 
-        notifications.requestPermission()
+		notifications.requestPermission()
 
-        if (
-            loggedInEvent.sessionType === SessionType.Persistent &&
-            usingKeychainAuthentication() &&
-            this._credentialsProvider.getCredentialsEncryptionMode() == null
-        ) {
-            // If the encryption mode is not selected, we opt user into automatic mode.
-            // We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
-            await this._credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
-        }
+		if (
+			loggedInEvent.sessionType === SessionType.Persistent &&
+			usingKeychainAuthentication() &&
+			this._credentialsProvider.getCredentialsEncryptionMode() == null
+		) {
+			// If the encryption mode is not selected, we opt user into automatic mode.
+			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
+			await this._credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
+		}
 
-        // Do not wait
-        this.asyncActions()
-    }
+		// Do not wait
+		this.asyncActions()
+	}
 
-    async asyncActions() {
-        await checkApprovalStatus(logins, true)
-        await this._showUpgradeReminder()
-        await this._checkStorageWarningLimit()
+	async asyncActions() {
+		await checkApprovalStatus(logins, true)
+		await this._showUpgradeReminder()
+		await this._checkStorageWarningLimit()
 
-        this._secondFactorHandler.setupAcceptOtherClientLoginListener()
+		this._secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-        if (!isAdminClient()) {
-            await locator.mailModel.init()
-            await locator.calendarModel.init()
-            await this._remindActiveOutOfOfficeNotification()
-        }
+		if (!isAdminClient()) {
+			await locator.mailModel.init()
+			await locator.calendarModel.init()
+			await this._remindActiveOutOfOfficeNotification()
+		}
 
-        if (isApp() || isDesktop()) {
-            // don't wait for it, just invoke
-            locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
-            locator.pushService.register()
-            await this._maybeSetCustomTheme()
-        }
+		if (isApp() || isDesktop()) {
+			// don't wait for it, just invoke
+			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
+			locator.pushService.register()
+			await this._maybeSetCustomTheme()
+		}
 
-        if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
-            const receiveInfoData = createReceiveInfoServiceData({
-                language: lang.code,
-            })
-            await serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
-        }
+		if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+			const receiveInfoData = createReceiveInfoServiceData({
+				language: lang.code,
+			})
+			await serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
+		}
 
-        lang.updateFormats({
-            hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
-        })
+		lang.updateFormats({
+			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
+		})
 
-        this._enforcePasswordChange()
-    }
+		this._enforcePasswordChange()
+	}
 
-    _deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
-        notification.enabled = false
-        return locator.entityClient.update(notification)
-    }
+	_deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
+		notification.enabled = false
+		return locator.entityClient.update(notification)
+	}
 
-    _remindActiveOutOfOfficeNotification(): Promise<void> {
-        return loadOutOfOfficeNotification().then(notification => {
-            if (notification && isNotificationCurrentlyActive(notification, new Date())) {
-                const notificationMessage: Component<void> = {
-                    view: () => {
-                        return m("", lang.get("outOfOfficeReminder_label"))
-                    },
-                }
-                notificationOverlay.show(
-                    notificationMessage,
-                    {
-                        label: "close_alt",
-                    },
-                    [
-                        {
-                            label: "deactivate_action",
-                            click: () => this._deactivateOutOfOfficeNotification(notification),
-                            type: ButtonType.Primary,
-                        },
-                    ],
-                )
-            }
-        })
-    }
+	_remindActiveOutOfOfficeNotification(): Promise<void> {
+		return loadOutOfOfficeNotification().then(notification => {
+			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
+				const notificationMessage: Component<void> = {
+					view: () => {
+						return m("", lang.get("outOfOfficeReminder_label"))
+					},
+				}
+				notificationOverlay.show(
+					notificationMessage,
+					{
+						label: "close_alt",
+					},
+					[
+						{
+							label: "deactivate_action",
+							click: () => this._deactivateOutOfOfficeNotification(notification),
+							type: ButtonType.Primary,
+						},
+					],
+				)
+			}
+		})
+	}
 
-    async _maybeSetCustomTheme(): Promise<any> {
-        const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
+	async _maybeSetCustomTheme(): Promise<any> {
+		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
 
-        if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
-            const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
+		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
+			const customizations: ThemeCustomizations = getThemeCustomizations(domainInfoAndConfig.whitelabelConfig)
 
-            // jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
-            // so we can't just check `!whitelabelConfig.jsonTheme`
-            if (Object.keys(customizations).length > 0) {
-                customizations.themeId = domainInfoAndConfig.domainInfo.domain
-                const previouslySavedThemes = await themeController.getCustomThemes()
-                const newTheme = themeController.assembleTheme(customizations)
-                await themeController.updateSavedThemeDefinition(newTheme)
-                const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
+			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
+			// so we can't just check `!whitelabelConfig.jsonTheme`
+			if (Object.keys(customizations).length > 0) {
+				customizations.themeId = domainInfoAndConfig.domainInfo.domain
+				const previouslySavedThemes = await themeController.getCustomThemes()
+				const newTheme = themeController.assembleTheme(customizations)
+				await themeController.updateSavedThemeDefinition(newTheme)
+				const isExistingTheme = previouslySavedThemes.includes(domainInfoAndConfig.domainInfo.domain)
 
-                if (!isExistingTheme && (await Dialog.confirm("whitelabelThemeDetected_msg"))) {
-                    await themeController.setThemeId(newTheme.themeId)
-                } else {
-                    // If the theme has changed we want to reload it, otherwise this is no-op
-                    await themeController.reloadTheme()
-                }
-            }
-        }
-    }
+				if (!isExistingTheme && (await Dialog.confirm("whitelabelThemeDetected_msg"))) {
+					await themeController.setThemeId(newTheme.themeId)
+				} else {
+					// If the theme has changed we want to reload it, otherwise this is no-op
+					await themeController.reloadTheme()
+				}
+			}
+		}
+	}
 
-    _checkStorageWarningLimit(): Promise<void> {
-        if (!logins.getUserController().isGlobalAdmin()) {
-            return Promise.resolve()
-        }
+	_checkStorageWarningLimit(): Promise<void> {
+		if (!logins.getUserController().isGlobalAdmin()) {
+			return Promise.resolve()
+		}
 
-        const customerId = assertNotNull(logins.getUserController().user.customer)
-        return locator.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
-            if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
-                return locator.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
-                    if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
-                        showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
-                    }
-                })
-            }
-        })
-    }
+		const customerId = assertNotNull(logins.getUserController().user.customer)
+		return locator.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
+			if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
+				return locator.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
+					if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
+						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
+					}
+				})
+			}
+		})
+	}
 
-    _showUpgradeReminder(): Promise<void> {
-        if (logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
-            return logins
-                .getUserController()
-                .loadCustomer()
-                .then(customer => {
-                    return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then(properties => {
-                        return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-                            if (
-                                properties.lastUpgradeReminder == null &&
-                                customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
-                            ) {
-                                let message = lang.get("premiumOffer_msg")
-                                let title = lang.get("upgradeReminderTitle_msg")
-                                return Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link"))
-                                    .then(confirm => {
-                                        if (confirm) {
-                                            import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
-                                        }
-                                    })
-                                    .then(() => {
-                                        properties.lastUpgradeReminder = new Date()
-                                        locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
-                                    })
-                            }
-                        })
-                    })
-                })
-        } else {
-            return Promise.resolve()
-        }
-    }
+	_showUpgradeReminder(): Promise<void> {
+		if (logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
+			return logins
+				.getUserController()
+				.loadCustomer()
+				.then(customer => {
+					return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then(properties => {
+						return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+							if (
+								properties.lastUpgradeReminder == null &&
+								customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
+							) {
+								let message = lang.get("premiumOffer_msg")
+								let title = lang.get("upgradeReminderTitle_msg")
+								return Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link"))
+											 .then(confirm => {
+												 if (confirm) {
+													 import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
+												 }
+											 })
+											 .then(() => {
+												 properties.lastUpgradeReminder = new Date()
+												 locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
+											 })
+							}
+						})
+					})
+				})
+		} else {
+			return Promise.resolve()
+		}
+	}
 
-    _enforcePasswordChange(): void {
-        if (logins.getUserController().user.requirePasswordUpdate) {
-            import("../settings/PasswordForm").then(({PasswordForm}) => {
-                return PasswordForm.showChangeOwnPasswordDialog(false)
-            })
-        }
-    }
+	_enforcePasswordChange(): void {
+		if (logins.getUserController().user.requirePasswordUpdate) {
+			import("../settings/PasswordForm").then(({PasswordForm}) => {
+				return PasswordForm.showChangeOwnPasswordDialog(false)
+			})
+		}
+	}
 }

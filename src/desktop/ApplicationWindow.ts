@@ -14,9 +14,9 @@ import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
 import HandlerDetails = Electron.HandlerDetails;
-import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions;
-import Result = Electron.Result;
 import {ElectronExports} from "./ElectronExportTypes";
+import type {Result} from "electron"
+import {typedKeys} from "@tutao/tutanota-utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -51,41 +51,39 @@ export class ApplicationWindow {
 
 	/** User logged in in this window. Reset from WindowManager. */
 	_userInfo: UserInfo | null
-	_setBoundsTimeout: TimeoutID
+	_setBoundsTimeout: ReturnType<typeof setTimeout>
 	_findingInPage: boolean = false
 	_skipNextSearchBarBlur: boolean = false
 	_lastSearchRequest:
-			| [
+		| [
 		string,
 		{
 			forward: boolean
 			matchCase: boolean
 		},
 	]
-			| null
-			| undefined = null
+		| null
+		| undefined = null
 	_lastSearchPromiseReject: (arg0: Error | null) => void
 	_shortcuts: Array<LocalShortcut>
 	id: number
 
 	constructor(
-			wm: WindowManager,
-			desktophtml: string,
-			icon: NativeImage,
-			electron: typeof Electron.CrossProcessExports,
-			localShortcutManager: LocalShortcutManager,
-			themeManager: ThemeManager,
-			dictUrl: string,
-			noAutoLogin?: boolean | null,
+		wm: WindowManager,
+		desktophtml: string,
+		icon: NativeImage,
+		electron: typeof Electron.CrossProcessExports,
+		localShortcutManager: LocalShortcutManager,
+		themeManager: ThemeManager,
+		dictUrl: string,
+		noAutoLogin?: boolean | null,
 	) {
 		this._themeManager = themeManager
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._electron = electron
 		this._localShortcut = localShortcutManager
-		// Flow has outdated definition for pathToFileURL, it returns WHATWG URL now
-		// see https://nodejs.org/docs/latest-v12.x/api/url.html#url_url_pathtofileurl_path
-		this._startFileURL = downcast<URL>(url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml)))
+		this._startFileURL = url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml))
 		this._startFileURLString = this._startFileURL.toString()
 		this._lastSearchPromiseReject = noOp
 		const isMac = process.platform === "darwin"
@@ -119,48 +117,48 @@ export class ApplicationWindow {
 				help: "resetZoomFactor_action",
 			},
 		] as Array<LocalShortcut>).concat(isMac
-				? [
-					{
-						key: Keys.F,
-						meta: true,
-						ctrl: true,
-						exec: () => this._toggleFullScreen(),
-						help: "toggleFullScreen_action",
+			? [
+				{
+					key: Keys.F,
+					meta: true,
+					ctrl: true,
+					exec: () => this._toggleFullScreen(),
+					help: "toggleFullScreen_action",
+				},
+			]
+			: [
+				{
+					key: Keys.F11,
+					exec: () => this._toggleFullScreen(),
+					help: "toggleFullScreen_action",
+				},
+				{
+					key: Keys.RIGHT,
+					alt: true,
+					exec: () => this._browserWindow.webContents.goForward(),
+					help: "pageForward_label",
+				},
+				{
+					key: Keys.LEFT,
+					alt: true,
+					exec: () => this._tryGoBack(),
+					help: "pageBackward_label",
+				},
+				{
+					key: Keys.H,
+					ctrl: true,
+					exec: () => wm.minimize(),
+					help: "hideWindows_action",
+				},
+				{
+					key: Keys.N,
+					ctrl: true,
+					exec: () => {
+						wm.newWindow(true)
 					},
-				]
-				: [
-					{
-						key: Keys.F11,
-						exec: () => this._toggleFullScreen(),
-						help: "toggleFullScreen_action",
-					},
-					{
-						key: Keys.RIGHT,
-						alt: true,
-						exec: () => this._browserWindow.webContents.goForward(),
-						help: "pageForward_label",
-					},
-					{
-						key: Keys.LEFT,
-						alt: true,
-						exec: () => this._tryGoBack(),
-						help: "pageBackward_label",
-					},
-					{
-						key: Keys.H,
-						ctrl: true,
-						exec: () => wm.minimize(),
-						help: "hideWindows_action",
-					},
-					{
-						key: Keys.N,
-						ctrl: true,
-						exec: () => {
-							wm.newWindow(true)
-						},
-						help: "openNewWindow_action",
-					},
-				],
+					help: "openNewWindow_action",
+				},
+			],
 		)
 		log.debug(TAG, "startFile: ", this._startFileURLString)
 		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
@@ -196,8 +194,13 @@ export class ApplicationWindow {
 	}
 
 	//expose browserwindow api
-	on: (m, f: (arg0: Event) => void) => BrowserWindow = (m, f: (arg0: Event) => void) => this._browserWindow.on(m, f)
-	once: (m, f: (arg0: Event) => void) => BrowserWindow = (m, f: (arg0: Event) => void) =>	this._browserWindow.once(m, f)
+	// on: (m, f: (arg0: Event) => void) => BrowserWindow = (m, f: (arg0: Event) => void) => this._browserWindow.on(m, f)
+	on: typeof BrowserWindow.prototype.on = (...args) =>
+		// @ts-ignore
+		this._browserWindow.on(...args)
+	once: typeof BrowserWindow.prototype.once = (...args) =>
+		// @ts-ignore
+		this._browserWindow.once(...args)
 	getTitle: () => string = () => this._browserWindow.webContents.getTitle()
 	// windows that get their zoom factor set from the config file don't report that
 	// zoom factor back when queried via webContents.zoomFactor.
@@ -239,12 +242,12 @@ export class ApplicationWindow {
 	}
 
 	_createBrowserWindow(
-			wm: WindowManager,
-			opts: {
-				preloadPath: string
-				icon: NativeImage
-				dictUrl: string
-			},
+		wm: WindowManager,
+		opts: {
+			preloadPath: string
+			icon: NativeImage
+			dictUrl: string
+		},
 	) {
 		const {preloadPath, dictUrl, icon} = opts
 		this._browserWindow = new this._electron.BrowserWindow({
@@ -285,86 +288,86 @@ export class ApplicationWindow {
 		this._ipc.addWindow(this.id)
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(
-				(webContents, permission, callback: (boolean) => void) => callback(false),
+			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
 
 		this._browserWindow
-				.on("closed", () => {
-					this.setUserInfo(null)
+			.on("closed", () => {
+				this.setUserInfo(null)
 
-					this._ipc.removeWindow(this.id)
-				})
-				.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
-				.on("blur", ev => this._localShortcut.disableAll(this._browserWindow))
+				this._ipc.removeWindow(this.id)
+			})
+			.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
+			.on("blur", (_: FocusEvent) => this._localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-				.on("will-attach-webview", e => e.preventDefault())
-				.on("will-navigate", (e, url) => {
-					// >Emitted when a user or the page wants to start navigation. It can happen when the window.location object is changed or
-					// a user clicks a link in the page.
-					// >This event will not emit when the navigation is started programmatically with APIs like webContents.loadURL and
-					// webContents.back.
-					// >It is also not emitted for in-page navigations, such as clicking anchor links or updating the window.location.hash.
-					// https://www.electronjs.org/docs/api/web-contents#event-will-navigate
-					//
-					// Basically the only scenarios left for us are:
-					// Clicking on a link without target="_blank"
-					// Programmatically changing window.location to something else (we don't do this and it normally reloads the page)
-					// In neither of those cases we want to navigate anywhere.
-					log.debug(TAG, "will-navigate", url)
-					e.preventDefault()
-				})
-				.on("before-input-event", (ev, input) => {
-					if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && input.key === "Enter") {
-						this._skipNextSearchBarBlur = true
-						const [searchTerm, options] = this._lastSearchRequest
-						options.forward = true
+			.on("will-attach-webview", e => e.preventDefault())
+			.on("will-navigate", (e, url) => {
+				// >Emitted when a user or the page wants to start navigation. It can happen when the window.location object is changed or
+				// a user clicks a link in the page.
+				// >This event will not emit when the navigation is started programmatically with APIs like webContents.loadURL and
+				// webContents.back.
+				// >It is also not emitted for in-page navigations, such as clicking anchor links or updating the window.location.hash.
+				// https://www.electronjs.org/docs/api/web-contents#event-will-navigate
+				//
+				// Basically the only scenarios left for us are:
+				// Clicking on a link without target="_blank"
+				// Programmatically changing window.location to something else (we don't do this and it normally reloads the page)
+				// In neither of those cases we want to navigate anywhere.
+				log.debug(TAG, "will-navigate", url)
+				e.preventDefault()
+			})
+			.on("before-input-event", (ev, input) => {
+				if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && input.key === "Enter") {
+					this._skipNextSearchBarBlur = true
+					const [searchTerm, options] = this._lastSearchRequest
+					options.forward = true
 
-						this._browserWindow.webContents
-								.once("found-in-page", (ev, res) => {
-									this._ipc.sendRequest(this.id, "applySearchResultToOverlay", [res])
-								})
-								.findInPage(searchTerm, options)
-					}
-				})
-				.on("did-finish-load", () => {
-					// This also covers the case when window was reloaded.
-					// the webContents needs to know on which channel to listen
-					// Wait for IPC to be initialized so that render process can process our messages.
-					this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
-				})
-				.on("did-fail-load", (evt, errorCode, errorDesc, validatedURL) => {
-					log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
-
-					if (errorDesc === "ERR_FILE_NOT_FOUND") {
-						this._getInitialUrl({
-							noAutoLogin: true,
+					this._browserWindow.webContents
+						.once("found-in-page", (ev, res) => {
+							this._ipc.sendRequest(this.id, "applySearchResultToOverlay", [res])
 						})
-								.then(initialUrl => {
-									log.debug(TAG, "redirecting to start page...", initialUrl)
-									return this._browserWindow.loadURL(initialUrl)
-								})
-								.then(() => log.debug(TAG, "...redirected"))
-					}
-				})
-				// @ts-ignore
-				.on("remote-require", e => e.preventDefault())
-				// @ts-ignore
-				.on("remote-get-global", e => e.preventDefault())
-				// @ts-ignore
-				.on("remote-get-builtin", e => e.preventDefault())
-				// @ts-ignore
-				.on("remote-get-current-web-contents", e => e.preventDefault())
-				// @ts-ignore
-				.on("remote-get-current-window", e => e.preventDefault())
-				.on("did-navigate", () => this._browserWindow.emit("did-navigate"))
-				.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
-				.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
-				.on("update-target-url", (ev, url) => {
-					this._ipc.sendRequest(this.id, "updateTargetUrl", [url, this._startFileURLString])
-				})
+						.findInPage(searchTerm, options)
+				}
+			})
+			.on("did-finish-load", () => {
+				// This also covers the case when window was reloaded.
+				// the webContents needs to know on which channel to listen
+				// Wait for IPC to be initialized so that render process can process our messages.
+				this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
+			})
+			.on("did-fail-load", (evt, errorCode, errorDesc, validatedURL) => {
+				log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
+
+				if (errorDesc === "ERR_FILE_NOT_FOUND") {
+					this._getInitialUrl({
+						noAutoLogin: true,
+					})
+						.then(initialUrl => {
+							log.debug(TAG, "redirecting to start page...", initialUrl)
+							return this._browserWindow.loadURL(initialUrl)
+						})
+						.then(() => log.debug(TAG, "...redirected"))
+				}
+			})
+			// @ts-ignore
+			.on("remote-require", e => e.preventDefault())
+			// @ts-ignore
+			.on("remote-get-global", e => e.preventDefault())
+			// @ts-ignore
+			.on("remote-get-builtin", e => e.preventDefault())
+			// @ts-ignore
+			.on("remote-get-current-web-contents", e => e.preventDefault())
+			// @ts-ignore
+			.on("remote-get-current-window", e => e.preventDefault())
+			.on("did-navigate", () => this._browserWindow.emit("did-navigate"))
+			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
+			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
+			.on("update-target-url", (ev, url) => {
+				this._ipc.sendRequest(this.id, "updateTargetUrl", [url, this._startFileURLString])
+			})
 
 		this._browserWindow.webContents.setWindowOpenHandler(details => this._onNewWindow(details))
 
@@ -377,7 +380,7 @@ export class ApplicationWindow {
 		await this._browserWindow.loadURL(url)
 	}
 
-	_onNewWindow(details: HandlerDetails): { action: "deny" } {
+	_onNewWindow(details: HandlerDetails): {action: "deny"} {
 		const parsedUrl = parseUrlOrNull(details.url)
 
 		if (parsedUrl == null) {
@@ -406,7 +409,7 @@ export class ApplicationWindow {
 			shortcutString += s.ctrl ? "Control+" : ""
 			shortcutString += s.alt ? "Alt+" : ""
 			shortcutString += s.shift ? "Shift+" : ""
-			shortcutString += capitalizeFirstLetter(Object.keys(Keys).filter(k => s.key === Keys[k])[0])
+			shortcutString += capitalizeFirstLetter(typedKeys(Keys).filter(k => s.key === Keys[k])[0])
 
 			this._localShortcut.register(this._browserWindow, shortcutString, s.exec)
 		})
@@ -416,9 +419,9 @@ export class ApplicationWindow {
 		// delete exec since functions don't cross IPC anyway.
 		// it will be replaced by () => true in the renderer thread.
 		const webShortcuts = this._shortcuts.map(s =>
-				Object.assign({}, s, {
-					exec: null,
-				}),
+			Object.assign({}, s, {
+				exec: null,
+			}),
 		)
 
 		this._ipc.sendRequest(this.id, "addShortcuts", webShortcuts)
@@ -436,17 +439,17 @@ export class ApplicationWindow {
 
 	openMailBox(info: UserInfo, path?: string | null): Promise<void> {
 		return this._ipc
-				.initialized(this.id)
-				.then(() => this._ipc.sendRequest(this.id, "openMailbox", [info.userId, info.mailAddress, path]))
-				.then(() => this.show())
+				   .initialized(this.id)
+				   .then(() => this._ipc.sendRequest(this.id, "openMailbox", [info.userId, info.mailAddress, path]))
+				   .then(() => this.show())
 	}
 
 	// open at date?
 	openCalendar(info: UserInfo): Promise<void> {
 		return this._ipc
-				.initialized(this.id)
-				.then(() => this._ipc.sendRequest(this.id, "openCalendar", [info.userId]))
-				.then(() => this.show())
+				   .initialized(this.id)
+				   .then(() => this._ipc.sendRequest(this.id, "openCalendar", [info.userId]))
+				   .then(() => this.show())
 	}
 
 	setContextMenuHandler(handler: (arg0: ContextMenuParams) => void) {
@@ -485,13 +488,7 @@ export class ApplicationWindow {
 		return this._browserWindow.webContents.getURL().substring(this._startFileURLString.length)
 	}
 
-	findInPage([searchTerm, options]: [
-		string,
-		{
-			forward: boolean
-			matchCase: boolean
-		},
-	]): Promise<Result | null> {
+	findInPage([searchTerm, options]: [string, {forward: boolean, matchCase: boolean}]): Promise<Result | null> {
 		this._findingInPage = true
 
 		if (searchTerm !== "") {
@@ -499,7 +496,7 @@ export class ApplicationWindow {
 
 			this._browserWindow.webContents.findInPage(searchTerm, options)
 
-			return new Promise((resolve: (Result) => void, reject) => {
+			return new Promise((resolve: (_: Result) => void, reject) => {
 				// if the last search request is still ongoing, this will reject that requests' promise
 				// we obviously don't care about that requests' result since we are already handling a new one
 				// if the last request is done, this is a noOp
@@ -509,11 +506,11 @@ export class ApplicationWindow {
 				this._lastSearchPromiseReject = reject
 
 				this._browserWindow.webContents // the last listener might not have fired yet
-						.removeAllListeners("found-in-page")
-						.once("found-in-page", (ev, res: Result) => {
-							this._lastSearchPromiseReject = noOp
-							resolve(res)
-						})
+					.removeAllListeners("found-in-page")
+					.once("found-in-page", (ev, res: Result) => {
+						this._lastSearchPromiseReject = noOp
+						resolve(res)
+					})
 			}).catch(e => {
 				// findInPage might reject if requests come too quickly
 				// if it's rejecting for another reason we'll have logs

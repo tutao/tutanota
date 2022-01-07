@@ -7,7 +7,7 @@ import type {CredentialsStorage, PersistentCredentials} from "./credentials/Cred
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialEncryptionMode} from "./credentials/CredentialEncryptionMode"
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import type {Base64} from "@tutao/tutanota-utils/"
+import type {Base64} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 const ConfigVersion = 3
@@ -90,8 +90,7 @@ export class DeviceConfig implements CredentialsStorage {
 			this._signupToken = loadedSignupToken
 		} else {
 			let bytes = new Uint8Array(6)
-			// @ts-ignore
-			let crypto = window.crypto || window.msCrypto
+			let crypto = window.crypto
 			crypto.getRandomValues(bytes)
 			this._signupToken = uint8ArrayToBase64(bytes)
 
@@ -149,14 +148,14 @@ export class DeviceConfig implements CredentialsStorage {
 	_writeToStorage() {
 		try {
 			localStorage.setItem(
-					LocalStorageKey,
-					JSON.stringify(this, (key, value) => {
-						if (key === "_credentials") {
-							return Object.fromEntries(this._credentials.entries())
-						} else {
-							return value
-						}
-					}),
+				LocalStorageKey,
+				JSON.stringify(this, (key, value) => {
+					if (key === "_credentials") {
+						return Object.fromEntries(this._credentials.entries())
+					} else {
+						return value
+					}
+				}),
 			)
 		} catch (e) {
 			// may occur in Safari < 11 in incognito mode because it throws a QuotaExceededError

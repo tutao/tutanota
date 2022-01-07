@@ -46,7 +46,7 @@ export function base64ToBase64Url(base64: Base64): Base64Url {
 }
 
 function makeLookup(str: string): Record<string, number> {
-    const lookup = {}
+    const lookup: Record<string, number> = {}
 
     for (let i = 0; i < str.length; i++) {
         lookup[str.charAt(i)] = i
@@ -152,7 +152,7 @@ export function _replaceLoneSurrogates(s: string | null | undefined): string {
         return ""
     }
 
-    let result = []
+    let result: string[] = []
 
     for (let i = 0; i < s.length; i++) {
         let code = s.charCodeAt(i)
@@ -207,7 +207,7 @@ export function stringToUtf8Uint8Array(string: string): Uint8Array {
 }
 // just for edge, as it does not support TextDecoder yet
 export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
-    let stringArray = []
+    let stringArray: string[] = []
     stringArray.length = uint8Array.length
 
     for (let i = 0; i < uint8Array.length; i++) {
@@ -305,7 +305,6 @@ export function base64ToUint8Array(base64: Base64): Uint8Array {
  * @return The string
  */
 export function uint8ArrayToString(charset: string, bytes: Uint8Array): string {
-    // $FlowExpectedError[incompatible-call] we will rely on the constructor throwing an error if the charset is not supported
     const decoder = new TextDecoder(charset)
     return decoder.decode(bytes)
 }

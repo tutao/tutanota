@@ -1,33 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="ES2020" />
 /// <reference lib="webworker" />
-// straight from the flowlib/bom.js, flow just didn't pick it up for some reason
-// declare class Request {
-// 	constructor(input: RequestInfo, init?: RequestOptions): void;
-// 	clone(): Request;
-//
-// 	url: string;
-//
-// 	cache: CacheType;
-// 	credentials: CredentialsType;
-// 	headers: Headers;
-// 	integrity: string;
-// 	method: string;
-// 	mode: ModeType;
-// 	redirect: RedirectType;
-// 	referrer: string;
-// 	referrerPolicy: ReferrerPolicyType;
-// 	+signal: AbortSignal;
-//
-// 	// Body methods and attributes
-// 	bodyUsed: boolean;
-//
-// 	arrayBuffer(): Promise<ArrayBuffer>;
-// 	blob(): Promise<Blob>;
-// 	formData(): Promise<FormData>;
-// 	json(): Promise<any>;
-// 	text(): Promise<string>;
-// }
+
 // set by the build script
 import {getPathBases} from "../ApplicationPaths"
 
@@ -38,10 +12,10 @@ declare var customDomainCacheExclusions: () => Array<string>
 var versionString = typeof version === "undefined" ? "test" : version()
 
 const isTutanotaDomain = () =>
-		// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
-		self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
+	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
+	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
 
-const urlWithoutQuery = urlString => {
+const urlWithoutQuery = (urlString: string) => {
 	const queryIndex = urlString.indexOf("?")
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
 }
@@ -100,41 +74,39 @@ export class ServiceWorker {
 
 	precache(): Promise<any> {
 		return this._caches.open(this._cacheName).then(cache =>
-				this._addAllToCache(cache, this._urlsToCache)
-						.then(() => cache.match("index.html"))
-						.then((r: Response | null) => {
-							if (!r) {
-								return
-							}
+			this._addAllToCache(cache, this._urlsToCache)
+				.then(() => cache.match("index.html"))
+				.then((r) => {
+					if (!r) {
+						return
+					}
 
-							// Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response<<
-							const clonedResponse = r.clone()
-							const bodyPromise = "body" in clonedResponse ? Promise.resolve(clonedResponse.body) : clonedResponse.blob()
-							// Casting body to "any" because Flow is missing ReadableStream option for response constructor
-							// see: https://github.com/facebook/flow/issues/6824
-							return bodyPromise
-									.then(
-											body =>
-													new Response(body as any, {
-														headers: clonedResponse.headers,
-														status: clonedResponse.status,
-														statusText: clonedResponse.statusText,
-													}),
-									)
-									.then(r => cache.put(this._selfLocation, r))
-									.then(() => cache.delete("index.html"))
-						}),
+					// Reconstructing response to 1. Save it under different url 2. Get rid of redirect in response<<
+					const clonedResponse = r.clone()
+					const bodyPromise = "body" in clonedResponse ? Promise.resolve(clonedResponse.body) : clonedResponse.blob()
+					return bodyPromise
+						.then(
+							body =>
+								new Response(body, {
+									headers: clonedResponse.headers,
+									status: clonedResponse.status,
+									statusText: clonedResponse.statusText,
+								}),
+						)
+						.then(r => cache.put(this._selfLocation, r))
+						.then(() => cache.delete("index.html"))
+				}),
 		)
 	}
 
 	deleteOldCaches(): Promise<any> {
 		return this._caches
-				.keys()
-				.then(cacheNames => Promise.all(cacheNames.map(cacheName => (cacheName !== this._cacheName ? caches.delete(cacheName) : Promise.resolve()))))
-				.catch(e => {
-					console.log("error while deleting old caches", e)
-					throw e
-				})
+				   .keys()
+				   .then(cacheNames => Promise.all(cacheNames.map(cacheName => (cacheName !== this._cacheName ? caches.delete(cacheName) : Promise.resolve()))))
+				   .catch(e => {
+					   console.log("error while deleting old caches", e)
+					   throw e
+				   })
 	}
 
 	fromCacheOrFetchAndCache(request: Request): Promise<Response> {
@@ -155,23 +127,23 @@ export class ServiceWorker {
 
 	_fromCache(requestUrl: string): Promise<Response> {
 		return (
-				this._caches
-						.open(this._cacheName)
-						.then(cache => cache.match(requestUrl)) // Cache magically disappears on iOS 12.1 after the browser restart.
-						// See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
-						.then(r => r || fetch(requestUrl))
+			this._caches
+				.open(this._cacheName)
+				.then(cache => cache.match(requestUrl)) // Cache magically disappears on iOS 12.1 after the browser restart.
+				// See #758. See https://bugs.webkit.org/show_bug.cgi?id=190269
+				.then(r => r || fetch(requestUrl))
 		)
 	}
 
 	// needed because FF fails to cache.addAll()
 	_addAllToCache(cache: Cache, urlsToCache: string[]): Promise<any> {
 		return Promise.all(
-				urlsToCache.map(url =>
-						cache.add(url).catch(e => {
-							console.log("failed to add", url, e)
-							throw e
-						}),
-				),
+			urlsToCache.map(url =>
+				cache.add(url).catch(e => {
+					console.log("failed to add", url, e)
+					throw e
+				}),
+			),
 		)
 	}
 
@@ -186,10 +158,10 @@ export class ServiceWorker {
 
 	_shouldRedirectToDefaultPage(urlWithout: string): boolean {
 		return (
-				!urlWithout.startsWith(this._possibleRest) &&
-				urlWithout.startsWith(this._selfLocation) &&
-				urlWithout !== this._selfLocation && // if we are already on the page we need
-				this._applicationPaths.includes(this._getFirstPathComponent(urlWithout))
+			!urlWithout.startsWith(this._possibleRest) &&
+			urlWithout.startsWith(this._selfLocation) &&
+			urlWithout !== this._selfLocation && // if we are already on the page we need
+			this._applicationPaths.includes(this._getFirstPathComponent(urlWithout))
 		)
 	}
 
@@ -202,7 +174,7 @@ export class ServiceWorker {
 const init = (sw: ServiceWorker) => {
 	console.log("sw init", versionString)
 
-	self.addEventListener("install", evt => {
+	self.addEventListener("install", (evt: ExtendableEvent) => {
 		console.log("SW: being installed", versionString)
 		evt.waitUntil(sw.precache())
 	})
@@ -211,7 +183,7 @@ const init = (sw: ServiceWorker) => {
 		// @ts-ignore
 		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
 	})
-	self.addEventListener("fetch", evt => {
+	self.addEventListener("fetch", (evt: FetchEvent) => {
 		sw.respond(evt)
 	})
 	self.addEventListener("message", event => {
@@ -231,12 +203,12 @@ const init = (sw: ServiceWorker) => {
 		}
 		// @ts-ignore
 		return self.clients.matchAll().then(allClients =>
-				allClients.forEach(c =>
-						c.postMessage({
-							type: "error",
-							value: serializedError,
-						}),
-				),
+			allClients.forEach((c: Client) =>
+				c.postMessage({
+					type: "error",
+					value: serializedError,
+				}),
+			),
 		)
 	})
 }

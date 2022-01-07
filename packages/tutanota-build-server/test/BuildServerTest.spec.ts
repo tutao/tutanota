@@ -40,10 +40,10 @@ const BUILD_STATUS_SUCCESS = "success"
 const BUILD_STATUS_ERROR = "error"
 
 o.spec("BuildServer", function () {
-	let buildServer = null
-	let clientSocket = null
-	let configDump = null
-	let buildStatus = null
+	let buildServer: BuildServer
+	let clientSocket
+	let configDump
+	let buildStatus
 
 	o.before(async function () {
 		buildServer = new BuildServer(buildServerConfig)

@@ -84,36 +84,36 @@ export class ContactIndexer {
 	}
 
 	processNewContact(
-			event: EntityUpdate,
+		event: EntityUpdate,
 	): Promise<| {
 		contact: Contact
 		keyToIndexEntries: Map<string, SearchIndexEntry[]>
 	}
-			| null
-			| undefined> {
+		| null
+		| undefined> {
 		return this._entity
-				.load(ContactTypeRef, [event.instanceListId, event.instanceId])
-				.then(contact => {
-					let keyToIndexEntries = this.createContactIndexEntries(contact)
-					return this.suggestionFacade.store().then(() => {
-						return {
-							contact,
-							keyToIndexEntries,
-						}
-					})
-				})
-				.catch(
-						ofClass(NotFoundError, () => {
-							console.log("tried to index non existing contact")
-							return null
-						}),
-				)
-				.catch(
-						ofClass(NotAuthorizedError, () => {
-							console.log("tried to index contact without permission")
-							return null
-						}),
-				)
+				   .load(ContactTypeRef, [event.instanceListId, event.instanceId])
+				   .then(contact => {
+					   let keyToIndexEntries = this.createContactIndexEntries(contact)
+					   return this.suggestionFacade.store().then(() => {
+						   return {
+							   contact,
+							   keyToIndexEntries,
+						   }
+					   })
+				   })
+				   .catch(
+					   ofClass(NotFoundError, () => {
+						   console.log("tried to index non existing contact")
+						   return null
+					   }),
+				   )
+				   .catch(
+					   ofClass(NotAuthorizedError, () => {
+						   console.log("tried to index contact without permission")
+						   return null
+					   }),
+				   )
 	}
 
 	/**
@@ -121,44 +121,44 @@ export class ContactIndexer {
 	 */
 	indexFullContactList(userGroupId: Id): Promise<any> {
 		return this._entity
-				.loadRoot(ContactListTypeRef, userGroupId)
-				.then((contactList: ContactList) => {
-					return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
-						let groupId = neverNull(contactList._ownerGroup)
+				   .loadRoot(ContactListTypeRef, userGroupId)
+				   .then((contactList: ContactList) => {
+					   return this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS]).then(t => {
+						   let groupId = neverNull(contactList._ownerGroup)
 
-						let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
+						   let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 
-						return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
-							if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
-								return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
-									contacts.forEach(contact => {
-										let keyToIndexEntries = this.createContactIndexEntries(contact)
+						   return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
+							   if (groupData && groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
+								   return this._entity.loadAll(ContactTypeRef, contactList.contacts).then(contacts => {
+									   contacts.forEach(contact => {
+										   let keyToIndexEntries = this.createContactIndexEntries(contact)
 
-										this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
-									})
-									return Promise.all([
-										this._core.writeIndexUpdate(
-												[
-													{
-														groupId,
-														indexTimestamp: FULL_INDEXED_TIMESTAMP,
-													},
-												],
-												indexUpdate,
-										),
-										this.suggestionFacade.store(),
-									])
-								})
-							}
-						})
-					})
-				})
-				.catch(
-						ofClass(NotFoundError, e => {
-							// external users have no contact list.
-							return Promise.resolve()
-						}),
-				)
+										   this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+									   })
+									   return Promise.all([
+										   this._core.writeIndexUpdate(
+											   [
+												   {
+													   groupId,
+													   indexTimestamp: FULL_INDEXED_TIMESTAMP,
+												   },
+											   ],
+											   indexUpdate,
+										   ),
+										   this.suggestionFacade.store(),
+									   ])
+								   })
+							   }
+						   })
+					   })
+				   })
+				   .catch(
+					   ofClass(NotFoundError, e => {
+						   // external users have no contact list.
+						   return Promise.resolve()
+					   }),
+				   )
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
@@ -175,10 +175,10 @@ export class ContactIndexer {
 					this.processNewContact(event).then(result => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(
-									result.contact._id,
-									neverNull(result.contact._ownerGroup),
-									result.keyToIndexEntries,
-									indexUpdate,
+								result.contact._id,
+								neverNull(result.contact._ownerGroup),
+								result.keyToIndexEntries,
+								indexUpdate,
 							)
 						}
 					}),

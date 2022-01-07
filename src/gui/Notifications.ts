@@ -5,19 +5,19 @@ import type {clickHandler} from "./base/GuiUtils"
 
 export class Notifications {
 
-	showNotification(title: string, options?: NotificationOptions, onclick: ReturnType<Notification["onclick"]> = noOp): Notification | void {
+	showNotification(title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {
 		if (
-				!isApp()
-				&& typeof window.Notification !== "undefined"
-				&& window.Notification.permission === "granted"
+			!isApp()
+			&& typeof window.Notification !== "undefined"
+			&& window.Notification.permission === "granted"
 		) {
 			try {
 				const actualOptions: NotificationOptions = Object.assign(
-						{},
-						{
-							icon: NotificationIcon,
-						},
-						options,
+					{},
+					{
+						icon: NotificationIcon,
+					},
+					options,
 				)
 				const notification = new window.Notification(title, actualOptions)
 				notification.onclick = onclick
@@ -34,22 +34,23 @@ export class Notifications {
 		return null
 	}
 
-    /**
-     * Requests user permission if notifications are supported
-     * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
-     */
-    requestPermission(): void {
-        if (isDesktop() || isApp() || typeof Notification === "undefined") {
-            return
-        }
+	/**
+	 * Requests user permission if notifications are supported
+	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
+	 */
+	requestPermission(): void {
+		if (isDesktop() || isApp() || typeof Notification === "undefined") {
+			return
+		}
 
-        try {
-            if (window.Notification.permission !== "denied") {
-                window.Notification.requestPermission()
-            }
-        } catch (e) {
-            console.log("request notification permission error", e)
-        }
-    }
+		try {
+			if (window.Notification.permission !== "denied") {
+				window.Notification.requestPermission()
+			}
+		} catch (e) {
+			console.log("request notification permission error", e)
+		}
+	}
 }
+
 export const notifications: Notifications = new Notifications()

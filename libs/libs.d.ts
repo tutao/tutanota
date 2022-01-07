@@ -11,17 +11,3 @@ declare module 'squire-rte' {
 declare module 'qrcode' {
 	export default any;
 }
-
-declare class SystemType {
-	baseURL: string;
-	babelOptions: Object;
-	paths: Object;
-	loads: Object;
-	import(moduleName: string, normalizedParentName: string | null): Promise<unknown>;
-	normalizeSync(moduleName: string): string;
-	config(config: Object): void;
-	getConfig(): Object;
-	resolveSync(moduleName: string): string;
-}
-
-declare var System: SystemType

@@ -11,7 +11,7 @@ import {
 	downcast,
 	flat,
 	getDayShifted,
-	getStartOfDay,
+	getStartOfDay, isNotNull,
 	isSameTypeRef,
 	neverNull,
 	promiseMap,
@@ -74,12 +74,12 @@ export class SearchFacade {
 	_entityClient: EntityClient
 
 	constructor(
-			loginFacade: LoginFacadeImpl,
-			db: Db,
-			mailIndexer: MailIndexer,
-			suggestionFacades: SuggestionFacade<any>[],
-			browserData: BrowserData,
-			entityClient: EntityClient,
+		loginFacade: LoginFacadeImpl,
+		db: Db,
+		mailIndexer: MailIndexer,
+		suggestionFacades: SuggestionFacade<any>[],
+		browserData: BrowserData,
+		entityClient: EntityClient,
 	) {
 		this._loginFacade = loginFacade
 		this._db = db
@@ -162,7 +162,7 @@ export class SearchFacade {
 			// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
 			// for other cases we only check that an attribute contains a word that starts with suggestion word
 			const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
-			const finalResults = []
+			const finalResults: IdTuple[] = []
 
 			for (const id of result.results) {
 				if (finalResults.length >= minSuggestionCount) {
@@ -199,11 +199,11 @@ export class SearchFacade {
 	 * @param attributeIds Only looks in these attribute ids (or all its string values if it is an aggregation attribute id. If null, looks in all string values and aggregations.
 	 */
 	_containsSuggestionToken(
-			entity: Record<string, any>,
-			model: TypeModel,
-			attributeIds: number[] | null,
-			suggestionToken: string,
-			matchWordOrder: boolean,
+		entity: Record<string, any>,
+		model: TypeModel,
+		attributeIds: number[] | null,
+		suggestionToken: string,
+		matchWordOrder: boolean,
 	): Promise<boolean> {
 		let attributeNames: string[]
 
@@ -211,10 +211,10 @@ export class SearchFacade {
 			attributeNames = Object.keys(model.values).concat(Object.keys(model.associations))
 		} else {
 			attributeNames = attributeIds.map(id =>
-					neverNull(
-							Object.keys(model.values).find(valueName => model.values[valueName].id === id) ||
-							Object.keys(model.associations).find(associationName => model.associations[associationName].id === id),
-					),
+				neverNull(
+					Object.keys(model.values).find(valueName => model.values[valueName].id === id) ||
+					Object.keys(model.associations).find(associationName => model.associations[associationName].id === id),
+				),
 			)
 		}
 
@@ -230,7 +230,7 @@ export class SearchFacade {
 				let aggregates = model.associations[attributeName].cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
 				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType)).then(refModel => {
 					return asyncFind(aggregates, aggregate => {
-						return this._containsSuggestionToken(aggregate, refModel, null, suggestionToken, matchWordOrder)
+						return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
 					}).then(found => found != null)
 				})
 			} else {
@@ -239,24 +239,24 @@ export class SearchFacade {
 		}).then(found => found != null)
 	}
 
-    _startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
+	_startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
 		markStart("findIndexEntries")
 
 
 		const nextScheduledIndexingRun = getStartOfDay(
-				getDayShifted(
-						new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS
-				)
+			getDayShifted(
+				new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS
+			)
 		);
 		const theDayAfterTomorrow = getStartOfDay(getDayShifted(new Date(), 1))
 
 		if (searchResult.moreResults.length === 0
-				&& nextScheduledIndexingRun.getTime() > theDayAfterTomorrow.getTime()
-				&& !this._mailIndexer.isIndexing
+			&& nextScheduledIndexingRun.getTime() > theDayAfterTomorrow.getTime()
+			&& !this._mailIndexer.isIndexing
 		) {
 			this._mailIndexer.extendIndexIfNeeded(
-					this._loginFacade.getLoggedInUser(),
-					getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime(),
+				this._loginFacade.getLoggedInUser(),
+				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime(),
 			)
 		}
 
@@ -266,56 +266,56 @@ export class SearchFacade {
 			moreResultsEntries = Promise.resolve(searchResult.moreResults)
 		} else {
 			moreResultsEntries = this._findIndexEntries(searchResult, maxResults)
-					.then(keyToEncryptedIndexEntries => {
-						markEnd("findIndexEntries")
-						markStart("_filterByEncryptedId")
-						return this._filterByEncryptedId(keyToEncryptedIndexEntries)
-					})
-					.then(keyToEncryptedIndexEntries => {
-						markEnd("_filterByEncryptedId")
-						markStart("_decryptSearchResult")
-						return this._decryptSearchResult(keyToEncryptedIndexEntries)
-					})
-					.then(keyToIndexEntries => {
-						markEnd("_decryptSearchResult")
-						markStart("_filterByTypeAndAttributeAndTime")
-						return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
-					})
-					.then(keyToIndexEntries => {
-						markEnd("_filterByTypeAndAttributeAndTime")
-						markStart("_reduceWords")
-						return this._reduceWords(keyToIndexEntries, searchResult.matchWordOrder)
-					})
-					.then(searchIndexEntries => {
-						markEnd("_reduceWords")
-						markStart("_reduceToUniqueElementIds")
-						return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
-					})
-					.then(additionalEntries => {
-						markEnd("_reduceToUniqueElementIds")
-						return additionalEntries.concat(searchResult.moreResults)
-					})
+									 .then(keyToEncryptedIndexEntries => {
+										 markEnd("findIndexEntries")
+										 markStart("_filterByEncryptedId")
+										 return this._filterByEncryptedId(keyToEncryptedIndexEntries)
+									 })
+									 .then(keyToEncryptedIndexEntries => {
+										 markEnd("_filterByEncryptedId")
+										 markStart("_decryptSearchResult")
+										 return this._decryptSearchResult(keyToEncryptedIndexEntries)
+									 })
+									 .then(keyToIndexEntries => {
+										 markEnd("_decryptSearchResult")
+										 markStart("_filterByTypeAndAttributeAndTime")
+										 return this._filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
+									 })
+									 .then(keyToIndexEntries => {
+										 markEnd("_filterByTypeAndAttributeAndTime")
+										 markStart("_reduceWords")
+										 return this._reduceWords(keyToIndexEntries, searchResult.matchWordOrder)
+									 })
+									 .then(searchIndexEntries => {
+										 markEnd("_reduceWords")
+										 markStart("_reduceToUniqueElementIds")
+										 return this._reduceToUniqueElementIds(searchIndexEntries, searchResult)
+									 })
+									 .then(additionalEntries => {
+										 markEnd("_reduceToUniqueElementIds")
+										 return additionalEntries.concat(searchResult.moreResults)
+									 })
 		}
 
 		return moreResultsEntries
-				.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
-					markStart("_filterByListIdAndGroupSearchResults")
-					return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
-				})
-				.then(result => {
-					markEnd("_filterByListIdAndGroupSearchResults")
-					typeof self !== "undefined" &&
-					printMeasure("query: " + searchResult.query + ", maxResults: " + String(maxResults), [
-						"findIndexEntries",
-						"_filterByEncryptedId",
-						"_decryptSearchResult",
-						"_filterByTypeAndAttributeAndTime",
-						"_reduceWords",
-						"_reduceToUniqueElementIds",
-						"_filterByListIdAndGroupSearchResults",
-					])
-					return result
-				})
+			.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
+				markStart("_filterByListIdAndGroupSearchResults")
+				return this._filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
+			})
+			.then(result => {
+				markEnd("_filterByListIdAndGroupSearchResults")
+				typeof self !== "undefined" &&
+				printMeasure("query: " + searchResult.query + ", maxResults: " + String(maxResults), [
+					"findIndexEntries",
+					"_filterByEncryptedId",
+					"_decryptSearchResult",
+					"_filterByTypeAndAttributeAndTime",
+					"_reduceWords",
+					"_reduceToUniqueElementIds",
+					"_filterByListIdAndGroupSearchResults",
+				])
+				return result
+			})
 	}
 
 	/**
@@ -340,7 +340,7 @@ export class SearchFacade {
 		})
 	}
 
-	_findIndexEntries(searchResult: SearchResult, maxResults: number | null): Promise<KeyToEncryptedIndexEntries[]> {
+	_findIndexEntries(searchResult: SearchResult, maxResults: number | null | undefined): Promise<KeyToEncryptedIndexEntries[]> {
 		const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 		const firstSearchTokenInfo = searchResult.lastReadSearchIndexRow[0]
 		// First read all metadata to narrow time range we search in.
@@ -363,38 +363,38 @@ export class SearchFacade {
 					return decryptMetaData(this._db.key, metaData)
 				})
 			})
-					.thenOrApply(metaRows => {
-						// Find index entry rows in which we will search.
-						const rowsToReadForIndexKeys = this._findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
+					   .thenOrApply(metaRows => {
+						   // Find index entry rows in which we will search.
+						   const rowsToReadForIndexKeys = this._findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
 
-						// Iterate each query token
-						return this._promiseMapCompat(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
-							// For each token find token entries in the rows we've found
-							return this._promiseMapCompat(rowsToRead.rows, entry => this._findEntriesForMetadata(transaction, entry))
-									.thenOrApply(flat)
-									.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
-										return indexEntries.map(entry => ({
-											encEntry: entry,
-											idHash: arrayHash(getIdFromEncSearchIndexEntry(entry)),
-										}))
-									})
-									.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
-										return {
-											indexKey: rowsToRead.indexKey,
-											indexEntries: indexEntries,
-										}
-									}).value
-						}).value
-					})
-					.toPromise()
+						   // Iterate each query token
+						   return this._promiseMapCompat(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
+							   // For each token find token entries in the rows we've found
+							   return this._promiseMapCompat(rowsToRead.rows, entry => this._findEntriesForMetadata(transaction, entry))
+										  .thenOrApply(flat)
+										  .thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
+											  return indexEntries.map(entry => ({
+												  encEntry: entry,
+												  idHash: arrayHash(getIdFromEncSearchIndexEntry(entry)),
+											  }))
+										  })
+										  .thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+											  return {
+												  indexKey: rowsToRead.indexKey,
+												  indexEntries: indexEntries,
+											  }
+										  }).value
+						   }).value
+					   })
+					   .toPromise()
 		})
 	}
 
 	_findRowsToReadFromMetaData(
-			firstTokenInfo: [string, number | null],
-			safeMetaDataRows: Array<SearchIndexMetaDataRow>,
-			typeInfo: TypeInfo,
-			maxResults: number | null,
+		firstTokenInfo: [string, number | null],
+		safeMetaDataRows: Array<SearchIndexMetaDataRow>,
+		typeInfo: TypeInfo,
+		maxResults: number | null | undefined,
 	): Array<RowsToReadForIndexKey> {
 		// "Leading row" narrows down time range in which we search in this iteration
 		// Doesn't matter for correctness which one it is (because query is always AND) but matters for performance
@@ -432,14 +432,14 @@ export class SearchFacade {
 	}
 
 	_findRowsToReadByTimeRange(
-			metaData: SearchIndexMetaDataRow,
-			typeInfo: TypeInfo,
-			fromNewestTimestamp: number,
-			toOldestTimestamp: number,
+		metaData: SearchIndexMetaDataRow,
+		typeInfo: TypeInfo,
+		fromNewestTimestamp: number,
+		toOldestTimestamp: number,
 	): Array<SearchIndexMetadataEntry> {
 		const filteredRows = metaData.rows.filter(r => r.app === typeInfo.appId && r.type === typeInfo.typeId)
 		filteredRows.reverse()
-		const passedRows = []
+		const passedRows: SearchIndexMetadataEntry[] = []
 
 		for (let row of filteredRows) {
 			if (row.oldestElementTimestamp < fromNewestTimestamp) {
@@ -455,10 +455,10 @@ export class SearchFacade {
 	}
 
 	_findRowsToRead(
-			metaData: SearchIndexMetaDataRow,
-			typeInfo: TypeInfo,
-			mustBeOlderThan: number,
-			maxResults: number | null,
+		metaData: SearchIndexMetaDataRow,
+		typeInfo: TypeInfo,
+		mustBeOlderThan: number,
+		maxResults: number | null | undefined,
 	): {
 		metaEntries: Array<SearchIndexMetadataEntry>
 		oldestTimestamp: number
@@ -551,7 +551,7 @@ export class SearchFacade {
 			if (!matchingIds) {
 				matchingIds = new Set(keyToIndexEntry.indexEntries.map(entry => entry.id))
 			} else {
-                let filtered = new Set<Id>()
+				let filtered = new Set<Id>()
 				keyToIndexEntry.indexEntries.forEach(entry => {
 					if (matchingIds.has(entry.id)) {
 						filtered.add(entry.id)
@@ -597,7 +597,7 @@ export class SearchFacade {
 
 					if (entry) {
 						filteredPositions = filteredPositions.filter(firstWordPosition =>
-								neverNull(entry).positions.find(position => position === firstWordPosition + i),
+							neverNull(entry).positions.find(position => position === firstWordPosition + i),
 						)
 					} else {
 						// the id was probably not found for the same attribute as the current filtered positions, so we could not find all words in order in the same attribute
@@ -614,10 +614,10 @@ export class SearchFacade {
 	}
 
 	_reduceToUniqueElementIds(results: ReadonlyArray<DecryptedSearchIndexEntry>, previousResult: SearchResult): ReadonlyArray<MoreResultsIndexEntry> {
-		let uniqueIds = {}
+		const uniqueIds = new Set<string>()
 		return results.filter(entry => {
-			if (!uniqueIds[entry.id] && !previousResult.results.find(r => r[1] === entry.id)) {
-				uniqueIds[entry.id] = true
+			if (!uniqueIds.has(entry.id) && !previousResult.results.find(r => r[1] === entry.id)) {
+				uniqueIds.add(entry.id)
 				return true
 			} else {
 				return false
@@ -626,9 +626,9 @@ export class SearchFacade {
 	}
 
 	_filterByListIdAndGroupSearchResults(
-			indexEntries: Array<MoreResultsIndexEntry>,
-			searchResult: SearchResult,
-			maxResults: number | null,
+		indexEntries: Array<MoreResultsIndexEntry>,
+		searchResult: SearchResult,
+		maxResults: number | null | undefined,
 	): Promise<void> {
 		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
@@ -638,36 +638,36 @@ export class SearchFacade {
 		// Results are added in the random order and we may filter some of them out. We need to sort them.
 		// Use separate array to only sort new results and not all of them.
 		return this._db.dbFacade
-				.createTransaction(true, [ElementDataOS])
-				.then((
-								transaction, // As an attempt to optimize search we look for items in parallel. Promise.map iterates in arbitrary order!
-						) =>
-								// BUT! we have to look at all of them! Otherwise we may return them in the wrong order. We cannot return elements 10, 15, 20 if we didn't
-								// return element 5 first, no one will ask for it later.
-								// The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
-								promiseMap(
-										indexEntries.slice(0, maxResults || indexEntries.length + 1),
-										(entry, index) => {
-											return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId)).then((elementData: ElementDataDbRow | null) => {
-												// mark result index id as processed to not query result in next load more operation
-												entriesCopy[index] = null
+				   .createTransaction(true, [ElementDataOS])
+				   .then((
+						   transaction, // As an attempt to optimize search we look for items in parallel. Promise.map iterates in arbitrary order!
+					   ) =>
+						   // BUT! we have to look at all of them! Otherwise we may return them in the wrong order. We cannot return elements 10, 15, 20 if we didn't
+						   // return element 5 first, no one will ask for it later.
+						   // The best thing performance-wise would be to split into chunks of certain length and process them in parallel and stop after certain chunk.
+						   promiseMap(
+							   indexEntries.slice(0, maxResults || indexEntries.length + 1),
+							   (entry, index) => {
+								   return transaction.get(ElementDataOS, uint8ArrayToBase64(entry.encId)).then((elementData: ElementDataDbRow | null) => {
+									   // mark result index id as processed to not query result in next load more operation
+									   entriesCopy[index] = null
 
-												if (elementData && (!searchResult.restriction.listId || searchResult.restriction.listId === elementData[0])) {
-                                return [elementData[0], entry.id] as IdTuple
-												}
+									   if (elementData && (!searchResult.restriction.listId || searchResult.restriction.listId === elementData[0])) {
+										   return [elementData[0], entry.id] as IdTuple
+									   }
 
-												return null
-											})
-										},
-										{
-											concurrency: 5,
-										},
-								),
-				)
-				.then(newResults => {
-					searchResult.results.push(...newResults.filter(Boolean) as IdTuple[])
-					searchResult.moreResults = entriesCopy.filter(Boolean)
-				})
+									   return null
+								   })
+							   },
+							   {
+								   concurrency: 5,
+							   },
+						   ),
+				   )
+				   .then(newResults => {
+					   searchResult.results.push(...newResults.filter(isNotNull) as IdTuple[])
+					   searchResult.moreResults = entriesCopy.filter(isNotNull)
+				   })
 	}
 
 	async getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<SearchResult> {

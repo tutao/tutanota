@@ -13,11 +13,12 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
-4. run `npm install` to install dependencies.
-5. Build the web part: `node dist prod`
-6. Switch into the build directory: `cd build/dist`
-7. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
-8. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+4. run `npm ci` to install dependencies.
+5. Build packages: `npm -ws run build` (might need to do it multiple times)
+6. Build the web part: `node dist prod`
+7. Switch into the build directory: `cd build/dist`
+8. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
+9. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
 ## Building and running your own Tutanota Android app
 
@@ -27,7 +28,7 @@ If you prefer the auto-update feature, download the app from the Google Play Sto
 #### Pre-requisites:
 
 * An up-to-date version of Git is installed
-* A version of Node.js LTS 14.x is installed
+* A version of Node.js LTS 16.3.* is installed
 * An up-to-date version of the Android SDK is installed
 
 #### Build steps:
@@ -35,10 +36,11 @@ If you prefer the auto-update feature, download the app from the Google Play Sto
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the Tutanota directory: `cd tutanota`
 3. Checkout the latest android release tag: `git checkout tutanota-android-release-xxx`
-4. Install dependencies: `npm install`
-5. Create a keystore if you don't have
+4. Install dependencies: `npm ci`
+5. Build packages: `npm -ws run build` (might need to do it multiple times)
+6. Create a keystore if you don't have
    one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
-6.
+7.
 
 run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
 
@@ -59,11 +61,12 @@ Keep in mind that your own build of Tutanota Desktop will not update automatical
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`.
 2. Switch into the Tutanota directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
-4. Run `npm install` to install dependencies.
+4. Run `npm ci` to install dependencies.
 
 ### Build:
 
-Run `node dist --custom-desktop-release`.
+1. Build packages: `npm -ws run build` (might need to do it multiple times)
+2. Run `node dist --custom-desktop-release`.
 
 The client for your platform will be in `build/desktop/`. Note that you can add `--unpacked` to the build command to
 skip the packaging of the installer. This will yield a directory containing the client that can be run without
@@ -75,7 +78,7 @@ The **windows** client uses a native dependency to enable MAPI Support. The sour
 at https://github.com/tutao/mapirs. You can build it yourself before building the client and the build process will pick
 the artifact up automatically if you structure the projects a such:
 
-```   
+```
 parent dir
 ├── mapirs
 └── tutanota-3

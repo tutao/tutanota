@@ -31,24 +31,24 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 	const organizationMessageEditor = new HtmlEditor("message_label", {
 		enabled: true,
 	})
-			.setMinHeight(100)
-			.showBorders()
-			.setValue(dialogModel.organizationMessage())
+		.setMinHeight(100)
+		.showBorders()
+		.setValue(dialogModel.organizationMessage())
 	const defaultMessageEditor = new HtmlEditor("message_label", {
 		enabled: true,
 	})
-			.setMinHeight(100)
-			.showBorders()
-			.setValue(dialogModel.defaultMessage())
+		.setMinHeight(100)
+		.showBorders()
+		.setValue(dialogModel.defaultMessage())
 
 	const saveOutOfOfficeNotification = () => {
 		dialogModel.organizationMessage(organizationMessageEditor.getValue())
 		dialogModel.defaultMessage(defaultMessageEditor.getValue())
 		dialogModel
-				.saveOutOfOfficeNotification()
-				.then(() => cancel())
-				.catch(ofClass(UserError, e => showUserError(e)))
-				.catch(ofClass(BusinessFeatureRequiredError, e => showBusinessFeatureRequiredDialog(() => e.message)))
+			.saveOutOfOfficeNotification()
+			.then(() => cancel())
+			.catch(ofClass(UserError, e => showUserError(e)))
+			.catch(ofClass(BusinessFeatureRequiredError, e => showBusinessFeatureRequiredDialog(() => e.message)))
 	}
 
 	function cancel() {
@@ -77,17 +77,17 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		organizationMessageEditor,
 		defaultMessageEditor,
 	})
-			.addShortcut({
-				key: Keys.ESC,
-				exec: cancel,
-				help: "close_alt",
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				exec: saveOutOfOfficeNotification,
-				help: "save_action",
-			})
+						 .addShortcut({
+							 key: Keys.ESC,
+							 exec: cancel,
+							 help: "close_alt",
+						 })
+						 .addShortcut({
+							 key: Keys.S,
+							 ctrl: true,
+							 exec: saveOutOfOfficeNotification,
+							 help: "save_action",
+						 })
 	dialog.show()
 }
 
@@ -167,31 +167,31 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 			label: "subject_label",
 			value: model.defaultSubject,
 			injectionsLeft: () =>
-					m(
-							".flex-no-grow-no-shrink-auto.pr-s",
-							{
-								style: {
-									"line-height": px(24),
-									opacity: "1",
-								},
-							},
-							OUT_OF_OFFICE_SUBJECT_PREFIX,
-					),
+				m(
+					".flex-no-grow-no-shrink-auto.pr-s",
+					{
+						style: {
+							"line-height": px(24),
+							opacity: "1",
+						},
+					},
+					OUT_OF_OFFICE_SUBJECT_PREFIX,
+				),
 		}
 		this._organizationSubjectAttrs = {
 			label: "subject_label",
 			value: model.organizationSubject,
 			injectionsLeft: () =>
-					m(
-							".flex-no-grow-no-shrink-auto.pr-s",
-							{
-								style: {
-									"line-height": px(24),
-									opacity: "1",
-								},
-							},
-							OUT_OF_OFFICE_SUBJECT_PREFIX,
-					),
+				m(
+					".flex-no-grow-no-shrink-auto.pr-s",
+					{
+						style: {
+							"line-height": px(24),
+							opacity: "1",
+						},
+					},
+					OUT_OF_OFFICE_SUBJECT_PREFIX,
+				),
 		}
 	}
 
@@ -207,21 +207,19 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
 			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg")),
 			organizationEnabled
-					? [
-						m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
-						m(TextFieldN, this._organizationSubjectAttrs),
-					// @ts-ignore
-						m(organizationMessageEditor)
-					]
-					: null,
+				? [
+					m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
+					m(TextFieldN, this._organizationSubjectAttrs),
+					m(organizationMessageEditor)
+				]
+				: null,
 			defaultEnabled
-					? [
-						m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
-						m(TextFieldN, this._defaultSubjectAttrs),
-						// @ts-ignore
-						m(defaultMessageEditor),
-					]
-					: null,
+				? [
+					m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
+					m(TextFieldN, this._defaultSubjectAttrs),
+					m(defaultMessageEditor),
+				]
+				: null,
 			m(".pb", ""),
 		]
 	}
@@ -240,14 +238,14 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 				checked: model.indefiniteTimeRange,
 			}),
 			!model.indefiniteTimeRange()
-					? m(DatePicker, {
-						date: model.endDate(),
-						onDateSelected: model.endDate,
-						label: "dateTo_label",
-						nullSelectionText: "emptyString_msg",
-						startOfTheWeekOffset,
-					})
-					: null,
+				? m(DatePicker, {
+					date: model.endDate(),
+					onDateSelected: model.endDate,
+					label: "dateTo_label",
+					nullSelectionText: "emptyString_msg",
+					startOfTheWeekOffset,
+				})
+				: null,
 		])
 	}
 }

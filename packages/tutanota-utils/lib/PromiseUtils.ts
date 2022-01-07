@@ -1,6 +1,5 @@
 import type {Options as PromiseMapOptions} from "./PromiseMap.js"
 import {pMap as promiseMap} from "./PromiseMap.js"
-import type {Class} from "global"
 
 export type $Promisable<T> = Promise<T> | T
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
@@ -61,8 +60,8 @@ function flatWrapper<T>(value: PromisableWrapper<T> | T): $Promisable<T> {
 
 // It kinda implements 'thenable' protocol so you can freely pass it around as a generic promise
 export class PromisableWrapper<T> {
-	static from<U>(value?: $Promisable<U>): PromisableWrapper<U> {
-		return new PromisableWrapper(value)
+	static from<U>(value: $Promisable<U>): PromisableWrapper<U> {
+		return new PromisableWrapper<U>(value)
 	}
 
 	value: $Promisable<T>
@@ -149,7 +148,7 @@ export async function promiseFilter<T>(
 		filter: (item: T, index: number) => $Promisable<boolean>,
 ): Promise<Array<T>> {
 	let index = 0
-	const result = []
+	const result: T[] = []
 
 	for (let item of iterable) {
 		if (await filter(item, index)) {

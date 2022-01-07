@@ -1,6 +1,5 @@
-//@flow
-import m, {Children} from "mithril"
-import stream from "mithril/stream/stream.js"
+import m, {Children, Component} from "mithril"
+import stream from "mithril/stream"
 import {Editor} from "./Editor.js"
 import {DropDownSelector} from "../base/DropDownSelector"
 import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
@@ -12,14 +11,14 @@ import {RichTextToolbar} from "../base/RichTextToolbar"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
 
-export const enum HtmlEditorMode {
+export enum HtmlEditorMode {
 	HTML = "html",
 	WYSIWYG = "what you see is what you get",
 }
 
-type RichToolbarOptions = { enabled: boolean } & ToolbarOptions
+type RichToolbarOptions = {enabled: boolean} & ToolbarOptions
 
-export class HtmlEditor {
+export class HtmlEditor implements Component<void> {
 	_editor: Editor;
 	_mode: Stream<HtmlEditorMode>;
 	_active: boolean;
@@ -28,7 +27,7 @@ export class HtmlEditor {
 	_showBorders: boolean;
 	_minHeight: number | null;
 	_placeholderId: TranslationKey | null;
-	view: Function;
+	view: () => Children;
 	_placeholderDomElement: HTMLElement;
 	_value: Stream<string>;
 	_modeSwitcher: DropDownSelector<HtmlEditorMode> | null;
@@ -76,12 +75,12 @@ export class HtmlEditor {
 
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
-						oncreate: vnode => this._placeholderDomElement = vnode.dom as HTMLElement,
-						onclick: () => this._mode() === HtmlEditorMode.WYSIWYG
-								? this._editor._domElement.focus()
-								: this._domTextArea.focus()
-					},
-					(this._placeholderId ? lang.get(this._placeholderId) : "")
+					oncreate: vnode => this._placeholderDomElement = vnode.dom as HTMLElement,
+					onclick: () => this._mode() === HtmlEditorMode.WYSIWYG
+						? this._editor._domElement.focus()
+						: this._domTextArea.focus()
+				},
+				(this._placeholderId ? lang.get(this._placeholderId) : "")
 			) : null
 		}
 
@@ -92,57 +91,57 @@ export class HtmlEditor {
 
 		this.view = () => {
 			const borderClasses: string = this._showBorders
-					? (this._active
-									? ".editor-border-active"
-									: (".editor-border" + (this._modeSwitcher ? ".editor-no-top-border" : ""))
-					)
-					: ""
+				? (this._active
+						? ".editor-border-active"
+						: (".editor-border" + (this._modeSwitcher ? ".editor-no-top-border" : ""))
+				)
+				: ""
 			const renderedInjections = injections && injections() || null
 
 			return m(".html-editor" + (this._mode() === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
 				(label)
-						? m(".small.mt-form", lang.getMaybeLazy(label))
-						: null,
+					? m(".small.mt-form", lang.getMaybeLazy(label))
+					: null,
 				m(borderClasses, [
 					getPlaceholder(),
 					this._mode() === HtmlEditorMode.WYSIWYG
-							? m(".wysiwyg.rel.overflow-hidden.selectable", [
-								(this._editor.isEnabled() && (this._richToolbarOptions.enabled || renderedInjections))
-										? [
-											m(".flex-end.mr-negative-s.sticky.pb-2", [
-												(this._richToolbarOptions.enabled) ? m(toolbar) : null,
-												renderedInjections,
-											]),
-											m("hr.hr.mb-s")
-										]
-										: null,
-								m(this._editor,
-										{
-											oncreate: () => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
-											onremove: () => this._value(this.getValue())
-										}
-								)
-							])
-							: m(".html", m("textarea.input-area.selectable", {
-								oncreate: vnode => {
-									this._domTextArea = vnode.dom as HTMLTextAreaElement
-									if (!this.isEmpty()) {
-										this._domTextArea.value = this._value()
-									}
-								},
-								onfocus: e => focus(),
-								onblur: e => blur(),
-								oninput: e => {
-									this._domTextArea.style.height = '0px';
-									this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
-								},
-								style: {
-									'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
-									"min-height": this._minHeight ? px(this._minHeight) : 'initial'
-								},
-								disabled: !this._editor._enabled
-							})),
+						? m(".wysiwyg.rel.overflow-hidden.selectable", [
+							(this._editor.isEnabled() && (this._richToolbarOptions.enabled || renderedInjections))
+								? [
+									m(".flex-end.mr-negative-s.sticky.pb-2", [
+										(this._richToolbarOptions.enabled) ? m(toolbar) : null,
+										renderedInjections,
+									]),
+									m("hr.hr.mb-s")
+								]
+								: null,
+							m(this._editor,
+								{
+									oncreate: () => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
+									onremove: () => this._value(this.getValue())
+								}
+							)
+						])
+						: m(".html", m("textarea.input-area.selectable", {
+							oncreate: vnode => {
+								this._domTextArea = vnode.dom as HTMLTextAreaElement
+								if (!this.isEmpty()) {
+									this._domTextArea.value = this._value()
+								}
+							},
+							onfocus: () => focus(),
+							onblur: () => blur(),
+							oninput: () => {
+								this._domTextArea.style.height = '0px';
+								this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
+							},
+							style: {
+								'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
+								"min-height": this._minHeight ? px(this._minHeight) : 'initial'
+							},
+							disabled: !this._editor._enabled
+						})),
 				])
 			])
 		}

@@ -1,10 +1,12 @@
+// @ts-nocheck
 import {app, BrowserWindow} from "electron"
 import isAccelerator from "./IsAccelerator"
 import equals from "./KeyboardEventsAreEqual"
 import {toKeyEvent} from "./KeyboardeventFromElectronAccelerator"
 
 const DEBUG = false
-const debug: (...any) => void = DEBUG ? console.log.bind(console) : () => {}
+const debug: (..._: any[]) => void = DEBUG ? console.log.bind(console) : () => {
+}
 
 export class LocalShortcutManager {
 	enableAll(win: BrowserWindow): void {
@@ -247,7 +249,9 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 			const enableAppShortcuts = (e, win) => {
 				const wc = win.webContents;
 				wc.on('before-input-event', keyHandler);
-				wc.once('closed', () => {wc.removeListener('before-input-event', keyHandler)});
+				wc.once('closed', () => {
+					wc.removeListener('before-input-event', keyHandler)
+				});
 			};
 
 			// Enable shortcut on current windows
@@ -270,7 +274,9 @@ export function register(win: BrowserWindow, accelerator: Accelerator, callback:
 			wc.on('before-input-event', keyHandler);
 
 			// Save a reference to allow remove of listener from elsewhere
-			shortcutsOfWindow.removeListener = () => {wc.removeListener('before-input-event', keyHandler)};
+			shortcutsOfWindow.removeListener = () => {
+				wc.removeListener('before-input-event', keyHandler)
+			};
 			// @ts-ignore
 			wc.once('closed', shortcutsOfWindow.removeListener);
 		}

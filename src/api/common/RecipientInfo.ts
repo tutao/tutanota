@@ -47,6 +47,6 @@ export function makeRecipientDetails(name: string, mailAddress: string, type: Re
 		name,
 		mailAddress,
 		isExternal: type === RecipientInfoType.EXTERNAL,
-		password: contact?.presharedPassword ?? contact?.autoTransmitPassword,
+		password: contact?.presharedPassword ?? contact?.autoTransmitPassword ?? null,
 	}
 }

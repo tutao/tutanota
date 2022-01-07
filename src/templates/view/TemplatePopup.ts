@@ -7,7 +7,7 @@ import {isKeyPressed} from "../../misc/KeyManager"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {Keys, ShareCapability} from "../../api/common/TutanotaConstants"
 import {TemplatePopupResultRow} from "./TemplatePopupResultRow"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -33,6 +33,7 @@ import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import Stream from "mithril/stream";
+
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
 export const TEMPLATE_LIST_ENTRY_HEIGHT = 47
@@ -43,441 +44,444 @@ export const TEMPLATE_LIST_ENTRY_WIDTH = 354
  *	Also allows user to change desired language when pasting.
  */
 export function showTemplatePopupInEditor(
-    templateModel: TemplatePopupModel,
-    editor: Editor,
-    template: EmailTemplate | null,
-    highlightedText: string,
+	templateModel: TemplatePopupModel,
+	editor: Editor,
+	template: EmailTemplate | null,
+	highlightedText: string,
 ) {
-    const initialSearchString = template ? TEMPLATE_SHORTCUT_PREFIX + template.tag : highlightedText
-    const cursorRect = editor.getCursorPosition()
-    const editorRect = editor.getDOM().getBoundingClientRect()
+	const initialSearchString = template ? TEMPLATE_SHORTCUT_PREFIX + template.tag : highlightedText
+	const cursorRect = editor.getCursorPosition()
+	const editorRect = editor.getDOM().getBoundingClientRect()
 
-    const onSelect = text => {
-        editor.insertHTML(text)
-        editor.focus()
-    }
+	const onSelect = (text: string) => {
+		editor.insertHTML(text)
+		editor.focus()
+	}
 
-    let rect
-    const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
-    const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height + 10px offset for space from the bottom of the screen
+	let rect
+	const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
+	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height + 10px offset for space from the bottom of the screen
 
-    // By default the popup is shown below the cursor. If there is not enough space move the popup above the cursor
-    const popUpWidth = editorRect.right - editorRect.left
+	// By default the popup is shown below the cursor. If there is not enough space move the popup above the cursor
+	const popUpWidth = editorRect.right - editorRect.left
 
-    if (availableHeightBelowCursor < popUpHeight) {
-        const diff = popUpHeight - availableHeightBelowCursor
-        rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, popUpWidth, cursorRect.height)
-    } else {
-        rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height)
-    }
+	if (availableHeightBelowCursor < popUpHeight) {
+		const diff = popUpHeight - availableHeightBelowCursor
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, popUpWidth, cursorRect.height)
+	} else {
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height)
+	}
 
-    const popup = new TemplatePopup(templateModel, rect, onSelect, initialSearchString)
-    templateModel.search(initialSearchString)
-    popup.show()
+	const popup = new TemplatePopup(templateModel, rect, onSelect, initialSearchString)
+	templateModel.search(initialSearchString)
+	popup.show()
 }
+
 export class TemplatePopup implements ModalComponent {
-    _rect: PosRect
-    _filterTextAttrs: TextFieldAttrs
-    _shortcuts: Shortcut[]
-    _onSelect: (arg0: string) => void
-    _initialWindowWidth: number
-    _resizeListener: windowSizeListener
-    _redrawStream: Stream<any>
-    _templateModel: TemplatePopupModel
-    _searchBarValue: Stream<string>
-    _selectTemplateButtonAttrs: ButtonAttrs
-    _inputDom: HTMLElement
-    _selectionChangedListener: Stream<void>
-    _debounceFilter: (arg0: string) => void
+	_rect: PosRect
+	_filterTextAttrs: TextFieldAttrs
+	_shortcuts: Shortcut[]
+	_onSelect: (arg0: string) => void
+	_initialWindowWidth: number
+	_resizeListener: windowSizeListener
+	_redrawStream: Stream<any>
+	_templateModel: TemplatePopupModel
+	_searchBarValue: Stream<string>
+	_selectTemplateButtonAttrs: ButtonAttrs
+	_inputDom: HTMLElement
+	_selectionChangedListener: Stream<void>
+	_debounceFilter: (arg0: string) => void
 
-    constructor(templateModel: TemplatePopupModel, rect: PosRect, onSelect: (arg0: string) => void, initialSearchString: string) {
-        this._rect = rect
-        this._onSelect = onSelect
-        this._initialWindowWidth = window.innerWidth
+	constructor(templateModel: TemplatePopupModel, rect: PosRect, onSelect: (arg0: string) => void, initialSearchString: string) {
+		this._rect = rect
+		this._onSelect = onSelect
+		this._initialWindowWidth = window.innerWidth
 
-        this._resizeListener = () => {
-            this._close()
-        }
+		this._resizeListener = () => {
+			this._close()
+		}
 
-        this._searchBarValue = stream(initialSearchString)
-        this._templateModel = templateModel
-        this._shortcuts = [
-            {
-                key: Keys.ESC,
-                enabled: () => true,
-                exec: () => {
-                    this._onSelect("")
+		this._searchBarValue = stream(initialSearchString)
+		this._templateModel = templateModel
+		this._shortcuts = [
+			{
+				key: Keys.ESC,
+				enabled: () => true,
+				exec: () => {
+					this._onSelect("")
 
-                    this._close()
+					this._close()
 
-                    m.redraw()
-                },
-                help: "closeTemplate_action",
-            },
-            {
-                key: Keys.RETURN,
-                enabled: () => true,
-                exec: () => {
-                    const selectedContent = this._templateModel.getSelectedContent()
+					m.redraw()
+				},
+				help: "closeTemplate_action",
+			},
+			{
+				key: Keys.RETURN,
+				enabled: () => true,
+				exec: () => {
+					const selectedContent = this._templateModel.getSelectedContent()
 
-                    if (selectedContent) {
-                        this._onSelect(selectedContent.text)
+					if (selectedContent) {
+						this._onSelect(selectedContent.text)
 
-                        this._close()
-                    }
-                },
-                help: "insertTemplate_action",
-            },
-            {
-                key: Keys.UP,
-                enabled: () => true,
-                exec: () => {
-                    this._templateModel.selectNextTemplate(SELECT_PREV_TEMPLATE)
-                },
-                help: "selectPreviousTemplate_action",
-            },
-            {
-                key: Keys.DOWN,
-                enabled: () => true,
-                exec: () => {
-                    this._templateModel.selectNextTemplate(SELECT_NEXT_TEMPLATE)
-                },
-                help: "selectNextTemplate_action",
-            },
-        ]
-        this._redrawStream = templateModel.searchResults.map(results => {
-            m.redraw()
-        })
-        this._selectTemplateButtonAttrs = {
-            label: "selectTemplate_action",
-            click: () => {
-                const selected = this._templateModel.getSelectedContent()
+						this._close()
+					}
+				},
+				help: "insertTemplate_action",
+			},
+			{
+				key: Keys.UP,
+				enabled: () => true,
+				exec: () => {
+					this._templateModel.selectNextTemplate(SELECT_PREV_TEMPLATE)
+				},
+				help: "selectPreviousTemplate_action",
+			},
+			{
+				key: Keys.DOWN,
+				enabled: () => true,
+				exec: () => {
+					this._templateModel.selectNextTemplate(SELECT_NEXT_TEMPLATE)
+				},
+				help: "selectNextTemplate_action",
+			},
+		]
+		this._redrawStream = templateModel.searchResults.map(results => {
+			m.redraw()
+		})
+		this._selectTemplateButtonAttrs = {
+			label: "selectTemplate_action",
+			click: () => {
+				const selected = this._templateModel.getSelectedContent()
 
-                if (selected) {
-                    this._onSelect(selected.text)
+				if (selected) {
+					this._onSelect(selected.text)
 
-                    this._close()
-                }
-            },
-            type: ButtonType.Primary,
-        }
-        this._debounceFilter = debounce(200, (value: string) => {
-            templateModel.search(value)
-        })
+					this._close()
+				}
+			},
+			type: ButtonType.Primary,
+		}
+		this._debounceFilter = debounce(200, (value: string) => {
+			templateModel.search(value)
+		})
 
-        this._debounceFilter(initialSearchString)
-    }
+		this._debounceFilter(initialSearchString)
+	}
 
-    view: () => Children = () => {
-        const showTwoColumns = this._isScreenWideEnough()
+	view: () => Children = () => {
+		const showTwoColumns = this._isScreenWideEnough()
 
-        return m(
-            ".flex.flex-column.abs.elevated-bg.border-radius.dropdown-shadow",
-            {
-                // Main Wrapper
-                style: {
-                    width: px(this._rect.width),
-                    height: px(TEMPLATE_POPUP_HEIGHT),
-                    top: px(this._rect.top),
-                    left: px(this._rect.left),
-                },
-                onclick: e => {
-                    this._inputDom.focus()
+		return m(
+			".flex.flex-column.abs.elevated-bg.border-radius.dropdown-shadow",
+			{
+				// Main Wrapper
+				style: {
+					width: px(this._rect.width),
+					height: px(TEMPLATE_POPUP_HEIGHT),
+					top: px(this._rect.top),
+					left: px(this._rect.left),
+				},
+				onclick: (e: MouseEvent) => {
+					this._inputDom.focus()
 
-                    e.stopPropagation()
-                },
-                oncreate: () => {
-                    windowFacade.addResizeListener(this._resizeListener)
-                },
-                onremove: () => {
-                    windowFacade.removeResizeListener(this._resizeListener)
-                },
-            },
-            [
-                this._renderHeader(),
-                m(".flex.flex-grow.scroll.mb-s", [
-                    m(
-                        ".flex.flex-column.scroll" + (showTwoColumns ? ".pr" : ""),
-                        {
-                            style: {
-                                flex: "1 1 40%",
-                            },
-                        },
-                        this._renderList(),
-                    ),
-                    showTwoColumns
-                        ? m(
-                              ".flex.flex-column.flex-grow-shrink-half",
-                              {
-                                  style: {
-                                      flex: "1 1 60%",
-                                  },
-                              },
-                              this._renderRightColumn(),
-                          )
-                        : null,
-                ]),
-            ],
-        )
-    }
+					e.stopPropagation()
+				},
+				oncreate: () => {
+					windowFacade.addResizeListener(this._resizeListener)
+				},
+				onremove: () => {
+					windowFacade.removeResizeListener(this._resizeListener)
+				},
+			},
+			[
+				this._renderHeader(),
+				m(".flex.flex-grow.scroll.mb-s", [
+					m(
+						".flex.flex-column.scroll" + (showTwoColumns ? ".pr" : ""),
+						{
+							style: {
+								flex: "1 1 40%",
+							},
+						},
+						this._renderList(),
+					),
+					showTwoColumns
+						? m(
+							".flex.flex-column.flex-grow-shrink-half",
+							{
+								style: {
+									flex: "1 1 60%",
+								},
+							},
+							this._renderRightColumn(),
+						)
+						: null,
+				]),
+			],
+		)
+	}
 
-    _renderHeader(): Children {
-        const selectedTemplate = this._templateModel.getSelectedTemplate()
+	_renderHeader(): Children {
+		const selectedTemplate = this._templateModel.getSelectedTemplate()
 
-        return m(".flex-space-between.center-vertically.pl.pr-s", [
-            m(".flex-start", [m(".flex.center-vertically", this._renderSearchBar()), this._renderAddButton()]),
-            m(".flex-end", [
-                selectedTemplate
-                    ? this._renderEditButtons(selectedTemplate) // Right header wrapper
-                    : null,
-            ]),
-        ])
-    }
+		return m(".flex-space-between.center-vertically.pl.pr-s", [
+			m(".flex-start", [m(".flex.center-vertically", this._renderSearchBar()), this._renderAddButton()]),
+			m(".flex-end", [
+				selectedTemplate
+					? this._renderEditButtons(selectedTemplate) // Right header wrapper
+					: null,
+			]),
+		])
+	}
 
-    _renderSearchBar: () => Children = () => {
-        return m(TemplateSearchBar, {
-            value: this._searchBarValue,
-            placeholder: "filter_label",
-            keyHandler: keyPress => {
-                if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
-                    // This duplicates the listener set in this._shortcuts
-                    // because the input consumes the event
-                    this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP) ? SELECT_PREV_TEMPLATE : SELECT_NEXT_TEMPLATE)
+	_renderSearchBar: () => Children = () => {
+		return m(TemplateSearchBar, {
+			value: this._searchBarValue,
+			placeholder: "filter_label",
+			keyHandler: keyPress => {
+				if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
+					// This duplicates the listener set in this._shortcuts
+					// because the input consumes the event
+					this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP) ? SELECT_PREV_TEMPLATE : SELECT_NEXT_TEMPLATE)
 
-                    return false
-                } else {
-                    return true
-                }
-            },
-            oninput: value => {
-                this._debounceFilter(value)
-            },
-            oncreate: vnode => {
-                this._inputDom = vnode.dom.firstElementChild as HTMLElement // firstElementChild is the input field of the input wrapper
-            },
-        })
-    }
+					return false
+				} else {
+					return true
+				}
+			},
+			oninput: value => {
+				this._debounceFilter(value)
+			},
+			oncreate: vnode => {
+				this._inputDom = vnode.dom.firstElementChild as HTMLElement // firstElementChild is the input field of the input wrapper
+			},
+		})
+	}
 
-    _renderAddButton(): Children {
-        const attrs = this._createAddButtonAttributes()
+	_renderAddButton(): Children {
+		const attrs = this._createAddButtonAttributes()
 
-        return m(
-            "",
-            {
-                onkeydown: e => {
-                    // prevents tabbing into the background of the modal
-                    if (isKeyPressed(e.keyCode, Keys.TAB) && !this._templateModel.getSelectedTemplate()) {
-                        this._inputDom.focus()
+		return m(
+			"",
+			{
+				onkeydown: (e: KeyboardEvent) => {
+					// prevents tabbing into the background of the modal
+					if (isKeyPressed(e.keyCode, Keys.TAB) && !this._templateModel.getSelectedTemplate()) {
+						this._inputDom.focus()
 
-                        e.preventDefault()
-                    }
-                },
-            },
-            attrs ? m(ButtonN, attrs as ButtonAttrs) : null,
-        )
-    }
+						e.preventDefault()
+					}
+				},
+			},
+			attrs ? m(ButtonN, attrs as ButtonAttrs) : null,
+		)
+	}
 
-    _createAddButtonAttributes(): ButtonAttrs | null {
-        const templateGroupInstances = this._templateModel.getTemplateGroupInstances()
+	_createAddButtonAttributes(): ButtonAttrs | null {
+		const templateGroupInstances = this._templateModel.getTemplateGroupInstances()
 
-        const writeableGroups = templateGroupInstances.filter(instance =>
-            hasCapabilityOnGroup(logins.getUserController().user, instance.group, ShareCapability.Write),
-        )
+		const writeableGroups = templateGroupInstances.filter(instance =>
+			hasCapabilityOnGroup(logins.getUserController().user, instance.group, ShareCapability.Write),
+		)
 
-        if (templateGroupInstances.length === 0) {
-            return {
-                label: "createTemplate_action",
-                click: () => {
-                    createInitialTemplateListIfAllowed().then(groupRoot => {
-                        if (groupRoot) {
-                            this.showTemplateEditor(null, groupRoot)
-                        }
-                    })
-                },
-                type: ButtonType.ActionLarge,
-                icon: () => Icons.Add,
-                colors: ButtonColor.DrawerNav,
-            }
-        } else if (writeableGroups.length === 1) {
-            return {
-                label: "createTemplate_action",
-                click: () => this.showTemplateEditor(null, writeableGroups[0].groupRoot),
-                type: ButtonType.ActionLarge,
-                icon: () => Icons.Add,
-                colors: ButtonColor.DrawerNav,
-            }
-        } else if (writeableGroups.length > 1) {
-            return attachDropdown(
-                {
-                    label: "createTemplate_action",
-                    click: noOp,
-                    type: ButtonType.ActionLarge,
-                    icon: () => Icons.Add,
-                    colors: ButtonColor.DrawerNav,
-                },
-                () =>
-                    writeableGroups.map(groupInstances => {
-                        return {
-                            label: () => getSharedGroupName(groupInstances.groupInfo, true),
-                            click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
-                            type: ButtonType.Dropdown,
-                        }
-                    }),
-            )
-        }
-    }
+		if (templateGroupInstances.length === 0) {
+			return {
+				label: "createTemplate_action",
+				click: () => {
+					createInitialTemplateListIfAllowed().then(groupRoot => {
+						if (groupRoot) {
+							this.showTemplateEditor(null, groupRoot)
+						}
+					})
+				},
+				type: ButtonType.ActionLarge,
+				icon: () => Icons.Add,
+				colors: ButtonColor.DrawerNav,
+			}
+		} else if (writeableGroups.length === 1) {
+			return {
+				label: "createTemplate_action",
+				click: () => this.showTemplateEditor(null, writeableGroups[0].groupRoot),
+				type: ButtonType.ActionLarge,
+				icon: () => Icons.Add,
+				colors: ButtonColor.DrawerNav,
+			}
+		} else if (writeableGroups.length > 1) {
+			return attachDropdown(
+				{
+					label: "createTemplate_action",
+					click: noOp,
+					type: ButtonType.ActionLarge,
+					icon: () => Icons.Add,
+					colors: ButtonColor.DrawerNav,
+				},
+				() =>
+					writeableGroups.map(groupInstances => {
+						return {
+							label: () => getSharedGroupName(groupInstances.groupInfo, true),
+							click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
+							type: ButtonType.Dropdown,
+						}
+					}),
+			)
+		} else {
+			return null
+		}
+	}
 
-    _renderEditButtons(selectedTemplate: EmailTemplate): Children {
-        const selectedContent = this._templateModel.getSelectedContent()
+	_renderEditButtons(selectedTemplate: EmailTemplate): Children {
+		const selectedContent = this._templateModel.getSelectedContent()
 
-        const selectedGroup = this._templateModel.getSelectedTemplateGroupInstance()
+		const selectedGroup = this._templateModel.getSelectedTemplateGroupInstance()
 
-        const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
-        return [
-            m(
-                ButtonN,
-                attachDropdown(
-                    {
-                        label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
-                        title: "chooseLanguage_action",
-                        // Use dropdown as button type because it matches with the colors of the other buttons
-                        type: ButtonType.Dropdown,
-                        click: noOp,
-                        noBubble: true,
-                    },
-                    () =>
-                        selectedTemplate.contents.map(content => {
-                            const langCode: LanguageCode = downcast(content.languageCode)
-                            return {
-                                label: () => lang.get(languageByCode[langCode].textId),
-                                type: ButtonType.Dropdown,
-                                click: e => {
-                                    e.stopPropagation()
-                                    this._templateModel.setSelectedContentLanguage(langCode), this._inputDom.focus()
-                                },
-                            }
-                        }),
-                ),
-            ),
-            canEdit
-                ? [
-                      m(ButtonN, {
-                          label: "editTemplate_action",
-                          click: () =>
-                              locator.entityClient
-                                  .load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
-                                  .then(groupRoot => this.showTemplateEditor(selectedTemplate, groupRoot)),
-                          type: ButtonType.ActionLarge,
-                          icon: () => Icons.Edit,
-                          colors: ButtonColor.DrawerNav,
-                      }),
-                      m(ButtonN, {
-                          label: "remove_action",
-                          click: () => {
-                              getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
-                          },
-                          type: ButtonType.ActionLarge,
-                          icon: () => Icons.Trash,
-                          colors: ButtonColor.DrawerNav,
-                      }),
-                  ]
-                : null,
-            m(".pr-s", m(".nav-bar-spacer")),
-            m(
-                "",
-                {
-                    onkeydown: e => {
-                        // prevents tabbing into the background of the modal
-                        if (isKeyPressed(e.keyCode, Keys.TAB)) {
-                            this._inputDom.focus()
+		const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
+		return [
+			m(
+				ButtonN,
+				attachDropdown(
+					{
+						label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
+						title: "chooseLanguage_action",
+						// Use dropdown as button type because it matches with the colors of the other buttons
+						type: ButtonType.Dropdown,
+						click: noOp,
+						noBubble: true,
+					},
+					() =>
+						selectedTemplate.contents.map(content => {
+							const langCode: LanguageCode = downcast(content.languageCode)
+							return {
+								label: () => lang.get(languageByCode[langCode].textId),
+								type: ButtonType.Dropdown,
+								click: (e: MouseEvent) => {
+									e.stopPropagation()
+									this._templateModel.setSelectedContentLanguage(langCode), this._inputDom.focus()
+								},
+							}
+						}),
+				),
+			),
+			canEdit
+				? [
+					m(ButtonN, {
+						label: "editTemplate_action",
+						click: () =>
+							locator.entityClient
+								   .load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
+								   .then(groupRoot => this.showTemplateEditor(selectedTemplate, groupRoot)),
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Edit,
+						colors: ButtonColor.DrawerNav,
+					}),
+					m(ButtonN, {
+						label: "remove_action",
+						click: () => {
+							getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
+						},
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Trash,
+						colors: ButtonColor.DrawerNav,
+					}),
+				]
+				: null,
+			m(".pr-s", m(".nav-bar-spacer")),
+			m(
+				"",
+				{
+					onkeydown: (e: KeyboardEvent) => {
+						// prevents tabbing into the background of the modal
+						if (isKeyPressed(e.keyCode, Keys.TAB)) {
+							this._inputDom.focus()
 
-                            e.preventDefault()
-                        }
-                    },
-                },
-                m(ButtonN, this._selectTemplateButtonAttrs),
-            ),
-        ]
-    }
+							e.preventDefault()
+						}
+					},
+				},
+				m(ButtonN, this._selectTemplateButtonAttrs),
+			),
+		]
+	}
 
-    _renderList(): Children {
-        return m(ScrollSelectList, {
-            items: this._templateModel.searchResults(),
-            selectedItem: this._templateModel.selectedTemplate,
-            emptyListMessage: () => (this._templateModel.isLoaded() ? "nothingFound_label" : "loadingTemplates_label"),
-            width: TEMPLATE_LIST_ENTRY_WIDTH,
-            renderItem: (template: EmailTemplate) =>
-                m(TemplatePopupResultRow, {
-                    template: template,
-                }),
-            onItemDoubleClicked: template => {
-                const selected = this._templateModel.getSelectedContent()
+	_renderList(): Children {
+		return m(ScrollSelectList, {
+			items: this._templateModel.searchResults(),
+			selectedItem: this._templateModel.selectedTemplate,
+			emptyListMessage: () => (this._templateModel.isLoaded() ? "nothingFound_label" : "loadingTemplates_label"),
+			width: TEMPLATE_LIST_ENTRY_WIDTH,
+			renderItem: (template: EmailTemplate) =>
+				m(TemplatePopupResultRow, {
+					template: template,
+				}),
+			onItemDoubleClicked: template => {
+				const selected = this._templateModel.getSelectedContent()
 
-                if (selected) {
-                    this._onSelect(selected.text)
+				if (selected) {
+					this._onSelect(selected.text)
 
-                    this._close()
-                }
-            },
-        })
-    }
+					this._close()
+				}
+			},
+		})
+	}
 
-    _renderRightColumn(): Children {
-        const template = this._templateModel.getSelectedTemplate()
+	_renderRightColumn(): Children {
+		const template = this._templateModel.getSelectedTemplate()
 
-        if (template) {
-            return [
-                m(TemplateExpander, {
-                    template: template,
-                    model: this._templateModel,
-                }),
-            ]
-        } else {
-            return null
-        }
-    }
+		if (template) {
+			return [
+				m(TemplateExpander, {
+					template: template,
+					model: this._templateModel,
+				}),
+			]
+		} else {
+			return null
+		}
+	}
 
-    _isScreenWideEnough(): boolean {
-        return window.innerWidth > TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH
-    }
+	_isScreenWideEnough(): boolean {
+		return window.innerWidth > TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH
+	}
 
-    _getWindowWidthChange(): number {
-        return window.innerWidth - this._initialWindowWidth
-    }
+	_getWindowWidthChange(): number {
+		return window.innerWidth - this._initialWindowWidth
+	}
 
-    show() {
-        modal.display(this, false)
-    }
+	show() {
+		modal.display(this, false)
+	}
 
-    _close(): void {
-        modal.remove(this)
-    }
+	_close(): void {
+		modal.remove(this)
+	}
 
-    backgroundClick(e: MouseEvent): void {
-        this._onSelect("")
+	backgroundClick(e: MouseEvent): void {
+		this._onSelect("")
 
-        this._close()
-    }
+		this._close()
+	}
 
-    hideAnimation(): Promise<void> {
-        return Promise.resolve()
-    }
+	hideAnimation(): Promise<void> {
+		return Promise.resolve()
+	}
 
-    onClose(): void {
-        this._redrawStream.end(true)
-    }
+	onClose(): void {
+		this._redrawStream.end(true)
+	}
 
-    shortcuts(): Shortcut[] {
-        return this._shortcuts
-    }
+	shortcuts(): Shortcut[] {
+		return this._shortcuts
+	}
 
-    popState(e: Event): boolean {
-        return true
-    }
+	popState(e: Event): boolean {
+		return true
+	}
 
-    showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: TemplateGroupRoot) {
-        import("../../settings/TemplateEditor").then(editor => {
-            editor.showTemplateEditor(templateToEdit, groupRoot)
-        })
-    }
+	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: TemplateGroupRoot) {
+		import("../../settings/TemplateEditor").then(editor => {
+			editor.showTemplateEditor(templateToEdit, groupRoot)
+		})
+	}
 }

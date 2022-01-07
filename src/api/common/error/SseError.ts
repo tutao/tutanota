@@ -1,7 +1,9 @@
 //@bundleInto:common-min
+
 import {TutanotaError} from "./TutanotaError"
+
 export class SseError extends TutanotaError {
-    constructor(m: string) {
-        super("SseError", m)
-    }
+	constructor(m: string) {
+		super("SseError", m)
+	}
 }

@@ -25,12 +25,12 @@ import {NotificationResult} from "./DesktopNotifier";
  *
  */
 
-type LoggerFn = (string, ...args: any) => void
+type LoggerFn = (_: string, ...args: any) => void
 type UpdaterLogger = {debug: LoggerFn, info: LoggerFn, warn: LoggerFn, error: LoggerFn, silly: LoggerFn, verbose: LoggerFn}
 
 type IntervalID = ReturnType<typeof setTimeout>
 
-// re-do the type as opposed to doing typeof because... flow
+// re-do the type as opposed to doing typeof because it doesn't work otherwise
 export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: number) => IntervalID
 
 export class ElectronUpdater {
@@ -47,12 +47,12 @@ export class ElectronUpdater {
 	_tray: DesktopTray
 	_updater: UpdaterWrapper
 
-	get updateInfo(): UpdateInfo | void {
+	get updateInfo(): UpdateInfo | null {
 		return this._updateInfo
 	}
 
 	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopCryptoFacade, app: App, tray: DesktopTray,
-	            updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
+				updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0
@@ -64,12 +64,18 @@ export class ElectronUpdater {
 
 		this._logger = env.mode === Mode.Test
 			? {
-				info: (m: string, ...args: any) => {},
-				warn: (m: string, ...args: any) => {},
-				error: (m: string, ...args: any) => {},
-				verbose: (m: string, ...args: any) => {},
-				debug: (m: string, ...args: any) => {},
-				silly: (m: string, ...args: any) => {},
+				info: (m: string, ...args: any) => {
+				},
+				warn: (m: string, ...args: any) => {
+				},
+				error: (m: string, ...args: any) => {
+				},
+				verbose: (m: string, ...args: any) => {
+				},
+				debug: (m: string, ...args: any) => {
+				},
+				silly: (m: string, ...args: any) => {
+				},
 			}
 			: {
 				info: (m: string, ...args: any) => log.debug.apply(console, ["autoUpdater info:\n", m].concat(args)),
@@ -90,11 +96,11 @@ export class ElectronUpdater {
 			}).on('update-available', async updateInfo => {
 				this._logger.info("update-available")
 				this._stopPolling()
-				const publicKeys = await this._conf.getConst(BuildConfigKey.pubKeys)
+				const publicKeys: string[] = await this._conf.getConst(BuildConfigKey.pubKeys)
 				const verified = publicKeys.some(pk => this._verifySignature(pk, downcast(updateInfo)))
 				if (verified) {
 					this._downloadUpdate()
-					    .then(p => log.debug("dl'd update files: ", p))
+						.then(p => log.debug("dl'd update files: ", p))
 				} else {
 					this._logger.warn("all signatures invalid, could not update")
 				}
@@ -156,7 +162,9 @@ export class ElectronUpdater {
 		})
 	}
 
-	readonly _enableAutoUpdateListener: (() => void) = () => {this.start()}
+	readonly _enableAutoUpdateListener: (() => void) = () => {
+		this.start()
+	}
 
 	async start() {
 		if (!this._updater.updatesEnabledInBuild()) {
@@ -171,7 +179,7 @@ export class ElectronUpdater {
 
 		// if user changes auto update setting, we want to know
 		this._conf.removeListener(DesktopConfigKey.enableAutoUpdate, this._enableAutoUpdateListener)
-		    .on(DesktopConfigKey.enableAutoUpdate, this._enableAutoUpdateListener)
+			.on(DesktopConfigKey.enableAutoUpdate, this._enableAutoUpdateListener)
 
 		if (!(await this._conf.getVar(DesktopConfigKey.enableAutoUpdate))) {
 			this._stopPolling()
@@ -211,7 +219,7 @@ export class ElectronUpdater {
 		}
 	}
 
-	setUpdateDownloadedListener(listener: ()=>void): void {
+	setUpdateDownloadedListener(listener: () => void): void {
 		this._updater.electronUpdater.then((autoUpdater) => autoUpdater.on('update-downloaded', listener))
 	}
 
@@ -243,8 +251,9 @@ export class ElectronUpdater {
 	async _checkUpdate(): Promise<boolean> {
 		const autoUpdater = await this._updater.electronUpdater
 		return new Promise(resolve => {
-			let cleanup = hasUpdate => {
-				cleanup = hasUpdate => {}
+			let cleanup = (hasUpdate: boolean) => {
+				cleanup = hasUpdate => {
+				}
 				resolve(hasUpdate)
 				autoUpdater.removeListener('update-not-available', updateNotAvailable)
 				autoUpdater.removeListener('update-downloaded', updateDownloaded)
@@ -260,8 +269,8 @@ export class ElectronUpdater {
 				})
 
 			autoUpdater.once('update-not-available', updateNotAvailable)
-			           .once('update-downloaded', updateDownloaded)
-			           .once('error', updateNotAvailable)
+					   .once('update-downloaded', updateDownloaded)
+					   .once('error', updateNotAvailable)
 		})
 	}
 
@@ -282,28 +291,28 @@ export class ElectronUpdater {
 	_downloadUpdate(): Promise<Array<string>> {
 		log.debug("downloading")
 		return this._updater.electronUpdater
-		           .then((autoUpdater) => autoUpdater.downloadUpdate())
-		           .catch(e => {
-			           this._logger.error("Update Download failed,", e.message)
-			           // no files have been dl'd
-			           return []
-		           })
+				   .then((autoUpdater) => autoUpdater.downloadUpdate())
+				   .catch(e => {
+					   this._logger.error("Update Download failed,", e.message)
+					   // no files have been dl'd
+					   return []
+				   })
 	}
 
 	async _notifyAndInstall(info: UpdateInfo): Promise<void> {
 		log.debug("notifying for update")
 		this._notifier
-		    .showOneShot({
-			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
-			    body: lang.get('clickToUpdate_msg'),
-			    icon: await this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
-		    })
-		    .then((res) => {
-			    if (res === NotificationResult.Click) {
-				    this.installUpdate()
-			    }
-		    })
-		    .catch((e: Error) => this._logger.error("Notification failed,", e.message))
+			.showOneShot({
+				title: lang.get('updateAvailable_label', {"{version}": info.version}),
+				body: lang.get('clickToUpdate_msg'),
+				icon: await this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
+			})
+			.then((res) => {
+				if (res === NotificationResult.Click) {
+					this.installUpdate()
+				}
+			})
+			.catch((e: Error) => this._logger.error("Notification failed,", e.message))
 	}
 
 	installUpdate() {

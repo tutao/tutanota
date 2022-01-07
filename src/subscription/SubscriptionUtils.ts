@@ -177,7 +177,8 @@ export type SubscriptionData = {
 	options: SubscriptionOptions
 	planPrices: SubscriptionPlanPrices
 }
-export enum UpgradePriceType {
+
+export const enum UpgradePriceType {
 	PlanReferencePrice = "0",
 	PlanActualPrice = "1",
 	PlanNextYearsPrice = "2",
@@ -345,11 +346,11 @@ export function getSubscriptionType(lastBooking: Booking | null, customer: Custo
 
 export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, planSubscription: SubscriptionConfig): boolean {
 	return !(
-			currentSubscription.nbrOfAliases < planSubscription.nbrOfAliases ||
-			currentSubscription.storageGb < planSubscription.storageGb ||
-			(!currentSubscription.sharing && planSubscription.sharing) ||
-			(!currentSubscription.whitelabel && planSubscription.whitelabel) ||
-			(!currentSubscription.business && planSubscription.business)
+		currentSubscription.nbrOfAliases < planSubscription.nbrOfAliases ||
+		currentSubscription.storageGb < planSubscription.storageGb ||
+		(!currentSubscription.sharing && planSubscription.sharing) ||
+		(!currentSubscription.whitelabel && planSubscription.whitelabel) ||
+		(!currentSubscription.business && planSubscription.business)
 	)
 }
 
@@ -420,28 +421,28 @@ export function bookItem(featureType: BookingItemFeatureType, amount: number): P
 		date: Const.CURRENT_DATE,
 	})
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
-			.then(() => false)
-			.catch(
-					ofClass(PreconditionFailedError, error => {
-						// error handling for cancelling a feature.
-						switch (error.data) {
-							case BookingFailureReason.BALANCE_INSUFFICIENT:
-								return Dialog.message("insufficientBalanceError_msg").then(() => true)
+		.then(() => false)
+		.catch(
+			ofClass(PreconditionFailedError, error => {
+				// error handling for cancelling a feature.
+				switch (error.data) {
+					case BookingFailureReason.BALANCE_INSUFFICIENT:
+						return Dialog.message("insufficientBalanceError_msg").then(() => true)
 
-							case BookingFailureReason.TOO_MANY_DOMAINS:
-								return Dialog.message("tooManyCustomDomains_msg").then(() => true)
+					case BookingFailureReason.TOO_MANY_DOMAINS:
+						return Dialog.message("tooManyCustomDomains_msg").then(() => true)
 
-							case BookingFailureReason.BUSINESS_USE:
-								return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
+					case BookingFailureReason.BUSINESS_USE:
+						return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
 
-							case BookingFailureReason.HAS_TEMPLATE_GROUP:
-								return Dialog.message("deleteTemplateGroups_msg").then(() => true)
+					case BookingFailureReason.HAS_TEMPLATE_GROUP:
+						return Dialog.message("deleteTemplateGroups_msg").then(() => true)
 
-							default:
-								return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
-						}
-					}),
-			)
+					default:
+						return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
+				}
+			}),
+		)
 }
 
 export function buyAliases(amount: number): Promise<boolean> {
@@ -473,40 +474,45 @@ export function buyBusiness(enable: boolean): Promise<boolean> {
 	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
 }
 
-export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
-	import("./terms.js").then(terms => {
-		let dialog: Dialog
-		let visibleLang = lang.code.startsWith("de") ? "de" : "en"
-		let sanitizedTerms: string
-		let headerBarAttrs: DialogHeaderBarAttrs = {
-			left: [
-				{
-					label: () => "EN/DE",
-					click: () => {
-						visibleLang = visibleLang === "de" ? "en" : "de"
-						sanitizedTerms = htmlSanitizer.sanitizeHTML(terms[section + "_" + visibleLang], {
-							blockExternalContent: false,
-						}).text
-						m.redraw()
-					},
-					type: ButtonType.Secondary,
-				},
-			],
-			right: [
-				{
-					label: "ok_action",
-					click: () => dialog.close(),
-					type: ButtonType.Primary,
-				},
-			],
-		}
-		sanitizedTerms = htmlSanitizer.sanitizeHTML(terms[section + "_" + visibleLang], {
+export async function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
+	const terms = await import("./terms.js")
+	let visibleLang: "en" | "de" = lang.code.startsWith("de") ? "de" : "en"
+	let dialog: Dialog
+	let sanitizedTerms: string
+
+	function getSection(): string {
+		const langSection: string = section + "_" + visibleLang
+		// @ts-ignore
+		const dirtyText: string = terms[langSection]
+		return htmlSanitizer.sanitizeHTML(dirtyText, {
 			blockExternalContent: false,
 		}).text
-		dialog = Dialog.largeDialog(headerBarAttrs, {
-			view: () => m(".text-break", m.trust(sanitizedTerms)),
-		}).show()
-	})
+	}
+
+	let headerBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: () => "EN/DE",
+				click: () => {
+					visibleLang = visibleLang === "de" ? "en" : "de"
+					sanitizedTerms = getSection()
+					m.redraw()
+				},
+				type: ButtonType.Secondary,
+			},
+		],
+		right: [
+			{
+				label: "ok_action",
+				click: () => dialog.close(),
+				type: ButtonType.Primary,
+			},
+		],
+	}
+	sanitizedTerms = getSection()
+	dialog = Dialog.largeDialog(headerBarAttrs, {
+		view: () => m(".text-break", m.trust(sanitizedTerms)),
+	}).show()
 }
 
 function getBookingItemErrorMsg(feature: BookingItemFeatureType): TranslationKey {

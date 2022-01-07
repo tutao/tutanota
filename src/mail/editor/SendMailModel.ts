@@ -1,12 +1,4 @@
-import {
-	ApprovalStatus,
-	ConversationType,
-	MailFolderType,
-	MailMethod,
-	MAX_ATTACHMENT_SIZE,
-	OperationType,
-	ReplyType
-} from "../../api/common/TutanotaConstants"
+import {ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../../api/common/TutanotaConstants"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {isExternal, makeRecipientDetails} from "../../api/common/RecipientInfo"
 import {
@@ -21,17 +13,7 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
 import type {lazy} from "@tutao/tutanota-utils"
-import {
-	cleanMatch,
-	deduplicate,
-	downcast,
-	getFromMap,
-	neverNull,
-	noOp,
-	ofClass,
-	promiseMap,
-	remove
-} from "@tutao/tutanota-utils"
+import {cleanMatch, deduplicate, downcast, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
 import {
 	checkAttachmentSize,
 	createRecipientInfo,
@@ -39,6 +21,7 @@ import {
 	getEnabledMailAddressesWithUser,
 	getSenderNameForUser,
 	getTemplateLanguages,
+	RecipientField,
 	recipientInfoToDraftRecipient,
 	recipientInfoToEncryptedMailAddress,
 	resolveRecipientInfo,
@@ -57,7 +40,8 @@ import {logins} from "../../api/main/LoginController"
 import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
 import type {MailboxDetail, MailModel} from "../model/MailModel"
 import {RecipientNotResolvedError} from "../../api/common/error/RecipientNotResolvedError"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {EntityEventsListener, EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {isMailAddress} from "../../misc/FormatValidator"
@@ -81,7 +65,6 @@ import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
@@ -122,7 +105,7 @@ export function mailAddressToRecipient({address, name}: MailAddress): Recipient 
 }
 
 export type Attachment = TutanotaFile | DataFile | FileReference
-export type RecipientField = "to" | "cc" | "bcc"
+
 export type ResponseMailParameters = {
 	previousMail: Mail
 	conversationType: ConversationType
@@ -174,12 +157,7 @@ export class SendMailModel {
 	_mailChanged: boolean
 	_passwords: Map<string, string>
 	onMailChanged: Stream<boolean>
-	onRecipientDeleted: Stream<| {
-		field: RecipientField
-		recipient: RecipientInfo
-	}
-			| null
-			| undefined>
+	onRecipientDeleted: Stream<{field: RecipientField, recipient: RecipientInfo} | null>
 	onBeforeSend: () => unknown
 	loadedInlineImages: InlineImages
 
@@ -187,13 +165,13 @@ export class SendMailModel {
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
 	 */
 	constructor(
-			mailFacade: MailFacade,
-			logins: LoginController,
-			mailModel: MailModel,
-			contactModel: ContactModel,
-			eventController: EventController,
-			entity: EntityClient,
-			mailboxDetails: MailboxDetail,
+		mailFacade: MailFacade,
+		logins: LoginController,
+		mailModel: MailModel,
+		contactModel: ContactModel,
+		eventController: EventController,
+		entity: EntityClient,
+		mailboxDetails: MailboxDetail,
 	) {
 		this._mailFacade = mailFacade
 		this._entity = entity
@@ -244,7 +222,7 @@ export class SendMailModel {
 			if (filteredLanguages.length > 0) {
 				const languageCodes = filteredLanguages.map(l => l.code)
 				this._selectedNotificationLanguage =
-						_getSubstitutedLanguageCode(this._logins.getUserController().props.notificationMailLanguage || lang.code, languageCodes) || languageCodes[0]
+					_getSubstitutedLanguageCode(this._logins.getUserController().props.notificationMailLanguage || lang.code, languageCodes) || languageCodes[0]
 				this._availableNotificationTemplateLanguages = filteredLanguages
 			}
 		})
@@ -360,12 +338,12 @@ export class SendMailModel {
 	 * @returns {Promise<SendMailModel>}
 	 */
 	initWithTemplate(
-			recipients: Recipients,
-			subject: string,
-			bodyText: string,
-			attachments?: ReadonlyArray<Attachment>,
-			confidential?: boolean,
-			senderMailAddress?: string,
+		recipients: Recipients,
+		subject: string,
+		bodyText: string,
+		attachments?: ReadonlyArray<Attachment>,
+		confidential?: boolean,
+		senderMailAddress?: string,
 	): Promise<SendMailModel> {
 		return this._init({
 			conversationType: ConversationType.NEW,
@@ -398,15 +376,15 @@ export class SendMailModel {
 		}
 		let previousMessageId: string | null = null
 		await this._entity
-				.load(ConversationEntryTypeRef, previousMail.conversationEntry)
-				.then(ce => {
-					previousMessageId = ce.messageId
-				})
-				.catch(
-						ofClass(NotFoundError, e => {
-							console.log("could not load conversation entry", e)
-						}),
-				)
+				  .load(ConversationEntryTypeRef, previousMail.conversationEntry)
+				  .then(ce => {
+					  previousMessageId = ce.messageId
+				  })
+				  .catch(
+					  ofClass(NotFoundError, e => {
+						  console.log("could not load conversation entry", e)
+					  }),
+				  )
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(await inlineImages)
@@ -433,21 +411,21 @@ export class SendMailModel {
 
 			if (ce.previous) {
 				return this._entity
-						.load(ConversationEntryTypeRef, ce.previous)
-						.then(previousCe => {
-							previousMessageId = previousCe.messageId
+						   .load(ConversationEntryTypeRef, ce.previous)
+						   .then(previousCe => {
+							   previousMessageId = previousCe.messageId
 
-							if (previousCe.mail) {
-								return this._entity.load(MailTypeRef, previousCe.mail).then(mail => {
-									previousMail = mail
-								})
-							}
-						})
-						.catch(
-								ofClass(NotFoundError, e => {
-									// ignore
-								}),
-						)
+							   if (previousCe.mail) {
+								   return this._entity.load(MailTypeRef, previousCe.mail).then(mail => {
+									   previousMail = mail
+								   })
+							   }
+						   })
+						   .catch(
+							   ofClass(NotFoundError, e => {
+								   // ignore
+							   }),
+						   )
 			}
 		})
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
@@ -491,13 +469,13 @@ export class SendMailModel {
 		subject: string
 		bodyText: string
 		recipients: Recipients
-		confidential: boolean | null
-		draft?: Mail | null
+		confidential: boolean | null | undefined
+		draft?: Mail | null | undefined
 		senderMailAddress?: string
 		attachments?: ReadonlyArray<Attachment>
 		replyTos?: EncryptedMailAddress[]
-		previousMail?: Mail | null
-		previousMessageId?: string | null
+		previousMail?: Mail | null | undefined
+		previousMessageId?: string | null | undefined
 	}): Promise<SendMailModel> {
 		this._conversationType = conversationType
 		this._subject = subject
@@ -519,16 +497,16 @@ export class SendMailModel {
 
 		const recipientsTransform = (recipientList: RecipientList) => {
 			return deduplicate(
-					recipientList.filter(r => isMailAddress(r.address, false)),
-					(a, b) => a.address === b.address,
+				recipientList.filter(r => isMailAddress(r.address, false)),
+				(a, b) => a.address === b.address,
 			).map(makeRecipientInfo)
 		}
 
-		this._recipients.set("to", recipientsTransform(to))
+		this._recipients.set(RecipientField.TO, recipientsTransform(to))
 
-		this._recipients.set("cc", recipientsTransform(cc))
+		this._recipients.set(RecipientField.CC, recipientsTransform(cc))
 
-		this._recipients.set("bcc", recipientsTransform(bcc))
+		this._recipients.set(RecipientField.BCC, recipientsTransform(bcc))
 
 		this._senderAddress = senderMailAddress || this._getDefaultSender()
 		this._isConfidential = confidential == null ? !this.user().props.defaultUnconfidential : confidential
@@ -565,15 +543,15 @@ export class SendMailModel {
 	}
 
 	toRecipients(): Array<RecipientInfo> {
-		return this.getRecipientList("to")
+		return this.getRecipientList(RecipientField.TO)
 	}
 
 	ccRecipients(): Array<RecipientInfo> {
-		return this.getRecipientList("cc")
+		return this.getRecipientList(RecipientField.CC)
 	}
 
 	bccRecipients(): Array<RecipientInfo> {
-		return this.getRecipientList("bcc")
+		return this.getRecipientList(RecipientField.BCC)
 	}
 
 	/**
@@ -614,12 +592,12 @@ export class SendMailModel {
 	}
 
 	_createAndResolveRecipientInfo(
-			name: string | null,
-			address: string,
-			contact: Contact | null,
-			skipResolveContact: boolean,
+		name: string | null,
+		address: string,
+		contact: Contact | null | undefined,
+		skipResolveContact: boolean,
 	): [RecipientInfo, Promise<RecipientInfo>] {
-		const ri = createRecipientInfo(address, name, contact)
+		const ri = createRecipientInfo(address, name, contact ?? null)
 		let p: Promise<RecipientInfo>
 
 		if (!skipResolveContact) {
@@ -701,47 +679,47 @@ export class SendMailModel {
 
 	_updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: Mail): Promise<Mail> {
 		return this._mailFacade
-				.updateDraft(
-						this.getSubject(),
-						body,
-						this._senderAddress,
-						this.getSenderName(),
-						this.toRecipients().map(recipientInfoToDraftRecipient),
-						this.ccRecipients().map(recipientInfoToDraftRecipient),
-						this.bccRecipients().map(recipientInfoToDraftRecipient),
-						attachments,
-						this.isConfidential(),
-						draft,
-				)
-				.catch(
-						ofClass(LockedError, e => {
-							console.log("updateDraft: operation is still active", e)
-							throw new UserError("operationStillActive_msg")
-						}),
-				)
-				.catch(
-						ofClass(NotFoundError, e => {
-							console.log("draft has been deleted, creating new one")
-							return this._createDraft(body, attachments, downcast(draft.method))
-						}),
-				)
+				   .updateDraft(
+					   this.getSubject(),
+					   body,
+					   this._senderAddress,
+					   this.getSenderName(),
+					   this.toRecipients().map(recipientInfoToDraftRecipient),
+					   this.ccRecipients().map(recipientInfoToDraftRecipient),
+					   this.bccRecipients().map(recipientInfoToDraftRecipient),
+					   attachments,
+					   this.isConfidential(),
+					   draft,
+				   )
+				   .catch(
+					   ofClass(LockedError, e => {
+						   console.log("updateDraft: operation is still active", e)
+						   throw new UserError("operationStillActive_msg")
+					   }),
+				   )
+				   .catch(
+					   ofClass(NotFoundError, e => {
+						   console.log("draft has been deleted, creating new one")
+						   return this._createDraft(body, attachments, downcast(draft.method))
+					   }),
+				   )
 	}
 
 	_createDraft(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<Mail> {
 		return this._mailFacade.createDraft(
-				this.getSubject(),
-				body,
-				this._senderAddress,
-				this.getSenderName(),
-				this.toRecipients().map(recipientInfoToDraftRecipient),
-				this.ccRecipients().map(recipientInfoToDraftRecipient),
-				this.bccRecipients().map(recipientInfoToDraftRecipient),
-				this._conversationType,
-				this._previousMessageId,
-				attachments,
-				this.isConfidential(),
-				this._replyTos.map(recipientInfoToEncryptedMailAddress),
-				mailMethod,
+			this.getSubject(),
+			body,
+			this._senderAddress,
+			this.getSenderName(),
+			this.toRecipients().map(recipientInfoToDraftRecipient),
+			this.ccRecipients().map(recipientInfoToDraftRecipient),
+			this.bccRecipients().map(recipientInfoToDraftRecipient),
+			this._conversationType,
+			this._previousMessageId,
+			attachments,
+			this.isConfidential(),
+			this._replyTos.map(recipientInfoToEncryptedMailAddress),
+			mailMethod,
 		)
 	}
 
@@ -780,10 +758,10 @@ export class SendMailModel {
 	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
 	 */
 	async send(
-			mailMethod: MailMethod,
-			getConfirmation: (arg0: TranslationText) => Promise<boolean> = _ => Promise.resolve(true),
-			waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
-			tooManyRequestsError: TranslationKey = "tooManyMails_msg",
+		mailMethod: MailMethod,
+		getConfirmation: (arg0: TranslationText) => Promise<boolean> = _ => Promise.resolve(true),
+		waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
 		this.onBeforeSend()
 
@@ -837,53 +815,53 @@ export class SendMailModel {
 		}
 
 		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
-				.catch(
-						ofClass(LockedError, () => {
-							throw new UserError("operationStillActive_msg")
-						}),
-				) // catch all of the badness
-				.catch(
-						ofClass(RecipientNotResolvedError, () => {
-							throw new UserError("tooManyAttempts_msg")
-						}),
-				)
-				.catch(
-						ofClass(RecipientsNotFoundError, e => {
-							if (mailMethod === MailMethod.ICAL_CANCEL) {
-								//in case of calendar event cancellation we willremove invalid recipients and then delete the event without sending updates
-								throw e
-							} else {
-								let invalidRecipients = e.message
-								throw new UserError(
-										() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
-								)
-							}
-						}),
-				)
-				.catch(
-						ofClass(TooManyRequestsError, () => {
-							throw new UserError(tooManyRequestsError)
-						}),
-				)
-				.catch(
-						ofClass(AccessBlockedError, e => {
-							// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
-							return checkApprovalStatus(this._logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
-								console.log("could not send mail (blocked access)", e)
-								return false
-							})
-						}),
-				)
-				.catch(
-						ofClass(FileNotFoundError, () => {
-							throw new UserError("couldNotAttachFile_msg")
-						}),
-				)
-				.catch(
-						ofClass(PreconditionFailedError, () => {
-							throw new UserError("operationStillActive_msg")
-						}),
-				)
+			.catch(
+				ofClass(LockedError, () => {
+					throw new UserError("operationStillActive_msg")
+				}),
+			) // catch all of the badness
+			.catch(
+				ofClass(RecipientNotResolvedError, () => {
+					throw new UserError("tooManyAttempts_msg")
+				}),
+			)
+			.catch(
+				ofClass(RecipientsNotFoundError, e => {
+					if (mailMethod === MailMethod.ICAL_CANCEL) {
+						//in case of calendar event cancellation we willremove invalid recipients and then delete the event without sending updates
+						throw e
+					} else {
+						let invalidRecipients = e.message
+						throw new UserError(
+							() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
+						)
+					}
+				}),
+			)
+			.catch(
+				ofClass(TooManyRequestsError, () => {
+					throw new UserError(tooManyRequestsError)
+				}),
+			)
+			.catch(
+				ofClass(AccessBlockedError, e => {
+					// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
+					return checkApprovalStatus(this._logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
+						console.log("could not send mail (blocked access)", e)
+						return false
+					})
+				}),
+			)
+			.catch(
+				ofClass(FileNotFoundError, () => {
+					throw new UserError("couldNotAttachFile_msg")
+				}),
+			)
+			.catch(
+				ofClass(PreconditionFailedError, () => {
+					throw new UserError("operationStillActive_msg")
+				}),
+			)
 	}
 
 	/**
@@ -894,8 +872,8 @@ export class SendMailModel {
 	 */
 	hasInsecurePasswords(): boolean {
 		const minimalPasswordStrength = this.allRecipients()
-				.filter(r => this.getPassword(r.mailAddress) !== "")
-				.reduce((min, recipient) => Math.min(min, this.getPasswordStrength(recipient)), PASSWORD_MIN_SECURE_VALUE)
+											.filter(r => this.getPassword(r.mailAddress) !== "")
+											.reduce((min, recipient) => Math.min(min, this.getPasswordStrength(recipient)), PASSWORD_MIN_SECURE_VALUE)
 		return !isSecurePassword(minimalPasswordStrength)
 	}
 
@@ -907,50 +885,50 @@ export class SendMailModel {
 	 * @throws PreconditionFailedError when the draft is locked
 	 */
 	saveDraft(
-			saveAttachments: boolean,
-			mailMethod: MailMethod,
-			blockingWaitHandler: (arg0: TranslationKey | lazy<string>, arg1: Promise<any>) => Promise<any>,
+		saveAttachments: boolean,
+		mailMethod: MailMethod,
+		blockingWaitHandler: (arg0: TranslationKey | lazy<string>, arg1: Promise<any>) => Promise<any>,
 	): Promise<void> {
 		const attachments = saveAttachments ? this._attachments : null
 		const {_draft} = this
 		// Create new drafts for drafts edited from trash or spam folder
 		const doCreateNewDraft = _draft
-				? this._mailModel
-						.getMailboxFolders(_draft)
-						.then(folders => folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM))
-						.then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft))) != null)
-				: Promise.resolve(true)
+			? this._mailModel
+				  .getMailboxFolders(_draft)
+				  .then(folders => folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM))
+				  .then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft))) != null)
+			: Promise.resolve(true)
 		const savePromise = doCreateNewDraft
-				.then(createNewDraft => {
-					return createNewDraft
-							? this._createDraft(this.getBody(), attachments, mailMethod)
-							: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
-				})
-				.then(draft => {
-					this._draft = draft
-					return promiseMap(draft.attachments, fileId => this._entity.load<TutanotaFile>(FileTypeRef, fileId), {
-						concurrency: 5,
-					}).then(attachments => {
-						this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
+			.then(createNewDraft => {
+				return createNewDraft
+					? this._createDraft(this.getBody(), attachments, mailMethod)
+					: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
+			})
+			.then(draft => {
+				this._draft = draft
+				return promiseMap(draft.attachments, fileId => this._entity.load<TutanotaFile>(FileTypeRef, fileId), {
+					concurrency: 5,
+				}).then(attachments => {
+					this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
 
-						this.attachFiles(attachments)
-						this._mailChanged = false
-					})
+					this.attachFiles(attachments)
+					this._mailChanged = false
 				})
-				.catch(
-						ofClass(PayloadTooLargeError, () => {
-							throw new UserError("requestTooLarge_msg")
-						}),
-				)
-				.catch(
-						ofClass(MailBodyTooLargeError, () => {
-							throw new UserError("mailBodyTooLarge_msg")
-						}),
-				)
+			})
+			.catch(
+				ofClass(PayloadTooLargeError, () => {
+					throw new UserError("requestTooLarge_msg")
+				}),
+			)
+			.catch(
+				ofClass(MailBodyTooLargeError, () => {
+					throw new UserError("mailBodyTooLarge_msg")
+				}),
+			)
 		return blockingWaitHandler("save_msg", savePromise)
 	}
 
-	_sendApprovalMail(body: string): Promise<any> {
+	_sendApprovalMail(body: string): Promise<unknown> {
 		const listId = "---------c--"
 		const m = createApprovalMail({
 			_id: [listId, stringToCustomId(this._senderAddress)],
@@ -998,9 +976,9 @@ export class SendMailModel {
 			}
 
 			return this._entity.update(this._previousMail).catch(
-					ofClass(NotFoundError, e => {
-						// ignore
-					}),
+				ofClass(NotFoundError, e => {
+					// ignore
+				}),
 			)
 		} else {
 			return Promise.resolve()
@@ -1009,26 +987,26 @@ export class SendMailModel {
 
 	_updateContacts(resolvedRecipients: RecipientInfo[]): Promise<any> {
 		return Promise.all(
-				resolvedRecipients.map(r => {
-					const {mailAddress, contact} = r
-					if (!contact) return Promise.resolve()
-					const isExternalAndConfidential = isExternal(r) && this.isConfidential()
+			resolvedRecipients.map(r => {
+				const {mailAddress, contact} = r
+				if (!contact) return Promise.resolve()
+				const isExternalAndConfidential = isExternal(r) && this.isConfidential()
 
-					if (!contact._id && (!this.user().props.noAutomaticContacts || isExternalAndConfidential)) {
-						if (isExternalAndConfidential) {
-							contact.presharedPassword = this.getPassword(r.mailAddress).trim()
-						}
-
-						return this._contactModel.contactListId().then(listId => {
-							return this._entity.setup(listId, contact)
-						})
-					} else if (contact._id && isExternalAndConfidential && contact.presharedPassword !== this.getPassword(mailAddress).trim()) {
-						contact.presharedPassword = this.getPassword(mailAddress).trim()
-						return this._entity.update(contact)
-					} else {
-						return Promise.resolve()
+				if (!contact._id && (!this.user().props.noAutomaticContacts || isExternalAndConfidential)) {
+					if (isExternalAndConfidential) {
+						contact.presharedPassword = this.getPassword(r.mailAddress).trim()
 					}
-				}),
+
+					return this._contactModel.contactListId().then(listId => {
+						return this._entity.setup(listId, contact)
+					})
+				} else if (contact._id && isExternalAndConfidential && contact.presharedPassword !== this.getPassword(mailAddress).trim()) {
+					contact.presharedPassword = this.getPassword(mailAddress).trim()
+					return this._entity.update(contact)
+				} else {
+					return Promise.resolve()
+				}
+			}),
 		)
 	}
 
@@ -1041,19 +1019,19 @@ export class SendMailModel {
 	 */
 	waitForResolvedRecipients(): Promise<RecipientInfo[]> {
 		return Promise.all(
-				this.allRecipients().map(recipientInfo => {
-					return resolveRecipientInfo(this._mailFacade, recipientInfo).then(recipientInfo => {
-						if (recipientInfo.resolveContactPromise) {
-							return recipientInfo.resolveContactPromise.then(() => recipientInfo)
-						} else {
-							return recipientInfo
-						}
-					})
-				}),
+			this.allRecipients().map(recipientInfo => {
+				return resolveRecipientInfo(this._mailFacade, recipientInfo).then(recipientInfo => {
+					if (recipientInfo.resolveContactPromise) {
+						return recipientInfo.resolveContactPromise.then(() => recipientInfo)
+					} else {
+						return recipientInfo
+					}
+				})
+			}),
 		).catch(
-				ofClass(TooManyRequestsError, () => {
-					throw new RecipientNotResolvedError("")
-				}),
+			ofClass(TooManyRequestsError, () => {
+				throw new RecipientNotResolvedError("")
+			}),
 		)
 	}
 
@@ -1064,13 +1042,11 @@ export class SendMailModel {
 		if (isUpdateForTypeRef(ContactTypeRef, update)) {
 			if (operation === OperationType.UPDATE) {
 				this._entity.load(ContactTypeRef, contactId).then(contact => {
-					for (const fieldType of ["to", "cc", "bcc"]) {
-						// @ts-ignore
+					for (const fieldType of typedValues(RecipientField)) {
 						const matching = this.getRecipientList(fieldType).filter(recipient => recipient.contact && isSameId(recipient.contact._id, contact._id))
 						matching.forEach(recipient => {
 							// if the mail address no longer exists on the contact then delete the recipient
 							if (!contact.mailAddresses.find(ma => cleanMatch(ma.address, recipient.mailAddress))) {
-								// @ts-ignore
 								this.removeRecipient(recipient, fieldType, true)
 							} else {
 								// else just modify the recipient
@@ -1081,16 +1057,12 @@ export class SendMailModel {
 					}
 				})
 			} else if (operation === OperationType.DELETE) {
-				for (const fieldType of ["to", "cc", "bcc"]) {
-					// @ts-ignore
+				for (const fieldType of typedValues(RecipientField)) {
 					const recipients = this.getRecipientList(fieldType)
 
-					const filterFun = recipient => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false
-
-					const toDelete = recipients.filter(filterFun)
+					const toDelete = recipients.filter(recipient => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false)
 
 					for (const r of toDelete) {
-						// @ts-ignore
 						this.removeRecipient(r, fieldType, true)
 					}
 				}

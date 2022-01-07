@@ -31,7 +31,7 @@ import {
 	encryptRsaKey,
 	publicKeyToHex,
 	RsaKeyPair
-} from "@tutao/tutanota-crypto/lib";
+} from "@tutao/tutanota-crypto";
 
 assertWorkerOrNode()
 
@@ -87,12 +87,12 @@ export class GroupManagementFacadeImpl {
 		let mailboxSessionKey = aes128RandomKey()
 		const keyPair = await this._rsa.generateKey()
 		const mailGroupData = await this.generateInternalGroupData(
-				keyPair,
-				mailGroupKey,
-				mailGroupInfoSessionKey,
-				adminGroupIds[0],
-				adminGroupKey,
-				customerGroupKey,
+			keyPair,
+			mailGroupKey,
+			mailGroupInfoSessionKey,
+			adminGroupIds[0],
+			adminGroupKey,
+			customerGroupKey,
 		)
 		let data = createCreateMailGroupData()
 		data.mailAddress = mailAddress
@@ -132,7 +132,7 @@ export class GroupManagementFacadeImpl {
 		return this._entityClient.load(GroupTypeRef, this._login.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
-			let adminGroupKey = null
+			let adminGroupKey: BitArray | null = null
 
 			if (this._login.getAllGroupIds().indexOf(adminGroupId) !== -1) {
 				// getGroupKey throws an error if user is not member of that group - so check first
@@ -163,18 +163,18 @@ export class GroupManagementFacadeImpl {
 				groupData: groupData,
 			})
 			return serviceRequest(TutanotaService.TemplateGroupService, HttpMethod.POST, serviceData, CreateGroupPostReturnTypeRef).then(
-					returnValue => returnValue.group,
+				returnValue => returnValue.group,
 			)
 		})
 	}
 
 	generateInternalGroupData(
-			keyPair: RsaKeyPair,
-			groupKey: Aes128Key,
-			groupInfoSessionKey: Aes128Key,
-			adminGroupId: Id | null,
-			adminGroupKey: Aes128Key,
-			ownerGroupKey: Aes128Key,
+		keyPair: RsaKeyPair,
+		groupKey: Aes128Key,
+		groupInfoSessionKey: Aes128Key,
+		adminGroupId: Id | null,
+		adminGroupKey: Aes128Key,
+		ownerGroupKey: Aes128Key,
 	): InternalGroupData {
 		let groupData = createInternalGroupData()
 		groupData.publicKey = hexToUint8Array(publicKeyToHex(keyPair.publicKey))
@@ -225,28 +225,28 @@ export class GroupManagementFacadeImpl {
 		} else {
 			return this._entityClient.load(GroupTypeRef, groupId).then(group => {
 				return Promise.resolve()
-						.then(() => {
-							if (group.admin && this._login.hasGroup(group.admin)) {
-								// e.g. I am a member of the group that administrates group G and want to add a new member to G
-								return this._login.getGroupKey(neverNull(group.admin))
-							} else {
-								// e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
-								let globalAdminGroupId = this._login.getGroupId(GroupType.Admin)
+							  .then(() => {
+								  if (group.admin && this._login.hasGroup(group.admin)) {
+									  // e.g. I am a member of the group that administrates group G and want to add a new member to G
+									  return this._login.getGroupKey(neverNull(group.admin))
+								  } else {
+									  // e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
+									  let globalAdminGroupId = this._login.getGroupId(GroupType.Admin)
 
-								let globalAdminGroupKey = this._login.getGroupKey(globalAdminGroupId)
+									  let globalAdminGroupKey = this._login.getGroupKey(globalAdminGroupId)
 
-								return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
-									if (localAdminGroup.admin === globalAdminGroupId) {
-										return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
-									} else {
-										throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
-									}
-								})
-							}
-						})
-						.then(adminGroupKey => {
-							return decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
-						})
+									  return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+										  if (localAdminGroup.admin === globalAdminGroupId) {
+											  return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
+										  } else {
+											  throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
+										  }
+									  })
+								  }
+							  })
+							  .then(adminGroupKey => {
+								  return decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+							  })
 			})
 		}
 	}

@@ -1,6 +1,6 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
@@ -9,175 +9,178 @@ import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {User} from "../api/entities/sys/User";
+
 const delayTime = 900
 type UserImportDetails = {
-    username: string | null
-    mailAddress: string
-    password: string
+	username: string | null
+	mailAddress: string
+	password: string
 }
 export const CSV_USER_FORMAT = "username;user@domain.com;password"
+
 export function checkAndImportUserData(userDetailsInputCsv: string, availableDomains: string[]): boolean {
-    let userData = csvToUserDetails(userDetailsInputCsv)
+	let userData = csvToUserDetails(userDetailsInputCsv)
 
-    if (!userData) {
-        Dialog.message(() =>
-            lang.get("wrongUserCsvFormat_msg", {
-                "{format}": CSV_USER_FORMAT,
-            }),
-        )
-        return false
-    } else {
-        let errorMessage = checkAndGetErrorMessage(userData, availableDomains)
+	if (!userData) {
+		Dialog.message(() =>
+			lang.get("wrongUserCsvFormat_msg", {
+				"{format}": CSV_USER_FORMAT,
+			}),
+		)
+		return false
+	} else {
+		const errorMessage = checkAndGetErrorMessage(userData, availableDomains)
 
-        if (!errorMessage) {
-            if (userData.length > 0) {
-                showBookingDialog(userData)
-            }
+		if (!errorMessage) {
+			if (userData.length > 0) {
+				showBookingDialog(userData)
+			}
 
-            return true
-        } else {
-            Dialog.message(() => errorMessage)
-            return false
-        }
-    }
+			return true
+		} else {
+			Dialog.message(() => errorMessage)
+			return false
+		}
+	}
 }
 
 /**
  * Returns the user data from the given csv string or null if the scv string is not valid
  */
 function csvToUserDetails(csvString: string): UserImportDetails[] | null {
-    let lines = csvString
-        .replace("\r", "")
-        .split("\n")
-        .filter(l => "" !== l.trim())
-    let error = false
-    let userData = lines.map(a => {
-        let parts = a.trim().split(";")
+	let lines = csvString
+		.replace("\r", "")
+		.split("\n")
+		.filter(l => "" !== l.trim())
+	let error = false
+	let userData = lines.map(a => {
+		let parts = a.trim().split(";")
 
-        if (parts.length !== 3) {
-            error = true
-            return null
-        } else {
-            return {
-                username: parts[0],
-                mailAddress: parts[1],
-                password: parts[2],
-            }
-        }
-    })
+		if (parts.length !== 3) {
+			error = true
+			return null
+		} else {
+			return {
+				username: parts[0],
+				mailAddress: parts[1],
+				password: parts[2],
+			}
+		}
+	})
 
-    if (error) {
-        return null
-    } else {
-        return userData as any
-    }
+	if (error) {
+		return null
+	} else {
+		return userData as any
+	}
 }
 
 /**
  * Check the user data for validity. Returns an error message for the first user with invalid data, otherwise null.
  */
 function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains: string[]): string | null {
-    if (userData.length === 0) {
-        return lang.get("noInputWasMade_msg")
-    } else {
-        let errorMessageArray = []
-        let errorMessage = null
-        userData.find((u, index) => {
-            let mailAddress = u.mailAddress
-            let domain = u.mailAddress.split("@")[1].toLowerCase().trim()
+	if (userData.length === 0) {
+		return lang.get("noInputWasMade_msg")
+	} else {
+		let errorMessageArray: TranslationKey[] = []
+		let errorMessage: string | null = null
+		userData.find((u, index) => {
+			let mailAddress = u.mailAddress
+			let domain = u.mailAddress.split("@")[1].toLowerCase().trim()
 
-            if (!isMailAddress(u.mailAddress, true)) {
-                errorMessageArray.push("mailAddressInvalid_msg")
-            }
+			if (!isMailAddress(u.mailAddress, true)) {
+				errorMessageArray.push("mailAddressInvalid_msg")
+			}
 
-            if (!contains(availableDomains, domain)) {
-                errorMessageArray.push("customDomainErrorDomainNotAvailable_msg")
-            }
+			if (!contains(availableDomains, domain)) {
+				errorMessageArray.push("customDomainErrorDomainNotAvailable_msg")
+			}
 
-            if (u.password.trim() === "") {
-                errorMessageArray.push("enterMissingPassword_msg")
-            }
+			if (u.password.trim() === "") {
+				errorMessageArray.push("enterMissingPassword_msg")
+			}
 
-            if (userData.find(otherUser => otherUser.mailAddress === mailAddress && otherUser !== u)) {
-                errorMessageArray.push("duplicatedMailAddressInUserList_msg")
-            }
+			if (userData.find(otherUser => otherUser.mailAddress === mailAddress && otherUser !== u)) {
+				errorMessageArray.push("duplicatedMailAddressInUserList_msg")
+			}
 
-            // create error msg from all errors for this user
-            if (errorMessageArray.length > 0) {
-                errorMessage =
-                    errorMessageArray.map(e => lang.get(e)).join("\n") +
-                    "\n" +
-                    lang.get("errorAtLine_msg", {
-                        "{index}": index + 1,
-                        "{error}": `"${u.username || ""};${u.mailAddress || ""};${u.password || ""}"`,
-                    })
-                return true
-            }
-        })
-        return errorMessage
-    }
+			// create error msg from all errors for this user
+			if (errorMessageArray.length > 0) {
+				errorMessage =
+					errorMessageArray.map(e => lang.get(e)).join("\n") +
+					"\n" +
+					lang.get("errorAtLine_msg", {
+						"{index}": index + 1,
+						"{error}": `"${u.username || ""};${u.mailAddress || ""};${u.password || ""}"`,
+					})
+				return true
+			}
+		})
+		return errorMessage
+	}
 }
 
 function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
-    let nbrOfCreatedUsers = 0
-    let notAvailableUsers = []
-    // There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
-    // index
-    showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
-        if (accepted) {
-            return showWorkerProgressDialog(
-                locator.worker,
-                () =>
-                    lang.get("createActionStatus_msg", {
-                        "{index}": nbrOfCreatedUsers,
-                        "{count}": userDetailsArray.length,
-                    }),
-                promiseMap(userDetailsArray, (user, userIndex) => {
-                    return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then(created => {
-                        if (created) {
-                            nbrOfCreatedUsers++
-                            m.redraw()
-                        } else {
-                            notAvailableUsers.push(user)
-                        }
-                    })
-                }),
-            )
-                .catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
-                .then(() => {
-                    let p = Promise.resolve()
+	let nbrOfCreatedUsers = 0
+	let notAvailableUsers: UserImportDetails[] = []
+	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
+	// index
+	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
+		if (accepted) {
+			return showWorkerProgressDialog(
+				locator.worker,
+				() =>
+					lang.get("createActionStatus_msg", {
+						"{index}": nbrOfCreatedUsers,
+						"{count}": userDetailsArray.length,
+					}),
+				promiseMap(userDetailsArray, (user, userIndex) => {
+					return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then(created => {
+						if (created) {
+							nbrOfCreatedUsers++
+							m.redraw()
+						} else {
+							notAvailableUsers.push(user)
+						}
+					})
+				}),
+			)
+				.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
+				.then(() => {
+					let p = Promise.resolve()
 
-                    if (notAvailableUsers.length > 0) {
-                        p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map(u => u.mailAddress).join(", "))
-                    }
+					if (notAvailableUsers.length > 0) {
+						p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map(u => u.mailAddress).join(", "))
+					}
 
-                    p.then(() => {
-                        Dialog.message(() =>
-                            lang.get("createdUsersCount_msg", {
-                                "{1}": nbrOfCreatedUsers,
-                            }),
-                        )
-                    })
-                })
-        }
-    })
+					p.then(() => {
+						Dialog.message(() =>
+							lang.get("createdUsersCount_msg", {
+								"{1}": nbrOfCreatedUsers,
+							}),
+						)
+					})
+				})
+		}
+	})
 }
 
 /**
  * @returns True if the user was created, false if the email address is not available.
  */
 function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number): Promise<boolean> {
-    let cleanMailAddress = user.mailAddress.trim().toLowerCase()
-    return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
-        if (available) {
-            return locator.userManagementFacade
-                .createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers)
-                .then(() => {
-                    // delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
-                    return delay(delayTime).then(() => true)
-                })
-        } else {
-            return delay(delayTime).then(() => false)
-        }
-    })
+	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
+	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
+		if (available) {
+			return locator.userManagementFacade
+						  .createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers)
+						  .then(() => {
+							  // delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
+							  return delay(delayTime).then(() => true)
+						  })
+		} else {
+			return delay(delayTime).then(() => false)
+		}
+	})
 }

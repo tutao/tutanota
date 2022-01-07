@@ -8,20 +8,20 @@ export class ParserError extends TutanotaError {
 
 	constructor(message: string, filename?: string) {
 		super("ParserError", message)
-		this.filename = filename
+		this.filename = filename ?? null
 	}
 }
 
 export const combineParsers: (<A, B>(arg0: Parser<A>, arg1: Parser<B>) => Parser<[A, B]>) &
-		(<A, B, C>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>) => Parser<[A, B, C]>) &
-		(<A, B, C, D>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>) => Parser<[A, B, C, D]>) &
-		(<A, B, C, D, E>(
-				arg0: Parser<A>,
-				arg1: Parser<B>,
-				arg2: Parser<C>,
-				arg3: Parser<D>,
-				arg4: Parser<E>,
-		) => Parser<[A, B, C, D, E]>) = downcast((...parsers) => iterator => parsers.map(p => p(iterator)))
+	(<A, B, C>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>) => Parser<[A, B, C]>) &
+	(<A, B, C, D>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>) => Parser<[A, B, C, D]>) &
+	(<A, B, C, D, E>(
+		arg0: Parser<A>,
+		arg1: Parser<B>,
+		arg2: Parser<C>,
+		arg3: Parser<D>,
+		arg4: Parser<E>,
+	) => Parser<[A, B, C, D, E]>) = downcast((...parsers: any[]) => (iterator: StringIterator) => parsers.map(p => p(iterator)))
 
 export function makeCharacterParser(character: string): Parser<string> {
 	return (iterator: StringIterator) => {
@@ -55,7 +55,7 @@ export function makeNotCharacterParser(character: string): Parser<string> {
 
 export function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<T>> {
 	return (iterator: StringIterator) => {
-		const result = []
+		const result: T[] = []
 
 		try {
 			let parseResult = anotherParser(iterator)
@@ -99,7 +99,7 @@ export function maybeParse<T>(parser: Parser<T>): Parser<T | null> {
 
 export function makeSeparatedByParser<S, T>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> {
 	return iterator => {
-		const result = []
+		const result: T[] = []
 		result.push(valueParser(iterator))
 
 		while (true) {
@@ -164,8 +164,8 @@ export function makeNotOneOfCharactersParser(notAllowed: Array<string>): Parser<
 }
 
 export const numberParser: Parser<number> = mapParser(
-		makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
-		values => parseInt(values.join(""), 10),
+	makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
+	values => parseInt(values.join(""), 10),
 )
 
 export class StringIterator {
@@ -176,18 +176,18 @@ export class StringIterator {
 		this.iteratee = iteratee
 	}
 
-	next(): IteratorResult<string, void> {
+	next(): IteratorResult<string> {
 		const value = this.iteratee[++this.position]
 		const done: boolean = this.position >= this.iteratee.length
 		return done
-				? {
-					done: true,
-					value: undefined
-				}
-				: {
-					done: false,
-					value,
-				}
+			? {
+				done: true,
+				value: undefined
+			}
+			: {
+				done: false,
+				value,
+			}
 	}
 
 	peek(): string {

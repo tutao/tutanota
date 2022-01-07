@@ -1,10 +1,10 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile, DataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
-import {assertNotNull, downcast, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
+import {assertNotNull, isNotNull, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
@@ -59,70 +59,67 @@ export class FileController {
 			}
 		})
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
-				.catch(
-						ofClass(CryptoError, e => {
-							console.log(e)
-							return Dialog.message("corrupted_msg")
-						}),
-				)
-				.catch(
-						ofClass(ConnectionError, e => {
-							console.log(e)
-							return Dialog.message("couldNotAttachFile_msg")
-						}),
-				)
+			.catch(
+				ofClass(CryptoError, e => {
+					console.log(e)
+					return Dialog.message("corrupted_msg")
+				}),
+			)
+			.catch(
+				ofClass(ConnectionError, e => {
+					console.log(e)
+					return Dialog.message("couldNotAttachFile_msg")
+				}),
+			)
 	}
 
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const showErr = (msg, name) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
+	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
+		const showErr = (msg: TranslationKey, name: string) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
 
 		const fileFacade = locator.fileFacade
-		let downloadContent, concurrency, save
 
 		if (isAndroidApp()) {
-			downloadContent = f => fileFacade.downloadFileContentNative(f)
-
-			concurrency = {
-				concurrency: 1,
-			}
-
-			save = p => p.then(files => files.forEach(file => this.fileApp.putFileIntoDownloadsFolder(file.location)))
-		} else if (isApp()) {
-			downloadContent = f => fileFacade.downloadFileContentNative(f)
-
-			concurrency = {
-				concurrency: 1,
-			}
-
-			save = p => p.then(files => files.forEach(file => this.openFileReference(file).finally(() => this._deleteFile(file.location))))
-		} else {
-			downloadContent = f => fileFacade.downloadFileContent(f)
-
-			concurrency = {
-				concurrency: 1,
-			}
-
-			save = p => p.then(files => this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip)))
-		}
-
-		// We're returning dialogs here so they don't overlap each other
-		// We're returning null to say that this file is not present.
-		// (it's void by default and doesn't satisfy type checker)
-		const p = promiseMap(
+			const fileResults = await promiseMap(
 				tutanotaFiles,
-				tutanotaFile =>
-						downloadContent(tutanotaFile)
-								.catch(ofClass(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name)))
-								.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name))),
-				concurrency,
-		).then(results => results.filter(Boolean))
-		// filter out failed files
-		// in apps, p is a  Promise<FileReference[]> that have location props.
-		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
-		return save(downcast(p)).then(noOp)
+				(f) =>
+					fileFacade.downloadFileContentNative(f)
+							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+				{concurrency: 1}
+			)
+			const files = fileResults.filter(isNotNull)
+			for (const file of files) {
+				await this.fileApp.putFileIntoDownloadsFolder(file.location)
+			}
+		} else if (isApp()) {
+			const fileResults = await promiseMap(
+				tutanotaFiles,
+				(f) =>
+					fileFacade.downloadFileContentNative(f)
+							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+				{concurrency: 1}
+			)
+			const files = fileResults.filter(isNotNull)
+			for (const file of files) {
+				await this.openFileReference(file).finally(() => this._deleteFile(file.location))
+			}
+		} else {
+			const fileResults = await promiseMap(
+				tutanotaFiles,
+				(f) =>
+					fileFacade.downloadFileContent(f)
+							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+				{concurrency: 1}
+			)
+			const files = fileResults.filter(isNotNull)
+			const zip = await this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)
+			await this.openDataFile(zip)
+		}
 	}
 
 	/**
@@ -156,15 +153,15 @@ export class FileController {
 		let promise = new Promise(resolve => {
 			newFileInput.addEventListener("change", (e: Event) => {
 				this.readLocalFiles((e.target as any).files)
-						.then(dataFiles => {
-							resolve(dataFiles)
+					.then(dataFiles => {
+						resolve(dataFiles)
+					})
+					.catch(e => {
+						console.log(e)
+						return Dialog.message("couldNotAttachFile_msg").then(() => {
+							resolve([])
 						})
-						.catch(e => {
-							console.log(e)
-							return Dialog.message("couldNotAttachFile_msg").then(() => {
-								resolve([])
-							})
-						})
+					})
 			})
 		})
 		// the file input must be put into the dom, otherwise it does not work in IE
@@ -175,35 +172,35 @@ export class FileController {
 
 	readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
 		// create an array of files form the FileList because we can not iterate the FileList directly
-		let nativeFiles = []
+		let nativeFiles: File[] = []
 
 		for (let i = 0; i < fileList.length; i++) {
 			nativeFiles.push(fileList[i])
 		}
 
 		return promiseMap(
-				nativeFiles,
-				nativeFile => {
-					return new Promise((resolve, reject) => {
-						let reader = new FileReader()
+			nativeFiles,
+			nativeFile => {
+				return new Promise((resolve, reject) => {
+					let reader = new FileReader()
 
-						reader.onloadend = function (evt: ProgressEvent) {
-							const target: any = evt.target
+					reader.onloadend = function (evt: ProgressEvent) {
+						const target: any = evt.target
 
-							if (target.readyState === reader.DONE && target.result) {
-								// DONE == 2
-								resolve(convertToDataFile(nativeFile, new Uint8Array(target.result)))
-							} else {
-								reject(new Error("could not load file"))
-							}
+						if (target.readyState === reader.DONE && target.result) {
+							// DONE == 2
+							resolve(convertToDataFile(nativeFile, new Uint8Array(target.result)))
+						} else {
+							reject(new Error("could not load file"))
 						}
+					}
 
-						reader.readAsArrayBuffer(nativeFile)
-					})
-				},
-				{
-					concurrency: 5,
-				},
+					reader.readAsArrayBuffer(nativeFile)
+				})
+			},
+			{
+				concurrency: 5,
+			},
 		)
 	}
 
@@ -219,19 +216,19 @@ export class FileController {
 		}
 
 		let saveFunction: (...args: Array<any>) => any =
-				// @ts-ignore
-				window.saveAs ||
-				// @ts-ignore
-				window.webkitSaveAs ||
-				// @ts-ignore
-				window.mozSaveAs ||
-				// @ts-ignore
-				window.msSaveAs ||
-				(navigator as any).saveBlob ||
-				(navigator as any).msSaveOrOpenBlob ||
-				(navigator as any).msSaveBlob ||
-				(navigator as any).mozSaveBlob ||
-				(navigator as any).webkitSaveBlob
+			// @ts-ignore
+			window.saveAs ||
+			// @ts-ignore
+			window.webkitSaveAs ||
+			// @ts-ignore
+			window.mozSaveAs ||
+			// @ts-ignore
+			window.msSaveAs ||
+			(navigator as any).saveBlob ||
+			(navigator as any).msSaveOrOpenBlob ||
+			(navigator as any).msSaveBlob ||
+			(navigator as any).mozSaveBlob ||
+			(navigator as any).webkitSaveBlob
 
 		if (saveFunction) {
 			let blob = new Blob([dataFile.data], {
@@ -365,23 +362,23 @@ export class FileController {
 	 * @param name the name of the new zip file
 	 */
 	zipDataFiles(dataFiles: Array<DataFile>, name: string): Promise<DataFile> {
-		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		return import("jszip")
-				.then(jsZip => {
-					const zip = jsZip.default()
-					// fileName should already be sanitized anyway
-					const deduplicatedMap = deduplicateFilenames(dataFiles.map(df => sanitizeFilename(df.name)))
+			.then(jsZip => {
+				const zip = jsZip.default()
+				// fileName should already be sanitized anyway
+				const deduplicatedMap = deduplicateFilenames(dataFiles.map(df => sanitizeFilename(df.name)))
 
-					for (let file of dataFiles) {
-						zip.file(sanitizeFilename(deduplicatedMap[file.name].shift()), file.data, {
-							binary: true,
-						})
-					}
-
-					return zip.generateAsync({
-						type: "uint8array",
+				for (let file of dataFiles) {
+					const filename = assertNotNull(deduplicatedMap[file.name].shift())
+					zip.file(sanitizeFilename(filename), file.data, {
+						binary: true,
 					})
+				}
+
+				return zip.generateAsync({
+					type: "uint8array",
 				})
-				.then((zipData: Uint8Array) => createDataFile(name, "application/zip", zipData))
+			})
+			.then((zipData: Uint8Array) => createDataFile(name, "application/zip", zipData))
 	}
 }

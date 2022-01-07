@@ -1,4 +1,3 @@
-// @flow
 import m, {Children, Component, Vnode} from "mithril"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -121,8 +120,8 @@ export class NavBarN implements Component<NavBarAttrs> {
 	}
 
 	getVisibleButtons(): SortedButtons {
-		let visible = this.buttons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible?.())
-		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible?.())
+		let visible = this.buttons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible == null || b.buttonAttrs.isVisible())
+		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.buttonAttrs.isVisible == null || b.buttonAttrs.isVisible())
 		let remainingSpace = this._domNavBar ? this._domNavBar.scrollWidth : 0
 
 		let buttons: SortedButtons = {

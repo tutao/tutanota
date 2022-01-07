@@ -1,5 +1,5 @@
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {createDropdown} from "../../gui/base/DropdownN"
@@ -28,7 +28,7 @@ assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
-	const selectedAction: Stream<ResetAction | null> = stream(resetAction)
+	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
 	let passwordForm = new PasswordForm(false, true, true)
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
@@ -76,7 +76,6 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						label: "mailAddress_label",
 						value: emailAddressStream,
 					}),
-					// @ts-ignore
 					m(editor),
 					m(TextFieldN, {
 						label: "action_label",
@@ -85,14 +84,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						disabled: true,
 					}),
 					selectedAction() == null
-							? null
-							: selectedAction() === "password"
-									? m(passwordForm)
-									: m(TextFieldN, {
-										label: "password_label",
-										type: TextFieldType.Password,
-										value: passwordValueStream,
-									}),
+						? null
+						: selectedAction() === "password"
+							? m(passwordForm)
+							: m(TextFieldN, {
+								label: "password_label",
+								type: TextFieldType.Password,
+								value: passwordValueStream,
+							}),
 				]
 			},
 		},
@@ -111,37 +110,37 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					Dialog.message(errorMessageId)
 				} else {
 					showProgressDialog(
-							"pleaseWait_msg",
-							locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordForm.getNewPassword(), client.getIdentifier()),
+						"pleaseWait_msg",
+						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordForm.getNewPassword(), client.getIdentifier()),
 					)
-							.then(async () => {
-								recoverDialog.close()
-								await deleteCredentialsByMailAddress(cleanMailAddress)
-								windowFacade.reload({})
-							})
-							.catch(e => handleError(e))
-							.finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
-				}
-			} else if (selectedAction() === "secondFactor") {
-				const passwordValue = passwordValueStream()
-				showProgressDialog("pleaseWait_msg", locator.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue))
 						.then(async () => {
 							recoverDialog.close()
 							await deleteCredentialsByMailAddress(cleanMailAddress)
 							windowFacade.reload({})
 						})
 						.catch(e => handleError(e))
+						.finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
+				}
+			} else if (selectedAction() === "secondFactor") {
+				const passwordValue = passwordValueStream()
+				showProgressDialog("pleaseWait_msg", locator.loginFacade.resetSecondFactors(cleanMailAddress, passwordValue, cleanRecoverCodeValue))
+					.then(async () => {
+						recoverDialog.close()
+						await deleteCredentialsByMailAddress(cleanMailAddress)
+						windowFacade.reload({})
+					})
+					.catch(e => handleError(e))
 			}
 		},
 		cancelAction: () =>
-				m.route.set("/login", {
-					noAutoLogin: true,
-				}),
+			m.route.set("/login", {
+				noAutoLogin: true,
+			}),
 	})
 	return recoverDialog
 }
 
-async function deleteCredentialsByMailAddress(cleanMailAddress) {
+async function deleteCredentialsByMailAddress(cleanMailAddress: string) {
 	const allCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
 	const credentials = allCredentials.find(c => c.login === cleanMailAddress)
 

@@ -1,13 +1,13 @@
 {
   "extends": "./tsconfig_common.json",
   "compilerOptions": {
-	"declaration": false
+	"declaration": false,
+	"noEmit": true,
+	"outDir": "build/dist"
   },
   "include": [
-	"src",
-	"libs"
-  ],
-  "exclude": [
-	"node_modules"
+	"src/**/*.ts",
+	"libs/*.ts",
+	"types/*.d.ts"
   ]
 }

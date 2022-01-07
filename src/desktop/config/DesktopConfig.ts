@@ -173,7 +173,7 @@ export class DesktopConfig {
 		return this
 	}
 
-	removeListener(key: AllConfigKeys, cb: (val: any)=>void): this {
+	removeListener(key: AllConfigKeys, cb: (val: any) => void): this {
 		if (!this._onValueSetListeners[key]) return this
 		this._onValueSetListeners[key].splice(this._onValueSetListeners[key].indexOf(cb), 1)
 		return this

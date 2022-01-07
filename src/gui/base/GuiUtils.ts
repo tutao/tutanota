@@ -23,43 +23,45 @@ export type clickHandler = (event: MouseEvent, dom: HTMLElement) => unknown
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(
-		selectedCountry: Stream<Country | null>,
-		helpLabel?: lazy<string>,
-		label: TranslationKey | lazy<string> = "invoiceCountry_label",
+	selectedCountry: Stream<Country | null>,
+	helpLabel?: lazy<string>,
+	label: TranslationKey | lazy<string> = "invoiceCountry_label",
 ): DropDownSelector<Country | null> {
-	const countries = Countries.map(c => ({
-		value: c,
-		name: c.n,
-	}))
-	countries.push({
-		value: null,
-		name: lang.get("choose_label"),
-	})
-	const countryInput = new DropDownSelector(label, helpLabel, countries, selectedCountry, 250).setSelectionChangedHandler(value => {
-		selectedCountry(value)
-	})
-	return countryInput
+	const countries: Array<{name: string, value: Country | null}> = [
+		...Countries.map(c => ({
+			value: c,
+			name: c.n,
+		})),
+		{
+			value: null,
+			name: lang.get("choose_label"),
+		}
+	]
+	return new DropDownSelector(label, helpLabel ?? null, countries, selectedCountry, 250)
+		.setSelectionChangedHandler(value => {
+			selectedCountry(value)
+		})
 }
 
 export function createMoreSecondaryButtonAttrs(
-		lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-		dropdownWidth?: number,
+	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	dropdownWidth?: number,
 ): ButtonAttrs {
 	return moreButtonAttrsImpl(null, ButtonType.Secondary, lazyChildren, dropdownWidth)
 }
 
 export function createMoreActionButtonAttrs(
-		lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-		dropdownWidth?: number,
+	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	dropdownWidth?: number,
 ): ButtonAttrs {
 	return moreButtonAttrsImpl(() => Icons.More, ButtonType.Action, lazyChildren, dropdownWidth)
 }
 
 function moreButtonAttrsImpl(
-		icon: lazy<AllIcons> | null,
-		type: ButtonType,
-		lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-		dropdownWidth?: number,
+	icon: lazy<AllIcons> | null,
+	type: ButtonType,
+	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	dropdownWidth?: number,
 ): ButtonAttrs {
 	const button = {
 		label: "more_label",
@@ -76,10 +78,10 @@ function moreButtonAttrsImpl(
 				return child
 			} else {
 				return Object.assign(
-						{
-							type: ButtonType.Dropdown,
-						},
-						child,
+					{
+						type: ButtonType.Dropdown,
+					},
+					child,
 				)
 			}
 		})
@@ -134,21 +136,21 @@ export function getConfirmation(message: TranslationKey | lazy<string>, confirmM
  * @returns {{x: number, y: number}}
  */
 export function getCoordsOfMouseOrTouchEvent(
-		event: MouseEvent | TouchEvent,
+	event: MouseEvent | TouchEvent,
 ): {
 	x: number
 	y: number
 } {
 	return event instanceof MouseEvent
-			? {
-				x: event.clientX,
-				y: event.clientY,
-			}
-			: {
-				// Why would touches be empty?
-				x: assertNotNull(event.touches.item(0)).clientX,
-				y: assertNotNull(event.touches.item(0)).clientY,
-			}
+		? {
+			x: event.clientX,
+			y: event.clientY,
+		}
+		: {
+			// Why would touches be empty?
+			x: assertNotNull(event.touches.item(0)).clientX,
+			y: assertNotNull(event.touches.item(0)).clientY,
+		}
 }
 
 export function makeListSelectionChangedScrollHandler(scrollDom: HTMLElement, entryHeight: number, getSelectedEntryIndex: lazy<number>): () => void {

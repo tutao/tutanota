@@ -10,7 +10,7 @@
   },
   "scripts": {
 	"test": "rm -r build; tsc --project test/tsconfig.json && cp -r test/resources build/test/ && cd build/test && node 'index.js'",
-	"build": "rm -r dist && tsc"
+	"build": "rm -rf dist && tsc"
   },
   "type": "module",
   "files": [

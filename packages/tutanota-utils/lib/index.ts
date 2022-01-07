@@ -122,6 +122,7 @@ export {
 	neverNull,
 	assertNotNull,
 	assert,
+	isNotNull,
 	downcast,
 	clone,
 	lazyMemoized,
@@ -150,3 +151,7 @@ export {
 export type {
 	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter
 } from "./Utils.js"
+
+export {
+	mod, clamp
+} from "./MathUtils.js"

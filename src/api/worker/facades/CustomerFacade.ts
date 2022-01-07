@@ -45,465 +45,484 @@ import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServi
 import {AccountingService} from "../../entities/accounting/Services"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
-import type {Hex} from "@tutao/tutanota-utils/"
+import type {Hex} from "@tutao/tutanota-utils"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation"
 import {EntityClient} from "../../common/EntityClient"
 import {DataFile} from "../../common/DataFile";
+
 assertWorkerOrNode()
+
 export interface CustomerFacade {
-    generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]>
-    signup(
-        keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
-        accountType: AccountType,
-        authToken: string,
-        mailAddress: string,
-        password: string,
-        registrationCode: string,
-        currentLanguage: string,
-    ): Promise<Hex>
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]>
 
-    /**
-     * Reads the used storage of a customer in bytes.
-     * @return The amount of used storage in byte.
-     */
-    readUsedCustomerStorage(customerId: Id): Promise<number>
+	signup(
+		keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
+		accountType: AccountType,
+		authToken: string,
+		mailAddress: string,
+		password: string,
+		registrationCode: string,
+		currentLanguage: string,
+	): Promise<Hex>
 
-    /**
-     * Reads the available storage capacity of a customer in bytes.
-     * @return The amount of available storage capacity in byte.
-     */
-    readAvailableCustomerStorage(customerId: Id): Promise<number>
-    loadCustomerServerProperties(): Promise<CustomerServerProperties>
-    editSpamRule(spamRule: EmailSenderListElement): Promise<void>
-    setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void>
-    removeDomain(domainName: string): Promise<void>
-    orderWhitelabelCertificate(domainName: string): Promise<void>
-    addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void>
-    downloadInvoice(invoiceNumber: string): Promise<DataFile>
-    updatePaymentData(
-        paymentInterval: number,
-        invoiceData: InvoiceData,
-        paymentData: PaymentData | null,
-        confirmedInvoiceCountry: Country | null,
-    ): Promise<PaymentDataServicePutReturn>
-    switchFreeToPremiumGroup(): Promise<void>
-    createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn>
-    createContactFormUserGroupData(): Promise<void>
-    switchPremiumToFreeGroup(): Promise<void>
-    getDomainValidationRecord(domainName: string): Promise<string>
-    addDomain(domainName: string): Promise<CustomDomainReturn>
-    deleteCertificate(domainName: string): Promise<void>
+	/**
+	 * Reads the used storage of a customer in bytes.
+	 * @return The amount of used storage in byte.
+	 */
+	readUsedCustomerStorage(customerId: Id): Promise<number>
+
+	/**
+	 * Reads the available storage capacity of a customer in bytes.
+	 * @return The amount of available storage capacity in byte.
+	 */
+	readAvailableCustomerStorage(customerId: Id): Promise<number>
+
+	loadCustomerServerProperties(): Promise<CustomerServerProperties>
+
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void>
+
+	setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void>
+
+	removeDomain(domainName: string): Promise<void>
+
+	orderWhitelabelCertificate(domainName: string): Promise<void>
+
+	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void>
+
+	downloadInvoice(invoiceNumber: string): Promise<DataFile>
+
+	updatePaymentData(
+		paymentInterval: number,
+		invoiceData: InvoiceData,
+		paymentData: PaymentData | null,
+		confirmedInvoiceCountry: Country | null,
+	): Promise<PaymentDataServicePutReturn>
+
+	switchFreeToPremiumGroup(): Promise<void>
+
+	createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn>
+
+	createContactFormUserGroupData(): Promise<void>
+
+	switchPremiumToFreeGroup(): Promise<void>
+
+	getDomainValidationRecord(domainName: string): Promise<string>
+
+	addDomain(domainName: string): Promise<CustomDomainReturn>
+
+	deleteCertificate(domainName: string): Promise<void>
 }
+
 export class CustomerFacadeImpl implements CustomerFacade {
-    _login: LoginFacadeImpl
-    _groupManagement: GroupManagementFacadeImpl
-    _userManagement: UserManagementFacade
-    _worker: WorkerImpl
-    _counters: CounterFacade
-    contactFormUserGroupData:
-        | Promise<{
-              userGroupKey: Aes128Key
-              userGroupData: InternalGroupData
-          }>
-        | null
-        | undefined
-    _rsa: RsaImplementation
-    _entityClient: EntityClient
+	_login: LoginFacadeImpl
+	_groupManagement: GroupManagementFacadeImpl
+	_userManagement: UserManagementFacade
+	_worker: WorkerImpl
+	_counters: CounterFacade
+	contactFormUserGroupData:
+		| Promise<{
+		userGroupKey: Aes128Key
+		userGroupData: InternalGroupData
+	}>
+		| null
+		| undefined
+	_rsa: RsaImplementation
+	_entityClient: EntityClient
 
-    constructor(
-        worker: WorkerImpl,
-        login: LoginFacadeImpl,
-        groupManagement: GroupManagementFacadeImpl,
-        userManagement: UserManagementFacade,
-        counters: CounterFacade,
-        rsa: RsaImplementation,
-        entityClient: EntityClient,
-    ) {
-        this._worker = worker
-        this._login = login
-        this._groupManagement = groupManagement
-        this._userManagement = userManagement
-        this._counters = counters
-        this._rsa = rsa
-        this._entityClient = entityClient
-    }
+	constructor(
+		worker: WorkerImpl,
+		login: LoginFacadeImpl,
+		groupManagement: GroupManagementFacadeImpl,
+		userManagement: UserManagementFacade,
+		counters: CounterFacade,
+		rsa: RsaImplementation,
+		entityClient: EntityClient,
+	) {
+		this._worker = worker
+		this._login = login
+		this._groupManagement = groupManagement
+		this._userManagement = userManagement
+		this._counters = counters
+		this._rsa = rsa
+		this._entityClient = entityClient
+	}
 
-    getDomainValidationRecord(domainName: string): Promise<string> {
-        return Promise.resolve(
-            "t-verify=" +
-                uint8ArrayToHex(
-                    sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase() + neverNull(this._login.getLoggedInUser().customer))).slice(0, 16),
-                ),
-        )
-    }
+	getDomainValidationRecord(domainName: string): Promise<string> {
+		return Promise.resolve(
+			"t-verify=" +
+			uint8ArrayToHex(
+				sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase() + neverNull(this._login.getLoggedInUser().customer))).slice(0, 16),
+			),
+		)
+	}
 
-    addDomain(domainName: string): Promise<CustomDomainReturn> {
-        let data = createCustomDomainData()
-        data.domain = domainName.trim().toLowerCase()
-        return serviceRequest(SysService.CustomDomainService, HttpMethod.POST, data, CustomDomainReturnTypeRef)
-    }
+	addDomain(domainName: string): Promise<CustomDomainReturn> {
+		let data = createCustomDomainData()
+		data.domain = domainName.trim().toLowerCase()
+		return serviceRequest(SysService.CustomDomainService, HttpMethod.POST, data, CustomDomainReturnTypeRef)
+	}
 
-    removeDomain(domainName: string): Promise<void> {
-        let data = createCustomDomainData()
-        data.domain = domainName.trim().toLowerCase()
-        return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.DELETE, data)
-    }
+	removeDomain(domainName: string): Promise<void> {
+		let data = createCustomDomainData()
+		data.domain = domainName.trim().toLowerCase()
+		return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.DELETE, data)
+	}
 
-    setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void> {
-        let data = createCustomDomainData()
-        data.domain = domainName.trim().toLowerCase()
-        data.catchAllMailGroup = mailGroupId
-        return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.PUT, data)
-    }
+	setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void> {
+		let data = createCustomDomainData()
+		data.domain = domainName.trim().toLowerCase()
+		data.catchAllMailGroup = mailGroupId
+		return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.PUT, data)
+	}
 
-    async orderWhitelabelCertificate(domainName: string): Promise<void> {
-        const customer = await this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
-        const customerInfo = await this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-        let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
-        const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
-        let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
-        let sessionKey = aes128RandomKey()
-        const systemAdminPubEncAccountingInfoSessionKey = await this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
-        let data = createBrandingDomainData()
-        data.domain = domainName
-        data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
-        return serviceRequestVoid(SysService.BrandingDomainService, existingBrandingDomain ? HttpMethod.PUT : HttpMethod.POST, data)
-    }
+	async orderWhitelabelCertificate(domainName: string): Promise<void> {
+		const customer = await this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
+		const customerInfo = await this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
+		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+		let sessionKey = aes128RandomKey()
+		const systemAdminPubEncAccountingInfoSessionKey = await this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+		let data = createBrandingDomainData()
+		data.domain = domainName
+		data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
+		return serviceRequestVoid(SysService.BrandingDomainService, existingBrandingDomain ? HttpMethod.PUT : HttpMethod.POST, data)
+	}
 
-    deleteCertificate(domainName: string): Promise<void> {
-        let data = createBrandingDomainDeleteData()
-        data.domain = domainName
-        return serviceRequestVoid(SysService.BrandingDomainService, HttpMethod.DELETE, data)
-    }
+	deleteCertificate(domainName: string): Promise<void> {
+		let data = createBrandingDomainDeleteData()
+		data.domain = domainName
+		return serviceRequestVoid(SysService.BrandingDomainService, HttpMethod.DELETE, data)
+	}
 
-    readUsedCustomerStorage(customerId: Id): Promise<number> {
-        return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
-            return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
-                return Number(usedMemoryInternal) + Number(usedMemoryExternal)
-            })
-        })
-    }
+	readUsedCustomerStorage(customerId: Id): Promise<number> {
+		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
+			return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
+				return Number(usedMemoryInternal) + Number(usedMemoryExternal)
+			})
+		})
+	}
 
-    readAvailableCustomerStorage(customerId: Id): Promise<number> {
-        return this._entityClient.load(CustomerTypeRef, customerId).then(customer => {
-            return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-                let includedStorage = Number(customerInfo.includedStorageCapacity)
-                let promotionStorage = Number(customerInfo.promotionStorageCapacity)
-                let availableStorage = Math.max(includedStorage, promotionStorage)
-                let bookedStorage = 0
+	readAvailableCustomerStorage(customerId: Id): Promise<number> {
+		return this._entityClient.load(CustomerTypeRef, customerId).then(customer => {
+			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				let includedStorage = Number(customerInfo.includedStorageCapacity)
+				let promotionStorage = Number(customerInfo.promotionStorageCapacity)
+				let availableStorage = Math.max(includedStorage, promotionStorage)
+				let bookedStorage = 0
 
-                if (customer.type === AccountType.PREMIUM) {
-                    return bookingFacade.getCurrentPrice().then(price => {
-                        let currentStorageItem = bookingFacade.getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Storage)
+				if (customer.type === AccountType.PREMIUM) {
+					return bookingFacade.getCurrentPrice().then(price => {
+						let currentStorageItem = bookingFacade.getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Storage)
 
-                        if (currentStorageItem != null) {
-                            bookedStorage = Number(currentStorageItem.count)
-                        }
+						if (currentStorageItem != null) {
+							bookedStorage = Number(currentStorageItem.count)
+						}
 
-                        availableStorage = Math.max(bookedStorage, availableStorage)
-                        return availableStorage * Const.MEMORY_GB_FACTOR
-                    })
-                } else {
-                    return availableStorage * Const.MEMORY_GB_FACTOR
-                }
-            })
-        })
-    }
+						availableStorage = Math.max(bookedStorage, availableStorage)
+						return availableStorage * Const.MEMORY_GB_FACTOR
+					})
+				} else {
+					return availableStorage * Const.MEMORY_GB_FACTOR
+				}
+			})
+		})
+	}
 
-    loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-        return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-            let p
+	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
+		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+			let p
 
-            if (customer.serverProperties) {
-                p = Promise.resolve(customer.serverProperties)
-            } else {
-                // create properties
-                let sessionKey = aes128RandomKey()
+			if (customer.serverProperties) {
+				p = Promise.resolve(customer.serverProperties)
+			} else {
+				// create properties
+				let sessionKey = aes128RandomKey()
 
-                let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+				let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
 
-                let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
-                let data = createCreateCustomerServerPropertiesData()
-                data.adminGroupEncSessionKey = groupEncSessionKey
-                p = serviceRequest(SysService.CreateCustomerServerProperties, HttpMethod.POST, data, CreateCustomerServerPropertiesReturnTypeRef).then(
-                    returnData => {
-                        return returnData.id
-                    },
-                )
-            }
+				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
+				let data = createCreateCustomerServerPropertiesData()
+				data.adminGroupEncSessionKey = groupEncSessionKey
+				p = serviceRequest(SysService.CreateCustomerServerProperties, HttpMethod.POST, data, CreateCustomerServerPropertiesReturnTypeRef).then(
+					returnData => {
+						return returnData.id
+					},
+				)
+			}
 
-            return p.then(cspId => {
-                return this._entityClient.load(CustomerServerPropertiesTypeRef, cspId)
-            })
-        })
-    }
+			return p.then(cspId => {
+				return this._entityClient.load(CustomerServerPropertiesTypeRef, cspId)
+			})
+		})
+	}
 
-    addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void> {
-        return this.loadCustomerServerProperties().then(props => {
-            value = value.toLowerCase().trim()
-            let newListEntry = createEmailSenderListElement({
-                value,
-                hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
-                type,
-                field,
-            })
-            props.emailSenderList.push(newListEntry)
-            return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
-        })
-    }
+	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void> {
+		return this.loadCustomerServerProperties().then(props => {
+			value = value.toLowerCase().trim()
+			let newListEntry = createEmailSenderListElement({
+				value,
+				hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
+				type,
+				field,
+			})
+			props.emailSenderList.push(newListEntry)
+			return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
+		})
+	}
 
-    editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
-        return this.loadCustomerServerProperties().then(props => {
-            spamRule.value = spamRule.value.toLowerCase().trim()
-            const index = props.emailSenderList.findIndex(item => spamRule._id === item._id)
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
+		return this.loadCustomerServerProperties().then(props => {
+			spamRule.value = spamRule.value.toLowerCase().trim()
+			const index = props.emailSenderList.findIndex(item => spamRule._id === item._id)
 
-            if (index === -1) {
-                throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
-            }
+			if (index === -1) {
+				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
+			}
 
-            props.emailSenderList[index] = spamRule
-            return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
-        })
-    }
+			props.emailSenderList[index] = spamRule
+			return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
+		})
+	}
 
-    async generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
-        const key1 = await this._rsa.generateKey()
-        await this._worker.sendProgress(33)
-        const key2 = await this._rsa.generateKey()
-        await this._worker.sendProgress(66)
-        const key3 = await this._rsa.generateKey()
-        await this._worker.sendProgress(100)
-        return [key1, key2, key3]
-    }
+	async generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		const key1 = await this._rsa.generateKey()
+		await this._worker.sendProgress(33)
+		const key2 = await this._rsa.generateKey()
+		await this._worker.sendProgress(66)
+		const key3 = await this._rsa.generateKey()
+		await this._worker.sendProgress(100)
+		return [key1, key2, key3]
+	}
 
-    signup(
-        keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
-        accountType: AccountType,
-        authToken: string,
-        mailAddress: string,
-        password: string,
-        registrationCode: string,
-        currentLanguage: string,
-    ): Promise<Hex> {
-        return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
-            let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
-            let userGroupKey = aes128RandomKey()
-            let adminGroupKey = aes128RandomKey()
-            let customerGroupKey = aes128RandomKey()
-            let userGroupInfoSessionKey = aes128RandomKey()
-            let adminGroupInfoSessionKey = aes128RandomKey()
-            let customerGroupInfoSessionKey = aes128RandomKey()
-            let accountingInfoSessionKey = aes128RandomKey()
-            let customerServerPropertiesSessionKey = aes128RandomKey()
-            // we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-            return this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
-                let userGroupData = this._groupManagement.generateInternalGroupData(
-                    keyPairs[0],
-                    userGroupKey,
-                    userGroupInfoSessionKey,
-                    null,
-                    adminGroupKey,
-                    customerGroupKey,
-                )
+	signup(
+		keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
+		accountType: AccountType,
+		authToken: string,
+		mailAddress: string,
+		password: string,
+		registrationCode: string,
+		currentLanguage: string,
+	): Promise<Hex> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keyData => {
+			let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
+			let userGroupKey = aes128RandomKey()
+			let adminGroupKey = aes128RandomKey()
+			let customerGroupKey = aes128RandomKey()
+			let userGroupInfoSessionKey = aes128RandomKey()
+			let adminGroupInfoSessionKey = aes128RandomKey()
+			let customerGroupInfoSessionKey = aes128RandomKey()
+			let accountingInfoSessionKey = aes128RandomKey()
+			let customerServerPropertiesSessionKey = aes128RandomKey()
+			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
+			return this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
+				let userGroupData = this._groupManagement.generateInternalGroupData(
+					keyPairs[0],
+					userGroupKey,
+					userGroupInfoSessionKey,
+					null,
+					adminGroupKey,
+					customerGroupKey,
+				)
 
-                let adminGroupData = this._groupManagement.generateInternalGroupData(
-                    keyPairs[1],
-                    adminGroupKey,
-                    adminGroupInfoSessionKey,
-                    null,
-                    adminGroupKey,
-                    customerGroupKey,
-                )
+				let adminGroupData = this._groupManagement.generateInternalGroupData(
+					keyPairs[1],
+					adminGroupKey,
+					adminGroupInfoSessionKey,
+					null,
+					adminGroupKey,
+					customerGroupKey,
+				)
 
-                let customerGroupData = this._groupManagement.generateInternalGroupData(
-                    keyPairs[2],
-                    customerGroupKey,
-                    customerGroupInfoSessionKey,
-                    null,
-                    adminGroupKey,
-                    customerGroupKey,
-                )
+				let customerGroupData = this._groupManagement.generateInternalGroupData(
+					keyPairs[2],
+					customerGroupKey,
+					customerGroupInfoSessionKey,
+					null,
+					adminGroupKey,
+					customerGroupKey,
+				)
 
-                const recoverData = this._login.generateRecoveryCode(userGroupKey)
+				const recoverData = this._login.generateRecoveryCode(userGroupKey)
 
-                let data = createCustomerAccountCreateData()
-                data.authToken = authToken
-                data.date = Const.CURRENT_DATE
-                data.lang = currentLanguage
-                data.code = registrationCode
-                data.userData = this._userManagement.generateUserAccountData(
-                    userGroupKey,
-                    userGroupInfoSessionKey,
-                    customerGroupKey,
-                    mailAddress,
-                    password,
-                    "",
-                    recoverData,
-                )
-                data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
-                data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
-                data.userGroupData = userGroupData
-                data.adminGroupData = adminGroupData
-                data.customerGroupData = customerGroupData
-                data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
-                data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
-                data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
-                return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data).then(() => recoverData.hexCode)
-            })
-        })
-    }
+				let data = createCustomerAccountCreateData()
+				data.authToken = authToken
+				data.date = Const.CURRENT_DATE
+				data.lang = currentLanguage
+				data.code = registrationCode
+				data.userData = this._userManagement.generateUserAccountData(
+					userGroupKey,
+					userGroupInfoSessionKey,
+					customerGroupKey,
+					mailAddress,
+					password,
+					"",
+					recoverData,
+				)
+				data.userEncAdminGroupKey = encryptKey(userGroupKey, adminGroupKey)
+				data.userEncAccountGroupKey = encryptKey(userGroupKey, this._getAccountGroupKey(keyData, accountType))
+				data.userGroupData = userGroupData
+				data.adminGroupData = adminGroupData
+				data.customerGroupData = customerGroupData
+				data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
+				data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
+				data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
+				return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data).then(() => recoverData.hexCode)
+			})
+		})
+	}
 
-    createContactFormUserGroupData(): Promise<void> {
-        let userGroupKey = aes128RandomKey()
-        let userGroupInfoSessionKey = aes128RandomKey()
-        this.contactFormUserGroupData = this._rsa
-            .generateKey()
-            .then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
-            .then(userGroupData => {
-                return {
-                    userGroupKey,
-                    userGroupData,
-                }
-            })
-        return Promise.resolve()
-    }
+	createContactFormUserGroupData(): Promise<void> {
+		let userGroupKey = aes128RandomKey()
+		let userGroupInfoSessionKey = aes128RandomKey()
+		this.contactFormUserGroupData = this._rsa
+											.generateKey()
+											.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
+											.then(userGroupData => {
+												return {
+													userGroupKey,
+													userGroupData,
+												}
+											})
+		return Promise.resolve()
+	}
 
-    async _getContactFormUserGroupData(): Promise<{
-        userGroupKey: Aes128Key
-        userGroupData: InternalGroupData
-    }> {
-        if (this.contactFormUserGroupData) {
-            return this.contactFormUserGroupData
-        } else {
-            await this.createContactFormUserGroupData()
-            return downcast(this.contactFormUserGroupData)
-        }
-    }
+	async _getContactFormUserGroupData(): Promise<{
+		userGroupKey: Aes128Key
+		userGroupData: InternalGroupData
+	}> {
+		if (this.contactFormUserGroupData) {
+			return this.contactFormUserGroupData
+		} else {
+			await this.createContactFormUserGroupData()
+			return downcast(this.contactFormUserGroupData)
+		}
+	}
 
-    /**
-     * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
-     */
-    async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
-        const contactFormUserGroupData = await this._getContactFormUserGroupData()
-        let {userGroupKey, userGroupData} = contactFormUserGroupData
-        await this._worker.sendProgress(35)
-        let data = createContactFormAccountData()
-        data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
-        await this._worker.sendProgress(95)
-        data.userGroupData = userGroupData
-        data.contactForm = contactFormId
-        const result = serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
-        this.contactFormUserGroupData = null
-        return result
-    }
+	/**
+	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
+	 */
+	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
+		const contactFormUserGroupData = await this._getContactFormUserGroupData()
+		let {userGroupKey, userGroupData} = contactFormUserGroupData
+		await this._worker.sendProgress(35)
+		let data = createContactFormAccountData()
+		data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
+		await this._worker.sendProgress(95)
+		data.userGroupData = userGroupData
+		data.contactForm = contactFormId
+		const result = serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+		this.contactFormUserGroupData = null
+		return result
+	}
 
-    _getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountType): Aes128Key {
-        if (accountType === AccountType.FREE) {
-            return uint8ArrayToBitArray(keyData.freeGroupKey)
-        } else if (accountType === AccountType.STARTER) {
-            return uint8ArrayToBitArray(keyData.starterGroupKey)
-        } else {
-            throw Error("Illegal account type")
-        }
-    }
+	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountType): Aes128Key {
+		if (accountType === AccountType.FREE) {
+			return uint8ArrayToBitArray(keyData.freeGroupKey)
+		} else if (accountType === AccountType.STARTER) {
+			return uint8ArrayToBitArray(keyData.starterGroupKey)
+		} else {
+			throw Error("Illegal account type")
+		}
+	}
 
-    switchFreeToPremiumGroup(): Promise<void> {
-        return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
-            .then(keyData => {
-                let membershipAddData = createMembershipAddData()
-                membershipAddData.user = this._login.getLoggedInUser()._id
-                membershipAddData.group = neverNull(keyData.premiumGroup)
-                membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
-                return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
-                    let membershipRemoveData = createMembershipRemoveData()
-                    membershipRemoveData.user = this._login.getLoggedInUser()._id
-                    membershipRemoveData.group = neverNull(keyData.freeGroup)
-                    return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
-                })
-            })
-            .catch(e => {
-                e.message = e.message + " error switching free to premium group"
-                console.log(e)
-                throw e
-            })
-    }
+	switchFreeToPremiumGroup(): Promise<void> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+			.then(keyData => {
+				let membershipAddData = createMembershipAddData()
+				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.group = neverNull(keyData.premiumGroup)
+				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+					let membershipRemoveData = createMembershipRemoveData()
+					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.group = neverNull(keyData.freeGroup)
+					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				})
+			})
+			.catch(e => {
+				e.message = e.message + " error switching free to premium group"
+				console.log(e)
+				throw e
+			})
+	}
 
-    switchPremiumToFreeGroup(): Promise<void> {
-        return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
-            .then(keyData => {
-                let membershipAddData = createMembershipAddData()
-                membershipAddData.user = this._login.getLoggedInUser()._id
-                membershipAddData.group = neverNull(keyData.freeGroup)
-                membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
-                return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
-                    let membershipRemoveData = createMembershipRemoveData()
-                    membershipRemoveData.user = this._login.getLoggedInUser()._id
-                    membershipRemoveData.group = neverNull(keyData.premiumGroup)
-                    return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
-                })
-            })
-            .catch(e => {
-                e.message = e.message + " error switching premium to free group"
-                console.log(e)
-                throw e
-            })
-    }
+	switchPremiumToFreeGroup(): Promise<void> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
+			.then(keyData => {
+				let membershipAddData = createMembershipAddData()
+				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.group = neverNull(keyData.freeGroup)
+				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
+					let membershipRemoveData = createMembershipRemoveData()
+					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.group = neverNull(keyData.premiumGroup)
+					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
+				})
+			})
+			.catch(e => {
+				e.message = e.message + " error switching premium to free group"
+				console.log(e)
+				throw e
+			})
+	}
 
-    updatePaymentData(
-        paymentInterval: number,
-        invoiceData: InvoiceData,
-        paymentData: PaymentData | null,
-        confirmedInvoiceCountry: Country | null,
-    ): Promise<PaymentDataServicePutReturn> {
-        return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-            return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-                return this._entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-                    return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
-                        const service = createPaymentDataServicePutData()
-                        service.business = false // not used, must be set to false currently, will be removed later
+	updatePaymentData(
+		paymentInterval: number,
+		invoiceData: InvoiceData,
+		paymentData: PaymentData | null,
+		confirmedInvoiceCountry: Country | null,
+	): Promise<PaymentDataServicePutReturn> {
+		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				return this._entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
+						const service = createPaymentDataServicePutData()
+						service.business = false // not used, must be set to false currently, will be removed later
 
-                        service.paymentInterval = paymentInterval.toString()
-                        service.invoiceName = ""
-                        service.invoiceAddress = invoiceData.invoiceAddress
-                        service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
-                        service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
-                        service.paymentMethod = paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : ""
-                        service.paymentMethodInfo = null
-                        service.paymentToken = null
+						service.paymentInterval = paymentInterval.toString()
+						service.invoiceName = ""
+						service.invoiceAddress = invoiceData.invoiceAddress
+						service.invoiceCountry = invoiceData.country ? invoiceData.country.a : ""
+						service.invoiceVatIdNo = invoiceData.vatNumber ? invoiceData.vatNumber : ""
+						service.paymentMethod = paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : ""
+						service.paymentMethodInfo = null
+						service.paymentToken = null
 
-                        if (paymentData && paymentData.creditCardData) {
-                            service.creditCard = paymentData.creditCardData
-                        }
+						if (paymentData && paymentData.creditCardData) {
+							service.creditCard = paymentData.creditCardData
+						}
 
-                        service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
-                        return serviceRequest(
-                            SysService.PaymentDataService,
-                            HttpMethod.PUT,
-                            service,
-                            PaymentDataServicePutReturnTypeRef,
-                            null,
-                            accountingInfoSessionKey,
-                        )
-                    })
-                })
-            })
-        })
-    }
+						service.confirmedCountry = confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null
+						return serviceRequest(
+							SysService.PaymentDataService,
+							HttpMethod.PUT,
+							service,
+							PaymentDataServicePutReturnTypeRef,
+							undefined,
+							accountingInfoSessionKey ?? undefined,
+						)
+					})
+				})
+			})
+		})
+	}
 
-    downloadInvoice(invoiceNumber: string): Promise<DataFile> {
-        let data = createPdfInvoiceServiceData()
-        data.invoiceNumber = invoiceNumber
-        return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef).then(returnData => {
-            return {
-                _type: "DataFile",
-                name: String(invoiceNumber) + ".pdf",
-                mimeType: "application/pdf",
-                data: returnData.data,
-                size: returnData.data.byteLength,
-                id: null,
-            }
-        })
-    }
+	downloadInvoice(invoiceNumber: string): Promise<DataFile> {
+		let data = createPdfInvoiceServiceData()
+		data.invoiceNumber = invoiceNumber
+		return serviceRequest(SysService.PdfInvoiceService, HttpMethod.GET, data, PdfInvoiceServiceReturnTypeRef).then(returnData => {
+			return {
+				_type: "DataFile",
+				name: String(invoiceNumber) + ".pdf",
+				mimeType: "application/pdf",
+				data: returnData.data,
+				size: returnData.data.byteLength,
+				id: undefined,
+			}
+		})
+	}
 }

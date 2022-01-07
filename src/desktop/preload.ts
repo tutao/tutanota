@@ -5,16 +5,15 @@
  * Sets up inter-process communication.
  *
  * Note: we can't import any other desktop code here because it is in the web (render) process.
- * It's also not processed by babel or flow, so don't add any code here
  */
 
 const {ipcRenderer, contextBridge} = require("electron")
 
 contextBridge.exposeInMainWorld("nativeApp", {
-    invoke: msg => ipcRenderer.invoke("to-main", msg),
-    attach: handler => {
-        // Do not give back ipcRenderer to the caller!
-        ipcRenderer.on("to-renderer", (ev, msg) => handler(msg))
-        return undefined
-    },
+	invoke: (msg: any) => ipcRenderer.invoke("to-main", msg),
+	attach: (handler: Function) => {
+		// Do not give back ipcRenderer to the caller!
+		ipcRenderer.on("to-renderer", (ev, msg) => handler(msg))
+		return undefined
+	},
 })

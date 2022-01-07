@@ -1,19 +1,22 @@
-
 import type {BaseThemeId, Theme} from "../gui/theme"
 import type {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
+
 assertMainOrNodeBoot()
 export type ThemeCustomizations = Partial<Theme> & {
-    base: BaseThemeId | null
+	base: BaseThemeId | null
 }
+export type ThemeKey = keyof Theme
+export type CustomizationKey = keyof ThemeCustomizations
+
 export type WhitelabelCustomizations = {
-    theme: ThemeCustomizations | null
-    bootstrapCustomizations: BootstrapFeatureType[]
-    germanLanguageCode: string
-    registrationDomains: string[] | null
-    imprintUrl: string | null
-    privacyStatementUrl: string | null
+	theme: ThemeCustomizations | null
+	bootstrapCustomizations: BootstrapFeatureType[]
+	germanLanguageCode: string
+	registrationDomains: string[] | null
+	imprintUrl: string | null
+	privacyStatementUrl: string | null
 }
 
 /**
@@ -22,8 +25,9 @@ export type WhitelabelCustomizations = {
  */
 export function getWhitelabelCustomizations(window: Window): WhitelabelCustomizations | null {
 	// @ts-ignore
-    return window.whitelabelCustomizations
+	return window.whitelabelCustomizations
 }
+
 export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {
-    return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
+	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
 }

@@ -6,7 +6,7 @@ import {Type, ValueType} from "./EntityConstants"
 import {last, TypeRef} from "@tutao/tutanota-utils"
 import {getFirstIdIsBiggerFnForType, resolveTypeReference} from "./EntityFunctions"
 import type {ElementEntity, ListElementEntity, SomeEntity} from "./EntityTypes"
-import {downcast} from "@tutao/tutanota-utils/dist";
+import {downcast} from "@tutao/tutanota-utils";
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -38,11 +38,11 @@ export class EntityClient {
 	}
 
 	async loadReverseRangeBetween<T extends ListElementEntity>(
-			typeRef: TypeRef<T>,
-			listId: Id,
-			start: Id,
-			end: Id,
-			rangeItemLimit: number = RANGE_ITEM_LIMIT,
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		end: Id,
+		rangeItemLimit: number = RANGE_ITEM_LIMIT,
 	): Promise<{
 		elements: T[]
 		loadedCompletely: boolean
@@ -55,7 +55,10 @@ export class EntityClient {
 
 		if (filteredEntities.length === rangeItemLimit) {
 			const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
-			const {elements: remainingEntities, loadedCompletely} = await this.loadReverseRangeBetween<T>(typeRef, listId, lastElementId, end, rangeItemLimit)
+			const {
+				elements: remainingEntities,
+				loadedCompletely
+			} = await this.loadReverseRangeBetween<T>(typeRef, listId, lastElementId, end, rangeItemLimit)
 			return {
 				elements: filteredEntities.concat(remainingEntities),
 				loadedCompletely,

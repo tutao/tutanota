@@ -48,13 +48,14 @@ export class WorkerClient {
 	_dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
 	_progressUpdater: progressUpdater | null
 	readonly _wsConnection: stream<WsConnectionState> = stream(WsConnectionState.terminated)
-	readonly infoMessages: stream<InfoMessage> = stream({translationKey: "emptyString_msg", args: {}})
+	// Should be empty stream unless there's really a message.
+	readonly infoMessages: stream<InfoMessage> = stream()
 	_leaderStatus: WebsocketLeaderStatus
 
 	constructor() {
 		this._leaderStatus = createWebsocketLeaderStatus({
-			leaderStatus: false,
-		}) //init as non-leader
+			leaderStatus: false,  // init as non-leader
+		})
 
 		this.initialized.then(() => {
 			this._isInitialized = true
@@ -79,20 +80,20 @@ export class WorkerClient {
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
+			// @ts-ignore
 			const WorkerImpl = globalThis.testWorker
 			const workerImpl = new WorkerImpl(this, true)
 			await workerImpl.init(client.browserData())
 			workerImpl._queue._transport = {
-				postMessage: msg => this._dispatcher.handleMessage(msg),
+				postMessage: (msg: any) => this._dispatcher.handleMessage(msg),
 			}
 			this._dispatcher = new MessageDispatcher(
-					{
-						postMessage: function (msg) {
-							workerImpl._queue.handleMessage(msg)
-						},
-					} as any,
-					this.queueCommands(locator),
+				{
+					postMessage: function (msg: any) {
+						workerImpl._queue.handleMessage(msg)
+					},
+				} as any,
+				this.queueCommands(locator),
 			)
 		}
 
@@ -174,13 +175,13 @@ export class WorkerClient {
 	}
 
 	restRequest<T>(
-			path: string,
-			method: HttpMethod,
-			queryParams: Dict,
-			headers: Dict,
-			body: (string | null) | (Uint8Array | null),
-			responseType: MediaType | null,
-			progressListener?: ProgressListener,
+		path: string,
+		method: HttpMethod,
+		queryParams: Dict,
+		headers: Dict,
+		body: (string | null) | (Uint8Array | null),
+		responseType: MediaType | null,
+		progressListener?: ProgressListener,
 	): Promise<any> {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
@@ -194,23 +195,23 @@ export class WorkerClient {
 	}
 
 	serviceRequest<T>(
-			service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
-			method: HttpMethod,
-			requestEntity?: any,
-			responseTypeRef?: TypeRef<T>,
-			queryParameter?: Dict,
-			sk?: Aes128Key,
-			extraHeaders?: Dict,
+		service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
+		method: HttpMethod,
+		requestEntity?: any,
+		responseTypeRef?: TypeRef<T>,
+		queryParameter?: Dict,
+		sk?: Aes128Key,
+		extraHeaders?: Dict,
 	): Promise<any> {
 		return this._postRequest(new Request("serviceRequest", Array.from(arguments)))
 	}
 
 	entropy(
-			entropyCache: {
-				source: EntropySource
-				entropy: number
-				data: number
-			}[],
+		entropyCache: {
+			source: EntropySource
+			entropy: number
+			data: number
+		}[],
 	): Promise<void> {
 		return this._postRequest(new Request("entropy", Array.from(arguments)))
 	}

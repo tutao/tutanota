@@ -4,7 +4,7 @@ import type {TypeInfo} from "./IndexUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {TypeRef} from "@tutao/tutanota-utils"
 import type {ModelAssociation, ModelValue} from "../../common/EntityTypes"
-import type {Base64} from "@tutao/tutanota-utils/"
+import type {Base64} from "@tutao/tutanota-utils"
 // db types
 
 /**

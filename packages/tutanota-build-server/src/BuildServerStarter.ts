@@ -2,7 +2,7 @@
  * The code below can be used to start a build server instance via the commandline.
  * Example: node BuildServer.js start -d build Builder.js
  */
-import * as options from "commander"
+import options from "commander"
 import {BuildServer} from "./BuildServer.js"
 import {BuildServerConfig} from "./BuildServerConfig.js"
 
@@ -29,10 +29,10 @@ options
 			const buildServerConfig = new BuildServerConfig(
 					builderPath,
 					opts.watchFolders ? opts.watchFolders.split(":") : [],
-					opts.devServerPort,
-					opts.webRoot,
-					opts.spaRedirect,
-					opts.preserveLogs,
+					opts.devServerPort ?? null,
+					opts.webRoot ?? null,
+					opts.spaRedirect ?? null,
+					opts.preserveLogs ?? null,
 					opts.directory,
 					opts.autoRebuild,
 			)

@@ -66,17 +66,17 @@
  * @returns {number} Total number of found blocks
  */
 export function iterateBinaryBlocks(row: Uint8Array, cb: (block: Uint8Array, start: number, end: number, iteration: number) => void): number {
-    let offset = 0
-    let iterations = 0
+	let offset = 0
+	let iterations = 0
 
-    while (offset < row.length) {
-        const block = decodeBinaryBlock(row, offset)
-        const start = offset
-        offset = block.byteOffset + block.length
-        cb(block, start, offset, iterations++)
-    }
+	while (offset < row.length) {
+		const block = decodeBinaryBlock(row, offset)
+		const start = offset
+		offset = block.byteOffset + block.length
+		cb(block, start, offset, iterations++)
+	}
 
-    return iterations
+	return iterations
 }
 
 /**
@@ -87,15 +87,15 @@ export function iterateBinaryBlocks(row: Uint8Array, cb: (block: Uint8Array, sta
  * @returns {Uint8Array} row with ranges removes and length reduced
  */
 export function removeBinaryBlockRanges(row: Uint8Array, ranges: Array<[number, number]>): Uint8Array {
-    let reducedLength = 0
+	let reducedLength = 0
 
-    for (let i = ranges.length - 1; i >= 0; i--) {
-        const [start, end] = ranges[i]
-        row.copyWithin(start, end)
-        reducedLength += end - start
-    }
+	for (let i = ranges.length - 1; i >= 0; i--) {
+		const [start, end] = ranges[i]
+		row.copyWithin(start, end)
+		reducedLength += end - start
+	}
 
-    return row.subarray(0, row.length - reducedLength)
+	return row.subarray(0, row.length - reducedLength)
 }
 
 /**
@@ -104,25 +104,25 @@ export function removeBinaryBlockRanges(row: Uint8Array, ranges: Array<[number, 
  * @returns {Uint8Array} Resulting buffer
  */
 export function appendBinaryBlocks(source: Uint8Array[], destination?: Uint8Array): Uint8Array {
-    const neededSpace = calculateNeededSpace(source)
-    let target: Uint8Array
-    let offset
+	const neededSpace = calculateNeededSpace(source)
+	let target: Uint8Array
+	let offset
 
-    if (destination) {
-        offset = destination.length
-        target = new Uint8Array(destination.length + neededSpace)
-        // Copy from destination to target
-        target.set(destination)
-    } else {
-        target = new Uint8Array(neededSpace)
-        offset = 0
-    }
+	if (destination) {
+		offset = destination.length
+		target = new Uint8Array(destination.length + neededSpace)
+		// Copy from destination to target
+		target.set(destination)
+	} else {
+		target = new Uint8Array(neededSpace)
+		offset = 0
+	}
 
-    for (let i = 0; i < source.length; i++) {
-        offset += encodeBinaryBlock(source[i], target, offset)
-    }
+	for (let i = 0; i < source.length; i++) {
+		offset += encodeBinaryBlock(source[i], target, offset)
+	}
 
-    return target
+	return target
 }
 
 /**
@@ -131,10 +131,10 @@ export function appendBinaryBlocks(source: Uint8Array[], destination?: Uint8Arra
  * @returns {number} New offset after the written block
  */
 export function encodeBinaryBlock(entityData: Uint8Array, target: Uint8Array, offset: number): number {
-    // Encode length as number (either as one byte or as length of length and length itself)
-    const lengthOfPrefix = encodeNumberBlock(entityData.length, target, offset)
-    target.set(entityData, offset + lengthOfPrefix)
-    return lengthOfPrefix + entityData.length
+	// Encode length as number (either as one byte or as length of length and length itself)
+	const lengthOfPrefix = encodeNumberBlock(entityData.length, target, offset)
+	target.set(entityData, offset + lengthOfPrefix)
+	return lengthOfPrefix + entityData.length
 }
 
 /**
@@ -147,36 +147,36 @@ export function encodeBinaryBlock(entityData: Uint8Array, target: Uint8Array, of
  * @returns {number} offset after the encoded number
  */
 export function encodeNumberBlock(value: number, target: Uint8Array, offset: number): number {
-    // If value is less than 127 (7 bits), just write it as is
-    if (value <= 0x7f) {
-        target[offset] = value
-        return 1
-    } else {
-        // If number doesn't fit into seven bits, then first write it's length into this 7 bits
-        // and then the number itself.
-        // How many bytes we need to store the number
-        const length = numberOfBytes(value)
-        let remainingValue = value
-        // Set highest bit to 1
-        target[offset] = length | 0x80
+	// If value is less than 127 (7 bits), just write it as is
+	if (value <= 0x7f) {
+		target[offset] = value
+		return 1
+	} else {
+		// If number doesn't fit into seven bits, then first write it's length into this 7 bits
+		// and then the number itself.
+		// How many bytes we need to store the number
+		const length = numberOfBytes(value)
+		let remainingValue = value
+		// Set highest bit to 1
+		target[offset] = length | 0x80
 
-        for (let i = 0; i < length; i++) {
-            const bytePosition = offset + length - i
+		for (let i = 0; i < length; i++) {
+			const bytePosition = offset + length - i
 
-            // If what's left doesn't fit into this byte, split it
-            if (remainingValue > 0xff) {
-                // like shifting right by 8 but without overflows
-                target[bytePosition] = remainingValue % 256
-                remainingValue = Math.floor(remainingValue / 256)
-            } else {
-                // if it does fit, write it
-                target[bytePosition] = remainingValue
-            }
-        }
+			// If what's left doesn't fit into this byte, split it
+			if (remainingValue > 0xff) {
+				// like shifting right by 8 but without overflows
+				target[bytePosition] = remainingValue % 256
+				remainingValue = Math.floor(remainingValue / 256)
+			} else {
+				// if it does fit, write it
+				target[bytePosition] = remainingValue
+			}
+		}
 
-        // One bit for length
-        return length + 1
-    }
+		// One bit for length
+		return length + 1
+	}
 }
 
 /**
@@ -186,9 +186,9 @@ export function encodeNumberBlock(value: number, target: Uint8Array, offset: num
  * @returns {Uint8Array} Decoded data (without length prefix)
  */
 export function decodeBinaryBlock(source: Uint8Array, offset: number): Uint8Array {
-    let blockLength = decodeNumberBlock(source, offset)
-    let numberLength = calculateNeededSpaceForNumber(blockLength)
-    return source.subarray(offset + numberLength, offset + numberLength + blockLength)
+	let blockLength = decodeNumberBlock(source, offset)
+	let numberLength = calculateNeededSpaceForNumber(blockLength)
+	return source.subarray(offset + numberLength, offset + numberLength + blockLength)
 }
 
 /**
@@ -200,26 +200,26 @@ export function decodeBinaryBlock(source: Uint8Array, offset: number): Uint8Arra
  * @returns {number} Decoded number
  */
 export function decodeNumberBlock(source: Uint8Array, offset: number): number {
-    // Check the first bit. If it's 1, it's a long number, if it's not it's
-    // a short one.
-    const markerBit = source[offset] & 0x80
+	// Check the first bit. If it's 1, it's a long number, if it's not it's
+	// a short one.
+	const markerBit = source[offset] & 0x80
 
-    if (markerBit === 0x80) {
-        // Clear the first bit to get the length of number
-        const numberLength = source[offset] & 0x7f
-        let value = 0
+	if (markerBit === 0x80) {
+		// Clear the first bit to get the length of number
+		const numberLength = source[offset] & 0x7f
+		let value = 0
 
-        for (let i = 0; i < numberLength; i++) {
-            // Like shifting left but without overflows
-            value = value * 256
-            value += source[offset + i + 1]
-        }
+		for (let i = 0; i < numberLength; i++) {
+			// Like shifting left but without overflows
+			value = value * 256
+			value += source[offset + i + 1]
+		}
 
-        return value
-    } else {
-        // Just return the number
-        return source[offset]
-    }
+		return value
+	} else {
+		// Just return the number
+		return source[offset]
+	}
 }
 
 /**
@@ -227,30 +227,31 @@ export function decodeNumberBlock(source: Uint8Array, offset: number): number {
  * @returns {number} Number of bytes which we need to write encoded data.
  */
 export function calculateNeededSpace(data: Uint8Array[]): number {
-    return data.reduce((acc, entry) => {
-        // Prefix is just a length of data in bytes (in short or a long form)
-        let lengthOfPrefix = calculateNeededSpaceForNumber(entry.length)
-        return acc + entry.length + lengthOfPrefix
-    }, 0)
+	return data.reduce((acc, entry) => {
+		// Prefix is just a length of data in bytes (in short or a long form)
+		let lengthOfPrefix = calculateNeededSpaceForNumber(entry.length)
+		return acc + entry.length + lengthOfPrefix
+	}, 0)
 }
 
 /**
  * Find out how many bytes do we need to encode {@param value}
  */
 export function calculateNeededSpaceForNumber(value: number): number {
-    // If it's small, it fits into one byte
-    // otherwise it's number of bytes to represent the number plus length
-    return value <= 0x7f ? 1 : numberOfBytes(value) + 1
+	// If it's small, it fits into one byte
+	// otherwise it's number of bytes to represent the number plus length
+	return value <= 0x7f ? 1 : numberOfBytes(value) + 1
 }
+
 export function calculateNeededSpaceForNumbers(numbers: Array<number>): number {
-    return numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
+	return numbers.reduce((acc, n) => acc + calculateNeededSpaceForNumber(n), 0)
 }
 
 /**
  * Number of bytes needed to encode the number
  */
 export function numberOfBytes(number: number): number {
-    return Math.ceil(Math.log2(number + 1) / 8)
+	return Math.ceil(Math.log2(number + 1) / 8)
 }
 
 /**
@@ -260,15 +261,15 @@ export function numberOfBytes(number: number): number {
  * @returns {Array<number>} Numbers which have been read
  */
 export function decodeNumbers(binaryNumbers: Uint8Array, offset: number = 0): number[] {
-    const numbers = []
+	const numbers: number[] = []
 
-    while (offset < binaryNumbers.length) {
-        const number = decodeNumberBlock(binaryNumbers, offset)
-        numbers.push(number)
-        offset += calculateNeededSpaceForNumber(number)
-    }
+	while (offset < binaryNumbers.length) {
+		const number = decodeNumberBlock(binaryNumbers, offset)
+		numbers.push(number)
+		offset += calculateNeededSpaceForNumber(number)
+	}
 
-    return numbers
+	return numbers
 }
 
 /**
@@ -278,7 +279,7 @@ export function decodeNumbers(binaryNumbers: Uint8Array, offset: number = 0): nu
  * @param offset At which offset they should be written
  */
 export function encodeNumbers(numbers: number[], target: Uint8Array, offset: number = 0): void {
-    numbers.forEach(number => {
-        offset += encodeNumberBlock(number, target, offset)
-    })
+	numbers.forEach(number => {
+		offset += encodeNumberBlock(number, target, offset)
+	})
 }

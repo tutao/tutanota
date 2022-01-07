@@ -28,23 +28,23 @@ export class AboutDialog implements Component<void> {
 
 	_sendLogsLink(): Children {
 		return m(
-				".mt.right",
-				m(ButtonN, {
-					label: () => "Send Logs",
-					click: () => this._sendDeviceLogs(),
-					type: ButtonType.Primary,
-				}),
+			".mt.right",
+			m(ButtonN, {
+				label: () => "Send Logs",
+				click: () => this._sendDeviceLogs(),
+				type: ButtonType.Primary,
+			}),
 		)
 	}
 
 	_aboutLink(href: string, text: string): Children {
 		return m(
-				"a.no-text-decoration.mlr.mt",
-				{
-					href: href,
-					target: "_blank",
-				},
-				[m(".underline", text)],
+			"a.no-text-decoration.mlr.mt",
+			{
+				href: href,
+				target: "_blank",
+			},
+			[m(".underline", text)],
 		)
 	}
 
@@ -84,19 +84,19 @@ export class AboutDialog implements Component<void> {
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 		let {message, type, client} = clientInfoString(timestamp, true)
 		message = message
-				.split("\n")
-				.filter(Boolean)
-				.map(l => `<div>${l}<br></div>`)
-				.join("")
+			.split("\n")
+			.filter(Boolean)
+			.map(l => `<div>${l}<br></div>`)
+			.join("")
 
 		try {
 			const editor = await newMailEditorFromTemplate(
-					mailboxDetails,
-					{},
-					`Device logs v${env.versionNumber} - ${type} - ${client}`,
-					message,
-					attachments,
-					true,
+				mailboxDetails,
+				{},
+				`Device logs v${env.versionNumber} - ${type} - ${client}`,
+				message,
+				attachments,
+				true,
 			)
 			editor.show()
 		} catch (e) {

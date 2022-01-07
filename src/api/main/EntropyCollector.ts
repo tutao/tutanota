@@ -93,8 +93,8 @@ export class EntropyCollector {
 	start() {
 		if (window.performance && window.performance.timing) {
 			// get values from window.performance.timing
-			let values = window.performance.timing
-			let added = []
+			let values: any = window.performance.timing
+			let added: number[] = []
 
 			for (let v in values) {
 				if (typeof values[v] === "number" && values[v] !== 0) {
@@ -122,9 +122,7 @@ export class EntropyCollector {
 	 */
 	_addNativeRandomValues(nbrOf32BitValues: number) {
 		let valueList = new Uint32Array(nbrOf32BitValues)
-		// @ts-ignore I think we can forget about msCrypto (is it just IE11?), however I can't find any documentation so...
-		let c = typeof crypto !== "undefined" ? crypto : msCrypto
-		c.getRandomValues(valueList)
+		crypto.getRandomValues(valueList)
 
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array

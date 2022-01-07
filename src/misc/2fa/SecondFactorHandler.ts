@@ -17,12 +17,14 @@ import type {EntityClient} from "../../api/common/EntityClient"
 import {WebauthnClient} from "./webauthn/WebauthnClient"
 import {SecondFactorAuthDialog} from "./SecondFactorAuthDialog"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
+
 assertMainOrNode()
+
 export interface SecondFactorAuthHandler {
-    /**
-     * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
-     */
-    showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
+	/**
+	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
+	 */
+	showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
 }
 
 /**
@@ -32,177 +34,178 @@ export interface SecondFactorAuthHandler {
  *      If the dialog is visible and another client tries to login at the same time, that second login is ignored.
  */
 export class SecondFactorHandler implements SecondFactorAuthHandler {
-    readonly _eventController: EventController
-    readonly _entityClient: EntityClient
-    readonly _webauthnClient: WebauthnClient
-    readonly _loginFacade: LoginFacade
-    _otherLoginSessionId: IdTuple | null
-    _otherLoginDialog: Dialog | null
-    _otherLoginListenerInitialized: boolean
-    _waitingForSecondFactorDialog: SecondFactorAuthDialog | null
+	readonly _eventController: EventController
+	readonly _entityClient: EntityClient
+	readonly _webauthnClient: WebauthnClient
+	readonly _loginFacade: LoginFacade
+	_otherLoginSessionId: IdTuple | null
+	_otherLoginDialog: Dialog | null
+	_otherLoginListenerInitialized: boolean
+	_waitingForSecondFactorDialog: SecondFactorAuthDialog | null
 
-    constructor(eventController: EventController, entityClient: EntityClient, webauthnClient: WebauthnClient, loginFacade: LoginFacade) {
-        this._eventController = eventController
-        this._entityClient = entityClient
-        this._webauthnClient = webauthnClient
-        this._loginFacade = loginFacade
-        this._otherLoginSessionId = null
-        this._otherLoginDialog = null
-        this._otherLoginListenerInitialized = false
-        this._waitingForSecondFactorDialog = null
-    }
+	constructor(eventController: EventController, entityClient: EntityClient, webauthnClient: WebauthnClient, loginFacade: LoginFacade) {
+		this._eventController = eventController
+		this._entityClient = entityClient
+		this._webauthnClient = webauthnClient
+		this._loginFacade = loginFacade
+		this._otherLoginSessionId = null
+		this._otherLoginDialog = null
+		this._otherLoginListenerInitialized = false
+		this._waitingForSecondFactorDialog = null
+	}
 
-    setupAcceptOtherClientLoginListener() {
-        if (this._otherLoginListenerInitialized) {
-            return
-        }
+	setupAcceptOtherClientLoginListener() {
+		if (this._otherLoginListenerInitialized) {
+			return
+		}
 
-        this._otherLoginListenerInitialized = true
-        locator.eventController.addEntityListener(updates => this._entityEventsReceived(updates))
-    }
+		this._otherLoginListenerInitialized = true
+		locator.eventController.addEntityListener(updates => this._entityEventsReceived(updates))
+	}
 
-    async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
-        for (const update of updates) {
-            const sessionId: IdTuple = [neverNull(update.instanceListId), update.instanceId]
+	async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+		for (const update of updates) {
+			const sessionId: IdTuple = [neverNull(update.instanceListId), update.instanceId]
 
-            if (isUpdateForTypeRef(SessionTypeRef, update)) {
-                if (update.operation === OperationType.CREATE) {
-                    let session
+			if (isUpdateForTypeRef(SessionTypeRef, update)) {
+				if (update.operation === OperationType.CREATE) {
+					let session
 
-                    try {
-                        session = await this._entityClient.load(SessionTypeRef, sessionId)
-                    } catch (e) {
-                        if (e instanceof NotFoundError) {
-                            console.log("Failed to load session", e)
-                        } else {
-                            throw e
-                        }
+					try {
+						session = await this._entityClient.load(SessionTypeRef, sessionId)
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log("Failed to load session", e)
+						} else {
+							throw e
+						}
 
-                        continue
-                    }
+						continue
+					}
 
-                    if (session.state === SessionState.SESSION_STATE_PENDING) {
-                        if (this._otherLoginDialog != null) {
-                            this._otherLoginDialog.close()
-                        }
+					if (session.state === SessionState.SESSION_STATE_PENDING) {
+						if (this._otherLoginDialog != null) {
+							this._otherLoginDialog.close()
+						}
 
-                        this._otherLoginSessionId = session._id
+						this._otherLoginSessionId = session._id
 
-                        this._showConfirmLoginDialog(session)
-                    }
-                } else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
-                    let session
+						this._showConfirmLoginDialog(session)
+					}
+				} else if (update.operation === OperationType.UPDATE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
+					let session
 
-                    try {
-                        session = await this._entityClient.load(SessionTypeRef, sessionId)
-                    } catch (e) {
-                        if (e instanceof NotFoundError) {
-                            console.log("Failed to load session", e)
-                        } else {
-                            throw e
-                        }
+					try {
+						session = await this._entityClient.load(SessionTypeRef, sessionId)
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log("Failed to load session", e)
+						} else {
+							throw e
+						}
 
-                        continue
-                    }
+						continue
+					}
 
-                    if (
-                        session.state !== SessionState.SESSION_STATE_PENDING &&
-                        this._otherLoginDialog &&
-                        isSameId(neverNull(this._otherLoginSessionId), sessionId)
-                    ) {
-                        this._otherLoginDialog.close()
+					if (
+						session.state !== SessionState.SESSION_STATE_PENDING &&
+						this._otherLoginDialog &&
+						isSameId(neverNull(this._otherLoginSessionId), sessionId)
+					) {
+						this._otherLoginDialog.close()
 
-                        this._otherLoginSessionId = null
-                        this._otherLoginDialog = null
-                    }
-                } else if (update.operation === OperationType.DELETE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
-                    if (this._otherLoginDialog) {
-                        this._otherLoginDialog.close()
+						this._otherLoginSessionId = null
+						this._otherLoginDialog = null
+					}
+				} else if (update.operation === OperationType.DELETE && this._otherLoginSessionId && isSameId(this._otherLoginSessionId, sessionId)) {
+					if (this._otherLoginDialog) {
+						this._otherLoginDialog.close()
 
-                        this._otherLoginSessionId = null
-                        this._otherLoginDialog = null
-                    }
-                }
-            }
-        }
-    }
+						this._otherLoginSessionId = null
+						this._otherLoginDialog = null
+					}
+				}
+			}
+		}
+	}
 
-    _showConfirmLoginDialog(session: Session) {
-        let text
+	_showConfirmLoginDialog(session: Session) {
+		let text: string
 
-        if (session.loginIpAddress) {
-            text = lang.get("secondFactorConfirmLogin_msg", {
-                "{clientIdentifier}": session.clientIdentifier,
-                "{ipAddress}": session.loginIpAddress,
-            })
-        } else {
-            text = lang.get("secondFactorConfirmLoginNoIp_msg", {
-                "{clientIdentifier}": session.clientIdentifier,
-            })
-        }
+		if (session.loginIpAddress) {
+			text = lang.get("secondFactorConfirmLogin_msg", {
+				"{clientIdentifier}": session.clientIdentifier,
+				"{ipAddress}": session.loginIpAddress,
+			})
+		} else {
+			text = lang.get("secondFactorConfirmLoginNoIp_msg", {
+				"{clientIdentifier}": session.clientIdentifier,
+			})
+		}
 
-        this._otherLoginDialog = Dialog.showActionDialog({
-            title: lang.get("secondFactorConfirmLogin_label"),
-            child: {
-                view: () => m(".text-break.pt", text),
-            },
-            okAction: async () => {
-                await this._loginFacade.authenticateWithSecondFactor(
-                    createSecondFactorAuthData({
-                        session: session._id,
-                        type: null, // Marker for confirming another session
-                    }),
-                )
+		this._otherLoginDialog = Dialog.showActionDialog({
+			title: lang.get("secondFactorConfirmLogin_label"),
+			child: {
+				view: () => m(".text-break.pt", text),
+			},
+			okAction: async () => {
+				await this._loginFacade.authenticateWithSecondFactor(
+					createSecondFactorAuthData({
+						session: session._id,
+						type: null, // Marker for confirming another session
+					}),
+				)
 
-                if (this._otherLoginDialog) {
-                    this._otherLoginDialog.close()
+				if (this._otherLoginDialog) {
+					this._otherLoginDialog.close()
 
-                    this._otherLoginSessionId = null
-                    this._otherLoginDialog = null
-                }
-            },
-        })
-        // close the dialog manually after 1 min because the session is not updated if the other client is closed
-        let sessionId = session._id
-        setTimeout(() => {
-            if (this._otherLoginDialog && isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
-                this._otherLoginDialog.close()
+					this._otherLoginSessionId = null
+					this._otherLoginDialog = null
+				}
+			},
+		})
+		// close the dialog manually after 1 min because the session is not updated if the other client is closed
+		let sessionId = session._id
+		setTimeout(() => {
+			if (this._otherLoginDialog && isSameId(neverNull(this._otherLoginSessionId), sessionId)) {
+				this._otherLoginDialog.close()
 
-                this._otherLoginSessionId = null
-                this._otherLoginDialog = null
-            }
-        }, 60 * 1000)
-    }
+				this._otherLoginSessionId = null
+				this._otherLoginDialog = null
+			}
+		}, 60 * 1000)
+	}
 
-    closeWaitingForSecondFactorDialog() {
-        this._waitingForSecondFactorDialog?.close()
-        this._waitingForSecondFactorDialog = null
-    }
+	closeWaitingForSecondFactorDialog() {
+		this._waitingForSecondFactorDialog?.close()
+		this._waitingForSecondFactorDialog = null
+	}
 
-    /**
-     * @inheritDoc
-     */
-    async showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null) {
-        if (this._waitingForSecondFactorDialog) {
-            return
-        }
+	/**
+	 * @inheritDoc
+	 */
+	async showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null) {
+		if (this._waitingForSecondFactorDialog) {
+			return
+		}
 
-        this._waitingForSecondFactorDialog = SecondFactorAuthDialog.show(
-            this._webauthnClient,
-            this._loginFacade,
-            {
-                sessionId,
-                challenges,
-                mailAddress,
-            },
-            () => {
-                this._waitingForSecondFactorDialog = null
-            },
-        )
-    }
+		this._waitingForSecondFactorDialog = SecondFactorAuthDialog.show(
+			this._webauthnClient,
+			this._loginFacade,
+			{
+				sessionId,
+				challenges,
+				mailAddress,
+			},
+			() => {
+				this._waitingForSecondFactorDialog = null
+			},
+		)
+	}
 }
+
 export function appIdToLoginDomain(appId: string): string {
-    // If it's legacy U2F key, get domain from before the path part. Otherwise it's just a domain.
-    const domain = appId.endsWith(".json") ? appId.split("/")[2] : appId
-    return domain === "tutanota.com" ? "mail.tutanota.com" : domain
+	// If it's legacy U2F key, get domain from before the path part. Otherwise it's just a domain.
+	const domain = appId.endsWith(".json") ? appId.split("/")[2] : appId
+	return domain === "tutanota.com" ? "mail.tutanota.com" : domain
 }

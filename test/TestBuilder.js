@@ -20,12 +20,15 @@ export async function build(buildOptions, serverOptions, log) {
 
 	log("Bundling...")
 	const bundle = await nollup({
-		input: ["api/bootstrapTests-api.js", "client/bootstrapTests-client.js"],
+		input: [
+			"api/bootstrapTests-api.ts",
+			"client/bootstrapTests-client.ts"
+		],
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
+			...rollupDebugPlugins(path.resolve(".."), {outDir: "build"}),
 			nodeResolve({preferBuiltins: true}),
-			...rollupDebugPlugins(".."),
 		],
 	})
 	return [
@@ -39,7 +42,7 @@ export async function build(buildOptions, serverOptions, log) {
 
 				const start = Date.now()
 				log("Generating...")
-				const result = await bundle.generate({sourcemap: false, dir: buildDir(), format: "esm", chunkFileNames: "[name].js"})
+				const result = await bundle.generate({sourceMap: true, dir: buildDir(), format: "esm", chunkFileNames: "[name].js"})
 				log("Generated in", Date.now() - start)
 
 				const writingStart = Date.now()

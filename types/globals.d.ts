@@ -1,17 +1,29 @@
-declare module "global" {
-	interface Class<T> {
-		new(...args: any[]): T;
-	}
-	type TypedArray =
-			| Int8Array
-			| Uint8Array
-			| Uint8ClampedArray
-			| Int16Array
-			| Uint16Array
-			| Int32Array
-			| Uint32Array
-			| Float32Array
-			| Float64Array;
+/**
+ * @file Common declarations across packages. Should be included in each package.
+ */
+
+declare type TimeoutID = ReturnType<setTimeout>
+declare type AnimationFrameID = ReturnType<requestAnimationFrame>
+
+declare interface Class<T> {
+	new(...args: any[]): T;
 }
-type Values<T> = T[keyof T]
-type PropertyType<T, K> = K extends keyof T ? T[K] : never;
+
+declare type TypedArray =
+	| Int8Array
+	| Uint8Array
+	| Uint8ClampedArray
+	| Int16Array
+	| Uint16Array
+	| Int32Array
+	| Uint32Array
+	| Float32Array
+	| Float64Array;
+
+declare type Values<T> = T[keyof T]
+declare type PropertyType<T, K> = K extends keyof T ? T[K] : never;
+
+declare type Id = string
+declare type IdTuple = Readonly<[string, string]>
+
+declare type Writeable<T> = { -readonly [P in keyof T]: T[P] };

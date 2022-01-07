@@ -17,23 +17,23 @@ interface DomTransform extends DomMutation {
 }
 
 export const enum AlphaEnum {
-	BackgroundColor,
-	Color
+	BackgroundColor = "backgroundColor",
+	Color = "color"
 }
 
 export const enum TransformEnum {
-	TranslateX,
-	TranslateY,
-	RotateY,
-	RotateZ,
-	Scale
+	TranslateX = "translateX",
+	TranslateY = "translateY",
+	RotateY = "rotateY",
+	RotateZ = "rotateZ",
+	Scale = "scale"
 }
 
 type TransformValues = Record<TransformEnum,
-		{
-			begin: number
-			end: number
-		}>
+	{
+		begin: number
+		end: number
+	}>
 export const DefaultAnimationTime = 200 // ms
 
 const InitializedOptions = {
@@ -44,7 +44,7 @@ const InitializedOptions = {
 }
 export type AnimationPromise = {
 	animations?: Array<Animation>
-} & Promise<void>
+} & Promise<unknown>
 
 class Animations {
 	activeAnimations: Animation[]
@@ -83,18 +83,18 @@ class Animations {
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
 	add(
-			targets: HTMLElement | HTMLElement[] | HTMLCollection,
-			mutations: DomMutation | DomMutation[],
-			options?:
-					{
-						stagger?: number
-						delay?: number
-						easing?: EasingFunction
-						duration?: number
-					}
+		targets: HTMLElement | HTMLElement[] | HTMLCollection,
+		mutations: DomMutation | DomMutation[],
+		options?:
+			{
+				stagger?: number
+				delay?: number
+				easing?: EasingFunction
+				duration?: number
+			}
 	): AnimationPromise {
 		const targetsArray: Array<HTMLElement> =
-				targets instanceof HTMLElement ? [targets] : Array.from(targets) as Array<HTMLElement>
+			targets instanceof HTMLElement ? [targets] : Array.from(targets) as Array<HTMLElement>
 
 		let targetMutations: DomMutation[]
 
@@ -106,11 +106,11 @@ class Animations {
 
 		let verifiedOptions = Animations.verifiyOptions(options)
 		const willChange = targetMutations
-				.map(mutation => mutation.willChange())
-				.filter(willChange => willChange.length)
-				.join(" ")
+			.map(mutation => mutation.willChange())
+			.filter(willChange => willChange.length)
+			.join(" ")
 		targetsArray.forEach(t => (t.style.willChange = willChange))
-		const animations = []
+		const animations: Animation[] = []
 		const promise = new Promise(resolve => {
 			let start = this.activeAnimations.length ? false : true
 
@@ -122,12 +122,12 @@ class Animations {
 				}
 
 				const animation = new Animation(
-						targetsArray[i],
-						targetMutations,
-						i === targetsArray.length - 1 ? resolve : null,
-						delay,
-						verifiedOptions.easing,
-						verifiedOptions.duration,
+					targetsArray[i],
+					targetMutations,
+					i === targetsArray.length - 1 ? resolve : null,
+					delay,
+					verifiedOptions.easing,
+					verifiedOptions.duration,
 				)
 				animations.push(animation)
 				this.activeAnimations.push(animation)
@@ -151,14 +151,14 @@ class Animations {
 	}
 
 	static verifiyOptions(
-			options:
-					| {
-				stagger?: number
-				delay?: number
-				easing?: EasingFunction
-			}
-					| null
-					| undefined,
+		options:
+			| {
+			stagger?: number
+			delay?: number
+			easing?: EasingFunction
+		}
+			| null
+			| undefined,
 	): {
 		stagger: number
 		delay: number
@@ -180,12 +180,12 @@ export class Animation {
 	easing: EasingFunction
 
 	constructor(
-			target: HTMLElement,
-			mutations: DomMutation[],
-			resolve: ((...args: Array<any>) => any) | null,
-			delay: number,
-			easing: EasingFunction,
-			duration: number = DefaultAnimationTime,
+		target: HTMLElement,
+		mutations: DomMutation[],
+		resolve: ((...args: Array<any>) => any) | null,
+		delay: number,
+		easing: EasingFunction,
+		duration: number = DefaultAnimationTime,
 	) {
 		this.target = target
 		this.mutations = mutations
@@ -264,7 +264,7 @@ const TransformUnits = {
 }
 
 function buildTransformString(values: TransformValues, percent: number, easing: EasingFunction) {
-	let transform = []
+	let transform: string[] = []
 	let types: TransformEnum[] = Object.keys(TransformUnits) as any[] // the order is important (e.g. 'rotateY(45deg) translateX(10px)' leads to other results than 'translateX(10px) rotateY(45deg)'
 
 	for (let type of types) {
@@ -303,7 +303,7 @@ export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: num
  * Only use on small elements. You should use Alpha for fading large backgrounds which is way faster on mobiles.
  */
 export function opacity(begin: number, end: number, keepValue: boolean): DomMutation {
-	let initialOpacity = null
+	let initialOpacity: string | null = null
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			if (percent === 0 && initialOpacity === null) {

@@ -1,5 +1,5 @@
 import {size} from "../size"
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
@@ -21,7 +21,7 @@ const FALSE_CLOSURE: lazy<boolean> = () => false
 /**
  * A button.
  */
-export class Button {
+export class Button implements Component<void> {
 	_type: ButtonType;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
@@ -31,7 +31,7 @@ export class Button {
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
 	_domButton: HTMLElement;
-	view: Function;
+	view: () => Children;
 	_staticRightText: string | null;
 	_colors: ButtonColor;
 
@@ -39,7 +39,7 @@ export class Button {
 		this._type = ButtonType.Action
 		this.clickHandler = click
 
-		this.icon = icon
+		this.icon = icon ?? null
 		this._colors = ButtonColor.Content
 		this._staticRightText = null
 
@@ -48,7 +48,7 @@ export class Button {
 		this.isSelected = FALSE_CLOSURE
 		this.propagateClickEvents = true
 		this.getLabel = typeof labelTextIdOrTextFunction === "function"
-						? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
+			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): Children => {
 

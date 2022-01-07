@@ -8,7 +8,7 @@ import {logins} from "../../api/main/LoginController"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
@@ -18,121 +18,124 @@ import {CertificateState, CertificateType} from "../../api/common/TutanotaConsta
 import {formatDateTime} from "../../misc/Formatter"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
+
 export type WhitelabelBrandingDomainSettingsAttrs = {
-    customerInfo: CustomerInfo
-    isWhitelabelFeatureEnabled: boolean
-    certificateInfo: CertificateInfo | null
-    whitelabelDomain: string
+	customerInfo: CustomerInfo
+	isWhitelabelFeatureEnabled: boolean
+	certificateInfo: CertificateInfo | null
+	whitelabelDomain: string
 }
+
 export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBrandingDomainSettingsAttrs> {
-    constructor(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>) {}
+	constructor(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>) {
+	}
 
-    view(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>): Children {
-        const {customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled} = vnode.attrs
-        const whitelabelDomainConfigAttrs = {
-            label: "whitelabelDomain_label",
-            value: stream(whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label")),
-            helpLabel: this._renderWhitelabelInfo(certificateInfo),
-            disabled: true,
-            injectionsRight: () => [
-                whitelabelDomain ? this._renderDeactivateButton(whitelabelDomain) : null,
-                customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
-            ],
-        } as const
-        return m(TextFieldN, whitelabelDomainConfigAttrs)
-    }
+	view(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>): Children {
+		const {customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled} = vnode.attrs
+		const whitelabelDomainConfigAttrs = {
+			label: "whitelabelDomain_label",
+			value: stream(whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label")),
+			helpLabel: this._renderWhitelabelInfo(certificateInfo),
+			disabled: true,
+			injectionsRight: () => [
+				whitelabelDomain ? this._renderDeactivateButton(whitelabelDomain) : null,
+				customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
+			],
+		} as const
+		return m(TextFieldN, whitelabelDomainConfigAttrs)
+	}
 
-    _renderDeactivateButton(whitelabelDomain: string): Children {
-        const deactivateButtonAttrs = {
-            label: "deactivate_action",
-            click: () => {
-                Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
-                    if (ok) {
-                        showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
-                            .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
-                            .catch(
-                                ofClass(PreconditionFailedError, e => {
-                                    if (e.data === "lock.locked") {
-                                        Dialog.message("operationStillActive_msg")
-                                    } else {
-                                        throw e
-                                    }
-                                }),
-                            )
-                    }
-                })
-            },
-            icon: () => Icons.Cancel,
-        } as const
-        return m(ButtonN, deactivateButtonAttrs)
-    }
+	_renderDeactivateButton(whitelabelDomain: string): Children {
+		const deactivateButtonAttrs = {
+			label: "deactivate_action",
+			click: () => {
+				Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
+					if (ok) {
+						showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
+							.catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
+							.catch(
+								ofClass(PreconditionFailedError, e => {
+									if (e.data === "lock.locked") {
+										Dialog.message("operationStillActive_msg")
+									} else {
+										throw e
+									}
+								}),
+							)
+					}
+				})
+			},
+			icon: () => Icons.Cancel,
+		} as const
+		return m(ButtonN, deactivateButtonAttrs)
+	}
 
-    _renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
-        const editActionAttrs = {
-            label: "edit_action",
-            click: () => {
-                if (logins.getUserController().isFreeAccount()) {
-                    showNotAvailableForFreeDialog(false)
-                } else {
-                    const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
-                    whitelabelFailedPromise.then(failed => {
-                        if (!failed) {
-                            SetCustomDomainCertificateDialog.show(customerInfo)
-                        }
-                    })
-                }
-            },
-            icon: () => Icons.Edit,
-        } as const
-        return m(ButtonN, editActionAttrs)
-    }
+	_renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
+		const editActionAttrs = {
+			label: "edit_action",
+			click: () => {
+				if (logins.getUserController().isFreeAccount()) {
+					showNotAvailableForFreeDialog(false)
+				} else {
+					const whitelabelFailedPromise: Promise<boolean> = isWhitelabelFeatureEnabled ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
+					whitelabelFailedPromise.then(failed => {
+						if (!failed) {
+							SetCustomDomainCertificateDialog.show(customerInfo)
+						}
+					})
+				}
+			},
+			icon: () => Icons.Edit,
+		} as const
+		return m(ButtonN, editActionAttrs)
+	}
 
-    _renderWhitelabelInfo(certificateInfo: CertificateInfo | null): () => Children {
-        let components: Array<string>
+	_renderWhitelabelInfo(certificateInfo: CertificateInfo | null): () => Children {
+		let components: Array<string>
 
-        if (certificateInfo) {
-            switch (certificateInfo.state) {
-                case CertificateState.VALID:
-                    components = [
-                        lang.get("certificateExpiryDate_label", {
-                            "{date}": formatDateTime(neverNull(certificateInfo.expiryDate)),
-                        }),
-                        this._certificateTypeString(certificateInfo),
-                    ]
-                    break
+		if (certificateInfo) {
+			switch (certificateInfo.state) {
+				case CertificateState.VALID:
+					components = [
+						lang.get("certificateExpiryDate_label", {
+							"{date}": formatDateTime(neverNull(certificateInfo.expiryDate)),
+						}),
+						this._certificateTypeString(certificateInfo),
+					]
+					break
 
-                case CertificateState.VALIDATING:
-                    components = [lang.get("certificateStateProcessing_label")]
-                    break
+				case CertificateState.VALIDATING:
+					components = [lang.get("certificateStateProcessing_label")]
+					break
 
-                case CertificateState.INVALID:
-                    components = [lang.get("certificateStateInvalid_label")]
-                    break
+				case CertificateState.INVALID:
+					components = [lang.get("certificateStateInvalid_label")]
+					break
 
-                default:
-                    components = [lang.get("emptyString_msg")]
-            }
-        } else {
-            components = [lang.get("emptyString_msg")]
-        }
+				default:
+					components = [lang.get("emptyString_msg")]
+			}
+		} else {
+			components = [lang.get("emptyString_msg")]
+		}
 
-        return () =>
-            m(
-                ".flex",
-                components.map(c => m(".pr-s", c)),
-            )
-    }
+		return () =>
+			m(
+				".flex",
+				components.map(c => m(".pr-s", c)),
+			)
+	}
 
-    _certificateTypeString(certificateInfo: CertificateInfo): string {
-        switch (certificateInfo.type) {
-            case CertificateType.LETS_ENCRYPT:
-                return lang.get("certificateTypeAutomatic_label")
+	_certificateTypeString(certificateInfo: CertificateInfo): string {
+		switch (certificateInfo.type) {
+			case CertificateType.LETS_ENCRYPT:
+				return lang.get("certificateTypeAutomatic_label")
 
-            case CertificateType.MANUAL:
-                return lang.get("certificateTypeManual_label")
+			case CertificateType.MANUAL:
+				return lang.get("certificateTypeManual_label")
 
-            default:
-                return lang.get("emptyString_msg")
-        }
-    }
+			default:
+				return lang.get("emptyString_msg")
+		}
+	}
 }

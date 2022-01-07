@@ -43,13 +43,13 @@ export class WindowManager {
 	_currentBounds: WindowBounds
 
 	constructor(
-			conf: DesktopConfig,
-			tray: DesktopTray,
-			notifier: DesktopNotifier,
-			electron: ElectronExports,
-			localShortcut: LocalShortcutManager,
-			dl: DesktopDownloadManager,
-			themeManager: ThemeManager,
+		conf: DesktopConfig,
+		tray: DesktopTray,
+		notifier: DesktopNotifier,
+		electron: ElectronExports,
+		localShortcut: LocalShortcutManager,
+		dl: DesktopDownloadManager,
+		themeManager: ThemeManager,
 	) {
 		this._conf = conf
 
@@ -64,7 +64,7 @@ export class WindowManager {
 		this._electron = electron
 		this._themeManager = themeManager
 
-		this._newWindowFactory = noAutoLogin => this._newWindow(electron, localShortcut, noAutoLogin)
+		this._newWindowFactory = noAutoLogin => this._newWindow(electron, localShortcut, noAutoLogin ?? null)
 
 		this._dragIcons = {
 			eml: this._tray.getIconByName("eml.png"),
@@ -98,47 +98,47 @@ export class WindowManager {
 		w.on("close", ev => {
 			this.saveBounds(w.getBounds())
 		})
-				.on("closed", ev => {
-					windows.splice(windows.indexOf(w), 1)
+		 .on("closed", () => {
+			 windows.splice(windows.indexOf(w), 1)
 
-					this._tray.update(this._notifier)
-				})
-				.on("focus", ev => {
-					windows.splice(windows.indexOf(w), 1)
-					windows.push(w)
+			 this._tray.update(this._notifier)
+		 })
+		 .on("focus", () => {
+			 windows.splice(windows.indexOf(w), 1)
+			 windows.push(w)
 
-					this._tray.clearBadge()
+			 this._tray.clearBadge()
 
-					this._notifier.resolveGroupedNotification(w.getUserId())
-				})
-				.on("page-title-updated", ev => {
-					if (w.getTitle() === LOGIN_TITLE) {
-						w.setUserInfo(null)
-					}
+			 this._notifier.resolveGroupedNotification(w.getUserId())
+		 })
+		 .on("page-title-updated", ev => {
+			 if (w.getTitle() === LOGIN_TITLE) {
+				 w.setUserInfo(null)
+			 }
 
-					this._tray.update(this._notifier)
-				})
-				.once("ready-to-show", async () => {
-					this._tray.update(this._notifier)
+			 this._tray.update(this._notifier)
+		 })
+		 .once("ready-to-show", async () => {
+			 this._tray.update(this._notifier)
 
-					w.setBounds(this._currentBounds)
-					if (showWhenReady) w.show()
-				})
-				.webContents
-				.on("did-start-navigation", () => {
-					this._tray.clearBadge()
-				})
-				.on("zoom-changed", (ev: Event, direction: "in" | "out") => {
-					let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
-					this.changeZoom(scale)
-					const w = this.getEventSender(downcast(ev))
-					if (!w) return
-					this.saveBounds(w.getBounds())
-				})
-				.on("did-navigate", () => {
-					// electron likes to override the zoom factor when the URL changes.
-					windows.forEach(w => w.setZoomFactor(this._currentBounds.scale))
-				})
+			 w.setBounds(this._currentBounds)
+			 if (showWhenReady) w.show()
+		 })
+		 .webContents
+		 .on("did-start-navigation", () => {
+			 this._tray.clearBadge()
+		 })
+		 .on("zoom-changed", (ev: Event, direction: "in" | "out") => {
+			 let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
+			 this.changeZoom(scale)
+			 const w = this.getEventSender(downcast(ev))
+			 if (!w) return
+			 this.saveBounds(w.getBounds())
+		 })
+		 .on("did-navigate", () => {
+			 // electron likes to override the zoom factor when the URL changes.
+			 windows.forEach(w => w.setZoomFactor(this._currentBounds.scale))
+		 })
 		w.setContextMenuHandler(params => this._contextMenu.open(params))
 
 		this._registerUserListener(w.id)
@@ -294,7 +294,7 @@ export class WindowManager {
 		const window = this.get(windowId)
 
 		if (window) {
-			const exportMode = await this._conf.getVar(DesktopConfigKey.mailExportMode)
+			const exportMode: MailExportMode = await this._conf.getVar(DesktopConfigKey.mailExportMode)
 			const icon = this._dragIcons[exportMode]
 
 			window._browserWindow.webContents.startDrag({

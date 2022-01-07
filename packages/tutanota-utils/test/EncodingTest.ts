@@ -27,8 +27,8 @@ o.spec("Encoding", function () {
 			global.TextDecoder = window.TextDecoder
 			global.TextEncoder = window.TextEncoder
 		} else {
-			// $FlowIssue[prop-missing] TextEncoder *is* present in util.
 			const {TextDecoder: nodeTextDecoder, TextEncoder: nodeTextEncoder} = await import("util")
+			// @ts-ignore
 			global.TextDecoder = nodeTextDecoder
 			global.TextEncoder = nodeTextEncoder
 		}

@@ -12,54 +12,55 @@ import * as migration0005 from "./migration-0005"
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
+
 export type MigrationKind = "migrateClient" | "migrateAdmin"
 export type ElectronExports = typeof Electron.CrossProcessExports;
 
 export class DesktopConfigMigrator {
-    readonly crypto: DesktopCryptoFacade
-    _deviceKeyProvider: DesktopDeviceKeyProvider
-    _electron: ElectronExports
+	readonly crypto: DesktopCryptoFacade
+	_deviceKeyProvider: DesktopDeviceKeyProvider
+	_electron: ElectronExports
 
-    constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: ElectronExports) {
-        this.crypto = crypto
-        this._deviceKeyProvider = deviceKeyProvider
-        this._electron = electron
-    }
+	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: ElectronExports) {
+		this.crypto = crypto
+		this._deviceKeyProvider = deviceKeyProvider
+		this._electron = electron
+	}
 
-    async applyMigrations(migrationFunction: MigrationKind, oldConfig: Config): Promise<Config> {
-        // noinspection FallThroughInSwitchStatementJS
-        switch (oldConfig.desktopConfigVersion) {
-            case undefined:
-                await applyMigration(migration0000[migrationFunction], oldConfig)
+	async applyMigrations(migrationFunction: MigrationKind, oldConfig: Config): Promise<Config> {
+		// noinspection FallThroughInSwitchStatementJS
+		switch (oldConfig.desktopConfigVersion) {
+			case undefined:
+				await applyMigration(migration0000[migrationFunction], oldConfig)
 
-            // no break, fallthrough applies all migrations in sequence
-            case 0:
-                await applyMigration(migration0001[migrationFunction], oldConfig)
+			// no break, fallthrough applies all migrations in sequence
+			case 0:
+				await applyMigration(migration0001[migrationFunction], oldConfig)
 
-            case 1:
-                await applyMigration(migration0002[migrationFunction], oldConfig)
+			case 1:
+				await applyMigration(migration0002[migrationFunction], oldConfig)
 
-            case 2:
-                await applyMigration(config => migration0003[migrationFunction](config, this.crypto, this._deviceKeyProvider), oldConfig)
+			case 2:
+				await applyMigration(config => migration0003[migrationFunction](config, this.crypto, this._deviceKeyProvider), oldConfig)
 
-            case 3:
-                await applyMigration(migration0004[migrationFunction], oldConfig)
+			case 3:
+				await applyMigration(migration0004[migrationFunction], oldConfig)
 
-            case 4:
-                await applyMigration(config => migration0005[migrationFunction](config, this._electron), oldConfig)
+			case 4:
+				await applyMigration(config => migration0005[migrationFunction](config, this._electron), oldConfig)
 
-            case 5:
-                log.debug("config up to date")
+			case 5:
+				log.debug("config up to date")
 
-                /* add new migrations as needed */
-                break
+				/* add new migrations as needed */
+				break
 
-            default:
-                throw new Error(`unknown config version ${String(oldConfig.desktopConfigVersion)}`)
-        }
+			default:
+				throw new Error(`unknown config version ${String(oldConfig.desktopConfigVersion)}`)
+		}
 
-        return oldConfig
-    }
+		return oldConfig
+	}
 }
 
 /**
@@ -67,12 +68,12 @@ export class DesktopConfigMigrator {
  * @param config default config to use if oldConfig is invalid
  */
 async function applyMigration(migration: ConfigMigration, config: Config) {
-    const oldVersion = Object.freeze(config.desktopConfigVersion)
-    await migration(config)
-    const newVersion = config.desktopConfigVersion
+	const oldVersion = Object.freeze(config.desktopConfigVersion)
+	await migration(config)
+	const newVersion = config.desktopConfigVersion
 
-    if (newVersion === undefined || Number(oldVersion) >= Number(newVersion)) {
-        console.error("config migration did not increment desktopConfigVersion! aborting.")
-        process.exit(1)
-    }
+	if (newVersion === undefined || Number(oldVersion) >= Number(newVersion)) {
+		console.error("config migration did not increment desktopConfigVersion! aborting.")
+		process.exit(1)
+	}
 }

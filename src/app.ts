@@ -17,6 +17,7 @@ import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
+import {CurrentView} from "./gui/base/Header"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -25,8 +26,8 @@ const platformId = urlQueryParams["platformId"]
 
 if (isApp() || isDesktop()) {
 	if (
-			(isApp() && (platformId === "android" || platformId === "ios")) ||
-			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+		(isApp() && (platformId === "android" || platformId === "ios")) ||
+		(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
 	) {
 		env.platformId = platformId
 	} else {
@@ -35,7 +36,6 @@ if (isApp() || isDesktop()) {
 }
 
 replaceNativeLogger(window, new Logger())
-// TODO: define type definition for top-level views. Maybe it's CurrentView?
 type View = Record<string, any>
 let currentView: Component<unknown> | null = null
 window.tutao = {
@@ -45,8 +45,7 @@ window.tutao = {
 	root,
 	logins,
 	currentView,
-	Const,
-	locator: window.tutao ? window.tutao.locator : null, // locator is not restored on hot reload otherwise
+	locator: window.tutao?.locator, // locator is not restored on hot reload otherwise
 }
 client.init(navigator.userAgent, navigator.platform)
 
@@ -64,19 +63,19 @@ export const state: {
 	prefix: string | null
 	prefixWithoutFile: string | null
 } =
+	// @ts-ignore
+	typeof module != "undefined" && module.hot && module.hot.data
 		// @ts-ignore
-		typeof module != "undefined" && module.hot && module.hot.data
-				// @ts-ignore
-				? downcast(module.hot.data.state)
-				: {
-					prefix: null,
-					prefixWithoutFile: null,
-				}
+		? downcast(module.hot.data.state)
+		: {
+			prefix: null,
+			prefixWithoutFile: null,
+		}
 let startRoute = "/"
 
 if (state.prefix == null) {
 	const prefix = (state.prefix =
-			location.pathname[location.pathname.length - 1] !== "/" ? location.pathname : location.pathname.substring(0, location.pathname.length - 1))
+		location.pathname[location.pathname.length - 1] !== "/" ? location.pathname : location.pathname.substring(0, location.pathname.length - 1))
 	state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 	let redirectTo = urlQueryParams["r"] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
 
@@ -121,237 +120,232 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 }
 
 import("./translations/en")
-		.then(en => lang.init(en.default))
-		.then(async () => {
-			// do this after lang initialized
-			const {locator} = await import("./api/main/MainLocator")
-			await locator.init()
+	.then(en => lang.init(en.default))
+	.then(async () => {
+		// do this after lang initialized
+		const {locator} = await import("./api/main/MainLocator")
+		await locator.init()
 
-			if (client.isIE()) {
-				import("./gui/base/NotificationOverlay.js").then(module =>
-						module.show(
-								{
-									view: () => m("", lang.get("unsupportedBrowserOverlay_msg")),
-								},
-								{
-									label: "close_alt",
-								},
-								[],
-						),
-				)
-			} else if (isDesktop()) {
-				import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.native))
+		if (client.isIE()) {
+			import("./gui/base/NotificationOverlay.js").then(module =>
+				module.show(
+					{
+						view: () => m("", lang.get("unsupportedBrowserOverlay_msg")),
+					},
+					{
+						label: "close_alt",
+					},
+					[],
+				),
+			)
+		} else if (isDesktop()) {
+			import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.native))
+		}
+
+		const userLanguage = deviceConfig.getLanguage() && languages.find(l => l.code === deviceConfig.getLanguage())
+
+		if (userLanguage) {
+			const language = {
+				code: userLanguage.code,
+				languageTag: languageCodeToTag(userLanguage.code),
 			}
+			lang.setLanguage(language).catch(e => {
+				console.error("Failed to fetch translation: " + userLanguage.code, e)
+			})
 
-			const userLanguage = deviceConfig.getLanguage() && languages.find(l => l.code === deviceConfig.getLanguage())
-
-			if (userLanguage) {
-				const language = {
-					code: userLanguage.code,
-					languageTag: languageCodeToTag(userLanguage.code),
-				}
-				lang.setLanguage(language).catch(e => {
-					console.error("Failed to fetch translation: " + userLanguage.code, e)
-				})
-
-				if (isApp() || isDesktop()) {
-					locator.systemApp.changeSystemLanguage(language)
-				}
+			if (isApp() || isDesktop()) {
+				locator.systemApp.changeSystemLanguage(language)
 			}
+		}
 
-			function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true, doNotCache: boolean = false): RouteResolver {
-				let cache: {
-					view: View | null
-				} = {
-					view: null,
-				}
-				return {
-					onmatch: async (args, requestedPath) => {
-						if (requireLogin && !logins.isUserLoggedIn()) {
-							forceLogin(args, requestedPath)
-						} else if (!requireLogin && logins.isUserLoggedIn()) {
-							await disableErrorHandlingDuringLogout()
-							return logins.logout(false).then(() => {
-								windowFacade.reload(args)
+		function createViewResolver(getView: lazy<Promise<CurrentView>>, requireLogin: boolean = true, doNotCache: boolean = false): RouteResolver {
+			let cache: {view: CurrentView | null} = {view: null}
+			return {
+				onmatch: async (args, requestedPath) => {
+					if (requireLogin && !logins.isUserLoggedIn()) {
+						forceLogin(args, requestedPath)
+					} else if (!requireLogin && logins.isUserLoggedIn()) {
+						await disableErrorHandlingDuringLogout()
+						return logins.logout(false).then(() => {
+							windowFacade.reload(args)
+						})
+					} else {
+						let promise: Promise<CurrentView>
+
+						if (cache.view == null) {
+							promise = getView().then(view => {
+								if (!doNotCache) {
+									cache.view = view
+								}
+
+								return view
 							})
 						} else {
-							let promise
-
-							if (cache.view == null) {
-								promise = getView().then(view => {
-									if (!doNotCache) {
-										cache.view = view
-									}
-
-									return view
-								})
-							} else {
-								promise = Promise.resolve(cache.view)
-							}
-
-							Promise.all([promise, import("./gui/base/Header")]).then(([view, {header}]) => {
-								view.updateUrl(args, requestedPath)
-								const currentPath = m.route.get()
-								routeChange({
-									args,
-									requestedPath,
-									currentPath,
-								})
-								header.updateCurrentView(view)
-								tutao.currentView = view
-							})
-							return promise
+							promise = Promise.resolve(cache.view)
 						}
-					},
-					render: vnode => {
-						return m(root, vnode)
-					},
-				}
-			}
 
-			const loginListener = await import("./login/LoginListener")
-			await loginListener.registerLoginListener(locator.credentialsProvider, locator.secondFactorHandler)
-			styles.init()
-			const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
+						Promise.all([promise, import("./gui/base/Header")]).then(([view, {header}]) => {
+							view.updateUrl(args, requestedPath)
+							const currentPath = m.route.get()
+							routeChange({
+								args,
+								requestedPath,
+								currentPath,
+							})
+							header.updateCurrentView(view)
+							window.tutao.currentView = view
+						})
+						return promise
+					}
+				},
+				render: vnode => {
+					return m(root, vnode)
+				},
+			}
+		}
+
+		const loginListener = await import("./login/LoginListener")
+		await loginListener.registerLoginListener(locator.credentialsProvider, locator.secondFactorHandler)
+		styles.init()
+		const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
+
+		/**
+		 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
+		 * This code can (and will) be removed once all users have migrated.
+		 */
+		if (usingKeychainAuthentication()) {
+			// We can only determine platform after we establish native bridge
+			const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
+			const hasCredentials = deviceConfig.loadAll().length > 0
+
+			if (!hasAlreadyMigrated && hasCredentials) {
+				const migrationModule = await import("./misc/credentials/CredentialsMigration")
+				await locator.native.init()
+				const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, locator.native)
+				await migration.migrateCredentials()
+				// Reload the app just to make sure we are in the right state and don't init nativeApp twice
+				windowFacade.reload({})
+				return
+			}
+		}
+
+		const paths = applicationPaths({
+			loginViewResolver: createViewResolver(
+				async () => {
+					const {LoginView} = await import("./login/LoginView.js")
+					const {LoginViewModel} = await import("./login/LoginViewModel.js")
+					const {locator} = await import("./api/main/MainLocator")
+					const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, locator.secondFactorHandler)
+					await loginViewModel.init()
+					return new LoginView(loginViewModel, "/mail")
+				},
+				false,
+				true,
+			),
+			contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
+			externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false),
+			mailViewResolver: createViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
+			settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
+			searchViewResolver: createViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
+			contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), false),
+			calendarViewResolver: createViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), true),
 
 			/**
-			 * Migrate credentials on supported devices to be encrypted using an intermediate key secured by the device keychain (biometrics).
-			 * This code can (and will) be removed once all users have migrated.
+			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
+			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
+			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			if (usingKeychainAuthentication()) {
-				// We can only determine platform after we establish native bridge
-				const hasAlreadyMigrated = deviceConfig.getCredentialsEncryptionKey() != null
-				const hasCredentials = deviceConfig.loadAll().length > 0
-
-				if (!hasAlreadyMigrated && hasCredentials) {
-					const migrationModule = await import("./misc/credentials/CredentialsMigration")
-					await locator.native.init()
-					const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, locator.native)
-					await migration.migrateCredentials()
-					// Reload the app just to make sure we are in the right state and don't init nativeApp twice
-					windowFacade.reload({})
-					return
-				}
-			}
-
-			const paths = applicationPaths({
-				loginViewResolver: createViewResolver(
-						async () => {
-							const {LoginView} = await import("./login/LoginView.js")
-							const {LoginViewModel} = await import("./login/LoginViewModel.js")
-							const {locator} = await import("./api/main/MainLocator")
-							const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, locator.secondFactorHandler)
-							await loginViewModel.init()
-							return new LoginView(loginViewModel, "/mail")
-						},
-						false,
-						true,
-				),
-				contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
-				externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false),
-				mailViewResolver: createViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
-				settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
-				searchViewResolver: createViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
-				contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), false),
-				calendarViewResolver: createViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), true),
-
-				/**
-				 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
-				 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
-				 * behaviour of resolvers created with createViewResolver(), e.g. caching.
-				 */
-				signupViewResolver: {
-					async onmatch() {
-						const {showSignupDialog} = await import("./misc/LoginUtils")
-						// We have to manually parse it because mithril does not put hash into args of onmatch
-						const hashParams = m.parseQueryString(location.hash.substring(1))
-						showSignupDialog(hashParams)
-						m.route.set("/login", {
-							noAutoLogin: true,
-						})
-						return null
-					},
-				},
-				giftcardViewResolver: {
-					async onmatch() {
-						const {showGiftCardDialog} = await import("./misc/LoginUtils")
-						showGiftCardDialog(location.hash)
-						m.route.set("/login", {
-							noAutoLogin: true,
-						})
-						return null
-					},
-				},
-				recoverViewResolver: {
-					async onmatch(args: any) {
-						const {showRecoverDialog} = await import("./misc/LoginUtils")
-						const resetAction = args.resetAction === "password" || args.resetAction === "secondFactor" ? args.resetAction : "password"
-						const mailAddress = typeof args.mailAddress === "string" ? args.mailAddress : ""
-						showRecoverDialog(mailAddress, resetAction)
-						m.route.set("/login", {
-							noAutoLogin: true,
-						})
-						return null
-					},
-				},
-			})
-			// see https://github.com/MithrilJS/mithril.js/issues/2659
-			m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
-			// keep in sync with RewriteAppResourceUrlHandler.java
-			const resolvers: RouteDefs = {
-				"/": {
-					onmatch: (args, requestedPath) => forceLogin(args, requestedPath),
-				},
-			}
-
-			for (let path in paths) {
-				resolvers[path] = paths[path]
-			}
-
-			// append catch all at the end because mithril will stop at the first match
-			resolvers["/:path"] = {
-				onmatch: (): Promise<Component> => {
-					return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")]).then(([{InfoView}, {
-						ButtonType,
-						ButtonN
-					}]) => {
-						return {
-							view() {
-								return m(
-										root,
-										m(
-												new InfoView(
-														() => "404",
-														() => [
-															m("p", lang.get("notFound404_msg")),
-															m(ButtonN, {
-																label: "back_action",
-																click: () => window.history.back(),
-																type: ButtonType.Primary,
-															}),
-														],
-												),
-										),
-								)
-							},
-						}
+			signupViewResolver: {
+				async onmatch() {
+					const {showSignupDialog} = await import("./misc/LoginUtils")
+					// We have to manually parse it because mithril does not put hash into args of onmatch
+					const hashParams = m.parseQueryString(location.hash.substring(1))
+					showSignupDialog(hashParams)
+					m.route.set("/login", {
+						noAutoLogin: true,
 					})
+					return null
 				},
-			}
-			// keep in sync with RewriteAppResourceUrlHandler.java
-			// flow fails to resolve RouteResolver properly
-			m.route(neverNull(document.body), startRoute, downcast(resolvers))
-
-			// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
-			// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-			if (isApp() || isDesktop()) {
-				await locator.native.init()
-			}
-
-			import("./gui/InfoMessageHandler.js").then(module => module.registerInfoMessageHandler())
-			// after we set up prefixWithoutFile
-			initSW()
+			},
+			giftcardViewResolver: {
+				async onmatch() {
+					const {showGiftCardDialog} = await import("./misc/LoginUtils")
+					showGiftCardDialog(location.hash)
+					m.route.set("/login", {
+						noAutoLogin: true,
+					})
+					return null
+				},
+			},
+			recoverViewResolver: {
+				async onmatch(args: any) {
+					const {showRecoverDialog} = await import("./misc/LoginUtils")
+					const resetAction = args.resetAction === "password" || args.resetAction === "secondFactor" ? args.resetAction : "password"
+					const mailAddress = typeof args.mailAddress === "string" ? args.mailAddress : ""
+					showRecoverDialog(mailAddress, resetAction)
+					m.route.set("/login", {
+						noAutoLogin: true,
+					})
+					return null
+				},
+			},
 		})
+		// see https://github.com/MithrilJS/mithril.js/issues/2659
+		m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+		// keep in sync with RewriteAppResourceUrlHandler.java
+		const resolvers: RouteDefs = {
+			"/": {
+				onmatch: (args, requestedPath) => forceLogin(args, requestedPath),
+			},
+		}
+
+		for (let path in paths) {
+			resolvers[path] = paths[path]
+		}
+
+		// append catch all at the end because mithril will stop at the first match
+		resolvers["/:path"] = {
+			onmatch: (): Promise<Component> => {
+				return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")]).then(([{InfoView}, {
+					ButtonType,
+					ButtonN
+				}]) => {
+					return {
+						view() {
+							return m(
+								root,
+								m(
+									new InfoView(
+										() => "404",
+										() => [
+											m("p", lang.get("notFound404_msg")),
+											m(ButtonN, {
+												label: "back_action",
+												click: () => window.history.back(),
+												type: ButtonType.Primary,
+											}),
+										],
+									),
+								),
+							)
+						},
+					}
+				})
+			},
+		}
+		// keep in sync with RewriteAppResourceUrlHandler.java
+		m.route(document.body, startRoute, resolvers)
+
+		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
+		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
+		if (isApp() || isDesktop()) {
+			await locator.native.init()
+		}
+
+		import("./gui/InfoMessageHandler.js").then(module => module.registerInfoMessageHandler())
+		// after we set up prefixWithoutFile
+		initSW()
+	})
 
 function forceLogin(args: Record<string, Dict>, requestedPath: string) {
 	if (requestedPath.indexOf("#mail") !== -1) {
@@ -419,7 +413,7 @@ const hot = typeof module !== "undefined" && module.hot
 
 if (hot) {
 	// Save the state (mostly prefix) before the reload
-	hot.dispose(data => {
+	hot.dispose((data: any) => {
 		data.state = state
 	})
 	// Import ourselves again to actually replace ourselves and all the dependencies

@@ -1,5 +1,4 @@
-
-// We cannot use TS types here because it's used during build
+// We cannot use TS types here because it's used during build. Types for these things are still inferred.
 
 export const Type = Object.freeze({
 	Element: "ELEMENT_TYPE",
@@ -35,15 +34,4 @@ export const ValueType = Object.freeze({
 export const ResourceType = Object.freeze({
 	Persistence: "Persistence",
 	Service: "Service",
-})
-
-export const ValueToFlowTypes = Object.freeze({
-	String: "string",
-	Number: "NumberString",
-	Bytes: "Uint8Array",
-	Date: "Date",
-	Boolean: "boolean",
-	GeneratedId: "Id",
-	CustomId: "Id",
-	CompressedString: "string",
 })

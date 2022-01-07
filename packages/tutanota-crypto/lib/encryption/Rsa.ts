@@ -435,20 +435,21 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 
 		_clear(encodedMessage)
 
+		// @ts-ignore
 		_clear(maskedDB)
-
+		// @ts-ignore
 		_clear(hashed)
-
+		// @ts-ignore
 		_clear(dbMask)
-
+		// @ts-ignore
 		_clear(db)
-
+		// @ts-ignore
 		_clear(salt)
-
+		// @ts-ignore
 		_clear(messageHash)
-
+		// @ts-ignore
 		_clear(message2)
-
+		// @ts-ignore
 		_clear(message2Hash)
 	}
 }
@@ -471,7 +472,7 @@ function _clear(array: Uint8Array | null | undefined) {
  * @param length The length of the return value in bytes.
  */
 export function mgf1(seed: Uint8Array, length: number): Uint8Array {
-	let C = null
+	let C: Uint8Array | null = null
 	let counter = 0
 	let T = new Uint8Array(0)
 
@@ -578,7 +579,7 @@ export function _keyArrayToHex(key: BigInteger[]): Hex {
 
 function _hexToKeyArray(hex: Hex): BigInteger[] {
 	try {
-		var key = []
+		var key: BigInteger[] = []
 		var pos = 0
 
 		while (pos < hex.length) {

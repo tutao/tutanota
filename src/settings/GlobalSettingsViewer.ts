@@ -2,18 +2,13 @@ import m from "mithril"
 import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
-import {
-	getSpamRuleField,
-	GroupType,
-	OperationType,
-	SpamRuleFieldType,
-	SpamRuleType
-} from "../api/common/TutanotaConstants"
+import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {logins} from "../api/main/LoginController"
 import type {AuditLogEntry} from "../api/entities/sys/AuditLogEntry"
 import {AuditLogEntryTypeRef} from "../api/entities/sys/AuditLogEntry"
@@ -59,7 +54,6 @@ import {getDomainPart} from "../misc/parsing/MailAddressParser"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -86,8 +80,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this._customerInfo = new LazyLoaded(() => {
 			return locator.entityClient
-					.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-					.then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+						  .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+						  .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._domainDnsStatus = {}
 		this._spamRuleLines = stream([])
@@ -101,20 +95,20 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._props.map(props => saveIpAddress(props.saveEncryptedIpAddressInSession))
 
 		let saveIpAddressDropdown = new DropDownSelector(
-				"saveEncryptedIpAddress_label",
-				null,
-				[
-					{
-						name: lang.get("yes_label"),
-						value: true,
-					},
-					{
-						name: lang.get("no_label"),
-						value: false,
-					},
-				],
-				saveIpAddress,
-				250,
+			"saveEncryptedIpAddress_label",
+			null,
+			[
+				{
+					name: lang.get("yes_label"),
+					value: true,
+				},
+				{
+					name: lang.get("no_label"),
+					value: false,
+				},
+			],
+			saveIpAddress,
+			250,
 		).setSelectionChangedHandler(v => {
 			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {
 				saveEncryptedIpAddressInSession: v,
@@ -126,20 +120,20 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._props.map(props => requirePasswordUpdateAfterReset(props.requirePasswordUpdateAfterReset))
 
 		let requirePasswordUpdateAfterResetDropdown = new DropDownSelector(
-				"enforcePasswordUpdate_title",
-				() => lang.get("enforcePasswordUpdate_msg"),
-				[
-					{
-						name: lang.get("yes_label"),
-						value: true,
-					},
-					{
-						name: lang.get("no_label"),
-						value: false,
-					},
-				],
-				requirePasswordUpdateAfterReset,
-				250,
+			"enforcePasswordUpdate_title",
+			() => lang.get("enforcePasswordUpdate_msg"),
+			[
+				{
+					name: lang.get("yes_label"),
+					value: true,
+				},
+				{
+					name: lang.get("no_label"),
+					value: false,
+				},
+			],
+			requirePasswordUpdateAfterReset,
+			250,
 		).setSelectionChangedHandler(v => {
 			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {
 				requirePasswordUpdateAfterReset: v,
@@ -154,7 +148,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				showActionButtonColumn: true,
 				addButtonAttrs: {
 					label: "addSpamRule_action",
-					click: () => showAddSpamRuleDialog(),
+					click: () => showAddSpamRuleDialog(null),
 					icon: () => Icons.Add,
 				},
 				lines: this._spamRuleLines(),
@@ -223,20 +217,20 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						m(".h4", lang.get("security_title")),
 						m(saveIpAddressDropdown),
 						logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
-								? m("", [
-									m(requirePasswordUpdateAfterResetDropdown),
-									this._customer()
-											? m(
-													".mt-l",
-													m(ExpandableTable, {
-														title: "auditLog_title",
-														table: auditLogTableAttrs,
-														infoMsg: "auditLogInfo_msg",
-													}),
-											)
-											: null,
-								])
-								: null,
+							? m("", [
+								m(requirePasswordUpdateAfterResetDropdown),
+								this._customer()
+									? m(
+										".mt-l",
+										m(ExpandableTable, {
+											title: "auditLog_title",
+											table: auditLogTableAttrs,
+											infoMsg: "auditLogInfo_msg",
+										}),
+									)
+									: null,
+							])
+							: null,
 					]),
 				]),
 			]
@@ -256,34 +250,34 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const fieldToName = getSpamRuleFieldToName()
 
 			this._spamRuleLines(
-					props.emailSenderList.map((rule, index) => {
-						return {
-							cells: () => [
+				props.emailSenderList.map((rule, index) => {
+					return {
+						cells: () => [
+							{
+								main: fieldToName[getSpamRuleField(rule)],
+								info: [rule.value],
+							},
+							{
+								main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
+							},
+						],
+						actionButtonAttrs: createRowActions(
+							{
+								getArray: () => props.emailSenderList,
+								updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+							},
+							rule,
+							index,
+							[
 								{
-									main: fieldToName[getSpamRuleField(rule)],
-									info: [rule.value],
-								},
-								{
-									main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
+									label: "edit_action",
+									click: () => showAddSpamRuleDialog(rule),
+									type: ButtonType.Dropdown,
 								},
 							],
-							actionButtonAttrs: createRowActions(
-									{
-										getArray: () => props.emailSenderList,
-										updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
-									},
-									rule,
-									index,
-									[
-										{
-											label: "edit_action",
-											click: () => showAddSpamRuleDialog(rule),
-											type: ButtonType.Dropdown,
-										},
-									],
-							),
-						}
-					}),
+						),
+					}
+				}),
 			)
 
 			m.redraw()
@@ -302,62 +296,62 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const senderListId = customer.rejectedSenders.items
 			const startId = timestampToGeneratedId(Date.now() - REJECTED_SENDERS_TO_LOAD_MS)
 			const loadingPromise = locator.entityClient
-					.loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
-					.then(rejectedSenders => {
-						if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
-							// There are more entries available, we need to load from GENERATED_MAX_ID.
-							// we don't need to sort here because we load in reverse direction
-							return locator.entityClient.loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
-						} else {
-							// ensure that rejected senders are sorted in descending order
-							return rejectedSenders.sort(sortCompareByReverseId)
-						}
-					})
-					.then(rejectedSenders => {
-						const tableEntries = rejectedSenders.map(rejectedSender => {
-							const rejectDate = formatDateTime(new Date(generatedIdToTimestamp(getElementId(rejectedSender))))
-							return {
-								cells: () => {
-									return [
-										{
-											main: rejectedSender.senderMailAddress,
-											info: [`${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`],
-											click: () => showRejectedSendersInfoDialog(rejectedSender),
-										},
-									]
-								},
-								actionButtonAttrs: attachDropdown(
-										{
-											label: "showMore_action",
-											icon: () => Icons.More,
-										},
-										() => [
-											{
-												label: "showRejectReason_action",
-												type: ButtonType.Dropdown,
-												click: () => showRejectedSendersInfoDialog(rejectedSender),
-											},
-											{
-												label: "addSpamRule_action",
-												type: ButtonType.Dropdown,
-												click: () => {
-													const domainPart = getDomainPart(rejectedSender.senderMailAddress)
-													showAddSpamRuleDialog(
-															createEmailSenderListElement({
-																value: domainPart ? domainPart : "",
-																type: SpamRuleType.WHITELIST,
-																field: SpamRuleFieldType.FROM,
-															}),
-													)
-												},
-											},
-										],
-								),
-							}
-						})
+										  .loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
+										  .then(rejectedSenders => {
+											  if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
+												  // There are more entries available, we need to load from GENERATED_MAX_ID.
+												  // we don't need to sort here because we load in reverse direction
+												  return locator.entityClient.loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
+											  } else {
+												  // ensure that rejected senders are sorted in descending order
+												  return rejectedSenders.sort(sortCompareByReverseId)
+											  }
+										  })
+										  .then(rejectedSenders => {
+											  const tableEntries = rejectedSenders.map(rejectedSender => {
+												  const rejectDate = formatDateTime(new Date(generatedIdToTimestamp(getElementId(rejectedSender))))
+												  return {
+													  cells: () => {
+														  return [
+															  {
+																  main: rejectedSender.senderMailAddress,
+																  info: [`${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`],
+																  click: () => showRejectedSendersInfoDialog(rejectedSender),
+															  },
+														  ]
+													  },
+													  actionButtonAttrs: attachDropdown(
+														  {
+															  label: "showMore_action",
+															  icon: () => Icons.More,
+														  },
+														  () => [
+															  {
+																  label: "showRejectReason_action",
+																  type: ButtonType.Dropdown,
+																  click: () => showRejectedSendersInfoDialog(rejectedSender),
+															  },
+															  {
+																  label: "addSpamRule_action",
+																  type: ButtonType.Dropdown,
+																  click: () => {
+																	  const domainPart = getDomainPart(rejectedSender.senderMailAddress)
+																	  showAddSpamRuleDialog(
+																		  createEmailSenderListElement({
+																			  value: domainPart ? domainPart : "",
+																			  type: SpamRuleType.WHITELIST,
+																			  field: SpamRuleFieldType.FROM,
+																		  }),
+																	  )
+																  },
+															  },
+														  ],
+													  ),
+												  }
+											  })
 
-						this._rejectedSenderLines(tableEntries)
-					})
+											  this._rejectedSenderLines(tableEntries)
+										  })
 			showProgressDialog("loading_msg", loadingPromise).then(() => m.redraw())
 		}
 	}
@@ -368,16 +362,16 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then(auditLog => {
 				this._auditLogLines(
-						auditLog.map(auditLogEntry => {
-							return {
-								cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-								actionButtonAttrs: {
-									label: "showMore_action",
-									icon: () => Icons.More,
-									click: () => this._showAuditLogDetails(auditLogEntry, customer),
-								},
-							}
-						}),
+					auditLog.map(auditLogEntry => {
+						return {
+							cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
+							actionButtonAttrs: {
+								label: "showMore_action",
+								icon: () => Icons.More,
+								click: () => this._showAuditLogDetails(auditLogEntry, customer),
+							},
+						}
+					}),
 				)
 			})
 		})
@@ -385,70 +379,71 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	_showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
 		let modifiedGroupInfo: Stream<GroupInfo> = stream()
-		let groupInfo = stream()
-		let groupInfoLoadingPromises = []
+		let groupInfo = stream<GroupInfo>()
+		let groupInfoLoadingPromises: Promise<unknown>[] = []
 
 		if (entry.modifiedGroupInfo) {
 			groupInfoLoadingPromises.push(
-					locator.entityClient
-							.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
-							.then(gi => {
-								modifiedGroupInfo(gi)
-							})
-							.catch(
-									ofClass(NotAuthorizedError, e => {
-										// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-									}),
-							),
+				locator.entityClient
+					   .load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+					   .then(gi => {
+						   modifiedGroupInfo(gi)
+					   })
+					   .catch(
+						   ofClass(NotAuthorizedError, e => {
+							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						   }),
+					   ),
 			)
 		}
 
 		if (entry.groupInfo) {
 			groupInfoLoadingPromises.push(
-					locator.entityClient
-							.load(GroupInfoTypeRef, entry.groupInfo)
-							.then(gi => {
-								groupInfo(gi)
-							})
-							.catch(
-									ofClass(NotAuthorizedError, e => {
-										// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-									}),
-							),
+				locator.entityClient
+					   .load(GroupInfoTypeRef, entry.groupInfo)
+					   .then(gi => {
+						   groupInfo(gi)
+					   })
+					   .catch(
+						   ofClass(NotAuthorizedError, e => {
+							   // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+						   }),
+					   ),
 			)
 		}
 
 		Promise.all(groupInfoLoadingPromises).then(() => {
+			const groupInfoValue = groupInfo();
 			let dialog = Dialog.showActionDialog({
 				title: lang.get("auditLog_title"),
 				child: {
 					view: () =>
-							m("table.pt", [
-								m("tr", [m("td", lang.get("action_label")), m("td.pl", entry.action)]),
-								m("tr", [m("td", lang.get("actor_label")), m("td.pl", entry.actorMailAddress)]),
-								m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")]),
-								m("tr", [
-									m("td", lang.get("modified_label")),
-									m(
-											"td.pl",
-											modifiedGroupInfo() && this._getGroupInfoDisplayText(modifiedGroupInfo())
-													? this._getGroupInfoDisplayText(modifiedGroupInfo())
-													: entry.modifiedEntity,
-									),
-								]),
-								groupInfo()
-										? m("tr", [
-											m("td", lang.get("group_label")),
-											m(
-													"td.pl",
-													customer.adminGroup === groupInfo().group
-															? lang.get("globalAdmin_label")
-															: this._getGroupInfoDisplayText(groupInfo()),
-											),
-										])
-										: null,
-								m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
+						m("table.pt", [
+							m("tr", [m("td", lang.get("action_label")), m("td.pl", entry.action)]),
+							m("tr", [m("td", lang.get("actor_label")), m("td.pl", entry.actorMailAddress)]),
+							m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")]),
+							m("tr", [
+								m("td", lang.get("modified_label")),
+								m(
+									"td.pl",
+									modifiedGroupInfo() && this._getGroupInfoDisplayText(modifiedGroupInfo())
+										? this._getGroupInfoDisplayText(modifiedGroupInfo())
+										: entry.modifiedEntity,
+								),
 							]),
+							groupInfoValue
+								? m("tr", [
+									m("td", lang.get("group_label")),
+									m(
+										"td.pl",
+										customer.adminGroup === groupInfoValue.group
+											? lang.get("globalAdmin_label")
+											: this._getGroupInfoDisplayText(groupInfoValue),
+									),
+								])
+								: null,
+							m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
+						]),
 				},
 				allowOkWithReturn: true,
 				okAction: () => dialog.close(),
@@ -500,11 +495,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								main: domainInfo.domain,
 								info: [domainDnsStatus.getDnsStatusInfo()],
 								click:
-										domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
-												? () => {
-													showDnsCheckDialog(domainDnsStatus)
-												}
-												: noOp,
+									domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
+										? () => {
+											showDnsCheckDialog(domainDnsStatus)
+										}
+										: noOp,
 							},
 							{
 								main: catchAllGroupName,
@@ -514,35 +509,35 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							label: "action_label" as const,
 							icon: () => Icons.More,
 							click: createDropdown(
-									() => {
+								() => {
 
-										const buttons: DropdownChildAttrs[] = [
-											{
-												type: ButtonType.Dropdown,
-												label: "setCatchAllMailbox_action",
-												click: () => this._editCatchAllMailbox(domainInfo),
-											},
-											{
-												type: ButtonType.Dropdown,
-												label: "delete_action",
-												click: () => this._deleteCustomDomain(domainInfo),
-											}
-										]
-
-										if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
-											buttons.unshift({
-												type: ButtonType.Dropdown,
-												label: "resumeSetup_label",
-												click: () => {
-													showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
-														domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
-													})
-												},
-											})
+									const buttons: DropdownChildAttrs[] = [
+										{
+											type: ButtonType.Dropdown,
+											label: "setCatchAllMailbox_action",
+											click: () => this._editCatchAllMailbox(domainInfo),
+										},
+										{
+											type: ButtonType.Dropdown,
+											label: "delete_action",
+											click: () => this._deleteCustomDomain(domainInfo),
 										}
-										return buttons
-									},
-									260,
+									]
+
+									if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
+										buttons.unshift({
+											type: ButtonType.Dropdown,
+											label: "resumeSetup_label",
+											click: () => {
+												showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
+													domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+												})
+											},
+										})
+									}
+									return buttons
+								},
+								260,
 							),
 						},
 					}
@@ -557,58 +552,57 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	_editCatchAllMailbox(domainInfo: DomainInfo) {
 		showProgressDialog(
-				"pleaseWait_msg",
-				locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-					return loadEnabledTeamMailGroups(customer).then(teamMailGroups =>
-							loadEnabledUserMailGroups(customer).then(userMailGroups => {
-								let allMailGroups = teamMailGroups.concat(userMailGroups)
-								let options = [
-									{
-										name: lang.get("comboBoxSelectionNone_msg"),
-										value: null,
-									},
-								].concat(
-										allMailGroups.map(groupData => {
-											return {
-												name: groupData.displayName,
-												value: groupData.groupId,
-											}
-										}),
-								)
-								let selectedPromise = Promise.resolve(null) // default is no selection
-
-								if (domainInfo.catchAllMailGroup) {
-									// the catch all group may be a user group, so load the mail group in that case
-									selectedPromise = locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup).then(catchAllGroup => {
-										if (catchAllGroup.type === GroupType.User) {
-											return locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user)).then(user => {
-												return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
-											})
-										} else {
-											return domainInfo.catchAllMailGroup
-										}
-									})
+			"pleaseWait_msg",
+			locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+				return loadEnabledTeamMailGroups(customer).then(teamMailGroups =>
+					loadEnabledUserMailGroups(customer).then(userMailGroups => {
+						let allMailGroups = teamMailGroups.concat(userMailGroups)
+						const options = [
+							{
+								name: lang.get("comboBoxSelectionNone_msg"),
+								value: null,
+							},
+							...allMailGroups.map(groupData => {
+								return {
+									name: groupData.displayName,
+									value: groupData.groupId,
 								}
+							})
+						]
+						let selectedPromise: Promise<unknown> = Promise.resolve(null) // default is no selection
 
-								return selectedPromise.then(catchAllMailGroupId => {
-									let selected = allMailGroups.find(g => g.groupId === catchAllMailGroupId)
-									return {
-										available: options,
-										selected: selected,
-									}
-								})
-							}),
-					)
-				}),
+						if (domainInfo.catchAllMailGroup) {
+							// the catch all group may be a user group, so load the mail group in that case
+							selectedPromise = locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup).then(catchAllGroup => {
+								if (catchAllGroup.type === GroupType.User) {
+									return locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user)).then(user => {
+										return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+									})
+								} else {
+									return domainInfo.catchAllMailGroup
+								}
+							})
+						}
+
+						return selectedPromise.then(catchAllMailGroupId => {
+							let selected = allMailGroups.find(g => g.groupId === catchAllMailGroupId)
+							return {
+								available: options,
+								selected: selected,
+							}
+						})
+					}),
+				)
+			}),
 		).then(availableAndSelectedGroupDatas => {
 			const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 			return Dialog.showDropDownSelectionDialog(
-					"setCatchAllMailbox_action",
-					"catchAllMailbox_label",
-					null,
-					availableAndSelectedGroupDatas.available,
-					valueStream,
-					250,
+				"setCatchAllMailbox_action",
+				"catchAllMailbox_label",
+				null,
+				availableAndSelectedGroupDatas.available,
+				valueStream,
+				250,
 			).then(selectedMailGroupId => {
 				return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 			})
@@ -617,34 +611,34 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	_deleteCustomDomain(domainInfo: DomainInfo) {
 		Dialog.confirm(() =>
-				lang.get("confirmCustomDomainDeletion_msg", {
-					"{domain}": domainInfo.domain,
-				}),
+			lang.get("confirmCustomDomainDeletion_msg", {
+				"{domain}": domainInfo.domain,
+			}),
 		).then(confirmed => {
 			if (confirmed) {
 				locator.customerFacade
-						.removeDomain(domainInfo.domain)
-						.catch(
-								ofClass(PreconditionFailedError, e => {
-									let registrationDomains =
-											this._props() != null ? this._props().whitelabelRegistrationDomains.map(domainWrapper => domainWrapper.value) : []
+					   .removeDomain(domainInfo.domain)
+					   .catch(
+						   ofClass(PreconditionFailedError, e => {
+							   let registrationDomains =
+								   this._props() != null ? this._props().whitelabelRegistrationDomains.map(domainWrapper => domainWrapper.value) : []
 
-									if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-										Dialog.message(() =>
-												lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {
-													"{domainName}": domainInfo.domain,
-												}),
-										)
-									} else {
-										Dialog.message(() =>
-												lang.get("customDomainDeletePreconditionFailed_msg", {
-													"{domainName}": domainInfo.domain,
-												}),
-										)
-									}
-								}),
-						)
-						.catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
+							   if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
+								   Dialog.message(() =>
+									   lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {
+										   "{domainName}": domainInfo.domain,
+									   }),
+								   )
+							   } else {
+								   Dialog.message(() =>
+									   lang.get("customDomainDeletePreconditionFailed_msg", {
+										   "{domainName}": domainInfo.domain,
+									   }),
+								   )
+							   }
+						   }),
+					   )
+					   .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 			}
 		})
 	}
