@@ -9,24 +9,16 @@ import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
 /**
  * @return True if the group has been created.
  */
-export function createInitialTemplateListIfAllowed(): Promise<TemplateGroupRoot | null> {
-    return logins
-        .getUserController()
-        .loadCustomer()
-        .then(customer => {
-            return (
-                isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
-                showBusinessFeatureRequiredDialog("businessFeatureRequiredTemplates_msg")
-            )
-        })
-        .then(allowed => {
-            if (allowed) {
-                return locator.groupManagementFacade.createTemplateGroup("")
-            }
-        })
-        .then(groupId => {
-            if (groupId) {
-                return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
-            }
-        })
+export async function createInitialTemplateListIfAllowed(): Promise<TemplateGroupRoot | null> {
+	const customer = await logins.getUserController().loadCustomer()
+	const allowed = (
+		isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) ||
+		await showBusinessFeatureRequiredDialog("businessFeatureRequiredTemplates_msg")
+	)
+	if (allowed) {
+		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
+		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
+	} else {
+		return null
+	}
 }

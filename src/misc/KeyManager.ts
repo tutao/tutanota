@@ -4,7 +4,7 @@ import {BrowserType} from "./ClientConstants"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import {mod} from "@tutao/tutanota-utils/lib/MathUtils"
+import {mod} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
@@ -44,7 +44,7 @@ export interface Shortcut {
 
 export function focusPrevious(dom: HTMLElement): boolean {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
-			e => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1) as HTMLElement[]// also filter for tabIndex here to restrict tabbing to invisible inputs
+		e => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1) as HTMLElement[]// also filter for tabIndex here to restrict tabbing to invisible inputs
 
 	let selected = tabbable.find(e => document.activeElement === e)
 
@@ -54,9 +54,9 @@ export function focusPrevious(dom: HTMLElement): boolean {
 		const selection = window.getSelection()
 
 		if (
-				selection &&
-				selection.focusNode &&
-				(selection.focusNode.nodeName === "LI" || (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))
+			selection &&
+			selection.focusNode &&
+			(selection.focusNode.nodeName === "LI" || (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))
 		) {
 			return true //dont change selection if selection is in list
 		} else {
@@ -82,9 +82,9 @@ export function focusNext(dom: HTMLElement): boolean {
 		const selection = window.getSelection()
 
 		if (
-				selection &&
-				selection.focusNode &&
-				(selection.focusNode.nodeName === "LI" || (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))
+			selection &&
+			selection.focusNode &&
+			(selection.focusNode.nodeName === "LI" || (selection.focusNode.parentNode && selection.focusNode.parentNode.nodeName === "LI"))
 		) {
 			return true //dont change selection
 		} else {
@@ -100,11 +100,11 @@ export function focusNext(dom: HTMLElement): boolean {
 }
 
 function createKeyIdentifier(
-		keycode: number,
-		ctrl?: boolean,
-		alt?: boolean,
-		shift?: boolean,
-		meta?: boolean,
+	keycode: number,
+	ctrl?: boolean,
+	alt?: boolean,
+	shift?: boolean,
+	meta?: boolean,
 ): string {
 	return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 }
@@ -145,15 +145,15 @@ class KeyManager {
 
 		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 			if (
-					shortcut.exec({
-						keyCode,
-						key: e.key,
-						ctrl: e.ctrlKey,
-						// @ts-ignore
-						alt: e.altKey,
-						shift: e.shiftKey,
-						meta: e.metaKey,
-					}) !== true
+				shortcut.exec({
+					keyCode,
+					key: e.key,
+					ctrl: e.ctrlKey,
+					// @ts-ignore
+					alt: e.altKey,
+					shift: e.shiftKey,
+					meta: e.metaKey,
+				}) !== true
 			) {
 				e.preventDefault()
 			}
@@ -178,9 +178,9 @@ class KeyManager {
 		// when the top dialog changes, leading to a situation where
 		// modalshortcuts is empty.
 		const shortcutsToShow =
-				this._keyToModalShortcut.size > 1 && !forceBaseShortcuts
-						? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
-						: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
+			this._keyToModalShortcut.size > 1 && !forceBaseShortcuts
+				? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
+				: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
 		import("../gui/dialogs/ShortcutDialog.js").then(({showShortcutDialog}) => showShortcutDialog(shortcutsToShow)).then(() => (this._isHelpOpen = false))
 	}
 

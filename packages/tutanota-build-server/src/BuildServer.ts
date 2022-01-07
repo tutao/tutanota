@@ -60,7 +60,7 @@ export class BuildServer {
 	private builderConfig
 	private socketServer
 	private bundleWrappers
-	private devServer: DevServer
+	private devServer: DevServer | null
 	private logStream
 
 	/**
@@ -81,6 +81,8 @@ export class BuildServer {
 		this.watchers = new Watchers()
 		this.socketPath = path.join(this.buildServerConfig.directory, SOCKET)
 		this.logFilePath = path.join(this.buildServerConfig.directory, LOGFILE)
+		this.devServer = null
+
 	}
 
 	/**
@@ -98,11 +100,11 @@ export class BuildServer {
 		}
 
 		this.socketServer = createServer(this.connectionListener.bind(this))
-				.listen(this.socketPath)
-				.on("connection", socket => {
-					this.serverSocket = socket
-					this.log("Client connected to build server")
-				})
+			.listen(this.socketPath)
+			.on("connection", socket => {
+				this.serverSocket = socket
+				this.log("Client connected to build server")
+			})
 		this.log("Build server listening on ", this.socketPath)
 
 		this.startDevServer()
@@ -142,9 +144,9 @@ export class BuildServer {
 
 	private async connectionListener(socket) {
 		socket
-				.on("data", data => this.onData(data, (...args) => this.logTee(args)))
-				.on("error", data => this.onError(data, (...args) => this.logTee(args)))
-				.on("close", data => this.onClose(data, (...args) => this.logTee(args)))
+			.on("data", data => this.onData(data, (...args) => this.logTee(args)))
+			.on("error", data => this.onError(data, (...args) => this.logTee(args)))
+			.on("close", data => this.onClose(data, (...args) => this.logTee(args)))
 	}
 
 	/**
@@ -160,10 +162,10 @@ export class BuildServer {
 		}
 
 		this.serverSocket.write(
-				JSON.stringify({
-					status,
-					message,
-				}) + MESSAGE_SEPARATOR,
+			JSON.stringify({
+				status,
+				message,
+			}) + MESSAGE_SEPARATOR,
 		)
 	}
 
@@ -193,11 +195,11 @@ export class BuildServer {
 
 	private async setupWatchers(log) {
 		this.watchers.start(
-				log,
-				this.buildServerConfig.watchFolders,
-				(event, path) => this.onSrcDirChanged(event, path, log),
-				this.buildServerConfig.builderPath,
-				this.onBuilderChanged.bind(this),
+			log,
+			this.buildServerConfig.watchFolders,
+			(event, path) => this.onSrcDirChanged(event, path, log),
+			this.buildServerConfig.builderPath,
+			this.onBuilderChanged.bind(this),
 		)
 	}
 
@@ -220,7 +222,7 @@ export class BuildServer {
 	}
 
 	private async generateBundles() {
-		const result = []
+		const result: any[] = []
 
 		if (this.bundleWrappers && Array.isArray(this.bundleWrappers)) {
 			for (const wrapper of this.bundleWrappers) {
@@ -270,9 +272,9 @@ export class BuildServer {
 
 				if (!this.builderConfig || !this.isSameConfig(newConfig, this.builderConfig)) {
 					log(
-							`Config has changed, rebuilding old: ${JSON.stringify(
-									this.builderConfig,
-							)}, new: ${JSON.stringify(newConfig)}`,
+						`Config has changed, rebuilding old: ${JSON.stringify(
+							this.builderConfig,
+						)}, new: ${JSON.stringify(newConfig)}`,
 					)
 					this.bundleWrappers = null
 					this.builderConfig = newConfig
@@ -333,13 +335,15 @@ export class BuildServer {
 	}
 
 	private startDevServer() {
-		this.devServer = new DevServer(
+		if (this.buildServerConfig.webRoot != null && this.buildServerConfig.devServerPort != null) {
+			this.devServer = new DevServer(
 				this.buildServerConfig.webRoot,
-				this.buildServerConfig.spaRedirect,
+				this.buildServerConfig.spaRedirect ?? true,
 				this.buildServerConfig.devServerPort,
 				this.logTee.bind(this),
-		)
-		this.devServer.start()
+			)
+			this.devServer.start()
+		}
 	}
 
 	private async initLog() {

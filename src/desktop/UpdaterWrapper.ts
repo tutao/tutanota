@@ -1,4 +1,3 @@
-//@flow
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
@@ -51,7 +50,8 @@ const fakeAutoUpdater = new class {
 		return Promise.resolve([])
 	}
 
-	quitAndInstall() {}
+	quitAndInstall() {
+	}
 
 	checkForUpdates() {
 		// Never resolved, return type is too complex

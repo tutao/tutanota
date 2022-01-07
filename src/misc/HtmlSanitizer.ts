@@ -1,4 +1,4 @@
-import DOMPurify, {DOMPurifyI} from "dompurify"
+import DOMPurify, {Config, DOMPurifyI, HookEvent} from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
 import {client} from "./ClientDetector"
 import {downcast} from "@tutao/tutanota-utils"
@@ -43,14 +43,14 @@ const ADD_URI_SAFE_ATTR = ["poster"] as const
 // prevent loading of external fonts,
 const FORBID_TAGS = ["style"] as const
 
-const HTML_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined } = {
+const HTML_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
 	ADD_ATTR,
 	// @ts-ignore This should be in the type definition, but it isn't
 	ADD_URI_SAFE_ATTR,
 	FORBID_TAGS,
 } as const
 
-const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined } = {
+const SVG_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
 	ADD_ATTR,
 	// @ts-ignore This should be in the type definition, but it isn't
 	ADD_URI_SAFE_ATTR,
@@ -58,12 +58,12 @@ const SVG_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT?: undefined, RETURN_D
 	NAMESPACE: "http://www.w3.org/2000/svg"
 } as const
 
-const FRAGMENT_CONFIG: DOMPurify.Config & { RETURN_DOM_FRAGMENT: true } = {
+const FRAGMENT_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT: true} = {
 	ADD_ATTR,
 	// @ts-ignore This should be in the type definition, but it isn't
 	ADD_URI_SAFE_ATTR,
 	FORBID_TAGS,
-	RETURN_FRAGMENT: true,
+	RETURN_DOM_FRAGMENT: true,
 	ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
 } as const
 
@@ -87,7 +87,7 @@ export class HtmlSanitizer {
 	 * Sanitizes the given html. Returns as HTML
 	 */
 	sanitizeHTML(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizeResult {
-		const config = this.init(HTML_CONFIG, configExtra)
+		const config = this.init(HTML_CONFIG, configExtra ?? {})
 		const cleanHtml = this.purifier.sanitize(html, config)
 		return {
 			text: cleanHtml,
@@ -96,11 +96,12 @@ export class HtmlSanitizer {
 			links: this.links,
 		}
 	}
+
 	/**
 	 * Sanitizes the given SVG. Returns as SVG
 	 */
 	sanitizeSVG(svg: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizeResult {
-		const config = this.init(SVG_CONFIG, configExtra)
+		const config = this.init(SVG_CONFIG, configExtra ?? {})
 		const cleanSvg = this.purifier.sanitize(svg, config)
 		return {
 			text: cleanSvg,
@@ -114,7 +115,7 @@ export class HtmlSanitizer {
 	 * Sanitizes given HTML. Returns a DocumentFragment instead of an HTML string
 	 */
 	sanitizeFragment(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizedHTML {
-		const config = this.init(FRAGMENT_CONFIG, configExtra)
+		const config = this.init(FRAGMENT_CONFIG, configExtra ?? {})
 		const cleanFragment = this.purifier.sanitize(html, config)
 		return {
 			html: cleanFragment,
@@ -131,7 +132,7 @@ export class HtmlSanitizer {
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
 	}
 
-	private afterSanitizeAttributes(currentNode, data, config) {
+	private afterSanitizeAttributes(currentNode: Element, data: HookEvent, config: SanitizeConfig) {
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 		// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
 		let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
@@ -142,7 +143,7 @@ export class HtmlSanitizer {
 			for (let i = cl.length - 1; i >= 0; i--) {
 				const item = cl.item(i)
 
-				if (allowedClasses.indexOf(item) === -1) {
+				if (item && allowedClasses.indexOf(item) === -1) {
 					cl.remove(item)
 				}
 			}
@@ -258,8 +259,8 @@ export class HtmlSanitizer {
 		// set target="_blank" for all links
 		// collect them
 		if (
-				currentNode.tagName &&
-				(currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase() === "area" || currentNode.tagName.toLowerCase() === "form")
+			currentNode.tagName &&
+			(currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase() === "area" || currentNode.tagName.toLowerCase() === "form")
 		) {
 			const href = currentNode.getAttribute("href")
 			href && this.links.push(currentNode)

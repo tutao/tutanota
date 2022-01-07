@@ -17,17 +17,17 @@ export interface BuildServerClientOptions {
 	forceRestart: boolean,
 	builderPath: string,
 	watchFolders: any,
-	devServerPort: number,
-	webRoot: string,
-	spaRedirect: boolean,
-	preserveLogs: boolean,
+	devServerPort?: number,
+	webRoot?: string,
+	spaRedirect?: boolean,
+	preserveLogs?: boolean,
 	autoRebuild: boolean,
 }
 
-export interface BuildOptions{
+export interface BuildOptions {
 	clean: boolean,
-	stage: string,
-	host: string
+	stage: string | null,
+	host: string | null
 }
 
 /**
@@ -67,10 +67,10 @@ export class BuildServerClient {
 		this.config = new BuildServerConfig(
 				opts.builderPath,
 				opts.watchFolders,
-				opts.devServerPort,
-				opts.webRoot,
-				opts.spaRedirect,
-				opts.preserveLogs,
+				opts.devServerPort ?? null,
+				opts.webRoot ?? null,
+				opts.spaRedirect ?? null,
+				opts.preserveLogs ?? null,
 				this.getBuildServerDirectory(),
 				opts.autoRebuild,
 		)
@@ -128,7 +128,7 @@ export class BuildServerClient {
 					const serverMessages = this.parseServerMessages(data)
 
 					if (serverMessages.length > 1 || serverMessages[0].status !== BuildServerStatus.CONFIG) {
-						console.log("Received an unexpected reply from the server, ignoring it ...")
+						console.log("Received an unexpected reply from the server, ignoring it ...", serverMessages)
 
 						/** We might get output from an earlier build command here that was working against the same build server instance
 						 *  We simply ignore any output here, until we get a reply to the BuildServerCommand.CONFIG request
@@ -137,7 +137,7 @@ export class BuildServerClient {
 					}
 
 					if (!this.config.equals(serverMessages[0].message)) {
-						console.log("Build server is already running, but uses different configuration, restarting ...")
+						console.log("Build server is already running, but uses different configuration, restarting ...", JSON.stringify(this.config), JSON.stringify(serverMessages[0].message))
 						socket.removeAllListeners()
 						await this.restartServer()
 						resolve()
@@ -251,7 +251,7 @@ export class BuildServerClient {
 	 * @returns {[]} Array of objects that contain a status (String) and a message (String) by the server
 	 * @private
 	 */
-	private parseServerMessages(data) {
+	private parseServerMessages(data): any[] {
 		/*
 	The code here assumes that multiple writes to the socket by the server can be received at once, but
 	that no message by the server will be split across multiple calls of onData(). This might not be the case for large messages
@@ -259,7 +259,7 @@ export class BuildServerClient {
 	 */
 		const dataAsString = data.toString()
 		const messagesAsJSON = dataAsString.split(MESSAGE_SEPARATOR)
-		const messagesAsObjects = []
+		const messagesAsObjects: any[] = []
 		messagesAsJSON.forEach(message => {
 			try {
 				if (message.length > 1) {

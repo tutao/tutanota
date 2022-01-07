@@ -60,9 +60,8 @@ export async function pMap<Element, NewElement>(
             )
         }
 
-        const result = []
+        const result: NewElement[] = []
         const errors = []
-        // $FlowIssue[incompatible-use]
         const iterator = iterable[Symbol.iterator]()
         let isRejected = false
         let isIterableDone = false

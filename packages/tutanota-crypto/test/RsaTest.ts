@@ -36,7 +36,7 @@ o.spec("rsa", function () {
 	/**
 	 * Reuse the key pair to save time
 	 */
-	let _keyPair
+	let _keyPair: RsaKeyPair
 
 	function _getKeyPair(): RsaKeyPair {
 		if (!_keyPair) {
@@ -65,7 +65,7 @@ o.spec("rsa", function () {
 		}
 	})
 	o("that hex keys have an even number of characters", function () {
-		let privateKey = []
+		let privateKey: any[] = []
 		privateKey.push(
 				parseBigInt(
 						"780377be21c903ecb8bf042e24b7d2860fd0da2c8d79aded94d2fe3bd89892ee161317529a7a011bb985899277bff28ba6b9a2ac7d63caccb5fa37a24e6faa2d69ed0b7ba10279a84172d3e00561d1efe234108dd4a3335da88483c282bb178af0168245c50330fcd988018e14962efbe8bca87bbc620945453c3b559f666472bb23447c6dea5591e89ec34f73e90702dca8837ba709e5065c6aaa12628a388e941174f0cd573935e5a80ec498031a4859101735e31b45765b9d071eac4b79b7a0cc859c5e035af853fce48fd848613ba4b3c09eb6b71a09f9dfc7ac1aaa50685f60e84f75afc3c0a13123136798aa328fe17397df2687d9d82f39121bb1ed01",
@@ -264,7 +264,7 @@ o.spec("rsa", function () {
 		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
 	})
 	o("test randomizer adapter", function (done) {
-		let a = []
+		let a: number[] = []
 		a.length = 100
 		let seed = new Uint8Array(a.length)
 		crypto.getRandomValues(seed)
@@ -279,13 +279,13 @@ o.spec("rsa", function () {
 			throw new CryptoError("test randomizer adapter")
 		}
 
-		let error: Error
+		let error: Error | null = null
 		try {
 			secureRandom.nextBytes([0])
 		} catch (e) {
 			error = e as Error
 		}
-		o(error.message).equals("test randomizer adapter")
+		o(error?.message).equals("test randomizer adapter")
 		o(error instanceof CryptoError).equals(true)
 		done()
 	})

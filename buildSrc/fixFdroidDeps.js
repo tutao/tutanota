@@ -13,7 +13,6 @@ const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 	"electron-notarize",
 	"electron-rebuild",
 	"express",
-	"flow-bin",
 	"request",
 	"chokidar",
 	"body-parser",

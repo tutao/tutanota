@@ -1,4 +1,3 @@
-import type {Class} from "global"
 import o from "ospec"
 
 /**
@@ -10,16 +9,16 @@ import o from "ospec"
  * @returns An object to be passed to unmockAttribute() in order to restore the original attribute.
  */
 export function mockAttribute(
-		object: Record<string, any>,
-		attributeOnObject: ((...args: Array<any>) => any) | Record<string, any>,
-		attributeMock: ((...args: Array<any>) => any) | Record<string, any>,
+	object: Record<string, any>,
+	attributeOnObject: ((...args: Array<any>) => any) | Record<string, any>,
+	attributeMock: ((...args: Array<any>) => any) | Record<string, any>,
 ): Record<string, any> {
 	if (attributeOnObject == null) throw new Error("attributeOnObject is undefined")
 	let attributeName = Object.getOwnPropertyNames(object).find(key => object[key] === attributeOnObject)
 
 	if (!attributeName) {
 		attributeName = Object.getOwnPropertyNames(Object.getPrototypeOf(object)).find(
-				key => object[key] === attributeOnObject,
+			key => object[key] === attributeOnObject,
 		)
 	}
 
@@ -44,7 +43,7 @@ export type Spy = ((...args: any) => any) & {
 }
 
 export function spy(producer?: (...args: any) => any): Spy {
-	const invocations = []
+	const invocations: any[][] = []
 
 	const s = (...args: any[]) => {
 		invocations.push(args)
@@ -86,12 +85,12 @@ export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg
 
 export function replaceAllMaps(toReplace: any): any {
 	return toReplace instanceof Map
-			? replaceAllMaps(mapToObject(toReplace))
-			: toReplace instanceof Array
-					? toReplace.map(replaceAllMaps)
-					: toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
-							? mapObject(replaceAllMaps, toReplace)
-							: toReplace
+		? replaceAllMaps(mapToObject(toReplace))
+		: toReplace instanceof Array
+			? toReplace.map(replaceAllMaps)
+			: toReplace != null && Object.getPrototypeOf(toReplace) === (Object as any).prototype // plain object
+				? mapObject(replaceAllMaps, toReplace)
+				: toReplace
 }
 
 /** Catch error and return either value or error */
@@ -104,7 +103,7 @@ export async function assertThrows<T extends Error>(expected: Class<T>, fn: () =
 		await fn()
 	} catch (e) {
 		o(e instanceof expected).equals(true)(
-				"AssertThrows failed: Expected a " + (expected as any) + " to be thrown, but got a " + e.constructor,
+			"AssertThrows failed: Expected a " + (expected as any) + " to be thrown, but got a " + e.constructor,
 		)
 		return e as T
 	}
@@ -114,7 +113,7 @@ export async function assertThrows<T extends Error>(expected: Class<T>, fn: () =
 
 export async function assertResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
 	const allP = [delay(ms).then(() => "timeout")].concat(
-			promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
+		promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
 	)
 	const result = await Promise.race(allP)
 	o(result).notEquals("timeout")
@@ -122,7 +121,7 @@ export async function assertResolvedIn(ms: number, ...promises: ReadonlyArray<Pr
 
 export async function assertNotResolvedIn(ms: number, ...promises: ReadonlyArray<Promise<any>>): Promise<any> {
 	const allP = [delay(ms).then(() => "timeout")].concat(
-			promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
+		promises.map((p, i) => p.then(() => `promise ${i} is resolved`)),
 	)
 	const result = await Promise.race(allP)
 	o(result).equals("timeout")

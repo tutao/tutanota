@@ -7,10 +7,8 @@ import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
-import {babelDesktopPlugins, bundleDependencyCheckPlugin} from "./RollupConfig.js"
+import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
-import {spawn, spawnSync} from "child_process"
-import flow_bin from "flow-bin"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -94,11 +92,11 @@ function debugModels() {
 		name: "debug-models",
 		resolveId(id) {
 			const imports = {
-				"../entities/base/baseModelMap": "src/api/entities/base/baseModelMapDebug.js",
-				"../entities/sys/sysModelMap": "src/api/entities/sys/sysModelMapDebug.js",
-				"../entities/tutanota/tutanotaModelMap": "src/api/entities/tutanota/tutanotaModelMapDebug.js",
-				"../entities/monitor/monitorModelMap": "src/api/entities/monitor/monitorModelMapDebug.js",
-				"../entities/accounting/accountingModelMap": "src/api/entities/accounting/accountingModelMapDebug.js",
+				"../entities/base/baseModelMap": "src/api/entities/base/baseModelMapDebug.ts",
+				"../entities/sys/sysModelMap": "src/api/entities/sys/sysModelMapDebug.ts",
+				"../entities/tutanota/tutanotaModelMap": "src/api/entities/tutanota/tutanotaModelMapDebug.ts",
+				"../entities/monitor/monitorModelMap": "src/api/entities/monitor/monitorModelMapDebug.ts",
+				"../entities/accounting/accountingModelMap": "src/api/entities/accounting/accountingModelMapDebug.ts",
 			}
 			return imports[id]
 		}
@@ -106,7 +104,7 @@ function debugModels() {
 }
 
 export async function preBuild({clean}, {}, log) {
-	await runFlowChecks(clean, log)
+	// await typecheck(clean, log)
 }
 
 export async function postBuild({clean}, {}, log) {
@@ -124,13 +122,14 @@ export async function build({desktop, stage, host, clean}, {devServerPort, watch
 	log("Bundling...")
 
 	const bundle = await nollup({
-		input: ["src/app.js", "src/api/worker/worker.js"],
-		plugins: rollupDebugPlugins(path.resolve("."))
-			.concat(devServerPort ? hmr({bundleId: '', hmrHost: `localhost:${devServerPort}`, verbose: true}) : [])
-			.concat(debugModels())
-			.concat(bundleDependencyCheckPlugin())
-			.concat(nodeResolve(
-				{preferBuiltins: true,}))
+		input: ["src/app.ts", "src/api/worker/worker.ts"],
+		plugins: [
+			debugModels(), // must be before typescript or it won't be able to pick it up
+			...rollupDebugPlugins(path.resolve("."), {outDir: "build"}),
+			devServerPort ? hmr({bundleId: '', hmrHost: `localhost:${devServerPort}`, verbose: true}) : false,
+			bundleDependencyCheckPlugin(),
+			nodeResolve({preferBuiltins: true})
+		]
 	})
 	const generateBundle = async () => {
 		log("Generating")
@@ -188,7 +187,7 @@ async function buildAndStartDesktop(log, version) {
 	const nodePreBundle = await nollup({
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
-			...rollupDebugPlugins(path.resolve("."), babelDesktopPlugins),
+			...rollupDebugPlugins(path.resolve(".")),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true,}),
@@ -213,7 +212,7 @@ async function buildAndStartDesktop(log, version) {
 	}
 
 	/**
-	 * the preload script is such a weird environment that trying to pipe it through flow, babel, rollup
+	 * the preload script is such a weird environment that trying to pipe it through typescript, nollup
 	 * without anything breaking is not worth it for the 3 lines of code it contains,
 	 * so it's just written in normal commonJS and copied over to be executed directly
 	 */
@@ -223,27 +222,4 @@ async function buildAndStartDesktop(log, version) {
 
 	log("Bundled desktop client")
 	return [nodeBundleWrapper]
-}
-
-function runFlowChecks(clean, log) {
-	if (clean) {
-		log("Called with --clean, stopping flow server")
-		spawnSync(flow_bin, ["stop"], {stdio: "pipe"})
-	}
-	log("Running flow checks")
-	return new Promise((resolve, reject) => {
-		const childProcess = spawn(flow_bin, ["--quiet"], {stdio: "pipe"})
-			.on("exit", (code) => {
-				if (code === 0) {
-					log("Flow checks ok")
-					resolve()
-				} else {
-					reject(new Error("Flow detected errors"))
-				}
-			})
-		childProcess.on("error", reject)
-		// capture any output from the flow process and forward it to the log() function
-		childProcess.stdout.on("data", (data) => log(data))
-		childProcess.stderr.on("data", (data) => log(data))
-	})
 }

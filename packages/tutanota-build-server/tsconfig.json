@@ -1,9 +1,11 @@
 {
   "extends": "../../tsconfig_common.json",
   "files": [
-	"src/index.ts"
+	"src/index.ts",
+	"src/BuildServerStarter.ts"
   ],
   "compilerOptions": {
-	"outDir": "dist"
+	"outDir": "dist",
+	"noImplicitAny": false
   }
 }

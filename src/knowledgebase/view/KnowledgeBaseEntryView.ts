@@ -21,7 +21,7 @@ type KnowledgeBaseEntryViewAttrs = {
  */
 export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewAttrs> {
 	_sanitizedEntry: (
-			arg0: KnowledgeBaseEntry,
+		arg0: KnowledgeBaseEntry,
 	) => {
 		content: string
 	}
@@ -63,27 +63,27 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			},
 		}
 		return m(
-				"",
-				{
-					onclick: event => {
-						this._handleAnchorClick(event, attrs)
-					},
+			"",
+			{
+				onclick: (event: MouseEvent) => {
+					this._handleAnchorClick(event, attrs)
 				},
-				[
-					m(
-							".flex.mt-l.center-vertically.selectable",
-							m(".h4.text-ellipsis", entry.title),
-							!readonly ? [m(".flex.flex-grow.justify-end", [m(ButtonN, editButtonAttrs), m(ButtonN, removeButtonAttrs)])] : null,
-					),
-					m("", [
-						m(".mt-s.flex.mt-s.wrap", [
-							entry.keywords.map(entryKeyword => {
-								return m(".keyword-bubble.selectable", entryKeyword.keyword)
-							}),
-						]),
-						m(".flex.flex-column.mt-s", [m(".editor-border.text-break.selectable", m.trust(this._sanitizedEntry(entry).content))]),
+			},
+			[
+				m(
+					".flex.mt-l.center-vertically.selectable",
+					m(".h4.text-ellipsis", entry.title),
+					!readonly ? [m(".flex.flex-grow.justify-end", [m(ButtonN, editButtonAttrs), m(ButtonN, removeButtonAttrs)])] : null,
+				),
+				m("", [
+					m(".mt-s.flex.mt-s.wrap", [
+						entry.keywords.map(entryKeyword => {
+							return m(".keyword-bubble.selectable", entryKeyword.keyword)
+						}),
 					]),
-				],
+					m(".flex.flex-column.mt-s", [m(".editor-border.text-break.selectable", m.trust(this._sanitizedEntry(entry).content))]),
+				]),
+			],
 		)
 	}
 

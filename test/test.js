@@ -1,7 +1,7 @@
-import child_process, {spawn} from "child_process"
+import child_process from "child_process"
 import {BuildServerClient} from "@tutao/tutanota-build-server"
-import flow from "flow-bin"
 import path from "path"
+import {build} from "./TestBuilder.js"
 
 run()
 
@@ -18,16 +18,14 @@ async function run() {
 	const clean = process.argv.includes("-c")
 
 
-	spawn(flow, ["--quiet"], {stdio: "inherit"})
-
 	try {
 		const buildServerClient = new BuildServerClient("test")
 		await buildServerClient.buildWithServer({
 			forceRestart: clean,
 			builderPath: path.resolve("TestBuilder.js"),
 			watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
-			buildOpts: {}
-		})
+			autoRebuild: false
+		}, {clean: false, stage: null, host: null})
 		console.log("build finished!")
 		const code = await runTest(project)
 		process.exit(code)
@@ -37,6 +35,11 @@ async function run() {
 	}
 }
 
+async function runBuildDirectly() {
+	const bundleWrappers = await build({clean: false, stage: null, host: null}, {}, console.log.bind(console))
+	await bundleWrappers[0].generate()
+}
+
 function runTest(project) {
 	return new Promise((resolve) => {
 		let testRunner = child_process.fork(`./build/bootstrapTests-${project}.js`)
@@ -44,10 +47,4 @@ function runTest(project) {
 			resolve(code)
 		})
 	})
-}
-
-async function directoryExists(filePath) {
-	return fs.stat(filePath)
-	         .then(stats => stats.isDirectory())
-	         .catch(() => false)
 }

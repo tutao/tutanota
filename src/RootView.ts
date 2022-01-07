@@ -28,7 +28,7 @@ export class RootView {
 		this.viewCache = {}
 
 		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
-		let onmousedown = e => {
+		let onmousedown: EventListener | null = (e: EventRedraw<MouseEvent>) => {
 			if (onmousedown) {
 				console.log("disabling outline")
 				styles.registerStyle("outline", () => ({
@@ -47,11 +47,11 @@ export class RootView {
 
 		this.view = (vnode): Children => {
 			return m(
-					"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
-					{
-						onmousedown,
-					},
-					[m(overlay), m(modal), vnode.children],
+				"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
+				{
+					onmousedown,
+				},
+				[m(overlay), m(modal), vnode.children],
 			)
 		}
 	}

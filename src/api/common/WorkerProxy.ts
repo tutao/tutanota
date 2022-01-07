@@ -16,12 +16,12 @@ type RequestSender<RequestTypes> = (arg0: Request<RequestTypes>) => Promise<any>
 export function exposeRemote<T>(requestSender: RequestSender<"facade">): T {
 	// Outer proxy is just used to generate individual facades
 	const workerProxy = new Proxy(
-			{},
-			{
-				get: (target: {}, property: string) => {
-					return facadeProxy(requestSender, property)
-				},
+		{},
+		{
+			get: (target: {}, property: string) => {
+				return facadeProxy(requestSender, property)
 			},
+		},
 	)
 	return downcast<T>(workerProxy)
 }
@@ -49,22 +49,22 @@ export function exposeLocal<T, IncomingRequestType>(impls: T): (message: Request
  */
 function facadeProxy(requestSender: RequestSender<"facade">, facadeName: string) {
 	return new Proxy(
-			{},
-			{
-				get: (target: {}, property: string) => {
-					// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system
-					// but runtime also tests for certain peroperties e.g. when returning a value from a promise it will try to test whether it
-					// is "promisable". It is doing so by checking whether there's a "then" function. So we explicitly say we don't have such
-					// a function.
-					if (property === "then") {
-						return undefined
-					} else {
-						return (...args) => {
-							const request = new Request("facade" as const, [facadeName, property, args])
-							return requestSender(request)
-						}
+		{},
+		{
+			get: (target: {}, property: string) => {
+				// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system
+				// but runtime also tests for certain peroperties e.g. when returning a value from a promise it will try to test whether it
+				// is "promisable". It is doing so by checking whether there's a "then" function. So we explicitly say we don't have such
+				// a function.
+				if (property === "then") {
+					return undefined
+				} else {
+					return (...args: any[]) => {
+						const request = new Request("facade" as const, [facadeName, property, args])
+						return requestSender(request)
 					}
-				},
+				}
 			},
+		},
 	)
 }

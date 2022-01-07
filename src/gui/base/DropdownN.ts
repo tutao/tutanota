@@ -10,7 +10,7 @@ import {ButtonN} from "./ButtonN"
 import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {lang} from "../../misc/LanguageViewModel"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import type {PosRect} from "./Dropdown"
 import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -30,7 +30,7 @@ export type DropdownInfoAttrs = {
 	bold: boolean
 }
 
-export type DropdownButtonAttrs = Omit<ButtonAttrs, "click"> & { click?: clickHandler }
+export type DropdownButtonAttrs = Omit<ButtonAttrs, "click"> & {click?: clickHandler}
 
 /**
  * Renders small info message inside the dropdown.
@@ -93,105 +93,106 @@ export class DropdownN {
 
 		const _inputField = () => {
 			return this._isFilterable
-					? m(
-							"input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
-							{
-								placeholder: lang.get("typeToFilter_label"),
-								oncreate: vnode => {
-									this._domInput = downcast<HTMLInputElement>(vnode.dom)
-									this._domInput.value = this._filterString()
-								},
-								oninput: e => {
-									this._filterString(this._domInput.value)
-								},
-								style: {
-									paddingLeft: px(size.hpad_large * 2),
-									paddingRight: px(size.hpad_small),
-									width: px(this._width - size.hpad_large),
-									top: 0,
-									height: px(size.button_height),
-									left: 0,
-								},
-							},
-							this._filterString(),
-					)
-					: null
+				? m(
+					"input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs",
+					{
+						placeholder: lang.get("typeToFilter_label"),
+						oncreate: vnode => {
+							this._domInput = downcast<HTMLInputElement>(vnode.dom)
+							this._domInput.value = this._filterString()
+						},
+						oninput: () => {
+							this._filterString(this._domInput.value)
+						},
+						style: {
+							paddingLeft: px(size.hpad_large * 2),
+							paddingRight: px(size.hpad_small),
+							width: px(this._width - size.hpad_large),
+							top: 0,
+							height: px(size.button_height),
+							left: 0,
+						},
+					},
+					this._filterString(),
+				)
+				: null
 		}
 
 		const _contents = () => {
 			return m(
-					".dropdown-content.plr-l.scroll.abs",
-					{
-						oncreate: vnode => {
-							this._domContents = vnode.dom as HTMLElement
-							window.requestAnimationFrame(() => {
-								const active = document.activeElement as HTMLElement | null
-								if (active && typeof active.blur === "function") {
-									active.blur()
-								}
-							})
-						},
-						onupdate: vnode => {
-							if (this._maxHeight == null) {
-								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-								this._maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
-
-								if (this.origin) {
-									// The dropdown-content element is added to the dom has a hidden element first.
-									// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
-									// show the dropdown.
-									// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-									showDropdown(this.origin, this._domDropdown, this._maxHeight, this._width).then(() => {
-										if (this._domInput && !client.isMobileDevice()) {
-											this._domInput.focus()
-										} else {
-											const button = vnode.dom.querySelector("button")
-											button && button.focus()
-										}
-									})
-								}
+				".dropdown-content.plr-l.scroll.abs",
+				{
+					oncreate: vnode => {
+						this._domContents = vnode.dom as HTMLElement
+						window.requestAnimationFrame(() => {
+							const active = document.activeElement as HTMLElement | null
+							if (active && typeof active.blur === "function") {
+								active.blur()
 							}
-						},
-						onscroll: ev => {
-							// needed here to prevent flickering on ios
-							ev.redraw = ev.target.scrollTop < 0 && ev.target.scrollTop + this._domContents.offsetHeight > ev.target.scrollHeight
-						},
-						style: {
-							// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
-							// animation.
-							width: px(this._width),
-							top: px(this._getFilterHeight()),
-							bottom: 0,
-						},
+						})
 					},
-					this._visibleChildren().map(child => {
-						if (isDropDownInfo(child)) {
-							return m(DropdownInfo, downcast<DropdownInfoAttrs>(child))
-						} else if ("href" in child) {
-							return m(ButtonN, downcast<ButtonAttrs>(child))
-						} else {
-							return m(NavButtonN, downcast<NavButtonAttrs>(child))
+					onupdate: vnode => {
+						if (this._maxHeight == null) {
+							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
+							this._maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+
+							if (this.origin) {
+								// The dropdown-content element is added to the dom has a hidden element first.
+								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
+								// show the dropdown.
+								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
+								showDropdown(this.origin, this._domDropdown, this._maxHeight, this._width).then(() => {
+									if (this._domInput && !client.isMobileDevice()) {
+										this._domInput.focus()
+									} else {
+										const button = vnode.dom.querySelector("button")
+										button && button.focus()
+									}
+								})
+							}
 						}
-					}),
+					},
+					onscroll: (ev: EventRedraw<Event>) => {
+						const target = ev.target as HTMLElement
+						// needed here to prevent flickering on ios
+						ev.redraw = target.scrollTop < 0 && target.scrollTop + this._domContents.offsetHeight > target.scrollHeight
+					},
+					style: {
+						// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
+						// animation.
+						width: px(this._width),
+						top: px(this._getFilterHeight()),
+						bottom: 0,
+					},
+				},
+				this._visibleChildren().map(child => {
+					if (isDropDownInfo(child)) {
+						return m(DropdownInfo, downcast<DropdownInfoAttrs>(child))
+					} else if ("href" in child) {
+						return m(ButtonN, downcast<ButtonAttrs>(child))
+					} else {
+						return m(NavButtonN, downcast<NavButtonAttrs>(child))
+					}
+				}),
 			)
 		}
 
 		this.view = (): Children => {
 			return m(
-					".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow",
-					{
-						oncreate: vnode => {
-							this._domDropdown = vnode.dom as HTMLElement
-							// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
-							this._domDropdown.style.opacity = "0"
-						},
-						onkeypress: e => {
-							if (this._domInput) {
-								this._domInput.focus()
-							}
-						},
+				".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow",
+				{
+					oncreate: vnode => {
+						this._domDropdown = vnode.dom as HTMLElement
+						// It is important to set initial opacity so that user doesn't see it with full opacity before animating.
+						this._domDropdown.style.opacity = "0"
 					},
-					[_inputField(), _contents()],
+					onkeypress: () => {
+						if (this._domInput) {
+							this._domInput.focus()
+						}
+					},
+				},
+				[_inputField(), _contents()],
 			)
 		}
 	}
@@ -204,7 +205,7 @@ export class DropdownN {
 		}
 	}
 
-	wrapVisible(fn: (() => boolean) | null, label: string): () => boolean {
+	wrapVisible(fn: (() => boolean) | undefined, label: string): () => boolean {
 		return () => {
 			return (fn instanceof Function ? fn() : true) && label.toLowerCase().includes(this._filterString().toLowerCase())
 		}
@@ -212,9 +213,9 @@ export class DropdownN {
 
 	backgroundClick(e: MouseEvent) {
 		if (
-				this._domDropdown &&
-				!(e.target as any).classList.contains("doNotClose") &&
-				(this._domDropdown.contains(e.target as any) || this._domDropdown.parentNode === e.target)
+			this._domDropdown &&
+			!(e.target as any).classList.contains("doNotClose") &&
+			(this._domDropdown.contains(e.target as any) || this._domDropdown.parentNode === e.target)
 		) {
 			modal.remove(this)
 		}
@@ -279,7 +280,7 @@ export class DropdownN {
 
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
 		let matchingButton =
-				visibleElements.length === 1 ? visibleElements[0] : visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
+			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
 		if (document.activeElement === this._domInput && matchingButton && matchingButton.click) {
 			const click = matchingButton.click
@@ -364,10 +365,10 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
  * executes the original onclick if showDropdown returns false
  */
 export function attachDropdown(
-		mainButtonAttrs: DropdownButtonAttrs,
-		childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-		showDropdown: lazy<boolean> = () => true,
-		width?: number,
+	mainButtonAttrs: DropdownButtonAttrs,
+	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	showDropdown: lazy<boolean> = () => true,
+	width?: number,
 ): ButtonAttrs {
 	const oldClick = mainButtonAttrs.click
 	return Object.assign({}, mainButtonAttrs, {
@@ -385,7 +386,7 @@ export function attachDropdown(
 
 export const DROPDOWN_MARGIN = 4
 
-export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number): Promise<void> {
+export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number): Promise<unknown> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
 	// |      |-------|   |    |  |-------|       |    |  |-----------|   |    |  |-----------|   |

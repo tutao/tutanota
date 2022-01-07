@@ -1,17 +1,17 @@
-import m, {Children, Vnode} from "mithril"
-import stream from "mithril/stream/stream.js"
+import m, {ChildArray, ChildArrayOrPrimitive, Children, Vnode} from "mithril"
+import stream from "mithril/stream"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, mapNullable} from "@tutao/tutanota-utils"
+import {assertNotNull, defer, mapNullable} from "@tutao/tutanota-utils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonAttrs, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {header} from "../gui/base/Header"
+import {CurrentView, header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
 import {DisplayMode, LoginState} from "./LoginViewModel"
@@ -24,8 +24,8 @@ import type {clickHandler} from "../gui/base/GuiUtils"
 
 assertMainOrNode()
 
-export class LoginView {
-	readonly view: (vnode: Vnode) => Children
+export class LoginView implements CurrentView {
+	readonly view: (vnode: Vnode<unknown>) => Children
 	readonly _viewModel: ILoginViewModel
 	readonly _moreExpanded: stream<boolean>
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
@@ -46,47 +46,47 @@ export class LoginView {
 		this._moreExpanded = stream(false)
 		let bottomMargin = 0
 
-		const keyboardListener = keyboardSize => {
+		const keyboardListener = (keyboardSize: number) => {
 			bottomMargin = keyboardSize
 			m.redraw()
 		}
 
 		this.view = (): Children => {
 			return m(
-					"#login-view.main-view.flex.col",
-					{
-						oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
-						onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
-						style: {
-							marginBottom: bottomMargin + "px",
-						},
+				"#login-view.main-view.flex.col",
+				{
+					oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
+					onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
+					style: {
+						marginBottom: bottomMargin + "px",
 					},
-					[
-						m(header),
+				},
+				[
+					m(header),
+					m(
+						".flex-grow.flex-center.scroll",
 						m(
-								".flex-grow.flex-center.scroll",
-								m(
-										".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
-										{
-											oncreate: vnode => {
-												(vnode.dom as HTMLElement).focus()
-											},
-											style: {
-												// width: workaround for IE11 which does not center the area, otherwise
-												width: client.isDesktopDevice() ? "360px" : null,
-											},
-										},
-										[
-											this._viewModel.displayMode === DisplayMode.Credentials || this._viewModel.displayMode === DisplayMode.DeleteCredentials
-													? this._renderCredentialsSelector()
-													: this._renderLoginForm(),
-											!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
-											this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
-											!isApp() ? renderPrivacyAndImprintLinks() : null,
-										],
-								),
+							".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
+							{
+								oncreate: vnode => {
+									(vnode.dom as HTMLElement).focus()
+								},
+								style: {
+									// width: workaround for IE11 which does not center the area, otherwise
+									width: client.isDesktopDevice() ? "360px" : null,
+								},
+							},
+							[
+								this._viewModel.displayMode === DisplayMode.Credentials || this._viewModel.displayMode === DisplayMode.DeleteCredentials
+									? this._renderCredentialsSelector()
+									: this._renderLoginForm(),
+								!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
+								this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
+								!isApp() ? renderPrivacyAndImprintLinks() : null,
+							],
 						),
-					],
+					),
+				],
 			)
 		}
 	}
@@ -94,67 +94,67 @@ export class LoginView {
 	_renderOptionsExpander(): Children {
 		return [
 			m(
-					".flex-center.pt-l",
-					m(ExpanderButtonN, {
-						label: "more_label",
-						expanded: this._moreExpanded,
-					}),
+				".flex-center.pt-l",
+				m(ExpanderButtonN, {
+					label: "more_label",
+					expanded: this._moreExpanded,
+				}),
 			),
 			m(
-					ExpanderPanelN,
-					{
-						expanded: this._moreExpanded,
-					},
-					[
-						m(".flex-center.flex-column", [
-							this._loginAnotherLinkVisible()
-									? m(ButtonN, {
-										label: "loginOtherAccount_action",
-										type: ButtonType.Secondary,
-										click: () => {
-											this._viewModel.showLoginForm()
-										},
-									})
-									: null,
-							this._deleteCredentialsLinkVisible()
-									? m(ButtonN, {
-										label: this._viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
-										type: ButtonType.Secondary,
-										click: () => this._switchDeleteCredentialsState(),
-									})
-									: null,
-							this._knownCredentialsLinkVisible()
-									? m(ButtonN, {
-										label: "knownCredentials_label",
-										type: ButtonType.Secondary,
-										click: () => this._viewModel.showCredentials(),
-									})
-									: null,
-							this._signupLinkVisible()
-									? m(ButtonN, {
-										label: "register_label",
-										type: ButtonType.Secondary,
-										click: () => m.route.set("/signup"),
-									})
-									: null,
-							this._switchThemeLinkVisible()
-									? m(ButtonN, {
-										label: "switchColorTheme_action",
-										type: ButtonType.Secondary,
-										click: this.themeSwitchListener(),
-									})
-									: null,
-							this._recoverLoginVisible()
-									? m(ButtonN, {
-										label: "recoverAccountAccess_action",
-										click: () => {
-											m.route.set("/recover")
-										},
-										type: ButtonType.Secondary,
-									})
-									: null,
-						]),
-					],
+				ExpanderPanelN,
+				{
+					expanded: this._moreExpanded,
+				},
+				[
+					m(".flex-center.flex-column", [
+						this._loginAnotherLinkVisible()
+							? m(ButtonN, {
+								label: "loginOtherAccount_action",
+								type: ButtonType.Secondary,
+								click: () => {
+									this._viewModel.showLoginForm()
+								},
+							})
+							: null,
+						this._deleteCredentialsLinkVisible()
+							? m(ButtonN, {
+								label: this._viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+								type: ButtonType.Secondary,
+								click: () => this._switchDeleteCredentialsState(),
+							})
+							: null,
+						this._knownCredentialsLinkVisible()
+							? m(ButtonN, {
+								label: "knownCredentials_label",
+								type: ButtonType.Secondary,
+								click: () => this._viewModel.showCredentials(),
+							})
+							: null,
+						this._signupLinkVisible()
+							? m(ButtonN, {
+								label: "register_label",
+								type: ButtonType.Secondary,
+								click: () => m.route.set("/signup"),
+							})
+							: null,
+						this._switchThemeLinkVisible()
+							? m(ButtonN, {
+								label: "switchColorTheme_action",
+								type: ButtonType.Secondary,
+								click: this.themeSwitchListener(),
+							})
+							: null,
+						this._recoverLoginVisible()
+							? m(ButtonN, {
+								label: "recoverAccountAccess_action",
+								click: () => {
+									m.route.set("/recover")
+								},
+								type: ButtonType.Secondary,
+							})
+							: null,
+					]),
+				],
 			),
 		]
 	}
@@ -215,33 +215,35 @@ export class LoginView {
 
 	_anyMoreItemVisible(): boolean {
 		return (
-				this._signupLinkVisible() ||
-				this._loginAnotherLinkVisible() ||
-				this._deleteCredentialsLinkVisible() ||
-				this._knownCredentialsLinkVisible() ||
-				this._switchThemeLinkVisible() ||
-				this._recoverLoginVisible()
+			this._signupLinkVisible() ||
+			this._loginAnotherLinkVisible() ||
+			this._deleteCredentialsLinkVisible() ||
+			this._knownCredentialsLinkVisible() ||
+			this._switchThemeLinkVisible() ||
+			this._recoverLoginVisible()
 		)
 	}
 
 	_renderLoginForm(): Children {
 		return m(
-				"",
-				{
-					oncreate: vnode => {
-						this.loginForm.resolve(vnode.children[0].state)
-					},
+			"",
+			{
+				oncreate: vnode => {
+					const children = vnode.children as ChildArray
+					const firstChild = children[0] as Vnode<unknown, LoginForm>
+					this.loginForm.resolve(firstChild.state)
 				},
-				m(LoginForm, {
-					onSubmit: () => this._loginWithProgressDialog(),
-					mailAddress: this._viewModel.mailAddress,
-					password: this._viewModel.password,
-					savePassword: this._viewModel.savePassword,
-					helpText: lang.getMaybeLazy(this._viewModel.helpText),
-					invalidCredentials: this._viewModel.state === LoginState.InvalidCredentials,
-					showRecoveryOption: this._recoverLoginVisible(),
-					accessExpired: this._viewModel.state === LoginState.AccessExpired,
-				}),
+			},
+			m(LoginForm, {
+				onSubmit: () => this._loginWithProgressDialog(),
+				mailAddress: this._viewModel.mailAddress,
+				password: this._viewModel.password,
+				savePassword: this._viewModel.savePassword,
+				helpText: lang.getMaybeLazy(this._viewModel.helpText),
+				invalidCredentials: this._viewModel.state === LoginState.InvalidCredentials,
+				showRecoveryOption: this._recoverLoginVisible(),
+				accessExpired: this._viewModel.state === LoginState.AccessExpired,
+			}),
 		)
 	}
 
@@ -264,11 +266,11 @@ export class LoginView {
 					await this._loginWithProgressDialog()
 				},
 				onCredentialsDeleted:
-						this._viewModel.displayMode === DisplayMode.DeleteCredentials
-								? credentials => {
-									this._viewModel.deleteCredentials(credentials).then(() => m.redraw())
-								}
-								: null,
+					this._viewModel.displayMode === DisplayMode.DeleteCredentials
+						? credentials => {
+							this._viewModel.deleteCredentials(credentials).then(() => m.redraw())
+						}
+						: null,
 			}),
 		]
 	}
@@ -379,25 +381,25 @@ export function getPrivacyStatementLink(): string | null {
 export function renderPrivacyAndImprintLinks(): Children {
 	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
 		getPrivacyStatementLink()
-				? m(
-						"a.plr",
-						{
-							href: getPrivacyStatementLink(),
-							target: "_blank",
-						},
-						lang.get("privacyLink_label"),
-				)
-				: null,
+			? m(
+				"a.plr",
+				{
+					href: getPrivacyStatementLink(),
+					target: "_blank",
+				},
+				lang.get("privacyLink_label"),
+			)
+			: null,
 		getImprintLink()
-				? m(
-						"a.plr",
-						{
-							href: getImprintLink(),
-							target: "_blank",
-						},
-						lang.get("imprint_label"),
-				)
-				: null,
+			? m(
+				"a.plr",
+				{
+					href: getImprintLink(),
+					target: "_blank",
+				},
+				lang.get("imprint_label"),
+			)
+			: null,
 		m(".mt.center.small.full-width", `v${env.versionNumber}`),
 	])
 }

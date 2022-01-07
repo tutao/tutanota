@@ -1,10 +1,10 @@
 import m, {Children, Component} from "mithril"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import type {ModalComponent} from "./Modal"
 import {modal} from "./Modal"
 import {
 	alpha,
-	AlphaEnum,
+	AlphaEnum, AnimationPromise,
 	animations,
 	DefaultAnimationTime,
 	opacity,
@@ -33,12 +33,11 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
 import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
-import {getAsLazy, mapLazily, noOp} from "@tutao/tutanota-utils"
+import {$Promisable, getAsLazy, mapLazily, noOp} from "@tutao/tutanota-utils"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
 import Stream from "mithril/stream";
-import {Class} from "global"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -53,12 +52,12 @@ export const enum DialogType {
 	EditLarge = "EditLarge",
 }
 
-type validator = () => (TranslationKey | null) | Promise<TranslationKey | null>
+type Validator = () => $Promisable<TranslationKey | null>
 
-type ActionDialogProps = {
+export type ActionDialogProps = {
 	title: lazy<string> | string
 	child: Component<void> | lazy<Children>
-	validator?: validator | null
+	validator?: Validator | null
 	okAction: null | ((arg0: Dialog) => unknown)
 	allowCancel?: MaybeLazy<boolean>
 	allowOkWithReturn?: boolean
@@ -105,71 +104,71 @@ export class Dialog implements ModalComponent {
 			let marginPx = px(size.hpad)
 			const sidesMargin = styles.isSingleColumnLayout() && dialogType === DialogType.EditLarge ? "4px" : marginPx
 			return m(
-					this._getDialogWrapperStyle(dialogType),
+				this._getDialogWrapperStyle(dialogType),
+				{
+					style: {
+						paddingTop: requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)",
+					},
+				}, // controls vertical alignment
+				// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile
+				m(
+					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"),
 					{
+						// controls horizontal alignment
 						style: {
-							paddingTop: requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)",
+							marginTop: marginPx,
+							marginLeft: sidesMargin,
+							marginRight: sidesMargin,
+							"margin-bottom": Dialog._keyboardHeight > 0 ? px(Dialog._keyboardHeight) : dialogType === DialogType.EditLarge ? 0 : marginPx,
 						},
-					}, // controls vertical alignment
-					// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile
-					m(
-							".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"),
+					},
+					[
+						m(
+							this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"),
 							{
-								// controls horizontal alignment
-								style: {
-									marginTop: marginPx,
-									marginLeft: sidesMargin,
-									marginRight: sidesMargin,
-									"margin-bottom": Dialog._keyboardHeight > 0 ? px(Dialog._keyboardHeight) : dialogType === DialogType.EditLarge ? 0 : marginPx,
+								onclick: (e: MouseEvent) => e.stopPropagation(),
+								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
+								oncreate: vnode => {
+									this._domDialog = vnode.dom as HTMLElement
+									let animation: AnimationPromise | null = null
+
+									if (dialogType === DialogType.EditLarge) {
+										this._domDialog.style.transform = `translateY(${window.innerHeight}px)`
+										animation = animations.add(this._domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
+									} else {
+										const bgcolor = getElevatedBackground()
+										const children = Array.from(this._domDialog.children) as Array<HTMLElement>;
+										for (let child of children) {
+											child.style.opacity = "0"
+										}
+										this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
+										animation = Promise.all([
+											animations.add(this._domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
+											animations.add(children, opacity(0, 1, true), {
+												delay: DefaultAnimationTime / 2,
+											}),
+										])
+									}
+
+									// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
+									window.requestAnimationFrame(() => {
+										const activeElement = document.activeElement as HTMLElement | null
+										if (activeElement && typeof activeElement.blur === "function") {
+											activeElement.blur()
+										}
+									})
+									animation.then(() => {
+										this._focusOnLoadFunction()
+
+										this._wasFocusOnLoadCalled = true
+									})
 								},
 							},
-							[
-								m(
-										this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"),
-										{
-											onclick: (e: MouseEvent) => e.stopPropagation(),
-											// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
-											oncreate: vnode => {
-												this._domDialog = vnode.dom as HTMLElement
-												let animation = null
-
-												if (dialogType === DialogType.EditLarge) {
-													this._domDialog.style.transform = `translateY(${window.innerHeight}px)`
-													animation = animations.add(this._domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
-												} else {
-													const bgcolor = getElevatedBackground()
-													const children = Array.from(this._domDialog.children) as Array<HTMLElement>;
-													for (let child of children) {
-														child.style.opacity = "0"
-													}
-													this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
-													animation = Promise.all([
-														animations.add(this._domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
-														animations.add(children, opacity(0, 1, true), {
-															delay: DefaultAnimationTime / 2,
-														}),
-													])
-												}
-
-												// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
-												window.requestAnimationFrame(() => {
-													const activeElement = document.activeElement as HTMLElement | null
-													if (activeElement && typeof activeElement.blur === "function") {
-														activeElement.blur()
-													}
-												})
-												animation.then(() => {
-													this._focusOnLoadFunction()
-
-													this._wasFocusOnLoadCalled = true
-												})
-											},
-										},
-										m(childComponent),
-								),
-								this._injectionRightAttrs ? m(DialogInjectionRight, this._injectionRightAttrs) : null,
-							],
-					),
+							m(childComponent),
+						),
+						this._injectionRightAttrs ? m(DialogInjectionRight, this._injectionRightAttrs) : null,
+					],
+				),
 			)
 		}
 	}
@@ -345,29 +344,29 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.Alert, {
 				view: () => [
 					m(
-							"#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll",
-							[
-								lines.map(line => m(".text-break.selectable", line)),
-								typeof infoToAppend == "function" ? infoToAppend() : null
-							]
+						"#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll",
+						[
+							lines.map(line => m(".text-break.selectable", line)),
+							typeof infoToAppend == "function" ? infoToAppend() : null
+						]
 					),
 					m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs)),
 				],
 			})
-					.setCloseHandler(closeAction)
-					.addShortcut({
-						key: Keys.RETURN,
-						shift: false,
-						exec: closeAction,
-						help: "close_alt",
-					})
-					.addShortcut({
-						key: Keys.ESC,
-						shift: false,
-						exec: closeAction,
-						help: "close_alt",
-					})
-					.show()
+				.setCloseHandler(closeAction)
+				.addShortcut({
+					key: Keys.RETURN,
+					shift: false,
+					exec: closeAction,
+					help: "close_alt",
+				})
+				.addShortcut({
+					key: Keys.ESC,
+					shift: false,
+					exec: closeAction,
+					help: "close_alt",
+				})
+				.show()
 		})
 	}
 
@@ -391,8 +390,10 @@ export class Dialog implements ModalComponent {
 			const downloadButtonAttrs: ButtonAttrs = {
 				label: "download_action",
 				click: () => {
-					let popup = open("", "_blank")
-					popup.location = url
+					const popup = open("", "_blank")
+					if (popup) {
+						popup.location = url
+					}
 					dialog.close()
 					resolve()
 				},
@@ -400,13 +401,13 @@ export class Dialog implements ModalComponent {
 			}
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-						m("", [
-							m(".dialog-contentButtonsBottom.text-break", [m(ButtonN, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
-							m(".flex-center.dialog-buttons", m(ButtonN, closeButtonAttrs)),
-						]),
+					m("", [
+						m(".dialog-contentButtonsBottom.text-break", [m(ButtonN, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
+						m(".flex-center.dialog-buttons", m(ButtonN, closeButtonAttrs)),
+					]),
 			})
-					.setCloseHandler(closeAction)
-					.show()
+				.setCloseHandler(closeAction)
+				.show()
 		})
 	}
 
@@ -415,12 +416,12 @@ export class Dialog implements ModalComponent {
 	 * @return Promise, which is resolved with user selection - true for confirm, false for cancel.
 	 */
 	static confirm(
-			messageIdOrMessageFunction: TranslationKey | lazy<string>,
-			confirmId: TranslationKey = "ok_action",
-			infoToAppend?: string | lazy<Children>,
+		messageIdOrMessageFunction: TranslationKey | lazy<string>,
+		confirmId: TranslationKey = "ok_action",
+		infoToAppend?: string | lazy<Children>,
 	): Promise<boolean> {
 		return new Promise(resolve => {
-			const closeAction = conf => {
+			const closeAction = (conf: boolean) => {
 				dialog.close()
 				setTimeout(() => resolve(conf), DefaultAnimationTime)
 			}
@@ -452,14 +453,14 @@ export class Dialog implements ModalComponent {
 	 * @param infoToAppend additional UI elements to show below the message
 	 */
 	static confirmMultiple(
-			messageIdOrMessageFunction: TranslationKey | lazy<string>,
-			buttons: ReadonlyArray<ButtonAttrs>,
-			onclose?: (positive: boolean) => unknown,
-			infoToAppend?: string | lazy<Children>,
+		messageIdOrMessageFunction: TranslationKey | lazy<string>,
+		buttons: ReadonlyArray<ButtonAttrs>,
+		onclose?: (positive: boolean) => unknown,
+		infoToAppend?: string | lazy<Children>,
 	): Dialog {
 		let dialog: Dialog
 
-		const closeAction = positive => {
+		const closeAction = (positive: boolean) => {
 			dialog.close()
 			setTimeout(() => onclose && onclose(positive), DefaultAnimationTime)
 		}
@@ -469,8 +470,8 @@ export class Dialog implements ModalComponent {
 			let content = [
 				lang.getMaybeLazy(messageIdOrMessageFunction),
 				infoToAppend && (typeof infoToAppend === "function"
-						? infoToAppend()
-						: m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
+					? infoToAppend()
+					: m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
 			]
 
 			if (typeof infoToAppend === "string") {
@@ -486,31 +487,31 @@ export class Dialog implements ModalComponent {
 			view: () => [
 				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
 				m(
-						".flex-center.dialog-buttons",
-						buttons.map(a => m(ButtonN, a)),
+					".flex-center.dialog-buttons",
+					buttons.map(a => m(ButtonN, a)),
 				),
 			],
 		})
-				.setCloseHandler(() => closeAction(false))
-				.addShortcut({
-					key: Keys.ESC,
-					shift: false,
-					exec: () => closeAction(false),
-					help: "cancel_action",
-				})
+			.setCloseHandler(() => closeAction(false))
+			.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: () => closeAction(false),
+				help: "cancel_action",
+			})
 		dialog.show()
 		return dialog
 	}
 
 	static choice<T>(
-			message: TranslationText,
-			choices: Array<{
-				text: TranslationText
-				value: T
-			}>,
+		message: TranslationText,
+		choices: Array<{
+			text: TranslationText
+			value: T
+		}>,
 	): Promise<T> {
 		return new Promise(resolve => {
-			const choose = choice => {
+			const choose = (choice: T) => {
 				dialog.close()
 				setTimeout(() => resolve(choice), DefaultAnimationTime)
 			}
@@ -563,8 +564,8 @@ export class Dialog implements ModalComponent {
 			saveDialog = new Dialog(DialogType.EditMedium, {
 				view: () => m("", [m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)), m(".plr-l.pb.text-break", m(child))]),
 			})
-					.setCloseHandler(closeAction)
-					.show()
+				.setCloseHandler(closeAction)
+				.show()
 		})
 	}
 
@@ -572,7 +573,7 @@ export class Dialog implements ModalComponent {
 		return new Promise(resolve => {
 			let dialog: Dialog
 
-			const closeAction = res => {
+			const closeAction = (res: boolean) => {
 				dialog.close()
 				setTimeout(() => resolve(res), DefaultAnimationTime)
 			}
@@ -604,19 +605,19 @@ export class Dialog implements ModalComponent {
 						m("a[href=" + link + "][target=_blank]", link),
 					]),
 					m(
-							".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-							buttonAttrs.map(a => m(ButtonN, a)),
+						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
+						buttonAttrs.map(a => m(ButtonN, a)),
 					),
 				],
 			})
-					.setCloseHandler(() => closeAction(false))
-					.addShortcut({
-						key: Keys.ESC,
-						shift: false,
-						exec: () => closeAction(false),
-						help: "cancel_action",
-					})
-					.show()
+				.setCloseHandler(() => closeAction(false))
+				.addShortcut({
+					key: Keys.ESC,
+					shift: false,
+					exec: () => closeAction(false),
+					help: "cancel_action",
+				})
+				.show()
 		})
 	}
 
@@ -647,15 +648,15 @@ export class Dialog implements ModalComponent {
 			cancelAction,
 			type
 		} = Object.assign(
-				{},
-				{
-					allowCancel: true,
-					allowOkWithReturn: false,
-					okActionTextId: "ok_action",
-					cancelActionTextId: "cancel_action",
-					type: DialogType.EditSmall,
-				},
-				props,
+			{},
+			{
+				allowCancel: true,
+				allowOkWithReturn: false,
+				okActionTextId: "ok_action",
+				cancelActionTextId: "cancel_action",
+				type: DialogType.EditSmall,
+			},
+			props,
 		)
 
 		const doCancel = () => {
@@ -671,7 +672,7 @@ export class Dialog implements ModalComponent {
 				return
 			}
 
-			let validationResult = null
+			let validationResult: $Promisable<TranslationKey | null> | null = null
 
 			if (validator) {
 				validationResult = validator()
@@ -693,25 +694,25 @@ export class Dialog implements ModalComponent {
 
 		const actionBarAttrs: DialogHeaderBarAttrs = {
 			left: mapLazily(allowCancel, allow =>
-					allow
-							? [
-								{
-									label: cancelActionTextId,
-									click: doCancel,
-									type: ButtonType.Secondary,
-								},
-							]
-							: [],
-			),
-			right: okAction
+				allow
 					? [
 						{
-							label: mapLazily(okActionTextId, id => lang.get(id)),
-							click: doAction,
-							type: ButtonType.Primary,
+							label: cancelActionTextId,
+							click: doCancel,
+							type: ButtonType.Secondary,
 						},
 					]
 					: [],
+			),
+			right: okAction
+				? [
+					{
+						label: mapLazily(okActionTextId, id => lang.get(id)),
+						click: doAction,
+						type: ButtonType.Primary,
+					},
+				]
+				: [],
 			middle: typeof title === "function" ? title : () => title,
 		}
 		dialog = new Dialog(type, {
@@ -750,11 +751,11 @@ export class Dialog implements ModalComponent {
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextInputDialog(
-			titleId: TranslationKey | lazy<string>,
-			labelIdOrLabelFunction: TranslationKey | lazy<string>,
-			infoMsgId: (TranslationKey | null) | (lazy<string> | null),
-			value: string,
-			inputValidator?: stringValidator,
+		titleId: TranslationKey | lazy<string>,
+		labelIdOrLabelFunction: TranslationKey | lazy<string>,
+		infoMsgId: (TranslationKey | null) | (lazy<string> | null),
+		value: string,
+		inputValidator?: stringValidator,
 	): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
@@ -768,7 +769,7 @@ export class Dialog implements ModalComponent {
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => (inputValidator ? inputValidator(result()) : null),
 				allowOkWithReturn: true,
-				okAction: dialog => {
+				okAction: (dialog: Dialog) => {
 					resolve(result())
 					dialog.close()
 				},
@@ -786,10 +787,10 @@ export class Dialog implements ModalComponent {
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextAreaInputDialog(
-			titleId: TranslationKey,
-			labelIdOrLabelFunction: TranslationKey | lazy<string>,
-			infoMsgId: TranslationKey | null,
-			value: string,
+		titleId: TranslationKey,
+		labelIdOrLabelFunction: TranslationKey | lazy<string>,
+		infoMsgId: TranslationKey | null,
+		value: string,
 	): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
@@ -804,7 +805,7 @@ export class Dialog implements ModalComponent {
 				child: {
 					view: () => m(TextFieldN, textFieldAttrs),
 				},
-				okAction: dialog => {
+				okAction: (dialog: Dialog) => {
 					resolve(result())
 					dialog.close()
 				},
@@ -823,25 +824,25 @@ export class Dialog implements ModalComponent {
 	 * @returns A promise resolving to the selected item. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showDropDownSelectionDialog<T>(
-			titleId: TranslationKey,
-			label: TranslationKey,
-			infoMsgId: TranslationKey | null,
-			items: SelectorItemList<T>,
-			selectedValue: Stream<T>,
-			dropdownWidth?: number,
+		titleId: TranslationKey,
+		label: TranslationKey,
+		infoMsgId: TranslationKey | null,
+		items: SelectorItemList<T>,
+		selectedValue: Stream<T>,
+		dropdownWidth?: number,
 	): Promise<T> {
 		return new Promise(resolve => {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {
 					view: () =>
-							m(DropDownSelectorN, {
-								label,
-								items,
-								selectedValue,
-							}),
+						m(DropDownSelectorN, {
+							label,
+							items,
+							selectedValue,
+						}),
 				},
-				okAction: dialog => {
+				okAction: (dialog: Dialog) => {
 					resolve(selectedValue())
 					dialog.close()
 				},
@@ -880,12 +881,8 @@ export class Dialog implements ModalComponent {
 	 * @returns a stream of entered passwords
 	 */
 	static showRequestPasswordDialog(
-			errorMessage: Stream<string>,
-			props: {
-				allowCancel: boolean
-			} = {
-				allowCancel: true,
-			},
+		errorMessage: Stream<string>,
+		props: {allowCancel: boolean} = {allowCancel: true},
 	): Stream<string> {
 		const out: Stream<string> = stream()
 		const value: Stream<string> = stream("")

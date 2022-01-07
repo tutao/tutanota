@@ -25,111 +25,110 @@ import {ofClass} from "@tutao/tutanota-utils"
  *  Returned promise resolves when the dialog closes
  */
 export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templateGroupRoot: TemplateGroupRoot): void {
-    const {entityClient} = locator
-    const editorModel = new KnowledgeBaseEditorModel(entry, templateGroupRoot, entityClient)
+	const {entityClient} = locator
+	const editorModel = new KnowledgeBaseEditorModel(entry, templateGroupRoot, entityClient)
 
-    const closeDialog = () => {
-        dialog.close()
-    }
+	const closeDialog = () => {
+		dialog.close()
+	}
 
-    const saveAction = () => {
-        editorModel.save().then(closeDialog).catch(ofClass(UserError, showUserError))
-    }
+	const saveAction = () => {
+		editorModel.save().then(closeDialog).catch(ofClass(UserError, showUserError))
+	}
 
-    const headerBarAttrs: DialogHeaderBarAttrs = {
-        left: [
-            {
-                label: "cancel_action",
-                click: closeDialog,
-                type: ButtonType.Secondary,
-            },
-        ],
-        right: [
-            {
-                label: "save_action",
-                click: saveAction,
-                type: ButtonType.Primary,
-            },
-        ],
-        middle: () => lang.get(editorModel.entry._id ? "editEntry_label" : "createEntry_action"),
-    }
-    const dialog = Dialog.largeDialogN(headerBarAttrs, KnowledgeBaseEditor, editorModel)
-    dialog.show()
+	const headerBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "cancel_action",
+				click: closeDialog,
+				type: ButtonType.Secondary,
+			},
+		],
+		right: [
+			{
+				label: "save_action",
+				click: saveAction,
+				type: ButtonType.Primary,
+			},
+		],
+		middle: () => lang.get(editorModel.entry._id ? "editEntry_label" : "createEntry_action"),
+	}
+	const dialog = Dialog.largeDialogN(headerBarAttrs, KnowledgeBaseEditor, editorModel)
+	dialog.show()
 }
 
 class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
-    entryContentEditor: HtmlEditor
-    linkedTemplateButtonAttrs: ButtonAttrs
+	entryContentEditor: HtmlEditor
+	linkedTemplateButtonAttrs: ButtonAttrs
 
-    constructor(vnode: Vnode<KnowledgeBaseEditorModel>) {
-        const model = vnode.attrs
-        this.linkedTemplateButtonAttrs = attachDropdown(
-            {
-                label: () => lang.get("linkTemplate_label") + " ▼",
-                title: "linkTemplate_label",
-                type: ButtonType.Toggle,
-                click: noOp,
-                noBubble: true,
-                colors: ButtonColor.Elevated,
-            },
-            () => this._createDropdownChildAttrs(model),
-        )
-        this.entryContentEditor = new HtmlEditor("content_label", {
-            enabled: true,
-            customButtonAttrs: [this.linkedTemplateButtonAttrs],
-        })
-            .showBorders()
-            .setMinHeight(500)
-        model.setDescriptionProvider(() => {
-            return this.entryContentEditor.getValue()
-        })
+	constructor(vnode: Vnode<KnowledgeBaseEditorModel>) {
+		const model = vnode.attrs
+		this.linkedTemplateButtonAttrs = attachDropdown(
+			{
+				label: () => lang.get("linkTemplate_label") + " ▼",
+				title: "linkTemplate_label",
+				type: ButtonType.Toggle,
+				click: noOp,
+				noBubble: true,
+				colors: ButtonColor.Elevated,
+			},
+			() => this._createDropdownChildAttrs(model),
+		)
+		this.entryContentEditor = new HtmlEditor("content_label", {
+			enabled: true,
+			customButtonAttrs: [this.linkedTemplateButtonAttrs],
+		})
+			.showBorders()
+			.setMinHeight(500)
+		model.setDescriptionProvider(() => {
+			return this.entryContentEditor.getValue()
+		})
 
-        if (model.isUpdate()) {
-            this.entryContentEditor.setValue(model.entry.description)
-        }
-    }
+		if (model.isUpdate()) {
+			this.entryContentEditor.setValue(model.entry.description)
+		}
+	}
 
-    _createDropdownChildAttrs(model: KnowledgeBaseEditorModel): Promise<Array<DropdownChildAttrs>> {
-        return model.availableTemplates.getAsync().then(templates => {
-            if (templates.length > 0) {
-                return templates.map(template => {
-                    return {
-                        label: () => template.tag,
-                        type: ButtonType.Dropdown,
-                        click: () => this.entryContentEditor._editor.insertHTML(createTemplateLink(template)),
-                    }
-                })
-            } else {
-                return [
-                    {
-                        label: "noEntries_msg",
-                        type: ButtonType.Dropdown,
-                        click: noOp,
-                    },
-                ]
-            }
-        })
-    }
+	_createDropdownChildAttrs(model: KnowledgeBaseEditorModel): Promise<Array<DropdownChildAttrs>> {
+		return model.availableTemplates.getAsync().then(templates => {
+			if (templates.length > 0) {
+				return templates.map(template => {
+					return {
+						label: () => template.tag,
+						type: ButtonType.Dropdown,
+						click: () => this.entryContentEditor._editor.insertHTML(createTemplateLink(template)),
+					}
+				})
+			} else {
+				return [
+					{
+						label: "noEntries_msg",
+						type: ButtonType.Dropdown,
+						click: noOp,
+					},
+				]
+			}
+		})
+	}
 
-    view(vnode: Vnode<KnowledgeBaseEditorModel>): Children {
-        const model = vnode.attrs
-        return m("", [
-            m(TextFieldN, {
-                label: "title_placeholder",
-                value: model.title,
-            }),
-            m(TextFieldN, {
-                label: "keywords_label",
-                value: model.keywords,
-            }),
-			// @ts-ignore
-            m(this.entryContentEditor),
-        ])
-    }
+	view(vnode: Vnode<KnowledgeBaseEditorModel>): Children {
+		const model = vnode.attrs
+		return m("", [
+			m(TextFieldN, {
+				label: "title_placeholder",
+				value: model.title,
+			}),
+			m(TextFieldN, {
+				label: "keywords_label",
+				value: model.keywords,
+			}),
+			m(this.entryContentEditor),
+		])
+	}
 }
 
 function createTemplateLink(template: EmailTemplate): string {
-    const listId = listIdPart(getLetId(template))
-    const elementId = elementIdPart(getLetId(template))
-    return `<a href="tutatemplate:${listId}/${elementId}">${TEMPLATE_SHORTCUT_PREFIX + template.tag}</a>`
+	const listId = listIdPart(getLetId(template))
+	const elementId = elementIdPart(getLetId(template))
+	return `<a href="tutatemplate:${listId}/${elementId}">${TEMPLATE_SHORTCUT_PREFIX + template.tag}</a>`
 }

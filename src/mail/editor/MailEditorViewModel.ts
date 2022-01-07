@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import type {Attachment, RecipientField} from "./SendMailModel"
+import type {Attachment} from "./SendMailModel"
 import {SendMailModel} from "./SendMailModel"
 import type {lazy} from "@tutao/tutanota-utils"
 import {cleanMatch, debounce, downcast, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
@@ -23,7 +23,13 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
-import {createNewContact, getDisplayText, resolveRecipientInfo, resolveRecipientInfoContact} from "../model/MailUtils"
+import {
+	createNewContact,
+	getDisplayText,
+	RecipientField,
+	resolveRecipientInfo,
+	resolveRecipientInfoContact
+} from "../model/MailUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../../misc/RecipientInfoBubbleHandler"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
@@ -40,37 +46,37 @@ import * as stream from "stream";
 import Stream from "mithril/stream";
 
 export function chooseAndAttachFile(
-		model: SendMailModel,
-		boundingRect: ClientRect,
-		fileTypes?: Array<string>,
+	model: SendMailModel,
+	boundingRect: ClientRect,
+	fileTypes?: Array<string>,
 ): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
-			.then(async files => {
-				if (files) {
-					model.attachFiles(files)
-				}
+		.then(async files => {
+			if (files) {
+				model.attachFiles(files)
+			}
 
-				return files
-			})
-			.catch(ofClass(UserError, showUserError))
+			return files
+		})
+		.catch(ofClass(UserError, showUserError))
 }
 
 export function showFileChooserForAttachments(
-		boundingRect: ClientRect,
-		fileTypes?: Array<string>,
+	boundingRect: ClientRect,
+	fileTypes?: Array<string>,
 ): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector = env.mode === Mode.App ? locator.fileApp.openFileChooser(boundingRect) : locator.fileController.showFileChooser(true, fileTypes)
 	return fileSelector
-			.catch(
-					ofClass(PermissionError, () => {
-						Dialog.message("fileAccessDeniedMobile_msg")
-					}),
-			)
-			.catch(
-					ofClass(FileNotFoundError, () => {
-						Dialog.message("couldNotAttachFile_msg")
-					}),
-			)
+		.catch(
+			ofClass(PermissionError, () => {
+				Dialog.message("fileAccessDeniedMobile_msg")
+			}),
+		)
+		.catch(
+			ofClass(FileNotFoundError, () => {
+				Dialog.message("couldNotAttachFile_msg")
+			}),
+		)
 }
 
 export function createPasswordField(model: SendMailModel, recipient: RecipientInfo): TextFieldAttrs {
@@ -79,9 +85,9 @@ export function createPasswordField(model: SendMailModel, recipient: RecipientIn
 	const passwordIndicator = new PasswordIndicator(() => passwordStrength)
 	return {
 		label: () =>
-				lang.get("passwordFor_label", {
-					"{1}": recipient.mailAddress,
-				}),
+			lang.get("passwordFor_label", {
+				"{1}": recipient.mailAddress,
+			}),
 		helpLabel: () => m(passwordIndicator),
 		value: Stream(password),
 		type: TextFieldType.ExternalPassword,
@@ -118,14 +124,14 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 			},
 		]
 		return attachDropdown(
-				{
-					label: () => file.name,
-					icon: () => Icons.Attachment,
-					type: ButtonType.Bubble,
-					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-					colors: ButtonColor.Elevated,
-				},
-				() => lazyButtonAttrs,
+			{
+				label: () => file.name,
+				icon: () => Icons.Attachment,
+				type: ButtonType.Bubble,
+				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+				colors: ButtonColor.Elevated,
+			},
+			() => lazyButtonAttrs,
 		)
 	})
 }
@@ -151,37 +157,36 @@ async function _downloadAttachment(attachment: Attachment) {
 }
 
 export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLElement>, arg2: Array<Attachment>) => void = debounce(
-		50,
-		(domElement: HTMLElement, inlineImageElements: Array<HTMLElement>, attachments: Array<Attachment>) => {
-			// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
-			// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
-			// and check each descendant and if it's an image with CID or not.
-			// It's easier and faster to just go over each inline image that we know about. It's more bookkeeping but it's easier
-			// code which touches less dome.
-			//
-			// Alternative would be observe the parent of each inline image but that's more complexity and we need to take care of
-			// new (just inserted) inline images and also assign listener there.
-			// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
-			// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
-			// means removal + insertion.
-			const elementsToRemove = []
-			inlineImageElements.forEach(inlineImage => {
-				if (domElement && !domElement.contains(inlineImage)) {
-					const cid = inlineImage.getAttribute("cid")
-					const attachmentIndex = attachments.findIndex(a => a.cid === cid)
+	50,
+	(domElement: HTMLElement, inlineImageElements: Array<HTMLElement>, attachments: Array<Attachment>) => {
+		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
+		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
+		// and check each descendant and if it's an image with CID or not.
+		// It's easier and faster to just go over each inline image that we know about. It's more bookkeeping but it's easier
+		// code which touches less dome.
+		//
+		// Alternative would be observe the parent of each inline image but that's more complexity and we need to take care of
+		// new (just inserted) inline images and also assign listener there.
+		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
+		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
+		// means removal + insertion.
+		const elementsToRemove: HTMLElement[] = []
+		inlineImageElements.forEach(inlineImage => {
+			if (domElement && !domElement.contains(inlineImage)) {
+				const cid = inlineImage.getAttribute("cid")
+				const attachmentIndex = attachments.findIndex(a => a.cid === cid)
 
-					if (attachmentIndex !== -1) {
-						attachments.splice(attachmentIndex, 1)
-						elementsToRemove.push(inlineImage)
-						m.redraw()
-					}
+				if (attachmentIndex !== -1) {
+					attachments.splice(attachmentIndex, 1)
+					elementsToRemove.push(inlineImage)
+					m.redraw()
 				}
-			})
-			findAllAndRemove(inlineImageElements, imageElement => elementsToRemove.includes(imageElement))
-		},
+			}
+		})
+		findAllAndRemove(inlineImageElements, imageElement => elementsToRemove.includes(imageElement))
+	},
 )
 
-// To make flow stop yelling at me
 function _getRecipientFieldLabelTranslationKey(field: RecipientField): TranslationKey {
 	return {
 		to: "to_label",
@@ -202,11 +207,11 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 	_contactModel: ContactModel
 
 	constructor(
-			model: SendMailModel,
-			fieldType: RecipientField,
-			contactModel: ContactModel,
-			injectionsRight?: lazy<Children>,
-			disabled?: boolean,
+		model: SendMailModel,
+		fieldType: RecipientField,
+		contactModel: ContactModel,
+		injectionsRight?: lazy<Children>,
+		disabled?: boolean,
 	) {
 		this.model = model
 		this.field = fieldType
@@ -233,27 +238,27 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		// or will return an existing recipientInfo from itself
 		// duplicate bubbles will not have a duplicate in the sendmailmodel
 		const [recipientInfo] = this.model.addOrGetRecipient(
-				this.field,
-				{
-					name,
-					address,
-					contact,
-				},
-				false,
+			this.field,
+			{
+				name,
+				address,
+				contact,
+			},
+			false,
 		)
-		let bubble
+		let bubble: Bubble<RecipientInfo>
 		const buttonAttrs = attachDropdown(
-				{
-					label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
-					type: ButtonType.TextBubble,
-					isSelected: () => false,
-				},
-				() =>
-						recipientInfo.resolveContactPromise
-								? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
-								: Promise.resolve(this._createBubbleContextButtons(bubble)),
-				undefined,
-				250,
+			{
+				label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
+				type: ButtonType.TextBubble,
+				isSelected: () => false,
+			},
+			() =>
+				recipientInfo.resolveContactPromise
+					? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
+					: Promise.resolve(this._createBubbleContextButtons(bubble)),
+			undefined,
+			250,
 		)
 		bubble = new Bubble(recipientInfo, buttonAttrs, recipientInfo.mailAddress)
 
@@ -261,17 +266,17 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 			resolveRecipientInfoContact(recipientInfo, this.model.contacts(), this.model.logins().getUserController().user)
 		} else {
 			resolveRecipientInfo(this.model.mailFacade(), recipientInfo)
-					.then(() => m.redraw())
-					.catch(
-							ofClass(ConnectionError, e => {
-								// we are offline but we want to show the error dialog only when we click on send.
-							}),
-					)
-					.catch(
-							ofClass(TooManyRequestsError, e => {
-								Dialog.message("tooManyAttempts_msg")
-							}),
-					)
+				.then(() => m.redraw())
+				.catch(
+					ofClass(ConnectionError, e => {
+						// we are offline but we want to show the error dialog only when we click on send.
+					}),
+				)
+				.catch(
+					ofClass(TooManyRequestsError, e => {
+						Dialog.message("tooManyAttempts_msg")
+					}),
+				)
 		}
 
 		return bubble
@@ -319,7 +324,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 				this._contactModel.contactListId().then(contactListId => {
 					const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
 					import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-						new ContactEditor(this.model.entity(), newContact, contactListId, createdContactReceiver).show()
+						new ContactEditor(this.model.entity(), newContact, contactListId ?? undefined, createdContactReceiver).show()
 					})
 				})
 			},
@@ -331,27 +336,27 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		const canEditBubbleRecipient = this.model.user().isInternalUser() && !this.model.logins().isEnabled(FeatureType.DisableContacts)
 		const previousMail = this.model.getPreviousMail()
 		const canRemoveBubble =
-				this.model.user().isInternalUser() && (!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
+			this.model.user().isInternalUser() && (!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
 
-		const createdContactReceiver = contactElementId => {
+		const createdContactReceiver = (contactElementId: Id) => {
 			const mailAddress = recipient.mailAddress
 
 			this._contactModel.contactListId().then(contactListId => {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
 				this.model
-						.entity()
-						.load(ContactTypeRef, id)
-						.then(contact => {
-							if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
-								recipient.name = getContactDisplayName(contact)
-								recipient.contact = contact
-								recipient.resolveContactPromise = null
-							} else {
-								this.model.removeRecipient(recipient, this.field, false)
-								remove(this.component.bubbles, bubble)
-							}
-						})
+					.entity()
+					.load(ContactTypeRef, id)
+					.then(contact => {
+						if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
+							recipient.name = getContactDisplayName(contact)
+							recipient.contact = contact
+							recipient.resolveContactPromise = null
+						} else {
+							this.model.removeRecipient(recipient, this.field, false)
+							remove(this.component.bubbles, bubble)
+						}
+					})
 			})
 		}
 

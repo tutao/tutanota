@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {TextFieldN, TextFieldType as TextFieldType} from "./base/TextFieldN"
 import {theme} from "./theme"
 import {client} from "../misc/ClientDetector"
@@ -27,7 +27,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	constructor({attrs}: Vnode<TimePickerAttrs>) {
 		this._focused = false
 		this._value = stream("")
-		const times = []
+		const times: string[] = []
 
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
@@ -57,7 +57,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	_renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this._oldValue !== attrs.time.toString(false)) {
+		if (this._oldValue !== attrs.time?.toString(false)) {
 			this._onSelected(attrs)
 		}
 
@@ -114,36 +114,36 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 	_renderTimeSelector(attrs: TimePickerAttrs): Children {
 		return m(
-				".fixed.flex.col.mt-s.menu-shadow",
-				{
-					oncreate: vnode => this._setScrollTop(attrs, vnode),
-					onupdate: vnode => this._setScrollTop(attrs, vnode),
-					style: {
-						width: "100px",
-						height: "400px",
-						"z-index": "3",
-						background: theme.content_bg,
-						overflow: "auto",
-					},
+			".fixed.flex.col.mt-s.menu-shadow",
+			{
+				oncreate: vnode => this._setScrollTop(attrs, vnode),
+				onupdate: vnode => this._setScrollTop(attrs, vnode),
+				style: {
+					width: "100px",
+					height: "400px",
+					"z-index": "3",
+					background: theme.content_bg,
+					overflow: "auto",
 				},
-				this._values.map((time, i) =>
-						m(
-								"pr-s.pl-s.darker-hover",
-								{
-									key: time,
-									style: {
-										"background-color": this._selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
-										flex: "1 0 auto",
-										"line-height": "44px",
-									},
-									onmousedown: () => {
-										this._focused = false
-										attrs.onTimeSelected(parseTime(time))
-									},
-								},
-								time,
-						),
+			},
+			this._values.map((time, i) =>
+				m(
+					"pr-s.pl-s.darker-hover",
+					{
+						key: time,
+						style: {
+							"background-color": this._selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
+							flex: "1 0 auto",
+							"line-height": "44px",
+						},
+						onmousedown: () => {
+							this._focused = false
+							attrs.onTimeSelected(parseTime(time))
+						},
+					},
+					time,
 				),
+			),
 		)
 	}
 

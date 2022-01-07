@@ -1,5 +1,7 @@
 import {downcast, identity, neverNull} from "./Utils.js"
 import {getFromMap} from "./MapUtils.js"
+import {Type} from "cborg/types/lib/token";
+import map = Type.map;
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
@@ -100,7 +102,7 @@ export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
  * Find all items in an array that pass the given predicate
  */
 export function findAll<T>(theArray: Array<T>, finder: (arg0: T) => boolean): Array<T> {
-	const found = []
+	const found: T[] = []
 
 	for (let element of theArray) {
 		if (finder(element)) {
@@ -155,7 +157,7 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
  */
 export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null | undefined): Array<R> {
-	const resultList = []
+	const resultList: R[] = []
 
 	for (const item of array) {
 		const resultItem = mapper(item)
@@ -304,7 +306,7 @@ export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Arra
 	}
 
 	let chunkNum = 0
-	const chunks = []
+	const chunks: Array<Array<T>> = []
 	let end
 
 	do {
@@ -328,7 +330,12 @@ export function flat<T>(arrays: ReadonlyArray<ReadonlyArray<T>>): Array<T> {
  * @returns {T|*[]}
  */
 export function flatMap<T, U>(array: ReadonlyArray<T>, mapper: (arg0: T) => Array<U>): Array<U> {
-	return array.reduce((acc, val) => acc.concat(mapper(val)), [])
+	const result: U[] = []
+	for (const item of array) {
+		const mapped = mapper(item)
+		result.push(...mapped)
+	}
+	return result
 }
 
 /**
@@ -368,7 +375,7 @@ export function insertIntoSortedArray<T>(
 }
 
 export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
-	const zipped = []
+	const zipped: Array<[A, B]> = []
 
 	for (let i = 0; i < Math.min(arr1.length, arr2.length); i++) {
 		zipped.push([arr1[i], arr2[i]])
@@ -378,7 +385,7 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 }
 
 export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
-	const deduplicated = []
+	const deduplicated: T[] = []
 	arr.forEach(a => {
 		const isDuplicate = deduplicated.some(b => comp(a, b))
 
@@ -482,8 +489,8 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  * @param predicate
  */
 export function partition<T>(array: Array<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
-	const left = []
-	const right = []
+	const left: T[] = []
+	const right: T[] = []
 
 	for (let item of array) {
 		if (predicate(item)) {

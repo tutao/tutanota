@@ -20,7 +20,7 @@ export class LazyLoaded<T> {
 		this._isLoaded = false
 		this._loadFunction = loadFunction
 		this._loadingPromise = null
-		this._loadedObject = defaultValue
+		this._loadedObject = defaultValue ?? null
 	}
 
 	load(): this {

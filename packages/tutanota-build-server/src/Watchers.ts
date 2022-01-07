@@ -1,7 +1,7 @@
 import {watch, FSWatcher} from "chokidar"
 export class Watchers {
-	private watcher: FSWatcher
-	private fileWatcher: FSWatcher
+	private watcher: FSWatcher | null = null
+	private fileWatcher: FSWatcher | null = null
     /**
      *
      * @param log Variadic log function that accepts any number of strings.

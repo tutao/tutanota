@@ -19,168 +19,169 @@ import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
+
 assertMainOrNode()
 
 /**
  * The MailViewer displays the action buttons for multiple selected emails.
  */
 export class MultiMailViewer {
-    view: (...args: Array<any>) => any
-    _mailView: MailView
-    _domMailViewer: HTMLElement | null
+	view: (...args: Array<any>) => any
+	_mailView: MailView
+	_domMailViewer: HTMLElement | null
 
-    constructor(mailView: MailView) {
-        this._mailView = mailView
+	constructor(mailView: MailView) {
+		this._mailView = mailView
 
-        this.view = () => {
-            return [
-                m(
-                    ".fill-absolute.mt-xs.plr-l",
-                    {
-                        oncreate: vnode => {
-                            this._domMailViewer = vnode.dom as HTMLElement
-                        },
-                    },
-                    mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
-                        ? [
-                              m(".button-height"), // just for the margin
-                              m(".flex-space-between.mr-negative-s", [
-                                  m(".flex.items-center", this._getMailSelectionMessage(mailView)),
-                                  m(ActionBar, {
-                                      buttons: this.getActionBarButtons(true),
-                                  }),
-                              ]),
-                          ]
-                        : m(ColumnEmptyMessageBox, {
-                              message: () => this._getMailSelectionMessage(mailView),
-                              icon: BootIcons.Mail,
-                              color: theme.content_message_bg,
-                          }),
-                ),
-            ]
-        }
-    }
+		this.view = () => {
+			return [
+				m(
+					".fill-absolute.mt-xs.plr-l",
+					{
+						oncreate: vnode => {
+							this._domMailViewer = vnode.dom as HTMLElement
+						},
+					},
+					mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
+						? [
+							m(".button-height"), // just for the margin
+							m(".flex-space-between.mr-negative-s", [
+								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
+								m(ActionBar, {
+									buttons: this.getActionBarButtons(true),
+								}),
+							]),
+						]
+						: m(ColumnEmptyMessageBox, {
+							message: () => this._getMailSelectionMessage(mailView),
+							icon: BootIcons.Mail,
+							color: theme.content_message_bg,
+						}),
+				),
+			]
+		}
+	}
 
-    getBounds(): PosRect | null {
-        return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
-    }
+	getBounds(): PosRect | null {
+		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
+	}
 
-    _getMailSelectionMessage(mailView: MailView): string {
-        let nbrOfSelectedMails = mailView.mailList ? mailView.mailList.list.getSelectedEntities().length : 0
+	_getMailSelectionMessage(mailView: MailView): string {
+		let nbrOfSelectedMails = mailView.mailList ? mailView.mailList.list.getSelectedEntities().length : 0
 
-        if (nbrOfSelectedMails === 0) {
-            return lang.get("noMail_msg")
-        } else if (nbrOfSelectedMails === 1) {
-            return lang.get("oneMailSelected_msg")
-        } else {
-            return lang.get("nbrOfMailsSelected_msg", {
-                "{1}": nbrOfSelectedMails,
-            })
-        }
-    }
+		if (nbrOfSelectedMails === 0) {
+			return lang.get("noMail_msg")
+		} else if (nbrOfSelectedMails === 1) {
+			return lang.get("oneMailSelected_msg")
+		} else {
+			return lang.get("nbrOfMailsSelected_msg", {
+				"{1}": nbrOfSelectedMails,
+			})
+		}
+	}
 
-    getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-        const selectedEntities = () => this._mailView.mailList.list.getSelectedEntities()
+	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
+		const selectedEntities = () => this._mailView.mailList.list.getSelectedEntities()
 
-        return [
-            {
-                label: "cancel_action",
-                click: () => this._mailView.mailList.list.selectNone(),
-                icon: () => Icons.Cancel,
-                isVisible: () => prependCancel,
-            },
-            attachDropdown(
-                {
-                    label: "move_action",
-                    icon: () => Icons.Folder,
-                },
-                () => this.makeMoveMailButtons(),
-            ),
-            {
-                label: "delete_action",
-                click: () => {
-                    let mails = selectedEntities()
-                    promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
-                },
-                icon: () => Icons.Trash,
-            },
-            attachDropdown(
-                {
-                    label: "more_label",
-                    icon: () => Icons.More,
-                },
-                () => [
-                    {
-                        label: "markUnread_action",
-                        click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
-                        icon: () => Icons.NoEye,
-                        type: ButtonType.Dropdown,
-                    },
-                    {
-                        label: "markRead_action",
-                        click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
-                        icon: () => Icons.Eye,
-                        type: ButtonType.Dropdown,
-                    },
-                    {
-                        label: "export_action",
-                        click: this._actionBarAction(mails =>
-                            showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
-                        ),
-                        icon: () => Icons.Export,
-                        type: ButtonType.Dropdown,
-                        isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport),
-                    },
-                ],
-            ),
-        ]
-    }
+		return [
+			{
+				label: "cancel_action",
+				click: () => this._mailView.mailList.list.selectNone(),
+				icon: () => Icons.Cancel,
+				isVisible: () => prependCancel,
+			},
+			attachDropdown(
+				{
+					label: "move_action",
+					icon: () => Icons.Folder,
+				},
+				() => this.makeMoveMailButtons(),
+			),
+			{
+				label: "delete_action",
+				click: () => {
+					let mails = selectedEntities()
+					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
+				},
+				icon: () => Icons.Trash,
+			},
+			attachDropdown(
+				{
+					label: "more_label",
+					icon: () => Icons.More,
+				},
+				() => [
+					{
+						label: "markUnread_action",
+						click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
+						icon: () => Icons.NoEye,
+						type: ButtonType.Dropdown,
+					},
+					{
+						label: "markRead_action",
+						click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
+						icon: () => Icons.Eye,
+						type: ButtonType.Dropdown,
+					},
+					{
+						label: "export_action",
+						click: this._actionBarAction(mails =>
+							showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
+						),
+						icon: () => Icons.Export,
+						type: ButtonType.Dropdown,
+						isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport),
+					},
+				],
+			),
+		]
+	}
 
-    /**
-     * Generate buttons that will move the selected mails to respective folders
-     */
-    async makeMoveMailButtons(): Promise<ButtonAttrs[]> {
-        let selectedMailbox
+	/**
+	 * Generate buttons that will move the selected mails to respective folders
+	 */
+	async makeMoveMailButtons(): Promise<ButtonAttrs[]> {
+		let selectedMailbox
 
-        for (const mail of this._mailView.mailList.list.getSelectedEntities()) {
-            const mailBox = await locator.mailModel.getMailboxDetailsForMail(mail)
+		for (const mail of this._mailView.mailList.list.getSelectedEntities()) {
+			const mailBox = await locator.mailModel.getMailboxDetailsForMail(mail)
 
-            // We can't move if mails are from different mailboxes
-            if (selectedMailbox != null && selectedMailbox !== mailBox) {
-                return []
-            }
+			// We can't move if mails are from different mailboxes
+			if (selectedMailbox != null && selectedMailbox !== mailBox) {
+				return []
+			}
 
-            selectedMailbox = mailBox
-        }
+			selectedMailbox = mailBox
+		}
 
-        if (selectedMailbox == null) return []
-        return getSortedSystemFolders(selectedMailbox.folders)
-            .concat(getSortedCustomFolders(selectedMailbox.folders))
-            .filter(f => f !== this._mailView.selectedFolder)
-            .map(f => {
-                return {
-                    label: () => getFolderName(f),
-                    click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
-                    icon: getFolderIcon(f),
-                    type: ButtonType.Dropdown,
-                }
-            })
-    }
+		if (selectedMailbox == null) return []
+		return getSortedSystemFolders(selectedMailbox.folders)
+			.concat(getSortedCustomFolders(selectedMailbox.folders))
+			.filter(f => f !== this._mailView.selectedFolder)
+			.map(f => {
+				return {
+					label: () => getFolderName(f),
+					click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
+					icon: getFolderIcon(f),
+					type: ButtonType.Dropdown,
+				}
+			})
+	}
 
-    /**
-     * Helper function to generate action which will first unselect everything and then execute action with previously
-     * selected mails. Workaround to avoid selecting the next email after the selected emails are removed.
-     * @param action
-     * @returns {Function}
-     * @private
-     */
-    _actionBarAction(action: (arg0: Mail[]) => unknown): () => void {
-        return () => {
-            let mails = this._mailView.mailList.list.getSelectedEntities()
+	/**
+	 * Helper function to generate action which will first unselect everything and then execute action with previously
+	 * selected mails. Workaround to avoid selecting the next email after the selected emails are removed.
+	 * @param action
+	 * @returns {Function}
+	 * @private
+	 */
+	_actionBarAction(action: (arg0: Mail[]) => unknown): () => void {
+		return () => {
+			let mails = this._mailView.mailList.list.getSelectedEntities()
 
-            this._mailView.mailList.list.selectNone()
+			this._mailView.mailList.list.selectNone()
 
-            action(mails)
-        }
-    }
+			action(mails)
+		}
+	}
 }

@@ -11,60 +11,64 @@ import type {GiftCardRedeemGetReturn} from "../../entities/sys/GiftCardRedeemGet
 import {GiftCardRedeemGetReturnTypeRef} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {createGiftCardRedeemData} from "../../entities/sys/GiftCardRedeemData"
 import {aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
+
 export interface GiftCardFacade {
-    generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>
-    getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn>
-    redeemGiftCard(id: Id, key: string): Promise<void>
+	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>
+
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn>
+
+	redeemGiftCard(id: Id, key: string): Promise<void>
 }
+
 export class GiftCardFacadeImpl implements GiftCardFacade {
-    _logins: LoginFacadeImpl
+	_logins: LoginFacadeImpl
 
-    constructor(logins: LoginFacadeImpl) {
-        this._logins = logins
-    }
+	constructor(logins: LoginFacadeImpl) {
+		this._logins = logins
+	}
 
-    generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
-        const sessionKey = aes128RandomKey()
-        const keyHash = sha256Hash(bitArrayToUint8Array(sessionKey))
+	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
+		const sessionKey = aes128RandomKey()
+		const keyHash = sha256Hash(bitArrayToUint8Array(sessionKey))
 
-        let adminGroupIds = this._logins.getGroupIds(GroupType.Admin)
+		let adminGroupIds = this._logins.getGroupIds(GroupType.Admin)
 
-        if (adminGroupIds.length === 0) {
-            throw new Error("missing admin membership")
-        }
+		if (adminGroupIds.length === 0) {
+			throw new Error("missing admin membership")
+		}
 
-        const ownerKey = this._logins.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
+		const ownerKey = this._logins.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
 
-        const ownerEncSessionKey = encryptKey(ownerKey, sessionKey)
-        const data = createGiftCardCreateData({
-            message: message,
-            keyHash,
-            value,
-            country: countryCode,
-            ownerEncSessionKey,
-        })
-        return serviceRequest(SysService.GiftCardService, HttpMethod.POST, data, GiftCardCreateReturnTypeRef, null, sessionKey).then(
-            (returnData: GiftCardCreateReturn) => returnData.giftCard,
-        )
-    }
+		const ownerEncSessionKey = encryptKey(ownerKey, sessionKey)
+		const data = createGiftCardCreateData({
+			message: message,
+			keyHash,
+			value,
+			country: countryCode,
+			ownerEncSessionKey,
+		})
+		return serviceRequest(SysService.GiftCardService, HttpMethod.POST, data, GiftCardCreateReturnTypeRef, undefined, sessionKey).then(
+			(returnData: GiftCardCreateReturn) => returnData.giftCard,
+		)
+	}
 
-    getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
-        const bitKey = base64ToKey(key)
-        const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
-        const data = createGiftCardRedeemData({
-            giftCardInfo: id,
-            keyHash: keyHash,
-        })
-        return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, null, bitKey)
-    }
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
+		const bitKey = base64ToKey(key)
+		const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
+		const data = createGiftCardRedeemData({
+			giftCardInfo: id,
+			keyHash: keyHash,
+		})
+		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, undefined, bitKey)
+	}
 
-    redeemGiftCard(id: Id, key: string): Promise<void> {
-        const bitKey = base64ToKey(key)
-        const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
-        const data = createGiftCardRedeemData({
-            giftCardInfo: id,
-            keyHash: keyHash,
-        })
-        return serviceRequestVoid(SysService.GiftCardRedeemService, HttpMethod.POST, data)
-    }
+	redeemGiftCard(id: Id, key: string): Promise<void> {
+		const bitKey = base64ToKey(key)
+		const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
+		const data = createGiftCardRedeemData({
+			giftCardInfo: id,
+			keyHash: keyHash,
+		})
+		return serviceRequestVoid(SysService.GiftCardRedeemService, HttpMethod.POST, data)
+	}
 }

@@ -11,14 +11,15 @@
  */
 import options from "commander"
 import fs from "fs-extra"
+import {mkdir} from "fs/promises"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
-import {spawn, spawnSync} from "child_process"
+import {spawnSync} from "child_process"
 import path, {dirname} from "path"
 import {fetchDictionaries} from './buildSrc/DictionaryFetcher.js'
 import os from "os"
 import {rollup} from "rollup"
-import {babelPlugins, bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./buildSrc/RollupConfig.js"
+import {bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
@@ -26,6 +27,7 @@ import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import {visualizer} from "rollup-plugin-visualizer"
 import glob from "glob"
+import typescript from "@rollup/plugin-typescript"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -109,12 +111,6 @@ doBuild().catch(e => {
 
 async function doBuild() {
 	try {
-		const flow = (await import("flow-bin")).default
-		spawn(flow, {stdio: "inherit"})
-	} catch (e) {
-		console.warn("Flow executable was not found, it is either F-Droid build or you need to run npm ci")
-	}
-	try {
 
 		const {version, devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		const electronVersion = devDependencies.electron
@@ -170,12 +166,9 @@ async function buildWebapp(version) {
 
 	console.log("bundling polyfill", measure())
 	const polyfillBundle = await rollup({
-		input: ["src/polyfill.js"],
+		input: ["src/polyfill.ts"],
 		plugins: [
-			babel({
-				plugins: babelPlugins,
-				babelHelpers: "bundled",
-			}),
+			typescript(),
 			MINIFY && terser(),
 			{
 				name: "append-libs",
@@ -201,15 +194,16 @@ async function buildWebapp(version) {
 	await fs.copy(path.join(__dirname, '/resources/favicon'), path.join(__dirname, 'build/dist/images'))
 	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 
+
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: ["src/app.js", "src/api/worker/worker.js"],
+		input: ["src/app.ts", "src/api/worker/worker.ts"],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
-			babel({
-				plugins: babelPlugins,
-				babelHelpers: "bundled",
+			typescript({
+				// module: "CommonJS",
+				// outDir: "build/dist"
 			}),
 			resolveLibs(),
 			commonjs({
@@ -368,12 +362,9 @@ async function bundleServiceWorker(bundles, version) {
 			!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")))
 		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 	const swBundle = await rollup({
-		input: ["src/serviceworker/sw.js"],
+		input: ["src/serviceworker/sw.ts"],
 		plugins: [
-			babel({
-				plugins: babelPlugins,
-				babelHelpers: "bundled",
-			}),
+			typescript(),
 			MINIFY && terser(),
 			{
 				name: "sw-banner",
@@ -422,7 +413,7 @@ ${indexTemplate}`
 }
 
 async function _writeFile(targetFile, content) {
-	await fs.mkdirs(path.dirname(targetFile))
+	await mkdir(path.dirname(targetFile), {recursive: true})
 	await fs.writeFile(targetFile, content, 'utf-8')
 }
 

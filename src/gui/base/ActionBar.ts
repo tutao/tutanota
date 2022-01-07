@@ -15,8 +15,8 @@ export class ActionBar implements Component<ActionBarAttrs> {
 
 	view(vnode: Vnode<ActionBarAttrs>): Children {
 		return m(
-				".action-bar.flex-end.items-center",
-				vnode.attrs.buttons.filter(b => !b.isVisible || b.isVisible()).map(b => m(ButtonN, b)),
+			".action-bar.flex-end.items-center",
+			vnode.attrs.buttons.filter(b => !b.isVisible || b.isVisible()).map(b => m(ButtonN, b)),
 		)
 	}
 }

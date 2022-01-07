@@ -1,12 +1,12 @@
 import m, {Children} from "mithril"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {
-    AccessBlockedError,
-    AccessDeactivatedError,
-    AccessExpiredError,
-    BadRequestError,
-    NotAuthenticatedError,
-    TooManyRequestsError,
+	AccessBlockedError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	BadRequestError,
+	NotAuthenticatedError,
+	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import {base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
@@ -31,196 +31,198 @@ import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
 import Stream from "mithril/stream";
+
 assertMainOrNode()
+
 export class ExternalLoginView {
-    readonly _credentialsProvider: ICredentialsProvider
-    _password: Stream<string>
-    _savePassword: Stream<boolean>
-    _helpText: TranslationText
-    _errorMessageId: TranslationText | null
-    _userId: Id
-    _salt: Uint8Array
-    view: (...args: Array<any>) => any
-    oncreate: (...args: Array<any>) => any
-    onremove: (...args: Array<any>) => any
-    _symKeyForPasswordTransmission: Aes128Key | null
-    _autologinInProgress: boolean
+	readonly _credentialsProvider: ICredentialsProvider
+	_password: Stream<string>
+	_savePassword: Stream<boolean>
+	_helpText: TranslationText
+	_errorMessageId: TranslationText | null
+	_userId: Id
+	_salt: Uint8Array
+	view: (...args: Array<any>) => any
+	oncreate: (...args: Array<any>) => any
+	onremove: (...args: Array<any>) => any
+	_symKeyForPasswordTransmission: Aes128Key | null
+	_autologinInProgress: boolean
 
-    constructor() {
-        this._autologinInProgress = false
-        this._errorMessageId = null
-        this._helpText = "emptyString_msg"
-        this._password = stream("")
-        this._savePassword = stream(false)
-        this._symKeyForPasswordTransmission = null
-        this._credentialsProvider = locator.credentialsProvider
+	constructor() {
+		this._autologinInProgress = false
+		this._errorMessageId = null
+		this._helpText = "emptyString_msg"
+		this._password = stream("")
+		this._savePassword = stream(false)
+		this._symKeyForPasswordTransmission = null
+		this._credentialsProvider = locator.credentialsProvider
 
-        this._setupShortcuts()
+		this._setupShortcuts()
 
-        this.view = (): Children => {
-            return m(".main-view", [m(header), m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView()))])
-        }
-    }
+		this.view = (): Children => {
+			return m(".main-view", [m(header), m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView()))])
+		}
+	}
 
-    _getView(): Children {
-        if (this._autologinInProgress) {
-            return m("p.center", progressIcon())
-        } else if (this._errorMessageId) {
-            return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.getMaybeLazy(this._errorMessageId)))
-        } else {
-            return [
-                m(TextFieldN, {
-                    type: TextFieldType.Password,
-                    label: "password_label",
-                    helpLabel: () => lang.get("enterPresharedPassword_msg"),
-                    value: this._password,
-                }),
-                m(CheckboxN, {
-                    label: () => lang.get("storePassword_action"),
-                    helpLabel: () => lang.get("onlyPrivateComputer_msg"),
-                    checked: this._savePassword,
-                }),
-                m(
-                    ".pt",
-                    m(ButtonN, {
-                        label: "showMail_action",
-                        click: () => this._formLogin(),
-                        type: ButtonType.Login,
-                    }),
-                ),
-                m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this._helpText))),
-                renderPrivacyAndImprintLinks(),
-            ]
-        }
-    }
+	_getView(): Children {
+		if (this._autologinInProgress) {
+			return m("p.center", progressIcon())
+		} else if (this._errorMessageId) {
+			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.getMaybeLazy(this._errorMessageId)))
+		} else {
+			return [
+				m(TextFieldN, {
+					type: TextFieldType.Password,
+					label: "password_label",
+					helpLabel: () => lang.get("enterPresharedPassword_msg"),
+					value: this._password,
+				}),
+				m(CheckboxN, {
+					label: () => lang.get("storePassword_action"),
+					helpLabel: () => lang.get("onlyPrivateComputer_msg"),
+					checked: this._savePassword,
+				}),
+				m(
+					".pt",
+					m(ButtonN, {
+						label: "showMail_action",
+						click: () => this._formLogin(),
+						type: ButtonType.Login,
+					}),
+				),
+				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this._helpText))),
+				renderPrivacyAndImprintLinks(),
+			]
+		}
+	}
 
-    _setupShortcuts() {
-        let shortcuts: Shortcut[] = [
-            {
-                key: Keys.RETURN,
-                exec: () => {
-                    this._formLogin()
-                },
-                help: "login_label",
-            },
-        ]
+	_setupShortcuts() {
+		let shortcuts: Shortcut[] = [
+			{
+				key: Keys.RETURN,
+				exec: () => {
+					this._formLogin()
+				},
+				help: "login_label",
+			},
+		]
 
-        this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
 
-        this.onremove = () => {
-            this._password("")
+		this.onremove = () => {
+			this._password("")
 
-            keyManager.unregisterShortcuts(shortcuts)
-        }
-    }
+			keyManager.unregisterShortcuts(shortcuts)
+		}
+	}
 
-    updateUrl(args: Record<string, any>) {
-        let userIdLength = GENERATED_MIN_ID.length
+	updateUrl(args: Record<string, any>) {
+		let userIdLength = GENERATED_MIN_ID.length
 
-        try {
-            let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
+		try {
+			let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
 
-            this._userId = id.substring(0, userIdLength)
-            this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
+			this._userId = id.substring(0, userIdLength)
+			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
 
-            this._credentialsProvider.getCredentialsByUserId(this._userId).then(credentials => {
-                if (credentials && args.noAutoLogin !== true) {
-                    this._autologin(credentials)
-                } else {
-                    m.redraw()
-                }
-            })
-        } catch (e) {
-            this._errorMessageId = "invalidLink_msg"
-            m.redraw()
-        }
-    }
+			this._credentialsProvider.getCredentialsByUserId(this._userId).then(credentials => {
+				if (credentials && args.noAutoLogin !== true) {
+					this._autologin(credentials)
+				} else {
+					m.redraw()
+				}
+			})
+		} catch (e) {
+			this._errorMessageId = "invalidLink_msg"
+			m.redraw()
+		}
+	}
 
-    _autologin(credentials: Credentials): void {
-        this._autologinInProgress = true
-        showProgressDialog(
-            "login_msg",
-            this._handleSession(logins.resumeSession(credentials, this._salt), () => {
-                this._autologinInProgress = false
-                m.redraw()
-            }),
-        )
-    }
+	_autologin(credentials: Credentials): void {
+		this._autologinInProgress = true
+		showProgressDialog(
+			"login_msg",
+			this._handleSession(logins.resumeSession(credentials, this._salt), () => {
+				this._autologinInProgress = false
+				m.redraw()
+			}),
+		)
+	}
 
-    async _formLogin() {
-        if (this._password() === "") {
-            this._helpText = "loginFailed_msg"
-        } else {
-            this._helpText = "login_msg"
+	async _formLogin() {
+		if (this._password() === "") {
+			this._helpText = "loginFailed_msg"
+		} else {
+			this._helpText = "login_msg"
 
-            const createSessionPromise = this._doFormLogin()
+			const createSessionPromise = this._doFormLogin()
 
-            this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
-                // don't do anything additionally on errors
-            })
-        }
-    }
+			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
+				// don't do anything additionally on errors
+			})
+		}
+	}
 
-    async _doFormLogin() {
-        const pw = this._password()
+	async _doFormLogin() {
+		const pw = this._password()
 
-        let clientIdentifier = client.browser + " " + client.device
+		let clientIdentifier = client.browser + " " + client.device
 
-        let persistentSession = this._savePassword()
+		let persistentSession = this._savePassword()
 
-        const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
-        const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, sessionType)
+		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
+		const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, sessionType)
 
-        this._password("")
+		this._password("")
 
-        let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(this._userId)
+		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(this._userId)
 
-        // For external users userId is used instead of email address
-        if (persistentSession) {
-            await this._credentialsProvider.store(newCredentials)
-        }
+		// For external users userId is used instead of email address
+		if (persistentSession) {
+			await this._credentialsProvider.store(newCredentials)
+		}
 
-        if (storedCredentials) {
-            // delete persistent session if a new session is created
-            await logins.deleteOldSession(storedCredentials)
+		if (storedCredentials) {
+			// delete persistent session if a new session is created
+			await logins.deleteOldSession(storedCredentials)
 
-            if (!persistentSession) {
-                await this._credentialsProvider.deleteByUserId(this._userId)
-            }
-        }
-    }
+			if (!persistentSession) {
+				await this._credentialsProvider.deleteByUserId(this._userId)
+			}
+		}
+	}
 
-    _handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
-        return login
-            .then(() => {
-                m.route.set(`/mail${location.hash}`)
-                this._helpText = "emptyString_msg"
-            })
-            .catch(e => {
-                const messageId = getLoginErrorMessage(e, true)
+	_handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
+		return login
+			.then(() => {
+				m.route.set(`/mail${location.hash}`)
+				this._helpText = "emptyString_msg"
+			})
+			.catch(e => {
+				const messageId = getLoginErrorMessage(e, true)
 
-                if (e instanceof AccessExpiredError) {
-                    this._errorMessageId = messageId
-                } else {
-                    this._helpText = messageId
-                }
+				if (e instanceof AccessExpiredError) {
+					this._errorMessageId = messageId
+				} else {
+					this._helpText = messageId
+				}
 
-                m.redraw()
+				m.redraw()
 
-                // any other kind of error we forward on to the global error handler
-                if (
-                    e instanceof BadRequestError ||
-                    e instanceof NotAuthenticatedError ||
-                    e instanceof AccessExpiredError ||
-                    e instanceof AccessBlockedError ||
-                    e instanceof AccessDeactivatedError ||
-                    e instanceof TooManyRequestsError ||
-                    e instanceof CancelledError
-                ) {
-                    return errorAction()
-                } else {
-                    throw e
-                }
-            })
-    }
+				// any other kind of error we forward on to the global error handler
+				if (
+					e instanceof BadRequestError ||
+					e instanceof NotAuthenticatedError ||
+					e instanceof AccessExpiredError ||
+					e instanceof AccessBlockedError ||
+					e instanceof AccessDeactivatedError ||
+					e instanceof TooManyRequestsError ||
+					e instanceof CancelledError
+				) {
+					return errorAction()
+				} else {
+					throw e
+				}
+			})
+	}
 }

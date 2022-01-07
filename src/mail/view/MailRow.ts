@@ -8,159 +8,161 @@ import m, {Children} from "mithril"
 import Badge from "../../gui/base/Badge"
 import {px} from "../../gui/size"
 import type {VirtualRow} from "../../gui/base/List"
+
 const iconMap: Record<MailFolderType, string> = {
-    [MailFolderType.CUSTOM]: FontIcons.Folder,
-    [MailFolderType.INBOX]: FontIcons.Inbox,
-    [MailFolderType.SENT]: FontIcons.Sent,
-    [MailFolderType.TRASH]: FontIcons.Trash,
-    [MailFolderType.ARCHIVE]: FontIcons.Archive,
-    [MailFolderType.SPAM]: FontIcons.Spam,
-    [MailFolderType.DRAFT]: FontIcons.Edit,
+	[MailFolderType.CUSTOM]: FontIcons.Folder,
+	[MailFolderType.INBOX]: FontIcons.Inbox,
+	[MailFolderType.SENT]: FontIcons.Sent,
+	[MailFolderType.TRASH]: FontIcons.Trash,
+	[MailFolderType.ARCHIVE]: FontIcons.Archive,
+	[MailFolderType.SPAM]: FontIcons.Spam,
+	[MailFolderType.DRAFT]: FontIcons.Edit,
 }
+
 export class MailRow implements VirtualRow<Mail> {
-    top: number
-    domElement: HTMLElement | null // set from List
+	top: number
+	domElement: HTMLElement | null // set from List
 
-    entity: Mail | null
-    _domSubject: HTMLElement
-    _domSender: HTMLElement
-    _domDate: HTMLElement
-    _iconsDom: HTMLElement
-    _domUnread: HTMLElement
-    _showFolderIcon: boolean
-    _domFolderIcons: Record<MailFolderType, HTMLElement>
-    _domTeamLabel: HTMLElement
+	entity: Mail | null
+	_domSubject: HTMLElement
+	_domSender: HTMLElement
+	_domDate: HTMLElement
+	_iconsDom: HTMLElement
+	_domUnread: HTMLElement
+	_showFolderIcon: boolean
+	_domFolderIcons: Record<MailFolderType, HTMLElement>
+	_domTeamLabel: HTMLElement
 
-    constructor(showFolderIcon: boolean) {
-        this.top = 0
-        this.entity = null
-        this._showFolderIcon = showFolderIcon
-        this._domFolderIcons = {} as Record<MailFolderType, HTMLElement>
-    }
+	constructor(showFolderIcon: boolean) {
+		this.top = 0
+		this.entity = null
+		this._showFolderIcon = showFolderIcon
+		this._domFolderIcons = {} as Record<MailFolderType, HTMLElement>
+	}
 
-    update(mail: Mail, selected: boolean): void {
-        if (!this.domElement) {
-            return
-        }
+	update(mail: Mail, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 
-        if (selected) {
-            this.domElement.classList.add("row-selected")
+		if (selected) {
+			this.domElement.classList.add("row-selected")
 
-            this._iconsDom.classList.add("secondary")
-        } else {
-            this.domElement.classList.remove("row-selected")
+			this._iconsDom.classList.add("secondary")
+		} else {
+			this.domElement.classList.remove("row-selected")
 
-            this._iconsDom.classList.remove("secondary")
-        }
+			this._iconsDom.classList.remove("secondary")
+		}
 
-        this._iconsDom.textContent = this._iconsText(mail)
-        this._domDate.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
-        this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
-        this._domSubject.textContent = mail.subject
+		this._iconsDom.textContent = this._iconsText(mail)
+		this._domDate.textContent = formatDateTimeFromYesterdayOn(mail.receivedDate)
+		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
+		this._domSubject.textContent = mail.subject
 
-        if (mail.unread) {
-            this._domUnread.classList.remove("hidden")
+		if (mail.unread) {
+			this._domUnread.classList.remove("hidden")
 
-            this._domSubject.classList.add("b")
-        } else {
-            this._domUnread.classList.add("hidden")
+			this._domSubject.classList.add("b")
+		} else {
+			this._domUnread.classList.add("hidden")
 
-            this._domSubject.classList.remove("b")
-        }
+			this._domSubject.classList.remove("b")
+		}
 
-        if (isTutanotaTeamMail(mail)) {
-            this._domTeamLabel.style.display = ""
-        } else {
-            this._domTeamLabel.style.display = "none"
-        }
-    }
+		if (isTutanotaTeamMail(mail)) {
+			this._domTeamLabel.style.display = ""
+		} else {
+			this._domTeamLabel.style.display = "none"
+		}
+	}
 
-    _iconsText(mail: Mail): string {
-        let iconText = ""
+	_iconsText(mail: Mail): string {
+		let iconText = ""
 
-        if (this._showFolderIcon) {
-            let folder = locator.mailModel.getMailFolder(mail._id[0])
-            iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
-        }
+		if (this._showFolderIcon) {
+			let folder = locator.mailModel.getMailFolder(mail._id[0])
+			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
+		}
 
-        iconText += mail._errors ? FontIcons.Warning : ""
+		iconText += mail._errors ? FontIcons.Warning : ""
 
-        switch (mail.replyType) {
-            case ReplyType.REPLY:
-                iconText += FontIcons.Reply
-                break
+		switch (mail.replyType) {
+			case ReplyType.REPLY:
+				iconText += FontIcons.Reply
+				break
 
-            case ReplyType.FORWARD:
-                iconText += FontIcons.Forward
-                break
+			case ReplyType.FORWARD:
+				iconText += FontIcons.Forward
+				break
 
-            case ReplyType.REPLY_FORWARD:
-                iconText += FontIcons.Reply
-                iconText += FontIcons.Forward
-                break
-        }
+			case ReplyType.REPLY_FORWARD:
+				iconText += FontIcons.Reply
+				iconText += FontIcons.Forward
+				break
+		}
 
-        if (mail.confidential) {
-            iconText += FontIcons.Confidential
-        }
+		if (mail.confidential) {
+			iconText += FontIcons.Confidential
+		}
 
-        if (mail.attachments.length > 0) {
-            iconText += FontIcons.Attach
-        }
+		if (mail.attachments.length > 0) {
+			iconText += FontIcons.Attach
+		}
 
-        return iconText
-    }
+		return iconText
+	}
 
-    /**
-     * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
-     */
-    render(): Children {
-        return m(".flex", [
-            m(
-                ".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs",
-                m(".dot.bg-accent-fg.hidden", {
-                    oncreate: vnode => (this._domUnread = vnode.dom as HTMLElement),
-                }),
-            ),
-            m(".flex-grow.min-width-0", [
-                m(".top.flex.badge-line-height", [
-                    m(
-                        Badge,
-                        {
-                            classes: ".small.mr-s",
-                            oncreate: vnode => (this._domTeamLabel = vnode.dom as HTMLElement),
-                        },
-                        "Tutanota Team",
-                    ),
-                    m("small.text-ellipsis", {
-                        oncreate: vnode => (this._domSender = vnode.dom as HTMLElement),
-                    }),
-                    m(".flex-grow"),
-                    m("small.text-ellipsis.flex-fixed", {
-                        oncreate: vnode => (this._domDate = vnode.dom as HTMLElement),
-                    }),
-                ]),
-                m(
-                    ".bottom.flex-space-between",
-                    {
-                        style: {
-                            marginTop: px(2),
-                        },
-                    },
-                    [
-                        m(".text-ellipsis.flex-grow", {
-                            oncreate: vnode => (this._domSubject = vnode.dom as HTMLElement),
-                        }),
-                        m("span.ion.ml-s.list-font-icons.secondary", {
-                            oncreate: vnode => (this._iconsDom = vnode.dom as HTMLElement),
-                        }),
-                    ],
-                ),
-            ]),
-        ])
-    }
+	/**
+	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
+	 */
+	render(): Children {
+		return m(".flex", [
+			m(
+				".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs",
+				m(".dot.bg-accent-fg.hidden", {
+					oncreate: vnode => (this._domUnread = vnode.dom as HTMLElement),
+				}),
+			),
+			m(".flex-grow.min-width-0", [
+				m(".top.flex.badge-line-height", [
+					m(
+						Badge,
+						{
+							classes: ".small.mr-s",
+							oncreate: vnode => (this._domTeamLabel = vnode.dom as HTMLElement),
+						},
+						"Tutanota Team",
+					),
+					m("small.text-ellipsis", {
+						oncreate: vnode => (this._domSender = vnode.dom as HTMLElement),
+					}),
+					m(".flex-grow"),
+					m("small.text-ellipsis.flex-fixed", {
+						oncreate: vnode => (this._domDate = vnode.dom as HTMLElement),
+					}),
+				]),
+				m(
+					".bottom.flex-space-between",
+					{
+						style: {
+							marginTop: px(2),
+						},
+					},
+					[
+						m(".text-ellipsis.flex-grow", {
+							oncreate: vnode => (this._domSubject = vnode.dom as HTMLElement),
+						}),
+						m("span.ion.ml-s.list-font-icons.secondary", {
+							oncreate: vnode => (this._iconsDom = vnode.dom as HTMLElement),
+						}),
+					],
+				),
+			]),
+		])
+	}
 
-    _getFolderIcon(type: MailFolderType): string {
-        return iconMap[type]
-    }
+	_getFolderIcon(type: MailFolderType): string {
+		return iconMap[type]
+	}
 }

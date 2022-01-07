@@ -5,9 +5,9 @@
 import {Children, Component, Vnode} from "mithril";
 
 export function pureComponent<T>(factory: (arg0: T, arg1: Children) => Children): Component<T> {
-    return {
-        view(vnode: Vnode<T>): Children {
-            return factory(vnode.attrs, vnode.children)
-        },
-    }
+	return {
+		view(vnode: Vnode<T>): Children {
+			return factory(vnode.attrs, vnode.children)
+		},
+	}
 }

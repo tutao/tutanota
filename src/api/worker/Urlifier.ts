@@ -6,10 +6,10 @@ import linkifyHtml from "linkifyjs/html"
  * @returns {string} The text with html links.
  */
 export function urlify(html: string): string {
-    return linkifyHtml(html, {
-        attributes: {
-            rel: "noopener noreferrer",
-        },
-        target: "_blank",
-    })
+	return linkifyHtml(html, {
+		attributes: {
+			rel: "noopener noreferrer",
+		},
+		target: "_blank",
+	})
 }

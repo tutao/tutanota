@@ -15,36 +15,36 @@ self.onmessage = function (msg) {
 		self.env = data.args[0]
 		replaceNativeLogger(self, new Logger())
 		Promise.resolve()
-				.then(async () => {
-					const initialRandomizerEntropy = data.args[1]
-					const browserData = data.args[2]
+			   .then(async () => {
+				   const initialRandomizerEntropy = data.args[1]
+				   const browserData = data.args[2]
 
-					if (initialRandomizerEntropy == null || browserData == null) {
-						throw new Error("Invalid Worker arguments")
-					}
+				   if (initialRandomizerEntropy == null || browserData == null) {
+					   throw new Error("Invalid Worker arguments")
+				   }
 
 
-					// @ts-ignore
-					const workerImpl = new WorkerImpl(typeof self !== "undefined" ? self : null)
-					await workerImpl.init(browserData)
-					workerImpl.addEntropy(initialRandomizerEntropy)
-					self.postMessage({
-						id: data.id,
-						type: "response",
-						value: {},
-					})
-				})
-				.catch(e => {
-					self.postMessage({
-						id: data.id,
-						type: "error",
-						error: JSON.stringify({
-							name: "Error",
-							message: e.message,
-							stack: e.stack,
-						}),
-					})
-				})
+				   // @ts-ignore
+				   const workerImpl = new WorkerImpl(typeof self !== "undefined" ? self : null)
+				   await workerImpl.init(browserData)
+				   workerImpl.addEntropy(initialRandomizerEntropy)
+				   self.postMessage({
+					   id: data.id,
+					   type: "response",
+					   value: {},
+				   })
+			   })
+			   .catch(e => {
+				   self.postMessage({
+					   id: data.id,
+					   type: "error",
+					   error: JSON.stringify({
+						   name: "Error",
+						   message: e.message,
+						   stack: e.stack,
+					   }),
+				   })
+			   })
 	} else {
 		throw new Error("worker not yet ready. Request type: " + data.requestType)
 	}

@@ -1,103 +1,108 @@
 //@bundleInto:common-min
+
 import {errorToString, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {DataFile} from "./DataFile";
+
 export const LOG_SIZE = 1000
+
 export class Logger {
-    // Circular buffer with next writable position pointed by _index
-    _entries: Array<Array<any>>
-    _index: number
-    _dateProvider: () => Date
+	// Circular buffer with next writable position pointed by _index
+	_entries: Array<Array<any>>
+	_index: number
+	_dateProvider: () => Date
 
-    constructor(dateProvider: () => Date = () => new Date()) {
-        this._entries = new Array(LOG_SIZE)
-        this._index = 0
-        this._dateProvider = dateProvider
-    }
+	constructor(dateProvider: () => Date = () => new Date()) {
+		this._entries = new Array(LOG_SIZE)
+		this._index = 0
+		this._dateProvider = dateProvider
+	}
 
-    logInfo(...args: Array<any>) {
-        this.log("I", args)
-    }
+	logInfo(...args: Array<any>) {
+		this.log("I", args)
+	}
 
-    logError(...args: Array<any>) {
-        this.log("E", args)
-    }
+	logError(...args: Array<any>) {
+		this.log("E", args)
+	}
 
-    logWarn(...args: Array<any>) {
-        this.log("W", args)
-    }
+	logWarn(...args: Array<any>) {
+		this.log("W", args)
+	}
 
-    log(level: string, args: Array<any>) {
-        const entry = [this._dateProvider(), level]
-        entry.push(...args)
-        this._entries[this._index] = entry
-        this._index++
+	log(level: string, args: Array<any>) {
+		const entry = [this._dateProvider(), level]
+		entry.push(...args)
+		this._entries[this._index] = entry
+		this._index++
 
-        if (this._index === LOG_SIZE) {
-            this._index = 0
-        }
-    }
+		if (this._index === LOG_SIZE) {
+			this._index = 0
+		}
+	}
 
-    formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
-        const formattedArgs = rest.map(obj => {
-            try {
-                return obj instanceof Error ? errorToString(obj) : JSON.stringify(obj)
-            } catch (e) {
-                return "[cyclic object]"
-            }
-        })
-        const message = formattedArgs.join(",")
-        return `${date.toISOString()} ${level} ${message}`
-    }
+	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
+		const formattedArgs = rest.map(obj => {
+			try {
+				return obj instanceof Error ? errorToString(obj) : JSON.stringify(obj)
+			} catch (e) {
+				return "[cyclic object]"
+			}
+		})
+		const message = formattedArgs.join(",")
+		return `${date.toISOString()} ${level} ${message}`
+	}
 
-    getEntries(): Array<string> {
-        const newerPart = this._entries.slice(0, this._index)
+	getEntries(): Array<string> {
+		const newerPart = this._entries.slice(0, this._index)
 
-        const olderPart = this._entries.slice(this._index)
+		const olderPart = this._entries.slice(this._index)
 
-        return olderPart
-            .concat(newerPart)
-            .filter(Boolean)
-            .map(([date, level, ...rest]) => {
-                return this.formatLogEntry(date, level, ...rest)
-            })
-    }
+		return olderPart
+			.concat(newerPart)
+			.filter(Boolean)
+			.map(([date, level, ...rest]) => {
+				return this.formatLogEntry(date, level, ...rest)
+			})
+	}
 }
+
 export function createLogFile(timestamp: number, entries: Array<string>, scope: string): DataFile {
-    const content = entries.join("\n")
-    const data = stringToUtf8Uint8Array(content)
-    return {
-        _type: "DataFile",
-        name: timestamp + "_" + scope + "_tutanota.log",
-        mimeType: "text/plain",
-        data,
-        size: data.byteLength,
-        id: null,
-    }
+	const content = entries.join("\n")
+	const data = stringToUtf8Uint8Array(content)
+	return {
+		_type: "DataFile",
+		name: timestamp + "_" + scope + "_tutanota.log",
+		mimeType: "text/plain",
+		data,
+		size: data.byteLength,
+		id: undefined,
+	}
 }
+
 export function replaceNativeLogger(global: any, loggerInstance: Logger, force: boolean = false) {
-    // Replace native logger only when enabled because we lose line numbers
-    if (force || global.env.dist || global.debug) {
-        global.logger = loggerInstance
-        const globalConsole = global.console
-        global.console = {
-            log(...args) {
-                globalConsole.log(...args)
-                loggerInstance.logInfo(...args)
-            },
+	// Replace native logger only when enabled because we lose line numbers
+	if (force || global.env.dist || global.debug) {
+		global.logger = loggerInstance
+		const globalConsole = global.console
+		global.console = {
+			log(...args: any[]) {
+				globalConsole.log(...args)
+				loggerInstance.logInfo(...args)
+			},
 
-            warn(...args) {
-                globalConsole.warn(...args)
-                loggerInstance.logWarn(...args)
-            },
+			warn(...args: any[]) {
+				globalConsole.warn(...args)
+				loggerInstance.logWarn(...args)
+			},
 
-            error(...args) {
-                globalConsole.error(...args)
-                loggerInstance.logError(...args)
-            },
+			error(...args: any[]) {
+				globalConsole.error(...args)
+				loggerInstance.logError(...args)
+			},
 
-            trace(...args) {
-                globalConsole.trace(...args)
-            },
-        }
-    }
+			trace(...args: any[]) {
+				globalConsole.trace(...args)
+			},
+		}
+	}
 }

@@ -1,5 +1,5 @@
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -35,19 +35,18 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 					m("span", [
 						lang.get("moreInfo_msg") + " ",
 						m(
-								"a",
-								{
-									href: "https://tutanota.com/faq/#inactive-accounts",
-									target: "_blank",
-								},
-								"https://tutanota.com/faq/#inactive-accounts",
+							"a",
+							{
+								href: "https://tutanota.com/faq/#inactive-accounts",
+								target: "_blank",
+							},
+							"https://tutanota.com/faq/#inactive-accounts",
 						),
 					]),
 					m(TextFieldN, {
 						label: "targetAddress_label",
 						value: targetAccountAddress,
 					}),
-					// @ts-ignore
 					m(editor),
 				]
 			},
@@ -63,18 +62,18 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 				Dialog.message("mailAddressInvalid_msg")
 			} else {
 				showProgressDialog(
-						"pleaseWait_msg",
-						locator.loginFacade.takeOverDeletedAddress(cleanMailAddress, password, cleanRecoveryCode, cleanTargetAccountAddress),
+					"pleaseWait_msg",
+					locator.loginFacade.takeOverDeletedAddress(cleanMailAddress, password, cleanRecoveryCode, cleanTargetAccountAddress),
 				)
-						.then(() => Dialog.message("takeoverSuccess_msg"))
-						.then(() => {
-							takeoverDialog.close()
-							m.route.set("/login", {
-								loginWith: cleanTargetAccountAddress,
-								noAutoLogin: true,
-							})
+					.then(() => Dialog.message("takeoverSuccess_msg"))
+					.then(() => {
+						takeoverDialog.close()
+						m.route.set("/login", {
+							loginWith: cleanTargetAccountAddress,
+							noAutoLogin: true,
 						})
-						.catch(e => handleError(e))
+					})
+					.catch(e => handleError(e))
 			}
 		},
 		cancelAction: () => m.route.set("/login"),

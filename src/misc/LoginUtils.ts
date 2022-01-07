@@ -35,9 +35,9 @@ import type {Params} from "mithril";
  * @returns True if the user may still send emails, false otherwise.
  */
 export function checkApprovalStatus(
-		logins: LoginController,
-		includeInvoiceNotPaidForAdmin: boolean,
-		defaultStatus?: ApprovalStatus,
+	logins: LoginController,
+	includeInvoiceNotPaidForAdmin: boolean,
+	defaultStatus?: ApprovalStatus,
 ): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) {
 		// external users are not authorized to load the customer
@@ -45,64 +45,64 @@ export function checkApprovalStatus(
 	}
 
 	return logins
-			.getUserController()
-			.loadCustomer()
-			.then(customer => {
-				const approvalStatus = getCustomerApprovalStatus(customer)
-				const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null
-						? defaultStatus
-						: approvalStatus
-				if (
-						status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
-						status === ApprovalStatus.DELAYED ||
-						status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
-				) {
+		.getUserController()
+		.loadCustomer()
+		.then(customer => {
+			const approvalStatus = getCustomerApprovalStatus(customer)
+			const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null
+				? defaultStatus
+				: approvalStatus
+			if (
+				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
+				status === ApprovalStatus.DELAYED ||
+				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
+			) {
+				return Dialog.message("waitingForApproval_msg").then(() => false)
+			} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
+				if (new Date().getTime() - generatedIdToTimestamp(customer._id) > 2 * 24 * 60 * 60 * 1000) {
+					return Dialog.message("requestApproval_msg").then(() => true)
+				} else {
 					return Dialog.message("waitingForApproval_msg").then(() => false)
-				} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
-					if (new Date().getTime() - generatedIdToTimestamp(customer._id) > 2 * 24 * 60 * 60 * 1000) {
-						return Dialog.message("requestApproval_msg").then(() => true)
-					} else {
-						return Dialog.message("waitingForApproval_msg").then(() => false)
-					}
-				} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
-					if (logins.getUserController().isGlobalAdmin()) {
-						if (includeInvoiceNotPaidForAdmin) {
-							return Dialog.message(() => {
-								return lang.get("invoiceNotPaid_msg", {
-									"{1}": getHttpOrigin(),
-								})
+				}
+			} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
+				if (logins.getUserController().isGlobalAdmin()) {
+					if (includeInvoiceNotPaidForAdmin) {
+						return Dialog.message(() => {
+							return lang.get("invoiceNotPaid_msg", {
+								"{1}": getHttpOrigin(),
 							})
-									.then(() => {
-										// TODO: navigate to payment site in settings
-										//m.route.set("/settings")
-										//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-									})
-									.then(() => true)
-						} else {
-							return true
-						}
+						})
+									 .then(() => {
+										 // TODO: navigate to payment site in settings
+										 //m.route.set("/settings")
+										 //tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+									 })
+									 .then(() => true)
 					} else {
-						const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
-
-						return Dialog.message(errorMessage).then(() => false)
+						return true
 					}
-				} else if (status === ApprovalStatus.SPAM_SENDER) {
-					Dialog.message("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
+				} else {
+					const errorMessage = () => lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg")
+
+					return Dialog.message(errorMessage).then(() => false)
+				}
+			} else if (status === ApprovalStatus.SPAM_SENDER) {
+				Dialog.message("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
+
+				return false
+			} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
+				let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
+				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link")).then(confirmed => {
+					if (confirmed) {
+						import("../subscription/UpgradeSubscriptionWizard").then(m => m.showUpgradeWizard())
+					}
 
 					return false
-				} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
-					let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
-					return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link")).then(confirmed => {
-						if (confirmed) {
-							import("../subscription/UpgradeSubscriptionWizard").then(m => m.showUpgradeWizard())
-						}
-
-						return false
-					})
-				} else {
-					return true
-				}
-			})
+				})
+			} else {
+				return true
+			}
+		})
 }
 
 export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): TranslationText {
@@ -126,9 +126,9 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 
 		case CredentialAuthenticationError:
 			return () =>
-					lang.get("couldNotUnlockCredentials_msg", {
-						"{reason}": error.message,
-					})
+				lang.get("couldNotUnlockCredentials_msg", {
+					"{reason}": error.message,
+				})
 
 		case ConnectionError:
 		default:
@@ -142,11 +142,11 @@ export async function showSignupDialog(hashParams: Params) {
 	const subscriptionParams = getSubscriptionParameters(hashParams)
 	const campaign = getCampaignFromParams(hashParams) ?? getCampaignFromLocalStorage()
 	const dialog = await showProgressDialog(
-			"loading_msg",
-			locator.worker.initialized.then(async () => {
-				const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
-				return loadSignupWizard(subscriptionParams, campaign)
-			}),
+		"loading_msg",
+		locator.worker.initialized.then(async () => {
+			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
+			return loadSignupWizard(subscriptionParams, campaign)
+		}),
 	)
 	dialog.show()
 }
@@ -196,24 +196,24 @@ export function deleteCampaign(): void {
 
 export async function showGiftCardDialog(urlHash: string) {
 	const showWizardPromise = import("../subscription/giftcards/GiftCardUtils")
-			.then(({getTokenFromUrl}) => getTokenFromUrl(urlHash))
-			.then(async ([id, key]) => {
-				return locator.giftCardFacade
-						.getGiftCardInfo(id, key)
-						.then(giftCardInfo =>
-								import("../subscription/giftcards/RedeemGiftCardWizard").then(wizard => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)),
-						)
-			})
+		.then(({getTokenFromUrl}) => getTokenFromUrl(urlHash))
+		.then(async ([id, key]) => {
+			return locator.giftCardFacade
+						  .getGiftCardInfo(id, key)
+						  .then(giftCardInfo =>
+							  import("../subscription/giftcards/RedeemGiftCardWizard").then(wizard => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)),
+						  )
+		})
 	showProgressDialog("loading_msg", showWizardPromise)
-			.then(dialog => dialog.show())
-			.catch(e => {
-				if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
-					throw new UserError("invalidGiftCard_msg")
-				} else {
-					throw e
-				}
-			})
-			.catch(ofClass(UserError, showUserError))
+		.then(dialog => dialog.show())
+		.catch(e => {
+			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+				throw new UserError("invalidGiftCard_msg")
+			} else {
+				throw e
+			}
+		})
+		.catch(ofClass(UserError, showUserError))
 }
 
 export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {

@@ -21,7 +21,7 @@ export class DomainDnsStatus {
 			let data = createCustomDomainCheckData()
 			data.domain = cleanDomainName
 			return serviceRequest(SysService.CustomDomainCheckService, HttpMethod.GET, data, CustomDomainCheckReturnTypeRef)
-		}, null)
+		})
 	}
 
 	getLoadedCustomDomainCheckReturn(): CustomDomainCheckReturn {
@@ -40,9 +40,9 @@ export class DomainDnsStatus {
 		}
 
 		const requiredMissingRecords = this.status
-				.getLoaded()
-				.missingRecords
-				.filter(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX || r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
+										   .getLoaded()
+										   .missingRecords
+										   .filter(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX || r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 		return !requiredMissingRecords.length
 	}
 
@@ -53,10 +53,10 @@ export class DomainDnsStatus {
 	 */
 	areAllRecordsFine(): boolean {
 		return (
-				this.status.isLoaded() &&
-				this.status.getLoaded().checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK &&
-				this.status.getLoaded().missingRecords.length === 0 &&
-				this.status.getLoaded().invalidRecords.length === 0
+			this.status.isLoaded() &&
+			this.status.getLoaded().checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK &&
+			this.status.getLoaded().missingRecords.length === 0 &&
+			this.status.getLoaded().invalidRecords.length === 0
 		)
 	}
 
@@ -66,30 +66,30 @@ export class DomainDnsStatus {
 
 			if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) {
 				let mxOk =
-						!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
-						!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
+					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX) &&
+					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_MX)
 				let spfOk =
-						!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
-						!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
+					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF) &&
+					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 				let dkimOk =
-						!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
-						!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
+					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM) &&
+					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
 				let mtaStsOk =
-						!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
-						!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
+					!result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS) &&
+					!result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
 				let dmarcWarn = result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				let dmarcBad = result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				return (
-						"MX " +
-						(mxOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
-						", SPF " +
-						(spfOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
-						", MTA-STS " +
-						(mtaStsOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
-						", DKIM " +
-						(dkimOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
-						", DMARC " +
-						(dmarcBad || dmarcWarn ? DnsRecordValidation.BAD : DnsRecordValidation.OK)
+					"MX " +
+					(mxOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
+					", SPF " +
+					(spfOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
+					", MTA-STS " +
+					(mtaStsOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
+					", DKIM " +
+					(dkimOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD) +
+					", DMARC " +
+					(dmarcBad || dmarcWarn ? DnsRecordValidation.BAD : DnsRecordValidation.OK)
 				)
 			} else {
 				return "DNS " + DnsRecordValidation.BAD

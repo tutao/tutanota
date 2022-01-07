@@ -1,4 +1,4 @@
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
 import {ReceivedGroupInvitationTypeRef} from "../../api/entities/sys/ReceivedGroupInvitation"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -11,51 +11,52 @@ import type {LoginController} from "../../api/main/LoginController"
 import {getLetId, isSameId} from "../../api/common/utils/EntityUtils"
 import {promiseMap} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+
 export class ReceivedGroupInvitationsModel {
-    readonly invitations: Stream<Array<ReceivedGroupInvitation>>
-    readonly groupType: GroupType
-    eventController: EventController
-    entityClient: EntityClient
-    logins: LoginController
+	readonly invitations: Stream<Array<ReceivedGroupInvitation>>
+	readonly groupType: GroupType
+	eventController: EventController
+	entityClient: EntityClient
+	logins: LoginController
 
-    constructor(groupType: GroupType, eventController: EventController, entityClient: EntityClient, logins: LoginController) {
-        this.invitations = stream([])
-        this.groupType = groupType
-        this.eventController = eventController
-        this.entityClient = entityClient
-        this.logins = logins
-    }
+	constructor(groupType: GroupType, eventController: EventController, entityClient: EntityClient, logins: LoginController) {
+		this.invitations = stream([])
+		this.groupType = groupType
+		this.eventController = eventController
+		this.entityClient = entityClient
+		this.logins = logins
+	}
 
-    init() {
-        this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
-        loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then(invitations =>
-            this.invitations(invitations.filter(invitation => this.hasCorrectGroupType(invitation))),
-        )
-    }
+	init() {
+		this.eventController.addEntityListener(this.entityEventsReceived.bind(this))
+		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then(invitations =>
+			this.invitations(invitations.filter(invitation => this.hasCorrectGroupType(invitation))),
+		)
+	}
 
-    dispose() {
-        this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
-    }
+	dispose() {
+		this.eventController.removeEntityListener(this.entityEventsReceived.bind(this))
+	}
 
-    entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
-        return promiseMap(updates, update => {
-            if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
-                const updateId = [update.instanceListId, update.instanceId] as const
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
+		return promiseMap(updates, update => {
+			if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
+				const updateId = [update.instanceListId, update.instanceId] as const
 
-                if (update.operation === OperationType.CREATE) {
-                    return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then(invitation => {
-                        if (this.hasCorrectGroupType(invitation)) {
-                            this.invitations(this.invitations().concat(invitation))
-                        }
-                    })
-                } else if (update.operation === OperationType.DELETE) {
-                    this.invitations(this.invitations().filter(invitation => !isSameId(getLetId(invitation), updateId)))
-                }
-            }
-        })
-    }
+				if (update.operation === OperationType.CREATE) {
+					return this.entityClient.load(ReceivedGroupInvitationTypeRef, updateId).then(invitation => {
+						if (this.hasCorrectGroupType(invitation)) {
+							this.invitations(this.invitations().concat(invitation))
+						}
+					})
+				} else if (update.operation === OperationType.DELETE) {
+					this.invitations(this.invitations().filter(invitation => !isSameId(getLetId(invitation), updateId)))
+				}
+			}
+		})
+	}
 
-    hasCorrectGroupType(invitation: ReceivedGroupInvitation): boolean {
-        return getInvitationGroupType(invitation) === this.groupType
-    }
+	hasCorrectGroupType(invitation: ReceivedGroupInvitation): boolean {
+		return getInvitationGroupType(invitation) === this.groupType
+	}
 }

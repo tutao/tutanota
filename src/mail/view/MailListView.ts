@@ -21,16 +21,7 @@ import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import {MonitorService} from "../../api/entities/monitor/Services"
 import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
-import {
-	assertNotNull,
-	AsyncResult,
-	debounce,
-	downcast,
-	neverNull,
-	ofClass,
-	promiseFilter,
-	promiseMap
-} from "@tutao/tutanota-utils"
+import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
@@ -42,6 +33,7 @@ import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
 import {assertMainOrNode} from "../../api/common/Env"
+import {WsConnectionState} from "../../api/main/WorkerClient"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -55,10 +47,10 @@ export class MailListView implements Component<void> {
 	// TODO this currently grows bigger and bigger and bigger if the user goes on an exporting spree.
 	//  maybe we should deal with this, or maybe this never becomes an issue?
 	exportedMails: Map<string,
-			{
-				fileName: string
-				result: AsyncResult<any>
-			}>
+		{
+			fileName: string
+			result: AsyncResult<any>
+		}>
 	// Used for modifying the cursor during drag and drop
 	_listDom: HTMLElement | null
 	view: (arg0: Vnode<void>) => Children
@@ -69,65 +61,66 @@ export class MailListView implements Component<void> {
 		this.exportedMails = new Map()
 		this._listDom = null
 		this.list = new List(
-				{
-					rowHeight: size.list_row_height,
-					fetch: (start, count) => {
-						return this._loadMailRange(start, count)
+			{
+				rowHeight: size.list_row_height,
+				fetch: (start, count) => {
+					return this._loadMailRange(start, count)
+				},
+				loadSingle: elementId => {
+					return locator.entityClient
+								  .load<Mail>(MailTypeRef, [this.listId, elementId])
+								  .catch(
+									  ofClass(NotFoundError, e => {
+										  // we return null if the entity does not exist
+										  return null
+									  }),
+								  )
+				},
+				sortCompare: sortCompareByReverseId,
+				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
+					mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
+				createVirtualRow: () => new MailRow(false),
+				showStatus: false,
+				className: className,
+				swipe: {
+					renderLeftSpacer: () =>
+						!logins.isInternalUserLoggedIn()
+							? []
+							: [
+								m(Icon, {
+									icon: Icons.Folder,
+								}),
+								m(".pl-s", this.targetInbox() ? lang.get("received_action") : lang.get("archive_action")),
+							],
+					renderRightSpacer: () => [
+						m(Icon, {
+							icon: Icons.Trash,
+						}),
+						m(".pl-s", lang.get("delete_action")),
+					],
+					swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
+					swipeRight: (listElement: Mail) => {
+						if (!logins.isInternalUserLoggedIn()) {
+							return Promise.resolve(false) // externals don't have an archive folder
+						} else if (this.targetInbox()) {
+							this.list.selectNone()
+							return locator.mailModel
+										  .getMailboxFolders(listElement)
+										  .then(folders => moveMails(locator.mailModel, [listElement], getInboxFolder(folders)))
+						} else {
+							this.list.selectNone()
+							return locator.mailModel
+										  .getMailboxFolders(listElement)
+										  .then(folders => moveMails(locator.mailModel, [listElement], getArchiveFolder(folders)))
+						}
 					},
-					loadSingle: elementId => {
-						return locator.entityClient
-								.load<Mail>(MailTypeRef, [this.listId, elementId])
-								.catch(
-										ofClass(NotFoundError, e => {
-											// we return null if the entity does not exist
-										}),
-								)
-					},
-					sortCompare: sortCompareByReverseId,
-					elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
-							mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-					createVirtualRow: () => new MailRow(false),
-					showStatus: false,
-					className: className,
-					swipe: {
-						renderLeftSpacer: () =>
-								!logins.isInternalUserLoggedIn()
-										? []
-										: [
-											m(Icon, {
-												icon: Icons.Folder,
-											}),
-											m(".pl-s", this.targetInbox() ? lang.get("received_action") : lang.get("archive_action")),
-										],
-						renderRightSpacer: () => [
-							m(Icon, {
-								icon: Icons.Trash,
-							}),
-							m(".pl-s", lang.get("delete_action")),
-						],
-						swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
-						swipeRight: (listElement: Mail) => {
-							if (!logins.isInternalUserLoggedIn()) {
-								return Promise.resolve(false) // externals don't have an archive folder
-							} else if (this.targetInbox()) {
-								this.list.selectNone()
-								return locator.mailModel
-										.getMailboxFolders(listElement)
-										.then(folders => moveMails(locator.mailModel, [listElement], getInboxFolder(folders)))
-							} else {
-								this.list.selectNone()
-								return locator.mailModel
-										.getMailboxFolders(listElement)
-										.then(folders => moveMails(locator.mailModel, [listElement], getArchiveFolder(folders)))
-							}
-						},
-						enabled: true,
-					},
-					multiSelectionAllowed: true,
-					emptyMessage: lang.get("noMails_msg"),
-					listLoadedCompletly: () => this._fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length),
-					dragStart: (event, row, selected) => this._dragStart(event, row, selected),
-				})
+					enabled: true,
+				},
+				multiSelectionAllowed: true,
+				emptyMessage: lang.get("noMails_msg"),
+				listLoadedCompletly: () => this._fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length),
+				dragStart: (event, row, selected) => this._dragStart(event, row, selected),
+			})
 
 		// "this" is incorrectly bound if we don't do it this way
 		this.view = vnode => this._view(vnode)
@@ -197,19 +190,19 @@ export class MailListView implements Component<void> {
 		const progressMonitor = makeTrackedProgressMonitor(locator.progressTracker, 3 * mails.length + 1)
 		progressMonitor.workDone(1)
 
-		const mapKey = mail => `${getLetId(mail).join("")}${exportMode}`
+		const mapKey = (mail: Mail) => `${getLetId(mail).join("")}${exportMode}`
 
-		const notDownloaded = []
-		const downloaded = []
+		const notDownloaded: Array<{mail: Mail, fileName: string}> = []
+		const downloaded: Array<{fileName: string, promise: Promise<Mail>}> = []
 
-		const handleNotDownloaded = mail => {
+		const handleNotDownloaded = (mail: Mail) => {
 			notDownloaded.push({
 				mail,
 				fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode),
 			})
 		}
 
-		const handleDownloaded = (fileName, promise) => {
+		const handleDownloaded = (fileName: string, promise: Promise<Mail>) => {
 			// we don't have to do anything else with the downloaded ones
 			// so finish this chunk of work
 			progressMonitor.workDone(3)
@@ -233,7 +226,7 @@ export class MailListView implements Component<void> {
 				const state = existing.result.state()
 
 				switch (state.status) {
-						// Mail is still being prepared, already has a file path assigned to it
+					// Mail is still being prepared, already has a file path assigned to it
 					case "pending": {
 						handleDownloaded(existing.fileName, state.promise)
 						continue
@@ -244,7 +237,7 @@ export class MailListView implements Component<void> {
 						const exists = await locator.fileApp.checkFileExistsInExportDirectory(existing.fileName)
 
 						if (exists) {
-							handleDownloaded(existing.fileName, Promise.resolve())
+							handleDownloaded(existing.fileName, Promise.resolve(mail))
 						} else {
 							handleNotDownloaded(mail)
 						}
@@ -254,13 +247,13 @@ export class MailListView implements Component<void> {
 		}
 
 		const deduplicatedNames = deduplicateFilenames(
-				notDownloaded.map(f => f.fileName),
-				new Set(downloaded.map(f => f.fileName)),
+			notDownloaded.map(f => f.fileName),
+			new Set(downloaded.map(f => f.fileName)),
 		)
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename
 			promiseMap(notDownloaded, async ({mail, fileName}) => {
-				const name = deduplicatedNames[fileName].shift()
+				const name = assertNotNull(deduplicatedNames[fileName].shift())
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
 					const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
@@ -288,8 +281,7 @@ export class MailListView implements Component<void> {
 	_fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, (listId: Id, listLength: number) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
-		// @ts-ignore
-		if (this.listId !== listId || locator.worker.wsConnection()() !== "connected") {
+		if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
 			return
 		}
 
@@ -334,9 +326,9 @@ export class MailListView implements Component<void> {
 				}
 
 				Dialog.confirm(() =>
-						lang.get("confirmDeleteFinallySystemFolder_msg", {
-							"{1}": getFolderName(folder),
-						}),
+					lang.get("confirmDeleteFinallySystemFolder_msg", {
+						"{1}": getFolderName(folder),
+					}),
 				).then(confirmed => {
 					if (confirmed) {
 						this.mailView._finallyDeleteAllMailsInSelectedFolder(folder)
@@ -358,35 +350,35 @@ export class MailListView implements Component<void> {
 		}
 
 		return m(
-				".mail-list-wrapper",
-				{
-					oncreate: vnode => {
-						this._listDom = downcast(vnode.dom.firstChild)
+			".mail-list-wrapper",
+			{
+				oncreate: vnode => {
+					this._listDom = downcast(vnode.dom.firstChild)
 
-						if (canDoDragAndDropExport()) {
-							assertNotNull(document.body).addEventListener("keydown", onKeyDown)
-							assertNotNull(document.body).addEventListener("keyup", onKeyUp)
-						}
-					},
-					onbeforeremove: vnode => {
-						if (canDoDragAndDropExport()) {
-							assertNotNull(document.body).removeEventListener("keydown", onKeyDown)
-							assertNotNull(document.body).removeEventListener("keyup", onKeyUp)
-						}
-					},
+					if (canDoDragAndDropExport()) {
+						assertNotNull(document.body).addEventListener("keydown", onKeyDown)
+						assertNotNull(document.body).addEventListener("keyup", onKeyUp)
+					}
 				},
-				this.showingTrashOrSpamFolder()
-						? m(
-								ListColumnWrapper,
-								{
-									headerContent: [
-										m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-										m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs)),
-									],
-								},
-								m(this.list),
-						)
-						: m(this.list),
+				onbeforeremove: vnode => {
+					if (canDoDragAndDropExport()) {
+						assertNotNull(document.body).removeEventListener("keydown", onKeyDown)
+						assertNotNull(document.body).removeEventListener("keyup", onKeyUp)
+					}
+				},
+			},
+			this.showingTrashOrSpamFolder()
+				? m(
+					ListColumnWrapper,
+					{
+						headerContent: [
+							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+							m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs)),
+						],
+					},
+					m(this.list),
+				)
+				: m(this.list),
 		)
 	}
 
@@ -437,9 +429,9 @@ export function isExportDragEvent(event: DragEvent): boolean {
 
 function isDragAndDropModifierHeld(event: DragEvent | KeyboardEvent): boolean {
 	return (
-			event.ctrlKey ||
-			event.altKey || // downcast because flow can't figure out what type event.key is for some reason
-			// @ts-ignore
-			(!!event.key && ["alt", "ctrl"].includes(downcast(event.key).toLowerCase()))
+		event.ctrlKey ||
+		event.altKey ||
+		// @ts-ignore
+		(!!event.key && ["alt", "ctrl"].includes(downcast(event.key).toLowerCase()))
 	)
 }

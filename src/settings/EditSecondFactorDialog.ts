@@ -1,5 +1,5 @@
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants"
 import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -33,7 +33,7 @@ import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
 
 const enum VerificationStatus {
-	Initial= "Initial",
+	Initial = "Initial",
 	Progress = "Progress",
 	Failed = "Failed",
 	Success = "Success",
@@ -316,7 +316,7 @@ export class EditSecondFactorDialog {
 			type: DialogType.EditMedium,
 			child: () => m(".pt", lang.get("recoveryCode_msg")),
 			allowOkWithReturn: true,
-			okAction: dialog => {
+			okAction: (dialog: Dialog) => {
 				dialog.close()
 				RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)
 			},

@@ -2,14 +2,15 @@ import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMai
 import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {lang, languages} from "../misc/LanguageViewModel"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import m from "mithril"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {LazyLoaded, memoized, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, memoized, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
@@ -29,44 +30,43 @@ import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
 import type {IUserController} from "../api/main/UserController"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {locator} from "../api/main/MainLocator"
-import Stream from "mithril/stream";
 
 export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: Stream<string>) {
-	let existingTemplate: NotificationMailTemplate | null = null
+	let existingTemplate: NotificationMailTemplate | undefined = undefined
 	userController.loadCustomer().then(customer => {
 		if (customer.properties) {
 			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 			return customerProperties
-					.getAsync()
-					.then(loadedCustomerProperties => {
-						if (selectedNotificationLanguage) {
-							existingTemplate = loadedCustomerProperties.notificationMailTemplates.find(
-									template => template.language === selectedNotificationLanguage(),
-							)
-						}
-					})
-					.then(() => {
-						return userController
-								.loadCustomerInfo()
-								.then(customerInfo => {
-									return customerInfo.bookings
-											? locator.entityClient
-													.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
-													.then(bookings => (bookings.length === 1 ? bookings[0] : null))
-											: null
-								})
-								.then(lastBooking => {
-									showBuyOrSetNotificationEmailDialog(lastBooking, customerProperties, existingTemplate)
-								})
-					})
+				.getAsync()
+				.then(loadedCustomerProperties => {
+					if (selectedNotificationLanguage) {
+						existingTemplate = loadedCustomerProperties.notificationMailTemplates.find(
+							template => template.language === selectedNotificationLanguage(),
+						)
+					}
+				})
+				.then(() => {
+					return userController
+						.loadCustomerInfo()
+						.then(customerInfo => {
+							return customerInfo.bookings
+								? locator.entityClient
+									.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
+									.then(bookings => (bookings.length === 1 ? bookings[0] : null))
+								: null
+						})
+						.then(lastBooking => {
+							showBuyOrSetNotificationEmailDialog(lastBooking, customerProperties, existingTemplate)
+						})
+				})
 		}
 	})
 }
 
 export function showBuyOrSetNotificationEmailDialog(
-		lastBooking: Booking | null,
-		customerProperties: LazyLoaded<CustomerProperties>,
-		existingTemplate?: NotificationMailTemplate,
+	lastBooking: Booking | null,
+	customerProperties: LazyLoaded<CustomerProperties>,
+	existingTemplate?: NotificationMailTemplate,
 ) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(false)
@@ -74,7 +74,7 @@ export function showBuyOrSetNotificationEmailDialog(
 		const whitelabelFailedPromise = isWhitelabelActive(lastBooking) ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
 		whitelabelFailedPromise.then(failed => {
 			if (!failed) {
-				show(existingTemplate, customerProperties)
+				show(existingTemplate ?? null, customerProperties)
 			}
 		})
 	}
@@ -94,14 +94,14 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor(null, {
+	const editor = new HtmlEditor(undefined, {
 		enabled: true,
 		imageButtonClickHandler: insertInlineImageB64ClickHandler,
 	})
-			.setMinHeight(400)
-			.showBorders()
-			.setModeSwitcher("mailBody_label")
-			.setValue(template.body)
+		.setMinHeight(400)
+		.showBorders()
+		.setModeSwitcher("mailBody_label")
+		.setValue(template.body)
 	const editSegment = {
 		name: lang.get("edit_action"),
 		value: "edit",
@@ -112,16 +112,16 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	}
 	const selectedTab = stream(editSegment.value)
 	const sortedLanguages: SelectorItemList<string> = languages
-			.slice()
-			.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-			.map(language => {
-				return {
-					name: lang.get(language.textId),
-					value: language.code,
-				}
-			})
-	const selectedLanguage = sortedLanguages.find(({value}) => value === template.language)
-	const selectedLanguageStream: Stream<string> = stream(selectedLanguage && selectedLanguage.value)
+		.slice()
+		.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		.map(language => {
+			return {
+				name: lang.get(language.textId),
+				value: language.code,
+			}
+		})
+	const selectedLanguage = assertNotNull(sortedLanguages.find(({value}) => value === template.language))
+	const selectedLanguageStream: Stream<string> = stream(selectedLanguage.value)
 	const subject = stream(template.subject)
 	// Editor resets its value on re-attach so we keep it ourselves
 	let savedHtml = editor.getValue()
@@ -136,22 +136,21 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	const editTabContent = () => [
 		m(".small.mt-s", lang.get("templateHelp_msg")),
 		existingTemplate
-				? m(TextFieldN, {
-					label: "notificationMailLanguage_label",
-					disabled: true,
-					value: stream(neverNull(selectedLanguage).name),
-				})
-				: m(DropDownSelectorN, {
-					label: "notificationMailLanguage_label",
-					items: sortedLanguages,
-					selectedValue: selectedLanguageStream,
-					dropdownWidth: 250,
-				}),
+			? m(TextFieldN, {
+				label: "notificationMailLanguage_label",
+				disabled: true,
+				value: stream(selectedLanguage.name),
+			})
+			: m(DropDownSelectorN, {
+				label: "notificationMailLanguage_label",
+				items: sortedLanguages,
+				selectedValue: selectedLanguageStream,
+				dropdownWidth: 250,
+			}),
 		m(TextFieldN, {
 			label: "subject_label",
 			value: subject,
 		}),
-		// @ts-ignore
 		m(editor),
 	]
 
@@ -189,65 +188,65 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 				selectedTab() === editSegment.value ? editTabContent() : previewTabContent(),
 			]
 		},
-		okAction: dialog => {
+		okAction: (dialog: Dialog) => {
 			if (!editor.getValue().includes("{link}")) {
 				return Dialog.message(() =>
-						lang.get("templateMustContain_msg", {
-							"{value}": "{link}",
-						}),
+					lang.get("templateMustContain_msg", {
+						"{value}": "{link}",
+					}),
 				)
 			}
 
-			let templates
-			let isExistingTemplate
+			let templates: NotificationMailTemplate[]
+			let isExistingTemplate: boolean
 			const oldLanguage = template.language
 			const oldSubject = template.subject
 			const oldBody = template.body
 			return showProgressDialog(
-					"pleaseWait_msg",
-					customerProperties.getAsync().then(customerProperties => {
-						templates = customerProperties.notificationMailTemplates
+				"pleaseWait_msg",
+				customerProperties.getAsync().then(customerProperties => {
+					templates = customerProperties.notificationMailTemplates
 
-						if (
-								customerProperties.notificationMailTemplates.filter(t => t !== existingTemplate && t.language === selectedLanguageStream()).length > 0
-						) {
-							throw new UserError("templateLanguageExists_msg")
-						}
+					if (
+						customerProperties.notificationMailTemplates.filter(t => t !== existingTemplate && t.language === selectedLanguageStream()).length > 0
+					) {
+						throw new UserError("templateLanguageExists_msg")
+					}
 
-						isExistingTemplate = templates.includes(template)
+					isExistingTemplate = templates.includes(template)
+
+					if (!isExistingTemplate) {
+						customerProperties.notificationMailTemplates.push(template)
+					}
+
+					template.subject = htmlSanitizer.sanitizeHTML(subject(), {
+						blockExternalContent: false,
+					}).text
+					template.body = htmlSanitizer.sanitizeHTML(editor.getValue(), {
+						blockExternalContent: false,
+					}).text
+					template.language = selectedLanguageStream()
+					return locator.entityClient.update(customerProperties).then(() => dialog.close())
+				}),
+			)
+				.catch(
+					ofClass(UserError, err => {
+						return Dialog.message(() => err.message)
+					}),
+				)
+				.catch(
+					ofClass(PayloadTooLargeError, () => {
+						template.subject = oldSubject
+						template.body = oldBody
+						template.language = oldLanguage
 
 						if (!isExistingTemplate) {
-							customerProperties.notificationMailTemplates.push(template)
+							templates.pop()
 						}
 
-						template.subject = htmlSanitizer.sanitizeHTML(subject(), {
-							blockExternalContent: false,
-						}).text
-						template.body = htmlSanitizer.sanitizeHTML(editor.getValue(), {
-							blockExternalContent: false,
-						}).text
-						template.language = selectedLanguageStream()
-						return locator.entityClient.update(customerProperties).then(() => dialog.close())
+						return Dialog.message("notificationMailTemplateTooLarge_msg")
 					}),
-			)
-					.catch(
-							ofClass(UserError, err => {
-								return Dialog.message(() => err.message)
-							}),
-					)
-					.catch(
-							ofClass(PayloadTooLargeError, () => {
-								template.subject = oldSubject
-								template.body = oldBody
-								template.language = oldLanguage
-
-								if (!isExistingTemplate) {
-									templates.pop()
-								}
-
-								return Dialog.message("notificationMailTemplateTooLarge_msg")
-							}),
-					)
+				)
 		},
 	})
 }
@@ -257,39 +256,39 @@ const HTML_PTAG_END = "</p>"
 
 function getDefaultNotificationMail(): string {
 	return (
-			HTML_PTAG_START +
-			lang.get("externalNotificationMailBody1_msg") +
-			HTML_PTAG_END +
-			HTML_PTAG_START +
-			lang.get("externalNotificationMailBody2_msg", {
-				"{1}": lang.getInfoLink("homePage_link"),
-			}) +
-			HTML_PTAG_END +
-			HTML_PTAG_START +
-			"<a href='{link}'>" +
-			lang.get("externalNotificationMailBody3_msg") +
-			"</a>" +
-			HTML_PTAG_END +
-			HTML_PTAG_START +
-			lang.get("externalNotificationMailBody4_msg") +
-			"<br>" +
-			"{link}" +
-			"<br>" +
-			HTML_PTAG_END +
-			HTML_PTAG_START +
-			lang.get("externalNotificationMailBody5_msg") +
-			HTML_PTAG_END +
-			HTML_PTAG_START +
-			lang.get("externalNotificationMailBody6_msg") +
-			"<br>" +
-			"{sender}" +
-			HTML_PTAG_END
+		HTML_PTAG_START +
+		lang.get("externalNotificationMailBody1_msg") +
+		HTML_PTAG_END +
+		HTML_PTAG_START +
+		lang.get("externalNotificationMailBody2_msg", {
+			"{1}": lang.getInfoLink("homePage_link"),
+		}) +
+		HTML_PTAG_END +
+		HTML_PTAG_START +
+		"<a href='{link}'>" +
+		lang.get("externalNotificationMailBody3_msg") +
+		"</a>" +
+		HTML_PTAG_END +
+		HTML_PTAG_START +
+		lang.get("externalNotificationMailBody4_msg") +
+		"<br>" +
+		"{link}" +
+		"<br>" +
+		HTML_PTAG_END +
+		HTML_PTAG_START +
+		lang.get("externalNotificationMailBody5_msg") +
+		HTML_PTAG_END +
+		HTML_PTAG_START +
+		lang.get("externalNotificationMailBody6_msg") +
+		"<br>" +
+		"{sender}" +
+		HTML_PTAG_END
 	)
 }
 
 function loadCustomerInfo(): Promise<CustomerInfo | null> {
 	return logins
-			.getUserController()
-			.loadCustomer()
-			.then(customer => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
+		.getUserController()
+		.loadCustomer()
+		.then(customer => locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, customer.customerInfo))
 }

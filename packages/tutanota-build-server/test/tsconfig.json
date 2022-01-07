@@ -5,10 +5,12 @@
 	"DummyBuilder.ts"
   ],
   "include": [
-	"dummy_webroot/"
+	"dummy_webroot/",
+	"../../../types/*.d.ts"
   ],
   "compilerOptions": {
 	"outDir": "../build",
-	"declaration": false
+	"declaration": false,
+	"noImplicitAny": false
   }
 }

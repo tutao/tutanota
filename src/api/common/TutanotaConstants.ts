@@ -1,4 +1,5 @@
 //@bundleInto:common-min
+
 import {downcast} from "@tutao/tutanota-utils"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElement"
@@ -33,11 +34,12 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 export const getMailFolderType = (folder: MailFolder): MailFolderType => downcast(folder.folderType)
 
 type ObjectPropertyKey = string | number | symbol;
-export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> => Object.keys(objectMap )
-		.reduce((r, k) => {
-			const v = objectMap[downcast(k)]
-			return Object.assign(r, {[v]: k})
-		}, {} as Record<V, K>)
+export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> => Object.keys(objectMap)
+																																  .reduce((r, k) => {
+																																	  // @ts-ignore
+																																	  const v = objectMap[downcast(k)]
+																																	  return Object.assign(r, {[v]: k})
+																																  }, {} as Record<V, K>)
 
 export const enum OutOfOfficeNotificationMessageType {
 	Default = "0",
@@ -59,6 +61,8 @@ export enum GroupType {
 	Calendar = "9",
 	Template = "10",
 }
+
+export const GroupTypeNameByCode = reverse(GroupType)
 
 export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)
 
@@ -110,7 +114,7 @@ export const enum ContactPhoneNumberType {
 	CUSTOM = "5",
 }
 
-export enum ContactSocialType {
+export const enum ContactSocialType {
 	TWITTER = "0",
 	FACEBOOK = "1",
 	XING = "2",
@@ -135,7 +139,7 @@ export enum AccountType {
 	EXTERNAL = "5",
 }
 
-export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"] as const
+export const AccountTypeNames = reverse(AccountType)
 
 export const enum PaidSubscriptionType {
 	Premium = "0",
@@ -159,6 +163,7 @@ export enum BookingItemFeatureType {
 	Sharing = "9",
 	Business = "10",
 }
+
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
 
@@ -185,7 +190,7 @@ export const Const = {
 
 export const TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"]
 
-export enum ConversationType {
+export const enum ConversationType {
 	NEW = "0",
 	REPLY = "1",
 	FORWARD = "2",
@@ -198,7 +203,8 @@ export const enum MailState {
 	SENDING = "3",
 }
 
-export const enum ApprovalStatus {
+// Keep non-const for admin
+export enum ApprovalStatus {
 	REGISTRATION_APPROVED = "0",
 	REGISTRATION_APPROVAL_NEEDED = "1",
 	SEND_MAILS_APPROVED = "2",
@@ -231,9 +237,8 @@ export enum SpamRuleType {
 	DISCARD = "3",
 }
 
-
 export function getSpamRuleType(spamRule: EmailSenderListElement): SpamRuleType | null {
-	return SpamRuleType[spamRule.type]
+	return getAsEnumValue(SpamRuleType, spamRule.type)
 }
 
 export const enum SpamRuleFieldType {
@@ -259,7 +264,7 @@ export const enum EmailSignatureType {
 	EMAIL_SIGNATURE_TYPE_NONE = "2",
 }
 
-export const enum CustomDomainValidationResult {
+export enum CustomDomainValidationResult {
 	CUSTOM_DOMAIN_VALIDATION_RESULT_OK = "0",
 	CUSTOM_DOMAIN_VALIDATION_RESULT_DNS_LOOKUP_FAILED = "1",
 	CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_FOUND = "2",
@@ -268,7 +273,7 @@ export const enum CustomDomainValidationResult {
 	CUSTOM_DOMAIN_VALIDATION_RESULT_VALIDATION_FAILED = "5",
 }
 
-export const enum CustomDomainCheckResult {
+export enum CustomDomainCheckResult {
 	CUSTOM_DOMAIN_CHECK_RESULT_OK = "0",
 	CUSTOM_DOMAIN_CHECK_RESULT_DNS_LOOKUP_FAILED = "1",
 	CUSTOM_DOMAIN_CHECK_RESULT_DOMAIN_NOT_FOUND = "2",
@@ -283,6 +288,8 @@ export enum DnsRecordType {
 	DNS_RECORD_TYPE_CNAME_MTA_STS = "4",
 	DNS_RECORD_TYPE_TXT_VERIFY = "5",
 }
+
+export const DnsRecordTypeToName = reverse(DnsRecordType)
 
 export const enum SessionState {
 	SESSION_STATE_ACTIVE = "0",
@@ -316,7 +323,8 @@ export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
 export const ALLOWED_IMAGE_FORMATS = ["png", "jpg", "jpeg", "svg"]
 
-export const enum FeatureType {
+// Keep non-const for admin
+export enum FeatureType {
 	DisableContacts = "0",
 	DisableMailExport = "1",
 	InternalCommunication = "2",
@@ -420,7 +428,7 @@ export function getCertificateType(certificateInfo: CertificateInfo): Certificat
 	return downcast(certificateInfo.type)
 }
 
-export const enum RepeatPeriod {
+export enum RepeatPeriod {
 	DAILY = "0",
 	WEEKLY = "1",
 	MONTHLY = "2",
@@ -701,7 +709,8 @@ export const enum TabIndex {
 	Default = "0", // regular tab order
 }
 
-export const enum ReportedMailFieldType {
+// Keep non-const for admin
+export enum ReportedMailFieldType {
 	/**
 	 * From header address, authenticated.
 	 */
@@ -750,7 +759,8 @@ export const enum PhishingMarkerStatus {
 	INACTIVE = "1",
 }
 
-export const enum MailAuthenticationStatus {
+// Keep non-const for admin
+export enum MailAuthenticationStatus {
 	/**
 	 * Disposition: None. All checks have passed.
 	 */
@@ -787,7 +797,7 @@ export const enum DnsRecordValidation {
 	BAD = "✗",
 }
 
-export const enum CalendarAttendeeStatus {
+export enum CalendarAttendeeStatus {
 	/** invite is not sent yet */
 	ADDED = "0",
 
@@ -852,6 +862,7 @@ export function mailMethodToCalendarMethod(mailMethod: MailMethod): CalendarMeth
 
 export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V | null {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
+		// @ts-ignore
 		const enumValue = enumValues[key]
 
 		if (enumValue === value) {
@@ -864,6 +875,7 @@ export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>,
 
 export function assertEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
+		// @ts-ignore
 		const enumValue = enumValues[key]
 
 		if (enumValue === value) {
@@ -896,12 +908,6 @@ export const enum ExternalImageRule {
 	None = "0",
 	Allow = "1",
 	Block = "2",
-}
-
-export type CreditCardData = {
-	number: string
-	cvv: string
-	expirationDate: string
 }
 
 export type PayPalData = {

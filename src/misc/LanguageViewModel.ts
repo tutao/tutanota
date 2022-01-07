@@ -1,7 +1,7 @@
 import type {lazy} from "@tutao/tutanota-utils"
-import {downcast, replaceAll} from "@tutao/tutanota-utils"
+import {downcast, replaceAll, typedEntries} from "@tutao/tutanota-utils"
 import type {TranslationKeyType} from "./TranslationKey"
-import {getWhitelabelCustomizations} from "./WhitelabelCustomizations"
+import {getWhitelabelCustomizations, WhitelabelCustomizations} from "./WhitelabelCustomizations"
 import {assertMainOrNodeBoot} from "../api/common/Env"
 
 export type TranslationKey = TranslationKeyType
@@ -10,91 +10,48 @@ assertMainOrNodeBoot()
 export type DateTimeFormatOptions = {
 	hourCycle?: "h11" | "h12" | "h23" | "h24"
 }
-// FIXME: make flow less angry
-const translationImportMap = {
-	// $FlowFixMe[untyped-import]
+const translationImportMap: Record<LanguageCode, () => Promise<any>> = {
 	ar: () => import("../translations/ar.js"),
-	// $FlowFixMe[untyped-import]
 	bg: () => import("../translations/bg.js"),
-	// $FlowFixMe[untyped-import]
 	ca: () => import("../translations/ca.js"),
-	// $FlowFixMe[untyped-import]
 	cs: () => import("../translations/cs.js"),
-	// $FlowFixMe[untyped-import]
 	da: () => import("../translations/da.js"),
-	// $FlowFixMe[untyped-import]
 	de: () => import("../translations/de.js"),
-	// $FlowFixMe[untyped-import]
 	de_sie: () => import("../translations/de_sie.js"),
-	// $FlowFixMe[untyped-import]
 	el: () => import("../translations/el.js"),
-	// $FlowFixMe[untyped-import]
 	en: () => import("../translations/en.js"),
-	// $FlowFixMe[untyped-import]
 	en_gb: () => import("../translations/en.js"),
-	// $FlowFixMe[untyped-import]
 	es: () => import("../translations/es.js"),
-	// $FlowFixMe[untyped-import]
 	et: () => import("../translations/et.js"),
-	// $FlowFixMe[untyped-import]
 	fa_ir: () => import("../translations/fa_ir.js"),
-	// $FlowFixMe[untyped-import]
 	fi: () => import("../translations/fi.js"),
-	// $FlowFixMe[untyped-import]
 	fr: () => import("../translations/fr.js"),
-	// $FlowFixMe[untyped-import]
 	gl: () => import("../translations/gl.js"),
-	// $FlowFixMe[untyped-import]
 	he: () => import("../translations/he.js"),
-	// $FlowFixMe[untyped-import]
 	hi: () => import("../translations/hi.js"),
-	// $FlowFixMe[untyped-import]
 	hr: () => import("../translations/hr.js"),
-	// $FlowFixMe[untyped-import]
 	hu: () => import("../translations/hu.js"),
-	// $FlowFixMe[untyped-import]
 	id: () => import("../translations/id.js"),
-	// $FlowFixMe[untyped-import]
 	it: () => import("../translations/it.js"),
-	// $FlowFixMe[untyped-import]
 	ja: () => import("../translations/ja.js"),
-	// $FlowFixMe[untyped-import]
 	ko: () => import("../translations/ko.js"),
-	// $FlowFixMe[untyped-import]
 	lt: () => import("../translations/lt.js"),
-	// $FlowFixMe[untyped-import]
 	lv: () => import("../translations/lv.js"),
-	// $FlowFixMe[untyped-import]
 	nl: () => import("../translations/nl.js"),
-	// $FlowFixMe[untyped-import]
 	no: () => import("../translations/no.js"),
-	// $FlowFixMe[untyped-import]
 	pl: () => import("../translations/pl.js"),
-	// $FlowFixMe[untyped-import]
 	pt_br: () => import("../translations/pt_br.js"),
-	// $FlowFixMe[untyped-import]
 	pt_pt: () => import("../translations/pt_pt.js"),
-	// $FlowFixMe[untyped-import]
 	ro: () => import("../translations/ro.js"),
-	// $FlowFixMe[untyped-import]
 	ru: () => import("../translations/ru.js"),
-	// $FlowFixMe[untyped-import]
 	sk: () => import("../translations/sk.js"),
-	// $FlowFixMe[untyped-import]
 	sl: () => import("../translations/sl.js"),
-	// $FlowFixMe[untyped-import]
 	sr_cyrl: () => import("../translations/sr_cyrl.js"),
-	// $FlowFixMe[untyped-import]
 	sv: () => import("../translations/sv.js"),
-	// $FlowFixMe[untyped-import]
 	tr: () => import("../translations/tr.js"),
-	// $FlowFixMe[untyped-import]
 	uk: () => import("../translations/uk.js"),
-	// $FlowFixMe[untyped-import]
 	vi: () => import("../translations/vi.js"),
-	// $FlowFixMe[untyped-import]
 	zh: () => import("../translations/zh.js"),
-	// $FlowFixMe[untyped-import]
 	zh_hant: () => import("../translations/zh_hant.js"),
 }
 
@@ -107,7 +64,7 @@ const translationImportMap = {
  * languageByCode[code] will return the whole language Object
  * in all cases lang.get(languageByCode[code].textId) will always return the translated language from a code
  */
-export const LanguageNames = Object.freeze({
+export const LanguageNames: Record<string, TranslationKey> = Object.freeze({
 	ar: "languageArabic_label",
 	bg: "languageBulgarian_label",
 	ca: "languageCatalan_label",
@@ -169,7 +126,7 @@ for (let [code, textId] of downcast(Object.entries(LanguageNames))) {
 export const languages: ReadonlyArray<{
 	code: LanguageCode
 	textId: TranslationKey
-}> = downcast(Object.entries(LanguageNames)).map(([code, textId]) => {
+}> = typedEntries(LanguageNames).map(([code, textId]) => {
 	return {
 		code,
 		textId,
@@ -251,11 +208,11 @@ export class LanguageViewModel {
 		this.code = "en"
 		const language = getLanguage()
 		return this.setLanguage(language) // Service worker currently caches only English. We don't want the whole app to fail if we cannot fetch the language.
-				.catch(e => {
-					console.warn("Could not set language", language, e)
+				   .catch(e => {
+					   console.warn("Could not set language", language, e)
 
-					this._setLanguageTag("en-US")
-				})
+					   this._setLanguageTag("en-US")
+				   })
 	}
 
 	addStaticTranslation(key: string, text: string) {
@@ -268,7 +225,7 @@ export class LanguageViewModel {
 		this.code = code
 	}
 
-	setLanguage(lang: { code: LanguageCode; languageTag: string }): Promise<void> {
+	setLanguage(lang: {code: LanguageCode; languageTag: string}): Promise<void> {
 		this._setLanguageTag(lang.languageTag)
 
 		if (this.code === lang.code) {
@@ -276,8 +233,8 @@ export class LanguageViewModel {
 		}
 
 		// we don't support multiple language files for en so just use the one and only.
-		const code = lang.code.startsWith("en") ? "en" : lang.code
-		return translationImportMap[downcast(code)]().then(translationsModule => {
+		const code: LanguageCode = lang.code.startsWith("en") ? "en" : lang.code
+		return translationImportMap[code]().then(translationsModule => {
 			this.translations = translationsModule.default
 			this.code = lang.code
 		})
@@ -335,56 +292,56 @@ export class LanguageViewModel {
 				year: "numeric",
 			}),
 			dateWithWeekdayAndTime: new Intl.DateTimeFormat(
-					tag,
-					Object.assign(
-							{},
-							{
-								weekday: "short",
-								day: "numeric",
-								month: "short",
-								hour: "numeric",
-								minute: "numeric",
-							} as const,
-							options,
-					),
+				tag,
+				Object.assign(
+					{},
+					{
+						weekday: "short",
+						day: "numeric",
+						month: "short",
+						hour: "numeric",
+						minute: "numeric",
+					} as const,
+					options,
+				),
 			),
 			time: new Intl.DateTimeFormat(
-					tag,
-					Object.assign(
-							{},
-							{
-								hour: "numeric",
-								minute: "numeric",
-							} as const,
-							options,
-					),
+				tag,
+				Object.assign(
+					{},
+					{
+						hour: "numeric",
+						minute: "numeric",
+					} as const,
+					options,
+				),
 			),
 			dateTime: new Intl.DateTimeFormat(
-					tag,
-					Object.assign(
-							{},
-							{
-								day: "numeric",
-								month: "short",
-								year: "numeric",
-								hour: "numeric",
-								minute: "numeric",
-							} as const,
-							options,
-					),
+				tag,
+				Object.assign(
+					{},
+					{
+						day: "numeric",
+						month: "short",
+						year: "numeric",
+						hour: "numeric",
+						minute: "numeric",
+					} as const,
+					options,
+				),
 			),
 			dateTimeShort: new Intl.DateTimeFormat(
-					tag,
-					Object.assign(
-							{},
-							{
-								day: "numeric",
-								month: "numeric",
-								year: "numeric",
-								hour: "numeric",
-							} as const,
-							options,
-					),
+				tag,
+				Object.assign(
+					{},
+					{
+						day: "numeric",
+						month: "numeric",
+						year: "numeric",
+						hour: "numeric",
+					} as const,
+					options,
+				),
 			),
 			weekdayShort: new Intl.DateTimeFormat(tag, {
 				weekday: "short",
@@ -486,15 +443,7 @@ export class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguageNoDefault(
-		restrictions: LanguageCode[] | null,
-):
-		| {
-	code: LanguageCode
-	languageTag: string
-}
-		| null
-		| undefined {
+export function getLanguageNoDefault(restrictions?: LanguageCode[]): | {code: LanguageCode, languageTag: string} | null {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 
@@ -529,7 +478,7 @@ export function getLanguageNoDefault(
  * @param restrictions An array of language codes the selection should be restricted to
  */
 export function getLanguage(
-		restrictions?: LanguageCode[],
+	restrictions?: LanguageCode[],
 ): {
 	code: LanguageCode
 	languageTag: string
@@ -550,7 +499,7 @@ export function getLanguage(
 	}
 }
 
-export function _getSubstitutedLanguageCode(tag: string, restrictions: LanguageCode[] | null): LanguageCode | null {
+export function _getSubstitutedLanguageCode(tag: string, restrictions?: LanguageCode[]): LanguageCode | null {
 	let code = tag.toLowerCase().replace("-", "_")
 	let language = languages.find(l => l.code === code && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 
@@ -564,7 +513,7 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: LanguageC
 	}
 
 	if (language) {
-		let customizations = null
+		let customizations: WhitelabelCustomizations | null = null
 
 		// accessing `window` throws an error on desktop, and this file is imported by DesktopMain
 		if (typeof window !== "undefined") {
@@ -594,7 +543,7 @@ function getBasePart(code: string): string {
 }
 
 export function getAvailableLanguageCode(code: string): string {
-	return _getSubstitutedLanguageCode(code, null) || "en"
+	return _getSubstitutedLanguageCode(code) || "en"
 }
 
 /**

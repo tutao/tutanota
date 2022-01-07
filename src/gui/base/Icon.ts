@@ -27,21 +27,22 @@ import("./icons/Icons.js").then(IconsModule => {
 
 export class Icon implements Component<IconAttrs> {
 	view(vnode: Vnode<IconAttrs>): Children {
-		const icon = BootIconsSvg[vnode.attrs.icon as any] ? BootIconsSvg[vnode.attrs.icon as any] : IconsSvg[vnode.attrs.icon as any]
+		// @ts-ignore
+		const icon = BootIconsSvg[vnode.attrs.icon] ?? IconsSvg[vnode.attrs.icon]
 		const container = vnode.attrs.container || "span"
 		return m(
-				container + ".icon",
-				{
-					"aria-hidden": "true",
-					class: this.getClass(vnode.attrs),
-					style: this.getStyle(vnode.attrs.style),
-				},
-				m.trust(icon),
+			container + ".icon",
+			{
+				"aria-hidden": "true",
+				class: this.getClass(vnode.attrs),
+				style: this.getStyle(vnode.attrs.style ?? null),
+			},
+			m.trust(icon),
 		) // icon is typed, so we may not embed untrusted data
 	}
 
 	getStyle(
-			style: Record<string, any> | null,
+		style: Record<string, any> | null,
 	): {
 		fill: string
 	} {
@@ -51,7 +52,7 @@ export class Icon implements Component<IconAttrs> {
 			style.fill = theme.content_accent
 		}
 
-		return style as { fill: string }
+		return style as {fill: string}
 	}
 
 	getClass(attrs: IconAttrs): string {

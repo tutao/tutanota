@@ -9,8 +9,8 @@ import {
 } from "@tutao/tutanota-utils"
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import type {ModelValue, SomeEntity, TypeModel} from "../EntityTypes"
-import type {Hex} from "@tutao/tutanota-utils/"
-import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils/"
+import type {Hex} from "@tutao/tutanota-utils"
+import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -167,7 +167,7 @@ export function customIdToString(customId: string): string {
 }
 
 export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
-	let i = {
+	let i: Record<string, any> = {
 		_type: typeRef,
 	}
 
@@ -222,7 +222,7 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 			case ValueType.CustomId:
 			case ValueType.GeneratedId:
 				return null
-				// we have to use null although the value must be set to something different
+			// we have to use null although the value must be set to something different
 		}
 	}
 

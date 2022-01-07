@@ -53,12 +53,12 @@ class ContactFormView {
 				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
 			},
 		})
-				.addShortcut({
-					key: Keys.ESC,
-					exec: closeAction,
-					help: "close_alt",
-				})
-				.setCloseHandler(closeAction)
+											.addShortcut({
+												key: Keys.ESC,
+												exec: closeAction,
+												help: "close_alt",
+											})
+											.setCloseHandler(closeAction)
 
 		this.view = (): Children => {
 			return m(".main-view.flex.col", [
@@ -71,68 +71,68 @@ class ContactFormView {
 	_getContactFormContent(): Children {
 		if (this._loading) {
 			return m(
-					".flex-center.items-center.pt-l",
-					{
-						onbeforeremove: vnode => animations.add(
-								vnode.dom as HTMLElement,
-								opacity(1, 0, false)
-						),
-					},
-					progressIcon(),
+				".flex-center.items-center.pt-l",
+				{
+					onbeforeremove: vnode => animations.add(
+						vnode.dom as HTMLElement,
+						opacity(1, 0, false)
+					),
+				},
+				progressIcon(),
 			)
 		} else if (this._contactForm) {
 			let language = getDefaultContactFormLanguage(this._contactForm.languages)
 			return m(
-					".mt",
-					{
-						oncreate: vnode => animations.add(
-								vnode.dom as HTMLElement,
-								opacity(0, 1, false)
-						),
-					},
-					[
-						language.pageTitle ? m("h1.center.pt", language.pageTitle) : null,
-						m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
-						m(".flex.justify-center", [
-							m(".max-width-m.flex-grow-shrink-auto", [
-								m(
-										".pt-l",
-										m(ButtonN, {
-											label: "createContactRequest_action",
-											click: () => new ContactFormRequestDialog(neverNull(this._contactForm)).show(),
-											type: ButtonType.Login,
-										}),
-								),
-								m(
-										".pt-l",
-										m(ButtonN, {
-											label: "readResponse_action",
-											click: () => m.route.set("/login"),
-											type: ButtonType.Login,
-										}),
-								),
-								this._helpHtml
-										? m(
-												".pt-l.flex-center",
-												m(ButtonN, {
-													label: "moreInformation_action",
-													click: () => this._moreInformationDialog.show(),
-													type: ButtonType.Secondary,
-												}),
-										)
-										: null,
-							]),
+				".mt",
+				{
+					oncreate: vnode => animations.add(
+						vnode.dom as HTMLElement,
+						opacity(0, 1, false)
+					),
+				},
+				[
+					language.pageTitle ? m("h1.center.pt", language.pageTitle) : null,
+					m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
+					m(".flex.justify-center", [
+						m(".max-width-m.flex-grow-shrink-auto", [
+							m(
+								".pt-l",
+								m(ButtonN, {
+									label: "createContactRequest_action",
+									click: () => new ContactFormRequestDialog(neverNull(this._contactForm)).show(),
+									type: ButtonType.Login,
+								}),
+							),
+							m(
+								".pt-l",
+								m(ButtonN, {
+									label: "readResponse_action",
+									click: () => m.route.set("/login"),
+									type: ButtonType.Login,
+								}),
+							),
+							this._helpHtml
+								? m(
+									".pt-l.flex-center",
+									m(ButtonN, {
+										label: "moreInformation_action",
+										click: () => this._moreInformationDialog.show(),
+										type: ButtonType.Secondary,
+									}),
+								)
+								: null,
 						]),
-						m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
-						renderPrivacyAndImprintLinks(),
-					],
+					]),
+					m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
+					renderPrivacyAndImprintLinks(),
+				],
 			)
 		} else {
 			return m(
-					new InfoView(
-							() => "404",
-							() => [m("p", lang.get("notFound404_msg")), m(".pb")],
-					),
+				new InfoView(
+					() => "404",
+					() => [m("p", lang.get("notFound404_msg")), m(".pb")],
+				),
 			)
 		}
 	}
@@ -142,32 +142,32 @@ class ContactFormView {
 			this._formId = args.formId
 			this._loading = true
 			locator.contactFormFacade
-					.loadContactForm(args.formId)
-					.then(contactForm => {
-						this._contactForm = contactForm
-						lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
-							let language = getDefaultContactFormLanguage(contactForm.languages)
-							document.title = language.pageTitle
-							this._headerHtml = htmlSanitizer.sanitizeHTML(language.headerHtml, {
-								blockExternalContent: false,
-							}).text
-							this._footerHtml = htmlSanitizer.sanitizeHTML(language.footerHtml, {
-								blockExternalContent: false,
-							}).text
-							this._helpHtml = htmlSanitizer.sanitizeHTML(language.helpHtml, {
-								blockExternalContent: false,
-							}).text
-							this._loading = false
-							m.redraw()
-						})
-					})
-					.catch(
-							ofClass(NotFoundError, e => {
-								this._loading = false
-								this._contactForm = null
-								m.redraw()
-							}),
-					)
+				   .loadContactForm(args.formId)
+				   .then(contactForm => {
+					   this._contactForm = contactForm
+					   lang.setLanguage(getLanguage(this._contactForm.languages.map(l => downcast(l.code)))).finally(() => {
+						   let language = getDefaultContactFormLanguage(contactForm.languages)
+						   document.title = language.pageTitle
+						   this._headerHtml = htmlSanitizer.sanitizeHTML(language.headerHtml, {
+							   blockExternalContent: false,
+						   }).text
+						   this._footerHtml = htmlSanitizer.sanitizeHTML(language.footerHtml, {
+							   blockExternalContent: false,
+						   }).text
+						   this._helpHtml = htmlSanitizer.sanitizeHTML(language.helpHtml, {
+							   blockExternalContent: false,
+						   }).text
+						   this._loading = false
+						   m.redraw()
+					   })
+				   })
+				   .catch(
+					   ofClass(NotFoundError, e => {
+						   this._loading = false
+						   this._contactForm = null
+						   m.redraw()
+					   }),
+				   )
 		}
 	}
 }

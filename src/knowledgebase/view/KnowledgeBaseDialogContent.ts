@@ -3,7 +3,7 @@ import {KnowledgeBaseModel} from "../model/KnowledgeBaseModel"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
 import {KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry} from "./KnowledgeBaseListEntry"
 import {lang} from "../../misc/LanguageViewModel"
-import stream from "mithril/stream/stream.js"
+import stream from "mithril/stream"
 import {KnowledgeBaseEntryView} from "./KnowledgeBaseEntryView"
 import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"
 import {NotFoundError} from "../../api/common/error/RestError"
@@ -39,16 +39,16 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		const {model} = attrs
 
 		this._streams.push(
-				stream.combine(() => {
-					m.redraw()
-				}, [model.selectedEntry, model.filteredEntries]),
+			stream.combine(() => {
+				m.redraw()
+			}, [model.selectedEntry, model.filteredEntries]),
 		)
 
 		this._streams.push(
-				this._filterInputFieldAttrs.value.map((value: string) => {
-					model.filter(value)
-					m.redraw()
-				}),
+			this._filterInputFieldAttrs.value.map((value: string) => {
+				model.filter(value)
+				m.redraw()
+			}),
 		)
 	}
 
@@ -62,19 +62,19 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		const model = attrs.model
 		const selectedEntry = model.selectedEntry()
 		return selectedEntry
-				? m(KnowledgeBaseEntryView, {
-					entry: selectedEntry,
-					onTemplateSelected: templateId => {
-						model
-								.loadTemplate(templateId)
-								.then(fetchedTemplate => {
-									attrs.onTemplateSelect(fetchedTemplate)
-								})
-								.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
-					},
-					readonly: model.isReadOnly(selectedEntry),
-				})
-				: [m(TextFieldN, this._filterInputFieldAttrs), this._renderKeywords(model), this._renderList(model, attrs)]
+			? m(KnowledgeBaseEntryView, {
+				entry: selectedEntry,
+				onTemplateSelected: templateId => {
+					model
+						.loadTemplate(templateId)
+						.then(fetchedTemplate => {
+							attrs.onTemplateSelect(fetchedTemplate)
+						})
+						.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
+				},
+				readonly: model.isReadOnly(selectedEntry),
+			})
+			: [m(TextFieldN, this._filterInputFieldAttrs), this._renderKeywords(model), this._renderList(model, attrs)]
 	}
 
 	_renderKeywords(model: KnowledgeBaseModel): Children {
@@ -89,45 +89,45 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 
 	_renderList(model: KnowledgeBaseModel, attrs: KnowledgebaseDialogContentAttrs): Children {
 		return m(
-				".mt-s.scroll",
-				{
-					oncreate: vnode => {
-						this._selectionChangedListener = model.selectedEntry.map(
-								makeListSelectionChangedScrollHandler(
-										vnode.dom as HTMLElement,
-										KNOWLEDGEBASE_LIST_ENTRY_HEIGHT,
-										model.getSelectedEntryIndex.bind(model)
-								),
-						)
-					},
-					onbeforeremove: () => {
-						this._selectionChangedListener.end()
-					},
+			".mt-s.scroll",
+			{
+				oncreate: vnode => {
+					this._selectionChangedListener = model.selectedEntry.map(
+						makeListSelectionChangedScrollHandler(
+							vnode.dom as HTMLElement,
+							KNOWLEDGEBASE_LIST_ENTRY_HEIGHT,
+							model.getSelectedEntryIndex.bind(model)
+						),
+					)
 				},
-				[model.containsResult() ? model.filteredEntries().map(entry => this._renderListEntry(model, entry)) : m(".center", lang.get("noEntryFound_label"))],
+				onbeforeremove: () => {
+					this._selectionChangedListener.end()
+				},
+			},
+			[model.containsResult() ? model.filteredEntries().map(entry => this._renderListEntry(model, entry)) : m(".center", lang.get("noEntryFound_label"))],
 		)
 	}
 
 	_renderListEntry(model: KnowledgeBaseModel, entry: KnowledgeBaseEntry): Children {
 		return m(".flex.flex-column.click.hoverable-list-item", [
 			m(
-					".flex",
-					{
-						onclick: () => {
-							model.selectedEntry(entry)
-						},
+				".flex",
+				{
+					onclick: () => {
+						model.selectedEntry(entry)
 					},
-					[
-						m(KnowledgeBaseListEntry, {
-							entry: entry,
-						}),
-						m("", {
-							style: {
-								width: "17.1px",
-								height: "16px",
-							},
-						}),
-					],
+				},
+				[
+					m(KnowledgeBaseListEntry, {
+						entry: entry,
+					}),
+					m("", {
+						style: {
+							width: "17.1px",
+							height: "16px",
+						},
+					}),
+				],
 			),
 		])
 	}

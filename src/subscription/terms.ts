@@ -1,4 +1,5 @@
 import {assertMainOrNode} from "../api/common/Env"
+
 assertMainOrNode()
 export const terms_de = `<section id="terms-de" class="content">
     <h3>Allgemeine Geschäftsbedingungen (AGB) der Tutao GmbH</h3>

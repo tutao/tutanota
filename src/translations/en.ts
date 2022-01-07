@@ -16,11 +16,11 @@ export default {
 		acceptPrivacyPolicyReminder_msg: "Please accept the privacy policy by selecting the checkbox.",
 		acceptPrivacyPolicy_msg: "I have read and agree to the {privacyPolicy}.",
 		acceptTemplateGroupEmailBody_msg:
-				'Hello {recipientName}, <br/>{invitee} has accepted your invitation to use your template list "{groupName}".<br/><br/>This is an automated message.',
+			'Hello {recipientName}, <br/>{invitee} has accepted your invitation to use your template list "{groupName}".<br/><br/>This is an automated message.',
 		acceptTemplateGroupEmailSubject_msg: "Template list invitation accepted",
 		accept_action: "Accept",
 		accountSwitchAdditionalPackagesActive_msg:
-				"Please deactivate all booked extensions and packages and disable all email aliases before switching the subscription.",
+			"Please deactivate all booked extensions and packages and disable all email aliases before switching the subscription.",
 		accountSwitchAliases_msg: "Please delete all aliases of your user.",
 		accountSwitchCustomMailAddress_msg: "Please disable all custom domain email aliases.",
 		accountSwitchFeature_msg: "Please deactivate the feature {featureName}.",
@@ -29,7 +29,7 @@ export default {
 		accountSwitchSharedCalendar_msg: "Please remove all calendars shared with you.",
 		accountSwitchTooManyActiveUsers_msg: "Please deactivate all additional users before switching the subscription.",
 		accountWasStillCreated_msg:
-				"Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later.",
+			"Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later.",
 		account_label: "User",
 		action_label: "Action",
 		activated_label: "Activated",
@@ -41,7 +41,7 @@ export default {
 		addCalendar_action: "Add calendar",
 		addCustomDomainAddresses_title: "Add email addresses for your custom domain",
 		addCustomDomainAdresses_msg:
-				"The domain was assigned to your account. In order to use your custom domain please add at least one email alias to your current user. Alternatively, you may add new users with a custom domain email address.",
+			"The domain was assigned to your account. In order to use your custom domain please add at least one email alias to your current user. Alternatively, you may add new users with a custom domain email address.",
 		addCustomDomainAliases_msg: "Add an email alias for your current mailbox if you need another email address for yourself.",
 		addCustomDomainUsers_msg: "Add new users or new email aliases for existing users if you need email addresses for other people.",
 		addCustomDomain_action: "Add custom domain",
@@ -90,14 +90,14 @@ export default {
 		allowExternalContentSender_action: "Always trust sender",
 		allowOperation_msg: "Do you want to allow this?",
 		allowPushNotification_msg:
-				"To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
+			"To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
 		all_contacts_label: "All contacts",
 		all_label: "All",
 		alreadyMember_msg:
-				"You are already a participant of this calendar. If you wish to accept this new invitation, you must remove your participation first.",
+			"You are already a participant of this calendar. If you wish to accept this new invitation, you must remove your participation first.",
 		alreadyReplied_msg: "You replied to this invite.",
 		alreadyTemplateGroupMember_msg:
-				"You are already using this template group. You'll have to remove yourself from the group before you can accept this invitation.",
+			"You are already using this template group. You'll have to remove yourself from the group before you can accept this invitation.",
 		alwaysAsk_action: "Always ask",
 		alwaysReport_action: "Always report",
 		amountUsedAndActivatedOf_label: "{used} used, {active} activated of {totalAmount}",
@@ -138,7 +138,7 @@ export default {
 		businessCustomerAutoBusinessFeature_msg: "Note that the business feature will be booked automatically with all subscriptions for business customers.",
 		businessCustomerNeedsBusinessFeaturePlan_msg: "Your current subscription plan is {plan} ({price}) without the business feature.",
 		businessDeletionWarning_msg:
-				"The business feature  will be deactivated for all users now. Autoresponders and calendar invites will be disabled. Only one custom email domain is allowed.",
+			"The business feature  will be deactivated for all users now. Autoresponders and calendar invites will be disabled. Only one custom email domain is allowed.",
 		businessFeatureRequiredGeneral_msg: "To use this function you have to order the business feature.",
 		businessFeatureRequiredInvite_msg: "To send event invites you have to order the business feature.",
 		businessFeatureRequiredMultipleDomains_msg: "To add multiple custom email domains you have to order the business feature.",
@@ -147,12 +147,12 @@ export default {
 		businessIncluded_msg: "The business feature is included.",
 		businessOrPrivateUsage_label: "Usage",
 		businessUseUpgradeNeeded_msg:
-				"Sorry, you are currently not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you have a business account which is only allowed with paid subscriptions. Please upgrade to a paid subscription now.",
+			"Sorry, you are currently not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you have a business account which is only allowed with paid subscriptions. Please upgrade to a paid subscription now.",
 		buyEmailAliasInfo_msg:
-				"Please choose one of the email alias packages to change the number of available email aliases. The booked email aliases can be used by any user.",
+			"Please choose one of the email alias packages to change the number of available email aliases. The booked email aliases can be used by any user.",
 		buyGiftCard_label: "Buy a gift card",
 		buyStorageCapacityInfo_msg:
-				"Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
+			"Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
 		buy_action: "Buy",
 		by_label: "by",
 		calendarInvitationProgress_msg: "Sending invitation.",
@@ -201,7 +201,7 @@ export default {
 		certificateError_msg: "The certificate chain or the private key have a bad format or do not match your domain.",
 		certificateExpiryDate_label: "Certificate expiry date: {date}",
 		certificateRenewalFailureBody_msg:
-				'The certificate for your domain {1} needs to be renewed but we were unable to do so because the DNS CNAME entries are not correctly pointing to our servers.\n\nPlease go to "Settings" to find more information and update the records as soon as possible. You will receive this notification daily.',
+			'The certificate for your domain {1} needs to be renewed but we were unable to do so because the DNS CNAME entries are not correctly pointing to our servers.\n\nPlease go to "Settings" to find more information and update the records as soon as possible. You will receive this notification daily.',
 		certificateRenewalFailureSubject_msg: "Automatic certificate renewal failure on {1}",
 		certificateStateInvalid_label: "Failed to order certificate",
 		certificateStateProcessing_label: "Processing",
@@ -247,12 +247,12 @@ export default {
 		confirmDeactivateCustomColors_msg: "Would you really like to deactivate your custom colors?",
 		confirmDeactivateCustomLogo_msg: "Would you really like to deactivate your custom logo?",
 		confirmDeactivateWhitelabelDomain_msg:
-				"Would you really like to deactivate the Tutanota login for your domain and delete the SSL certificate, custom logo and custom colors?",
+			"Would you really like to deactivate the Tutanota login for your domain and delete the SSL certificate, custom logo and custom colors?",
 		confirmDeleteContactForm_msg: "Would you really like to delete this contact form?",
 		confirmDeleteFinallyCustomFolder_msg:
-				"Do you really want to permanently delete the folder '{1}' and all of its emails? Depending on the number of emails this operation may take a long time and will be executed in the background.",
+			"Do you really want to permanently delete the folder '{1}' and all of its emails? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		confirmDeleteFinallySystemFolder_msg:
-				"Do you really want to permanently delete all emails from the system folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
+			"Do you really want to permanently delete all emails from the system folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		confirmDeleteSecondFactor_msg: "Would you really like to delete this second factor?",
 		confirmDeleteTemplateGroup_msg: "Are you sure you want to delete this template list? All included templates will be lost and can't be restored.",
 		confirmFreeAccount_label: "Free account confirmation",
@@ -269,7 +269,7 @@ export default {
 		contactFormStatisticFieldsInfo_msg: "The following details are used for statistical purposes only and are voluntary.",
 		contactFormSubmitConfirm_action: "I have written down the email address and my password!",
 		contactFormSubmitConfirm_msg:
-				"Your request has been successfully submitted. Please note down the following email address and your password to read the answer to your request.",
+			"Your request has been successfully submitted. Please note down the following email address and your password to read the answer to your request.",
 		contactFormSubmitError_msg: "Sorry, your request could not be completed. Please try again later.",
 		contactForms_label: "Contact forms",
 		contactForm_label: "Contact form",
@@ -294,7 +294,7 @@ export default {
 		couldNotAuthU2f_msg: "Could not authenticate with security key.",
 		couldNotUnlockCredentials_msg: "Could not unlock credentials: {reason}",
 		createAccountAccessDeactivated_msg:
-				"Registration is temporarily blocked for your IP address to avoid abuse. Please try again later or use a different internet connection.",
+			"Registration is temporarily blocked for your IP address to avoid abuse. Please try again later or use a different internet connection.",
 		createAccountInvalidCaptcha_msg: "Unfortunately, the answer is wrong. Please try again.",
 		createAccountRunning_msg: "Preparing account ...",
 		createActionStatus_msg: "Creating users. Finished {index} of {count} accounts ...",
@@ -324,7 +324,7 @@ export default {
 		creditCardCVVInvalid_msg: "Security code (CVV) is invalid.",
 		creditCardCVV_label: "Security code (CVV)",
 		creditCardDeclined_msg:
-				"Unfortunately, your credit card was declined. Please verify that all entered information is correct, get in contact with your bank or select a different payment method.",
+			"Unfortunately, your credit card was declined. Please verify that all entered information is correct, get in contact with your bank or select a different payment method.",
 		creditCardExpirationDateFormat_msg: "Format: MM/YYYY",
 		creditCardExpirationDate_label: "Expiration date",
 		creditCardExprationDateInvalid_msg: "Expiration date is invalid.",
@@ -332,16 +332,16 @@ export default {
 		creditCardNumberInvalid_msg: "Credit card number is invalid.",
 		creditCardNumber_label: "Credit card number",
 		creditCardPaymentErrorVerificationNeeded_msg:
-				"Please update your payment details. This will trigger a verification of the credit card which is required by your bank.",
+			"Please update your payment details. This will trigger a verification of the credit card which is required by your bank.",
 		creditCardPendingVerification_msg:
-				"The verification of your credit card has not been completed yet. Please try to verify your card at a later time if this problem persists.",
+			"The verification of your credit card has not been completed yet. Please try to verify your card at a later time if this problem persists.",
 		creditCardVerificationFailed_msg: "Sorry, your credit card verification failed. You may try again or select a different payment method.",
 		creditCardVerificationLimitReached_msg:
-				"You have reached the credit card verification limit. Please try again in a few hours and make sure that the entered data is valid. Please contact your bank if further verifications fail.",
+			"You have reached the credit card verification limit. Please try again in a few hours and make sure that the entered data is valid. Please contact your bank if further verifications fail.",
 		creditCardVerificationNeededPopup_msg: "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
 		creditCardVerification_msg: "Your credit card will be verified now...",
 		creditUsageOptions_msg:
-				"Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
+			"Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
 		credit_label: "Credit",
 		currentBalance_label: "Current Account Balance",
 		currentlyBooked_label: "Booking overview",
@@ -349,12 +349,12 @@ export default {
 		customColors_label: "Custom colors",
 		customDomainDeletePreconditionFailed_msg: "Please deactivate all users and email aliases containing the domain: {domainName}.",
 		customDomainDeletePreconditionWhitelabelFailed_msg:
-				"Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.\n",
+			"Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.\n",
 		customDomainErrorDnsLookupFailure_msg: "DNS lookup failed.",
 		customDomainErrorDomainNotAvailable_msg: "Domain is not available.",
 		customDomainErrorDomainNotFound_msg: "We could not find this domain in the DNS. Please check the spelling.",
 		customDomainErrorNameserverNotFound_msg:
-				"We could not find the nameserver for this domain. Please make sure your NS and SOA records in the DNS are valid.",
+			"We could not find the nameserver for this domain. Please make sure your NS and SOA records in the DNS are valid.",
 		customDomainErrorOtherTxtRecords_msg: "However, we found these other TXT records:",
 		customDomainErrorValidationFailed_msg: "The validation of your domain failed. Please check that the TXT record for validation is correct.",
 		customDomainInvalid_msg: "The custom email domain you have entered is invalid.",
@@ -367,14 +367,14 @@ export default {
 		customMetaTags_label: "Custom meta tags",
 		customName_label: "Your custom name for this calendar: {customName}",
 		customNotificationEmailsHelp_msg:
-				"Notification emails are sent to recipients of confidential emails whose mailboxes are hosted on other email providers. You can customize this message by adding templates for multiple languages. Once you have added a template the default template will not be used anymore. These templates will be applied to all users of your account.",
+			"Notification emails are sent to recipients of confidential emails whose mailboxes are hosted on other email providers. You can customize this message by adding templates for multiple languages. Once you have added a template the default template will not be used anymore. These templates will be applied to all users of your account.",
 		customNotificationEmails_label: "Custom notification emails",
 		customTemplateListName_label: "Your custom name for this template list: {customName}",
 		custom_label: "Custom",
 		cut_action: "Cut",
 		dark_label: "Dark",
 		dataExpired_msg:
-				"Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
+			"Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
 		dateFrom_label: "From",
 		dateInvalidRange_msg: "Please define a valid date range.",
 		dateTo_label: "To",
@@ -387,27 +387,27 @@ export default {
 		deactivatePremiumWithCustomDomainError_msg: "Cannot switch to a Tutanota Free account when logged in with a custom domain user.",
 		deactivate_action: "Deactivate",
 		declineTemplateGroupEmailBody_msg:
-				'Hello {recipientName}, <br/>{invitee} has declined your invitation to use the template list "{groupName}".<br/><br/>This is an automated message.',
+			'Hello {recipientName}, <br/>{invitee} has declined your invitation to use the template list "{groupName}".<br/><br/>This is an automated message.',
 		declineTemplateGroupEmailSubject_msg: "Template group invitation declined",
 		decline_action: "Decline",
 		defaultColor_label: "Default color: {1}",
 		defaultDownloadPath_label: "Default download path",
 		defaultEmailSignature_msg: "--\n<br>\nSent with Tutanota, the secure & ad-free mailbox.\n<br>",
 		defaultExternalDeliveryInfo_msg:
-				"The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or not confidential (not end-to-end encrypted).",
+			"The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or not confidential (not end-to-end encrypted).",
 		defaultExternalDelivery_label: "Default delivery",
 		defaultGiftCardMessage_msg: "I hope you enjoy the security & privacy you get with Tutanota!",
 		defaultMailHandler_label: "Default email handler",
 		defaultMailHandler_msg:
-				"Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
+			"Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
 		defaultSenderMailAddressInfo_msg: "The default sender mail address for new emails.",
 		defaultSenderMailAddress_label: "Default sender",
 		defaultShareGiftCardBody_msg:
-				"Hi,\n\nI bought you a gift card for Tutanota, use this link to redeem it!\n\n{link}\n\nIf you do not have an account yet, you can use the link to sign up and reclaim your privacy.\n\nHappy Holidays,\n{username}",
+			"Hi,\n\nI bought you a gift card for Tutanota, use this link to redeem it!\n\n{link}\n\nIf you do not have an account yet, you can use the link to sign up and reclaim your privacy.\n\nHappy Holidays,\n{username}",
 		defaultShareGiftCardSubject_msg: "You have received a Tutanota gift card!",
 		deleteAccountConfirm_msg: "Do you really want to delete your account? The account can't be restored and the email address can't be registered again.",
 		deleteAccountReasonInfo_msg:
-				"Optional: We would appreciate it if you gave us a reason why you want to delete the account so that we can improve Tutanota further.",
+			"Optional: We would appreciate it if you gave us a reason why you want to delete the account so that we can improve Tutanota further.",
 		deleteAccountReason_label: "Why?",
 		deleteAccountWithTakeoverConfirm_msg: "Do you really want to delete your account? Your email addresses can be taken over by the account {1}.",
 		deleteAlias_msg: "The email alias '{1}' will be deleted now. You can use the address as email alias again or use it for a new user.",
@@ -423,13 +423,13 @@ export default {
 		deleteLanguageConfirmation_msg: 'Are you sure you want to delete the entry for "{language}"?',
 		deleteSharedCalendarConfirm_msg: 'The calendar "{calendar}" is shared with other users.',
 		deleteTemplateGroups_msg:
-				"There are still template lists active which will need to be deleted before you can cancel the Business feature. This may include shared template lists or template lists belonging to your users.",
+			"There are still template lists active which will need to be deleted before you can cancel the Business feature. This may include shared template lists or template lists belonging to your users.",
 		deleteTemplateGroup_msg: "Are you sure you want to delete your template list?",
 		deleteTemplate_msg: "Are you sure you want to delete this template?",
 		delete_action: "Delete",
 		deletionWarningTitle_msg: "Deletion warning",
 		deletionWarning_msg:
-				"Please note: Free accounts will be deleted if they are not used for more than six months. Accounts of paying users are never deleted. Read more on what you get with our paid subscriptions:\n",
+			"Please note: Free accounts will be deleted if they are not used for more than six months. Accounts of paying users are never deleted. Read more on what you get with our paid subscriptions:\n",
 		describeProblem_msg: "Please enter your question",
 		description_label: "Description",
 		desktopIntegration_label: "Desktop integration",
@@ -449,7 +449,7 @@ export default {
 		domain_label: "Domain",
 		doNotAskAgain_label: "Don't ask again for this file",
 		downgradeToPremium_msg:
-				"Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without sharing or whitelabel functions.",
+			"Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without sharing or whitelabel functions.",
 		downgradeToPrivateNotAllowed_msg: "It is not possible to change the account usage from Business to Private.",
 		downgradeToTeams_msg: "Your account will be downgraded to a Teams account with 5 aliases, 10 GB of storage and without whitelabel functions.",
 		downloadCompleted_msg: "Download completed",
@@ -471,7 +471,7 @@ export default {
 		edit_action: "Edit",
 		emailAddressInUse_msg: "The email address is still used by another user. Please deactivate it there first.",
 		emailAliasesTooManyActivatedForBooking_msg:
-				"There are too many email aliases active to process this order. Please deactivate your email aliases first.",
+			"There are too many email aliases active to process this order. Please deactivate your email aliases first.",
 		emailAlias_label: "Email alias",
 		emailProcessing_label: "Email processing",
 		emailPushNotification_action: "Add notification email address",
@@ -502,7 +502,7 @@ export default {
 		enterCustomDomain_title: "Enter your custom domain",
 		enterDomainFieldHelp_label: "With this custom email domain you can create email addresses like hello@{domain}.",
 		enterDomainGetReady_msg:
-				"You will need to make changes to your DNS configuration. Please open a new browser window and log in to the administration panel of your domain provider to apply changes when necessary. This setup wizard will show you which DNS records are required for each step.",
+			"You will need to make changes to your DNS configuration. Please open a new browser window and log in to the administration panel of your domain provider to apply changes when necessary. This setup wizard will show you which DNS records are required for each step.",
 		enterDomainIntroduction_msg: "With Tutanota you can use your custom email domain in just a few steps.",
 		enterMissingPassword_msg: "No password detected. Please enter a password.",
 		enterName_msg: "Please enter a name.",
@@ -511,7 +511,7 @@ export default {
 		enumValue_label: "Enum value",
 		enum_label: "Enum",
 		envelopeSenderInfo_msg:
-				"The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
+			"The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
 		errorAtLine_msg: "Error at line {index}: {error}",
 		errorDuringFileOpen_msg: "Failed to open attachment.",
 		errorDuringUpdate_msg: "Something went wrong during the update process, we'll try again later.",
@@ -527,7 +527,7 @@ export default {
 		existingAccount_label: "Use existing account",
 		existingMailAddress_msg: "The following email addresses could not be invited because they have already received an invitation:",
 		expiredLink_msg:
-				"Sorry, this link is not valid anymore. You should have received a new notification email with the currently valid link. Previous links are deactivated for security reasons.",
+			"Sorry, this link is not valid anymore. You should have received a new notification email with the currently valid link. Previous links are deactivated for security reasons.",
 		exportSelectedAsVCard_action: "Export selected contacts as vCard",
 		exportVCard_action: "Export vCard",
 		export_action: "Export",
@@ -536,11 +536,11 @@ export default {
 		externalMailPassword_msg: 'Your Tutanota password: "{1}"',
 		externalNotificationMailBody1_msg: "Hello,",
 		externalNotificationMailBody2_msg:
-				"You have just received a confidential email via Tutanota ({1}). Tutanota encrypts emails automatically end-to-end, including all attachments. You can reach your encrypted mailbox and also reply with an encrypted email with the following link:",
+			"You have just received a confidential email via Tutanota ({1}). Tutanota encrypts emails automatically end-to-end, including all attachments. You can reach your encrypted mailbox and also reply with an encrypted email with the following link:",
 		externalNotificationMailBody3_msg: "Show encrypted email",
 		externalNotificationMailBody4_msg: "Or paste this link into your browser:",
 		externalNotificationMailBody5_msg:
-				"This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.",
+			"This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.",
 		externalNotificationMailBody6_msg: "Kind regards,",
 		externalNotificationMailSubject_msg: "Confidential email from {1}",
 		facebook_label: "Facebook",
@@ -549,7 +549,7 @@ export default {
 		featureRequiredForBusinessUse_msg: "This feature is required for business use.",
 		featureTutanotaOnly_msg: "You may only use this feature with other Tutanota users.",
 		feedbackOnErrorInfo_msg:
-				"Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tutanota team. Thank you!",
+			"Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tutanota team. Thank you!",
 		field_label: "Field",
 		fileAccessDeniedMobile_msg: "Access to external storage is denied. You can enable it in the settings of your mobile device.",
 		filter_label: "Filter",
@@ -559,7 +559,7 @@ export default {
 		firstMergeContact_label: "Contact 1",
 		firstName_placeholder: "First name",
 		firstReminderAutomatic_msg:
-				"unfortunately, we haven't received the payment for your Tutanota account yet. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further details you can also check your invoices on that page.",
+			"unfortunately, we haven't received the payment for your Tutanota account yet. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further details you can also check your invoices on that page.",
 		firstReminderSubject_msg: "Reminder / overdue payment",
 		folderNameCreate_label: "Create folder",
 		folderNameInvalidExisting_msg: "A folder with this name already exists.",
@@ -582,25 +582,25 @@ export default {
 		formatTextUnderline_msg: "Make selected text underlined.",
 		forward_action: "Forward",
 		freeAccountInfo_msg:
-				"Only one Free account is allowed per person. Free accounts may only be used for private communication. If you want to use Tutanota for your business or as a freelancer, please order a paid subscription. Please also note that Free accounts get deleted if you do not log in for six months.",
+			"Only one Free account is allowed per person. Free accounts may only be used for private communication. If you want to use Tutanota for your business or as a freelancer, please order a paid subscription. Please also note that Free accounts get deleted if you do not log in for six months.",
 		from_label: "From",
 		functionNotSupported_msg: "This function is not supported by your device or browser.",
 		germanLanguageFile_label: "German language file",
 		giftCardCopied_msg: "Gift card link copied to clipboard!",
 		giftCardCreditNotify_msg: "Your account will receive {credit} credit.",
 		giftCardLoginError_msg:
-				"Your new account was created but we had trouble logging you in and your gift card was not redeemed. Please try logging in later with the same gift card link to redeem the card.",
+			"Your new account was created but we had trouble logging you in and your gift card was not redeemed. Please try logging in later with the same gift card link to redeem the card.",
 		giftCardOptionTextA_msg: "For {fullCredit} credit or a Premium subscription.",
 		giftCardOptionTextB_msg: "For {fullCredit} credit or a Premium subscription with {remainingCredit} credit.",
 		giftCardPurchaseFailed_msg: "Unable to purchase gift card.",
 		giftCardSection_label: "Purchase and manage gift cards",
 		giftCardSignupErrorLoggingIn_msg:
-				"Your account was created successfully but there was an error logging you in. Please reload the page and use the new account to redeem the gift card.",
+			"Your account was created successfully but there was an error logging you in. Please reload the page and use the new account to redeem the gift card.",
 		giftCards_label: "Gift cards",
 		giftCardTerms_label: "Gift card terms and conditions",
 		giftCardUpdateError_msg: "Unable to update gift card.",
 		giftCardUpgradeNotify_msg:
-				"You will be automatically upgraded to a Premium account with a yearly subscription. The cost of the first year ({price}) will be payed for with your gift card and the remaining value ({credit}) will be credited to your account.",
+			"You will be automatically upgraded to a Premium account with a yearly subscription. The cost of the first year ({price}) will be payed for with your gift card and the remaining value ({credit}) will be credited to your account.",
 		giftCard_label: "Gift card",
 		globalAdmin_label: "Global admin",
 		globalSettings_label: "Global settings",
@@ -622,7 +622,7 @@ export default {
 		hideWindows_action: "Hide windows",
 		howCanWeHelp_title: "How can we help you?",
 		howtoMailBody_markdown:
-				"Tutanota lets you send encrypted emails to any email address in the world - automatically if the recipient uses Tutanota as well, or via a shared password if the recipient uses another service. Even emails sent or received unencrypted are stored encrypted on our own servers based in Germany.\n\nPlease check the Tutanota FAQ and the support forum to learn everything you want to know about your new secure mailbox:\n\n* [FAQ]({faqLink})\n* [Support Forum]({redditLink})\n\n**Search on encrypted data**\n\nTutanota lets you search your encrypted mailbox locally on your device to guarantee confidentiality of your data. Please click on the search bar at the top. Standard search goes back one month into the past. [To unlock unlimited search and lots of additional features in your Tutanota mailbox]({blogPremiumProLink}), you need to use a paid subscription of Tutanota.\n\n**Direct support**\n\nAt Tutanota we enable everyone in the world to send emails confidentially. With millions of users, we can not answer everyone’s questions via email. In case you cannot find answers to your questions in our FAQ and How-to, [please ask the community here]({redditLink}). Support via email is limited to paying users.\n\nStay secure,\\\nyour Tutanota Team",
+			"Tutanota lets you send encrypted emails to any email address in the world - automatically if the recipient uses Tutanota as well, or via a shared password if the recipient uses another service. Even emails sent or received unencrypted are stored encrypted on our own servers based in Germany.\n\nPlease check the Tutanota FAQ and the support forum to learn everything you want to know about your new secure mailbox:\n\n* [FAQ]({faqLink})\n* [Support Forum]({redditLink})\n\n**Search on encrypted data**\n\nTutanota lets you search your encrypted mailbox locally on your device to guarantee confidentiality of your data. Please click on the search bar at the top. Standard search goes back one month into the past. [To unlock unlimited search and lots of additional features in your Tutanota mailbox]({blogPremiumProLink}), you need to use a paid subscription of Tutanota.\n\n**Direct support**\n\nAt Tutanota we enable everyone in the world to send emails confidentially. With millions of users, we can not answer everyone’s questions via email. In case you cannot find answers to your questions in our FAQ and How-to, [please ask the community here]({redditLink}). Support via email is limited to paying users.\n\nStay secure,\\\nyour Tutanota Team",
 		howtoMailSubject_msg: "How-to for your secure Tutanota mailbox",
 		htmlSourceCode_label: "HTML source code",
 		html_action: "HTML",
@@ -663,10 +663,10 @@ export default {
 		installNow_action: "Install now.",
 		insufficientBalanceError_msg: "Could not complete transaction due to insufficient account balance. Please provide another payment method.",
 		insufficientStorageAdmin_msg:
-				"Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
+			"Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
 		insufficientStorageUser_msg: "Your storage limit has been exceeded. You can no longer receive or send emails.",
 		insufficientStorageWarning_msg:
-				"Your mailbox has nearly reached the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
+			"Your mailbox has nearly reached the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
 		interval_title: "Interval",
 		invalidBirthday_msg: "Invalid birthday. Please update the value of the birthday field.",
 		invalidCnameRecord_msg: "The CNAME record for this domain is not set correctly.",
@@ -685,7 +685,7 @@ export default {
 		invalidVatIdNumber_msg: "The value added tax identification number (VAT-ID) is invalid.",
 		invalidVatIdValidationFailed_msg: "Failed to validate the value added tax identification number. Please try again later.",
 		invitationMailBody_msg:
-				"Hello!<br><br>This is my new email address. Tutanota offers a fully encrypted, ad-free mailbox to protect our right to privacy. With automatic encryption we can share emails as securely as sending sealed letters. Finally our data belongs only to us, no-one else can access it.<br><br>Join Tutanota now:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: {githubLink}",
+			"Hello!<br><br>This is my new email address. Tutanota offers a fully encrypted, ad-free mailbox to protect our right to privacy. With automatic encryption we can share emails as securely as sending sealed letters. Finally our data belongs only to us, no-one else can access it.<br><br>Join Tutanota now:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: {githubLink}",
 		invitationMailSubject_msg: "My new email address - join Tutanota so we can take back our privacy",
 		invitation_label: "Invitation",
 		invitedToEvent_msg: "You have been invited to take part in this event. Do you want to attend?",
@@ -699,13 +699,13 @@ export default {
 		invoiceCountry_label: "Country",
 		invoiceData_msg: "Invoice data",
 		invoiceMailBodyAutomatic_msg:
-				"There is a new invoice with the number {1} available for you. You can download it in {2}. The grand total will be debited automatically.",
+			"There is a new invoice with the number {1} available for you. You can download it in {2}. The grand total will be debited automatically.",
 		invoiceMailBodyOnAccount_msg:
-				"There is a new invoice with the number {1} for you available. You can download it in {2}. The payment is due 7 days after the invoice date.",
+			"There is a new invoice with the number {1} for you available. You can download it in {2}. The payment is due 7 days after the invoice date.",
 		invoiceMailSubject_msg: "New invoice for Tutanota",
 		invoiceNotPaidUser_msg: "Sorry, you are currently not allowed to send emails.",
 		invoiceNotPaid_msg:
-				"Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data in 'Settings' ⇨ 'Payment data' and trigger the payment there afterwards.",
+			"Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data in 'Settings' ⇨ 'Payment data' and trigger the payment there afterwards.",
 		invoicePayConfirm_msg: "We will now debit the following amount:",
 		invoicePaymentMethodInfo_msg: "Please choose a payment method. More options will be added in the future.",
 		invoicePay_action: "Pay",
@@ -908,7 +908,7 @@ export default {
 		notASubdomain_msg: "This domain is not a subdomain.",
 		notAvailableInApp_msg: "This function is not available in the mobile app.",
 		notFound404_msg:
-				"Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
+			"Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
 		nothingFound_label: "No templates found",
 		notificationMailLanguage_label: "Language of notification email",
 		notificationMailTemplateTooLarge_msg: "The notification mail template is too large.",
@@ -951,21 +951,21 @@ export default {
 		otherPaymentProviderError_msg: "The payment provider returned an error. Please try again later.",
 		other_label: "Other",
 		outdatedClientWarningMailBody_msg:
-				"Hi there,<br>\nyou are currently using an outdated Tutanota version. Support for your version will be discontinued within the next few days.<br><br>\n\nPlease update your client at: {downloadLink}<br><br>\n\nThanks!<br><br>\n\nYour Tutanota Team",
+			"Hi there,<br>\nyou are currently using an outdated Tutanota version. Support for your version will be discontinued within the next few days.<br><br>\n\nPlease update your client at: {downloadLink}<br><br>\n\nThanks!<br><br>\n\nYour Tutanota Team",
 		outdatedClientWarningMailSubject_msg: "Please update Tutanota",
 		outdatedClient_msg: "Please update Tutanota. The currently installed version is too old and not supported any longer.",
 		outlookInvoiceMailBodyAutomatic_msg:
-				"there is a new invoice with the number {1} for you available attached to this email. The grand total will automatically be debited. You can also see all your invoices in {2}",
+			"there is a new invoice with the number {1} for you available attached to this email. The grand total will automatically be debited. You can also see all your invoices in {2}",
 		outlookInvoiceMailBodyOnAccount_msg:
-				"there is a new invoice with the number {1} for you available attached to this email. The payment is due 7 days after the invoice date. You can also see all your invoices in {2}.",
+			"there is a new invoice with the number {1} for you available attached to this email. The payment is due 7 days after the invoice date. You can also see all your invoices in {2}.",
 		outOfOfficeDefaultSubject_msg: "I am out of the office",
 		outOfOfficeDefault_msg:
-				"Hello,\n<br>\n<br>thanks for your email. I am out of the office and will be back soon. Until then I will have limited access to my email.\n<br>\n<br>Kind Regards",
+			"Hello,\n<br>\n<br>thanks for your email. I am out of the office and will be back soon. Until then I will have limited access to my email.\n<br>\n<br>Kind Regards",
 		outOfOfficeEveryone_msg: "To everyone",
 		outOfOfficeExternal_msg: "Outside your organization",
 		outOfOfficeInternal_msg: "Inside your organization",
 		outOfOfficeMessageInvalid_msg:
-				"The subject and/or message is invalid.\nEmpty subjects or messages are not allowed.\nMaximum subject size: 128 characters.\nMaximum message size: 20kB.",
+			"The subject and/or message is invalid.\nEmpty subjects or messages are not allowed.\nMaximum subject size: 128 characters.\nMaximum message size: 20kB.",
 		outOfOfficeNotification_title: "Autoresponder",
 		outOfOfficeRecipientsEveryoneHelp_label: "Notifications are sent to everyone.",
 		outOfOfficeRecipientsInternalExternalHelp_label: "Distinct notifications are sent to recipients inside and outside your organization.",
@@ -982,7 +982,7 @@ export default {
 		pageForward_label: "Page forward",
 		pageTitle_label: "Page title",
 		parentConfirmation_msg:
-				'According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following:\n\n"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data."',
+			'According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following:\n\n"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data."',
 		participants_label: 'Participants of calendar "{name}"',
 		participant_label: "Participant",
 		password1InvalidSame_msg: "The new password is the same as the old one.",
@@ -993,7 +993,7 @@ export default {
 		passwordEnterNeutral_msg: "Please enter your password for confirmation.",
 		passwordFor_label: "Password for {1}",
 		passwordImportance_msg:
-				"Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
+			"Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
 		passwordResetFailed_msg: "An error occurred. The password was not changed.",
 		passwordValid_msg: "Password ok.",
 		passwordWrongInvalid_msg: "Your password is wrong.",
@@ -1001,13 +1001,13 @@ export default {
 		paste_action: "Paste",
 		pathAlreadyExists_msg: "This path already exists.",
 		payCardContactBankError_msg:
-				"Sorry, the payment transaction was rejected by your bank. Please make sure that your credit card details are correct or contact your bank.",
+			"Sorry, the payment transaction was rejected by your bank. Please make sure that your credit card details are correct or contact your bank.",
 		payCardExpiredError_msg: "Sorry, the credit card has expired. Please update your payment details.",
 		payCardInsufficientFundsError_msg: "Sorry, the payment transaction was rejected due to insufficient funds.",
 		payChangeError_msg: "Sorry, the payment transaction failed. Paying with the provided payment data is not possible. Please change your payment data.",
 		payContactUsError_msg: "Sorry, the payment transaction failed. Please contact us.",
 		paymentAccountRejected_msg:
-				"Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated. You may then enter it again.",
+			"Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated. You may then enter it again.",
 		paymentDataPayPalFinished_msg: "Assigned PayPal account: {accountAddress}",
 		paymentDataPayPalLogin_msg: "Please click on the PayPal button to log in. You will be redirected to the PayPal website.",
 		paymentDataValidation_action: "Confirm",
@@ -1017,7 +1017,7 @@ export default {
 		paymentMethodNotAvailable_msg: "This payment method is not available in your country.",
 		paymentMethodOnAccount_label: "Purchase on account",
 		paymentMethodOnAccount_msg:
-				"You have to pay the invoices by bank transfer and you have to take care about the payment yourself. The invoice amount will not be debited automatically.",
+			"You have to pay the invoices by bank transfer and you have to take care about the payment yourself. The invoice amount will not be debited automatically.",
 		paymentMethod_label: "Payment method",
 		paymentProcessingTime_msg: "It may take up to one week until payments via bank transfer will be shown in your account.",
 		paymentProviderNotAvailableError_msg: "Sorry, the payment provider is currently not available. Please try again later.",
@@ -1027,12 +1027,12 @@ export default {
 		pending_label: "Pending",
 		periodOfTime_label: "Period of time",
 		permanentAliasWarning_msg:
-				"This is a Tutanota domain alias, which, in contrast to custom domain aliases, can only be deactivated, not deleted. It will permanently count towards your alias limit.",
+			"This is a Tutanota domain alias, which, in contrast to custom domain aliases, can only be deactivated, not deleted. It will permanently count towards your alias limit.",
 		permissions_label: "Permission",
 		phishingMessageBody_msg: "This email is similar to other emails that were reported for phishing.",
 		phishingMessage_label: "This message looks suspicious.",
 		phishingReport_msg:
-				"Contents of this message will be transmitted to the server in unencrypted form so that we can improve phishing & spam protection. Are you sure you want to report this message?",
+			"Contents of this message will be transmitted to the server in unencrypted form so that we can improve phishing & spam protection. Are you sure you want to report this message?",
 		phone_label: "Phone",
 		photoLibraryUsageDescription_msg: "Add a picture from your library as attachment.",
 		plaintext_action: "Plain text",
@@ -1042,7 +1042,7 @@ export default {
 		postings_label: "Invoices & payments",
 		postpone_action: "Postpone",
 		premiumOffer_msg:
-				"Your support will speed up our development as you enable us to grow our team. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Read more on what you get with our paid subscriptions:\n",
+			"Your support will speed up our development as you enable us to grow our team. Business users need to upgrade to a paid version of Tutanota as stated in our Terms. Read more on what you get with our paid subscriptions:\n",
 		presharedPasswordNotStrongEnough_msg: "At least one of the entered passwords is not secure enough. Send email anyway?",
 		presharedPasswordsUnequal_msg: "The selected contacts have different agreed passwords. They can not be merged!",
 		presharedPassword_label: "Agreed password",
@@ -1109,7 +1109,7 @@ export default {
 		purchaseDate_label: "Purchase date",
 		pushIdentifierCurrentDevice_label: "This device",
 		pushIdentifierInfoMessage_msg:
-				"List of all recipients receiving notifications for this user. You can deactivate entries if you do not wish to receive notifications or delete them for devices you don't use anymore.",
+			"List of all recipients receiving notifications for this user. You can deactivate entries if you do not wish to receive notifications or delete them for devices you don't use anymore.",
 		pushNewMailReceivedBody_msg: "You have received a new email for your mailbox {emailAddress} at {domainName}.",
 		pushNewMail_msg: "New email received.",
 		pwChangeValid_msg: "Password was changed.",
@@ -1130,7 +1130,7 @@ export default {
 		recoveryCodeEmpty_msg: "Please enter a recovery code",
 		recoveryCode_label: "Recovery code",
 		recoveryCode_msg:
-				"Please take a minute to write down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
+			"Please take a minute to write down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
 		recover_label: "Recover",
 		redeemedToPremium_msg: "You now have a premium account.",
 		redeem_label: "Redeem",
@@ -1144,7 +1144,7 @@ export default {
 		registrationHeadline_msg: "Sign up",
 		rejectedEmails_label: "Rejected emails",
 		rejectedSenderListInfo_msg:
-				"List of emails that have been rejected by Tutanota mail servers. You can add a spam rule for whitelisting an email sender.",
+			"List of emails that have been rejected by Tutanota mail servers. You can add a spam rule for whitelisting an email sender.",
 		rejectReason_label: "Reject reason",
 		releaseNotes_action: "Release notes",
 		reloadPage_action: "Reload page",
@@ -1175,12 +1175,12 @@ export default {
 		reportPhishing_action: "Report phishing",
 		reportSpam_action: "Report spam",
 		requestApproval_msg:
-				"Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de directly from your Tutanota account and describe what you would like to use this email account for. Please write in English or German, so we can understand you. Thanks!",
+			"Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de directly from your Tutanota account and describe what you would like to use this email account for. Please write in English or German, so we can understand you. Thanks!",
 		requestTooLarge_msg: "The amount of data is too large. Please shorten the text.",
 		requiresNewWindow_msg: "Will take effect in any new window.",
 		resetZoomFactor_action: "Reset Zoom Factor",
 		responsiblePersonsInfo_msg:
-				"Limit the users that the message from the receiving mailbox can be forwarded to. There are no restrictions if the list is empty.",
+			"Limit the users that the message from the receiving mailbox can be forwarded to. There are no restrictions if the list is empty.",
 		responsiblePersons_label: "Responsible persons",
 		restartBefore_action: "Restart Tutanota before sending",
 		resumeSetup_label: "Resume setup",
@@ -1193,9 +1193,9 @@ export default {
 		saveAll_action: "Save all",
 		savedCredentialsError_msg: "Failed to use saved credentials for login",
 		saveDownloadNotPossibleIe_msg:
-				"The mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
+			"The mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
 		saveDownloadNotPossibleIos_msg:
-				"This browser does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above.",
+			"This browser does not support saving attachments to disk. Some file types can be displayed in the browser by clicking the link above.",
 		saveDraftAndClose_action: "Save draft and close",
 		saveDraft_action: "Save draft",
 		saveEncryptedIpAddress_label: "Enable saving of IP addresses in sessions and audit log. IP addresses are stored encrypted.",
@@ -1228,7 +1228,7 @@ export default {
 		secondFactorPending_msg: "Please authenticate with your second factor or accept this login from another client.",
 		secondMergeContact_label: "Contact 2",
 		secondReminderAutomatic_msg:
-				"unfortunately, we still haven't received the payment for your Tutanota account. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further invoice details you can also check your invoices on that page. We have to deactivate your account if we do not receive the payment within two weeks.",
+			"unfortunately, we still haven't received the payment for your Tutanota account. Therefore, we kindly ask you to verify your payment details in 'Settings' -> 'Payment'. For further invoice details you can also check your invoices on that page. We have to deactivate your account if we do not receive the payment within two weeks.",
 		secondReminderSubject_msg: "Second reminder / overdue payment",
 		security_title: "Security",
 		selectionNotAvailable_msg: "No selection available.",
@@ -1261,13 +1261,13 @@ export default {
 		settings_label: "Settings",
 		setUp_action: "Set up",
 		shareCalendarAcceptEmailBody_msg:
-				'Hello {recipientName}, <br/>{invitee} has accepted your invitation to participate in the calendar "{calendarName}".<br/><br/>This is an automated message.',
+			'Hello {recipientName}, <br/>{invitee} has accepted your invitation to participate in the calendar "{calendarName}".<br/><br/>This is an automated message.',
 		shareCalendarAcceptEmailSubject_msg: "Calendar invitation accepted",
 		shareCalendarDeclineEmailBody_msg:
-				'Hello {recipientName}, <br/>{invitee} has not accepted your invitation to participate in the calendar "{calendarName}".<br/><br/>This is an automated message.',
+			'Hello {recipientName}, <br/>{invitee} has not accepted your invitation to participate in the calendar "{calendarName}".<br/><br/>This is an automated message.',
 		shareCalendarDeclineEmailSubject_msg: "Calendar invitation declined",
 		shareCalendarInvitationEmailBody_msg:
-				'Hello, <br/>{inviter} has invited you to participate in the calendar "{calendarName}". You can check the details of this invitation in the calendar view to accept or decline it.<br/><br/>This is an automated message.',
+			'Hello, <br/>{inviter} has invited you to participate in the calendar "{calendarName}". You can check the details of this invitation in the calendar view to accept or decline it.<br/><br/>This is an automated message.',
 		shareCalendarInvitationEmailSubject_msg: "Invitation to participate in calendar",
 		shareCalendarWarningAliases_msg: "They will also be able to see the email aliases associated with your mailbox.",
 		shareCalendarWarning_msg: "All participants of the calendar will be able to see your name and main email address of your mailbox.",
@@ -1277,7 +1277,7 @@ export default {
 		sharedTemplateGroupDefaultName_label: "{ownerName}'s Templates",
 		shareLink_action: "Share link",
 		shareTemplateGroupEmailBody_msg:
-				'Hello, <br/>{inviter} has invited you to use their template list "{groupName}". You can check the details of this invitation in settings, and choose to accept or decline it.<br/><br/>This is an automated message.',
+			'Hello, <br/>{inviter} has invited you to use their template list "{groupName}". You can check the details of this invitation in settings, and choose to accept or decline it.<br/><br/>This is an automated message.',
 		shareTemplateGroupEmailSubject_msg: "Invitation to use a template list",
 		shareTemplateGroupWarning_msg: "All users of the template list will be able to see your name and the main email address of your mailbox.",
 		shareViaEmail_action: "Share via email",
@@ -1312,7 +1312,7 @@ export default {
 		signupOneFreeAccountConfirm_msg: "Only one Free account is allowed per person. Please confirm that you do not own any other Tutanota Free accounts.",
 		sign_action: "Sign",
 		skipDnsRecordsInfo_msg:
-				"Please set the DNS records for your custom email domain. As long as they are not correctly configured you may not be able to send and receive emails. However, you may postpone this step until you have initially setup your email addresses.",
+			"Please set the DNS records for your custom email domain. As long as they are not correctly configured you may not be able to send and receive emails. However, you may postpone this step until you have initially setup your email addresses.",
 		skip_action: "Skip",
 		smsError_msg: "Could not send text message.",
 		smsResent_msg: "If no text message has arrived, you can resend it now.",
@@ -1327,7 +1327,7 @@ export default {
 		startAfterEnd_label: "The start date must not be after the end date.",
 		state_label: "Status",
 		statisticsFieldsInfo_msg:
-				"Statistics data can be entered optionally. The data from all contact forms is collected in one place and can be exported as CSV.",
+			"Statistics data can be entered optionally. The data from all contact forms is collected in one place and can be exported as CSV.",
 		statisticsFields_label: "Statistics fields",
 		stillReferencedFromContactForm_msg: "This item can not be deactivated because it is still referenced from a contact form.",
 		storageCapacityTooManyUsedForBooking_msg: "There is too much storage used to process this order. Please free some memory to continue.",
@@ -1336,7 +1336,7 @@ export default {
 		storageDeletionAnnouncement_msg: "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
 		storageDeletion_msg: "Emails in this folder will automatically be deleted after 30 days.",
 		storageQuotaExceeded_msg:
-				"There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
+			"There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
 		storePassword_action: "Store password",
 		subject_label: "Subject",
 		subscriptionCancelledMessage_msg: "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
@@ -1360,11 +1360,11 @@ export default {
 		switchWeekView_action: "Switch to week view",
 		takeoverAccountInvalid_msg: "The email address specified as the take over target account does not belong to a Premium admin.",
 		takeoverMailAddressInfo_msg:
-				"Optional: Enter the email address of the administrator of your paid account in order to re-use your email addresses in the target account.",
+			"Optional: Enter the email address of the administrator of your paid account in order to re-use your email addresses in the target account.",
 		takeoverMailAddress_label: "Target account address",
 		takeoverSuccess_msg: "You may now re-use your old address in the specified account as email alias or additional user.",
 		takeOverUnusedAddress_msg:
-				"You may take over the email address of your deleted account into another paid account and re-use it there. In order to do so please specify the target paid account admin email address. Please note: In case you had configured a second factor for authentication, please provide your recovery code instead because 2FA can not be used for a deleted account.",
+			"You may take over the email address of your deleted account into another paid account and re-use it there. In order to do so please specify the target paid account admin email address. Please note: In case you had configured a second factor for authentication, please provide your recovery code instead because 2FA can not be used for a deleted account.",
 		targetAddress_label: "Target account address",
 		technicalSender_msg: "The technical sender is: {sender}",
 		templateGroupDefaultName_label: "My Templates",
@@ -1374,7 +1374,7 @@ export default {
 		templateGroupParticipants_label: 'Users of the template list "{groupName}"',
 		templateGroup_label: "Template",
 		templateHelp_msg:
-				'In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. The template body must contain a "{link}" placeholder which will be replaced with the actual link to the encrypted email. You can also include a "{sender}" placeholder in the mail body or in the subject which will be replaced with the sender name.',
+			'In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. The template body must contain a "{link}" placeholder which will be replaced with the actual link to the encrypted email. You can also include a "{sender}" placeholder in the mail body or in the subject which will be replaced with the sender name.',
 		templateLanguageExists_msg: "Template for the selected language already exists.",
 		templateMustContain_msg: "Template must contain placeholder {value}",
 		templateNotExists_msg: "This template no longer exists!",
@@ -1402,7 +1402,7 @@ export default {
 		tooManyCustomDomains_msg: "You have too many custom domains active. Only one is available when disabling the Business feature.",
 		tooManyGiftCards_msg: "You have reached the purchase limit of {amount} gift cards in the last {period}.",
 		tooManyMailsAuto_msg:
-				"Failed to send an automatic notification email because the number of allowed emails has been exceeded. The notification email is stored in the draft folder and you can try to send it later.",
+			"Failed to send an automatic notification email because the number of allowed emails has been exceeded. The notification email is stored in the draft folder and you can try to send it later.",
 		tooManyMails_msg: "It looks like you exceeded the number of allowed emails. Please try again later.",
 		totpAuthenticator_label: "Authenticator (TOTP)",
 		totpCodeConfirmed_msg: "The TOTP code is valid. You can save now to finish setup.",
@@ -1431,19 +1431,19 @@ export default {
 		unlimited_label: "Unlimited",
 		unlockCredentials_action: "Unlock credentials",
 		unprocessedBookings_msg:
-				"You have some unprocessed orders with a total value of {amount}. This amount will be deducted from your balance and/or chosen payment method upon the next invoice.",
+			"You have some unprocessed orders with a total value of {amount}. This amount will be deducted from your balance and/or chosen payment method upon the next invoice.",
 		unrecognizedU2fDevice_msg: "Your security key has not been recognized.",
 		unregistered_label: "Not registered",
 		unsubscribeConfirm_msg:
-				"Do you really want to stop your subscription? Your account will be reset to Free now and you will immediately lose your paid features. Please also note that Free accounts are deleted if they have not been used for more than six months.",
+			"Do you really want to stop your subscription? Your account will be reset to Free now and you will immediately lose your paid features. Please also note that Free accounts are deleted if they have not been used for more than six months.",
 		unsubscribeFailed_msg: "Could not cancel newsletter or mailing list.",
 		unsubscribeSuccessful_msg: "The newsletter or mailing list has been cancelled successfully!",
 		unsubscribe_action: "Unsubscribe",
 		unsuccessfulDrop_msg:
-				"The drag & drop was unsuccessful because the data had not finished downloading. You may try again once the progress bar is finished.",
+			"The drag & drop was unsuccessful because the data had not finished downloading. You may try again once the progress bar is finished.",
 		unsupportedBrowserOverlay_msg: "You're using an unsupported browser. Some functionality may be limited.",
 		unsupportedBrowser_msg:
-				"Oh! We are sorry. Unfortunately, your browser is not supported or outdated. Please use  the latest version of one of the following browsers:",
+			"Oh! We are sorry. Unfortunately, your browser is not supported or outdated. Please use  the latest version of one of the following browsers:",
 		until_label: "until",
 		updateAdminshipGlobalAdmin_msg: "You can't change the adminship of a global administrator.",
 		updateAdminshipLocalAdminGroupError_msg: "You can't change the adminship of a local admin group.",
@@ -1454,14 +1454,14 @@ export default {
 		update_action: "Update",
 		upgradeConfirm_msg: "Confirm your order!",
 		upgradeNeeded_msg:
-				"Sorry, you are not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you first need to finish ordering a paid subscription.",
+			"Sorry, you are not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you first need to finish ordering a paid subscription.",
 		upgradePlan_msg: "Your subscription will be upgraded to {plan}.",
 		upgradePremium_label: "Premium",
 		upgradeProNoReduction_msg: "Previously ordered larger storage or alias packages will not be reduced.",
 		upgradeReminderCancel_action: "Later",
 		upgradeReminderTitle_msg: "Upgrade to Premium!",
 		upgradeSystemWebView_msg:
-				"Could not reach server. Either you are offline or you are running into an error in an older version of the Android System WebView. Please upgrade the Android System WebView to the latest version:",
+			"Could not reach server. Either you are offline or you are running into an error in an older version of the Android System WebView. Please upgrade the Android System WebView to the latest version:",
 		upgrade_action: "Upgrade",
 		urlPath_label: "Path",
 		url_label: "URL",
@@ -1472,7 +1472,7 @@ export default {
 		userSettings_label: "User settings",
 		useSecurityKey_action: "Use security key",
 		validGiftCardCountry_msg:
-				"This gift card is only valid for use in {valid} but we have detected that you are in {actual}. Please confirm that you are using this gift card in {valid}.",
+			"This gift card is only valid for use in {valid} but we have detected that you are in {actual}. Please confirm that you are using this gift card in {valid}.",
 		validInCountry_msg: "Valid in {country}.",
 		validInputFormat_msg: "Format ok.",
 		value_label: "Value",
@@ -1487,7 +1487,7 @@ export default {
 		viewToday_action: "View current period",
 		view_label: "View",
 		waitingForApproval_msg:
-				"Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will normally be automatically approved after 48 hours. Thank you for your patience!",
+			"Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will normally be automatically approved after 48 hours. Thank you for your patience!",
 		waitingForU2f_msg: "Waiting for security key…",
 		wantToSendReport_msg: "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
 		weekNumber_label: "Week {week}",
@@ -1496,7 +1496,7 @@ export default {
 		week_label: "Week",
 		welcomeMailBodyTweetText_msg: "Just set up my Tutanota mailbox. Now I protect my emails from prying eyes! You can join, too: ",
 		welcomeMailBody_markdown:
-				"Welcome to your secure and ad-free Tutanota mailbox, protected with strong encryption. Tutanota makes switching from other email services easy. Our intuitive web client, apps for Android & iOS, as well as desktop apps for Windows, Mac OS and Linux enable you to access your secure mailbox on any device.\n\nAs a professional, you can save time and money by hosting all your business emails end-to-end encrypted on Tutanota's secure servers, based in Germany: Whitelabel Tutanota for your business, place the login on your own website, and add an encrypted contact form to your website so clients can easily reach you confidentially. [Find out more about Tutanota's comprehensive business features]({businessLink}).\n\n**Tutanota follows 4 principles to offer a privacy-friendly alternative**\n\n1. Tutanota does not track you.\n2. Tutanota can not scan your data.\n3. Tutanota encrypts your entire mailbox, contacts & calendar.\n4. Tutanota incorporates privacy by design.\n\nRecommend Tutanota, the [open source email service that respects you and your right to privacy]({blogOpenSourceLink}).\n\nWe believe that everyone deserves a free and private mailbox. You can support us by following us on your favorite social media channel and by sharing our content with your friends and colleagues. Together we will change the Internet for the better:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nThank you very much,\\\nyour Tutanota Team\n\nTutanota is open source. [You can inspect and review the source code here]({githubLink}).\n",
+			"Welcome to your secure and ad-free Tutanota mailbox, protected with strong encryption. Tutanota makes switching from other email services easy. Our intuitive web client, apps for Android & iOS, as well as desktop apps for Windows, Mac OS and Linux enable you to access your secure mailbox on any device.\n\nAs a professional, you can save time and money by hosting all your business emails end-to-end encrypted on Tutanota's secure servers, based in Germany: Whitelabel Tutanota for your business, place the login on your own website, and add an encrypted contact form to your website so clients can easily reach you confidentially. [Find out more about Tutanota's comprehensive business features]({businessLink}).\n\n**Tutanota follows 4 principles to offer a privacy-friendly alternative**\n\n1. Tutanota does not track you.\n2. Tutanota can not scan your data.\n3. Tutanota encrypts your entire mailbox, contacts & calendar.\n4. Tutanota incorporates privacy by design.\n\nRecommend Tutanota, the [open source email service that respects you and your right to privacy]({blogOpenSourceLink}).\n\nWe believe that everyone deserves a free and private mailbox. You can support us by following us on your favorite social media channel and by sharing our content with your friends and colleagues. Together we will change the Internet for the better:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nThank you very much,\\\nyour Tutanota Team\n\nTutanota is open source. [You can inspect and review the source code here]({githubLink}).\n",
 		welcomeMailSubject_msg: "Secure, green & ad-free!",
 		whatIsPhishing_msg: "What is phishing?",
 		when_label: "When",
@@ -1505,7 +1505,7 @@ export default {
 		whitelabelBooking_label: "Whitelabel feature for {1} users",
 		whitelabelDomainExisting_msg: "A whitelabel domain is still existing. Please remove the whitelabel domain.",
 		whitelabelDomainLinkInfo_msg:
-				"When you order the whitelabel feature, you can activate the Tutanota login on your own domain (a subdomain), change the look of Tutanota according to your needs (e.g. corporate identity) and create contact forms for your clients. Please see",
+			"When you order the whitelabel feature, you can activate the Tutanota login on your own domain (a subdomain), change the look of Tutanota according to your needs (e.g. corporate identity) and create contact forms for your clients. Please see",
 		whitelabelDomainNeeded_msg: "Please first configure your whitelabel domain.",
 		whitelabelDomain_label: "Whitelabel domain",
 		whitelabelFeature_label: "Whitelabel feature",
@@ -1514,7 +1514,7 @@ export default {
 		whitelabelThemeDetected_msg: "A custom theme has been detected for this account. Do you want to apply it now?",
 		whitelabel_label: "Whitelabel",
 		whitelistProtectionInfo_label:
-				"This option moves all emails received from external senders into the spam folder by default. The senders get a notification email with a link which lets them whitelist their domain. After whitelisting the emails from that domain will no longer go to the spam folder, but to the inbox.",
+			"This option moves all emails received from external senders into the spam folder by default. The senders get a notification email with a link which lets them whitelist their domain. After whitelisting the emails from that domain will no longer go to the spam folder, but to the inbox.",
 		whitelistProtection_label: "Whitelist protection",
 		who_label: "Who",
 		work_label: "Work",

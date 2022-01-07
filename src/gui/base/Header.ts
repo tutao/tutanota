@@ -26,6 +26,7 @@ export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAut
 assertMainOrNode()
 
 export interface CurrentView extends Component<void> {
+	updateUrl(args: Record<string, any>, requestedPath: String): void
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children
 	readonly getViewSlider?: () => ViewSlider | null
@@ -60,37 +61,37 @@ class Header {
 			// Do not return undefined if headerView is not present
 			const injectedView = this._currentView && this._currentView.headerView ? this._currentView.headerView() : null
 			return m(
-					".header-nav.overflow-hidden.flex.items-end.flex-center",
-					[
-						m(".abs.full-width", this._connectionIndicator() || this._entityEventProgress()),
-						injectedView
-								? m(".flex-grow", injectedView)
-								: [
-									m(
-											".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden",
-											{
-												style: styles.isUsingBottomNavigation()
-														? {
-															"margin-left": px(-15),
-														}
-														: null, // manual margin to align the hamburger icon on mobile devices
-											},
-											this._getLeftElements(),
-									),
-									styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
-									styles.isUsingBottomNavigation()
-											? m(
-													".header-right.pr-s.flex-end.items-center",
-													this._currentView && this._currentView.headerRightView
-															? this._currentView.headerRightView()
-															: null,
-											)
-											: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
-												this._renderDesktopSearchBar(),
-												m(NavBar, this._renderButtons()),
-											]),
-								],
-					],
+				".header-nav.overflow-hidden.flex.items-end.flex-center",
+				[
+					m(".abs.full-width", this._connectionIndicator() || this._entityEventProgress()),
+					injectedView
+						? m(".flex-grow", injectedView)
+						: [
+							m(
+								".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden",
+								{
+									style: styles.isUsingBottomNavigation()
+										? {
+											"margin-left": px(-15),
+										}
+										: null, // manual margin to align the hamburger icon on mobile devices
+								},
+								this._getLeftElements(),
+							),
+							styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
+							styles.isUsingBottomNavigation()
+								? m(
+									".header-right.pr-s.flex-end.items-center",
+									this._currentView && this._currentView.headerRightView
+										? this._currentView.headerRightView()
+										: null,
+								)
+								: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
+									this._renderDesktopSearchBar(),
+									m(NavBar, this._renderButtons()),
+								]),
+						],
+				],
 			)
 		}
 
@@ -131,11 +132,11 @@ class Header {
 
 	_renderDesktopSearchBar(): Children {
 		return this.searchBar && this._desktopSearchBarVisible()
-				? m(this.searchBar, {
-					spacer: true,
-					placeholder: this._searchPlaceholder(),
-				})
-				: null
+			? m(this.searchBar, {
+				spacer: true,
+				placeholder: this._searchPlaceholder(),
+			})
+			: null
 	}
 
 	_focusMain() {
@@ -147,48 +148,48 @@ class Header {
 	_renderButtons(): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
 		return logins.isInternalUserLoggedIn() && isNotSignup()
-				? [
-					m(NavButtonN, {
-						label: "emails_label",
-						icon: () => BootIcons.Mail,
-						href: navButtonRoutes.mailUrl,
-						isSelectedPrefix: MAIL_PREFIX,
+			? [
+				m(NavButtonN, {
+					label: "emails_label",
+					icon: () => BootIcons.Mail,
+					href: navButtonRoutes.mailUrl,
+					isSelectedPrefix: MAIL_PREFIX,
+					colors: NavButtonColor.Header,
+					click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain(),
+				}),
+				!logins.isEnabled(FeatureType.DisableContacts)
+					? m(NavButtonN, {
+						label: "contacts_label",
+						icon: () => BootIcons.Contacts,
+						href: navButtonRoutes.contactsUrl,
+						isSelectedPrefix: CONTACTS_PREFIX,
 						colors: NavButtonColor.Header,
-						click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain(),
-					}),
-					!logins.isEnabled(FeatureType.DisableContacts)
-							? m(NavButtonN, {
-								label: "contacts_label",
-								icon: () => BootIcons.Contacts,
-								href: navButtonRoutes.contactsUrl,
-								isSelectedPrefix: CONTACTS_PREFIX,
-								colors: NavButtonColor.Header,
-								click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain(),
-							})
-							: null,
-					!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
-							? m(NavButtonN, {
-								label: "calendar_label",
-								icon: () => BootIcons.Calendar,
-								href: CALENDAR_PREFIX,
-								colors: NavButtonColor.Header,
-								click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain(),
-							})
-							: null,
-				]
-				: null
+						click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain(),
+					})
+					: null,
+				!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+					? m(NavButtonN, {
+						label: "calendar_label",
+						icon: () => BootIcons.Calendar,
+						href: CALENDAR_PREFIX,
+						colors: NavButtonColor.Header,
+						click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain(),
+					})
+					: null,
+			]
+			: null
 	}
 
 	_mobileSearchBarVisible(): boolean {
 		let route = m.route.get()
 		let locator: IMainLocator | null = window.tutao.locator
 		return (
-				this.searchBar != null &&
-				locator != null &&
-				!locator.search.indexState().initializing &&
-				styles.isUsingBottomNavigation() &&
-				logins.isInternalUserLoggedIn() &&
-				route.startsWith(SEARCH_PREFIX)
+			this.searchBar != null &&
+			locator != null &&
+			!locator.search.indexState().initializing &&
+			styles.isUsingBottomNavigation() &&
+			logins.isInternalUserLoggedIn() &&
+			route.startsWith(SEARCH_PREFIX)
 		)
 	}
 
@@ -236,7 +237,7 @@ class Header {
 	_getCenterContent(): Children {
 		const viewSlider = this._getViewSlider()
 
-		const header = (title, left?, right?) => {
+		const header = (title: string, left?: Children, right?: Children) => {
 			return m(".flex-center.header-middle.items-center.text-ellipsis.b", [left || null, title, right || null])
 		}
 
@@ -296,13 +297,13 @@ class Header {
 					return prevColumn ? prevColumn.getTitle() : ""
 				},
 				icon: () =>
-						(
-								this._currentView && this._currentView.overrideBackIcon
-										? this._currentView.overrideBackIcon()
-										: !viewSlider.getBackgroundColumns()[0].visible
-						)
-								? BootIcons.Back
-								: BootIcons.MoreVertical,
+					(
+						this._currentView && this._currentView.overrideBackIcon
+							? this._currentView.overrideBackIcon()
+							: !viewSlider.getBackgroundColumns()[0].visible
+					)
+						? BootIcons.Back
+						: BootIcons.MoreVertical,
 				colors: NavButtonColor.Header,
 				href: () => m.route.get(),
 				click: () => {
@@ -315,13 +316,13 @@ class Header {
 		} else {
 			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return m(
-						".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
-						{
-							style: {
-								"margin-left": px(sizes.drawer_menu_width),
-							},
+					".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
+					{
+						style: {
+							"margin-left": px(sizes.drawer_menu_width),
 						},
-						m.trust(theme.logo),
+					},
+					m.trust(theme.logo),
 				) // the custom logo is already sanitized in theme.js
 			} else {
 				return null
@@ -342,7 +343,7 @@ class Header {
 	}
 
 	_connectionIndicator(): Children {
-		if (this._wsState === WsConnectionState.connecting || this._wsState === WsConnectionState.terminated) {
+		if (this._wsState === WsConnectionState.connected || this._wsState === WsConnectionState.terminated) {
 			return null
 		} else {
 			// Use key so that mithril does not reuse dom element and transition works correctly
@@ -388,17 +389,17 @@ class Header {
 		let route = m.route.get()
 		let locator: IMainLocator | null = window.tutao.locator
 		return (
-				this.searchBar != null &&
-				locator != null &&
-				!locator.search.indexState().initializing &&
-				styles.isDesktopLayout() &&
-				logins.isInternalUserLoggedIn() &&
-				(route.startsWith(SEARCH_PREFIX) ||
-						route.startsWith(MAIL_PREFIX) ||
-						route.startsWith(CONTACTS_PREFIX) ||
-						route.startsWith("/settings/users") ||
-						route.startsWith("/settings/groups") ||
-						route.startsWith("/settings/whitelabelaccounts"))
+			this.searchBar != null &&
+			locator != null &&
+			!locator.search.indexState().initializing &&
+			styles.isDesktopLayout() &&
+			logins.isInternalUserLoggedIn() &&
+			(route.startsWith(SEARCH_PREFIX) ||
+				route.startsWith(MAIL_PREFIX) ||
+				route.startsWith(CONTACTS_PREFIX) ||
+				route.startsWith("/settings/users") ||
+				route.startsWith("/settings/groups") ||
+				route.startsWith("/settings/whitelabelaccounts"))
 		)
 	}
 }

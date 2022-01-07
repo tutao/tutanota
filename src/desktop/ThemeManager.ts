@@ -8,45 +8,47 @@ import {downcast} from "@tutao/tutanota-utils"
  * 4 methods correspond to ThemeStorage from web plus two convenience methods getCurrentTheme() and getCurrentThemeWithFallback().
  */
 export class ThemeManager {
-    readonly _confg: DesktopConfig
+	readonly _confg: DesktopConfig
 
-    constructor(config: DesktopConfig) {
-        this._confg = config
-    }
+	constructor(config: DesktopConfig) {
+		this._confg = config
+	}
 
-    getSelectedThemeId(): Promise<ThemeId | null> {
-        return this._confg.getVar(DesktopConfigKey.selectedTheme)
-    }
+	getSelectedThemeId(): Promise<ThemeId | null> {
+		return this._confg.getVar(DesktopConfigKey.selectedTheme)
+	}
 
-    async setSelectedThemeId(themeId: ThemeId) {
-        await this._confg.setVar(DesktopConfigKey.selectedTheme, themeId)
-    }
+	async setSelectedThemeId(themeId: ThemeId) {
+		await this._confg.setVar(DesktopConfigKey.selectedTheme, themeId)
+	}
 
-    async getThemes(): Promise<Array<Theme>> {
-        return (await this._confg.getVar(DesktopConfigKey.themes)) || []
-    }
+	async getThemes(): Promise<Array<Theme>> {
+		return (await this._confg.getVar(DesktopConfigKey.themes)) || []
+	}
 
-    async setThemes(themes: Array<Theme>) {
-        await this._confg.setVar(DesktopConfigKey.themes, themes)
-    }
+	async setThemes(themes: Array<Theme>) {
+		await this._confg.setVar(DesktopConfigKey.themes, themes)
+	}
 
-    async getCurrentTheme(): Promise<Theme | null> {
-        const themeId = (await this.getSelectedThemeId()) || "light"
-        const themes = await this.getThemes()
-        return themes.find(t => t.themeId === themeId)
-    }
+	async getCurrentTheme(): Promise<Theme | null> {
+		const themeId = (await this.getSelectedThemeId()) || "light"
+		const themes = await this.getThemes()
+		return themes.find(t => t.themeId === themeId) ?? null
+	}
 
-    async getCurrentThemeWithFallback(): Promise<Theme> {
-        let theme: Record<string, string> = await this.getCurrentTheme()
+	async getCurrentThemeWithFallback(): Promise<Theme> {
+		let theme = await this.getCurrentTheme()
 
-        if (theme == null) {
-            theme = {
-                themeId: "light-fallback",
-                content_bg: "#ffffff",
-                header_bg: "#ffffff",
-            }
-        }
+		if (theme == null) {
+			const fallback = {
+				themeId: "light-fallback",
+				content_bg: "#ffffff",
+				header_bg: "#ffffff",
+			} as Partial<Theme>
+			return downcast<Theme>(fallback)
+		} else {
+			return theme
+		}
 
-        return downcast<Theme>(theme)
-    }
+	}
 }

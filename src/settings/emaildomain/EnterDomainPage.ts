@@ -1,4 +1,4 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {isDomainName} from "../../misc/FormatValidator"
 import {Dialog} from "../../gui/base/Dialog"
@@ -9,95 +9,97 @@ import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {assertMainOrNode} from "../../api/common/Env"
+
 assertMainOrNode()
+
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
 	private dom: HTMLElement
 
-	oncreate(vnode) {
-		this.dom = vnode.dom
+	oncreate(vnode: VnodeDOM<WizardPageAttrs<AddDomainData>>) {
+		this.dom = vnode.dom as HTMLElement
 	}
 
-    view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
-        return m("", [
-            m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
-            m(".mt", lang.get("enterDomainIntroduction_msg")),
-            m(".mt", lang.get("enterDomainGetReady_msg")),
-            m(TextFieldN, {
-                label: "customDomain_label",
-                value: vnode.attrs.data.domain,
-                helpLabel: () => {
-                    const domain = vnode.attrs.data.domain()
-                    const errorMsg = validateDomain(domain)
+	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
+		return m("", [
+			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
+			m(".mt", lang.get("enterDomainIntroduction_msg")),
+			m(".mt", lang.get("enterDomainGetReady_msg")),
+			m(TextFieldN, {
+				label: "customDomain_label",
+				value: vnode.attrs.data.domain,
+				helpLabel: () => {
+					const domain = vnode.attrs.data.domain()
+					const errorMsg = validateDomain(domain)
 
-                    if (errorMsg) {
-                        return lang.get(errorMsg)
-                    } else {
-                        return lang.get("enterDomainFieldHelp_label", {
-                            "{domain}": domain.toLocaleLowerCase().trim(),
-                        })
-                    }
-                },
-            }),
-            m(
-                ".flex-center.full-width.pt-l.mb-l",
-                m(
-                    "",
-                    {
-                        style: {
-                            width: "260px",
-                        },
-                    },
-                    m(ButtonN, {
-                        type: ButtonType.Login,
-                        label: "next_action",
-                        click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
-                    }),
-                ),
-            ),
-        ])
-    }
+					if (errorMsg) {
+						return lang.get(errorMsg)
+					} else {
+						return lang.get("enterDomainFieldHelp_label", {
+							"{domain}": domain.toLocaleLowerCase().trim(),
+						})
+					}
+				},
+			}),
+			m(
+				".flex-center.full-width.pt-l.mb-l",
+				m(
+					"",
+					{
+						style: {
+							width: "260px",
+						},
+					},
+					m(ButtonN, {
+						type: ButtonType.Login,
+						label: "next_action",
+						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),
+					}),
+				),
+			),
+		])
+	}
 }
 
 function validateDomain(domain: string): TranslationKey | null {
-    let cleanDomainName = domain.toLocaleLowerCase().trim()
+	let cleanDomainName = domain.toLocaleLowerCase().trim()
 
-    if (!cleanDomainName.length) {
-        return "customDomainNeutral_msg"
-    }
+	if (!cleanDomainName.length) {
+		return "customDomainNeutral_msg"
+	}
 
-    if (!isDomainName(cleanDomainName)) {
-        return "customDomainInvalid_msg"
-    } else {
-        return null
-    }
+	if (!isDomainName(cleanDomainName)) {
+		return "customDomainInvalid_msg"
+	} else {
+		return null
+	}
 }
 
 export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
-    data: AddDomainData
+	data: AddDomainData
 
-    constructor(domainData: AddDomainData) {
-        this.data = domainData
-    }
+	constructor(domainData: AddDomainData) {
+		this.data = domainData
+	}
 
-    headerTitle(): string {
-        return lang.get("domainSetup_title")
-    }
+	headerTitle(): string {
+		return lang.get("domainSetup_title")
+	}
 
-    nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-        const errorMsg = validateDomain(this.data.domain())
+	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
+		const errorMsg = validateDomain(this.data.domain())
 
-        if (errorMsg) {
-            return showErrorDialog ? Dialog.message(errorMsg).then(() => false) : Promise.resolve(false)
-        } else {
-            return Promise.resolve(true)
-        }
-    }
+		if (errorMsg) {
+			return showErrorDialog ? Dialog.message(errorMsg).then(() => false) : Promise.resolve(false)
+		} else {
+			return Promise.resolve(true)
+		}
+	}
 
-    isSkipAvailable(): boolean {
-        return false
-    }
+	isSkipAvailable(): boolean {
+		return false
+	}
 
-    isEnabled(): boolean {
-        return true
-    }
+	isEnabled(): boolean {
+		return true
+	}
 }

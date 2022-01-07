@@ -1,14 +1,15 @@
-import m, {Children, Component, Vnode} from "mithril"
-import stream from "mithril/stream/stream.js"
+import m, {ChildArray, Children, Component, Vnode} from "mithril"
+import stream from "mithril/stream"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {liveDataAttrs} from "../gui/AriaUtils"
-import {lang} from "../misc/LanguageViewModel"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
+import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {client} from "../misc/ClientDetector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -58,102 +59,103 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const mailAddressFieldAttrs = {
-			label: "mailAddress_label",
+			label: "mailAddress_label" as TranslationKey,
 			value: a.mailAddress,
 			autocomplete: "username",
 			type: TextFieldType.Email,
 		}
-		const passwordFieldAttrs = {
+		const passwordFieldAttrs: TextFieldAttrs = {
 			label: "password_label",
 			value: a.password,
-			autocomplete: "password",
 			type: TextFieldType.Password,
 		}
 		const canSaveCredentials = !!client.localStorage()
 		return m(
-				"form",
-				{
-					onsubmit: e => {
-						// do not post the form, the form is just here to enable browser auto-fill
-						e.preventDefault() // a.onSubmit(a.mailAddress(), a.password())
-					},
+			"form",
+			{
+				onsubmit: (e: SubmitEvent) => {
+					// do not post the form, the form is just here to enable browser auto-fill
+					e.preventDefault() // a.onSubmit(a.mailAddress(), a.password())
 				},
-				[
-					m(
-							"",
-							{
-								oncreate: vnode => {
-									this.mailAddressTextField = vnode.children[0].state
+			},
+			[
+				m(
+					"",
+					{
+						oncreate: vnode => {
+							const childArray = assertNotNull(vnode.children) as ChildArray
+							const child = childArray[0] as Vnode<unknown, TextFieldN>
+							this.mailAddressTextField = child.state
+						},
+					},
+					m(TextFieldN, mailAddressFieldAttrs),
+				),
+				m(
+					"",
+					{
+						oncreate: vnode => {
+							const childArray = assertNotNull(vnode.children) as ChildArray
+							const child = childArray[0] as Vnode<unknown, TextFieldN>
+							this.passwordTextField = child.state
+						},
+					},
+					m(TextFieldN, passwordFieldAttrs),
+				),
+				a.savePassword && !this._passwordDisabled()
+					? m(CheckboxN, {
+						label: () => lang.get("storePassword_action"),
+						checked: a.savePassword,
+						helpLabel: canSaveCredentials ? "onlyPrivateComputer_msg" : "functionNotSupported_msg",
+						disabled: !canSaveCredentials,
+					})
+					: null,
+				m(
+					".pt",
+					m(ButtonN, {
+						label: "login_action",
+						click: () => a.onSubmit(a.mailAddress(), a.password()),
+						type: ButtonType.Login,
+					}),
+				),
+				m(
+					"p.center.statusTextColor",
+					m("small" + liveDataAttrs(), [
+						a.helpText ? a.helpText : null,
+						" ",
+						a.invalidCredentials && a.showRecoveryOption
+							? m(
+								"a",
+								{
+									href: "/recover",
+									onclick: (e: MouseEvent) => {
+										m.route.set("/recover", {
+											mailAddress: a.mailAddress(),
+											resetAction: "password",
+										})
+										e.preventDefault()
+									},
 								},
-							},
-							// @ts-ignore
-							m(TextFieldN, mailAddressFieldAttrs),
-					),
-					m(
-							"",
-							{
-								oncreate: vnode => {
-									this.passwordTextField = vnode.children[0].state
-								},
-							},
-							// @ts-ignore
-							m(TextFieldN, passwordFieldAttrs),
-					),
-					a.savePassword && !this._passwordDisabled()
-							? m(CheckboxN, {
-								label: () => lang.get("storePassword_action"),
-								checked: a.savePassword,
-								helpLabel: canSaveCredentials ? "onlyPrivateComputer_msg" : "functionNotSupported_msg",
-								disabled: !canSaveCredentials,
-							})
-							: null,
-					m(
-							".pt",
-							m(ButtonN, {
-								label: "login_action",
-								click: () => a.onSubmit(a.mailAddress(), a.password()),
-								type: ButtonType.Login,
-							}),
-					),
-					m(
-							"p.center.statusTextColor",
-							m("small" + liveDataAttrs(), [
-								a.helpText ? a.helpText : null,
-								" ",
-								a.invalidCredentials && a.showRecoveryOption
-										? m(
-												"a",
-												{
-													href: "/recover",
-													onclick: e => {
-														m.route.set("/recover", {
-															mailAddress: a.mailAddress(),
-															resetAction: "password",
-														})
-														e.preventDefault()
-													},
-												},
-												lang.get("recoverAccountAccess_action"),
-										)
-										: a.accessExpired && a.accessExpired
-												? m(
-														"a",
-														{
-															// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
-															href: "#",
-															onclick: e => {
-																import("./recover/TakeOverDeletedAddressDialog").then(({showTakeOverDialog}) =>
-																		showTakeOverDialog(a.mailAddress(), a.password()),
-																)
-																e.preventDefault()
-															},
-														},
-														lang.get("help_label"),
-												)
-												: null,
-							]),
-					),
-				],
+								lang.get("recoverAccountAccess_action"),
+							)
+							: a.accessExpired && a.accessExpired
+								? m(
+									"a",
+									{
+										// We import the dialog directly rather than redirecting to /recover here in order to not pass the password in plaintext via the URL
+										href: "#",
+										onclick: (e: MouseEvent) => {
+											import("./recover/TakeOverDeletedAddressDialog").then(({showTakeOverDialog}) =>
+												showTakeOverDialog(a.mailAddress(), a.password()),
+											)
+											e.preventDefault()
+										},
+									},
+									lang.get("help_label"),
+								)
+								: null,
+					]),
+				),
+			],
 		)
 	}
 }

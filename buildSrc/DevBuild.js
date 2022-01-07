@@ -12,18 +12,19 @@ export async function runDevBuild({stage, host, desktop, clean, watch, serve}) {
 
 	const doClean = clean ?? false
 
-	let buildServerOptions = {
+	const buildServerOptions = {
 		forceRestart: doClean,
 		builderPath: path.resolve("./buildSrc/Builder.js"),
 		preserveLogs: true,
 		autoRebuild: watch ?? false,
-		buildOpts: {
-			desktop: desktop ?? false,
-			stage: stage ?? "local",
-			host,
-			clean: doClean
-		},
 		watchFolders: [path.resolve("src")]
+	}
+
+	const buildOpts = {
+		desktop: desktop ?? false,
+		stage: stage ?? "local",
+		host,
+		clean: doClean
 	}
 
 	if (serve) {
@@ -33,7 +34,7 @@ export async function runDevBuild({stage, host, desktop, clean, watch, serve}) {
 	}
 
 	const buildServerClient = new BuildServerClient("make")
-	await buildServerClient.buildWithServer(buildServerOptions)
+	await buildServerClient.buildWithServer(buildServerOptions, buildOpts)
 
 	const dictPath = "build/dictionaries"
 	if (!fs.existsSync(dictPath)) {

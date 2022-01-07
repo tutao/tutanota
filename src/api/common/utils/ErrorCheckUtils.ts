@@ -9,6 +9,6 @@ import type {SomeEntity} from "../EntityTypes"
  * @returns {boolean} true if error was found (for the given key).
  */
 export function hasError<K>(instance: SomeEntity, key?: K): boolean {
-    const downCastedInstance = downcast(instance)
-    return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
+	const downCastedInstance = downcast(instance)
+	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
 }

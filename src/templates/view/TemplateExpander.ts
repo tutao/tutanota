@@ -11,27 +11,28 @@ import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"
  * The Popup handles whether the Expander should be rendered or not, depending on available width-space.
  */
 export type TemplateExpanderAttrs = {
-    template: EmailTemplate
-    model: TemplatePopupModel
+	template: EmailTemplate
+	model: TemplatePopupModel
 }
+
 export class TemplateExpander implements Component<TemplateExpanderAttrs> {
-    view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
-        const {model} = attrs
-        const selectedContent = model.getSelectedContent()
-        return m(
-            ".flex.flex-column.flex-grow.scroll.ml-s",
-            {
-                style: {
-                    // maxHeight has to be set, because otherwise the content would overflow outside the flexbox (-44 because of header height)
-                    maxHeight: px(TEMPLATE_POPUP_HEIGHT - size.button_height),
-                },
-                onkeydown: e => {
-                    if (isKeyPressed(e.keyCode, Keys.TAB)) {
-                        e.preventDefault()
-                    }
-                },
-            },
-            [m(".text-break.flex-grow.pr.overflow-y-visible", selectedContent ? m.trust(selectedContent.text) : null)],
-        )
-    }
+	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
+		const {model} = attrs
+		const selectedContent = model.getSelectedContent()
+		return m(
+			".flex.flex-column.flex-grow.scroll.ml-s",
+			{
+				style: {
+					// maxHeight has to be set, because otherwise the content would overflow outside the flexbox (-44 because of header height)
+					maxHeight: px(TEMPLATE_POPUP_HEIGHT - size.button_height),
+				},
+				onkeydown: (e: KeyboardEvent) => {
+					if (isKeyPressed(e.keyCode, Keys.TAB)) {
+						e.preventDefault()
+					}
+				},
+			},
+			[m(".text-break.flex-grow.pr.overflow-y-visible", selectedContent ? m.trust(selectedContent.text) : null)],
+		)
+	}
 }

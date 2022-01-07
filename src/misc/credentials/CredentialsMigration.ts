@@ -14,45 +14,45 @@ import type {NativeInterface} from "../../native/common/NativeInterface"
  * a bit, which seems undesired given this is throw-away code.
  */
 export class CredentialsMigration {
-    readonly _deviceConfig: DeviceConfig
-    readonly _deviceEncryptionFacade: DeviceEncryptionFacade
-    readonly _nativeApp: NativeInterface
+	readonly _deviceConfig: DeviceConfig
+	readonly _deviceEncryptionFacade: DeviceEncryptionFacade
+	readonly _nativeApp: NativeInterface
 
-    constructor(deviceConfig: DeviceConfig, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
-        this._deviceConfig = deviceConfig
-        this._deviceEncryptionFacade = deviceEncryptionFacade
-        this._nativeApp = nativeApp
-    }
+	constructor(deviceConfig: DeviceConfig, deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface) {
+		this._deviceConfig = deviceConfig
+		this._deviceEncryptionFacade = deviceEncryptionFacade
+		this._nativeApp = nativeApp
+	}
 
-    /**
-     * Migrates the credentials stored on the device to being encrypted using the device's secure storage mechanisms.
-     */
-    async migrateCredentials(): Promise<void> {
-        if (this._deviceConfig.getCredentialsEncryptionKey()) {
-            return
-        }
+	/**
+	 * Migrates the credentials stored on the device to being encrypted using the device's secure storage mechanisms.
+	 */
+	async migrateCredentials(): Promise<void> {
+		if (this._deviceConfig.getCredentialsEncryptionKey()) {
+			return
+		}
 
-        const storedCredentials = this._deviceConfig.loadAll()
+		const storedCredentials = this._deviceConfig.loadAll()
 
-        if (storedCredentials.length === 0) {
-            return
-        }
+		if (storedCredentials.length === 0) {
+			return
+		}
 
-        const encryptionKey = await this._deviceEncryptionFacade.generateKey()
-        const encryptedCredentials = await promiseMap(storedCredentials, async credentials => {
-            const encryptedAccessToken = await this._deviceEncryptionFacade.encrypt(encryptionKey, stringToUtf8Uint8Array(credentials.accessToken))
-            return {...credentials, accessToken: uint8ArrayToBase64(encryptedAccessToken)}
-        })
-        const encryptedKeyB64 = await this._nativeApp.invokeNative(
-            new Request("encryptUsingKeychain", [CredentialEncryptionMode.DEVICE_LOCK, uint8ArrayToBase64(encryptionKey)]),
-        )
+		const encryptionKey = await this._deviceEncryptionFacade.generateKey()
+		const encryptedCredentials = await promiseMap(storedCredentials, async credentials => {
+			const encryptedAccessToken = await this._deviceEncryptionFacade.encrypt(encryptionKey, stringToUtf8Uint8Array(credentials.accessToken))
+			return {...credentials, accessToken: uint8ArrayToBase64(encryptedAccessToken)}
+		})
+		const encryptedKeyB64 = await this._nativeApp.invokeNative(
+			new Request("encryptUsingKeychain", [CredentialEncryptionMode.DEVICE_LOCK, uint8ArrayToBase64(encryptionKey)]),
+		)
 
-        this._deviceConfig.setCredentialEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
+		this._deviceConfig.setCredentialEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 
-        this._deviceConfig.setCredentialsEncryptionKey(base64ToUint8Array(encryptedKeyB64))
+		this._deviceConfig.setCredentialsEncryptionKey(base64ToUint8Array(encryptedKeyB64))
 
-        for (let encryptedCredential of encryptedCredentials) {
-            this._deviceConfig.store(encryptedCredential)
-        }
-    }
+		for (let encryptedCredential of encryptedCredentials) {
+			this._deviceConfig.store(encryptedCredential)
+		}
+	}
 }

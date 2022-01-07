@@ -1,7 +1,7 @@
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
 import {assertNotNull} from "@tutao/tutanota-utils"
-import type {Base64, Base64Url} from "@tutao/tutanota-utils/"
+import type {Base64, Base64Url} from "@tutao/tutanota-utils"
 import type {Credentials} from "./Credentials"
 
 /**

@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, {Children, Component, RouteLinkAttrs, Vnode} from "mithril"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import {px, size} from "../size"
 import {addFlash, removeFlash} from "./Flash"
@@ -21,7 +21,7 @@ export type NavButtonAttrs = {
 	icon?: lazyIcon
 	href: string | lazy<string>
 	isSelectedPrefix?: string | boolean
-	click?: clickHandler
+	click?: (event: Event, dom: HTMLElement) => unknown,
 	colors?: NavButtonColor
 	isVisible?: lazy<boolean>
 	dropHandler?: dropHandler
@@ -32,10 +32,10 @@ export type NavButtonAttrs = {
 	centred?: boolean
 }
 
-const navButtonSelector = (vertical, centred?) =>
-		"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height" +
-		(vertical ? ".col" : "") +
-		(!centred ? ".flex-start" : ".flex-center")
+const navButtonSelector = (vertical: boolean | undefined, centred?: boolean) =>
+	"a.nav-button.noselect.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height" +
+	(vertical ? ".col" : "") +
+	(!centred ? ".flex-start" : ".flex-center")
 
 export class NavButtonN implements Component<NavButtonAttrs> {
 	_domButton: HTMLElement
@@ -53,14 +53,14 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 		const linkAttrs = this.createButtonAttributes(a)
 		const children = [
 			a.icon && a.icon()
-					? m(Icon, {
-						icon: a.icon(),
-						class: this._getIconClass(a),
-						style: {
-							fill: isNavButtonSelected(vnode.attrs) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
-						},
-					})
-					: null,
+				? m(Icon, {
+					icon: a.icon(),
+					class: this._getIconClass(a),
+					style: {
+						fill: isNavButtonSelected(vnode.attrs) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
+					},
+				})
+				: null,
 			!a.hideLabel ? m("span.label.click.text-ellipsis.b" + (a.vertical ? "" : ".pl-m"), this.getLabel(a.label)) : null,
 		]
 
@@ -98,8 +98,8 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 		return url != null ? url.indexOf("http") === 0 : false
 	}
 
-	createButtonAttributes(a: NavButtonAttrs): any {
-		let attr: any = {
+	createButtonAttributes(a: NavButtonAttrs): RouteLinkAttrs {
+		let attr: RouteLinkAttrs = {
 			role: "button",
 			// role button for screen readers
 			href: this._getUrl(a.href),
@@ -117,8 +117,8 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 				removeFlash(vnode.dom)
 			},
 			selector: navButtonSelector(a.vertical),
-			onclick: e => this.click(e, a),
-			onkeyup: e => {
+			onclick: (e: MouseEvent) => this.click(e, a),
+			onkeyup: (e: KeyboardEvent) => {
 				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
 					this.click(e, a)
 				}
@@ -126,13 +126,13 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 		}
 
 		if (a.dropHandler) {
-			attr.ondragenter = ev => {
+			attr.ondragenter = (ev: DragEvent) => {
 				this._dropCounter++
 				this._draggedOver = true
 				ev.preventDefault()
 			}
 
-			attr.ondragleave = ev => {
+			attr.ondragleave = (ev: DragEvent) => {
 				this._dropCounter--
 
 				if (this._dropCounter === 0) {
@@ -142,17 +142,17 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 				ev.preventDefault()
 			}
 
-			attr.ondragover = ev => {
+			attr.ondragover = (ev: DragEvent) => {
 				// needed to allow dropping
 				ev.preventDefault()
 			}
 
-			attr.ondrop = ev => {
+			attr.ondrop = (ev: DragEvent) => {
 				this._dropCounter = 0
 				this._draggedOver = false
 				ev.preventDefault()
 
-				if (ev.dataTransfer.getData("text")) {
+				if (ev.dataTransfer?.getData("text")) {
 					neverNull(a.dropHandler)(ev.dataTransfer.getData("text"))
 				}
 			}
@@ -161,7 +161,7 @@ export class NavButtonN implements Component<NavButtonAttrs> {
 		return attr
 	}
 
-	click(event: MouseEvent, a: NavButtonAttrs) {
+	click(event: Event, a: NavButtonAttrs) {
 		if (!this._isExternalUrl(a.href)) {
 			m.route.set(this._getUrl(a.href))
 
@@ -188,7 +188,7 @@ export const enum NavButtonColor {
 	Content = "content",
 }
 
-function getColors(buttonColors: NavButtonColor | null) {
+function getColors(buttonColors: NavButtonColor | null | undefined) {
 	switch (buttonColors) {
 		case NavButtonColor.Header:
 			return {

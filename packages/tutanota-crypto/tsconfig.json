@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig_common.json",
   "include": [
+	"../../types/*.d.ts",
 	"lib/encryption",
 	"lib/hashes",
 	"lib/misc",

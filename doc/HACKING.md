@@ -6,8 +6,6 @@
  * [`src/`](../src): Common part and the desktop client code
  * [`app-android/`](../app-android): Android specific parts
  * [`app-ios/`](../app-ios): iOS specific parts
- * [`flow/`](../flow): contains *implicitly* imported [Flow](https://flow.org/) typing definitions. Avoid putting something there,
- it is buggy.
  * [`libs/`](../libs): "vendor" directory containing our dependencies in non-minified and minified form. May be improved. We take
  security seriously so we review diff between each version.
  * [`resources/`](../resources): some resources (mostly images) which are used in the project. Most of the are embedded to the code.
@@ -18,7 +16,7 @@
  * [`fdroid-metadata-workaround`](../fdroid-metadata-workaround): is a link inside app-android so that F-Droid can find our metadata because our Android
  project is not in the root. Can be removed once it's fixed in F-Droid.
  * [`tutao-pub.pem`](../tutao-pub.pem): public key which is used to verify desktop clients
- 
+
 ## Code structure
 Web part of the app is split in three parts: client, worker and common.
 All code in the `src/` except for the `api/` directory is intended for GUI and system interaction. Code in the `api`
@@ -84,7 +82,7 @@ One level below `EntityWorker` lays `EntityRestInterface` which is either `Entit
 currently. Caches saves requested entities is the memory and updates them with WebSocket events.
 
 If you're listening for WebSocket updates in the worker part (and you should justify doing that) then you should change
-[EventBus](../src/api/worker/EventBusClient.js) to do that. For the main thread you can subscribe to the 
+[EventBus](../src/api/worker/EventBusClient.js) to do that. For the main thread you can subscribe to the
 [EventController](../src/api/main/EventController.js).
 
 `EventBus` and `EntityRestClient` make sure that entities are automatically encrypted/decrypted when needed. See
@@ -109,7 +107,7 @@ To run tests:
 ```bash
 cd test
 ```
- 
+
 and
 
  `node test api` or `node test client`

@@ -4,8 +4,8 @@ import {assertNotNull, clone, debounceStart, downcast} from "@tutao/tutanota-uti
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import {VALID_HEX_CODE_FORMAT} from "../../gui/base/Color"
-import stream from "mithril/stream/stream.js"
-import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
+import stream from "mithril/stream"
+import type {ThemeCustomizations, CustomizationKey, ThemeKey} from "../../misc/WhitelabelCustomizations"
 import {ThemeController} from "../../gui/ThemeController"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {LoginController} from "../../api/main/LoginController"
@@ -13,7 +13,7 @@ import Stream from "mithril/stream";
 
 assertMainOrNode()
 export type CustomColor = {
-	name: string
+	name: ThemeKey
 	value: string
 	defaultValue: string
 	valid: boolean
@@ -32,13 +32,13 @@ export class CustomColorsEditorViewModel {
 	readonly builtTheme: Stream<Theme>
 
 	constructor(
-			currentTheme: Theme,
-			themeCustomizations: ThemeCustomizations,
-			whitelabelConfig: WhitelabelConfig,
-			whitelabelDomainInfo: DomainInfo,
-			themeController: ThemeController,
-			entityClient: EntityClient,
-			loginController: LoginController,
+		currentTheme: Theme,
+		themeCustomizations: ThemeCustomizations,
+		whitelabelConfig: WhitelabelConfig,
+		whitelabelDomainInfo: DomainInfo,
+		themeController: ThemeController,
+		entityClient: EntityClient,
+		loginController: LoginController,
 	) {
 		this._themeBeforePreview = Object.freeze(currentTheme)
 		this._customizations = clone(themeCustomizations)
@@ -64,17 +64,21 @@ export class CustomColorsEditorViewModel {
 		const base = this._themeController.getBaseTheme(this.baseThemeId)
 
 		return Object.keys(base)
-				.filter(name => !this._shallBeExcluded(name))
-				.sort((a, b) => a.localeCompare(b))
-				.map(key => {
-					const value = this._customizations[key] ?? ""
-					return {
-						name: key,
-						value,
-						defaultValue: assertNotNull(base[key]),
-						valid: this._isValidColorValue(value),
-					}
-				})
+					 .map(key => key as CustomizationKey)
+					 .filter(name => !this._shallBeExcluded(name))
+					 .map(key => key as ThemeKey)
+					 .sort((a, b) => a.localeCompare(b))
+					 .map(key => {
+						 const value = this._customizations[key] ?? ""
+						 // @ts-ignore we already checked that it's safe
+						 const defaultValue = base[key]
+						 return {
+							 name: key,
+							 value,
+							 defaultValue: assertNotNull(defaultValue),
+							 valid: this._isValidColorValue(value),
+						 }
+					 })
 	}
 
 	get accentColor(): string {
@@ -89,8 +93,8 @@ export class CustomColorsEditorViewModel {
 		return this._baseTheme
 	}
 
-	getDefaultColor(colorName: string): string {
-		return this._themeController.getBaseTheme(this.baseThemeId)[colorName]
+	getDefaultColor(colorName: ThemeKey): string {
+		return assertNotNull(this._themeController.getBaseTheme(this.baseThemeId)[colorName])
 	}
 
 	changeAccentColor(accentColor: string) {
@@ -115,10 +119,10 @@ export class CustomColorsEditorViewModel {
 	 * Try to save changes. if there are invalid color values in the theme doesn't save and returns false, else saves and returns true
 	 */
 	async save(): Promise<boolean> {
-		const colors = Object.keys(this.customizations).filter(name => name !== "logo" && name !== "themeId" && name !== "base")
+		const colors = Object.keys(this.customizations).filter(name => name !== "logo" && name !== "themeId" && name !== "base") as CustomizationKey[]
 
 		for (let i = 0; i < colors.length; i++) {
-			if (!this._isValidColorValue(this.customizations[downcast(colors[i])])) {
+			if (!this._isValidColorValue(this.customizations[colors[i]] ?? "")) {
 				return false
 			}
 		}
@@ -136,20 +140,21 @@ export class CustomColorsEditorViewModel {
 
 	async resetActiveClientTheme(): Promise<void> {
 		return this._themeController.updateCustomTheme(
-				downcast(
-						Object.assign(
-								{},
-								{
-									base: null,
-								},
-								this._themeBeforePreview,
-						),
+			downcast(
+				Object.assign(
+					{},
+					{
+						base: null,
+					},
+					this._themeBeforePreview,
 				),
-				false,
+			),
+			false,
 		)
 	}
 
-	addCustomization(nameOfKey: string, colorValue: string) {
+	addCustomization(nameOfKey: CustomizationKey, colorValue: string) {
+		// @ts-ignore it's pretty hard to define what we want
 		this.customizations[nameOfKey] = colorValue
 
 		this._applyEditedTheme()
@@ -163,7 +168,7 @@ export class CustomColorsEditorViewModel {
 	 * These values shall be excluded when rendering the advanced TextFields
 	 * @return boolean, true iff provided parameter 'name' shall be excluded
 	 */
-	_shallBeExcluded(name: string): boolean {
+	_shallBeExcluded(name: CustomizationKey): boolean {
 		const excludedColors = [
 			"logo",
 			"themeId",

@@ -26,10 +26,10 @@ export class Table {
 	 * @param addButton If set, this button appears beside the expander button.
 	 */
 	constructor(
-			columnHeadingTextIds: TranslationKey[],
-			columnWidths: ColumnWidth[],
-			showActionButtonColumn: boolean,
-			addButton: Button | null,
+		columnHeadingTextIds: TranslationKey[],
+		columnWidths: ColumnWidth[],
+		showActionButtonColumn: boolean,
+		addButton: Button | null,
 	) {
 		this._lines = []
 		this._loading = true
@@ -39,11 +39,11 @@ export class Table {
 				m("table.table", [
 					[
 						this._createLine(
-								columnHeadingTextIds.map(textId => lang.get(textId)),
-								showActionButtonColumn,
-								this._loading ? null : addButton,
-								columnWidths,
-								true,
+							columnHeadingTextIds.map(textId => lang.get(textId)),
+							showActionButtonColumn,
+							this._loading ? null : addButton,
+							columnWidths,
+							true,
 						),
 					].concat(this._createContentLines(showActionButtonColumn, columnWidths)),
 				]),
@@ -60,47 +60,46 @@ export class Table {
 	}
 
 	_createLine(
-			texts: string[],
-			showActionButtonColumn: boolean,
-			actionButton: Button | null,
-			columnWidths: ColumnWidth[],
-			bold: boolean,
+		texts: string[],
+		showActionButtonColumn: boolean,
+		actionButton: Button | null,
+		columnWidths: ColumnWidth[],
+		bold: boolean,
 	): Children {
 		let cells = texts.map((text, index) =>
-				m(
-						"td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index] + (bold ? ".b" : ""),
-						{
-							title: text, // show the text as tooltip, so ellipsed lines can be shown
-						},
-						text,
-				),
+			m(
+				"td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index] + (bold ? ".b" : ""),
+				{
+					title: text, // show the text as tooltip, so ellipsed lines can be shown
+				},
+				text,
+			),
 		)
 
 		if (showActionButtonColumn) {
 			cells.push(
-					m(
-							"td",
-							{
-								style: {
-									width: px(size.button_height),
+				m(
+					"td",
+					{
+						style: {
+							width: px(size.button_height),
+						},
+					},
+					actionButton
+						? [
+							m(
+								"",
+								{
+									style: {
+										position: "relative",
+										right: px(-size.hpad_button), // same as .mr-negative-s
+									},
 								},
-							},
-							actionButton
-									? [
-										m(
-												"",
-												{
-													style: {
-														position: "relative",
-														right: px(-size.hpad_button), // same as .mr-negative-s
-													},
-												},
-												// @ts-ignore
-												m(actionButton),
-										),
-									]
-									: [],
-					),
+								m(actionButton),
+							),
+						]
+						: [],
+				),
 			)
 		}
 
