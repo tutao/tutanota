@@ -14,7 +14,7 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 2. Switch into the repository directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
 4. run `npm ci` to install dependencies.
-5. Build packages: `npm -ws run build` (might need to do it multiple times)
+5. Build packages: `npm run build-packages`
 6. Build the web part: `node dist prod`
 7. Switch into the build directory: `cd build/dist`
 8. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
@@ -37,7 +37,7 @@ If you prefer the auto-update feature, download the app from the Google Play Sto
 2. Switch into the Tutanota directory: `cd tutanota`
 3. Checkout the latest android release tag: `git checkout tutanota-android-release-xxx`
 4. Install dependencies: `npm ci`
-5. Build packages: `npm -ws run build` (might need to do it multiple times)
+5. Build packages: `npm run build-packages`
 6. Create a keystore if you don't have
    one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
 7.
@@ -65,7 +65,7 @@ Keep in mind that your own build of Tutanota Desktop will not update automatical
 
 ### Build:
 
-1. Build packages: `npm -ws run build` (might need to do it multiple times)
+1. Build packages: `npm run build-packages`
 2. Run `node dist --custom-desktop-release`.
 
 The client for your platform will be in `build/desktop/`. Note that you can add `--unpacked` to the build command to
