@@ -10,8 +10,8 @@
 const {ipcRenderer, contextBridge} = require("electron")
 
 contextBridge.exposeInMainWorld("nativeApp", {
-	invoke: (msg: any) => ipcRenderer.invoke("to-main", msg),
-	attach: (handler: Function) => {
+	invoke: (msg) => ipcRenderer.invoke("to-main", msg),
+	attach: (handler) => {
 		// Do not give back ipcRenderer to the caller!
 		ipcRenderer.on("to-renderer", (ev, msg) => handler(msg))
 		return undefined

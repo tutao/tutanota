@@ -1,4 +1,4 @@
-import {babelDesktopPlugins, resolveLibs} from "./RollupConfig.js"
+import {resolveLibs} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "fs"
@@ -12,20 +12,21 @@ import generatePackgeJson from "./electron-package-json-template.js"
 import {create as createEnv, preludeEnvPlugin} from "./env.js"
 import cp from 'child_process'
 import util from 'util'
+import typescript from "@rollup/plugin-typescript"
 
 const {babel} = pluginBabel
 const exec = util.promisify(cp.exec)
 
 export async function buildDesktop({
-	                                   dirname, // directory this was called from
-	                                   version, // application version that gets built
-	                                   targets, // which desktop targets to build and how to package them
-	                                   updateUrl, // where the client should pull its updates from, if any
-	                                   nameSuffix, // suffix used to distinguish test-, prod- or snapshot builds on the same machine
-	                                   notarize, // for the MacOs notarization feature
-	                                   outDir, // where copy the finished artifacts
-	                                   unpacked, // output desktop client without packing it into an installer
-                                   }) {
+									   dirname, // directory this was called from
+									   version, // application version that gets built
+									   targets, // which desktop targets to build and how to package them
+									   updateUrl, // where the client should pull its updates from, if any
+									   nameSuffix, // suffix used to distinguish test-, prod- or snapshot builds on the same machine
+									   notarize, // for the MacOs notarization feature
+									   outDir, // where copy the finished artifacts
+									   unpacked, // output desktop client without packing it into an installer
+								   }) {
 	// The idea is that we
 	// - build desktop code into build/dist/desktop
 	// - package the whole dist directory into the app
@@ -33,8 +34,8 @@ export async function buildDesktop({
 	// - cleanup dist directory
 	// It's messy
 	const targetString = Object.keys(targets)
-	                           .filter(k => typeof targets[k] !== "undefined")
-	                           .join(" ")
+							   .filter(k => typeof targets[k] !== "undefined")
+							   .join(" ")
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
 	const updateSubDir = "desktop" + nameSuffix
 	const distDir = path.join(dirname, "build", "dist")
@@ -97,8 +98,8 @@ export async function buildDesktop({
 		fs.readdirSync(path.join(distDir, '/installers'))
 		  .filter((file => file.startsWith(content.name) || file.endsWith('.yml') || file.endsWith("-unpacked")))
 		  .map(file => fs.promises.rename(
-			  path.join(distDir, '/installers/', file),
-			  path.join(outDir, file)
+				  path.join(distDir, '/installers/', file),
+				  path.join(outDir, file)
 			  )
 		  )
 	)
@@ -111,18 +112,14 @@ export async function buildDesktop({
 }
 
 async function rollupDesktop(dirname, outDir, version) {
-	function babelPreset() {
-		return babel({
-			plugins: babelDesktopPlugins,
-			babelHelpers: "bundled",
-		})
-	}
-
 	const mainBundle = await rollup({
-		input: path.join(dirname, "src/desktop/DesktopMain.js"),
+		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		preserveEntrySignatures: false,
 		plugins: [
-			babelPreset(),
+			typescript({
+				tsconfig: "tsconfig.json",
+				outDir,
+			}),
 			resolveLibs(),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
@@ -150,8 +147,8 @@ async function rollupDesktop(dirname, outDir, version) {
  */
 async function maybeGetKeytar(targets, napiVersion = 3) {
 	const target = Object.keys(targets)
-	                  .filter(t => targets[t] != null)
-	                  .filter(t => t !== process.platform)
+						 .filter(t => targets[t] != null)
+						 .filter(t => t !== process.platform)
 	if (target.length === 0 || process.env.JENKINS) return
 	console.log("fetching prebuilt keytar for", target, "N-API", napiVersion)
 	return Promise.all(target.map(t => exec(

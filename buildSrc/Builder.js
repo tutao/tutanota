@@ -185,9 +185,9 @@ async function buildAndStartDesktop(log, version) {
 	const nollup = (await import('nollup')).default
 	log("desktop main bundle")
 	const nodePreBundle = await nollup({
-		input: path.join(root, "src/desktop/DesktopMain.js"),
+		input: path.join(root, "src/desktop/DesktopMain.ts"),
 		plugins: [
-			...rollupDebugPlugins(path.resolve(".")),
+			...rollupDebugPlugins(path.resolve("."), {outDir: "build/desktop"}),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true,}),
