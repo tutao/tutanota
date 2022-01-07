@@ -20,4 +20,5 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm ci
+          npm -ws run build
           npm test
