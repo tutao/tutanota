@@ -84,7 +84,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_usersFieldValue: Stream<string>
 	_storageFieldValue: Stream<string>
 	_emailAliasFieldValue: Stream<string>
-	_groupsFieldValue: Stream<string>
 	_contactFormsFieldValue: Stream<string>
 	_whitelabelFieldValue: Stream<string>
 	_sharingFieldValue: Stream<string>
@@ -343,12 +342,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					injectionsRight: () => m(ButtonN, changeEmailAliasPackageButtonAttrs),
 				}),
 				m(TextFieldN, {
-					label: "groups_label",
-					value: this._groupsFieldValue,
-					disabled: true,
-					injectionsRight: () => [m(ButtonN, addGroupsActionAttrs), m(ButtonN, editGroupsActionAttrs)],
-				}),
-				m(TextFieldN, {
 					label: "whitelabelFeature_label",
 					value: this._whitelabelFieldValue,
 					disabled: true,
@@ -436,7 +429,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._usersFieldValue = stream(loadingString)
 		this._storageFieldValue = stream(loadingString)
 		this._emailAliasFieldValue = stream(loadingString)
-		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
 		this._businessFeatureFieldValue = stream(loadingString)
@@ -585,7 +577,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							this._updateUserField(),
 							this._updateStorageField(customer, customerInfo),
 							this._updateAliasField(customer, customerInfo),
-							this._updateGroupsField(),
 							this._updateWhitelabelField(),
 							this._updateSharingField(),
 							this._updateBusinessFeatureField(),
@@ -636,24 +627,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				})
 				.then(noOp)
 		}
-	}
-
-	_updateGroupsField(): Promise<void> {
-		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount + " " + lang.get(localAdminCount === 1 ? "localAdminGroup_label" : "localAdminGroups_label")
-		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = sharedMailCount + " " + lang.get(sharedMailCount === 1 ? "sharedMailbox_label" : "sharedMailboxes_label")
-
-		if (localAdminCount === 0) {
-			// also show the shared mailboxes text if no groups exists at all
-			this._groupsFieldValue(sharedMailText)
-		} else if (localAdminCount > 0 && sharedMailCount > 0) {
-			this._groupsFieldValue(sharedMailText + ", " + localAdminText)
-		} else {
-			this._groupsFieldValue(localAdminText)
-		}
-
-		return Promise.resolve()
 	}
 
 	_updateContactFormsField(): Promise<void> {
