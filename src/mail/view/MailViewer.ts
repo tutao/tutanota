@@ -25,7 +25,8 @@ import {
 	mailMethodToCalendarMethod,
 	MailPhishingStatus,
 	MailReportType,
-	MailState, SpamRuleFieldType,
+	MailState,
+	SpamRuleFieldType,
 	SpamRuleFieldType as SparmRuleType,
 	SpamRuleType,
 	TabIndex,
@@ -102,14 +103,7 @@ import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {InlineImageReference} from "./MailGuiUtils"
-import {
-	getReferencedAttachments,
-	loadInlineImages,
-	moveMails,
-	promptAndDeleteMails,
-	replaceCidsWithInlineImages,
-	revokeInlineImages
-} from "./MailGuiUtils"
+import {getReferencedAttachments, loadInlineImages, moveMails, promptAndDeleteMails, replaceCidsWithInlineImages, revokeInlineImages} from "./MailGuiUtils"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
@@ -1453,10 +1447,7 @@ export class MailViewer {
 		})
 	}
 
-	_markUnread(unread
-					:
-					boolean
-	) {
+	_markUnread(unread: boolean) {
 		this.mail.unread = unread
 
 		this._entityClient
@@ -1465,9 +1456,7 @@ export class MailViewer {
 			.catch(ofClass(NotFoundError, noOp))
 	}
 
-	_editDraft()
-		:
-		Promise<void> {
+	_editDraft(): Promise<void> {
 		return checkApprovalStatus(logins, false).then(sendAllowed => {
 			if (sendAllowed) {
 				// check if to be opened draft has already been minimized, iff that is the case, re-open it
@@ -1572,9 +1561,7 @@ export class MailViewer {
 		}
 	}
 
-	_getMailBody()
-		:
-		string {
+	_getMailBody(): string {
 		if (this._mailBody) {
 			return getMailBodyText(this._mailBody)
 		} else {
@@ -1582,9 +1569,7 @@ export class MailViewer {
 		}
 	}
 
-	_forward()
-		:
-		Promise<void> {
+	_forward(): Promise<void> {
 		return checkApprovalStatus(logins, false).then(sendAllowed => {
 			if (sendAllowed) {
 				return this._createResponseMailArgsForForwarding([], [], true).then(args => {
@@ -1601,21 +1586,11 @@ export class MailViewer {
 		})
 	}
 
-	isBlockingExternalImages()
-		:
-		boolean {
+	isBlockingExternalImages(): boolean {
 		return this._contentBlockingStatus === ContentBlockingStatus.Block || this._contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
 	}
 
-	_createResponseMailArgsForForwarding(recipients
-											 :
-											 MailAddress[], replyTos
-											 :
-											 EncryptedMailAddress[], addSignature
-											 :
-											 boolean
-	):
-		Promise<ResponseMailParameters> {
+	_createResponseMailArgsForForwarding(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<ResponseMailParameters> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.sentDate) + "<br>"
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 
@@ -1715,13 +1690,7 @@ export class MailViewer {
 		})
 	}
 
-	_handleAnchorClick(event
-						   :
-						   Event, shouldDispatchSyntheticClick
-						   :
-						   boolean
-	):
-		void {
+	_handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
 		let target = event.target as any
 
 		if (target && target.closest
@@ -1754,9 +1723,7 @@ export class MailViewer {
 		}
 	}
 
-	scrollUp()
-		:
-		void {
+	scrollUp(): void {
 		this._scrollIfDomBody(dom => {
 			const current = dom.scrollTop
 			const toScroll = dom.clientHeight * SCROLL_FACTOR
@@ -1764,9 +1731,7 @@ export class MailViewer {
 		})
 	}
 
-	scrollDown()
-		:
-		void {
+	scrollDown(): void {
 		this._scrollIfDomBody(dom => {
 			const current = dom.scrollTop
 			const toScroll = dom.clientHeight * SCROLL_FACTOR
@@ -1774,17 +1739,13 @@ export class MailViewer {
 		})
 	}
 
-	scrollToTop()
-		:
-		void {
+	scrollToTop(): void {
 		this._scrollIfDomBody(dom => {
 			return scroll(dom.scrollTop, 0)
 		})
 	}
 
-	scrollToBottom()
-		:
-		void {
+	scrollToBottom(): void {
 		this._scrollIfDomBody(dom => {
 			const end = dom.scrollHeight - dom.offsetHeight
 			return scroll(dom.scrollTop, end)
@@ -1808,10 +1769,7 @@ export class MailViewer {
 		}
 	}
 
-	_scrollIfDomBody(cb
-						 :
-						 (dom: HTMLElement) => DomMutation
-	) {
+	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
 		if (this._domForScrolling) {
 			const dom = this._domForScrolling
 
@@ -1827,13 +1785,7 @@ export class MailViewer {
 		}
 	}
 
-	_downloadAndOpenAttachment(file
-								   :
-								   TutanotaFile, open
-								   :
-								   boolean
-	):
-		void {
+	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
 		locator.fileController
 			   .downloadAndOpen(file, open)
 			   .catch(
@@ -1849,13 +1801,7 @@ export class MailViewer {
 			   })
 	}
 
-	_createAttachmentsButtons(files
-								  :
-								  ReadonlyArray<TutanotaFile>, inlineCids
-								  :
-								  ReadonlyArray<Id>
-	):
-		Button[] {
+	_createAttachmentsButtons(files: ReadonlyArray<TutanotaFile>, inlineCids: ReadonlyArray<Id>): Button[] {
 		// Only show file buttons which do not correspond to inline images in HTML
 		files = files.filter(item => inlineCids.includes(assertNotNull(item.cid)) === false)
 		let buttons
@@ -1903,14 +1849,7 @@ export class MailViewer {
 			.then(nonInlineFiles => showProgressDialog("pleaseWait_msg", locator.fileController.downloadAll(nonInlineFiles)))
 	}
 
-	_handleDoubleTap(e
-						 :
-						 MaybeSyntheticEvent, singleClickAction
-						 :
-						 (e: MaybeSyntheticEvent) => void, doubleClickAction
-						 :
-						 (e: MaybeSyntheticEvent) => void
-	) {
+	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
 		const lastClick = this._lastBodyTouchEndTime
 		const now = Date.now()
 		const touch = e.changedTouches[0]
@@ -1946,9 +1885,7 @@ export class MailViewer {
 		this._lastBodyTouchEndTime = now
 	}
 
-	_renderPhishingWarning()
-		:
-		Children | null {
+	_renderPhishingWarning(): Children | null {
 		if (this._suspicious) {
 			return m(InfoBanner, {
 				message: "phishingMessageBody_msg",
@@ -1965,11 +1902,7 @@ export class MailViewer {
 		}
 	}
 
-	_renderHardAuthenticationFailWarning(mail
-											 :
-											 Mail
-	):
-		Children | null {
+	_renderHardAuthenticationFailWarning(mail: Mail): Children | null {
 		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
@@ -1986,11 +1919,7 @@ export class MailViewer {
 		}
 	}
 
-	_renderSoftAuthenticationFailWarning(mail
-											 :
-											 Mail
-	):
-		Children | null {
+	_renderSoftAuthenticationFailWarning(mail: Mail): Children | null {
 		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
 			return m(InfoBanner, {
 				message: () =>
