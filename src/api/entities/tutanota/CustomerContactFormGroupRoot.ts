@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
-import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef"
+import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex.js"
+import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef.js"
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {

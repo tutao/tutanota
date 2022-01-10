@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {Subfiles} from "./Subfiles"
+import type {Subfiles} from "./Subfiles.js"
 
 export const FileTypeRef: TypeRef<File> = new TypeRef("tutanota", "File")
 export const _TypeModel: TypeModel = {

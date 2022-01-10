@@ -1,4 +1,4 @@
-const map: Record<string, unknown> = {
-    PersistenceResourcePostReturn: () => import('./PersistenceResourcePostReturn')
+const map = {
+    PersistenceResourcePostReturn: () => import('./PersistenceResourcePostReturn.js')
 }
 export default map

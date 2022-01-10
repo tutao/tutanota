@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {BlobWriteData} from "./BlobWriteData"
+import type {BlobWriteData} from "./BlobWriteData.js"
 
 export const BlobAccessTokenDataTypeRef: TypeRef<BlobAccessTokenData> = new TypeRef("storage", "BlobAccessTokenData")
 export const _TypeModel: TypeModel = {

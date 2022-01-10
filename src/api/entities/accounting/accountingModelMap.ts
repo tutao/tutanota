@@ -1,5 +1,5 @@
-const map: Record<string, unknown> = {
-    CustomerAccountPosting: () => import('./CustomerAccountPosting'),
-    CustomerAccountReturn: () => import('./CustomerAccountReturn')
+const map = {
+    CustomerAccountPosting: () => import('./CustomerAccountPosting.js'),
+    CustomerAccountReturn: () => import('./CustomerAccountReturn.js')
 }
 export default map

@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {ArchiveRef} from "./ArchiveRef"
-import type {TypeInfo} from "./TypeInfo"
+import type {ArchiveRef} from "./ArchiveRef.js"
+import type {TypeInfo} from "./TypeInfo.js"
 
 export const ArchiveTypeTypeRef: TypeRef<ArchiveType> = new TypeRef("sys", "ArchiveType")
 export const _TypeModel: TypeModel = {

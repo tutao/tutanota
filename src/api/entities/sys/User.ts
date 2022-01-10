@@ -1,14 +1,14 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {UserAlarmInfoListType} from "./UserAlarmInfoListType"
-import type {UserAuthentication} from "./UserAuthentication"
-import type {AuthenticatedDevice} from "./AuthenticatedDevice"
-import type {UserExternalAuthInfo} from "./UserExternalAuthInfo"
-import type {GroupMembership} from "./GroupMembership"
-import type {PhoneNumber} from "./PhoneNumber"
-import type {PushIdentifierList} from "./PushIdentifierList"
+import type {UserAlarmInfoListType} from "./UserAlarmInfoListType.js"
+import type {UserAuthentication} from "./UserAuthentication.js"
+import type {AuthenticatedDevice} from "./AuthenticatedDevice.js"
+import type {UserExternalAuthInfo} from "./UserExternalAuthInfo.js"
+import type {GroupMembership} from "./GroupMembership.js"
+import type {PhoneNumber} from "./PhoneNumber.js"
+import type {PushIdentifierList} from "./PushIdentifierList.js"
 
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 export const _TypeModel: TypeModel = {

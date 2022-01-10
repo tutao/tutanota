@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {ContactFormLanguage} from "./ContactFormLanguage"
-import type {InputField} from "./InputField"
-import type {StatisticLogRef} from "./StatisticLogRef"
+import type {ContactFormLanguage} from "./ContactFormLanguage.js"
+import type {InputField} from "./InputField.js"
+import type {StatisticLogRef} from "./StatisticLogRef.js"
 
 export const ContactFormTypeRef: TypeRef<ContactForm> = new TypeRef("tutanota", "ContactForm")
 export const _TypeModel: TypeModel = {

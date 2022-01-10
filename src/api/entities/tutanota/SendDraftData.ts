@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {AttachmentKeyData} from "./AttachmentKeyData"
-import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
-import type {SecureExternalRecipientKeyData} from "./SecureExternalRecipientKeyData"
+import type {AttachmentKeyData} from "./AttachmentKeyData.js"
+import type {InternalRecipientKeyData} from "./InternalRecipientKeyData.js"
+import type {SecureExternalRecipientKeyData} from "./SecureExternalRecipientKeyData.js"
 
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 export const _TypeModel: TypeModel = {

@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {AlarmNotification} from "./AlarmNotification"
-import type {NotificationInfo} from "./NotificationInfo"
+import type {AlarmNotification} from "./AlarmNotification.js"
+import type {NotificationInfo} from "./NotificationInfo.js"
 
 export const MissedNotificationTypeRef: TypeRef<MissedNotification> = new TypeRef("sys", "MissedNotification")
 export const _TypeModel: TypeModel = {

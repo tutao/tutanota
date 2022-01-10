@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {UserAccountUserData} from "./UserAccountUserData"
-import type {InternalGroupData} from "./InternalGroupData"
+import type {UserAccountUserData} from "./UserAccountUserData.js"
+import type {InternalGroupData} from "./InternalGroupData.js"
 
 export const UserAccountCreateDataTypeRef: TypeRef<UserAccountCreateData> = new TypeRef("tutanota", "UserAccountCreateData")
 export const _TypeModel: TypeModel = {

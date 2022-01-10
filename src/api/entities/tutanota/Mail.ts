@@ -1,11 +1,11 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {MailAddress} from "./MailAddress"
-import type {Blob} from "../sys/Blob"
-import type {EncryptedMailAddress} from "./EncryptedMailAddress"
-import type {MailRestriction} from "./MailRestriction"
+import type {MailAddress} from "./MailAddress.js"
+import type {Blob} from "../sys/Blob.js"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress.js"
+import type {MailRestriction} from "./MailRestriction.js"
 
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 export const _TypeModel: TypeModel = {

@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {OtpChallenge} from "./OtpChallenge"
-import type {U2fChallenge} from "./U2fChallenge"
+import type {OtpChallenge} from "./OtpChallenge.js"
+import type {U2fChallenge} from "./U2fChallenge.js"
 
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", "Challenge")
 export const _TypeModel: TypeModel = {

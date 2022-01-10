@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {OutOfOfficeNotificationMessage} from "./OutOfOfficeNotificationMessage"
+import type {OutOfOfficeNotificationMessage} from "./OutOfOfficeNotificationMessage.js"
 
 export const OutOfOfficeNotificationTypeRef: TypeRef<OutOfOfficeNotification> = new TypeRef("tutanota", "OutOfOfficeNotification")
 export const _TypeModel: TypeModel = {

@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {KnowledgeBaseEntryKeyword} from "./KnowledgeBaseEntryKeyword"
+import type {KnowledgeBaseEntryKeyword} from "./KnowledgeBaseEntryKeyword.js"
 
 export const KnowledgeBaseEntryTypeRef: TypeRef<KnowledgeBaseEntry> = new TypeRef("tutanota", "KnowledgeBaseEntry")
 export const _TypeModel: TypeModel = {
