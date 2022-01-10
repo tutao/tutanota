@@ -1803,7 +1803,7 @@ export class MailViewer {
 
 	_createAttachmentsButtons(files: ReadonlyArray<TutanotaFile>, inlineCids: ReadonlyArray<Id>): Button[] {
 		// Only show file buttons which do not correspond to inline images in HTML
-		files = files.filter(item => inlineCids.includes(assertNotNull(item.cid)) === false)
+		files = files.filter(item => (item.cid == null) || inlineCids.includes(item.cid) === false)
 		let buttons
 
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
