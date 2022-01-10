@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {InvoiceItem} from "./InvoiceItem"
+import type {InvoiceItem} from "./InvoiceItem.js"
 
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", "Invoice")
 export const _TypeModel: TypeModel = {

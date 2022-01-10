@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
-import type {SharedGroupData} from "./SharedGroupData"
+import type {InternalRecipientKeyData} from "./InternalRecipientKeyData.js"
+import type {SharedGroupData} from "./SharedGroupData.js"
 
 export const GroupInvitationPostDataTypeRef: TypeRef<GroupInvitationPostData> = new TypeRef("tutanota", "GroupInvitationPostData")
 export const _TypeModel: TypeModel = {

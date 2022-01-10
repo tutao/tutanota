@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {BootstrapFeature} from "./BootstrapFeature"
-import type {CertificateInfo} from "./CertificateInfo"
-import type {StringWrapper} from "./StringWrapper"
+import type {BootstrapFeature} from "./BootstrapFeature.js"
+import type {CertificateInfo} from "./CertificateInfo.js"
+import type {StringWrapper} from "./StringWrapper.js"
 
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", "WhitelabelConfig")
 export const _TypeModel: TypeModel = {

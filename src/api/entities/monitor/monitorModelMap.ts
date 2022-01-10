@@ -1,7 +1,7 @@
-const map: Record<string, unknown> = {
-    ReadCounterData: () => import('./ReadCounterData'),
-    ReadCounterReturn: () => import('./ReadCounterReturn'),
-    WriteCounterData: () => import('./WriteCounterData'),
-    ApprovalMail: () => import('./ApprovalMail')
+const map = {
+    ReadCounterData: () => import('./ReadCounterData.js'),
+    ReadCounterReturn: () => import('./ReadCounterReturn.js'),
+    WriteCounterData: () => import('./WriteCounterData.js'),
+    ApprovalMail: () => import('./ApprovalMail.js')
 }
 export default map

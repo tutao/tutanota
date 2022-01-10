@@ -1,12 +1,12 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {ContactAddress} from "./ContactAddress"
-import type {ContactMailAddress} from "./ContactMailAddress"
-import type {Birthday} from "./Birthday"
-import type {ContactPhoneNumber} from "./ContactPhoneNumber"
-import type {ContactSocialId} from "./ContactSocialId"
+import type {ContactAddress} from "./ContactAddress.js"
+import type {ContactMailAddress} from "./ContactMailAddress.js"
+import type {Birthday} from "./Birthday.js"
+import type {ContactPhoneNumber} from "./ContactPhoneNumber.js"
+import type {ContactSocialId} from "./ContactSocialId.js"
 
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 export const _TypeModel: TypeModel = {

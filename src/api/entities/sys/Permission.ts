@@ -1,8 +1,8 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {Bucket} from "./Bucket"
+import type {Bucket} from "./Bucket.js"
 
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
 export const _TypeModel: TypeModel = {

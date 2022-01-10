@@ -1,9 +1,9 @@
-const map: Record<string, unknown> = {
-    BlobDataGet: () => import('./BlobDataGet'),
-    BlobWriteData: () => import('./BlobWriteData'),
-    BlobAccessTokenData: () => import('./BlobAccessTokenData'),
-    BlobAccessTokenReturn: () => import('./BlobAccessTokenReturn'),
-    BlobReferenceDataPut: () => import('./BlobReferenceDataPut'),
-    BlobReferenceDataDelete: () => import('./BlobReferenceDataDelete')
+const map = {
+    BlobDataGet: () => import('./BlobDataGet.js'),
+    BlobWriteData: () => import('./BlobWriteData.js'),
+    BlobAccessTokenData: () => import('./BlobAccessTokenData.js'),
+    BlobAccessTokenReturn: () => import('./BlobAccessTokenReturn.js'),
+    BlobReferenceDataPut: () => import('./BlobReferenceDataPut.js'),
+    BlobReferenceDataDelete: () => import('./BlobReferenceDataDelete.js')
 }
 export default map

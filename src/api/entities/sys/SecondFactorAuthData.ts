@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {U2fResponseData} from "./U2fResponseData"
-import type {WebauthnResponseData} from "./WebauthnResponseData"
+import type {U2fResponseData} from "./U2fResponseData.js"
+import type {WebauthnResponseData} from "./WebauthnResponseData.js"
 
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", "SecondFactorAuthData")
 export const _TypeModel: TypeModel = {

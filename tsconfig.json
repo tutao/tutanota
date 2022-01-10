@@ -6,7 +6,7 @@
 	"outDir": "build/dist"
   },
   "include": [
-	"src/**/*.ts",
+	"src/",
 	"libs/*.ts",
 	"types/*.d.ts"
   ]

@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {AdministratedGroupsRef} from "./AdministratedGroupsRef"
-import type {ArchiveType} from "./ArchiveType"
-import type {KeyPair} from "./KeyPair"
+import type {AdministratedGroupsRef} from "./AdministratedGroupsRef.js"
+import type {ArchiveType} from "./ArchiveType.js"
+import type {KeyPair} from "./KeyPair.js"
 
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", "Group")
 export const _TypeModel: TypeModel = {

@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {DraftAttachment} from "./DraftAttachment"
-import type {DraftRecipient} from "./DraftRecipient"
-import type {EncryptedMailAddress} from "./EncryptedMailAddress"
+import type {DraftAttachment} from "./DraftAttachment.js"
+import type {DraftRecipient} from "./DraftRecipient.js"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress.js"
 
 export const DraftDataTypeRef: TypeRef<DraftData> = new TypeRef("tutanota", "DraftData")
 export const _TypeModel: TypeModel = {

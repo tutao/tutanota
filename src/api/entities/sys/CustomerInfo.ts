@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {BookingsRef} from "./BookingsRef"
-import type {DomainInfo} from "./DomainInfo"
-import type {GiftCardsRef} from "./GiftCardsRef"
+import type {BookingsRef} from "./BookingsRef.js"
+import type {DomainInfo} from "./DomainInfo.js"
+import type {GiftCardsRef} from "./GiftCardsRef.js"
 
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 export const _TypeModel: TypeModel = {

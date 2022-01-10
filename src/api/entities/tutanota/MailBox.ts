@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {SpamResults} from "./SpamResults"
-import type {MailFolderRef} from "./MailFolderRef"
+import type {SpamResults} from "./SpamResults.js"
+import type {MailFolderRef} from "./MailFolderRef.js"
 
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 export const _TypeModel: TypeModel = {

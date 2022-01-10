@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {ImapSyncConfiguration} from "./ImapSyncConfiguration"
-import type {InboxRule} from "./InboxRule"
+import type {ImapSyncConfiguration} from "./ImapSyncConfiguration.js"
+import type {InboxRule} from "./InboxRule.js"
 
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 export const _TypeModel: TypeModel = {

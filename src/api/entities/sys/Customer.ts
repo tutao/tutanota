@@ -1,13 +1,13 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {AuditLogRef} from "./AuditLogRef"
-import type {UserAreaGroups} from "./UserAreaGroups"
-import type {Feature} from "./Feature"
-import type {RejectedSendersRef} from "./RejectedSendersRef"
-import type {WhitelabelChildrenRef} from "./WhitelabelChildrenRef"
-import type {WhitelabelParent} from "./WhitelabelParent"
+import type {AuditLogRef} from "./AuditLogRef.js"
+import type {UserAreaGroups} from "./UserAreaGroups.js"
+import type {Feature} from "./Feature.js"
+import type {RejectedSendersRef} from "./RejectedSendersRef.js"
+import type {WhitelabelChildrenRef} from "./WhitelabelChildrenRef.js"
+import type {WhitelabelParent} from "./WhitelabelParent.js"
 
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 export const _TypeModel: TypeModel = {

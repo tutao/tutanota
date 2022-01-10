@@ -1,10 +1,10 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {CalendarEventAttendee} from "./CalendarEventAttendee"
-import type {EncryptedMailAddress} from "./EncryptedMailAddress"
-import type {CalendarRepeatRule} from "./CalendarRepeatRule"
+import type {CalendarEventAttendee} from "./CalendarEventAttendee.js"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress.js"
+import type {CalendarRepeatRule} from "./CalendarRepeatRule.js"
 
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
 export const _TypeModel: TypeModel = {

@@ -1,9 +1,9 @@
-import {create} from "../../common/utils/EntityUtils"
+import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
-import type {TypeModel} from "../../common/EntityTypes"
+import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
-import type {OutOfOfficeNotificationRecipientList} from "./OutOfOfficeNotificationRecipientList"
+import type {CalendarEventUpdateList} from "./CalendarEventUpdateList.js"
+import type {OutOfOfficeNotificationRecipientList} from "./OutOfOfficeNotificationRecipientList.js"
 
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {

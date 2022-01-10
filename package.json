@@ -7,14 +7,19 @@
     "url": "https://github.com/tutao/tutanota.git"
   },
   "type": "module",
+  "exports": {
+	"./*": "./build/prebuilt/*",
+	"./buildSrc/*": "./buildSrc/*"
+  },
   "scripts": {
 	"build-packages": "npm run build -w packages/tutanota-test-utils && npm run build -w packages/tutanota-utils && npm run build -w packages/tutanota-crypto && npm run build -w packages/tutanota-build-server",
     "start": "./start-desktop.sh",
-    "test": "npm run test -ws && cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
+    "test": "npm run --if-present test -ws && cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
     "testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
     "testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
     "postinstall": "node ./buildSrc/compileKeytar",
-    "types": "tsc"
+    "types": "tsc",
+	"prebuild": "tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true && cp src/*.d.ts build/prebuilt"
   },
   "dependencies": {
     "@tutao/oxmsg": "0.0.9-beta.0",

@@ -1,2 +1,2 @@
-const map: Record<string, unknown> = {}
+const map = {}
 export default map
