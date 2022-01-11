@@ -19,7 +19,7 @@ import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import type {lazy} from "@tutao/tutanota-utils"
-import {defer, lazyMemoized, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {defer, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {MailListView} from "./MailListView"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -146,7 +146,7 @@ export class MailView implements CurrentView {
 			},
 		)
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBarButtons  = () => this._multiMailViewer.getActionBarButtons()
+		this._actionBarButtons = () => this._multiMailViewer.getActionBarButtons()
 
 		const mailColumnTitle = () => {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : []
@@ -484,21 +484,20 @@ export class MailView implements CurrentView {
 		folderAddButton: ButtonAttrs,
 	): Children {
 		const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
-		return [
-			...systemFolderButtons
-				.map(({id, button}) => {
-					const count = groupCounters[id]
-					return m(MailFolderRow, {
-						count: count,
-						button,
-						rightButton: null,
-						key: id,
-					})
-				}),
-			logins.isInternalUserLoggedIn()
-				? m(
-					SidebarSection,
-					{
+		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
+		// So instead we push or not push into array
+		const children: Children = systemFolderButtons
+			.map(({id, button}) => {
+				const count = groupCounters[id]
+				return m(MailFolderRow, {
+					count: count,
+					button,
+					rightButton: null,
+					key: id,
+				})
+			})
+		if (logins.isInternalUserLoggedIn()) {
+			children.push(m(SidebarSection, {
 						name: "yourFolders_action",
 						buttonAttrs: folderAddButton,
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
@@ -513,8 +512,9 @@ export class MailView implements CurrentView {
 						})
 					}),
 				)
-				: null
-		]
+			)
+		}
+		return children
 	}
 
 	/**
