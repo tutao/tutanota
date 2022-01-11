@@ -4,14 +4,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {
-	getContentButtonIconBackground,
-	getElevatedBackground,
-	getNavButtonIconBackground,
-	getNavigationMenuIcon,
-	theme
-} from "../theme"
-import type {NavButtonAttrs} from "./NavButtonN"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -199,9 +192,10 @@ export class ButtonN implements Component<ButtonAttrs> {
 	}
 
 	getIcon(a: ButtonAttrs): Children {
-		return a.icon instanceof Function && a.icon()
+		const icon = a.icon?.()
+		return icon
 			? m(Icon, {
-				icon: a.icon(),
+				icon,
 				class: this.getIconClass(a),
 				style: {
 					fill: this.getIconColor(a),
