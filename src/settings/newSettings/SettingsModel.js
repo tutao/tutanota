@@ -17,7 +17,6 @@ import {GiftCardSettingsSection} from "./GiftCardSettingsSection"
 import {ExtensionsSettingsSection} from "./ExtensionsSettingsSection"
 import {locator} from "../../api/main/MainLocator"
 import {AppearanceSettingsSection} from "./AppearanceSettingsSection"
-import {EntityClient} from "../../api/common/EntityClient"
 
 export interface SettingsSection {
 	heading: string,

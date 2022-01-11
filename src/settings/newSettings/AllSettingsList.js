@@ -18,16 +18,6 @@ export class AllSettingsList implements MComponent<AllSettingsListAttrs> {
 
 	view(vnode: Vnode<AllSettingsListAttrs>): Children {
 		const {model} = vnode.attrs
-		// items: $ReadOnlyArray<T>,
-		// 	selectedItem: Stream<?T>,
-		// 	emptyListMessage: TranslationKey,
-		// 	renderItem: (T) => Children,
-
-		// items: Array<T>,
-		// 	selectedItem: Stream<?T>,
-		// 	emptyListMessage: TranslationKey,
-		// 	renderItem: (T) => Children,
-		
 		const settingSelectListAttrs: SettingsSelectListAttrs<SettingsSection> = {
 			items: model.sections,
 			selectedItem: model.selectedSection,
