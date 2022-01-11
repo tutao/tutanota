@@ -18,7 +18,7 @@ export class DetailsColumnViewer implements MComponent<DetailsColumnViewerAttrs>
 	 */
 	isEqualToSearchValue(setting: SettingsValue<any>, value: string): boolean {
 		let result = false
-		if(value && value !== "") {
+		if (value && value !== "") {
 			if (setting.attrs.label) {
 				result = lang.get(setting.attrs.label).toLowerCase().includes(value.toLowerCase())
 			} else if (lang.get(setting.attrs.tableHeading)) {

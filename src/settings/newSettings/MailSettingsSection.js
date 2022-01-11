@@ -14,7 +14,6 @@ import {InboxRuleType, OperationType} from "../../api/common/TutanotaConstants"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {getEnabledMailAddressesForGroupInfo} from "../../api/common/utils/GroupUtils"
-// import {load, update} from "../../api/main/Entity"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
@@ -48,9 +47,10 @@ import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {MailFolderTypeRef} from "../../api/entities/tutanota/MailFolder"
 import type {MailboxDetail} from "../../mail/model/MailModel"
-import {EntityClient} from "../../api/common/EntityClient"
+import type {EntityClient} from "../../api/common/EntityClient"
 import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {Indexer} from "../../api/worker/search/Indexer"
+
 
 export class MailSettingsSection implements SettingsSection {
 	heading: string

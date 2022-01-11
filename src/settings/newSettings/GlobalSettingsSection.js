@@ -474,16 +474,16 @@ export class GlobalSettingsSection implements SettingsSection {
 						                                         if (domainInfo.catchAllMailGroup) {
 							                                         // the catch all group may be a user group, so load the mail group in that case
 							                                         selectedPromise = this.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
-								                                         .then(catchAllGroup => {
-									                                         if (catchAllGroup.type === GroupType.User) {
-										                                         return this.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
-											                                         .then(user => {
-												                                         return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
-											                                         })
-									                                         } else {
-										                                         return domainInfo.catchAllMailGroup
-									                                         }
-								                                         })
+							                                                               .then(catchAllGroup => {
+								                                                               if (catchAllGroup.type === GroupType.User) {
+									                                                               return this.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
+									                                                                          .then(user => {
+										                                                                          return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+									                                                                          })
+								                                                               } else {
+									                                                               return domainInfo.catchAllMailGroup
+								                                                               }
+							                                                               })
 						                                         }
 						                                         return selectedPromise.then(catchAllMailGroupId => {
 							                                         let selected = allMailGroups.find(g => g.groupId

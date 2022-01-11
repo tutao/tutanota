@@ -12,7 +12,6 @@ import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {
 	contains,
 	daysToMillis,
@@ -28,6 +27,14 @@ import {
 	promiseMap,
 	TypeRef
 } from "@tutao/tutanota-utils"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	generatedIdToTimestamp,
+	getElementId,
+	isSameId,
+	timestampToGeneratedId
+} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -56,7 +63,6 @@ import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils";
 import {deleteObjectStores} from "../utils/DbUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 

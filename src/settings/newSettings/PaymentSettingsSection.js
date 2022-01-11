@@ -42,11 +42,11 @@ import {_showPayConfirmDialog, getPostingTypeText} from "../../subscription/Paym
 import type {TableAttrs} from "../../gui/base/TableN"
 import {ColumnWidth} from "../../gui/base/TableN"
 import {neverNull, ofClass} from "@tutao/tutanota-utils"
-import {EntityClient} from "../../api/common/EntityClient"
-import {BookingFacade} from "../../api/worker/facades/BookingFacade"
+import type {EntityClient} from "../../api/common/EntityClient"
+import type {BookingFacade} from "../../api/worker/facades/BookingFacade"
 import type {CustomerFacade} from "../../api/worker/facades/CustomerFacade"
 import {serviceRequest, serviceRequestVoid} from "../../api/main/ServiceRequest"
-import {FileController} from "../../file/FileController"
+import type {FileController} from "../../file/FileController"
 
 export class PaymentSettingsSection implements SettingsSection {
 	heading: string

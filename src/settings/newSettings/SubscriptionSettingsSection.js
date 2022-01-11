@@ -38,7 +38,7 @@ import {NotFoundError} from "../../api/common/error/RestError"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import type {AccountTypeEnum} from "../../api/common/TutanotaConstants"
 import {downcast, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {BookingFacade} from "../../api/worker/facades/BookingFacade"
+import type {BookingFacade} from "../../api/worker/facades/BookingFacade"
 
 export class SubscriptionSettingsSection implements SettingsSection {
 	heading: string
