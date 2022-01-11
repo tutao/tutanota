@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {downcast, neverNull, ofClass} from "@tutao/tutanota-utils"
@@ -11,7 +11,7 @@ import {getDefaultContactFormLanguage} from "../../contacts/ContactFormUtils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {header} from "../../gui/base/Header"
+import {CurrentView, header} from "../../gui/base/Header"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
@@ -20,15 +20,15 @@ import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 
-class ContactFormView {
-	view: (...args: Array<any>) => any
-	_contactForm: ContactForm | null
-	_moreInformationDialog: Dialog
-	_formId: string
-	_loading: boolean
-	_helpHtml: string | null
-	_headerHtml: string | null
-	_footerHtml: string | null
+class ContactFormView implements CurrentView {
+	view: (vnode: Vnode<void>) => Children
+	private _contactForm: ContactForm | null
+	private _moreInformationDialog: Dialog
+	private _formId: string
+	private _loading: boolean
+	private _helpHtml: string | null
+	private _headerHtml: string | null
+	private _footerHtml: string | null
 
 	constructor() {
 		this._contactForm = null
@@ -48,17 +48,18 @@ class ContactFormView {
 			],
 			middle: () => lang.get("moreInformation_action"),
 		}
-		this._moreInformationDialog = Dialog.largeDialog(moreInfoHeaderBarAttrs, {
-			view: () => {
-				return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
-			},
-		})
-											.addShortcut({
-												key: Keys.ESC,
-												exec: closeAction,
-												help: "close_alt",
-											})
-											.setCloseHandler(closeAction)
+		this._moreInformationDialog = Dialog
+			.largeDialog(moreInfoHeaderBarAttrs, {
+				view: () => {
+					return m(".pb", m.trust(neverNull(this._helpHtml))) // is sanitized in updateUrl
+				},
+			})
+			.addShortcut({
+				key: Keys.ESC,
+				exec: closeAction,
+				help: "close_alt",
+			})
+			.setCloseHandler(closeAction)
 
 		this.view = (): Children => {
 			return m(".main-view.flex.col", [

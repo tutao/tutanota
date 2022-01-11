@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import {
 	AccessBlockedError,
@@ -23,7 +23,7 @@ import {CancelledError} from "../api/common/error/CancelledError"
 import {logins, SessionType} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
-import {header} from "../gui/base/Header"
+import {CurrentView, header} from "../gui/base/Header"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
@@ -34,7 +34,7 @@ import Stream from "mithril/stream";
 
 assertMainOrNode()
 
-export class ExternalLoginView {
+export class ExternalLoginView implements CurrentView {
 	readonly _credentialsProvider: ICredentialsProvider
 	_password: Stream<string>
 	_savePassword: Stream<boolean>
@@ -42,9 +42,9 @@ export class ExternalLoginView {
 	_errorMessageId: TranslationText | null
 	_userId: Id
 	_salt: Uint8Array
-	view: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+	view: (vnode: Vnode<void>) => Children
+	oncreate: (vnode: VnodeDOM<void>) => void
+	onremove: (vnode: VnodeDOM<void>) => void
 	_symKeyForPasswordTransmission: Aes128Key | null
 	_autologinInProgress: boolean
 
