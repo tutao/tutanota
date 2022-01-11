@@ -5,10 +5,10 @@ import {px, size} from "../size"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
+import type {lazy} from "@tutao/tutanota-utils"
 import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
-import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 
@@ -54,7 +54,7 @@ export type TableLineAttrs = {
 export class TableN implements Component<TableAttrs> {
 	view(vnode: Vnode<TableAttrs>): Children {
 		const a = vnode.attrs
-		const loading = !a.lines
+		const loading = a.lines == null
 		const alignments = a.columnAlignments || []
 		const lineAttrs = a.lines ? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments)) : []
 		return m("", [
@@ -134,14 +134,13 @@ export class TableN implements Component<TableAttrs> {
 
 		if (showActionButtonColumn) {
 			cells.push(
-				m(
-					"td",
+				m("td",
 					{
 						style: {
 							width: px(size.button_height),
 						},
 					},
-					lineAttrs.actionButtonAttrs?.isVisible?.()
+					lineAttrs.actionButtonAttrs?.isVisible == null || lineAttrs.actionButtonAttrs.isVisible()
 						? [
 							m(
 								"",

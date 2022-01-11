@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {modal} from "./Modal"
+import {modal, ModalComponent} from "./Modal"
 import {animations, opacity, transform, TransformEnum} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
@@ -11,6 +11,7 @@ import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {PosRect} from "./Dropdown"
 import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -21,7 +22,6 @@ import {client} from "../../misc/ClientDetector"
 import {pureComponent} from "./PureComponent"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -40,12 +40,12 @@ const DropdownInfo = pureComponent<DropdownInfoAttrs>(({center, bold, info}) => 
 })
 export type DropdownChildAttrs = DropdownInfoAttrs | NavButtonAttrs | ButtonAttrs
 
-function isDropDownInfo(dropdownChild: DropdownChildAttrs): boolean {
+function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
 }
 
 // TODO: add resize listener like in the old Dropdown
-export class DropdownN {
+export class DropdownN implements ModalComponent {
 	children: ReadonlyArray<DropdownChildAttrs>
 	_domDropdown: HTMLElement
 	origin: PosRect | null
@@ -167,11 +167,11 @@ export class DropdownN {
 				},
 				this._visibleChildren().map(child => {
 					if (isDropDownInfo(child)) {
-						return m(DropdownInfo, downcast<DropdownInfoAttrs>(child))
+						return m(DropdownInfo, child)
 					} else if ("href" in child) {
-						return m(ButtonN, downcast<ButtonAttrs>(child))
+						return m(NavButtonN, child)
 					} else {
-						return m(NavButtonN, downcast<NavButtonAttrs>(child))
+						return m(ButtonN, child)
 					}
 				}),
 			)
@@ -197,7 +197,7 @@ export class DropdownN {
 		}
 	}
 
-	wrapClick(fn: (arg0: MouseEvent, arg1: HTMLElement) => any): (arg0: MouseEvent, arg1: HTMLElement) => any {
+	wrapClick(fn: (event: MouseEvent, dom: HTMLElement) => unknown): (event: MouseEvent, dom: HTMLElement) => unknown {
 		return (e: MouseEvent, dom) => {
 			const r = fn(e, dom)
 			this.close()
@@ -214,8 +214,8 @@ export class DropdownN {
 	backgroundClick(e: MouseEvent) {
 		if (
 			this._domDropdown &&
-			!(e.target as any).classList.contains("doNotClose") &&
-			(this._domDropdown.contains(e.target as any) || this._domDropdown.parentNode === e.target)
+			!(e.target as HTMLElement).classList.contains("doNotClose") &&
+			(this._domDropdown.contains(e.target as HTMLElement) || this._domDropdown.parentNode === e.target)
 		) {
 			modal.remove(this)
 		}
@@ -301,9 +301,9 @@ export class DropdownN {
 	_visibleChildren(): Array<DropdownChildAttrs> {
 		return this.children.filter(b => {
 			if (isDropDownInfo(b)) {
-				return downcast(b).info.includes(this._filterString().toLowerCase())
-			} else if (b.hasOwnProperty("isVisible")) {
-				return downcast(b).isVisible?.()
+				return b.info.includes(this._filterString().toLowerCase())
+			} else if (typeof b.isVisible === "function") {
+				return b.isVisible()
 			} else {
 				return true
 			}
@@ -321,7 +321,7 @@ export function createDropdown(lazyButtons: lazy<ReadonlyArray<DropdownChildAttr
 
 export function createAsyncDropdown(lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>, width: number = 200): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
-	return ((e, dom) => {
+	return (e, dom) => {
 		const originalButtons = lazyButtons()
 		let buttonsResolved = false
 		originalButtons.then(() => {
@@ -344,7 +344,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<ReadonlyArray<Dropdow
 			dropdown.setOrigin(dom.getBoundingClientRect())
 			modal.displayUnique(dropdown, false)
 		})
-	}) as clickHandler
+	}
 }
 
 export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs>, xPos: number, yPos: number, width: number = 200) {
