@@ -381,7 +381,6 @@ o.spec("IPC tests", function () {
             args: [],
         })
         o(desktopUtilsMock.registerAsMailtoHandler.callCount).equals(1)
-        o(desktopUtilsMock.registerAsMailtoHandler.args[0]).equals(true)
         setTimeout(() => {
             electronMock.ipcMain.callbacks[CALLBACK_ID](de, {
                 type: "request",
@@ -390,7 +389,6 @@ o.spec("IPC tests", function () {
                 args: [],
             })
             o(desktopUtilsMock.unregisterAsMailtoHandler.callCount).equals(1)
-            o(desktopUtilsMock.registerAsMailtoHandler.args[0]).equals(true)
             done()
         }, 10)
     })

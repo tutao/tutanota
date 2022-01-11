@@ -71,22 +71,20 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	app.exit(1)
 } else if (opts.registerAsMailHandler) {
 	//register as mailto handler, then quit
-	desktopUtils
-		.registerAsMailtoHandler(false)
-		.then(() => app.exit(0))
-		.catch(e => {
-			log.error("there was a problem with registering as default mail app:", e)
-			app.exit(1)
-		})
+	desktopUtils.doRegisterMailtoOnWin32WithCurrentUser()
+	            .then(() => app.exit(0))
+	            .catch(e => {
+		            log.error("there was a problem with registering as default mail app:", e)
+		            app.exit(1)
+	            })
 } else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
-	desktopUtils
-		.unregisterAsMailtoHandler(false)
-		.then(() => app.exit(0))
-		.catch(e => {
-			log.error("there was a problem with unregistering as default mail app:", e)
-			app.exit(1)
-		})
+	desktopUtils.doUnregisterMailtoOnWin32WithCurrentUser()
+	            .then(() => app.exit(0))
+	            .catch(e => {
+		            log.error("there was a problem with unregistering as default mail app:", e)
+		            app.exit(1)
+	            })
 } else {
 	createComponents().then(startupInstance)
 }

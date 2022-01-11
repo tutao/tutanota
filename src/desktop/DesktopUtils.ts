@@ -11,6 +11,7 @@ import url from "url"
 import {registerKeys, unregisterKeys} from "./reg-templater"
 import type {ElectronExports, FsExports} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 export class DesktopUtils {
 	readonly _fs: FsExports
@@ -69,53 +70,56 @@ export class DesktopUtils {
 		}
 	}
 
-	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
-		log.debug("trying to register...")
+	async registerAsMailtoHandler(): Promise<void> {
+		log.debug("trying to register mailto...")
 
 		switch (process.platform) {
 			case "win32":
-				return checkForAdminStatus().then(isAdmin => {
-					if (!isAdmin && tryToElevate) {
+				const isLocal = await this.checkIsPerUserInstall()
+				if (isLocal) {
+					await this.doRegisterMailtoOnWin32WithCurrentUser()
+				} else {
+					const isAdmin = await checkForAdminStatus()
+					if (!isAdmin) {
 						// We require admin rights in windows, so we will recursively run the tutanota client with admin privileges
-						// and then call this method again at startup of the elevated app
-						_elevateWin(process.execPath, ["-r"])
-						return
-					} else if (isAdmin) {
-						return this._registerOnWin()
+						// and then call doRegisterMailtoOnWin32WithCurrentUser() from that process
+						await elevatePermissions(["-r"])
+					} else {
+						await this.doRegisterMailtoOnWin32WithCurrentUser()
 					}
-				})
-
+				}
+				break
 			case "darwin":
-				return app.setAsDefaultProtocolClient("mailto") ? Promise.resolve() : Promise.reject()
-
 			case "linux":
-				return app.setAsDefaultProtocolClient("mailto") ? Promise.resolve() : Promise.reject()
-
+				return app.setAsDefaultProtocolClient("mailto")
+					? Promise.resolve()
+					: Promise.reject()
 			default:
 				return Promise.reject(new Error("Invalid process.platform"))
 		}
 	}
 
-	unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
-		log.debug("trying to unregister...")
-
+	async unregisterAsMailtoHandler(): Promise<void> {
+		log.debug("trying to unregister mailto...")
 		switch (process.platform) {
 			case "win32":
-				return checkForAdminStatus().then(isAdmin => {
-					if (!isAdmin && tryToElevate) {
-						_elevateWin(process.execPath, ["-u"])
-						return
-					} else if (isAdmin) {
-						return this._unregisterOnWin()
+				const isLocal = await this.checkIsPerUserInstall()
+				if (isLocal) {
+					await this.doUnregisterMailtoOnWin32WithCurrentUser()
+				} else {
+					const isAdmin = await checkForAdminStatus()
+					if (!isAdmin) {
+						await elevatePermissions(["-u"])
+					} else {
+						await this.doUnregisterMailtoOnWin32WithCurrentUser()
 					}
-				})
-
+				}
+				break
 			case "darwin":
-				return app.removeAsDefaultProtocolClient("mailto") ? Promise.resolve() : Promise.reject()
-
 			case "linux":
-				return app.removeAsDefaultProtocolClient("mailto") ? Promise.resolve() : Promise.reject()
-
+				return app.removeAsDefaultProtocolClient("mailto")
+					? Promise.resolve()
+					: Promise.reject()
 			default:
 				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
 		}
@@ -239,7 +243,10 @@ export class DesktopUtils {
 		)
 	}
 
-	async _registerOnWin(): Promise<void> {
+	async doRegisterMailtoOnWin32WithCurrentUser(): Promise<void> {
+		if (process.platform !== "win32") {
+			throw new ProgrammingError("Not win32")
+		}
 		// any app that wants to use tutanota over MAPI needs to know which dll to load.
 		// additionally, the DLL needs to know
 		// * which tutanota executable to start (per-user/per-machine/snapshot/test/release)
@@ -268,8 +275,11 @@ export class DesktopUtils {
 		await this._openDefaultAppsSettings()
 	}
 
-	async _unregisterOnWin(): Promise<void> {
-		app.removeAsDefaultProtocolClient("mailto")
+	async doUnregisterMailtoOnWin32WithCurrentUser(): Promise<void> {
+		if (process.platform !== "win32") {
+			throw new ProgrammingError("Not win32")
+		}
+		app.removeAsDefaultProtocolClient('mailto')
 		const isLocal = await this.checkIsPerUserInstall()
 		const tmpRegScript = unregisterKeys(isLocal)
 		await this._executeRegistryScript(tmpRegScript)
@@ -316,16 +326,16 @@ function getLockFilePath() {
 }
 
 /**
- * uses the bundled elevate.exe to show a UAC dialog to the user and execute command with elevated permissions
- * @param command
- * @param args
- * @returns {Promise<T>}
+ * Uses the bundled elevate.exe to show a UAC dialog to the user and execute command with elevated permissions.
  * @private
  */
-function _elevateWin(command: string, args: Array<string>) {
+function elevatePermissions(args: Array<string>) {
+	if (process.platform !== "win32") {
+		throw new ProgrammingError("Trying to elevate permissions but not on win32")
+	}
 	const deferred = defer()
 	const elevateExe = path.join((process as any).resourcesPath, "elevate.exe")
-	let elevateArgs = ["-wait", command].concat(args)
+	let elevateArgs = ["-wait", process.execPath].concat(args)
 	spawn(elevateExe, elevateArgs, {
 		stdio: ["ignore", "inherit", "inherit"],
 		detached: false,

@@ -165,10 +165,10 @@ export class IPC {
 			}
 
 			case "registerMailto":
-				return this._desktopUtils.registerAsMailtoHandler(true)
+				return this._desktopUtils.registerAsMailtoHandler()
 
 			case "unregisterMailto":
-				return this._desktopUtils.unregisterAsMailtoHandler(true)
+				return this._desktopUtils.unregisterAsMailtoHandler()
 
 			case "integrateDesktop":
 				return this._integrator.integrate()
