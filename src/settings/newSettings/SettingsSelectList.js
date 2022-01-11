@@ -6,7 +6,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 
 export type SettingsSelectListAttrs<T> = {|
-	items: $ReadOnlyArray<T>,
+	items: Array<T>,
 	selectedItem: Stream<?T>,
 	emptyListMessage: TranslationKey,
 	renderItem: (T) => Children,

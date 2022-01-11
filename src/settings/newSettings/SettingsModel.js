@@ -17,6 +17,7 @@ import {GiftCardSettingsSection} from "./GiftCardSettingsSection"
 import {ExtensionsSettingsSection} from "./ExtensionsSettingsSection"
 import {locator} from "../../api/main/MainLocator"
 import {AppearanceSettingsSection} from "./AppearanceSettingsSection"
+import {EntityClient} from "../../api/common/EntityClient"
 
 export interface SettingsSection {
 	heading: string,
@@ -41,12 +42,12 @@ export class SettingsModel {
 		this.sections = []
 		this.sections.push(new LoginSettingsSection(userController))
 		this.sections.push(new SessionSettings())
-		this.sections.push(new MailSettingsSection(userController))
-		this.sections.push(new MailDropdownSettingsSection(userController))
+		this.sections.push(new MailSettingsSection(userController, locator.entityClient, locator.indexerFacade))
+		this.sections.push(new MailDropdownSettingsSection(userController, locator.entityClient))
 		this.sections.push(new AppearanceSettingsSection(userController, locator, locator.entityClient))
-		this.sections.push(new GlobalSettingsSection(userController))
+		this.sections.push(new GlobalSettingsSection(userController, locator.entityClient, locator.customerFacade))
 		this.sections.push(new WhitelabelSettingsSection(userController, locator.entityClient))
-		this.sections.push(new SubscriptionSettingsSection())
+		this.sections.push(new SubscriptionSettingsSection(locator.bookingFacade))
 		this.sections.push(new GiftCardSettingsSection(userController))
 		this.sections.push(new ExtensionsSettingsSection(locator.customerFacade))
 		this.sections.push(new PaymentSettingsSection(locator.entityClient, locator.bookingFacade, locator.customerFacade, locator.fileController))

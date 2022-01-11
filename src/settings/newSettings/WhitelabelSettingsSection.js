@@ -15,8 +15,6 @@ import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
 import {showBuyOrSetNotificationEmailDialog} from "../EditNotificationEmailDialog"
 import type {WhitelabelNotificationEmailSettingsAttrs} from "../whitelabel/WhitelabelNotificationEmailSettings"
 import {WhitelabelNotificationEmailSettings} from "../whitelabel/WhitelabelNotificationEmailSettings"
-import type {Theme} from "../../gui/theme"
-import {themeController} from "../../gui/theme"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
 import {WhitelabelConfigTypeRef} from "../../api/entities/sys/WhitelabelConfig"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
@@ -56,6 +54,7 @@ import {assertNotNull, downcast, LazyLoaded, neverNull, noOp, promiseMap} from "
 import {EntityClient} from "../../api/common/EntityClient"
 import {serviceRequest} from "../../api/main/ServiceRequest"
 import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/Utils"
+import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 
 export class WhitelabelSettingsSection implements SettingsSection {
 	heading: string
@@ -70,7 +69,7 @@ export class WhitelabelSettingsSection implements SettingsSection {
 	whitelabelConfig: ?WhitelabelConfig
 	certificateInfo: ?CertificateInfo
 	whitelabelDomainInfo: ?DomainInfo
-	customJsonTheme: ?Theme
+	customJsonTheme: ?ThemeCustomizations
 	entityClient: EntityClient
 
 	constructor(userController: IUserController, entityClient: EntityClient) {
@@ -179,20 +178,27 @@ export class WhitelabelSettingsSection implements SettingsSection {
 	createThemeSetting(): SettingsValue<WhitelabelThemeSettingsAttrs> {
 
 		const customTheme = this.customJsonTheme
-		const onThemeChanged = (theme) => {
-			neverNull(this.whitelabelConfig).jsonTheme = JSON.stringify(theme)
-			this.entityClient.update(neverNull(this.whitelabelConfig))
-			theme.themeId = assertNotNull(this.whitelabelDomainInfo).domain
-			// Make sure to not apply it always with realtime color change later
-			themeController.updateCustomTheme(theme, false)
+
+
+		// export type WhitelabelData = {
+		// 	customTheme: ThemeCustomizations,
+		// 	whitelabelConfig: WhitelabelConfig,
+		// 	whitelabelDomainInfo: DomainInfo,
+		// }
+
+
+		let whitelabelData = null
+		if (this.whitelabelConfig && customTheme) {
+			whitelabelData = {
+				customTheme,
+				whitelabelConfig: this.whitelabelConfig,
+				whitelabelDomainInfo: assertNotNull(this.whitelabelDomainInfo)
+			}
 		}
 
 		const whitelabelThemeSettingsAttrs = {
-			customTheme,
-			whitelabelConfig: this.whitelabelConfig,
-			whitelabelDomainInfo: assertNotNull(this.whitelabelDomainInfo),
+			whitelabelData: whitelabelData
 		}
-
 
 		return {
 			name: "customColors_label",

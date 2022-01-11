@@ -17,8 +17,8 @@ import {BrowserType} from "../../misc/ClientConstants"
 import {Type} from "./TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/common/Env"
-import {noOp} from "../../api/common/utils/Utils"
 import type {SearchHandler} from "./Header"
+import {noOp} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 export const SearchBarMode = Object.freeze({
