@@ -7,7 +7,6 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
-import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
@@ -38,7 +37,7 @@ export type DropdownButtonAttrs = Omit<ButtonAttrs, "click"> & {click?: clickHan
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({center, bold, info}) => {
 	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
 })
-export type DropdownChildAttrs = DropdownInfoAttrs | NavButtonAttrs | ButtonAttrs
+export type DropdownChildAttrs = DropdownInfoAttrs | ButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
@@ -72,13 +71,12 @@ export class DropdownN implements ModalComponent {
 					return child
 				}
 
-				child = (child as any) as ButtonAttrs | NavButtonAttrs
-				child.click = this.wrapClick(child.click ? child.click : () => null)
-				child.isVisible = this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible
+				const buttonChild: ButtonAttrs = child
+				buttonChild.click = this.wrapClick(child.click ? child.click : () => null)
 
 				if ("noBubble" in child) {
-					let buttonChild = (child as any) as ButtonAttrs
-					buttonChild.noBubble = false
+					// Override nobubble to be false
+					child.noBubble = false
 				}
 
 				return child
@@ -205,12 +203,6 @@ export class DropdownN implements ModalComponent {
 		}
 	}
 
-	wrapVisible(fn: (() => boolean) | undefined, label: string): () => boolean {
-		return () => {
-			return (fn instanceof Function ? fn() : true) && label.toLowerCase().includes(this._filterString().toLowerCase())
-		}
-	}
-
 	backgroundClick(e: MouseEvent) {
 		if (
 			this._domDropdown &&
@@ -278,7 +270,7 @@ export class DropdownN implements ModalComponent {
 	chooseMatch: () => boolean = () => {
 		const filterString = this._filterString().toLowerCase()
 
-		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
+		let visibleElements: Array<ButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
 		let matchingButton =
 			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
@@ -302,8 +294,8 @@ export class DropdownN implements ModalComponent {
 		return this.children.filter(b => {
 			if (isDropDownInfo(b)) {
 				return b.info.includes(this._filterString().toLowerCase())
-			} else if (typeof b.isVisible === "function") {
-				return b.isVisible()
+			} else if (this._isFilterable) {
+				return lang.getMaybeLazy(b.label).toLowerCase().includes(this._filterString().toLowerCase())
 			} else {
 				return true
 			}
@@ -315,7 +307,7 @@ export class DropdownN implements ModalComponent {
 	}
 }
 
-export function createDropdown(lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs>>, width: number = 200): clickHandler {
+export function createDropdown(lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number = 200): clickHandler {
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 

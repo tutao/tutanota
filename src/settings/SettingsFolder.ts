@@ -19,7 +19,7 @@ export class SettingsFolder<T> {
 	readonly icon: lazyIcon
 	readonly path: SettingsFolderPath
 	readonly viewerCreator: lazy<UpdatableSettingsViewer>
-	_isVisibleHandler: lazy<boolean>
+	private _isVisibleHandler: lazy<boolean>
 
 	constructor(name: TranslationKey | lazy<string>, icon: lazyIcon, path: SettingsFolderPath, viewerCreator: lazy<UpdatableSettingsViewer>, data: T) {
 		this.data = data
@@ -41,7 +41,7 @@ export class SettingsFolder<T> {
 		return this._isVisibleHandler()
 	}
 
-	setIsVisibleHandler(isVisibleHandler: lazy<boolean>): SettingsFolder<T> {
+	setIsVisibleHandler(isVisibleHandler: lazy<boolean>): this {
 		this._isVisibleHandler = isVisibleHandler
 		return this
 	}

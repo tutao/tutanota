@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -6,7 +6,7 @@ import type {ContactView} from "./ContactView"
 import {exportContacts} from "../VCardExporter"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
-import {NBSP} from "@tutao/tutanota-utils"
+import {isNotNull, NBSP, noOp, Thunk} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -22,7 +22,6 @@ export class MultiContactViewer {
 
 	constructor(contactView: ContactView) {
 		this._contactView = contactView
-		let actionBarButtons = this.createActionBarButtons()
 
 		this.view = () => {
 			return [
@@ -38,12 +37,7 @@ export class MultiContactViewer {
 										m(".flex-space-between", m(".flex-wrap.items-center", this._getContactSelectionMessage(contactView))),
 									]),
 								]),
-								m(
-									".action-bar.align-self-end",
-									m(ActionBar, {
-										buttons: actionBarButtons,
-									}),
-								),
+								this._renderActionBar(),
 							]),
 						]
 						: m(ColumnEmptyMessageBox, {
@@ -54,6 +48,14 @@ export class MultiContactViewer {
 				),
 			]
 		}
+	}
+
+	private _renderActionBar(): Children {
+		return m(".action-bar.align-self-end",
+			m(ActionBar, {
+				buttons: this.createActionBarButtons(),
+			}),
+		)
 	}
 
 	_getContactSelectionMessage(contactView: ContactView): string {
@@ -68,39 +70,39 @@ export class MultiContactViewer {
 		}
 	}
 
-	createActionBarButtons(actionCallback: () => void = () => {
-	}, prependCancel: boolean = false): ButtonAttrs[] {
-		const cancel: ButtonAttrs[] = prependCancel
-			? [
-				{
+	createActionBarButtons(actionCallback: Thunk = noOp, prependCancel: boolean = false): ButtonAttrs[] {
+		const contactList = this._contactView._contactList
+
+		const buttons: (ButtonAttrs | null)[] = [
+			prependCancel
+				? {
 					label: "cancel_action",
 					click: actionCallback,
 					icon: () => Icons.Cancel,
-					isVisible: () => prependCancel,
-				},
-			]
-			: []
-		return [
-			...cancel,
+				}
+				: null,
 			{
 				label: "delete_action",
 				click: () => this._contactView._deleteSelected().then(actionCallback),
 				icon: () => Icons.Trash,
 			},
-			{
-				label: "merge_action",
-				click: () => this._contactView.mergeSelected().then(actionCallback),
-				icon: () => Icons.People,
-				isVisible: () => !!this._contactView._contactList && this._contactView._contactList.list.getSelectedEntities().length === 2,
-			},
-			{
-				label: "exportSelectedAsVCard_action",
-				click: () => {
-					return this._contactView._contactList ? exportContacts(this._contactView._contactList.list.getSelectedEntities()) : Promise.resolve()
-				},
-				isVisible: () => !!this._contactView._contactList,
-				icon: () => Icons.Export,
-			},
+			contactList?.list.getSelectedEntities().length === 2
+				? {
+					label: "merge_action",
+					click: () => this._contactView.mergeSelected().then(actionCallback),
+					icon: () => Icons.People,
+				}
+				: null,
+			contactList
+				? {
+					label: "exportSelectedAsVCard_action",
+					click: () => {
+						exportContacts(contactList.list.getSelectedEntities())
+					},
+					icon: () => Icons.Export,
+				}
+				: null,
 		]
+		return buttons.filter(isNotNull)
 	}
 }

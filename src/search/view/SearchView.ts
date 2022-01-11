@@ -81,9 +81,9 @@ export class SearchView implements CurrentView {
 	_viewer: SearchResultDetailsViewer
 	viewSlider: ViewSlider
 	_searchList: SearchListView
-	view: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+	view: CurrentView["view"]
+	oncreate: CurrentView["oncreate"]
+	onremove: CurrentView["onremove"]
 	_mailFolder: NavButtonAttrs
 	_contactFolder: NavButtonAttrs
 	_endDate: Date | null // null = today
@@ -633,7 +633,7 @@ export class SearchView implements CurrentView {
 	}
 
 	getMainButton(
-		typeRef: TypeRef<any>,
+		typeRef: TypeRef<unknown>,
 	):
 		| {
 		label: TranslationKey

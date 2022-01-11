@@ -56,12 +56,13 @@ of the components, newer one has "N" suffix like `ButtonN`. It is almost always 
 
 Current preferred way looks roughly like that:
 
-```javascript
+```typescript
 // Defining
+import {Component} from "mithril"
 
-type Attrs = {param1: string, paramTwo?: number}
+type Attrs = { param1: string, paramTwo?: number }
 
-class MyComponent implements ClassComponent<Attrs> {
+class MyComponent implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>) {
 		return m(".h1", "Hello " + vnode.attrs.param1)
 	}

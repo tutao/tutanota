@@ -90,8 +90,8 @@ function moreButtonAttrsImpl(
 }
 
 type Confirmation = {
-	confirmed: (arg0: () => unknown) => Confirmation
-	cancelled: (arg0: () => unknown) => Confirmation
+	confirmed: (_: () => unknown) => Confirmation
+	cancelled: (_: () => unknown) => Confirmation
 	result: Promise<boolean>
 }
 

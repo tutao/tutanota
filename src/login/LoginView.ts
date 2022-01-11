@@ -277,39 +277,42 @@ export class LoginView implements CurrentView {
 
 	_renderAppButtons(): Children {
 		return m(".flex-center.pt-l", [
-			m(ButtonN, {
-				label: "appInfoAndroidImageAlt_alt",
-				click: e => {
-					this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
+			client.isDesktopDevice() || client.device === DeviceType.ANDROID
+				? m(ButtonN, {
+					label: "appInfoAndroidImageAlt_alt",
+					click: e => {
+						this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
 
-					e.preventDefault()
-				},
-				icon: () => BootIcons.Android,
-				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
-				type: ButtonType.ActionLarge,
-			}),
-			m(ButtonN, {
-				label: "appInfoIosImageAlt_alt",
-				click: e => {
-					this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
+						e.preventDefault()
+					},
+					icon: () => BootIcons.Android,
+					type: ButtonType.ActionLarge,
+				})
+				: null,
+			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
+				? m(ButtonN, {
+					label: "appInfoIosImageAlt_alt",
+					click: e => {
+						this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
 
-					e.preventDefault()
-				},
-				icon: () => BootIcons.Apple,
-				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE,
-				type: ButtonType.ActionLarge,
-			}),
-			m(ButtonN, {
-				label: "appInfoFDroidImageAlt_alt",
-				click: e => {
-					this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
+						e.preventDefault()
+					},
+					icon: () => BootIcons.Apple,
+					type: ButtonType.ActionLarge,
+				})
+				: null,
+			client.isDesktopDevice() || client.device === DeviceType.ANDROID
+				? m(ButtonN, {
+					label: "appInfoFDroidImageAlt_alt",
+					click: e => {
+						this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
 
-					e.preventDefault()
-				},
-				icon: () => BootIcons.FDroid,
-				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
-				type: ButtonType.ActionLarge,
-			}),
+						e.preventDefault()
+					},
+					icon: () => BootIcons.FDroid,
+					type: ButtonType.ActionLarge,
+				})
+				: null,
 		])
 	}
 

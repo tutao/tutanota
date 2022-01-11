@@ -174,14 +174,15 @@ class WizardDialogAttrs<T> {
 			label: "skip_action",
 			click: () => this.goToNextPageOrCloseWizard(),
 			type: ButtonType.Secondary,
-			isVisible: () =>
-				this.currentPage
-					? this.currentPage.attrs.isSkipAvailable() && this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
-					: false,
 		}
 		return {
 			left: [backButtonAttrs],
-			right: [skipButtonAttrs],
+			right: () => (
+				this.currentPage && this.currentPage.attrs.isSkipAvailable()
+				&& this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
+			)
+				? [skipButtonAttrs]
+				: [],
 			middle: () => (this.currentPage ? this.currentPage.attrs.headerTitle() : ""),
 		}
 	}

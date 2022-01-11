@@ -14,8 +14,7 @@ import {promptAndDeleteMails} from "./MailGuiUtils"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import {noOp} from "@tutao/tutanota-utils"
-import {promiseMap} from "@tutao/tutanota-utils"
+import {noOp, promiseMap} from "@tutao/tutanota-utils"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -32,7 +31,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		const {minimizedEditor, viewModel, eventController} = vnode.attrs
 		this._eventController = eventController
 
-		this._listener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> => {
+		this._listener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
 			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 					let draft = minimizedEditor.sendMailModel.getDraft()
@@ -53,43 +52,6 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 
 	view(vnode: Vnode<MinimizedEditorOverlayAttrs>): Children {
 		const {minimizedEditor, viewModel, eventController} = vnode.attrs
-		const buttons: ButtonAttrs[] = [
-			{
-				label: "edit_action",
-				click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Edit,
-				colors: ButtonColor.DrawerNav,
-				isVisible: () => !styles.isSingleColumnLayout(),
-			},
-			{
-				label: "delete_action",
-				click: () => {
-					let model = minimizedEditor.sendMailModel
-					viewModel.removeMinimizedEditor(minimizedEditor)
-					// only delete once save has finished
-					minimizedEditor.saveStatus.map(async status => {
-						if (status !== SaveStatus.Saving) {
-							const draft = model._draft
-
-							if (draft) {
-								await promptAndDeleteMails(model.mails(), [draft], noOp)
-							}
-						}
-					})
-				},
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Trash,
-				colors: ButtonColor.DrawerNav,
-			},
-			{
-				label: "close_alt",
-				click: () => viewModel.removeMinimizedEditor(minimizedEditor),
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Cancel,
-				colors: ButtonColor.DrawerNav,
-			},
-		]
 		const subject = minimizedEditor.sendMailModel.getSubject()
 		return m(".elevated-bg.pl.border-radius", [
 			m(CounterBadge, {
@@ -114,10 +76,49 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				),
 				m(
 					".flex.items-center.justify-right",
-					buttons.map(b => (b.isVisible && !b.isVisible() ? null : m(ButtonN, b))),
+					[
+						!styles.isSingleColumnLayout()
+							? m(ButtonN, {
+								label: "edit_action",
+								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
+								type: ButtonType.ActionLarge,
+								icon: () => Icons.Edit,
+								colors: ButtonColor.DrawerNav,
+							})
+							: null,
+						m(ButtonN, {
+							label: "delete_action",
+							click: () => this._onDeleteClicked(minimizedEditor, viewModel),
+							type: ButtonType.ActionLarge,
+							icon: () => Icons.Trash,
+							colors: ButtonColor.DrawerNav,
+						}),
+						m(ButtonN, {
+							label: "close_alt",
+							click: () => viewModel.removeMinimizedEditor(minimizedEditor),
+							type: ButtonType.ActionLarge,
+							icon: () => Icons.Cancel,
+							colors: ButtonColor.DrawerNav,
+						}),
+					],
 				),
 			]),
 		])
+	}
+
+	private _onDeleteClicked(minimizedEditor: MinimizedEditor, viewModel: MinimizedMailEditorViewModel) {
+		const model = minimizedEditor.sendMailModel
+		viewModel.removeMinimizedEditor(minimizedEditor)
+		// only delete once save has finished
+		minimizedEditor.saveStatus.map(async status => {
+			if (status !== SaveStatus.Saving) {
+				const draft = model._draft
+
+				if (draft) {
+					await promptAndDeleteMails(model.mails(), [draft], noOp)
+				}
+			}
+		})
 	}
 }
 

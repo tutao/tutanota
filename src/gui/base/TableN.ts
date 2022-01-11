@@ -140,7 +140,7 @@ export class TableN implements Component<TableAttrs> {
 							width: px(size.button_height),
 						},
 					},
-					lineAttrs.actionButtonAttrs?.isVisible == null || lineAttrs.actionButtonAttrs.isVisible()
+					lineAttrs.actionButtonAttrs
 						? [
 							m(
 								"",
@@ -150,7 +150,7 @@ export class TableN implements Component<TableAttrs> {
 										right: px(-size.hpad_button), // same as .mr-negative-s
 									},
 								},
-								m(ButtonN, neverNull(lineAttrs.actionButtonAttrs)),
+								m(ButtonN, lineAttrs.actionButtonAttrs),
 							),
 						]
 						: [],
@@ -174,49 +174,54 @@ export function createRowActions<T>(
 	prefixActions: ReadonlyArray<ButtonAttrs> = [],
 ): ButtonAttrs {
 	const elements = instance.getArray()
-	const dropDownActions: ReadonlyArray<ButtonAttrs> = prefixActions.concat([
-		{
-			label: "moveToTop_action",
-			type: ButtonType.Dropdown,
-			isVisible: () => indexOfElement > 1,
-			click: () => {
-				elements.splice(indexOfElement, 1)
-				elements.unshift(currentElement)
-				instance.updateInstance()
-			},
-		},
-		{
-			label: "moveUp_action",
-			type: ButtonType.Dropdown,
-			isVisible: () => indexOfElement > 0,
-			click: () => {
-				let prev = elements[indexOfElement - 1]
-				elements[indexOfElement - 1] = currentElement
-				elements[indexOfElement] = prev
-				instance.updateInstance()
-			},
-		},
-		{
-			label: "moveDown_action",
-			type: ButtonType.Dropdown,
-			isVisible: () => indexOfElement < instance.getArray().length - 1,
-			click: () => {
-				let next = elements[indexOfElement + 1]
-				elements[indexOfElement + 1] = currentElement
-				elements[indexOfElement] = next
-				instance.updateInstance()
-			},
-		},
-		{
-			label: "moveToBottom_action",
-			type: ButtonType.Dropdown,
-			isVisible: () => indexOfElement < instance.getArray().length - 2,
-			click: () => {
-				elements.splice(indexOfElement, 1)
-				elements.push(currentElement)
-				instance.updateInstance()
-			},
-		},
+	const makeButtonAttrs: () => ReadonlyArray<ButtonAttrs | null> = () => [
+		...prefixActions,
+		indexOfElement > 1
+			? {
+				label: "moveToTop_action",
+				type: ButtonType.Dropdown,
+				click: () => {
+					elements.splice(indexOfElement, 1)
+					elements.unshift(currentElement)
+					instance.updateInstance()
+				},
+			}
+			: null,
+		indexOfElement > 0
+			? {
+				label: "moveUp_action",
+				type: ButtonType.Dropdown,
+				click: () => {
+					let prev = elements[indexOfElement - 1]
+					elements[indexOfElement - 1] = currentElement
+					elements[indexOfElement] = prev
+					instance.updateInstance()
+				},
+			}
+			: null,
+		indexOfElement < instance.getArray().length - 1
+			? {
+				label: "moveDown_action",
+				type: ButtonType.Dropdown,
+				click: () => {
+					let next = elements[indexOfElement + 1]
+					elements[indexOfElement + 1] = currentElement
+					elements[indexOfElement] = next
+					instance.updateInstance()
+				},
+			}
+			: null,
+		indexOfElement < instance.getArray().length - 2
+			? {
+				label: "moveToBottom_action",
+				type: ButtonType.Dropdown,
+				click: () => {
+					elements.splice(indexOfElement, 1)
+					elements.push(currentElement)
+					instance.updateInstance()
+				},
+			}
+			: null,
 		{
 			label: "delete_action",
 			type: ButtonType.Dropdown,
@@ -225,10 +230,10 @@ export function createRowActions<T>(
 				instance.updateInstance()
 			},
 		},
-	])
+	]
 	return {
 		label: "edit_action",
-		click: createDropdown(() => dropDownActions, 260),
+		click: createDropdown(makeButtonAttrs, 260),
 		icon: () => Icons.Edit,
 	}
 }

@@ -13,13 +13,7 @@ import {Request} from "../../api/common/MessageDispatcher"
 assertMainOrNode()
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button:
-		| {
-		label: TranslationKey
-		click: clickHandler
-	}
-		| null
-		| undefined
+	button: | {label: TranslationKey, click: clickHandler} | null | undefined
 	content: Children
 	ariaLabel: TranslationKey | lazy<string>
 }
