@@ -28,11 +28,12 @@ import {PaymentViewer} from "../subscription/PaymentViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
-import {flat, LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
+import {LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import {NavButtonColor} from "../gui/base/NavButtonN";
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes, SETTINGS_PREFIX} from "../misc/RouteChange"
@@ -61,18 +62,17 @@ import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/UserAreaGroupDeleteData"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
-import {NavButtonColor} from "../gui/base/NavButtonN";
 
 assertMainOrNode()
 
 export interface UpdatableSettingsViewer {
 	view(vnode?: Vnode<void>): Children
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any>
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 export class SettingsView implements CurrentView {
-	view: (...args: Array<any>) => any
+	view: (vnod: Vnode<void>) => Children
 	viewSlider: ViewSlider
 	_settingsFoldersColumn: ViewColumn
 	_settingsColumn: ViewColumn
@@ -366,14 +366,13 @@ export class SettingsView implements CurrentView {
 		this._customDomains.getAsync().then(() => m.redraw())
 	}
 
-	_createSettingsFolderNavButton(folder: SettingsFolder<any>): NavButtonAttrs {
+	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
 		return {
 			label: folder.name,
 			icon: folder.icon,
 			href: folder.url,
 			colors: NavButtonColor.Nav,
 			click: () => this.viewSlider.focus(this._settingsColumn),
-			isVisible: () => folder.isVisible(),
 		}
 	}
 
@@ -387,26 +386,12 @@ export class SettingsView implements CurrentView {
 					? {
 						label: "delete_action",
 						click: () =>
-							getConfirmation("confirmDeleteTemplateGroup_msg").confirmed(() =>
-								showProgressDialog(
-									"pleaseWait_msg",
-									serviceRequestVoid(
-										TutanotaService.TemplateGroupService,
-										HttpMethod.DELETE,
-										createUserAreaGroupDeleteData({
-											group: folder.data.groupInfo.group,
-										}),
-									),
-								),
-							),
+							this._deleteTemplateGroup(folder.data),
 						icon: () => Icons.Trash,
 					}
 					: {
 						label: "leaveGroup_action",
-						click: () =>
-							getConfirmation("confirmLeaveTemplateGroup_msg").confirmed(() =>
-								locator.groupManagementFacade.removeUserFromGroup(getEtId(logins.getUserController().user), folder.data.groupInfo.group),
-							),
+						click: () => this._leaveTemplateGroup(folder.data),
 						icon: () => Icons.Trash,
 					},
 				{
@@ -421,6 +406,27 @@ export class SettingsView implements CurrentView {
 				},
 			]),
 		})
+	}
+
+	private _leaveTemplateGroup(templateInfo: TemplateGroupInstance) {
+		return getConfirmation("confirmLeaveTemplateGroup_msg").confirmed(() =>
+			locator.groupManagementFacade.removeUserFromGroup(getEtId(logins.getUserController().user), templateInfo.groupInfo.group),
+		)
+	}
+
+	private _deleteTemplateGroup(templateInfo: TemplateGroupInstance) {
+		return getConfirmation("confirmDeleteTemplateGroup_msg").confirmed(() =>
+			showProgressDialog(
+				"pleaseWait_msg",
+				serviceRequestVoid(
+					TutanotaService.TemplateGroupService,
+					HttpMethod.DELETE,
+					createUserAreaGroupDeleteData({
+						group: templateInfo.groupInfo.group,
+					}),
+				),
+			),
+		)
 	}
 
 	_renderTemplateInvitationFolderRow(invitation: ReceivedGroupInvitation): Children {
@@ -496,20 +502,20 @@ export class SettingsView implements CurrentView {
 		}
 	}
 
-	_getUserOwnedTemplateSettingsFolder(): SettingsFolder<any> {
+	_getUserOwnedTemplateSettingsFolder(): SettingsFolder<unknown> {
 		return this._templateFolders.find(folder => isSharedGroupOwner(folder.data.group, logins.getUserController().user)) || this._dummyTemplateFolder
 	}
 
-	_allSettingsFolders(): ReadonlyArray<SettingsFolder<any>> {
+	_allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
 		const hasOwnTemplates = this._templateFolders.some(folder => isSharedGroupOwner(folder.data.group, logins.getUserController().user))
 
-		return flat([
-			this._userFolders,
-			this._adminFolders,
-			!hasOwnTemplates ? [this._dummyTemplateFolder] : [],
-			this._templateFolders,
-			this._knowledgeBaseFolders,
-		] as Array<ReadonlyArray<SettingsFolder<any>>>)
+		return [
+			...this._userFolders,
+			...this._adminFolders,
+			...(!hasOwnTemplates ? [this._dummyTemplateFolder] : []),
+			...this._templateFolders,
+			...this._knowledgeBaseFolders,
+		]
 	}
 
 	_setUrl(url: string) {
@@ -525,7 +531,7 @@ export class SettingsView implements CurrentView {
 		this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown> {
 		return promiseMap(updates, update => {
 			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
 				const user = logins.getUserController().user
@@ -575,7 +581,7 @@ export class SettingsView implements CurrentView {
 		return this.viewSlider
 	}
 
-	_aboutThisSoftwareLink(): Vnode<any> {
+	_aboutThisSoftwareLink(): Children {
 		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m(
 				"button.text-center.small.no-text-decoration",

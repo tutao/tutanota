@@ -7,14 +7,13 @@ import {ViewSlider} from "../../gui/base/ViewSlider"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
-import {incrementDate} from "@tutao/tutanota-utils"
+import {downcast, incrementDate, LazyLoaded, memoized, ofClass} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
-import {downcast, memoized} from "@tutao/tutanota-utils"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
@@ -46,22 +45,19 @@ import {GroupInvitationFolderRow} from "../../sharing/view/GroupInvitationFolder
 import {SidebarSection} from "../../gui/SidebarSection"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {ofClass} from "@tutao/tutanota-utils"
 import {createMoreActionButtonAttrs} from "../../gui/base/GuiUtils"
 import {renderCalendarSwitchLeftButton, renderCalendarSwitchRightButton} from "./CalendarGuiUtils"
 import {CalendarViewModel, CalendarViewType, CalendarViewTypeByValue, MouseOrPointerEvent} from "./CalendarViewModel"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {CalendarEventPopup} from "./CalendarEventPopup"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import {client} from "../../misc/ClientDetector"
-import {DropdownChildAttrs} from "../../gui/base/DropdownN";
+import type Stream from "mithril/stream"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
-import type Stream from "mithril/stream"
 
 // noinspection JSUnusedGlobalSymbols
 export class CalendarView implements CurrentView {
@@ -604,56 +600,52 @@ export class CalendarView implements CurrentView {
 		sharedCalendar: boolean,
 	): Children {
 		const {group, groupInfo, groupRoot} = calendarInfo
+		const user = logins.getUserController().user
 		return m(
 			ButtonN,
-			createMoreActionButtonAttrs(() =>
-				[
-					{
-						label: "edit_action",
-						icon: () => Icons.Edit,
-						click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+			createMoreActionButtonAttrs(() => [
+				{
+					label: "edit_action",
+					icon: () => Icons.Edit,
+					click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+				},
+				{
+					label: "sharing_label",
+					icon: () => Icons.ContactImport,
+					click: () => {
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(false)
+						} else {
+							showGroupSharingDialog(groupInfo, sharedCalendar)
+						}
 					},
-					{
-						label: "sharing_label",
-						icon: () => Icons.ContactImport,
+				},
+				!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Write)
+					? {
+						label: "import_action",
+						icon: () => Icons.Import,
+						click: () => showCalendarImportDialog(groupRoot),
+					}
+					: null,
+				!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
+					? {
+						label: "export_action",
+						icon: () => Icons.Export,
 						click: () => {
-							if (logins.getUserController().isFreeAccount()) {
-								showNotAvailableForFreeDialog(false)
-							} else {
-								showGroupSharingDialog(groupInfo, sharedCalendar)
-							}
+							const alarmInfoList = user.alarmInfoList
+							alarmInfoList &&
+							exportCalendar(getSharedGroupName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
 						},
-					},
-					isApp()
-						? null
-						: {
-							label: "import_action",
-							icon: () => Icons.Import,
-							click: () => showCalendarImportDialog(groupRoot),
-							isVisible: () =>
-								group.type === GroupType.Calendar && hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Write),
-						},
-					isApp()
-						? null
-						: {
-							label: "export_action",
-							icon: () => Icons.Export,
-							click: () => {
-								const alarmInfoList = logins.getUserController().user.alarmInfoList
-								alarmInfoList &&
-								exportCalendar(getSharedGroupName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
-							},
-							isVisible: () =>
-								group.type === GroupType.Calendar && hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
-						},
-					{
+					}
+					: null,
+				!sharedCalendar
+					? {
 						label: "delete_action",
 						icon: () => Icons.Trash,
 						click: () => this._confirmDeleteCalendar(calendarInfo),
-						isVisible: () => !sharedCalendar,
-					},
-				].filter(Boolean) as ReadonlyArray<DropdownChildAttrs>,
-			),
+					}
+					: null,
+			]),
 		)
 	}
 

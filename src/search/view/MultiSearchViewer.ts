@@ -1,5 +1,5 @@
 import m from "mithril"
-import {assertMainOrNode, Mode} from "../../api/common/Env"
+import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
@@ -17,7 +17,7 @@ import {mergeContacts} from "../../contacts/ContactMergeUtils"
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {exportContacts} from "../../contacts/VCardExporter"
-import {downcast, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
+import {downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {theme} from "../../gui/theme"
@@ -131,24 +131,26 @@ export class MultiSearchViewer {
 	}
 
 	createContactActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		return [
-			{
-				label: "cancel_action",
-				click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-				icon: () => Icons.Cancel,
-				isVisible: () => prependCancel,
-			},
+		const buttons: (ButtonAttrs | null)[] = [
+			prependCancel
+				? {
+					label: "cancel_action",
+					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
+					icon: () => Icons.Cancel,
+				}
+				: null,
 			{
 				label: "delete_action",
 				click: () => this._searchListView.deleteSelected(),
 				icon: () => Icons.Trash,
 			},
-			{
-				label: "merge_action",
-				click: () => this.mergeSelected(),
-				icon: () => Icons.People,
-				isVisible: () => this._searchListView.getSelectedEntities().length === 2,
-			},
+			this._searchListView.getSelectedEntities().length === 2
+				? {
+					label: "merge_action",
+					click: () => this.mergeSelected(),
+					icon: () => Icons.People,
+				}
+				: null,
 			{
 				label: "exportSelectedAsVCard_action",
 				click: () => {
@@ -169,16 +171,18 @@ export class MultiSearchViewer {
 				icon: () => Icons.Export,
 			},
 		]
+		return buttons.filter(isNotNull)
 	}
 
 	createMailActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		return [
-			{
-				label: "cancel_action",
-				click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-				icon: () => Icons.Cancel,
-				isVisible: () => prependCancel,
-			},
+		const buttons: (ButtonAttrs | null)[] = [
+			prependCancel
+				? {
+					label: "cancel_action",
+					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
+					icon: () => Icons.Cancel,
+				}
+				: null,
 			attachDropdown(
 				{
 					label: "move_action",
@@ -209,16 +213,18 @@ export class MultiSearchViewer {
 						icon: () => Icons.Eye,
 						type: ButtonType.Dropdown,
 					},
-					{
-						label: "export_action",
-						click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)),
-						icon: () => Icons.Export,
-						type: ButtonType.Dropdown,
-						isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport),
-					},
+					!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+						? {
+							label: "export_action",
+							click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)),
+							icon: () => Icons.Export,
+							type: ButtonType.Dropdown,
+						}
+						: null,
 				],
 			),
 		]
+		return buttons.filter(isNotNull)
 	}
 
 	async createMoveMailButtons(): Promise<ButtonAttrs[]> {

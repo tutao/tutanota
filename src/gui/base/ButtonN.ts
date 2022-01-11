@@ -105,7 +105,6 @@ export type ButtonAttrs = {
 	icon?: lazyIcon | null
 	type?: ButtonType
 	colors?: ButtonColor
-	isVisible?: lazy<boolean>
 	isSelected?: lazy<boolean>
 	noBubble?: boolean
 	staticRightText?: string,

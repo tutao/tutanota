@@ -90,12 +90,13 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: this._renderMemberInfos(model, texts, groupName).concat(this._renderGroupInvitations(model, texts, groupName)),
 				showActionButtonColumn: true,
-				addButtonAttrs: {
-					label: "addParticipant_action",
-					click: () => showAddParticipantDialog(model, texts),
-					icon: () => Icons.Add,
-					isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, model.group, ShareCapability.Invite),
-				},
+				addButtonAttrs: hasCapabilityOnGroup(logins.getUserController().user, model.group, ShareCapability.Invite)
+					? {
+						label: "addParticipant_action",
+						click: () => showAddParticipantDialog(model, texts),
+						icon: () => Icons.Add,
+					}
+					: null,
 			}),
 		])
 	}
@@ -110,16 +111,18 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						mainStyle: ".i",
 					},
 				],
-				actionButtonAttrs: {
-					label: "remove_action",
-					click: () => {
-						getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(() =>
-							model.cancelInvitation(sentGroupInvitation),
-						)
-					},
-					icon: () => Icons.Cancel,
-					isVisible: () => model.canCancelInvitation(sentGroupInvitation),
-				},
+				actionButtonAttrs:
+					model.canCancelInvitation(sentGroupInvitation)
+						? {
+							label: "remove_action",
+							click: () => {
+								getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(() =>
+									model.cancelInvitation(sentGroupInvitation),
+								)
+							},
+							icon: () => Icons.Cancel,
+						}
+						: null,
 			}
 		})
 	}
@@ -137,16 +140,17 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						],
 					},
 				],
-				actionButtonAttrs: {
-					label: "delete_action",
-					icon: () => Icons.Cancel,
-					click: () => {
-						getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(() =>
-							model.removeGroupMember(memberInfo.member),
-						)
-					},
-					isVisible: () => model.canRemoveGroupMember(memberInfo.member),
-				},
+				actionButtonAttrs: model.canRemoveGroupMember(memberInfo.member)
+					? {
+						label: "delete_action",
+						icon: () => Icons.Cancel,
+						click: () => {
+							getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(() =>
+								model.removeGroupMember(memberInfo.member),
+							)
+						},
+					}
+					: null,
 			}
 		})
 	}

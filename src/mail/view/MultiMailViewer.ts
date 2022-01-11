@@ -1,6 +1,6 @@
 import m from "mithril"
 import {MailView} from "./MailView"
-import {assertMainOrNode, Mode} from "../../api/common/Env"
+import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
@@ -83,13 +83,16 @@ export class MultiMailViewer {
 	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
 		const selectedEntities = () => this._mailView.mailList.list.getSelectedEntities()
 
-		return [
-			{
+		const cancel: ButtonAttrs[] = prependCancel ?
+			[{
 				label: "cancel_action",
 				click: () => this._mailView.mailList.list.selectNone(),
 				icon: () => Icons.Cancel,
-				isVisible: () => prependCancel,
-			},
+			}]
+			: []
+
+		return [
+			...cancel,
 			attachDropdown(
 				{
 					label: "move_action",
@@ -123,15 +126,16 @@ export class MultiMailViewer {
 						icon: () => Icons.Eye,
 						type: ButtonType.Dropdown,
 					},
-					{
-						label: "export_action",
-						click: this._actionBarAction(mails =>
-							showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
-						),
-						icon: () => Icons.Export,
-						type: ButtonType.Dropdown,
-						isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport),
-					},
+					!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+						? {
+							label: "export_action",
+							click: this._actionBarAction(mails =>
+								showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
+							),
+							icon: () => Icons.Export,
+							type: ButtonType.Dropdown,
+						}
+						: null,
 				],
 			),
 		]

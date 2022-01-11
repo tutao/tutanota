@@ -146,7 +146,7 @@ export class MailView implements CurrentView {
 			},
 		)
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBarButtons = lazyMemoized(() => this._multiMailViewer.getActionBarButtons())
+		this._actionBarButtons  = () => this._multiMailViewer.getActionBarButtons()
 
 		const mailColumnTitle = () => {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : []

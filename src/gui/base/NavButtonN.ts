@@ -23,7 +23,6 @@ export type NavButtonAttrs = {
 	isSelectedPrefix?: string | boolean
 	click?: (event: Event, dom: HTMLElement) => unknown,
 	colors?: NavButtonColor
-	isVisible?: lazy<boolean>
 	dropHandler?: dropHandler
 	hideLabel?: boolean
 	vertical?: boolean

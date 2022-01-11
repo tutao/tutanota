@@ -76,15 +76,13 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				click: noOp,
 			},
 			() => [
-				{
-					label: "show_action",
-					click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
-					type: ButtonType.Dropdown,
-					isVisible: () => {
-						const auth = logins.getUserController().user.auth
-						return Boolean(auth && auth.recoverCode)
-					},
-				},
+				logins.getUserController().user.auth?.recoverCode
+					? {
+						label: "show_action",
+						click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
+						type: ButtonType.Dropdown,
+					}
+					: null,
 				{
 					label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
 					click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
