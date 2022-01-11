@@ -2,12 +2,10 @@
 
 import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
-import {assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, contains, downcast, neverNull, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {themeController} from "../../gui/theme"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaConstants"
-import {contains} from "@tutao/tutanota-utils"
-import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import m from "mithril"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
@@ -26,7 +24,7 @@ export type WhitelabelData = {
 }
 
 export type WhitelabelThemeSettingsAttrs = {
-	whitelabelData: null | WhitelabelData
+	whitelabelData: ?WhitelabelData
 }
 
 export class WhitelabelThemeSettings implements MComponent<WhitelabelThemeSettingsAttrs> {

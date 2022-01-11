@@ -8,15 +8,18 @@ import type {TableAttrs, TableLineAttrs} from "../../gui/base/TableN"
 import {ColumnWidth, createRowActions} from "../../gui/base/TableN"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {LazyLoaded} from "../../api/common/utils/LazyLoaded"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
-import {load, loadRange, update} from "../../api/main/Entity"
-import {getCustomMailDomains, neverNull, noOp} from "../../api/common/utils/Utils"
+import {getCustomMailDomains} from "../../api/common/utils/Utils"
 import {logins} from "../../api/main/LoginController"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../api/common/utils/Encoding"
 import {RejectedSenderTypeRef} from "../../api/entities/sys/RejectedSender"
-import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
+import {
+	GENERATED_MAX_ID,
+	generatedIdToTimestamp,
+	getElementId,
+	sortCompareByReverseId,
+	timestampToGeneratedId
+} from "../../api/common/utils/EntityUtils"
 import {formatDateTime, formatDateTimeFromYesterdayOn} from "../../misc/Formatter"
 import {showRejectedSendersInfoDialog} from "../RejectedSendersInfoDialog"
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
@@ -31,14 +34,11 @@ import m from "mithril"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {showAddDomainWizard} from "../emaildomain/AddDomainWizard"
-import {DAY_IN_MILLIS} from "../../api/common/utils/DateUtils"
 import type {IUserController} from "../../api/main/UserController"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import type {CustomerServerProperties} from "../../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../../api/entities/sys/CustomerServerProperties"
 import type {AuditLogEntry} from "../../api/entities/sys/AuditLogEntry"
 import {AuditLogEntryTypeRef} from "../../api/entities/sys/AuditLogEntry"
-import {worker} from "../../api/main/WorkerClient"
 import {LockedError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import {lang} from "../../misc/LanguageViewModel"
@@ -53,6 +53,9 @@ import {UserTypeRef} from "../../api/entities/sys/User"
 import {getUserGroupMemberships} from "../../api/common/utils/GroupUtils"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {EntityClient} from "../../api/common/EntityClient"
+import type {CustomerFacade} from "../../api/worker/facades/CustomerFacade"
 
 // Number of days for that we load rejected senders
 const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
@@ -74,8 +77,10 @@ export class GlobalSettingsSection implements SettingsSection {
 	props: Stream<CustomerServerProperties>;
 	currentSaveIpAddressValue: Stream<boolean>
 	currentPasswordUpdateValue: Stream<boolean>
+	entityClient: EntityClient
+	customerFacade: CustomerFacade
 
-	constructor(userController: IUserController) {
+	constructor(userController: IUserController, entityClient: EntityClient, customerFacade: CustomerFacade) {
 		this.heading = "Global"
 		this.category = "Global"
 		this.settingsValues = []
@@ -89,9 +94,11 @@ export class GlobalSettingsSection implements SettingsSection {
 		this.props = stream()
 		this.currentSaveIpAddressValue = stream(false)
 		this.currentPasswordUpdateValue = stream(false)
+		this.entityClient = entityClient
+		this.customerFacade = customerFacade
 		this.customerInfo = new LazyLoaded(() => {
-			return load(CustomerTypeRef, neverNull(userController.user.customer))
-				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			return entityClient.load(CustomerTypeRef, neverNull(userController.user.customer))
+			                   .then(customer => entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this.updateCustomerServerProperties()
 
@@ -169,7 +176,7 @@ export class GlobalSettingsSection implements SettingsSection {
 			selectionChangedHandler: (value) => {
 				this.currentSaveIpAddressValue(value)
 				const newProps: CustomerServerProperties = Object.assign({}, this.props(), {saveEncryptedIpAddressInSession: value})
-				update(newProps)
+				this.entityClient.update(newProps)
 			}
 		}
 
@@ -192,7 +199,7 @@ export class GlobalSettingsSection implements SettingsSection {
 			selectionChangedHandler: (value) => {
 				this.currentPasswordUpdateValue(value)
 				const newProps: CustomerServerProperties = Object.assign({}, this.props(), {requirePasswordUpdateAfterReset: value})
-				update(newProps)
+				this.entityClient.update(newProps)
 			}
 		}
 
@@ -271,64 +278,64 @@ export class GlobalSettingsSection implements SettingsSection {
 			// Otherwise we will just use what has been returned in the first request.
 			const senderListId = customer.rejectedSenders.items
 			const startId = timestampToGeneratedId(Date.now() - REJECTED_SENDERS_TO_LOAD_MS)
-			const loadingPromise = loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
-				.then(rejectedSenders => {
-					if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
-						// There are more entries available, we need to load from GENERATED_MAX_ID.
-						// we don't need to sort here because we load in reverse direction
-						return loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
-					} else {
-						// ensure that rejected senders are sorted in descending order
-						return rejectedSenders.sort(sortCompareByReverseId)
-					}
-				})
-				.then(rejectedSenders => {
-					const tableEntries = rejectedSenders.map(rejectedSender => {
-						const rejectDate = formatDateTime(new Date(generatedIdToTimestamp(getElementId(rejectedSender))))
-						return {
-							cells: () => {
-								return [
-									{
-										main: rejectedSender.senderMailAddress,
-										info: [`${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`],
-										click: () => showRejectedSendersInfoDialog(rejectedSender)
-									}
-								]
-							},
-							actionButtonAttrs: attachDropdown({
-									label: "showMore_action",
-									icon: () => Icons.More,
-								},
-								() => [
-									{
-										label: "showRejectReason_action",
-										type: ButtonType.Dropdown,
-										click: () => showRejectedSendersInfoDialog(rejectedSender)
-									},
-									{
-										label: "addSpamRule_action",
-										type: ButtonType.Dropdown,
-										click: () => {
-											const domainPart = getDomainPart(rejectedSender.senderMailAddress)
-											showAddSpamRuleDialog(createEmailSenderListElement({
-												value: domainPart ? domainPart : "",
-												type: SpamRuleType.WHITELIST,
-												field: SpamRuleFieldType.FROM,
-											}))
-										}
-									},
-								]
-							)
-						}
-					})
-					this.rejectedSenderLines(tableEntries)
-				})
+			const loadingPromise = this.entityClient.loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
+			                           .then(rejectedSenders => {
+				                           if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
+					                           // There are more entries available, we need to load from GENERATED_MAX_ID.
+					                           // we don't need to sort here because we load in reverse direction
+					                           return this.entityClient.loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
+				                           } else {
+					                           // ensure that rejected senders are sorted in descending order
+					                           return rejectedSenders.sort(sortCompareByReverseId)
+				                           }
+			                           })
+			                           .then(rejectedSenders => {
+				                           const tableEntries = rejectedSenders.map(rejectedSender => {
+					                           const rejectDate = formatDateTime(new Date(generatedIdToTimestamp(getElementId(rejectedSender))))
+					                           return {
+						                           cells: () => {
+							                           return [
+								                           {
+									                           main: rejectedSender.senderMailAddress,
+									                           info: [`${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`],
+									                           click: () => showRejectedSendersInfoDialog(rejectedSender)
+								                           }
+							                           ]
+						                           },
+						                           actionButtonAttrs: attachDropdown({
+								                           label: "showMore_action",
+								                           icon: () => Icons.More,
+							                           },
+							                           () => [
+								                           {
+									                           label: "showRejectReason_action",
+									                           type: ButtonType.Dropdown,
+									                           click: () => showRejectedSendersInfoDialog(rejectedSender)
+								                           },
+								                           {
+									                           label: "addSpamRule_action",
+									                           type: ButtonType.Dropdown,
+									                           click: () => {
+										                           const domainPart = getDomainPart(rejectedSender.senderMailAddress)
+										                           showAddSpamRuleDialog(createEmailSenderListElement({
+											                           value: domainPart ? domainPart : "",
+											                           type: SpamRuleType.WHITELIST,
+											                           field: SpamRuleFieldType.FROM,
+										                           }))
+									                           }
+								                           },
+							                           ]
+						                           )
+					                           }
+				                           })
+				                           this.rejectedSenderLines(tableEntries)
+			                           })
 			showProgressDialog("loading_msg", loadingPromise).then(() => m.redraw())
 		}
 	}
 
 	updateCustomerServerProperties(): Promise<void> {
-		return worker.customerFacade.loadCustomerServerProperties().then(props => {
+		return this.customerFacade.loadCustomerServerProperties().then(props => {
 			this.props(props)
 			this.props.map(props => this.currentPasswordUpdateValue(props.requirePasswordUpdateAfterReset))
 			this.props.map(props => this.currentSaveIpAddressValue(props.saveEncryptedIpAddressInSession))
@@ -346,7 +353,7 @@ export class GlobalSettingsSection implements SettingsSection {
 					],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.emailSenderList,
-						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
+						updateInstance: () => this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",
@@ -435,82 +442,84 @@ export class GlobalSettingsSection implements SettingsSection {
 		Dialog.confirm(() => lang.get("confirmCustomDomainDeletion_msg", {"{domain}": domainInfo.domain}))
 		      .then(confirmed => {
 			      if (confirmed) {
-				      worker.customerFacade.removeDomain(domainInfo.domain)
-				            .catch(ofClass(PreconditionFailedError, e => {
-					            let registrationDomains = this.props() != null ? this.props()
-					                                                                 .whitelabelRegistrationDomains
-					                                                                 .map(domainWrapper => domainWrapper.value) : []
-					            if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
-						            Dialog.message(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
-					            } else {
-						            Dialog.message(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
-					            }
-				            }))
-				            .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
+				      this.customerFacade.removeDomain(domainInfo.domain)
+				          .catch(ofClass(PreconditionFailedError, e => {
+					          let registrationDomains = this.props() != null ? this.props()
+					                                                               .whitelabelRegistrationDomains
+					                                                               .map(domainWrapper => domainWrapper.value) : []
+					          if (registrationDomains.indexOf(domainInfo.domain) !== -1) {
+						          Dialog.message(() => lang.get("customDomainDeletePreconditionWhitelabelFailed_msg", {"{domainName}": domainInfo.domain}))
+					          } else {
+						          Dialog.message(() => lang.get("customDomainDeletePreconditionFailed_msg", {"{domainName}": domainInfo.domain}))
+					          }
+				          }))
+				          .catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
 			      }
 		      })
 	}
 
 	editCatchAllMailbox(domainInfo: DomainInfo) {
-		showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => {
-				return loadEnabledTeamMailGroups(customer)
-					.then(teamMailGroups => loadEnabledUserMailGroups(customer)
-						.then(userMailGroups => {
-							let allMailGroups = teamMailGroups.concat(userMailGroups)
-							let options = [
-								{name: lang.get("comboBoxSelectionNone_msg"), value: null}
-							].concat(allMailGroups.map(groupData => {
-								return {name: groupData.displayName, value: groupData.groupId}
-							}))
-							let selectedPromise = Promise.resolve(null) // default is no selection
-							if (domainInfo.catchAllMailGroup) {
-								// the catch all group may be a user group, so load the mail group in that case
-								selectedPromise = load(GroupTypeRef, domainInfo.catchAllMailGroup)
-									.then(catchAllGroup => {
-										if (catchAllGroup.type === GroupType.User) {
-											return load(UserTypeRef, neverNull(catchAllGroup.user))
-												.then(user => {
-													return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
-												})
-										} else {
-											return domainInfo.catchAllMailGroup
-										}
-									})
-							}
-							return selectedPromise.then(catchAllMailGroupId => {
-								let selected = allMailGroups.find(g => g.groupId
-									=== catchAllMailGroupId)
-								return {available: options, selected: selected}
-							})
-						})
-					)
-			})
+		showProgressDialog("pleaseWait_msg", this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		                                         .then(customer => {
+			                                         return loadEnabledTeamMailGroups(customer)
+				                                         .then(teamMailGroups => loadEnabledUserMailGroups(customer)
+					                                         .then(userMailGroups => {
+						                                         let allMailGroups = teamMailGroups.concat(userMailGroups)
+						                                         let options = [
+							                                         {name: lang.get("comboBoxSelectionNone_msg"), value: null}
+						                                         ].concat(allMailGroups.map(groupData => {
+							                                         return {name: groupData.displayName, value: groupData.groupId}
+						                                         }))
+						                                         let selectedPromise = Promise.resolve(null) // default is no selection
+						                                         if (domainInfo.catchAllMailGroup) {
+							                                         // the catch all group may be a user group, so load the mail group in that case
+							                                         selectedPromise = this.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
+								                                         .then(catchAllGroup => {
+									                                         if (catchAllGroup.type === GroupType.User) {
+										                                         return this.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
+											                                         .then(user => {
+												                                         return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+											                                         })
+									                                         } else {
+										                                         return domainInfo.catchAllMailGroup
+									                                         }
+								                                         })
+						                                         }
+						                                         return selectedPromise.then(catchAllMailGroupId => {
+							                                         let selected = allMailGroups.find(g => g.groupId
+								                                         === catchAllMailGroupId)
+							                                         return {available: options, selected: selected}
+						                                         })
+					                                         })
+				                                         )
+		                                         })
 		).then(availableAndSelectedGroupDatas => {
 			const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
 			return Dialog.showDropDownSelectionDialog("setCatchAllMailbox_action", "catchAllMailbox_label", null, availableAndSelectedGroupDatas.available, valueStream, 250)
 			             .then(selectedMailGroupId => {
-				             return worker.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
+				             return this.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 			             })
 		})
 	}
 
 	updateAuditLog(): Promise<void> {
-		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+		return this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			this.customer(customer)
-			return loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
-				.then(auditLog => {
-					this.auditLogLines(auditLog.map(auditLogEntry => {
-						return {
-							cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-							actionButtonAttrs: {
-								label: "showMore_action",
-								icon: () => Icons.More,
-								click: () => this.showAuditLogDetails(auditLogEntry, customer)
-							}
-						}
-					}))
-				})
+			return this.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+			           .then(auditLog => {
+				           this.auditLogLines(auditLog.map(auditLogEntry => {
+					           return {
+						           cells: [
+							           auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)
+						           ],
+						           actionButtonAttrs: {
+							           label: "showMore_action",
+							           icon: () => Icons.More,
+							           click: () => this.showAuditLogDetails(auditLogEntry, customer)
+						           }
+					           }
+				           }))
+			           })
 		})
 	}
 
@@ -519,16 +528,16 @@ export class GlobalSettingsSection implements SettingsSection {
 		let groupInfo = stream()
 		let groupInfoLoadingPromises = []
 		if (entry.modifiedGroupInfo) {
-			groupInfoLoadingPromises.push(load(GroupInfoTypeRef, entry.modifiedGroupInfo)
-				.then(gi => {
-					modifiedGroupInfo(gi)
-				})
-				.catch(ofClass(NotAuthorizedError, e => {
-					// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-				})))
+			groupInfoLoadingPromises.push(this.entityClient.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+			                                  .then(gi => {
+				                                  modifiedGroupInfo(gi)
+			                                  })
+			                                  .catch(ofClass(NotAuthorizedError, e => {
+				                                  // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+			                                  })))
 		}
 		if (entry.groupInfo) {
-			groupInfoLoadingPromises.push(load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
+			groupInfoLoadingPromises.push(this.entityClient.load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
 				groupInfo(gi)
 			}).catch(ofClass(NotAuthorizedError, e => {
 				// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore

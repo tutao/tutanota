@@ -18,7 +18,6 @@ import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import type {Booking} from "../../api/entities/sys/Booking"
 import {BookingTypeRef} from "../../api/entities/sys/Booking"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import * as SwitchToBusinessInvoiceDataDialog from "../../subscription/SwitchToBusinessInvoiceDataDialog"
 import {formatDate, formatNameAndAddress} from "../../misc/Formatter"
@@ -34,12 +33,12 @@ import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {_getAccountTypeName, changeSubscriptionInterval} from "../../subscription/SubscriptionViewer"
 import stream from "mithril/stream/stream.js"
-import {worker} from "../../api/main/WorkerClient"
 import {formatPriceDataWithInfo} from "../../subscription/PriceUtils"
-import {ofClass} from "../../api/common/utils/PromiseUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import type {AccountTypeEnum} from "../../api/common/TutanotaConstants"
+import {downcast, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {BookingFacade} from "../../api/worker/facades/BookingFacade"
 
 export class SubscriptionSettingsSection implements SettingsSection {
 	heading: string
@@ -61,8 +60,9 @@ export class SubscriptionSettingsSection implements SettingsSection {
 	currentPriceFieldValue: Stream<string>
 	nextPriceFieldValue: Stream<string>
 	currentSubscription: SubscriptionTypeEnum
+	bookingFacade: BookingFacade
 
-	constructor() {
+	constructor(bookingFacade: BookingFacade) {
 		this.heading = "Subscription"
 		this.category = "Subscription"
 		this.settingsValues = []
@@ -74,6 +74,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		this.orderAgreementFieldValue = stream(loadingString)
 		this.nextPriceFieldValue = stream(loadingString)
 		this.selectedSubscriptionInterval = stream(null)
+		this.bookingFacade = bookingFacade
 		this.updatePriceInfo()
 		this.updateBookings()
 
@@ -323,7 +324,7 @@ export class SubscriptionSettingsSection implements SettingsSection {
 		if (!this.showPriceData()) {
 			return Promise.resolve();
 		} else {
-			return worker.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
+			return this.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
 				if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
 					if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
 						this.currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))

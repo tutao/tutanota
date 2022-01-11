@@ -3,6 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {SettingsSection} from "./SettingsModel"
 import {SettingsModel} from "./SettingsModel"
+import type {SettingsSelectListAttrs} from "./SettingsSelectList"
 import {SettingsSelectList} from "./SettingsSelectList"
 
 assertMainOrNode()
@@ -17,12 +18,23 @@ export class AllSettingsList implements MComponent<AllSettingsListAttrs> {
 
 	view(vnode: Vnode<AllSettingsListAttrs>): Children {
 		const {model} = vnode.attrs
-		return m(SettingsSelectList, {
+		// items: $ReadOnlyArray<T>,
+		// 	selectedItem: Stream<?T>,
+		// 	emptyListMessage: TranslationKey,
+		// 	renderItem: (T) => Children,
+
+		// items: Array<T>,
+		// 	selectedItem: Stream<?T>,
+		// 	emptyListMessage: TranslationKey,
+		// 	renderItem: (T) => Children,
+		
+		const settingSelectListAttrs: SettingsSelectListAttrs<SettingsSection> = {
 			items: model.sections,
 			selectedItem: model.selectedSection,
-			emptyListMessage: () => "emptyList_msg",
+			emptyListMessage: "emptyList_msg",
 			renderItem: (setting) => m(SettingsRow, {settingObject: setting})
-		})
+		}
+		return m(SettingsSelectList, settingSelectListAttrs)
 	}
 }
 

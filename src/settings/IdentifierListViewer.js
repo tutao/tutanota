@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {isApp, isDesktop, isBrowser} from "../api/common/Env"
+import {isApp, isBrowser, isDesktop} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -257,8 +257,10 @@ export function showAddNotificationEmailAddressDialog(user: ?User) {
 			pushIdentifier._ownerGroup = user.userGroup.group
 			pushIdentifier._owner = user.userGroup.group // legacy
 			pushIdentifier._area = "0" // legacy
-			let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
-				neverNull(user.pushIdentifierList).list, null, pushIdentifier);
+			// let p = locator.worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST,
+			// 	neverNull(user.pushIdentifierList).list, null, pushIdentifier);
+			//listId: ?Id, instance: T, extraHeaders?: Params
+			let p = locator.entityClient.setup(neverNull(user.pushIdentifierList).list, pushIdentifier)
 			showProgressDialog("pleaseWait_msg", p)
 			dialog.close()
 		}

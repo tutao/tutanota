@@ -22,7 +22,6 @@ import type {ProgressTracker} from "../../api/main/ProgressTracker"
 import type {ViewSlider} from "./ViewSlider"
 import {SearchBarMode, SearchBarN} from "./SearchBarN"
 import {client} from "../../misc/ClientDetector"
-import {assertMainOrNode} from "../../api/common/Env"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")

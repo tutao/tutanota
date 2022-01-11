@@ -14,7 +14,7 @@ import {InboxRuleType, OperationType} from "../../api/common/TutanotaConstants"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {getEnabledMailAddressesForGroupInfo} from "../../api/common/utils/GroupUtils"
-import {load, update} from "../../api/main/Entity"
+// import {load, update} from "../../api/main/Entity"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
@@ -24,8 +24,6 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import m from "mithril"
 import {showEditOutOfOfficeNotificationDialog} from "../EditOutOfOfficeNotificationDialog"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {worker} from "../../api/main/WorkerClient"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
 import {isApp} from "../../api/common/Env"
 import type {EntityUpdateData} from "../../api/main/EventController"
@@ -46,11 +44,13 @@ import {TutanotaPropertiesTypeRef} from "../../api/entities/tutanota/TutanotaPro
 import {logins} from "../../api/main/LoginController"
 import {getInboxRuleTypeName} from "../../mail/model/InboxRuleHandler"
 import {LockedError} from "../../api/common/error/RestError"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {MailFolderTypeRef} from "../../api/entities/tutanota/MailFolder"
 import type {MailboxDetail} from "../../mail/model/MailModel"
+import {EntityClient} from "../../api/common/EntityClient"
+import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import type {Indexer} from "../../api/worker/search/Indexer"
 
 export class MailSettingsSection implements SettingsSection {
 	heading: string
@@ -68,8 +68,11 @@ export class MailSettingsSection implements SettingsSection {
 	identifierListViewer: IdentifierListViewer
 	outOfOfficeStatus: Stream<string>
 	outOfOfficeNotification: LazyLoaded<?OutOfOfficeNotification>
+	entityClient: EntityClient
+	signature: Stream<string>
+	indexerFacade: Indexer
 
-	constructor(userController: IUserController) {
+	constructor(userController: IUserController, entityClient: EntityClient, indexerFacade: Indexer) {
 		this.heading = "Sending Mails"
 		this.category = "Mails"
 		this.settingsValues = []
@@ -90,6 +93,8 @@ export class MailSettingsSection implements SettingsSection {
 		this.outOfOfficeNotification = new LazyLoaded(() => {
 			return loadOutOfOfficeNotification()
 		}, null)
+		this.entityClient = entityClient
+		this.indexerFacade = indexerFacade
 		this.outOfOfficeNotification.getAsync().then(() => this.updateOutOfOfficeNotification())
 
 		this.settingsValues.push(this.createDefaultSenderSettings(userController))
@@ -116,7 +121,7 @@ export class MailSettingsSection implements SettingsSection {
 			selectedValue: this.defaultSender,
 			selectionChangedHandler: v => {
 				userController.props.defaultSender = v
-				update(userController.props)
+				this.entityClient.update(userController.props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 250,
@@ -137,7 +142,7 @@ export class MailSettingsSection implements SettingsSection {
 				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this.senderName())
 				      .then(newName => {
 					      userController.userGroupInfo.name = newName
-					      update(userController.userGroupInfo)
+					      this.entityClient.update(userController.userGroupInfo)
 				      })
 			},
 			icon: () => Icons.Edit,
@@ -191,7 +196,7 @@ export class MailSettingsSection implements SettingsSection {
 			selectedValue: this.defaultUnconfidential,
 			selectionChangedHandler: v => {
 				userController.props.defaultUnconfidential = v
-				update(userController.props)
+				this.entityClient.update(userController.props)
 			},
 			helpLabel: () => lang.get("defaultExternalDeliveryInfo_msg"),
 			dropdownWidth: 250,
@@ -216,7 +221,7 @@ export class MailSettingsSection implements SettingsSection {
 			selectedValue: this.sendPlaintext,
 			selectionChangedHandler: v => {
 				userController.props.sendPlaintextOnly = v
-				update(userController.props)
+				this.entityClient.update(userController.props)
 			},
 			dropdownWidth: 250,
 		}
@@ -240,7 +245,7 @@ export class MailSettingsSection implements SettingsSection {
 			selectedValue: this.noAutomaticContacts,
 			selectionChangedHandler: v => {
 				userController.props.noAutomaticContacts = v
-				update(userController.props)
+				this.entityClient.update(userController.props)
 			},
 			dropdownWidth: 250
 		}
@@ -264,12 +269,12 @@ export class MailSettingsSection implements SettingsSection {
 			selectedValue: this.enableMailIndexing,
 			selectionChangedHandler: mailIndexEnabled => {
 				if (mailIndexEnabled) {
-					showProgressDialog("pleaseWait_msg", worker.indexerFacade.enableMailIndexing())
+					showProgressDialog("pleaseWait_msg", this.indexerFacade.enableMailIndexing())
 						.catch(ofClass(IndexingNotSupportedError, () => {
 							Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}))
 				} else {
-					showProgressDialog("pleaseWait_msg", worker.indexerFacade.disableMailIndexing("Disabled by user"))
+					showProgressDialog("pleaseWait_msg", this.indexerFacade.disableMailIndexing("Disabled by user"))
 				}
 			},
 			dropdownWidth: 250
@@ -347,13 +352,13 @@ export class MailSettingsSection implements SettingsSection {
 			let p = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				p = load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
+				p = this.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
 					this.updateTutanotaPropertiesSettings(props)
 					// this.updateInboxRules(props)
 				})
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				p = load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+				p = this.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this.senderName(groupInfo.name)
 					m.redraw()
 				})
@@ -377,8 +382,9 @@ export class MailDropdownSettingsSection implements SettingsSection {
 	inboxRulesTableLines: Stream<Array<TableLineAttrs>>
 	notificationTableLines: Stream<Array<TableLineAttrs>>
 	identifierListViewer: IdentifierListViewer
+	entityClient: EntityClient
 
-	constructor(userController: IUserController) {
+	constructor(userController: IUserController, entityClient: EntityClient) {
 		this.heading = "Mail Tables"
 		this.category = "Mails"
 		this.settingsValues = []
@@ -387,6 +393,7 @@ export class MailDropdownSettingsSection implements SettingsSection {
 		this.inboxRulesTableLines = stream([])
 		this.notificationTableLines = stream([])
 		this.identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
+		this.entityClient = entityClient
 
 		this.settingsValues.push(this.createAliasSetting(userController))
 		this.settingsValues.push(this.createInboxRulesSetting())
@@ -463,7 +470,7 @@ export class MailDropdownSettingsSection implements SettingsSection {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this.getTextForTarget(mailboxDetails, rule.targetFolder)],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
-						updateInstance: () => update(props).catch(ofClass(LockedError, noOp))
+						updateInstance: () => this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 					}, rule, index, [
 						{
 							label: "edit_action",
@@ -520,14 +527,14 @@ export class MailDropdownSettingsSection implements SettingsSection {
 			let p = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				p = load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
+				p = this.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
 					this.updateInboxRules(props)
 				})
 			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				this.updateInboxRules(logins.getUserController().props)
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				p = load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+				p = this.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this.editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()
 				})

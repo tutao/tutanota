@@ -176,7 +176,7 @@ export function showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
 			const addEmailAliasOkAction = (dialog) => {
 				if (isVerificationBusy) return
 				if (formErrorId) {
-					Dialog.error(formErrorId)
+					Dialog.message(formErrorId)
 					return
 				}
 
