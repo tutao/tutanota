@@ -27,7 +27,7 @@
 		"@tutao/tutanota-utils": "3.91.6",
 		"cborg": "^1.5.4",
 		"dompurify": "2.3.0",
-		"keytar": "7.7.0",
+		"keytar": "github:tutao/node-keytar#8a2eed049a2871837d432ae6ed10e372ccd93f8d",
 		"linkifyjs": "3.0.5",
 		"luxon": "1.28.0",
 		"mithril": "2.0.4",
