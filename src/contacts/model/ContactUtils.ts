@@ -1,8 +1,7 @@
 import {lang} from "../../misc/LanguageViewModel"
 import type {Contact} from "../../api/entities/tutanota/Contact"
-import {neverNull} from "@tutao/tutanota-utils"
 import type {Birthday} from "../../api/entities/tutanota/Birthday"
-import {formatDate, formatDateWithMonth} from "../../misc/Formatter"
+import {formatDate} from "../../misc/Formatter"
 import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 
@@ -28,9 +27,9 @@ export function getContactListName(contact: Contact): string {
 
 export function formatBirthdayNumeric(birthday: Birthday): string {
 	if (birthday.year) {
-		return formatDate(new Date(Number(neverNull(birthday).year), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		return formatDate(new Date(Number(birthday.year), Number(birthday.month) - 1, Number(birthday.day)))
 	} else {
-		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(neverNull(birthday).month) - 1, Number(neverNull(birthday).day)))
+		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(birthday.month) - 1, Number(birthday.day)))
 	}
 }
 
