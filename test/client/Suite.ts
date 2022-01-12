@@ -53,8 +53,8 @@ import "./misc/credentials/CredentialsKeyProviderTest"
 import "./misc/credentials/CredentialsMigrationTest"
 import "./common/TranslationKeysTest"
 import o from "ospec"
-import {random} from "@tutao/tutanota-crypto"
 import {preTest, reportTest} from "../api/TestUtils"
+import {random} from "@tutao/tutanota-crypto"
 
 (async () => {
 	if (typeof process != "undefined") {
@@ -77,6 +77,7 @@ import {preTest, reportTest} from "../api/TestUtils"
 		await import("./desktop/DesktopContextMenuTest.js")
 		await import("./desktop/KeyStoreFacadeTest.js")
 		await import ("./desktop/config/ConfigFileTest.js")
+		await import("./desktop/db/OfflineDbTest")
 		await import ("./desktop/credentials/DesktopCredentialsEncryptionTest")
 	}
 

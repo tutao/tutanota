@@ -14,6 +14,7 @@ import {Type} from "../../common/EntityConstants"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {expandId} from "./EntityRestCache"
 import {InstanceMapper} from "../crypto/InstanceMapper"
+import {QueuedBatch} from "../search/EventQueue"
 
 assertWorkerOrNode()
 
@@ -67,7 +68,7 @@ export interface EntityRestInterface {
 	 * @param batch The entity events that were received.
 	 * @return Similar to the events in the data parementer, but reduced by the events which are obsolete.
 	 */
-	entityEventsReceived(batch: Array<EntityUpdate>): Promise<Array<EntityUpdate>>
+	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>>
 }
 
 /**
@@ -348,8 +349,8 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(batch: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
-		return Promise.resolve(batch)
+	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+		return Promise.resolve(batch.events)
 	}
 
 	getRestClient(): RestClient {

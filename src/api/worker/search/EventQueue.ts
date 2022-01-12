@@ -1,13 +1,11 @@
 import {OperationType} from "../../common/TutanotaConstants"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import {assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove} from "@tutao/tutanota-utils"
 import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import {findAllAndRemove, remove} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {isSameId} from "../../common/utils/EntityUtils"
-import {isSameTypeRefByAttr} from "@tutao/tutanota-utils"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {EntityUpdateData} from "../../main/EventController";
 

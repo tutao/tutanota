@@ -4,7 +4,7 @@ import {Indexer} from "./search/Indexer"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityRestClient} from "./rest/EntityRestClient"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
-import {EntityRestCache} from "./rest/EntityRestCache"
+import {CacheStorage, EntityRestCache, isUsingOfflineCache} from "./rest/EntityRestCache"
 import {GroupManagementFacadeImpl} from "./facades/GroupManagementFacade"
 import {MailFacade} from "./facades/MailFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
@@ -35,7 +35,10 @@ import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
-
+import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
+import {OfflineStorage} from "./rest/OfflineStorage"
+import {exposeRemote} from "../common/WorkerProxy"
+import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
 
 assertWorkerOrNode()
 export type WorkerLocatorType = {
@@ -79,11 +82,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.restClient = new RestClient(suspensionHandler)
 	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient, () => locator.crypto, locator.instanceMapper)
 	locator._browserData = browserData
-	let cache = new EntityRestCache(entityRestClient)
-	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
+
+	locator.native = worker
+
+	// We don't wont to cache within the admin client
+	const cache = isAdminClient() ? null : makeEntityRestCache(entityRestClient)
+	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
-	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
+	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
 	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 	locator.login = new LoginFacadeImpl(
@@ -124,12 +131,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const aesApp = new AesApp(worker)
 	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper)
 	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient, locator.crypto)
-	locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper)
+	// not needed for admin client
+	if (cache) {
+		locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper)
+	}
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(
 		worker,
 		locator.indexer,
-		locator.cache,
+		cache ?? new AdminClientRestCacheDummy(),
 		locator.mail,
 		locator.login,
 		locator.cachingEntityClient,
@@ -142,7 +152,17 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.configFacade = new ConfigurationDatabase(locator.login)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacadeImpl()
-	locator.native = worker
+}
+
+function makeEntityRestCache(entityRestClient: EntityRestClient) {
+	let cacheStorage: CacheStorage
+	if (isUsingOfflineCache()) {
+		const {offlineDbFacade} = exposeRemote((request) => locator.native.invokeNative(request))
+		cacheStorage = new OfflineStorage(offlineDbFacade, () => locator.login.isLoggedIn() ? locator.login.getLoggedInUser()._id : null)
+	} else {
+		cacheStorage = new EphemeralCacheStorage()
+	}
+	return new EntityRestCache(entityRestClient, cacheStorage)
 }
 
 export function resetLocator(): Promise<void> {

@@ -6,13 +6,15 @@ import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
+import {getSqliteNativeModulePath, sqliteNativeBannerPlugin} from "../buildSrc/cachedSqliteProvider.js"
 
-const root = dirname(fileURLToPath(import.meta.url))
+const testRoot = dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(path.join(testRoot, ".."))
 
 export async function build(buildOptions, serverOptions, log) {
 	log("Building tests")
 
-	const pjPath = path.join(root, "..", "package.json")
+	const pjPath = path.join(projectRoot, "package.json")
 	await fs.mkdir(buildDir(), {recursive: true})
 	const {version} = JSON.parse(await fs.readFile(pjPath, "utf8"))
 	await fs.copyFile(pjPath, buildDir("package.json"))
@@ -29,6 +31,14 @@ export async function build(buildOptions, serverOptions, log) {
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(path.resolve(".."), {outDir: "build"}),
 			nodeResolve({preferBuiltins: true}),
+			sqliteNativeBannerPlugin(
+				{
+					environment: "node",
+					rootDir: projectRoot,
+					dstPath: buildDir("better_sqlite3.node")
+				},
+				log
+			),
 		],
 	})
 	return [
@@ -67,6 +77,7 @@ function resolveTestLibsPlugin() {
 					return path.resolve("../node_modules/mithril/test-utils/browserMock.js")
 				case "ospec":
 					return ("../node_modules/ospec/ospec.js")
+				case "better-sqlite3":
 				case "crypto":
 				case "xhr2":
 				case "express":
@@ -132,5 +143,5 @@ function _writeFile(targetFile, content) {
 }
 
 function buildDir(...files) {
-	return path.join(root, "build", ...files)
+	return path.join(testRoot, "build", ...files)
 }

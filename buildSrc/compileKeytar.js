@@ -5,10 +5,10 @@
 	You can use the --verbose option to get more output from the build command (gyp), there also is a --debug option that will pass the
 	DEBUG flag to the keytar build.
  */
-import {spawn} from "child_process"
 import options from "commander"
 import {createRequire} from 'module';
 import path from 'path'
+import {spawn} from "child_process"
 
 let opts
 options
@@ -38,7 +38,7 @@ async function buildKeytarForElectron(opts) {
 	if (debug) {
 		gypOpts.push("--debug")
 	} else {
-		gypOpts.push("--release",)
+		gypOpts.push("--release")
 	}
 
 	if (verbose) {

@@ -30,6 +30,8 @@ import "./worker/ConfigurationDbTest"
 import "./worker/CompressionTest"
 import "../api/common/PlainTextSearchTest"
 import "../api/common/EntityUtilsTest"
+import "./rest/CborDateEncoderTest.js"
+
 import {preTest, reportTest} from "./TestUtils"
 import {random} from "@tutao/tutanota-crypto"
 

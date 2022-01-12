@@ -11,7 +11,7 @@ export const dependencyMap = {
 	"luxon": path.normalize("./libs/luxon.js"),
 	"linkifyjs": path.normalize("./libs/linkify.js"),
 	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
-	"cborg": path.normalize("./libs/cborg-decode.js")
+	"cborg": path.normalize("./libs/cborg.js")
 }
 
 /**
@@ -121,8 +121,7 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		moduleId.includes(path.normalize("src/misc/ErrorHandlerImpl")) ||
 		moduleId.includes(path.normalize("src/misc")) ||
 		moduleId.includes(path.normalize("src/file")) ||
-		moduleId.includes(path.normalize("src/gui")) ||
-		moduleId.includes("cborg")
+		moduleId.includes(path.normalize("src/gui"))
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"
@@ -152,6 +151,7 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	} else if (moduleId.includes(path.normalize("src/api/common"))
 		|| moduleId.includes(path.normalize("src/api/entities"))
 		|| moduleId.includes(path.normalize("src/desktop/config/ConfigKeys"))
+		|| moduleId.includes("cborg")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway

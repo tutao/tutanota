@@ -20,12 +20,15 @@ async function run() {
 
 	try {
 		const buildServerClient = new BuildServerClient("test")
-		await buildServerClient.buildWithServer({
+		const buildServerOpts = {
 			forceRestart: clean,
 			builderPath: path.resolve("TestBuilder.js"),
 			watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
 			autoRebuild: false
-		}, {clean: false, stage: null, host: null})
+		}
+		const buildOpts = {clean: false, stage: null, host: null}
+		await buildServerClient.buildWithServer(buildServerOpts, buildOpts)
+		// await buildWithoutServer(buildOpts, buildServerOpts)
 		console.log("build finished!")
 		const code = await runTest(project)
 		process.exit(code)
@@ -35,8 +38,8 @@ async function run() {
 	}
 }
 
-async function runBuildDirectly() {
-	const bundleWrappers = await build({clean: false, stage: null, host: null}, {}, console.log.bind(console))
+async function buildWithoutServer(buildOptions, serverOptions) {
+	const bundleWrappers = await build(buildOptions, serverOptions, console.log.bind(console))
 	await bundleWrappers[0].generate()
 }
 

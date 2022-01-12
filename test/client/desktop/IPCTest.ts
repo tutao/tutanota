@@ -19,6 +19,7 @@ import {DesktopErrorHandler} from "../../../src/desktop/DesktopErrorHandler";
 import {DesktopIntegrator} from "../../../src/desktop/integration/DesktopIntegrator";
 import {DesktopAlarmScheduler} from "../../../src/desktop/sse/DesktopAlarmScheduler";
 import {ThemeManager} from "../../../src/desktop/ThemeManager";
+import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade"
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption"
 
 o.spec("IPC tests", function () {
@@ -196,6 +197,7 @@ o.spec("IPC tests", function () {
 			autoUpdaterMock: n.mock<ElectronUpdater>("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock<DesktopAlarmScheduler>("__alarmScheduler", alarmScheduler).set(),
 			themeManagerMock: n.mock<ThemeManager>("__themeManager", themeManager).set(),
+			offlineDbFacadeMock: n.mock<OfflineDbFacade>("__offlineDbFacade", {}).set(),
 			credentialsEncryption: n.mock<DektopCredentialsEncryption>("__credentialsEncryption", new DesktopCredentialsEncryptionStub()).set()
 		}
 	}
@@ -218,6 +220,7 @@ o.spec("IPC tests", function () {
 			desktopIntegratorMock,
 			alarmSchedulerMock,
 			themeManagerMock,
+			offlineDbFacadeMock,
 			credentialsEncryption
 		} = sm
 		const ipc = new IPC(
@@ -236,6 +239,7 @@ o.spec("IPC tests", function () {
 			desktopIntegratorMock,
 			alarmSchedulerMock,
 			themeManagerMock,
+			offlineDbFacadeMock,
 			credentialsEncryption
 		)
 		o(electronMock.ipcMain.on.callCount).equals(0)
