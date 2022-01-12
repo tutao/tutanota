@@ -2,7 +2,7 @@ import {resolveLibs} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "fs"
-import path from "path"
+import path, {dirname} from "path"
 import {rollup} from "rollup"
 import {terser} from "rollup-plugin-terser"
 import commonjs from "@rollup/plugin-commonjs"
@@ -12,8 +12,12 @@ import {create as createEnv, preludeEnvPlugin} from "./env.js"
 import cp from 'child_process'
 import util from 'util'
 import typescript from "@rollup/plugin-typescript"
+import {sqliteNativeBannerPlugin} from "./cachedSqliteProvider.js"
+import {fileURLToPath} from "url"
 
 const exec = util.promisify(cp.exec)
+const buildSrc = dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
 export async function buildDesktop({
 									   dirname, // directory this was called from
@@ -68,6 +72,7 @@ export async function buildDesktop({
 			throw e
 		}
 	}
+
 	console.log("Bundling desktop client")
 	await rollupDesktop(dirname, path.join(distDir, "desktop"), version)
 
@@ -126,9 +131,17 @@ async function rollupDesktop(dirname, outDir, version) {
 			commonjs({
 				exclude: "src/**",
 				requireReturnsDefault: "preferred",
+				ignoreDynamicRequires: true,
 			}),
 			terser(),
-			preludeEnvPlugin(createEnv({staticUrl: null, version, mode: "Desktop", dist: true}))
+			preludeEnvPlugin(createEnv({staticUrl: null, version, mode: "Desktop", dist: true})),
+			sqliteNativeBannerPlugin(
+				{
+					environment: "electron",
+					rootDir: projectRoot,
+					dstPath: "./build/dist/desktop/better_sqlite3.node"
+				}
+			),
 		]
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})

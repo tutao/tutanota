@@ -1,5 +1,5 @@
 import fs from "fs-extra"
-import {default as path, dirname} from "path"
+import {default as path} from "path"
 import {fileURLToPath} from "url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import * as env from "./env.js"
@@ -9,9 +9,10 @@ import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
+import {sqliteNativeBannerPlugin} from "./cachedSqliteProvider.js"
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const root = path.dirname(__dirname)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
 
 async function createBootstrap(env) {
 	let jsFileName
@@ -67,7 +68,7 @@ function getStaticUrl(stage, mode, host) {
 
 async function prepareAssets(stage, host, version) {
 	await Promise.all([
-		await fs.emptyDir("build/images"),
+		await fs.emptyDir(path.join(root, "build/images")),
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/desktop-icons'), path.join(root, '/build/icons')),
@@ -109,16 +110,7 @@ export async function preBuild({}, {}, log) {
 export async function postBuild({}, {}, log) {
 }
 
-export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
-	log("Building app")
-
-	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
-	await prepareAssets(stage, host, version)
-	const start = Date.now()
-	const nollup = (await import('nollup')).default
-
-	log("Bundling...")
-
+async function bundleWeb(nollup, devServerPort, log, start) {
 	const bundle = await nollup({
 		input: ["src/app.ts", "src/api/worker/worker.ts"],
 		plugins: [
@@ -153,17 +145,33 @@ importScripts("./worker.js")
 	}
 
 	log("Bundled in", Date.now() - start)
+	return {bundle, generate: generateBundle}
+}
+
+export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
+	log("Building app")
+
+	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
+	await prepareAssets(stage, host, version)
+	const start = Date.now()
+	const nollup = (await import('nollup')).default
+
+	log("Bundling...")
+	const webBundleWrapper = await bundleWeb(nollup, devServerPort, log, start)
 
 	let desktopBundles
 	if (desktop) {
-		desktopBundles = await buildAndStartDesktop(log, version)
+		desktopBundles = await bundleDesktop(log, version)
 	} else {
 		desktopBundles = []
 	}
-	return [{bundle, generate: generateBundle}, ...desktopBundles]
+	return [
+		webBundleWrapper,
+		...desktopBundles
+	]
 }
 
-async function buildAndStartDesktop(log, version) {
+async function bundleDesktop(log, version) {
 	log("Building desktop client...")
 
 	const desktopIconsPath = path.join(root, "/resources/desktop-icons")
@@ -181,6 +189,7 @@ async function buildAndStartDesktop(log, version) {
 	await fs.writeFile(path.join(root, "./build/package.json"), content, 'utf-8')
 
 	const nollup = (await import('nollup')).default
+
 	log("desktop main bundle")
 	const nodePreBundle = await nollup({
 		input: path.join(root, "src/desktop/DesktopMain.ts"),
@@ -189,7 +198,15 @@ async function buildAndStartDesktop(log, version) {
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true,}),
-			env.preludeEnvPlugin(env.create({staticUrl: null, version, mode: "Desktop", dist: false}))
+			env.preludeEnvPlugin(env.create({staticUrl: null, version, mode: "Desktop", dist: false})),
+			sqliteNativeBannerPlugin(
+				{
+					environment: "electron",
+					rootDir: root,
+					dstPath: path.join(root, "build/native/better_sqlite3.node")
+				},
+				log
+			),
 		],
 	})
 

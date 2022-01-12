@@ -13,7 +13,6 @@ import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {lang} from "../misc/LanguageViewModel"
-// @ts-ignore[untyped-import]
 import en from "../translations/en"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
@@ -38,6 +37,17 @@ import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionImpl} from "./credentials/DektopCredentialsEncryption"
+import path from "path"
+import {OfflineDbFacade} from "./db/OfflineDbFacade"
+import {OfflineDb} from "./db/OfflineDb"
+
+/**
+ * Should be injected during build time.
+ * See sqliteNativeBannerPlugin.
+ */
+declare const buildOptions: {
+	readonly sqliteNativePath: string
+}
 
 mp()
 type Components = {
@@ -124,6 +134,15 @@ async function createComponents(): Promise<Components> {
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
+
+	const offlineDbFactory = async (userId: Id) => {
+		const db = new OfflineDb(buildOptions.sqliteNativePath)
+		const dbPath = path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
+		await db.init(dbPath)
+		return db
+	}
+
+	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 	const ipc = new IPC(
 		conf,
 		notifier,
@@ -140,6 +159,7 @@ async function createComponents(): Promise<Components> {
 		integrator,
 		desktopAlarmScheduler,
 		themeManager,
+		offlineDbFacade,
 		credentialsEncryption,
 	)
 	wm.setIPC(ipc)

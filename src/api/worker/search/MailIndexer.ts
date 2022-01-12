@@ -12,14 +12,7 @@ import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail
 import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
 import {flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
-import {
-	_createNewIndexUpdate,
-	encryptIndexKeyBase64,
-	filterMailMemberships,
-	getPerformanceTimestamp,
-	htmlToText,
-	typeRefToTypeInfo
-} from "./IndexUtils"
+import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {FileTypeRef} from "../../entities/tutanota/File"
@@ -28,16 +21,17 @@ import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {DbError} from "../../common/error/DbError"
-import {EntityRestCache} from "../rest/EntityRestCache"
+import {EntityRestCache, isUsingOfflineCache} from "../rest/EntityRestCache"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import type {EntityRestInterface} from "../rest/EntityRestClient"
+import {EntityRestClient} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import type {SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController";
+import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage";
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -55,7 +49,8 @@ export class MailIndexer {
 	_core: IndexerCore
 	_db: Db
 	_worker: WorkerImpl
-	_entityRestClient: EntityRestInterface
+	_entityRestClient: EntityRestClient
+	_defaultCachingEntityRestClient: EntityRestCache
 	_defaultCachingEntity: EntityClient
 	_dateProvider: DateProvider
 
@@ -63,12 +58,13 @@ export class MailIndexer {
 		core: IndexerCore,
 		db: Db,
 		worker: WorkerImpl,
-		entityRestClient: EntityRestInterface,
-		defaultCachingRestClient: EntityRestInterface,
+		entityRestClient: EntityRestClient,
+		defaultCachingRestClient: EntityRestCache,
 		dateProvider: DateProvider,
 	) {
 		this._core = core
 		this._db = db
+		this._defaultCachingEntityRestClient = defaultCachingRestClient
 		this._defaultCachingEntity = new EntityClient(defaultCachingRestClient)
 		this._worker = worker
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
@@ -369,7 +365,8 @@ export class MailIndexer {
 
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-		const indexLoader = new IndexLoader(this._entityRestClient)
+		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient)
+
 		return promiseMap(mailBoxes, mBoxData => {
 			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
 				return {
@@ -444,26 +441,25 @@ export class MailIndexer {
 	 * @return Number of processed emails?
 	 * @private
 	 */
-	_prepareMailDataForTimeBatch(mboxDataList: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<void> {
+	async _prepareMailDataForTimeBatch(mboxDataList: Array<MboxIndexData>, timeRange: TimeRange, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<void> {
 		const startTimeLoad = getPerformanceTimestamp()
 		return promiseMap(
 			mboxDataList,
 			mboxData => {
 				return promiseMap(
 					mboxData.mailListIds.slice(),
-					listId => {
+					async listId => {
 						// We use caching here because we may load same emails twice
-						return indexLoader.loadMailsWithCache(listId, timeRange).then(({elements: mails, loadedCompletely}) => {
-							// If we loaded mail list completely, don't try to load from it anymore
-							if (loadedCompletely) {
-								mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
-							}
+						const {elements: mails, loadedCompletely} = await indexLoader.loadMailsWithCache(listId, timeRange)
+						// If we loaded mail list completely, don't try to load from it anymore
+						if (loadedCompletely) {
+							mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
+						}
 
-							this._core._stats.mailcount += mails.length
-							// Remove all processed entities from cache
-							mails.forEach(m => indexLoader.removeFromCache(m._id))
-							return this._processIndexMails(mails, indexUpdate, indexLoader)
-						})
+						this._core._stats.mailcount += mails.length
+						// Remove all processed entities from cache
+						await Promise.all(mails.map(m => indexLoader.removeFromCache(m._id)))
+						return this._processIndexMails(mails, indexUpdate, indexLoader)
 					},
 					{
 						concurrency: 2,
@@ -666,14 +662,21 @@ type MboxIndexData = {
 }
 
 class IndexLoader {
-	_entityCache: EntityRestCache
+	private readonly entityCache: EntityRestCache
+	// modified in tests
 	_entity: EntityClient
-	_cachingEntity: EntityClient
+	private readonly cachingEntity: EntityClient
 
-	constructor(restClient: EntityRestInterface) {
-		this._entityCache = new EntityRestCache(restClient)
-		this._entity = new EntityClient(restClient)
-		this._cachingEntity = new EntityClient(this._entityCache)
+	constructor(restClient: EntityRestClient, cachingEntityClient: EntityRestCache) {
+		if (isUsingOfflineCache()) {
+			this.entityCache = cachingEntityClient
+			this._entity = new EntityClient(cachingEntityClient)
+		} else {
+			cachingEntityClient = new EntityRestCache(restClient, new EphemeralCacheStorage())
+			this._entity = new EntityClient(restClient)
+		}
+		this.entityCache = cachingEntityClient
+		this.cachingEntity = new EntityClient(this.entityCache)
 	}
 
 	loadMailsWithCache(
@@ -683,7 +686,7 @@ class IndexLoader {
 		elements: Array<Mail>
 		loadedCompletely: boolean
 	}> {
-		return this._cachingEntity.loadReverseRangeBetween(
+		return this.cachingEntity.loadReverseRangeBetween(
 			MailTypeRef,
 			mailListId,
 			timestampToGeneratedId(rangeStart),
@@ -692,13 +695,15 @@ class IndexLoader {
 		)
 	}
 
-	removeFromCache(id: IdTuple) {
-		this._entityCache._tryRemoveFromCache(MailTypeRef, listIdPart(id), elementIdPart(id))
+	async removeFromCache(id: IdTuple): Promise<void> {
+		if (!isUsingOfflineCache()) {
+			return this.entityCache.deleteFromCacheIfExists(MailTypeRef, listIdPart(id), elementIdPart(id))
+		}
 	}
 
 	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
 		const ids = mails.map(m => m.body)
-		return this._loadInChunks(MailBodyTypeRef, null, ids)
+		return this.loadInChunks(MailBodyTypeRef, null, ids)
 	}
 
 	loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
@@ -710,7 +715,7 @@ class IndexLoader {
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		filesByList.forEach((fileIds, listId) => {
 			fileLoadingPromises.push(
-				this._loadInChunks(
+				this.loadInChunks(
 					FileTypeRef,
 					listId,
 					fileIds.map(f => f[1]),
@@ -721,7 +726,7 @@ class IndexLoader {
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
 	}
 
-	_loadInChunks<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, ids: Id[]): Promise<T[]> {
+	private loadInChunks<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, ids: Id[]): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return promiseMap(
 			byChunk,

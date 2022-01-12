@@ -11,6 +11,7 @@ import {Cardinality, Type, ValueType} from "../EntityConstants"
 import type {ModelValue, SomeEntity, TypeModel} from "../EntityTypes"
 import type {Hex} from "@tutao/tutanota-utils"
 import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils"
+import {ElementEntity} from "../EntityTypes"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -291,4 +292,8 @@ export function isValidGeneratedId(id: Id | IdTuple): boolean {
 	const test = (id: string) => id.length === base64extEncodedIdLength && Array.from(id).every(char => base64extAlphabet.includes(char))
 
 	return typeof id === "string" ? test(id) : id.every(test)
+}
+
+export function isElementEntity(e: SomeEntity): e is ElementEntity {
+	return typeof e._id === "string"
 }

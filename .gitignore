@@ -11,3 +11,4 @@ test-ca
 fastlane
 android-app/app/release
 app-ios/releases
+native-cache/*

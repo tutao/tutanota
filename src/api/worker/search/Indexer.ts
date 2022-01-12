@@ -57,6 +57,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils"
 import {deleteObjectStores} from "../utils/DbUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import {EntityRestCache} from "../rest/EntityRestCache"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -131,7 +132,7 @@ export class Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
+	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestCache) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
@@ -153,6 +154,8 @@ export class Indexer {
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
 		this._realtimeEventQueue = new EventQueue(false, (nextElement: QueuedBatch) => {
+			// During initial loading we remember the last batch we loaded
+			// so if we get updates from EventBusClient here for things that are already loaded we discard them
 			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
 
 			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
@@ -565,6 +568,7 @@ export class Indexer {
 		// Add them directly to the core so that they are added before the realtime batches
 		this._core.addBatchesToQueue(batchesOfAllGroups)
 
+		// Add latest batches per group so that we can filter out overlapping realtime updates later
 		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
 
 		this._realtimeEventQueue.resume()

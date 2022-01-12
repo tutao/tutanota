@@ -166,7 +166,7 @@ async function buildWebapp(version) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.ts"],
 		plugins: [
-			typescript(),
+			typescript({include: "src/polyfill.ts"}),
 			MINIFY && terser(),
 			{
 				name: "append-libs",
@@ -199,10 +199,7 @@ async function buildWebapp(version) {
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
-			typescript({
-				// module: "CommonJS",
-				// outDir: "build/dist"
-			}),
+			typescript(),
 			resolveLibs(),
 			commonjs({
 				exclude: "src/**",

@@ -34,6 +34,7 @@ export function rollupDebugPlugins(baseDir, tsOptions) {
 			// "auto" will try to wrap into namespace, "preferred" will try to use default export as a namespace which is something that
 			// we want in most cases.
 			requireReturnsDefault: "preferred",
+			ignoreDynamicRequires: true,
 		}),
 	]
 }

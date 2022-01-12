@@ -27,6 +27,9 @@ import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
 import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
+import {OfflineDbFacade} from "./db/OfflineDbFacade"
+import {exposeLocal} from "../api/common/WorkerProxy"
+import {ExposedNativeInterface} from "../native/common/NativeInterface"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -47,10 +50,12 @@ export class IPC {
 	readonly _err: DesktopErrorHandler
 	readonly _integrator: DesktopIntegrator
 	readonly _themeManager: ThemeManager
+	private readonly _offlineDbFacade: OfflineDbFacade
 	readonly _credentialsEncryption: DektopCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
 	readonly _queue: Record<string, (...args: Array<any>) => any>
+	private readonly facadeHandler: (message: Request<NativeRequestType>) => Promise<any>
 
 	constructor(
 		conf: DesktopConfig,
@@ -68,6 +73,7 @@ export class IPC {
 		integrator: DesktopIntegrator,
 		alarmScheduler: DesktopAlarmScheduler,
 		themeManager: ThemeManager,
+		offlineDbFacade: OfflineDbFacade,
 		credentialsEncryption: DektopCredentialsEncryption
 	) {
 		this._conf = conf
@@ -85,6 +91,8 @@ export class IPC {
 		this._integrator = integrator
 		this._alarmScheduler = alarmScheduler
 		this._themeManager = themeManager
+		this._offlineDbFacade = offlineDbFacade
+		this.facadeHandler = exposeLocal<ExposedNativeInterface, NativeRequestType>({offlineDbFacade: this._offlineDbFacade})
 		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
@@ -405,6 +413,8 @@ export class IPC {
 				await mapNullable(await this._themeManager.getSelectedThemeId(), id => this._applyTheme(id))
 				return
 			}
+			case "facade":
+				return this.facadeHandler(new Request(method, args))
 
 			case "encryptUsingKeychain": {
 				const [mode, decryptedKey] = args

@@ -2,7 +2,7 @@ import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
-import type {LoginFacade, LoginFacadeImpl} from "./LoginFacade"
+import type {LoginFacadeImpl} from "./LoginFacade"
 import {
 	asyncFindAndMap,
 	downcast,
@@ -10,7 +10,8 @@ import {
 	flatMap,
 	getFromMap,
 	groupBy,
-	groupByAndMapUniquely, isNotNull,
+	groupByAndMapUniquely,
+	isNotNull,
 	neverNull,
 	noOp,
 	ofClass,
@@ -270,34 +271,25 @@ export class CalendarFacade {
 			})
 	}
 
-	addCalendar(
-		name: string,
-	): Promise<{
-		user: User
-		group: Group
-	}> {
-		return this._groupManagementFacade.generateUserAreaGroupData(name).then(groupData => {
-			const postData = createUserAreaGroupPostData({
-				groupData,
-			})
-			return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CreateGroupPostReturnTypeRef)
-				.then(returnData => this._entityClient.load(GroupTypeRef, returnData.group))
-				.then(group => {
-					// remove the user from the cache before loading it again to make sure we get the latest version.
-					// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-					const userId = this._loginFacade.getLoggedInUser()._id
-
-					this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, userId)
-
-					return this._entityClient.load(UserTypeRef, userId).then(user => {
-						this._loginFacade._user = user
-						return {
-							user,
-							group,
-						}
-					})
-				})
+	async addCalendar(name: string,): Promise<{user: User, group: Group}> {
+		const groupData = await this._groupManagementFacade.generateUserAreaGroupData(name)
+		const postData = createUserAreaGroupPostData({
+			groupData,
 		})
+		const returnData = await serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CreateGroupPostReturnTypeRef)
+		const group = await this._entityClient.load(GroupTypeRef, returnData.group)
+		// remove the user from the cache before loading it again to make sure we get the latest version.
+		// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
+		const userId = this._loginFacade.getLoggedInUser()._id
+
+		await this._entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
+
+		const user = await this._entityClient.load(UserTypeRef, userId)
+		this._loginFacade._user = user
+		return {
+			user,
+			group,
+		}
 	}
 
 	deleteCalendar(groupRootId: Id): Promise<void> {
