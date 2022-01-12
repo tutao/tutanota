@@ -61,7 +61,7 @@ o.spec("ContactUtilsTest", function () {
 		o(result).equals(expectedResult)
 	}
 
-	o("compareContacts by first name", () => {
+	o("compareContacts by first name", function () {
 		// only first name
 		compare("Alf", "", null, "", "", null, true, -1)
 		compare("Alf", "", null, "Bob", "", null, true, -1)
@@ -94,7 +94,7 @@ o.spec("ContactUtilsTest", function () {
 
 		compare("ma", "p", "aa", "Gump", "Forrest", "aa", true, 1) // reverse id
 	})
-	o("compareContacts by last name", () => {
+	o("compareContacts by last name", function () {
 		// only first name
 		compare("Alf", "", null, "", "", null, false, -1)
 		compare("Alf", "", null, "Bob", "", null, false, -1)
@@ -152,8 +152,7 @@ o.spec("ContactUtilsTest", function () {
 		bday.year = "2009"
 	})
 
-	o("formatBirthdayNumeric", () => {
-
+	o("formatBirthdayNumeric", function () {
 		const leapYearBirthday = createBirthday()
 		leapYearBirthday.year = "2016"
 		leapYearBirthday.month = "2"
