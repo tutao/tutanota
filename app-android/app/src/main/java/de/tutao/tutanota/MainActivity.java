@@ -98,6 +98,10 @@ public class MainActivity extends FragmentActivity {
 		doApplyTheme(this.nativeImpl.themeManager.getCurrentThemeWithFallback());
 
 		super.onCreate(savedInstanceState);
+		if (!BuildConfig.DEBUG) {
+			getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+					WindowManager.LayoutParams.FLAG_SECURE);
+		}
 
 		this.setupPushNotifications();
 
