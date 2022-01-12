@@ -66,13 +66,14 @@ import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
 assertMainOrNode()
 
 export interface UpdatableSettingsViewer {
-	view(vnode?: Vnode<void>): Children
+	//this is not the same as Component:view
+	view(): Children
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 export class SettingsView implements CurrentView {
-	view: (vnod: Vnode<void>) => Children
+	view: CurrentView["view"]
 	viewSlider: ViewSlider
 	_settingsFoldersColumn: ViewColumn
 	_settingsColumn: ViewColumn

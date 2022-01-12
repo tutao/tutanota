@@ -13,6 +13,7 @@ import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -47,7 +48,6 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		this._closedSessionsExpanded = stream(false)
 		this._sessions = []
 		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
-		this.view = this.view.bind(this)
 
 		this._updateSessions()
 	}
@@ -210,7 +210,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			await this._updateSessions()
+			if (isUpdateForTypeRef(SessionTypeRef, update)) {
+				await this._updateSessions()
+			}
 			await this._secondFactorsForm.entityEventReceived(update)
 		}
 	}

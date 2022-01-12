@@ -1,10 +1,10 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Children, Component} from "mithril"
 import {alpha, AlphaEnum, animations} from "./../animation/Animations"
 import {theme} from "../theme"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {windowFacade} from "../../misc/WindowFacade"
-import {downcast, insideRect, remove} from "@tutao/tutanota-utils"
+import {insideRect, remove} from "@tutao/tutanota-utils"
 import {LayerType} from "../../RootView"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
 
@@ -227,14 +227,12 @@ class Modal {
 
 export const modal: Modal = new Modal()
 
-export interface ModalComponent {
+export interface ModalComponent extends Component<void> {
 	hideAnimation(): Promise<void>
 
 	onClose(): void
 
 	shortcuts(): Shortcut[]
-
-	view(vnode: Vnode<any>): Children
 
 	backgroundClick(e: MouseEvent): void
 
