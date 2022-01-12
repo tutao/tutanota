@@ -87,6 +87,7 @@ pipeline {
 								sh 'npm ci'
 								unstash 'keytar_win'
 								unstash 'web_base'
+								sh 'npm run build-packages'
 								withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 									sh '''
 									export JENKINS=TRUE;
@@ -113,6 +114,7 @@ pipeline {
                     steps {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
+						sh 'npm run build-packages'
 						unstash 'web_base'
 					   	withCredentials(
 					   		[
@@ -153,6 +155,7 @@ pipeline {
 						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
+						sh 'npm run build-packages'
 						sh 'node dist --existing --linux'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'

@@ -54,6 +54,7 @@ pipeline {
 					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
 					sh "echo $PATH"
 					sh "npm ci"
+					sh 'npm run build-packages'
 					sh "node dist ${stage}"
 					sh "node buildSrc/prepareMobileBuild.js dist"
 
