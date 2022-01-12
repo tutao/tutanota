@@ -1,4 +1,4 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Children} from "mithril"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/KnowledgeBaseEntry"
@@ -185,7 +185,7 @@ class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsViewer {
 		this.readonly = readonly
 	}
 
-	view(vnode: Vnode<void>): Children {
+	view(): Children {
 		return m(
 			".plr-l",
 			m(KnowledgeBaseEntryView, {

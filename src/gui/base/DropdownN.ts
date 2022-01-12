@@ -7,7 +7,6 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
-import {NavButtonN} from "./NavButtonN"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -48,8 +47,8 @@ export class DropdownN implements ModalComponent {
 	children: ReadonlyArray<DropdownChildAttrs>
 	_domDropdown: HTMLElement
 	origin: PosRect | null
-	oninit: (...args: Array<any>) => any
-	view: (...args: Array<any>) => any
+	oninit: ModalComponent["oninit"]
+	view: ModalComponent["view"]
 	_width: number
 	shortcuts: (...args: Array<any>) => any
 	_filterString: Stream<string>
@@ -166,8 +165,6 @@ export class DropdownN implements ModalComponent {
 				this._visibleChildren().map(child => {
 					if (isDropDownInfo(child)) {
 						return m(DropdownInfo, child)
-					} else if ("href" in child) {
-						return m(NavButtonN, child)
 					} else {
 						return m(ButtonN, child)
 					}

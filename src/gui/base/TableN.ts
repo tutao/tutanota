@@ -54,7 +54,7 @@ export type TableLineAttrs = {
 export class TableN implements Component<TableAttrs> {
 	view(vnode: Vnode<TableAttrs>): Children {
 		const a = vnode.attrs
-		const loading = a.lines == null
+		const loading = !a.lines
 		const alignments = a.columnAlignments || []
 		const lineAttrs = a.lines ? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments)) : []
 		return m("", [
