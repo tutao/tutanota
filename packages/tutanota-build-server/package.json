@@ -1,35 +1,35 @@
 {
-  "name": "@tutao/tutanota-build-server",
-  "version": "3.91.0",
-  "license": "GPL-3.0",
-  "main": "dist/index.js",
-  "repository": {
-	"type": "git",
-	"url": "https://github.com/tutao/tutanota.git",
-	"directory": "packages/tutanota-build-server"
-  },
-  "scripts": {
-	"test": "rm -r build; tsc --project test/tsconfig.json && cp -r test/resources build/test/ && cd build/test && node 'index.js'",
-	"build": "rm -rf dist && tsc"
-  },
-  "type": "module",
-  "files": [
-	"README.md",
-	"LICENSE.txt",
-	"dist/"
-  ],
-  "dependencies": {
-	"chokidar": "3.5.1",
-	"express": "4.17.0",
-	"express-ws": "4.0.0",
-	"fs-extra": "10.0.0"
-  },
-  "devDependencies": {
-	"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11",
-	"typescript": "4.5.4",
-	"@types/express": "4.17.0",
-	"@types/express-ws": "3.0.0",
-	"@types/node": "16.3.0",
-	"@types/fs-extra": "^9.0.13"
-  }
+	"name": "@tutao/tutanota-build-server",
+	"version": "3.91.1",
+	"license": "GPL-3.0",
+	"main": "dist/index.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tutao/tutanota.git",
+		"directory": "packages/tutanota-build-server"
+	},
+	"scripts": {
+		"test": "rm -r build; tsc --project test/tsconfig.json && cp -r test/resources build/test/ && cd build/test && node 'index.js'",
+		"build": "rm -rf dist && tsc"
+	},
+	"type": "module",
+	"files": [
+		"README.md",
+		"LICENSE.txt",
+		"dist/"
+	],
+	"dependencies": {
+		"chokidar": "3.5.1",
+		"express": "4.17.0",
+		"express-ws": "4.0.0",
+		"fs-extra": "10.0.0"
+	},
+	"devDependencies": {
+		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11",
+		"typescript": "4.5.4",
+		"@types/express": "4.17.0",
+		"@types/express-ws": "3.0.0",
+		"@types/node": "16.3.0",
+		"@types/fs-extra": "^9.0.13"
+	}
 }
