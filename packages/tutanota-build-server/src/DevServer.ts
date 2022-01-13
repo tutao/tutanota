@@ -10,7 +10,7 @@ export class DevServer {
 	private port: number
 	private log: (...args: Array<string>) => unknown
 	private webSockets
-	private httpServer: Server
+	private httpServer: Server | null = null
 
 	constructor(webRoot: string, spaRedirect: boolean, port: number, log: (...args: Array<string>) => unknown) {
 		this.webRoot = webRoot

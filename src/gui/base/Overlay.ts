@@ -20,7 +20,7 @@ export type PositionRect = {
 }
 type AnimationProvider = (dom: HTMLElement) => DomMutation
 type OverlayAttrs = {
-	component: Component<void>
+	component: Component
 	position: lazy<PositionRect>
 	createAnimation?: AnimationProvider
 	closeAnimation?: AnimationProvider
@@ -33,7 +33,7 @@ let key = 0
 
 export function displayOverlay(
 	position: lazy<PositionRect>,
-	component: Component<void>,
+	component: Component,
 	createAnimation?: AnimationProvider,
 	closeAnimation?: AnimationProvider,
 	shadowClass: string = "dropdown-shadow",
@@ -64,7 +64,7 @@ export function displayOverlay(
 	}
 }
 
-export const overlay: Component<void> = {
+export const overlay: Component = {
 	view: (): Children =>
 		m(
 			"#overlay",

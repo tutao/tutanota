@@ -114,13 +114,13 @@ type ShowProgressCallback = (arg0: Promise<unknown>) => unknown
 export class CalendarEventViewModel {
 	readonly summary: Stream<string>
 	readonly selectedCalendar: Stream<CalendarInfo | null>
-	startDate: Date
-	endDate: Date
+	startDate!: Date
+	endDate!: Date
 	// Null start or end time means the user input was invalid
-	startTime: Time | null
-	endTime: Time | null
+	startTime: Time | null = null
+	endTime: Time | null = null
 	readonly allDay: Stream<boolean>
-	repeat: RepeatData | null
+	repeat: RepeatData | null = null
 	calendars: ReadonlyMap<Id, CalendarInfo>
 	readonly attendees: Stream<ReadonlyArray<Guest>>
 	organizer: EncryptedMailAddress | null
@@ -129,7 +129,7 @@ export class CalendarEventViewModel {
 	note: string
 	readonly amPmFormat: boolean
 	readonly existingEvent: CalendarEvent | null
-	_oldStartTime: Time | null
+	private _oldStartTime: Time | null = null
 	readonly _zone: string
 	// We keep alarms read-only so that view can diff just array and not all elements
 	alarms: ReadonlyArray<AlarmInfo>

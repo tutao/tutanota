@@ -142,10 +142,10 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
  */
 
 class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
-	_domElement: HTMLElement
-	_loginFormHelpText: string
-	readonly _password: Stream<string>
-	_storedCredentials: Array<CredentialsInfo>
+	private _domElement: HTMLElement | null = null
+	private _loginFormHelpText: string
+	private readonly _password: Stream<string>
+	private _storedCredentials: Array<CredentialsInfo>
 
 	constructor() {
 		this._loginFormHelpText = lang.get("emptyString_msg")

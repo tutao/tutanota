@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {ColumnType, ViewColumn} from "./ViewColumn"
 import {windowFacade} from "../../misc/WindowFacade"
 import {size} from "../size"
@@ -33,16 +33,16 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
  * resolution on any type of device.
  */
-export class ViewSlider {
+export class ViewSlider implements Component {
 	columns: ViewColumn[]
-	_mainColumn: ViewColumn
+	private _mainColumn: ViewColumn
 	focusedColumn: ViewColumn
-	_visibleBackgroundColumns: ViewColumn[]
-	_domSlidingPart: HTMLElement
-	view: (...args: Array<any>) => any
-	_busy: Promise<unknown>
-	_parentName: string
-	_isModalBackgroundVisible: boolean
+	private _visibleBackgroundColumns: ViewColumn[]
+	private _domSlidingPart!: HTMLElement
+	view: Component["view"]
+	private _busy: Promise<unknown>
+	private _parentName: string
+	private _isModalBackgroundVisible: boolean
 
 	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
 	oncreate: () => void = () => {
@@ -150,7 +150,7 @@ export class ViewSlider {
 					onbeforeremove: vnode => {
 						return this._busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0.5, 0)))
 					},
-					onclick: (event: MouseEvent) => {
+					onclick: () => {
 						this.focus(this._visibleBackgroundColumns[0])
 					},
 				}),

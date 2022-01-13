@@ -89,15 +89,18 @@ o.spec("List", function () {
 				swipe: defaultSwipe,
 			})
 
+			// @ts-ignore
 			list._domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 100,
 				addEventListener: function () {
 				}
 			})
+			// @ts-ignore
 			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
 			list._setDomList(downcast({style: {}}))
 			list._init()
+			// @ts-ignore
 			list._domInitialized.resolve()
 
 			await list.loadInitial()
@@ -135,13 +138,16 @@ o.spec("List", function () {
 				showStatus: false,
 				swipe: defaultSwipe,
 			})
+			// @ts-ignore
 			list._domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 235,
 				addEventListener: function () {
 				}
 			})
+			// @ts-ignore
 			list._domInitialized.resolve()
+			// @ts-ignore
 			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
 			list._setDomList(downcast({style: {}}))
 			list._init()

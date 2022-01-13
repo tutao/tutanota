@@ -224,14 +224,14 @@ export class UserListView implements UpdatableSettingsViewer {
 
 export class UserRow implements VirtualRow<GroupInfo> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: GroupInfo | null
-	_domName: HTMLElement
-	_domAddress: HTMLElement
-	_domAdminIcon: HTMLElement
-	_domDeletedIcon: HTMLElement
-	_userListView: UserListView
+	private _domName!: HTMLElement
+	private _domAddress!: HTMLElement
+	private _domAdminIcon!: HTMLElement
+	private _domDeletedIcon!: HTMLElement
+	private readonly _userListView: UserListView
 
 	constructor(userListView: UserListView) {
 		this._userListView = userListView

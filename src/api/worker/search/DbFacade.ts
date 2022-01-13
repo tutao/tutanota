@@ -44,9 +44,9 @@ function extractErrorProperties(e: any): string {
 }
 
 export class DbFacade {
-	_id: string
-	_db: LazyLoaded<IDBDatabase>
-	_activeTransactions: number
+	private _id!: string
+	private _db: LazyLoaded<IDBDatabase>
+	private _activeTransactions: number
 	indexingSupported: boolean = true
 
 	constructor(version: number, onupgrade: (event: any, db: IDBDatabase) => void) {
@@ -192,10 +192,10 @@ type DbRequest = {
  * @see https://w3c.github.io/IndexedDB/#ref-for-transaction-finish
  */
 export class IndexedDbTransaction implements DbTransaction {
-	_transaction: IDBTransaction
-	_promise: Promise<void>
-	_onUnknownError: (e: any) => unknown
-	aborted: boolean
+	private readonly _transaction: IDBTransaction
+	private readonly _promise: Promise<void>
+	private readonly _onUnknownError: (e: any) => unknown
+	aborted: boolean = false
 
 	constructor(transaction: IDBTransaction, onUnknownError: (e: any) => unknown) {
 		this._transaction = transaction

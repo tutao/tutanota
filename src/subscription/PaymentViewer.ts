@@ -1,6 +1,6 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
-import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {lang} from "../misc/LanguageViewModel"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
@@ -50,15 +50,15 @@ import {TranslationKeyType} from "../misc/TranslationKey";
 assertMainOrNode()
 
 export class PaymentViewer implements UpdatableSettingsViewer {
-	_invoiceAddressField: HtmlEditor
-	_customer: Customer | null
-	_accountingInfo: AccountingInfo | null
-	_postings: CustomerAccountPosting[]
-	_outstandingBookingsPrice: number
-	_lastBooking: Booking | null
-	_paymentBusy: boolean
-	_invoiceInfo: InvoiceInfo | null
-	view: (...args: Array<any>) => any
+	private readonly _invoiceAddressField: HtmlEditor
+	private _customer: Customer | null = null
+	private _accountingInfo: AccountingInfo | null = null
+	private _postings: CustomerAccountPosting[]
+	private _outstandingBookingsPrice: number | null = null
+	private _lastBooking: Booking | null
+	private _paymentBusy: boolean
+	private _invoiceInfo: InvoiceInfo | null = null
+	view: UpdatableSettingsViewer["view"]
 
 	constructor() {
 		this._invoiceAddressField = new HtmlEditor()
@@ -206,7 +206,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						? m(
 							".small" + (this._accountBalance() < 0 ? ".content-accent-fg" : ""),
 							lang.get("unprocessedBookings_msg", {
-								"{amount}": formatPrice(this._outstandingBookingsPrice, true),
+								"{amount}": formatPrice(assertNotNull(this._outstandingBookingsPrice), true),
 							}),
 						)
 						: null,
@@ -293,7 +293,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	_accountBalance(): number {
 		const balance = this._postings && this._postings.length > 0 ? Number(this._postings[0].balance) : 0
-		return balance - this._outstandingBookingsPrice
+		return balance - assertNotNull(this._outstandingBookingsPrice)
 	}
 
 	_amountOwed(): number {
@@ -388,7 +388,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 								m.redraw()
 							})
-							.catch(ofClass(LockedError, e => "operationStillActive_msg"))
+							.catch(ofClass(LockedError, () => "operationStillActive_msg"))
 							.catch(
 								ofClass(PreconditionFailedError, error => {
 									return getPreconditionFailedPaymentMsg(error.data)

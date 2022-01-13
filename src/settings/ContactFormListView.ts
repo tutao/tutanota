@@ -237,13 +237,13 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 
 export class ContactFormRow implements VirtualRow<ContactForm> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: ContactForm | null
-	_domPageTitle: HTMLElement
-	_domUrl: HTMLElement
-	_domDeletedIcon: HTMLElement
-	_customerInfo: LazyLoaded<CustomerInfo>
+	private _domPageTitle!: HTMLElement
+	private _domUrl!: HTMLElement
+	private _domDeletedIcon!: HTMLElement
+	private _customerInfo: LazyLoaded<CustomerInfo>
 
 	constructor(customerInfo: LazyLoaded<CustomerInfo>) {
 		this.top = 0

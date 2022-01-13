@@ -89,36 +89,37 @@ export interface IMainLocator {
 }
 
 class MainLocator implements IMainLocator {
-	eventController: EventController
-	search: SearchModel
-	mailModel: MailModel
-	calendarModel: CalendarModel
-	minimizedMailModel: MinimizedMailEditorViewModel
-	contactModel: ContactModel
-	entityClient: EntityClient
-	progressTracker: ProgressTracker
-	credentialsProvider: ICredentialsProvider
-	worker: WorkerClient
-	fileController: FileController
-	secondFactorHandler: SecondFactorHandler
-	loginFacade: LoginFacade
-	customerFacade: CustomerFacade
-	giftCardFacade: GiftCardFacade
-	groupManagementFacade: GroupManagementFacade
-	configFacade: ConfigurationDatabase
-	calendarFacade: CalendarFacade
-	mailFacade: MailFacade
-	shareFacade: ShareFacade
-	counterFacade: CounterFacade
-	indexerFacade: Indexer
-	searchFacade: SearchFacade
-	bookingFacade: BookingFacade
-	mailAddressFacade: MailAddressFacade
-	fileFacade: FileFacade
-	userManagementFacade: UserManagementFacade
-	contactFormFacade: ContactFormFacade
-	deviceEncryptionFacade: DeviceEncryptionFacade
-	_nativeInterfaces: NativeInterfaces | null = null
+	eventController!: EventController
+	search!: SearchModel
+	mailModel!: MailModel
+	calendarModel!: CalendarModel
+	minimizedMailModel!: MinimizedMailEditorViewModel
+	contactModel!: ContactModel
+	entityClient!: EntityClient
+	progressTracker!: ProgressTracker
+	credentialsProvider!: ICredentialsProvider
+	worker!: WorkerClient
+	fileController!: FileController
+	secondFactorHandler!: SecondFactorHandler
+	loginFacade!: LoginFacade
+	customerFacade!: CustomerFacade
+	giftCardFacade!: GiftCardFacade
+	groupManagementFacade!: GroupManagementFacade
+	configFacade!: ConfigurationDatabase
+	calendarFacade!: CalendarFacade
+	mailFacade!: MailFacade
+	shareFacade!: ShareFacade
+	counterFacade!: CounterFacade
+	indexerFacade!: Indexer
+	searchFacade!: SearchFacade
+	bookingFacade!: BookingFacade
+	mailAddressFacade!: MailAddressFacade
+	fileFacade!: FileFacade
+	userManagementFacade!: UserManagementFacade
+	contactFormFacade!: ContactFormFacade
+	deviceEncryptionFacade!: DeviceEncryptionFacade
+
+	private _nativeInterfaces: NativeInterfaces | null = null
 
 	get native(): NativeInterfaceMain {
 		return this._getNativeInterface("native")
@@ -144,9 +145,9 @@ class MainLocator implements IMainLocator {
 		return this._nativeInterfaces[name]
 	}
 
-	readonly _workerDeferred: DeferredObject<WorkerClient>
-	_entropyCollector: EntropyCollector
-	_deferredInitialized: DeferredObject<void> = defer()
+	private readonly _workerDeferred: DeferredObject<WorkerClient>
+	private _entropyCollector!: EntropyCollector
+	private _deferredInitialized: DeferredObject<void> = defer()
 
 	get initialized(): Promise<void> {
 		return this._deferredInitialized.promise

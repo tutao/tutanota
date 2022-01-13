@@ -28,10 +28,10 @@ export interface PlatformTray {
 const platformTray: PlatformTray = process.platform === "darwin" ? new MacTray() : new NonMacTray()
 
 export class DesktopTray {
-	readonly _conf: DesktopConfig
-	_wm: WindowManager
-	_tray: Tray | null
-	_icon: NativeImage | null
+	private readonly _conf: DesktopConfig
+	private _wm!: WindowManager
+	private _tray: Tray | null = null
+	private _icon: NativeImage | null = null
 
 	constructor(config: DesktopConfig) {
 		this._conf = config

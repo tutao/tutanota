@@ -18,10 +18,10 @@ export type ScrollSelectListAttrs<T> = {
 }
 
 export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> {
-	_handleSelectionMapping: Stream<void>
-	_selectedItem: T | null
+	private _handleSelectionMapping: Stream<void>
+	private _selectedItem: T | null = null
 
-	constructor(vnode: Vnode<ScrollSelectListAttrs<T>>) {
+	constructor() {
 		this._handleSelectionMapping = stream()
 	}
 

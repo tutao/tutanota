@@ -17,13 +17,12 @@ import {EntityClient} from "../api/common/EntityClient"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
-import type {UpdatableSettingsViewer} from "./SettingsView"
+import type {UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
 import type {lazy} from "@tutao/tutanota-utils"
 
-export class TemplateDetailsViewer implements UpdatableSettingsViewer {
+export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	isReadOnly: lazy<boolean>
-	view: (...args: Array<any>) => any
-	_templateContentEditor: HtmlEditor
+	readonly view: UpdatableSettingsDetailsViewer["view"]
 
 	constructor(template: EmailTemplate, entityClient: EntityClient, isReadOnly: lazy<boolean>) {
 		this.isReadOnly = isReadOnly

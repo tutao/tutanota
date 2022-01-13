@@ -216,8 +216,8 @@ type VisualDatePickerAttrs = {
 }
 
 export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
-	_displayingDate: Date
-	_lastSelectedDate: Date | null
+	private _displayingDate: Date
+	private _lastSelectedDate: Date | null = null
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
 		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())

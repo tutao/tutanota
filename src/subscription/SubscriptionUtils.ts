@@ -133,15 +133,15 @@ export function isDowngrade(targetSubscription: SubscriptionType, currentSubscri
 }
 
 export type SubscriptionActionButtons = {
-	Free: Component<void>
-	Premium: Component<void>
-	PremiumBusiness: Component<void>
-	Teams: Component<void>
-	TeamsBusiness: Component<void>
-	Pro: Component<void>
+	Free: Component
+	Premium: Component
+	PremiumBusiness: Component
+	Teams: Component
+	TeamsBusiness: Component
+	Pro: Component
 }
 
-export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): Component<void> {
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): Component {
 	switch (subscription) {
 		case SubscriptionType.Free:
 			return actionButtons.Free

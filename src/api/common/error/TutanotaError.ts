@@ -11,12 +11,14 @@
  * In order to correctly set the class type of the error after deserialization (needed for e instanceof CustomError to work), the error class needs to be added to the ErrorNameToType map in Utils.js.
  */
 const ExtendableErrorF = function ExtendableError() {
+	// @ts-ignore
 	Error.apply(this, arguments)
 }
 
 // Warning: huge type hack
 // You can't import downcast here
 ExtendableErrorF.prototype = Object.create(Error.prototype)
+// @ts-ignore
 const ExtendableError: Class<Error> = ExtendableErrorF as any
 
 export class TutanotaError extends ExtendableError {

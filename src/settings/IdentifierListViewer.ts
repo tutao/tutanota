@@ -77,10 +77,10 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 }
 
 export class IdentifierListViewer {
-	_currentIdentifier: string | null
-	_expanded: Stream<boolean>
-	_user: User | null
-	_identifiers: Stream<PushIdentifier[]>
+	private _currentIdentifier: string | null = null
+	private readonly _expanded: Stream<boolean>
+	private readonly _user: User | null
+	private readonly _identifiers: Stream<PushIdentifier[]>
 
 	constructor(user: User | null) {
 		this._expanded = stream(false)

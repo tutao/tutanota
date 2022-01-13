@@ -1,6 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 const GIFT_CARD_MESSAGE_COLS = 26
 const GIFT_CARD_MESSAGE_HEIGHT = 5
@@ -14,7 +15,7 @@ type GiftCardMessageEditorFieldAttrs = {
  * A text area that allows you to edit some text that is limited to fit within a certain rows/columns boundary
  */
 export class GiftCardMessageEditorField implements Component<GiftCardMessageEditorFieldAttrs> {
-	textAreaDom: HTMLTextAreaElement
+	textAreaDom: HTMLTextAreaElement | null = null
 	isActive: boolean = false
 
 	view(vnode: Vnode<GiftCardMessageEditorFieldAttrs>): Children {
@@ -35,21 +36,22 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 				onblur: () => {
 					this.isActive = false
 				},
-				oninput: (e: InputEvent) => {
-					const origStart = this.textAreaDom.selectionStart
-					const origEnd = this.textAreaDom.selectionEnd
+				oninput: () => {
+					const textAreaDom = assertNotNull(this.textAreaDom)
+					const origStart = textAreaDom.selectionStart
+					const origEnd = textAreaDom.selectionEnd
 
 					// remove characters from the end
-					while (this.textAreaDom.clientHeight < this.textAreaDom.scrollHeight) {
-						this.textAreaDom.value = this.textAreaDom.value.substr(0, this.textAreaDom.value.length - 1)
+					while (textAreaDom.clientHeight < textAreaDom.scrollHeight) {
+						textAreaDom.value = textAreaDom.value.substr(0, textAreaDom.value.length - 1)
 					}
 
-					a.message(this.textAreaDom.value)
+					a.message(textAreaDom.value)
 
 					// the cursor gets pushed to the end when we chew up tailing characters so we put it back where it started in that case
-					if (this.textAreaDom.selectionStart - origStart > 1) {
-						this.textAreaDom.selectionStart = origStart
-						this.textAreaDom.selectionEnd = origEnd
+					if (textAreaDom.selectionStart - origStart > 1) {
+						textAreaDom.selectionStart = origStart
+						textAreaDom.selectionEnd = origEnd
 					}
 				},
 			}),

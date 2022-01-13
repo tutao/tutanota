@@ -5,12 +5,12 @@ import {neverNull} from "@tutao/tutanota-utils"
 assertMainOrNodeBoot()
 
 export class ClientDetector {
-	userAgent: string
-	browser: BrowserType
-	browserVersion: number
-	device: DeviceType
-	overflowAuto: string
-	isMacOS: boolean
+	userAgent!: string
+	browser!: BrowserType
+	browserVersion!: number
+	device!: DeviceType
+	overflowAuto!: string
+	isMacOS!: boolean
 
 	constructor() {
 	}

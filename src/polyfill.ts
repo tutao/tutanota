@@ -11,6 +11,7 @@ if (typeof performance === "undefined") {
 		// @ts-ignore
 		offset: Date.now(),
 		now: function now() {
+			// @ts-ignore
 			return Date.now() - this.offset
 		},
 	}

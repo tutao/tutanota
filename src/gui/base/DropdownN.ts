@@ -15,7 +15,7 @@ import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
-import {delay, downcast, filterNull} from "@tutao/tutanota-utils"
+import {assertNotNull, delay, downcast, filterNull, neverNull} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
 import {pureComponent} from "./PureComponent"
 import type {clickHandler} from "./GuiUtils"
@@ -45,17 +45,17 @@ function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is Dro
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN implements ModalComponent {
 	children: ReadonlyArray<DropdownChildAttrs>
-	_domDropdown: HTMLElement
-	origin: PosRect | null
+	private _domDropdown: HTMLElement | null = null
+	origin: PosRect | null = null
 	oninit: ModalComponent["oninit"]
 	view: ModalComponent["view"]
-	_width: number
+	private _width: number
 	shortcuts: (...args: Array<any>) => any
-	_filterString: Stream<string>
-	_domInput: HTMLInputElement
-	_domContents: HTMLElement
-	_isFilterable: boolean
-	_maxHeight: number | null
+	private _filterString: Stream<string>
+	private _domInput: HTMLInputElement | null = null
+	private _domContents: HTMLElement | null = null
+	private _isFilterable: boolean = false
+	private _maxHeight: number | null = null
 
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
@@ -99,7 +99,7 @@ export class DropdownN implements ModalComponent {
 							this._domInput.value = this._filterString()
 						},
 						oninput: () => {
-							this._filterString(this._domInput.value)
+							this._filterString(neverNull(this._domInput).value)
 						},
 						style: {
 							paddingLeft: px(size.hpad_large * 2),
@@ -138,7 +138,7 @@ export class DropdownN implements ModalComponent {
 								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
 								// show the dropdown.
 								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-								showDropdown(this.origin, this._domDropdown, this._maxHeight, this._width).then(() => {
+								showDropdown(this.origin, assertNotNull(this._domDropdown), this._maxHeight, this._width).then(() => {
 									if (this._domInput && !client.isMobileDevice()) {
 										this._domInput.focus()
 									} else {
@@ -152,7 +152,7 @@ export class DropdownN implements ModalComponent {
 					onscroll: (ev: EventRedraw<Event>) => {
 						const target = ev.target as HTMLElement
 						// needed here to prevent flickering on ios
-						ev.redraw = target.scrollTop < 0 && target.scrollTop + this._domContents.offsetHeight > target.scrollHeight
+						ev.redraw = this._domContents != null && target.scrollTop < 0 && target.scrollTop + this._domContents.offsetHeight > target.scrollHeight
 					},
 					style: {
 						// Fixed width for the content of this dropdown is needed to avoid that the elements in the dropdown move during
@@ -220,23 +220,23 @@ export class DropdownN implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => focusPrevious(this._domDropdown),
+				exec: () => this._domDropdown ? focusPrevious(this._domDropdown) : false,
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => focusNext(this._domDropdown),
+				exec: () => this._domDropdown ?focusNext(this._domDropdown) : false,
 				help: "selectNext_action",
 			},
 			{
 				key: Keys.UP,
-				exec: () => focusPrevious(this._domDropdown),
+				exec: () => this._domDropdown ? focusPrevious(this._domDropdown) : false,
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.DOWN,
-				exec: () => focusNext(this._domDropdown),
+				exec: () => this._domDropdown ? focusNext(this._domDropdown) : false,
 				help: "selectNext_action",
 			},
 			{
@@ -271,7 +271,7 @@ export class DropdownN implements ModalComponent {
 		let matchingButton =
 			visibleElements.length === 1 ? visibleElements[0] : visibleElements.find(b => lang.getMaybeLazy(b.label).toLowerCase() === filterString)
 
-		if (document.activeElement === this._domInput && matchingButton && matchingButton.click) {
+		if (this._domInput && document.activeElement === this._domInput && matchingButton && matchingButton.click) {
 			const click = matchingButton.click
 			click(newMouseEvent(), this._domInput)
 			return false

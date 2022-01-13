@@ -41,23 +41,23 @@ export type SseInfo = {
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 export class DesktopSseClient {
-	_app: App
-	_conf: DesktopConfig
-	_wm: WindowManager
-	_notifier: DesktopNotifier
-	_alarmScheduler: DesktopAlarmScheduler
-	_net: DesktopNetworkClient
-	_alarmStorage: DesktopAlarmStorage
-	_delayHandler: TimeoutSetter
-	_lang: LanguageViewModelType
-	_crypto: DesktopCryptoFacade
-	_connectedSseInfo: SseInfo | null
-	_connection: http.ClientRequest | null
-	_readTimeoutInSeconds: number
+	private readonly _app: App
+	private readonly _conf: DesktopConfig
+	private readonly _wm: WindowManager
+	private readonly _notifier: DesktopNotifier
+	private readonly _alarmScheduler: DesktopAlarmScheduler
+	private readonly _net: DesktopNetworkClient
+	private readonly _alarmStorage: DesktopAlarmStorage
+	private readonly _delayHandler: TimeoutSetter
+	private readonly _lang: LanguageViewModelType
+	private readonly _crypto: DesktopCryptoFacade
+	private _connectedSseInfo: SseInfo | null = null
+	private _connection: http.ClientRequest | null = null
+	_readTimeoutInSeconds!: number
 	_nextReconnect: TimeoutID | null
-	_tryToReconnect: boolean
-	_lastProcessedChangeTime: number
-	_reconnectAttempts: number
+	private _tryToReconnect: boolean
+	private _lastProcessedChangeTime: number
+	private _reconnectAttempts: number
 	// We use this promise for queueing processing of notifications. There could be a smarter queue which clears all downloads older than
 	// the response.
 	_handlingPushMessage: Promise<any>
@@ -452,63 +452,63 @@ export class DesktopSseClient {
 			}
 
 			const req: http.ClientRequest = this._net
-							.request(url, {
-								method: "GET",
-								headers,
-								// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-								timeout: 20000,
-							})
-							.on("timeout", () => {
-								log.debug("Missed notification download timeout")
-								req.abort()
-							})
-							.on("socket", s => {
-								// We add this listener purely as a workaround for some problem with net module.
-								// The problem is that sometimes request gets stuck after handshake - does not process unless some event
-								// handler is called (and it works more reliably with console.log()).
-								// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-								s.on("lookup", () => log.debug("lookup"))
-							})
-							.on("response", res => {
-								log.debug("missed notification response", res.statusCode)
+												.request(url, {
+													method: "GET",
+													headers,
+													// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+													timeout: 20000,
+												})
+												.on("timeout", () => {
+													log.debug("Missed notification download timeout")
+													req.abort()
+												})
+												.on("socket", s => {
+													// We add this listener purely as a workaround for some problem with net module.
+													// The problem is that sometimes request gets stuck after handshake - does not process unless some event
+													// handler is called (and it works more reliably with console.log()).
+													// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
+													s.on("lookup", () => log.debug("lookup"))
+												})
+												.on("response", res => {
+													log.debug("missed notification response", res.statusCode)
 
-								if (
-									(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
-									(res.headers["retry-after"] || res.headers["suspension-time"])
-								) {
-									// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
-									const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
-									log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
-									res.destroy()
-									req.abort()
+													if (
+														(res.statusCode === ServiceUnavailableError.CODE || TooManyRequestsError.CODE) &&
+														(res.headers["retry-after"] || res.headers["suspension-time"])
+													) {
+														// headers are lowercased, see https://nodejs.org/api/http.html#http_message_headers
+														const time = filterInt((res.headers["retry-after"] ?? res.headers["suspension-time"]) as string)
+														log.debug(`ServiceUnavailable when downloading missed notification, waiting ${time}s`)
+														res.destroy()
+														req.abort()
 
-									this._delayHandler(() => {
-										this._downloadMissedNotification(userId).then(resolve, reject)
-									}, time * 1000)
+														this._delayHandler(() => {
+															this._downloadMissedNotification(userId).then(resolve, reject)
+														}, time * 1000)
 
-									return
-								} else if (res.statusCode !== 200) {
-									const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
-									fail(req, res, tutanotaError)
-									return
-								}
+														return
+													} else if (res.statusCode !== 200) {
+														const tutanotaError = handleRestError(neverNull(res.statusCode), url, res.headers["Error-Id"] as string, null)
+														fail(req, res, tutanotaError)
+														return
+													}
 
-								res.setEncoding("utf8")
-								let resData = ""
-								res.on("data", chunk => {
-									resData += chunk
-								})
-								   .on("end", () => {
-									   try {
-										   resolve(JSON.parse(resData))
-									   } catch (e) {
-										   fail(req, res, e)
-									   }
-								   })
-								   .on("close", () => log.debug("dl missed notification response closed"))
-								   .on("error", e => fail(req, res, e))
-							})
-							.on("error", e => fail(req, null, e))
+													res.setEncoding("utf8")
+													let resData = ""
+													res.on("data", chunk => {
+														resData += chunk
+													})
+													   .on("end", () => {
+														   try {
+															   resolve(JSON.parse(resData))
+														   } catch (e) {
+															   fail(req, res, e)
+														   }
+													   })
+													   .on("close", () => log.debug("dl missed notification response closed"))
+													   .on("error", e => fail(req, res, e))
+												})
+												.on("error", e => fail(req, null, e))
 			req.end()
 		})
 	}

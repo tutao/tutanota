@@ -4,28 +4,22 @@ import {EntityClient} from "../api/common/EntityClient"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {createKnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
-import {clone, noOp} from "@tutao/tutanota-utils"
-import {LazyLoaded} from "@tutao/tutanota-utils"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass} from "@tutao/tutanota-utils"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {NotFoundError} from "../api/common/error/RestError"
 import {UserError} from "../api/main/UserError"
 import type {KnowledgeBaseEntryKeyword} from "../api/entities/tutanota/KnowledgeBaseEntryKeyword"
 import {createKnowledgeBaseEntryKeyword} from "../api/entities/tutanota/KnowledgeBaseEntryKeyword"
-import {deduplicate} from "@tutao/tutanota-utils"
-import {localeCompare} from "@tutao/tutanota-utils"
-import {ofClass} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>
 	keywords: Stream<string>
-	_enterTitleAttrs: TextFieldAttrs
-	_entityClient: EntityClient
-	_templateGroupRoot: TemplateGroupRoot
+	private readonly _entityClient: EntityClient
+	private readonly _templateGroupRoot: TemplateGroupRoot
 	readonly entry: KnowledgeBaseEntry
-	availableTemplates: LazyLoaded<Array<EmailTemplate>>
-	_descriptionProvider: (() => string) | null
+	readonly availableTemplates: LazyLoaded<Array<EmailTemplate>>
+	private _descriptionProvider: (() => string) | null
 
 	constructor(entry: KnowledgeBaseEntry | null, templateGroupInstances: TemplateGroupRoot, entityClient: EntityClient) {
 		this.title = stream(entry ? entry.title : "")

@@ -51,12 +51,12 @@ export class ContactView implements CurrentView {
 	folderColumn: ViewColumn
 	contactViewer: ContactViewer | null
 	viewSlider: ViewSlider
-	_contactList: ContactListView | null
-	_multiContactViewer: MultiContactViewer
-	view: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
-	_throttledSetUrl: (arg0: string) => void
+	_contactList: ContactListView | null = null
+	private _multiContactViewer: MultiContactViewer
+	view: CurrentView["view"]
+	oncreate: CurrentView["oncreate"]
+	onremove: CurrentView["onremove"]
+	private _throttledSetUrl: (url: string) => void
 
 	constructor() {
 		this._throttledSetUrl = throttleRoute()

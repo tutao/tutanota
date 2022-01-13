@@ -82,19 +82,19 @@ export class MailView implements CurrentView {
 	folderColumn: ViewColumn
 	mailColumn: ViewColumn
 	viewSlider: ViewSlider
-	mailList: MailListView
-	view: (...args: Array<any>) => any
-	selectedFolder: MailFolder | null
-	mailViewer: MailViewer | null
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+	mailList!: MailListView
+	view: CurrentView["view"]
+	selectedFolder: MailFolder | null = null
+	mailViewer: MailViewer | null = null
+	oncreate: CurrentView["oncreate"]
+	onremove: CurrentView["onremove"]
 	_mailboxSections: Map<Id, MailboxSection> // mailGroupId -> section
 
-	_folderToUrl: Record<Id, string>
-	_multiMailViewer: MultiMailViewer
-	_actionBarButtons: lazy<ButtonAttrs[]>
-	_throttledRouteSet: (arg0: string) => void
-	_countersStream: Stream<any>
+	private _folderToUrl: Record<Id, string>
+	private _multiMailViewer: MultiMailViewer
+	private _actionBarButtons: lazy<ButtonAttrs[]>
+	private _throttledRouteSet: (arg0: string) => void
+	private _countersStream!: Stream<any>
 
 	constructor() {
 		this.mailViewer = null
@@ -152,8 +152,9 @@ export class MailView implements CurrentView {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : []
 
 			if (selectedEntities.length > 0) {
-				let selectedIndex = this.mailList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
-				return selectedIndex + "/" + this.mailList.list._loadedEntities.length
+				const loadedEntities = this.mailList.list.getLoadedEntities()
+				let selectedIndex = loadedEntities.indexOf(selectedEntities[0]) + 1
+				return selectedIndex + "/" + loadedEntities.length
 			} else {
 				return ""
 			}

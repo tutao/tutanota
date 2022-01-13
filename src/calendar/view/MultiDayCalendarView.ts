@@ -62,15 +62,15 @@ export type Attrs = {
 }
 
 export class MultiDayCalendarView implements Component<Attrs> {
-	_redrawIntervalId: NodeJS.Timer | null
-	_longEventsDom: HTMLElement | null
-	_domElements: HTMLElement[] = []
-	_scrollPosition: number
-	_eventDragHandler: EventDragHandler
-	_dateUnderMouse: Date | null = null
-	_viewDom: HTMLElement | null = null
-	_lastMousePos: MousePos | null = null
-	_isHeaderEventBeingDragged: boolean = false
+	private _redrawIntervalId: NodeJS.Timer | null = null
+	private _longEventsDom: HTMLElement | null = null
+	private _domElements: HTMLElement[] = []
+	private _scrollPosition: number
+	private _eventDragHandler: EventDragHandler
+	private _dateUnderMouse: Date | null = null
+	private _viewDom: HTMLElement | null = null
+	private _lastMousePos: MousePos | null = null
+	private _isHeaderEventBeingDragged: boolean = false
 
 	constructor({attrs}: Vnode<Attrs>) {
 		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY

@@ -24,7 +24,7 @@ export function showDateRangeSelectionDialog<T>(
 
 	let startDate = start
 	let endDate = end
-	const form: Component<void> = {
+	const form: Component = {
 		view: () =>
 			m(
 				".flex-space-between",

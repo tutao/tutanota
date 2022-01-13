@@ -47,13 +47,13 @@ export class SecondFactorAuthDialog {
 	readonly _loginFacade: LoginFacade
 	readonly _authData: AuthData
 	readonly _onClose: Thunk
-	_webauthnAbortController: AbortController | null
-	_waitingForSecondFactorDialog: Dialog | null
+	private _webauthnAbortController: AbortController | null = null
+	private _waitingForSecondFactorDialog: Dialog | null = null
 	webauthnState: WebauthnState
 	otpState: OtpState
 
 	/** @private */
-	constructor(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk) {
+	private constructor(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk) {
 		this._webauthnClient = webauthnClient
 		this._authData = authData
 		this._onClose = onClose

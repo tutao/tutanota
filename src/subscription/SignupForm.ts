@@ -1,5 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -29,7 +30,6 @@ import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/Regis
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
-import Stream from "mithril/stream"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -38,18 +38,18 @@ export type SignupFormAttrs = {
 	isPaidSubscription: lazy<boolean>
 	campaign: lazy<string | null>
 	// only used if readonly is true
-	prefilledMailAddress?: string
+	prefilledMailAddress?: string | undefined
 	readonly: boolean
 }
 
 export class SignupForm implements Component<SignupFormAttrs> {
-	_passwordForm: PasswordForm
-	_confirmTerms: Stream<boolean>
-	_confirmAge: Stream<boolean>
-	_code: Stream<string>
-	_mailAddressFormErrorId: TranslationKey | null
-	_mailAddress: string
-	_isMailVerificationBusy: boolean
+	private readonly _passwordForm: PasswordForm
+	private readonly _confirmTerms: Stream<boolean>
+	private readonly _confirmAge: Stream<boolean>
+	private readonly _code: Stream<string>
+	private _mailAddressFormErrorId: TranslationKey | null = null
+	private _mailAddress!: string
+	private _isMailVerificationBusy: boolean
 
 	constructor() {
 		this._passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")

@@ -6,7 +6,7 @@ import {ContactAddressType, ContactMergeAction, getContactSocialType, Keys} from
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
-import {defer, downcast} from "@tutao/tutanota-utils"
+import {defer, DeferredObject, downcast, Thunk} from "@tutao/tutanota-utils"
 import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -21,9 +21,9 @@ export class ContactMergeView {
 	dialog: Dialog
 	contact1: Contact
 	contact2: Contact
-	resolveFunction: (...args: Array<any>) => any // must be called after the user action
+	resolveFunction: DeferredObject<ContactMergeAction>["resolve"] | null = null // must be called after the user action
 
-	windowCloseUnsubscribe: () => unknown
+	windowCloseUnsubscribe: Thunk | null = null
 
 	constructor(contact1: Contact, contact2: Contact) {
 		this.contact1 = contact1
@@ -129,9 +129,9 @@ export class ContactMergeView {
 		return m(
 			"#contact-editor",
 			{
-				oncreate: vnode => (this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
+				oncreate: () => (this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
 				})),
-				onremove: vnode => this.windowCloseUnsubscribe(),
+				onremove: () => this.windowCloseUnsubscribe?.(),
 			},
 			[
 				m(".flex-center.mt", [
@@ -310,7 +310,7 @@ export class ContactMergeView {
 	_close(action: ContactMergeAction): void {
 		this.dialog.close()
 		delay(200).then(() => {
-			this.resolveFunction(action)
+			this.resolveFunction?.(action)
 		})
 	}
 }

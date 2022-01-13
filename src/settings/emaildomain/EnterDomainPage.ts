@@ -13,7 +13,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 assertMainOrNode()
 
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
-	private dom: HTMLElement
+	private dom: HTMLElement | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<AddDomainData>>) {
 		this.dom = vnode.dom as HTMLElement

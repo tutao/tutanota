@@ -130,32 +130,33 @@ export function noopBlockingWaitHandler<T>(messageIdOrMessageFunction: Translati
  * Model which allows sending mails interactively - including resolving of recipients and handling of drafts.
  */
 export class SendMailModel {
-	_mailFacade: MailFacade
-	_entity: EntityClient
-	_logins: LoginController
-	_mailModel: MailModel
-	_contactModel: ContactModel
-	_eventController: EventController
-	_mailboxDetails: MailboxDetail
-	_conversationType: ConversationType
-	_subject: string // we're setting subject to the value of the subject TextField in the MailEditor
+	private _mailFacade: MailFacade
+	private _entity: EntityClient
+	private _logins: LoginController
+	private _mailModel: MailModel
+	private _contactModel: ContactModel
+	private _eventController: EventController
+	private _mailboxDetails: MailboxDetail
+	private _conversationType: ConversationType
+	private _subject: string // we're setting subject to the value of the subject TextField in the MailEditor
 
-	_body: string
+	private _body: string
+	// Isn't private because used by MinimizedEditorOverlay, refactor?
 	_draft: Mail | null
-	_recipients: Map<RecipientField, Array<RecipientInfo>>
-	_senderAddress: string
-	_isConfidential: boolean
-	_attachments: Array<Attachment> // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
+	private _recipients: Map<RecipientField, Array<RecipientInfo>>
+	private _senderAddress: string
+	private _isConfidential: boolean
+	private _attachments: Array<Attachment> // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 
-	_replyTos: Array<RecipientInfo>
-	_previousMessageId: Id | null // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
+	private _replyTos: Array<RecipientInfo>
+	private _previousMessageId: Id | null // only needs to be the correct value if this is a new email. if we are editing a draft, conversationType is not used
 
-	_previousMail: Mail | null
-	_selectedNotificationLanguage: string
-	_availableNotificationTemplateLanguages: Array<Language>
-	_entityEventReceived: EntityEventsListener
-	_mailChanged: boolean
-	_passwords: Map<string, string>
+	private _previousMail: Mail | null
+	private _selectedNotificationLanguage: string
+	private _availableNotificationTemplateLanguages!: Array<Language>
+	private _entityEventReceived: EntityEventsListener
+	private _mailChanged: boolean
+	private _passwords: Map<string, string>
 	onMailChanged: Stream<boolean>
 	onRecipientDeleted: Stream<{field: RecipientField, recipient: RecipientInfo} | null>
 	onBeforeSend: () => unknown

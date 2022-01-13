@@ -13,10 +13,10 @@ const SOCKET_PATH = "/tmp/tutadb.sock"
  * this is used to control our administration tool
  */
 export class Socketeer {
-	_server: Server | null
-	_connection: Socket | null
-	_delayHandler: TimeoutSetter
-	_net: NetExports
+	private _server: Server | null = null
+	private _connection: Socket | null = null
+	private readonly _delayHandler: TimeoutSetter
+	private readonly _net: NetExports
 
 	constructor(net: NetExports, app: App, delayHandler: TimeoutSetter = setTimeout) {
 		this._net = net

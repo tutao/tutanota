@@ -27,10 +27,17 @@ const MARKDOWN_SUFFIX = "_markdown"
  */
 // visibility only for testing
 export class FaqModel {
-	_list: Array<FaqEntry>
-	_currentLanguageCode: string
-	_faqLanguages: LanguageViewModelType
-	_lazyLoaded: LazyLoaded<void>
+	private _list: Array<FaqEntry> | null = null
+	private _currentLanguageCode: string | null = null
+	private _faqLanguages: LanguageViewModelType | null = null
+	private _lazyLoaded: LazyLoaded<void>
+
+	private get faqLang(): LanguageViewModel {
+		if (this._faqLanguages == null) {
+			throw new Error("Not initialized!")
+		}
+		return this._faqLanguages
+	}
 
 	constructor() {
 		this._lazyLoaded = new LazyLoaded(() => {
@@ -84,7 +91,7 @@ export class FaqModel {
 
 		if (this._list == null || this._currentLanguageCode !== lang.code) {
 			this._currentLanguageCode = lang.code
-			const faqNames = Object.keys(this._faqLanguages.fallback.keys)
+			const faqNames = Object.keys(this.faqLang.fallback.keys)
 			this._list = faqNames
 				.filter(key => key.startsWith(FAQ_PREFIX) && key.endsWith(MARKDOWN_SUFFIX))
 				.map((titleKey: string) => titleKey.substring(FAQ_PREFIX.length, titleKey.indexOf(MARKDOWN_SUFFIX)))
@@ -107,15 +114,15 @@ export class FaqModel {
 	createFAQ(id: string): FaqEntry {
 		return {
 			id: id,
-			title: this._faqLanguages.get(downcast(`faq.${id}_title`)),
-			text: this._faqLanguages.get(downcast(`faq.${id}_markdown`)),
+			title: this.faqLang.get(downcast(`faq.${id}_title`)),
+			text: this.faqLang.get(downcast(`faq.${id}_markdown`)),
 			tags: this.getTags(`faq.${id}_tags`),
 		}
 	}
 
 	getTags(id: string): string {
 		try {
-			return this._faqLanguages.get(downcast(id))
+			return this.faqLang.get(downcast(id))
 		} catch (e) {
 			return ""
 		}

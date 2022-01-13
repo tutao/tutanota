@@ -32,8 +32,8 @@ import {DropDownSelectorN} from "./DropDownSelectorN"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
-import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
-import {$Promisable, getAsLazy, mapLazily, noOp} from "@tutao/tutanota-utils"
+import type {lazy, MaybeLazy, Thunk} from "@tutao/tutanota-utils"
+import {$Promisable, assertNotNull, getAsLazy, mapLazily, noOp} from "@tutao/tutanota-utils"
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -56,7 +56,7 @@ type Validator = () => $Promisable<TranslationKey | null>
 
 export type ActionDialogProps = {
 	title: lazy<string> | string
-	child: Component<void> | lazy<Children>
+	child: Component | lazy<Children>
 	validator?: Validator | null
 	okAction: null | ((arg0: Dialog) => unknown)
 	allowCancel?: MaybeLazy<boolean>
@@ -68,18 +68,18 @@ export type ActionDialogProps = {
 }
 
 export class Dialog implements ModalComponent {
-	static _keyboardHeight: number = 0
-	_domDialog: HTMLElement
-	_shortcuts: Shortcut[]
-	view: (...args: Array<any>) => any
+	private static _keyboardHeight: number = 0
+	private _domDialog: HTMLElement | null = null
+	private _shortcuts: Shortcut[]
+	view: ModalComponent["view"]
 	visible: boolean
-	_focusOnLoadFunction: (...args: Array<any>) => any
-	_wasFocusOnLoadCalled: boolean
-	_closeHandler: (() => unknown) | null
-	_focusedBeforeShown: HTMLElement | null
-	_injectionRightAttrs: DialogInjectionRightAttrs<any> | null
+	private _focusOnLoadFunction: Thunk
+	private _wasFocusOnLoadCalled: boolean
+	private _closeHandler: (Thunk) | null = null
+	private _focusedBeforeShown: HTMLElement | null = null
+	private _injectionRightAttrs: DialogInjectionRightAttrs<any> | null = null
 
-	constructor(dialogType: DialogType, childComponent: Component<void>) {
+	constructor(dialogType: DialogType, childComponent: Component) {
 		this.visible = false
 
 		this._focusOnLoadFunction = () => this._defaultFocusOnLoad()
@@ -89,13 +89,13 @@ export class Dialog implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: true,
-				exec: () => focusPrevious(this._domDialog),
+				exec: () => this._domDialog ? focusPrevious(this._domDialog) : false,
 				help: "selectPrevious_action",
 			},
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => focusNext(this._domDialog),
+				exec: () => this._domDialog ? focusNext(this._domDialog) : false,
 				help: "selectNext_action",
 			},
 		]
@@ -178,12 +178,13 @@ export class Dialog implements ModalComponent {
 	}
 
 	_defaultFocusOnLoad() {
-		let inputs = Array.from(this._domDialog.querySelectorAll(INPUT)) as Array<HTMLElement>
+		const dom = assertNotNull(this._domDialog)
+		let inputs = Array.from(dom.querySelectorAll(INPUT)) as Array<HTMLElement>
 
 		if (inputs.length > 0) {
 			inputs[0].focus()
 		} else {
-			let button = this._domDialog.querySelector("button")
+			let button = dom.querySelector("button")
 
 			if (button) {
 				button.focus()
@@ -195,7 +196,7 @@ export class Dialog implements ModalComponent {
 	 * By default the focus is set on the first text field after this dialog is fully visible. This behavior can be overwritten by calling this function.
 	 * If it has already been called, then calls it instantly
 	 */
-	setFocusOnLoadFunction(callback: (...args: Array<any>) => any): void {
+	setFocusOnLoadFunction(callback: Dialog["_focusOnLoadFunction"]): void {
 		this._focusOnLoadFunction = callback
 
 		if (this._wasFocusOnLoadCalled) {
@@ -528,7 +529,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	// used in admin client
-	static save(title: lazy<string>, saveAction: () => Promise<void>, child: Component<void>): Promise<void> {
+	static save(title: lazy<string>, saveAction: () => Promise<void>, child: Component): Promise<void> {
 		return new Promise(resolve => {
 			let saveDialog: Dialog
 
@@ -853,7 +854,7 @@ export class Dialog implements ModalComponent {
 	/**
 	 * @deprecated useLargeDialogN instead
 	 */
-	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component<void>): Dialog {
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [

@@ -12,8 +12,8 @@ import {createDataFile} from "../api/common/DataFile"
 import {UserError} from "../api/main/UserError"
 import {Attachment} from "../mail/editor/SendMailModel";
 
-export class AboutDialog implements Component<void> {
-	view(vnode: Vnode<void>): Children {
+export class AboutDialog implements Component {
+	view(vnode: Vnode): Children {
 		return m(".flex.col", [
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(getColouredTutanotaLogo())),

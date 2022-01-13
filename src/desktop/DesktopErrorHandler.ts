@@ -17,11 +17,11 @@ type ErrorLog = {
 }
 
 export class DesktopErrorHandler {
-	_wm: WindowManager
-	_ipc: IPC
-	_errorLogPath: string
-	lastErrorLog: ErrorLog | null
-	_showingErrorDialog: boolean
+	private _wm!: WindowManager
+	private _ipc!: IPC
+	private _errorLogPath: string
+	lastErrorLog: ErrorLog | null = null
+	private _showingErrorDialog: boolean
 
 	constructor() {
 		this._errorLogPath = path.join(app.getPath("userData"), "lasterror.log")

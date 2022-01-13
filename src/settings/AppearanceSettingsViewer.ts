@@ -20,7 +20,7 @@ import {isDesktop} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
-	_customThemes: Array<ThemeId> | null
+	private _customThemes: Array<ThemeId> | null = null
 
 	oncreate() {
 		themeController.getCustomThemes().then(themes => {

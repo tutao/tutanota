@@ -52,11 +52,10 @@ export interface GroupManagementFacade {
 }
 
 export class GroupManagementFacadeImpl {
-	_login: LoginFacadeImpl
-	_counters: CounterFacade
-	_entity: EntityClient
-	_rsa: RsaImplementation
-	_entityClient: EntityClient
+	private readonly _login: LoginFacadeImpl
+	private readonly _counters: CounterFacade
+	private readonly _rsa: RsaImplementation
+	private readonly _entityClient: EntityClient
 
 	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient, rsa: RsaImplementation) {
 		this._login = login

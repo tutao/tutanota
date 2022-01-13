@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {modal} from "./Modal"
+import {modal, ModalComponent} from "./Modal"
 import {px, size} from "../size"
 import {Button} from "./Button"
 import stream from "mithril/stream"
@@ -11,7 +11,7 @@ import {newMouseEvent} from "../HtmlUtils"
 import {showDropdown} from "./DropdownN"
 import type {Shortcut} from "../../misc/KeyManager"
 import type {AllIcons, lazyIcon} from "./Icon"
-import {assertNotNull, delay} from "@tutao/tutanota-utils"
+import {assertNotNull, delay, neverNull, Thunk} from "@tutao/tutanota-utils"
 import {downcast} from "@tutao/tutanota-utils"
 import type {lazy, lazyAsync} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
@@ -63,25 +63,25 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 	}
 }
 
-export class Dropdown {
+export class Dropdown implements ModalComponent {
 	children: ReadonlyArray<string | Button>
-	_domDropdown: HTMLElement
-	_domInput: HTMLInputElement
-	_domContents: HTMLElement
-	origin: PosRect | null
-	closeHandler: ((...args: Array<any>) => any) | null
+	private _domDropdown: HTMLElement | null = null
+	private _domInput: HTMLInputElement | null = null
+	private _domContents: HTMLElement | null = null
+	origin: PosRect | null = null
+	closeHandler: Thunk | null = null
 	maxHeight: number
-	oninit: (...args: Array<any>) => any
-	view: (...args: Array<any>) => any
+	oninit: ModalComponent["oninit"]
+	view: ModalComponent["view"]
 	_width: number
-	shortcuts: (...args: Array<any>) => any
-	_filterString: Stream<string>
-	_alignRight: boolean
-	_isFilterable: boolean
+	shortcuts: () => Shortcut[]
+	private _filterString: Stream<string>
+	private _alignRight: boolean
+	private _isFilterable: boolean
 	resizeListener: windowSizeListener
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
-	_focusedBeforeShown: HTMLElement | null
+	oncreate: ModalComponent["oncreate"]
+	onremove: ModalComponent["onremove"]
+	private _focusedBeforeShown: HTMLElement | null = null
 
 	constructor(lazyChildren: lazy<ReadonlyArray<string | Button>>, width: number) {
 		this.children = []
@@ -126,8 +126,8 @@ export class Dropdown {
 							this._domInput = downcast<HTMLInputElement>(vnode.dom)
 							this._domInput.value = this._filterString()
 						},
-						oninput: (e: InputEvent) => {
-							this._filterString(this._domInput.value)
+						oninput: () => {
+							this._filterString(neverNull(this._domInput).value)
 						},
 						style: {
 							width: px(this._width - size.hpad_large),
@@ -159,7 +159,7 @@ export class Dropdown {
 						// needed here to prevent flickering on ios
 						if (target.scrollTop < 0) {
 							ev.redraw = true
-						} else if (target.scrollTop + this._domContents.offsetHeight > target.scrollHeight) {
+						} else if (target.scrollTop + assertNotNull(this._domContents).offsetHeight > target.scrollHeight) {
 							ev.redraw = true
 						} else {
 							ev.redraw = false
@@ -226,9 +226,9 @@ export class Dropdown {
 			const selected = visibleElements.find(b => document.activeElement === b)
 
 			if (selected) {
-				visibleElements[mod(visibleElements.indexOf(selected) + 1, visibleElements.length)].focus()
+				visibleElements[mod(visibleElements.indexOf(selected) + 1, visibleElements.length)]?.focus()
 			} else if (visibleElements.length > 0) {
-				visibleElements[0].focus()
+				visibleElements[0]?.focus()
 			}
 		}
 
@@ -244,9 +244,9 @@ export class Dropdown {
 			const selected = visibleElements.find(b => document.activeElement === b)
 
 			if (selected) {
-				visibleElements[mod(visibleElements.indexOf(selected) - 1, visibleElements.length)].focus()
+				visibleElements[mod(visibleElements.indexOf(selected) - 1, visibleElements.length)]?.focus()
 			} else if (visibleElements.length > 0) {
-				visibleElements[visibleElements.length - 1].focus()
+				visibleElements[visibleElements.length - 1]?.focus()
 			}
 		}
 
@@ -257,13 +257,13 @@ export class Dropdown {
 			const clickEvent: MouseEvent = newMouseEvent()
 
 			if (document.activeElement === this._domInput && matchingButton && matchingButton.clickHandler) {
-				matchingButton.clickHandler(clickEvent, this._domInput)
+				matchingButton.clickHandler(clickEvent, assertNotNull(this._domInput))
 				this.close()
 			} else {
 				let selected = visibleElements.find(b => document.activeElement === b._domButton)
 
 				if (selected && selected.clickHandler) {
-					selected.clickHandler(clickEvent, this._domInput)
+					selected.clickHandler(clickEvent, assertNotNull(this._domInput))
 					this.close()
 				}
 			}
@@ -338,7 +338,7 @@ export class Dropdown {
 					0,
 				) +
 				size.vpad_small * 2
-			return showDropdown(origin, this._domDropdown, contentsHeight, this._width)
+			return showDropdown(origin, assertNotNull(this._domDropdown), contentsHeight, this._width)
 		}
 
 		return Promise.resolve()
@@ -404,7 +404,7 @@ export function createAsyncDropDownButton(
 				}),
 			])
 
-			const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
+			const initialButtonRect: PosRect = assertNotNull(mainButton._domButton).getBoundingClientRect()
 
 			resultPromise.then(buttons => {
 				if (buttons.length === 0) {

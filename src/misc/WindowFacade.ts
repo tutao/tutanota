@@ -11,17 +11,17 @@ export type KeyboardSizeListener = (keyboardSize: number) => unknown
 export type windowSizeListener = (width: number, height: number) => unknown
 
 class WindowFacade {
-	_windowSizeListeners: windowSizeListener[]
+	private _windowSizeListeners: windowSizeListener[]
 	resizeTimeout: (AnimationFrameID | null) | (TimeoutID | null)
 	windowCloseConfirmation: boolean
-	_windowCloseListeners: Set<(e: Event) => unknown>
-	_historyStateEventListeners: Array<(e: Event) => boolean> = []
-	_worker: WorkerClient
-	_indexerFacade: Indexer
+	private _windowCloseListeners: Set<(e: Event) => unknown>
+	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
+	private _worker: WorkerClient | null = null
+	private _indexerFacade: Indexer | null = null
 	// following two properties are for the iOS
-	_keyboardSize: number = 0
-	_keyboardSizeListeners: KeyboardSizeListener[] = []
-	_ignoreNextPopstate: boolean = false
+	private _keyboardSize: number = 0
+	private _keyboardSizeListeners: KeyboardSizeListener[] = []
+	private _ignoreNextPopstate: boolean = false
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -245,7 +245,7 @@ class WindowFacade {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				this._indexerFacade.onVisibilityChanged(!document.hidden)
+				this._indexerFacade?.onVisibilityChanged(!document.hidden)
 
 				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground
@@ -255,7 +255,7 @@ class WindowFacade {
 					// We used to handle it in the EventBus and reconnect immediately but isIosApp()
 					// check does not work in the worker currently.
 					// Doing this for all apps just to be sure.
-					setTimeout(() => this._worker.tryReconnectEventBus(false, true), 100)
+					setTimeout(() => this._worker?.tryReconnectEventBus(false, true), 100)
 				}
 			})
 		}

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import {MailView} from "./MailView"
 import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
@@ -25,10 +25,10 @@ assertMainOrNode()
 /**
  * The MailViewer displays the action buttons for multiple selected emails.
  */
-export class MultiMailViewer {
-	view: (...args: Array<any>) => any
-	_mailView: MailView
-	_domMailViewer: HTMLElement | null
+export class MultiMailViewer implements Component {
+	view: Component["view"]
+	private readonly _mailView: MailView
+	private _domMailViewer: HTMLElement | null = null
 
 	constructor(mailView: MailView) {
 		this._mailView = mailView

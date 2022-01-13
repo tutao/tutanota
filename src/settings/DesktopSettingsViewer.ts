@@ -31,17 +31,17 @@ const DownloadLocationStrategy = Object.freeze({
 })
 
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
-	_isDefaultMailtoHandler: Stream<boolean | null>
-	_defaultDownloadPath: Stream<string>
-	_runAsTrayApp: Stream<boolean | null>
-	_runOnStartup: Stream<boolean | null>
-	_spellCheckLang: Stream<string>
-	_isIntegrated: Stream<boolean | null>
-	_isAutoUpdateEnabled: Stream<boolean | null>
+	private readonly _isDefaultMailtoHandler: Stream<boolean | null>
+	private _defaultDownloadPath!: Stream<string>
+	private readonly _runAsTrayApp: Stream<boolean | null>
+	private readonly _runOnStartup: Stream<boolean | null>
+	private readonly _spellCheckLang: Stream<string>
+	private readonly _isIntegrated: Stream<boolean | null>
+	private readonly _isAutoUpdateEnabled: Stream<boolean | null>
 	_showAutoUpdateOption: boolean
-	_updateAvailable: Stream<boolean>
-	_mailExportMode: Stream<MailExportMode>
-	_isPathDialogOpen: boolean
+	private readonly _updateAvailable: Stream<boolean>
+	private readonly _mailExportMode: Stream<MailExportMode>
+	private _isPathDialogOpen: boolean = false
 
 	constructor() {
 		this._isDefaultMailtoHandler = stream(false)

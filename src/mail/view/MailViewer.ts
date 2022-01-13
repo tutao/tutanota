@@ -1,5 +1,5 @@
 import {size} from "../../gui/size"
-import m, {Children, Vnode} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
@@ -145,45 +145,45 @@ type MailAddressAndName = {
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class MailViewer {
-	view: (...args: Array<any>) => any
+export class MailViewer implements Component {
+	view: Component["view"]
 	mail: Mail
-	_mailBody: MailBody | null
-	_contrastFixNeeded: boolean
-	_sanitizedMailBody: string | null // always sanitized in this.setSanitizedMailBodyFromMail
+	private _mailBody: MailBody | null = null
+	private _contrastFixNeeded: boolean
+	private _sanitizedMailBody: string | null // always sanitized in this.setSanitizedMailBodyFromMail
 
-	_loadingAttachments: boolean
-	_attachments: TutanotaFile[]
-	_attachmentButtons: Button[]
-	_contentBlockingStatus: ContentBlockingStatus
-	_domMailViewer: HTMLElement | null
+	private _loadingAttachments: boolean = false
+	private _attachments: TutanotaFile[]
+	private _attachmentButtons: Button[]
+	private _contentBlockingStatus: ContentBlockingStatus
+	private _domMailViewer: HTMLElement | null
 
 	/** it is set after we measured mail body element */
-	_bodyLineHeight: number | null
-	_errorOccurred: boolean
-	oncreate: (...args: Array<any>) => any
-	onbeforeremove: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
-	_scrollAnimation: Promise<void> | null
-	_folderText: string | null
+	private _bodyLineHeight: number | null = null
+	private _errorOccurred: boolean
+	oncreate: Component["oncreate"]
+	onbeforeremove: Component["onbeforeremove"]
+	onremove: Component["onremove"]
+	private _scrollAnimation: Promise<void> | null = null
+	private _folderText: string | null
 	mailHeaderDialog: Dialog
 	mailHeaderInfo: string
-	_isScaling: boolean
-	_filesExpanded: Stream<boolean>
-	_referencedCids: Promise<Array<string>>
-	_loadedInlineImages: Promise<InlineImages>
-	_suspicious: boolean
-	_domBodyDeferred: DeferredObject<HTMLElement>
-	_domBody: HTMLElement | null
-	_lastBodyTouchEndTime: number = 0
-	_lastTouchStart: {
+	private _isScaling: boolean
+	private _filesExpanded: Stream<boolean>
+	private _referencedCids: Promise<Array<string>>
+	private _loadedInlineImages: Promise<InlineImages>
+	private _suspicious: boolean
+	private _domBodyDeferred: DeferredObject<HTMLElement>
+	private _domBody: HTMLElement | null = null
+	private _lastBodyTouchEndTime: number = 0
+	private _lastTouchStart: {
 		x: number
 		y: number
 		time: number
 	}
-	_domForScrolling: HTMLElement | null
-	_warningDismissed: boolean
-	_calendarEventAttachment:
+	private _domForScrolling: HTMLElement | null = null
+	private _warningDismissed: boolean
+	private _calendarEventAttachment:
 		| {
 		event: CalendarEvent
 		method: CalendarMethod
@@ -191,12 +191,12 @@ export class MailViewer {
 	}
 		| null
 		| undefined
-	_entityClient: EntityClient
-	_mailModel: MailModel
-	_contactModel: ContactModel
-	_delayBodyRenderingUntil: Promise<any>
-	_delayProgressSpinner: boolean
-	_configFacade: ConfigurationDatabase
+	private _entityClient: EntityClient
+	private _mailModel: MailModel
+	private _contactModel: ContactModel
+	private _delayBodyRenderingUntil: Promise<any>
+	private _delayProgressSpinner: boolean
+	private _configFacade: ConfigurationDatabase
 
 	constructor(
 		mail: Mail,
@@ -1819,7 +1819,7 @@ export class MailViewer {
 					200,
 					() => {
 						// Bubble buttons use border so dropdown is misaligned by default
-						const rect = dropdownButton._domButton.getBoundingClientRect()
+						const rect = assertNotNull(dropdownButton._domButton).getBoundingClientRect()
 
 						return new DomRectReadOnlyPolyfilled(rect.left + size.bubble_border_width, rect.top, rect.width, rect.height)
 					},

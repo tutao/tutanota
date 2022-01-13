@@ -21,7 +21,7 @@ type Attrs = {
 }
 
 export class ViewColumn implements Component<Attrs> {
-	component: Component<void>
+	component: Component
 	columnType: ColumnType
 	minWidth: number
 	maxWidth: number
@@ -30,11 +30,12 @@ export class ViewColumn implements Component<Attrs> {
 	width: number
 	offset: number // offset to the left
 
-	_domColumn: HTMLElement | null
-	view: (...args: Array<any>) => any
+	// not private because used by ViewSlider
+	_domColumn: HTMLElement | null = null
+	view: Component<Attrs>["view"]
 	isInForeground: boolean
 	visible: boolean
-	_ariaRole: AriaLandmarks | null
+	private _ariaRole: AriaLandmarks | null = null
 
 	/**
 	 * Create a view column.
@@ -42,10 +43,9 @@ export class ViewColumn implements Component<Attrs> {
 	 * @param columnType The type of the view column.
 	 * @param minWidth The minimum allowed width for the view column.
 	 * @param maxWidth The maximum allowed width for the view column.
-	 * @param title A function that returns the translated title text for a column.
 	 */
 	constructor(
-		component: Component<void>,
+		component: Component,
 		columnType: ColumnType,
 		minWidth: number,
 		maxWidth: number,

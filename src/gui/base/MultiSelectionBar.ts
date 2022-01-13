@@ -5,7 +5,7 @@ import {Button} from "./Button"
 type MultiSelectionBarAttrs = {
 	selectNoneHandler: () => void
 	selectedEntiesLength: number
-	content: Component<void>
+	content: Component
 }
 
 export class MultiSelectionBar {

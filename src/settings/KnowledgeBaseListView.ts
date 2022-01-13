@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
+import type {SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -28,13 +28,13 @@ assertMainOrNode()
  *  List that is rendered within the knowledgeBase Settings
  */
 export class KnowledgeBaseListView implements UpdatableSettingsViewer {
-	_list: List<KnowledgeBaseEntry, KnowledgeBaseRow>
-	_listId: Id | null
-	_settingsView: SettingsView
-	_templateGroupRoot: TemplateGroupRoot
-	_templateGroup: Group
-	_entityClient: EntityClient
-	_logins: LoginController
+	private _list!: List<KnowledgeBaseEntry, KnowledgeBaseRow>
+	private _listId: Id | null = null
+	private _settingsView: SettingsView
+	private _templateGroupRoot: TemplateGroupRoot
+	private _templateGroup: Group
+	private _entityClient: EntityClient
+	private _logins: LoginController
 
 	constructor(settingsView: SettingsView, entityClient: EntityClient, logins: LoginController, templateGroupRoot: TemplateGroupRoot, templateGroup: Group) {
 		this._settingsView = settingsView
@@ -143,9 +143,9 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 
 export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	top: number
-	domElement: HTMLElement | null
-	entity: KnowledgeBaseEntry | null
-	_domEntryTitle: HTMLElement
+	domElement: HTMLElement | null = null
+	entity: KnowledgeBaseEntry | null = null
+	private _domEntryTitle!: HTMLElement
 
 	constructor() {
 		this.top = 0
@@ -176,7 +176,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 	}
 }
 
-class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsViewer {
+class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
 	entry: KnowledgeBaseEntry
 	readonly: boolean
 

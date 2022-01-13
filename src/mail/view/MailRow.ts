@@ -21,17 +21,17 @@ const iconMap: Record<MailFolderType, string> = {
 
 export class MailRow implements VirtualRow<Mail> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
-	entity: Mail | null
-	_domSubject: HTMLElement
-	_domSender: HTMLElement
-	_domDate: HTMLElement
-	_iconsDom: HTMLElement
-	_domUnread: HTMLElement
-	_showFolderIcon: boolean
-	_domFolderIcons: Record<MailFolderType, HTMLElement>
-	_domTeamLabel: HTMLElement
+	entity: Mail | null = null
+	private _domSubject!: HTMLElement
+	private _domSender!: HTMLElement
+	private _domDate!: HTMLElement
+	private _iconsDom!: HTMLElement
+	private _domUnread!: HTMLElement
+	private _showFolderIcon: boolean
+	private _domFolderIcons: Record<MailFolderType, HTMLElement>
+	private _domTeamLabel!: HTMLElement
 
 	constructor(showFolderIcon: boolean) {
 		this.top = 0

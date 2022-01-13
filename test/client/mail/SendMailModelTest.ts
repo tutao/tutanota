@@ -281,6 +281,7 @@ o.spec("SendMailModel", function () {
 		)
 		mockedAttributeReferences.push(mockAttribute(model, model._getDefaultSender, () => DEFAULT_SENDER_FOR_TESTING))
 		mockedAttributeReferences.push(
+			// @ts-ignore
 			mockAttribute(model._entity, model._entity.load, (typeRef, id, params) => {
 				return Promise.resolve({
 					_type: typeRef,

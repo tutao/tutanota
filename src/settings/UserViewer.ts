@@ -46,28 +46,27 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {SelectorItem} from "../gui/base/DropDownSelectorN";
+import {UpdatableSettingsDetailsViewer} from "./SettingsView"
 
 assertMainOrNode()
 
-export class UserViewer {
-	view: (...args: Array<any>) => any
+export class UserViewer implements UpdatableSettingsDetailsViewer {
 	userGroupInfo: GroupInfo
-	_user: LazyLoaded<User>
-	_customer: LazyLoaded<Customer>
-	_teamGroupInfos: LazyLoaded<GroupInfo[]>
-	_senderName: string
-	_groupsTable: Table | null
-	_contactFormsTable: Table | null
-	_adminStatusSelector: DropDownSelector<boolean>
-	_administratedBy: DropDownSelector<Id | null>
-	_userStatusSelector: DropDownSelector<boolean>
-	_whitelistProtection: DropDownSelector<boolean> | null
-	_secondFactorsForm: EditSecondFactorsForm
-	_editAliasFormAttrs: EditAliasesFormAttrs
-	_usedStorage: number | null
+	private readonly _user: LazyLoaded<User>
+	private readonly _customer: LazyLoaded<Customer>
+	private readonly _teamGroupInfos: LazyLoaded<GroupInfo[]>
+	private _senderName: string
+	private _groupsTable: Table | null = null
+	private _contactFormsTable: Table | null = null
+	private readonly _adminStatusSelector: DropDownSelector<boolean>
+	private _administratedBy!: DropDownSelector<Id | null>
+	private readonly _userStatusSelector: DropDownSelector<boolean>
+	private _whitelistProtection: DropDownSelector<boolean> | null = null
+	private readonly _secondFactorsForm: EditSecondFactorsForm
+	private readonly _editAliasFormAttrs: EditAliasesFormAttrs
+	private _usedStorage: number | null
 
 	constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
-		this.view = (vnode) => this._view(vnode)
 		// used storage is unknown initially
 		this._usedStorage = null
 		this.userGroupInfo = userGroupInfo
@@ -212,7 +211,7 @@ export class UserViewer {
 		this._updateUsedStorageAndAdminFlag()
 	}
 
-	_view(vnode: Vnode<any>): Children {
+	view(): Children {
 		const editSenderNameButtonAttrs: ButtonAttrs = {
 			label: "edit_action",
 			click: () => {

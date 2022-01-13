@@ -208,7 +208,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 			.finally(() => this._sendEnd())
 	}
 
-	_windowUnsubscribe: (() => void) | null
+	private _windowUnsubscribe: (() => void) | null = null
 
 	_sendStart() {
 		this._countDownLatch++

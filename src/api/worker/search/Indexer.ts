@@ -106,14 +106,14 @@ export function newSearchIndexDB(): DbFacade {
 }
 
 export class Indexer {
-	db: Db
-	_dbInitializedDeferredObject: DeferredObject<void>
-	_worker: WorkerImpl
-	_initParams: InitParams
-	_contact: ContactIndexer
-	_mail: MailIndexer
-	_groupInfo: GroupInfoIndexer
-	_whitelabelChildIndexer: WhitelabelChildIndexer
+	readonly db: Db
+	private readonly _dbInitializedDeferredObject: DeferredObject<void>
+	private readonly _worker: WorkerImpl
+	private _initParams!: InitParams
+	readonly _contact: ContactIndexer
+	readonly _mail: MailIndexer
+	readonly _groupInfo: GroupInfoIndexer
+	readonly _whitelabelChildIndexer: WhitelabelChildIndexer
 
 	/**
 	 * Last batch id per group from initial loading.

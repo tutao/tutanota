@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
-import {ProgressMonitor} from "../common/utils/ProgressMonitor"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
+import {ProgressMonitor} from "../common/utils/ProgressMonitor"
 
 /**
  * The progress tracker controls the progress bar located in Header.js
@@ -10,19 +10,14 @@ import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
 export class ProgressTracker {
 	// Will stream a number between 0 and 1
 	onProgressUpdate: stream<number>
-	_monitors: Map<ProgressMonitorId, ProgressMonitor>
-	_idCounter: ProgressMonitorId
+	private _monitors: Map<ProgressMonitorId, ProgressMonitor>
+	private _idCounter: ProgressMonitorId
 
 	constructor() {
-		this._init()
-	}
-
-	_init() {
 		this.onProgressUpdate = stream(0)
 		this._monitors = new Map()
 		this._idCounter = 0
 	}
-
 	/**
 	 * Register a monitor with the tracker, so that it's progress can be displayed
 	 * Returns an ID as a handle, useful for making calls from the worker

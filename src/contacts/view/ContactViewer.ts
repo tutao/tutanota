@@ -1,4 +1,4 @@
-import m, {Child, Children, ClassComponent, VnodeDOM} from "mithril"
+import m, {Child, Children, ClassComponent, Component} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ContactEditor} from "../ContactEditor"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
@@ -24,7 +24,6 @@ import type {ContactAddress} from "../../api/entities/tutanota/ContactAddress"
 import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
 import type {ContactPhoneNumber} from "../../api/entities/tutanota/ContactPhoneNumber"
 import {assertMainOrNode} from "../../api/common/Env"
-import {clickHandler} from "../../gui/base/GuiUtils";
 
 assertMainOrNode()
 
@@ -44,12 +43,12 @@ function insertBetween(array: Children[], spacer: () => Children) {
 	return ret
 }
 
-export class ContactViewer implements ClassComponent<void> {
-	contact: Contact
-	contactAppellation: string
-	readonly oncreate: (vnode: VnodeDOM<void>) => any
-	readonly onremove: (vnode: VnodeDOM<void>) => any
-	formattedBirthday: string | null
+export class ContactViewer implements ClassComponent {
+	readonly contact: Contact
+	readonly contactAppellation: string
+	readonly oncreate: Component["oncreate"]
+	readonly onremove: Component["onremove"]
+	readonly formattedBirthday: string | null
 
 	constructor(contact: Contact) {
 		this.contact = contact

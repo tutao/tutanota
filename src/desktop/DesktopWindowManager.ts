@@ -30,17 +30,17 @@ export type WindowBounds = {
 const windows: ApplicationWindow[] = []
 
 export class WindowManager {
-	readonly _conf: DesktopConfig
-	readonly _tray: DesktopTray
-	readonly _notifier: DesktopNotifier
-	_contextMenu: DesktopContextMenu
-	readonly _electron: ElectronExports
-	readonly _themeManager: ThemeManager
-	ipc: IPC
+	private readonly _conf: DesktopConfig
+	private readonly _tray: DesktopTray
+	private readonly _notifier: DesktopNotifier
+	private _contextMenu!: DesktopContextMenu
+	private readonly _electron: ElectronExports
+	private readonly _themeManager: ThemeManager
+	ipc!: IPC
 	readonly dl: DesktopDownloadManager
-	readonly _newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
-	readonly _dragIcons: Record<MailExportMode, NativeImage>
-	_currentBounds: WindowBounds
+	private readonly _newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
+	private readonly _dragIcons: Record<MailExportMode, NativeImage>
+	private _currentBounds: WindowBounds
 
 	constructor(
 		conf: DesktopConfig,
@@ -95,7 +95,7 @@ export class WindowManager {
 		await this.loadStartingBounds()
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
-		w.on("close", ev => {
+		w.on("close", () => {
 			this.saveBounds(w.getBounds())
 		})
 		 .on("closed", () => {
