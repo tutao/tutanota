@@ -22,7 +22,7 @@ const authHeader = {
 }
 
 function createEntityRestClientWithMocks(
-		requestMock: (...args: Array<any>) => any,
+	requestMock: (...args: Array<any>) => any,
 ): {
 	entityRestClient: EntityRestClient
 	cryptoFacadeMock: CryptoFacade
@@ -32,15 +32,15 @@ function createEntityRestClientWithMocks(
 	const cryptoFacadeMock: CryptoFacade = {
 		// @ts-ignore
 		applyMigrations: o.spy(
-				async <T>(typeRef: TypeRef<T>, data: any): Promise<T> =>
-						resolveTypeReference(typeRef).then(model => create(model, typeRef)),
+			async <T>(typeRef: TypeRef<T>, data: any): Promise<T> =>
+				resolveTypeReference(typeRef).then(model => create(model, typeRef)),
 		),
 		applyMigrationsForInstance: o.spy(async <T>(decryptedInstance: T): Promise<T> => decryptedInstance),
 		setNewOwnerEncSessionKey: o.spy((model: TypeModel, entity: Record<string, any>) => []),
 		resolveServiceSessionKey: o.spy(async (typeModel: TypeModel, instance: Record<string, any>) => []),
 		encryptBucketKeyForInternalRecipient: o.spy(
-				async (bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>) =>
-						createInternalRecipientKeyData(),
+			async (bucketKey: Aes128Key, recipientMailAddress: string, notFoundRecipients: Array<string>) =>
+				createInternalRecipientKeyData(),
 		),
 		resolveSessionKey: o.spy(async (typeModel: TypeModel, instance: Record<string, any>) => []),
 	}
@@ -58,12 +58,12 @@ function createEntityRestClientWithMocks(
 	})
 	const requestSpy = o.spy(requestMock)
 	const entityRestClient = new EntityRestClient(
-			() => authHeader, // Entity rest client doesn't allow requests without authorization
-			downcast<RestClient>({
-				request: async (...args) => requestSpy(...args),
-			}),
-			() => cryptoFacadeMock,
-			instanceMapperMock,
+		() => authHeader, // Entity rest client doesn't allow requests without authorization
+		downcast<RestClient>({
+			request: async (...args) => requestSpy(...args),
+		}),
+		() => cryptoFacadeMock,
+		instanceMapperMock,
 	)
 	return {
 		instanceMapperMock,
@@ -75,18 +75,18 @@ function createEntityRestClientWithMocks(
 
 function createArrayOf<T>(count: number, factory: (index: number) => T): Array<T> {
 	return Array(count)
-			// @ts-ignore
-			.fill()
-			.map((_, idx) => factory(idx))
+		// @ts-ignore
+		.fill()
+		.map((_, idx) => factory(idx))
 }
 
 const range = (start, count) => createArrayOf(count, idx => String(idx + start))
 
 function contacts(count) {
 	const contactFactory = idx =>
-			createContact({
-				firstName: `Contact${idx}`,
-			})
+		createContact({
+			firstName: `Contact${idx}`,
+		})
 
 	return createArrayOf(count, contactFactory)
 }
@@ -105,7 +105,7 @@ o.spec("EntityRestClient", async function () {
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[0]).equals(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`)(
-					"path is correct",
+				"path is correct",
 			)
 			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
 			// @ts-ignore
@@ -115,39 +115,37 @@ o.spec("EntityRestClient", async function () {
 		})
 		o("loading an element ", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify("The element that was returned from the server"),
+				JSON.stringify("The element that was returned from the server"),
 			)
 			const id1 = "id1"
 			const result = await entityRestClient.load(CustomerTypeRef, id1)
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[0]).equals(`${typeRefToPath(CustomerTypeRef)}/${id1}`)("path is correct")
 			o(requestSpy.args[1]).equals(HttpMethod.GET)("Method is GET")
-			o(result).deepEquals({
-				dummyMessage: "decrypted",
-			} as unknown as Customer)("decrypts and returns from the client")
+			o(result).deepEquals(downcast({dummyMessage: "decrypted"}))("decrypts and returns from the client")
 		})
 		o(
-				"query parameters and additional headers + access token and version are always passed to the rest client",
-				async function () {
-					const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-							JSON.stringify("The element that was returned from the server"),
-					)
-					const id1 = "id1"
-					const queryParameters = {
-						foo: "bar",
-					}
-					const headers = {
-						baz: "quux",
-					}
-					const result = await entityRestClient.load(CustomerTypeRef, id1, queryParameters, headers)
-					const {version} = await resolveTypeReference(CustomerTypeRef)
-					o(requestSpy.args[2]).deepEquals(queryParameters)("query parameters are passed")
-					o(requestSpy.args[3]).deepEquals({
-						accessToken: accessToken,
-						v: version,
-						baz: "quux",
-					})("headers are passed")
-				},
+			"query parameters and additional headers + access token and version are always passed to the rest client",
+			async function () {
+				const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
+					JSON.stringify("The element that was returned from the server"),
+				)
+				const id1 = "id1"
+				const queryParameters = {
+					foo: "bar",
+				}
+				const headers = {
+					baz: "quux",
+				}
+				const result = await entityRestClient.load(CustomerTypeRef, id1, queryParameters, headers)
+				const {version} = await resolveTypeReference(CustomerTypeRef)
+				o(requestSpy.args[2]).deepEquals(queryParameters)("query parameters are passed")
+				o(requestSpy.args[3]).deepEquals({
+					accessToken: accessToken,
+					v: version,
+					baz: "quux",
+				})("headers are passed")
+			},
 		)
 	})
 	o.spec("Load Range", function () {
@@ -202,7 +200,7 @@ o.spec("EntityRestClient", async function () {
 		})
 		o("Exactly 100 entities requested should result in a single rest request", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify(["The elements that were returned from the server"]),
+				JSON.stringify(["The elements that were returned from the server"]),
 			)
 			const ids = range(0, 100)
 			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
@@ -211,11 +209,7 @@ o.spec("EntityRestClient", async function () {
 			o(requestSpy.args[2]).deepEquals({
 				ids: ids.join(","),
 			})("Requested IDs are passed in as query params")
-			o(result).deepEquals([
-				{
-					dummyMessage: "decrypted",
-				} as unknown as Customer,
-			])("Returns what was returned by the rest client")
+			o(result).deepEquals([downcast({dummyMessage: "decrypted"})])("Returns what was returned by the rest client")
 		})
 		o("More than 100 entities requested results in 2 rest requests", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => JSON.stringify(["entities"]))
@@ -230,14 +224,7 @@ o.spec("EntityRestClient", async function () {
 			o(requestSpy.calls[1].args[2]).deepEquals({
 				ids: ids.slice(100, 101).join(","),
 			})("The remaining 1 id is requested")
-			o(result).deepEquals([
-				{
-					dummyMessage: "decrypted",
-				} as unknown as Customer,
-				{
-					dummyMessage: "decrypted",
-				} as unknown as Customer,
-			])("Returns what was returned by the rest client")
+			o(result).deepEquals([downcast({dummyMessage: "decrypted"}), downcast({dummyMessage: "decrypted"})])("Returns what was returned by the rest client")
 		})
 		o("More than 200 entities requested results in 3 rest requests", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => JSON.stringify(["entities"]))
@@ -257,24 +244,24 @@ o.spec("EntityRestClient", async function () {
 				ids: ids.slice(200, 211).join(","),
 			})("The remaining 11 ids are requested")
 			o(result).deepEquals([
-				{
+				downcast({
 					dummyMessage: "decrypted",
-				} as unknown as Customer,
-				{
+				}),
+				downcast({
 					dummyMessage: "decrypted",
-				} as unknown as Customer,
-				{
+				}),
+				downcast({
 					dummyMessage: "decrypted",
-				} as unknown as Customer,
+				}),
 			])("Returns what was returned by the rest client")
 		})
 	})
 	o.spec("Setup", async function () {
 		o("Setup list entity", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify({
-						generatedId: "id",
-					}),
+				JSON.stringify({
+					generatedId: "id",
+				}),
 			)
 			const newContact = createContact()
 			const result = await entityRestClient.setup("listId", newContact)
@@ -287,16 +274,16 @@ o.spec("EntityRestClient", async function () {
 				v: version,
 			})("access token and version are passed")
 			o(requestSpy.args[4]).deepEquals(
-					JSON.stringify({
-						dummyMessage: "encrypted",
-					}),
+				JSON.stringify({
+					dummyMessage: "encrypted",
+				}),
 			)("Contact were sent")
 		})
 		o("Setup list entity throws when no listid is passed", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify({
-						generatedId: "id",
-					}),
+				JSON.stringify({
+					generatedId: "id",
+				}),
 			)
 			const newContact = createContact()
 			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact))
@@ -304,9 +291,9 @@ o.spec("EntityRestClient", async function () {
 		})
 		o("Setup entity", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify({
-						generatedId: "id",
-					}),
+				JSON.stringify({
+					generatedId: "id",
+				}),
 			)
 			const newCustomer = createCustomer()
 			const result = await entityRestClient.setup(null, newCustomer)
@@ -319,16 +306,16 @@ o.spec("EntityRestClient", async function () {
 				v: version,
 			})("access token and version are passed")
 			o(requestSpy.args[4]).deepEquals(
-					JSON.stringify({
-						dummyMessage: "encrypted",
-					}),
+				JSON.stringify({
+					dummyMessage: "encrypted",
+				}),
 			)("Contact were sent")
 		})
 		o("Setup entity throws when listid is passed", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify({
-						generatedId: "id",
-					}),
+				JSON.stringify({
+					generatedId: "id",
+				}),
 			)
 			const newCustomer = createCustomer()
 			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer))
@@ -338,11 +325,11 @@ o.spec("EntityRestClient", async function () {
 	o.spec("Setup multiple", async function () {
 		o("Less than 100 entities created should result in a single rest request", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify([
-						{
-							generatedId: "someReturnedId",
-						},
-					]),
+				JSON.stringify([
+					{
+						generatedId: "someReturnedId",
+					},
+				]),
 			)
 			const newContacts = contacts(1)
 			const result = await entityRestClient.setupMultiple("listId", newContacts)
@@ -355,20 +342,20 @@ o.spec("EntityRestClient", async function () {
 				v: version,
 			})("access token and version are passed")
 			o(requestSpy.args[4]).deepEquals(
-					JSON.stringify(
-							newContacts.map(() => ({
-								dummyMessage: "encrypted",
-							})),
-					),
+				JSON.stringify(
+					newContacts.map(() => ({
+						dummyMessage: "encrypted",
+					})),
+				),
 			)("All contacts were sent")
 		})
 		o("Exactly 100 entities created should result in a single rest request", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify([
-						{
-							generatedId: "someReturnedId",
-						},
-					]),
+				JSON.stringify([
+					{
+						generatedId: "someReturnedId",
+					},
+				]),
 			)
 			const newContacts = contacts(100)
 			const result = await entityRestClient.setupMultiple("listId", newContacts)
@@ -376,20 +363,20 @@ o.spec("EntityRestClient", async function () {
 			o(requestSpy.callCount).equals(1)
 			o(requestSpy.args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.args[4]).deepEquals(
-					JSON.stringify(
-							newContacts.map(() => ({
-								dummyMessage: "encrypted",
-							})),
-					),
+				JSON.stringify(
+					newContacts.map(() => ({
+						dummyMessage: "encrypted",
+					})),
+				),
 			)("All contacts were sent")
 		})
 		o("More than 100 entities created should result in 2 rest requests", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify([
-						{
-							generatedId: "someReturnedId",
-						},
-					]),
+				JSON.stringify([
+					{
+						generatedId: "someReturnedId",
+					},
+				]),
 			)
 			const newContacts = contacts(101)
 			const result = await entityRestClient.setupMultiple("listId", newContacts)
@@ -397,32 +384,32 @@ o.spec("EntityRestClient", async function () {
 			o(requestSpy.callCount).equals(2)
 			o(requestSpy.calls[0].args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.calls[0].args[4]).deepEquals(
-					JSON.stringify(
-							newContacts
-									.map(() => ({
-										dummyMessage: "encrypted",
-									}))
-									.slice(0, 100),
-					),
+				JSON.stringify(
+					newContacts
+						.map(() => ({
+							dummyMessage: "encrypted",
+						}))
+						.slice(0, 100),
+				),
 			)("First 100 contacts were sent")
 			o(requestSpy.calls[1].args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.calls[1].args[4]).deepEquals(
-					JSON.stringify(
-							newContacts
-									.map(() => ({
-										dummyMessage: "encrypted",
-									}))
-									.slice(100, 101),
-					),
+				JSON.stringify(
+					newContacts
+						.map(() => ({
+							dummyMessage: "encrypted",
+						}))
+						.slice(100, 101),
+				),
 			)("Remaining contact was sent")
 		})
 		o("More than 200 entities created should result in 3 rest requests", async function () {
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() =>
-					JSON.stringify([
-						{
-							generatedId: "someReturnedId",
-						},
-					]),
+				JSON.stringify([
+					{
+						generatedId: "someReturnedId",
+					},
+				]),
 			)
 			const newContacts = contacts(211)
 			const result = await entityRestClient.setupMultiple("listId", newContacts)
@@ -430,76 +417,76 @@ o.spec("EntityRestClient", async function () {
 			o(requestSpy.callCount).equals(3)
 			o(requestSpy.calls[0].args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.calls[0].args[4]).deepEquals(
-					JSON.stringify(
-							newContacts
-									.map(() => ({
-										dummyMessage: "encrypted",
-									}))
-									.slice(0, 100),
-					),
+				JSON.stringify(
+					newContacts
+						.map(() => ({
+							dummyMessage: "encrypted",
+						}))
+						.slice(0, 100),
+				),
 			)("First 100 contacts were sent")
 			o(requestSpy.calls[1].args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.calls[1].args[4]).deepEquals(
-					JSON.stringify(
-							newContacts
-									.map(() => ({
-										dummyMessage: "encrypted",
-									}))
-									.slice(100, 200),
-					),
+				JSON.stringify(
+					newContacts
+						.map(() => ({
+							dummyMessage: "encrypted",
+						}))
+						.slice(100, 200),
+				),
 			)("Next 100 contacts were sent")
 			o(requestSpy.calls[2].args[1]).equals(HttpMethod.POST)("The method is POST")
 			o(requestSpy.calls[2].args[4]).deepEquals(
-					JSON.stringify(
-							newContacts
-									.map(() => ({
-										dummyMessage: "encrypted",
-									}))
-									.slice(200, 211),
-					),
+				JSON.stringify(
+					newContacts
+						.map(() => ({
+							dummyMessage: "encrypted",
+						}))
+						.slice(200, 211),
+				),
 			)("Remaining 11 contacts were sent")
 		})
 		o(
-				"A single request is made and an error occurs, all entites should be returned as failedInstances",
-				async function () {
-					const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => {
-						throw new BadRequestError("canny do et")
-					})
-					const newContacts = contacts(100)
-					const result = await assertThrows(SetupMultipleError, () =>
-							entityRestClient.setupMultiple("listId", newContacts),
-					)
-					o(requestSpy.callCount).equals(1)
-					o(result.failedInstances.length).equals(newContacts.length)
-					o(result.errors.length).equals(1)
-					o(result.errors[0] instanceof BadRequestError).equals(true)
-					o(result.failedInstances).deepEquals(newContacts)
-				},
+			"A single request is made and an error occurs, all entites should be returned as failedInstances",
+			async function () {
+				const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => {
+					throw new BadRequestError("canny do et")
+				})
+				const newContacts = contacts(100)
+				const result = await assertThrows(SetupMultipleError, () =>
+					entityRestClient.setupMultiple("listId", newContacts),
+				)
+				o(requestSpy.callCount).equals(1)
+				o(result.failedInstances.length).equals(newContacts.length)
+				o(result.errors.length).equals(1)
+				o(result.errors[0] instanceof BadRequestError).equals(true)
+				o(result.failedInstances).deepEquals(newContacts)
+			},
 		)
 		o(
-				"Post multiple: An error is encountered for part of the request, only failed entities are returned in the result",
-				async function () {
-					let requestCounter = 0
-					const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => {
-						requestCounter += 1
+			"Post multiple: An error is encountered for part of the request, only failed entities are returned in the result",
+			async function () {
+				let requestCounter = 0
+				const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(() => {
+					requestCounter += 1
 
-						if (requestCounter % 2 === 0) {
-							// Second and Fourth requests are success
-							return JSON.stringify(range(0, 100))
-						} else {
-							// First and Third requests are failure
-							throw new BadRequestError("It was a bad request")
-						}
-					})
-					const newContacts = contacts(400)
-					const result = await assertThrows(SetupMultipleError, () =>
-							entityRestClient.setupMultiple("listId", newContacts),
-					)
-					o(requestSpy.callCount).equals(4)
-					o(result.failedInstances).deepEquals(newContacts.slice(0, 100).concat(newContacts.slice(200, 300)))
-					o(result.errors.length).equals(2)
-					o(result.errors.every(e => e instanceof BadRequestError)).equals(true)
-				},
+					if (requestCounter % 2 === 0) {
+						// Second and Fourth requests are success
+						return JSON.stringify(range(0, 100))
+					} else {
+						// First and Third requests are failure
+						throw new BadRequestError("It was a bad request")
+					}
+				})
+				const newContacts = contacts(400)
+				const result = await assertThrows(SetupMultipleError, () =>
+					entityRestClient.setupMultiple("listId", newContacts),
+				)
+				o(requestSpy.callCount).equals(4)
+				o(result.failedInstances).deepEquals(newContacts.slice(0, 100).concat(newContacts.slice(200, 300)))
+				o(result.errors.length).equals(2)
+				o(result.errors.every(e => e instanceof BadRequestError)).equals(true)
+			},
 		)
 		o("Post multiple: When a PayloadTooLarge error occurs individual instances are posted", async function () {
 			const listId = "listId"
@@ -513,14 +500,14 @@ o.spec("EntityRestClient", async function () {
 
 			let step = 0
 			const {entityRestClient, requestSpy} = createEntityRestClientWithMocks(function (
-					path: string,
-					method: HttpMethod,
-					queryParams: Dict,
-					headers: Dict,
-					body: string | null | undefined,
-					responseType: MediaType | null | undefined,
-					progressListener: ProgressListener | null | undefined,
-					baseUrl?: string,
+				path: string,
+				method: HttpMethod,
+				queryParams: Dict,
+				headers: Dict,
+				body: string | null | undefined,
+				responseType: MediaType | null | undefined,
+				progressListener: ProgressListener | null | undefined,
+				baseUrl?: string,
 			) {
 				//post multiple - body is an array
 				if (body && body.startsWith("[")) {
@@ -560,9 +547,9 @@ o.spec("EntityRestClient", async function () {
 				v: version,
 			})("access token and version are passed")
 			o(requestSpy.args[4]).deepEquals(
-					JSON.stringify({
-						dummyMessage: "encrypted",
-					}),
+				JSON.stringify({
+					dummyMessage: "encrypted",
+				}),
 			)("Contact were sent")
 		})
 		o("Update entity throws if entity does not have an id", async function () {

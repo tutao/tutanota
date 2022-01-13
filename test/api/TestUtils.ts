@@ -3,7 +3,7 @@ import type {BrowserData} from "../../src/misc/ClientConstants"
 import type {Db} from "../../src/api/worker/search/SearchTypes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
-import {DbTransaction} from "../../src/api/worker/search/DbFacade"
+import {DbFacade, DbTransaction} from "../../src/api/worker/search/DbFacade"
 import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
 import type {DesktopDeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
 import {mock} from "@tutao/tutanota-test-utils"
@@ -21,16 +21,20 @@ export function makeCore(args?: {
 	browserData?: BrowserData,
 	transaction?: DbTransaction
 }, mocker?: (_: any) => void): IndexerCore {
-	const safeArgs = args || {}
+	const safeArgs = args ?? {}
 	const {transaction} = safeArgs
 	const defaultDb = {
 		key: aes256RandomKey(),
 		iv: fixedIv,
-		dbFacade: ({createTransaction: () => Promise.resolve(transaction)}),
+		dbFacade: ({createTransaction: () => Promise.resolve(transaction)} as Partial<DbFacade>),
 		initialized: Promise.resolve()
+	} as Partial<Db> as Db
+	const defaultQueue = {} as Partial<EventQueue> as EventQueue
+	const {db, queue, browserData} = {
+		...{db: defaultDb, browserData: browserDataStub, queue: defaultQueue},
+		...safeArgs,
 	}
-	const {db = defaultDb, queue, browserData = browserDataStub} = safeArgs
-	const core = new IndexerCore(db as unknown as Db, queue as unknown as EventQueue, browserData)
+	const core = new IndexerCore(db, queue, browserData)
 	mocker && mock(core, mocker)
 	return core
 }
