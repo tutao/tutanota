@@ -38,11 +38,11 @@ export class MultiSearchViewer {
 	_mobileContactActionBarButtons: () => ButtonAttrs[]
 
 	constructor(searchListView: SearchListView) {
+		this._searchListView = searchListView
 		const mailActionBarButtons = this.createMailActionBarButtons(true)
 		const contactActionBarButtons = this.createContactActionBarButtons(true)
 		this._mobileMailActionBarButtons = lazyMemoized(() => this.createMailActionBarButtons(false))
 		this._mobileContactActionBarButtons = lazyMemoized(() => this.createContactActionBarButtons(false))
-		this._searchListView = searchListView
 
 		this.view = () => {
 			if (this._searchListView._lastType) {
