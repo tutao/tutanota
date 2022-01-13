@@ -5,7 +5,6 @@ import fs from "fs"
 import path from "path"
 import {rollup} from "rollup"
 import {terser} from "rollup-plugin-terser"
-import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import electronBuilder from "electron-builder"
 import generatePackgeJson from "./electron-package-json-template.js"
@@ -14,7 +13,6 @@ import cp from 'child_process'
 import util from 'util'
 import typescript from "@rollup/plugin-typescript"
 
-const {babel} = pluginBabel
 const exec = util.promisify(cp.exec)
 
 export async function buildDesktop({

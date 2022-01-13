@@ -21,7 +21,6 @@ import os from "os"
 import {rollup} from "rollup"
 import {bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./buildSrc/RollupConfig.js"
 import {terser} from "rollup-plugin-terser"
-import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
@@ -29,7 +28,6 @@ import {visualizer} from "rollup-plugin-visualizer"
 import glob from "glob"
 import typescript from "@rollup/plugin-typescript"
 
-const {babel} = pluginBabel
 let start = Date.now()
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -242,7 +240,7 @@ self.onmessage = function (msg) {
 	importPromise.then(function () {
 		self.onmessage(msg)
 	})
-} 
+}
 `)
 
 
