@@ -1013,7 +1013,7 @@ o.spec("IndexerCore test", () => {
 				return Promise.resolve()
 			},
 		}
-		const encWordToMetaRow: EncWordToMetaRow = new Map() as unknown as EncWordToMetaRow
+		const encWordToMetaRow: EncWordToMetaRow = {}
 		const core = makeCore(
 			{
 				transaction,
@@ -1023,7 +1023,7 @@ o.spec("IndexerCore test", () => {
 				mocked._moveIndexedInstance = o.spy(() => PromisableWrapper.from())
 				mocked._deleteIndexedInstance = o.spy()
 				mocked._insertNewElementData = o.spy(() => Promise.resolve())
-				mocked._insertNewIndexEntries = o.spy(() => encWordToMetaRow)
+				mocked._insertNewIndexEntries = o.spy(() => Promise.resolve(encWordToMetaRow))
 				mocked._updateGroupDataIndexTimestamp = o.spy()
 			},
 		)

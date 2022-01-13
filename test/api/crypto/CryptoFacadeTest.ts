@@ -89,7 +89,7 @@ o.spec("crypto facade", function () {
 		login.resetSession()
 	})
 
-	function createValueType(type, encrypted, cardinality): ModelValue {
+	function createValueType(type, encrypted, cardinality): ModelValue & {name: string, since: number} {
 		return {
 			name: "test",
 			id: 426,
@@ -98,7 +98,7 @@ o.spec("crypto facade", function () {
 			cardinality: cardinality,
 			final: true,
 			encrypted: encrypted,
-		} as unknown as ModelValue
+		}
 	}
 
 	o.spec("decrypt value", function () {

@@ -177,7 +177,7 @@ export class IPC {
 				return this._integrator.unintegrate()
 
 			case "getConfigValue":
-				return this._conf.getVar(args[0] as unknown as AllConfigKeys)
+				return this._conf.getVar(args[0])
 
 			case "getSpellcheckLanguages": {
 				const ses = this._electron.session.defaultSession

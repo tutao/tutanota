@@ -1,5 +1,5 @@
 import {DbError} from "../../common/error/DbError"
-import {delay, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {delay, downcast, LazyLoaded, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../../common/error/QuotaExceededError"
 import type {User} from "../../entities/sys/User"
@@ -142,7 +142,7 @@ export class DbFacade {
 					let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
 
 					deleteRequest.onerror = (event: ErrorEvent) => {
-						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, event as unknown as Error))
+						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, downcast<Error>(event)))
 					}
 
 					deleteRequest.onsuccess = event => {

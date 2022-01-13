@@ -143,7 +143,7 @@ export function makeTimeoutMock(): TimeoutMock {
 		return timeoutId
 	}
 
-	const spiedMock = o.spy(timeoutMock) as unknown as TimeoutMock
+	const spiedMock: any = o.spy(timeoutMock)
 
 	spiedMock.next = function () {
 		scheduledFn && scheduledFn()
