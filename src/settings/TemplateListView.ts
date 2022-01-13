@@ -182,11 +182,11 @@ export function createTemplates(gorgiasTemplates: Array<Array<string>>, template
 
 export class TemplateRow implements VirtualRow<EmailTemplate> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
-	entity: EmailTemplate | null
-	_domTemplateTitle: HTMLElement
-	_domTemplateId: HTMLElement
+	entity: EmailTemplate | null = null
+	private _domTemplateTitle!: HTMLElement
+	private _domTemplateId!: HTMLElement
 
 	constructor() {
 		this.top = 0 // is needed because of the list component

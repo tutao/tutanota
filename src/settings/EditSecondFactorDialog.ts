@@ -48,22 +48,22 @@ const FactorTypes = {
 type FactorTypesEnum = Values<typeof FactorTypes>
 
 export class EditSecondFactorDialog {
-	_dialog: Dialog
-	_selectedType: FactorTypesEnum
-	_verificationStatus: VerificationStatus
-	_u2fRegistrationData: U2fRegisteredDevice | null
-	_name: string = ""
-	_totpCode: string = ""
-	_entityClient: EntityClient
-	_user: User
-	_mailAddress: string
-	_webauthnSupport: boolean
-	_totpKeys: TotpSecret
-	_otpInfo: LazyLoaded<{
+	private _dialog: Dialog
+	private _selectedType: FactorTypesEnum
+	private _verificationStatus: VerificationStatus = VerificationStatus.Initial
+	private _u2fRegistrationData: U2fRegisteredDevice | null = null
+	private _name: string = ""
+	private _totpCode: string = ""
+	private readonly _entityClient: EntityClient
+	private readonly _user: User
+	private readonly _mailAddress: string
+	private readonly _webauthnSupport: boolean
+	private _totpKeys: TotpSecret
+	private _otpInfo: LazyLoaded<{
 		qrCodeSvg: string | null
 		url: string
 	}>
-	_webauthnAbortController: AbortController | null
+	private _webauthnAbortController: AbortController | null = null
 
 	constructor(entityClient: EntityClient, user: User, mailAddress: string, webauthnSupport: boolean, totpKeys: TotpSecret) {
 		this._entityClient = entityClient

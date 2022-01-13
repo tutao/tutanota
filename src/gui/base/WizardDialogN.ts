@@ -58,8 +58,8 @@ export function emitWizardEvent(dom: HTMLElement | null, eventType: WizardEventT
 }
 
 class WizardDialogN<T> implements Component<WizardDialogAttrs<T>> {
-	_closeWizardDialogListener: EventListener
-	_showNextWizardDialogPageListener: EventListener
+	private _closeWizardDialogListener!: EventListener
+	private _showNextWizardDialogPageListener!: EventListener
 
 	oncreate(vnode: VnodeDOM<WizardDialogAttrs<T>>) {
 		// We listen for events triggered by the child WizardPages to close the dialog or show the next page
@@ -272,7 +272,7 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 
 	let view: () => Children = () => null
 
-	const child: Component<void> = {
+	const child: Component = {
 		view: () => view(),
 	}
 	const wizardDialog = Dialog.largeDialog(headerBarAttrs, child)

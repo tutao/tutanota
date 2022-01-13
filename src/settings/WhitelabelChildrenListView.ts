@@ -145,13 +145,13 @@ export class WhitelabelChildrenListView {
 
 export class WhitelabelChildRow implements VirtualRow<WhitelabelChild> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: WhitelabelChild | null
-	_domMailAddress: HTMLElement
-	_domDeletedIcon: HTMLElement
-	_domCreatedDate: HTMLElement
-	_whitelabelChildrenListView: WhitelabelChildrenListView
+	private _domMailAddress!: HTMLElement
+	private _domDeletedIcon!: HTMLElement
+	private _domCreatedDate!: HTMLElement
+	private _whitelabelChildrenListView: WhitelabelChildrenListView
 
 	constructor(whitelabelChildrenListView: WhitelabelChildrenListView) {
 		this._whitelabelChildrenListView = whitelabelChildrenListView

@@ -134,7 +134,7 @@ class LoginListener implements LoginEventHandler {
 	_remindActiveOutOfOfficeNotification(): Promise<void> {
 		return loadOutOfOfficeNotification().then(notification => {
 			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
-				const notificationMessage: Component<void> = {
+				const notificationMessage: Component = {
 					view: () => {
 						return m("", lang.get("outOfOfficeReminder_label"))
 					},

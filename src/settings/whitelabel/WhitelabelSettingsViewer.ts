@@ -54,19 +54,18 @@ import {SelectorItem, SelectorItemList} from "../../gui/base/DropDownSelectorN";
 assertMainOrNode()
 
 export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
-	view: (...args: Array<any>) => any
-	_whitelabelConfig: WhitelabelConfig | null
-	_certificateInfo: CertificateInfo | null
-	_whitelabelDomainInfo: DomainInfo | null
-	_customJsonTheme: ThemeCustomizations | null
-	_customer: LazyLoaded<Customer>
-	_customerInfo: LazyLoaded<CustomerInfo>
-	_customerProperties: LazyLoaded<CustomerProperties>
-	_lastBooking: Booking | null
-	_entityClient: EntityClient
+	private _whitelabelConfig: WhitelabelConfig | null = null
+	private _certificateInfo: CertificateInfo | null = null
+	private _whitelabelDomainInfo: DomainInfo | null = null
+	private _customJsonTheme: ThemeCustomizations | null = null
+	private _customer: LazyLoaded<Customer>
+	private _customerInfo: LazyLoaded<CustomerInfo>
+	private _customerProperties: LazyLoaded<CustomerProperties>
+	private _lastBooking: Booking | null
+	private _entityClient: EntityClient
 
 	constructor(entityClient: EntityClient) {
-		this.view = this._view.bind(this)
+		this.view = this.view.bind(this)
 		this._entityClient = entityClient
 		this._customer = new LazyLoaded(() => {
 			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -82,7 +81,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._updateFields()
 	}
 
-	_view(vnode: Vnode<any>): Children {
+	view(): Children {
 		const brandingDomainConfig = this._renderBrandingDomainConfig()
 
 		return m(

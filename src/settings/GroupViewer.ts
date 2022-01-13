@@ -33,23 +33,23 @@ import type {DropDownSelectorAttrs, SelectorItem, SelectorItemList} from "../gui
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {UpdatableSettingsViewer} from "./SettingsView"
+import type {UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
 
-export class GroupViewer implements UpdatableSettingsViewer {
-	view: () => Children
+export class GroupViewer implements UpdatableSettingsDetailsViewer {
+	view: UpdatableSettingsDetailsViewer["view"]
 	readonly _entityClient: EntityClient
 	groupInfo: GroupInfo
-	_group: LazyLoaded<Group>
-	_usedStorageInBytes: number
-	_name: string
-	_isActive: boolean
-	_members: LazyLoaded<Array<GroupInfo>>
-	_administratedGroups: LazyLoaded<Array<GroupInfo>>
-	_localAdminGroupInfo: LazyLoaded<Array<GroupInfo>>
+	private readonly _group: LazyLoaded<Group>
+	private _usedStorageInBytes!: number
+	private _name: string
+	private _isActive: boolean
+	private readonly _members: LazyLoaded<Array<GroupInfo>>
+	private _administratedGroups!: LazyLoaded<Array<GroupInfo>>
+	private _localAdminGroupInfo: LazyLoaded<Array<GroupInfo>>
 
 	constructor(entityClient: EntityClient, groupInfo: GroupInfo) {
 		this._entityClient = entityClient

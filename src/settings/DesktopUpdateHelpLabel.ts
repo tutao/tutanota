@@ -11,8 +11,8 @@ export type UpdateHelpLabelAttrs = {
 }
 
 export class DesktopUpdateHelpLabel {
-	_waiting: boolean
-	_error: boolean
+	private _waiting: boolean = false
+	private _error: boolean = false
 
 	getActionLink({updateAvailable, manualUpdate}: UpdateHelpLabelAttrs): Child {
 		if (this._waiting || this._error) return null

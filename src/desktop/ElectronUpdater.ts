@@ -34,18 +34,18 @@ type IntervalID = ReturnType<typeof setTimeout>
 export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: number) => IntervalID
 
 export class ElectronUpdater {
-	_conf: DesktopConfig;
-	_notifier: DesktopNotifier;
-	_crypto: DesktopCryptoFacade;
-	_updatePollInterval: IntervalID | null;
-	_checkUpdateSignature: boolean;
-	_errorCount: number;
-	_setInterval: IntervalSetter;
-	_updateInfo: UpdateInfo | null = null;
-	_logger: UpdaterLogger;
-	_app: App;
-	_tray: DesktopTray
-	_updater: UpdaterWrapper
+	private readonly _conf: DesktopConfig;
+	private readonly _notifier: DesktopNotifier;
+	private readonly _crypto: DesktopCryptoFacade;
+	private _updatePollInterval: IntervalID | null = null;
+	private _checkUpdateSignature: boolean = false;
+	private _errorCount: number;
+	private _setInterval: IntervalSetter;
+	private _updateInfo: UpdateInfo | null = null;
+	private _logger: UpdaterLogger;
+	private readonly _app: App;
+	private readonly _tray: DesktopTray
+	private readonly _updater: UpdaterWrapper
 
 	get updateInfo(): UpdateInfo | null {
 		return this._updateInfo

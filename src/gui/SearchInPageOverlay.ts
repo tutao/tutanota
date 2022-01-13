@@ -20,12 +20,12 @@ assertMainOrNode()
  * gets loaded asynchronously, shouldn't be in the web bundle
  */
 export class SearchInPageOverlay {
-	_closeFunction: (() => Promise<void>) | null
-	_domInput: HTMLInputElement
-	_matchCase: boolean = false
-	_numberOfMatches: number = 0
-	_currentMatch: number = 0
-	_skipNextBlur: boolean = false
+	private _closeFunction: (() => Promise<void>) | null
+	private _domInput!: HTMLInputElement
+	private _matchCase: boolean = false
+	private _numberOfMatches: number = 0
+	private _currentMatch: number = 0
+	private _skipNextBlur: boolean = false
 
 	constructor() {
 		this._closeFunction = null
@@ -143,7 +143,7 @@ export class SearchInPageOverlay {
 		m.redraw()
 	}
 
-	_getComponent(): Component<void> {
+	_getComponent(): Component {
 		const caseButtonAttrs = {
 			label: "matchCase_alt",
 			icon: () => Icons.MatchCase,
@@ -180,7 +180,7 @@ export class SearchInPageOverlay {
 		const handleMouseUp = (event: MouseEvent) => this.handleMouseUp(event)
 
 		return {
-			view: (vnode: Record<string, any>) => {
+			view: (_) => {
 				return m(
 					".flex.flex-space-between",
 					{

@@ -19,14 +19,15 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import {UpdatableSettingsDetailsViewer} from "./SettingsView"
 
 assertMainOrNode()
 
-export class WhitelabelChildViewer implements Component<void> {
+export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 	whitelabelChild: WhitelabelChild
-	_mailAddress: string
-	_comment: string
-	_isWhitelabelChildActive: boolean
+	private _mailAddress: string
+	private _comment: string
+	private _isWhitelabelChildActive!: boolean
 
 	constructor(whitelabelChild: WhitelabelChild) {
 		this.whitelabelChild = whitelabelChild

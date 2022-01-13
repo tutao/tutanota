@@ -38,7 +38,7 @@ import {WsConnectionState} from "../../api/main/WorkerClient"
 assertMainOrNode()
 const className = "mail-list"
 
-export class MailListView implements Component<void> {
+export class MailListView implements Component {
 	listId: Id
 	mailView: MailView
 	list: List<Mail, MailRow>
@@ -53,8 +53,6 @@ export class MailListView implements Component<void> {
 		}>
 	// Used for modifying the cursor during drag and drop
 	_listDom: HTMLElement | null
-	view: (arg0: Vnode<void>) => Children
-
 	constructor(mailListId: Id, mailView: MailView) {
 		this.listId = mailListId
 		this.mailView = mailView
@@ -123,7 +121,7 @@ export class MailListView implements Component<void> {
 			})
 
 		// "this" is incorrectly bound if we don't do it this way
-		this.view = vnode => this._view(vnode)
+		this.view = this.view.bind(this)
 	}
 
 	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
@@ -312,7 +310,7 @@ export class MailListView implements Component<void> {
 		})
 	})
 
-	_view(vnode: Vnode<void>): Children {
+	view(vnode: Vnode): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
 		const folder = this.mailView.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {

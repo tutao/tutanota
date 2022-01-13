@@ -40,8 +40,8 @@ export class BuildServerClient {
 	private buildServerHandle
 	private clientSocket
 	private buildId: string
-	private config: BuildServerConfig
-	private buildOpts: BuildOptions
+	private config!: BuildServerConfig
+	private buildOpts!: BuildOptions
 
 	constructor(buildId: string) {
 		this.state = BuildServerClientState.STATE_DISCONNECTED

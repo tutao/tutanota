@@ -10,7 +10,7 @@ import {clickHandler} from "./GuiUtils"
 assertMainOrNode()
 
 interface NotificationOverlayAttrs {
-	message: Component<void>,
+	message: Component,
 	buttons: Array<ButtonAttrs>,
 }
 
@@ -39,7 +39,7 @@ class NotificationOverlay implements Component<NotificationOverlayAttrs> {
  * @param buttons The postpone button is automatically added and does not have to be passed from outside
  */
 
-export function show(message: Component<void>, closeButtonAttrs: Partial<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
+export function show(message: Component, closeButtonAttrs: Partial<ButtonAttrs>, buttons: Array<ButtonAttrs>) {
 	notificationQueue.push({
 		message,
 		buttons,

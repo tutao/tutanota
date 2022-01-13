@@ -146,7 +146,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.resetSession().then(() => initLocator(locator.login._worker, locator._browserData))
+	return locator.login.resetSession().then(() => {
+		// @ts-ignore
+		const worker = locator.login._worker
+		return initLocator(worker, locator._browserData)
+	})
 }
 
 if (typeof self !== "undefined") {

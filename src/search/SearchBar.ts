@@ -76,22 +76,22 @@ export type SearchBarState = {
 }
 
 export class SearchBar implements Component<SearchBarAttrs> {
-	view: (...args: Array<any>) => any
-	_domInput: HTMLInputElement
-	_domWrapper: HTMLElement
+	view: Component<SearchBarAttrs>["view"]
+	private _domInput!: HTMLInputElement
+	private _domWrapper!: HTMLElement
 	focused: boolean
-	expanded: boolean
+	expanded!: boolean
 	skipNextBlur: Stream<boolean>
-	_state: Stream<SearchBarState>
-	oncreate: (...args: Array<any>) => any
+	private _state: Stream<SearchBarState>
+	oncreate: Component<SearchBarAttrs>["oncreate"]
 	busy: boolean
-	_groupInfoRestrictionListId: Id | null
+	private _groupInfoRestrictionListId: Id | null
 	lastSelectedGroupInfoResult: Stream<GroupInfo>
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>
-	_closeOverlayFunction: (() => Promise<void>) | null
-	_overlayContentComponent: Component<void>
-	_returnListener: () => void
-	_confirmDialogShown: boolean
+	private _closeOverlayFunction: (() => Promise<void>) | null = null
+	private _overlayContentComponent: Component
+	private _returnListener: () => void
+	private _confirmDialogShown: boolean = false
 
 	constructor() {
 		this._groupInfoRestrictionListId = null

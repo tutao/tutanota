@@ -1,9 +1,9 @@
-import type {BrowserWindow, ContextMenuParams, NativeImage,} from "electron"
+import type {BrowserWindow, ContextMenuParams, NativeImage, Result,} from "electron"
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
 import type {lazy} from "@tutao/tutanota-utils"
-import {capitalizeFirstLetter, downcast, noOp, typedEntries} from "@tutao/tutanota-utils"
+import {assertNotNull, capitalizeFirstLetter, noOp, typedEntries, typedKeys} from "@tutao/tutanota-utils"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
 import path from "path"
@@ -13,10 +13,8 @@ import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
-import HandlerDetails = Electron.HandlerDetails;
 import {ElectronExports} from "./ElectronExportTypes";
-import type {Result} from "electron"
-import {typedKeys} from "@tutao/tutanota-utils"
+import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -41,20 +39,20 @@ type LocalShortcut = {
 const TAG = "[ApplicationWindow]"
 
 export class ApplicationWindow {
-	readonly _ipc: IPC
-	readonly _startFileURLString: string
-	readonly _electron: ElectronExports
-	readonly _localShortcut: LocalShortcutManager
-	readonly _themeManager: ThemeManager
-	readonly _startFileURL: URL
-	_browserWindow: BrowserWindow
+	private readonly _ipc: IPC
+	private readonly _startFileURLString: string
+	private readonly _electron: ElectronExports
+	private readonly _localShortcut: LocalShortcutManager
+	private readonly _themeManager: ThemeManager
+	private readonly _startFileURL: URL
+	_browserWindow!: BrowserWindow
 
 	/** User logged in in this window. Reset from WindowManager. */
 	_userInfo: UserInfo | null
-	_setBoundsTimeout: ReturnType<typeof setTimeout>
-	_findingInPage: boolean = false
-	_skipNextSearchBarBlur: boolean = false
-	_lastSearchRequest:
+	private _setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
+	private _findingInPage: boolean = false
+	private _skipNextSearchBarBlur: boolean = false
+	private _lastSearchRequest:
 		| [
 		string,
 		{
@@ -64,9 +62,9 @@ export class ApplicationWindow {
 	]
 		| null
 		| undefined = null
-	_lastSearchPromiseReject: (arg0: Error | null) => void
-	_shortcuts: Array<LocalShortcut>
-	id: number
+	private _lastSearchPromiseReject: (arg0: Error | null) => void
+	private _shortcuts: Array<LocalShortcut>
+	id!: number
 
 	constructor(
 		wm: WindowManager,
@@ -80,7 +78,7 @@ export class ApplicationWindow {
 	) {
 		this._themeManager = themeManager
 		this._userInfo = null
-		this._ipc = wm.ipc
+		this._ipc = assertNotNull(wm.ipc)
 		this._electron = electron
 		this._localShortcut = localShortcutManager
 		this._startFileURL = url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml))
@@ -587,7 +585,7 @@ export class ApplicationWindow {
 		this._browserWindow.setBounds(bounds.rect)
 
 		if (process.platform !== "linux") return
-		clearTimeout(this._setBoundsTimeout)
+		this._setBoundsTimeout && clearTimeout(this._setBoundsTimeout)
 		this._setBoundsTimeout = setTimeout(() => {
 			if (this._browserWindow.isDestroyed()) {
 				return

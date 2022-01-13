@@ -7,12 +7,12 @@ import {EntityRestClientMock} from "./EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {defer, downcast} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-import {LoginFacade, LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
+import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
-import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
 import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {EntityRestInterface} from "../../../src/api/worker/rest/EntityRestClient";
+
 o.spec("EventBusClient test", function () {
     let ebc: EventBusClient
     let cacheMock: EntityRestInterface
@@ -92,6 +92,7 @@ o.spec("EventBusClient test", function () {
         "parallel received event batches are passed sequentially to the entity rest cache",
         node(async function () {
             o.timeout(500)
+			// @ts-ignore
             ebc._state = EventBusState.Automatic
             await ebc._onOpen(false)
 
@@ -126,6 +127,7 @@ o.spec("EventBusClient test", function () {
         node(async function () {
             let counterUpdate = _createCounterData("group1", 4, "list1")
 
+			// @ts-ignore
             downcast(workerMock).updateCounter = spy(ebc._worker.updateCounter)
             await ebc._message(
                 downcast({

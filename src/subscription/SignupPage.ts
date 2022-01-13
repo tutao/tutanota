@@ -21,7 +21,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const data = vnode.attrs.data
 		const newAccountData = data.newAccountData
-		let mailAddress
+		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 		return m(SignupForm, {
 			newSignupHandler: newAccountData => {

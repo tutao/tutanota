@@ -19,7 +19,7 @@ import {CheckboxN} from "../gui/base/CheckboxN"
 import {getSubscriptionPrice} from "./PriceUtils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
-	_dom: HTMLElement | null
+	private _dom: HTMLElement | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
@@ -141,7 +141,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.showNextPage()
 	}
 
-	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): Component<void> {
+	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): Component {
 		return {
 			view: () => {
 				return m(ButtonN, {
@@ -220,7 +220,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 
 export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
-	subscriptionType: string | null
+	subscriptionType: string | null = null
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData

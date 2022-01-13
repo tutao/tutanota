@@ -1,5 +1,6 @@
 import m, {Children, Component} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Editor} from "./Editor.js"
 import {DropDownSelector} from "../base/DropDownSelector"
 import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
@@ -9,7 +10,7 @@ import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {Options as ToolbarOptions} from "../base/RichTextToolbar"
 import {RichTextToolbar} from "../base/RichTextToolbar"
 import type {lazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export enum HtmlEditorMode {
 	HTML = "html",
@@ -18,21 +19,22 @@ export enum HtmlEditorMode {
 
 type RichToolbarOptions = {enabled: boolean} & ToolbarOptions
 
-export class HtmlEditor implements Component<void> {
+export class HtmlEditor implements Component {
+	// Currently accessed form outside
 	_editor: Editor;
-	_mode: Stream<HtmlEditorMode>;
-	_active: boolean;
-	_disabled: boolean;
-	_domTextArea: HTMLTextAreaElement;
-	_showBorders: boolean;
-	_minHeight: number | null;
-	_placeholderId: TranslationKey | null;
-	view: () => Children;
-	_placeholderDomElement: HTMLElement;
-	_value: Stream<string>;
-	_modeSwitcher: DropDownSelector<HtmlEditorMode> | null;
-	_htmlMonospace: boolean;
-	_richToolbarOptions: RichToolbarOptions;
+	private _mode: Stream<HtmlEditorMode>;
+	private _active: boolean;
+	private _disabled: boolean;
+	private _domTextArea: HTMLTextAreaElement | null = null;
+	private _showBorders: boolean;
+	private _minHeight: number | null;
+	private _placeholderId: TranslationKey | null;
+	view: Component["view"]
+	private _placeholderDomElement: HTMLElement | null = null;
+	private _value: Stream<string>;
+	private _modeSwitcher: DropDownSelector<HtmlEditorMode> | null;
+	private _htmlMonospace: boolean;
+	private _richToolbarOptions: RichToolbarOptions;
 
 	constructor(labelIdOrLabelFunction?: TranslationText, richToolbarOptions?: RichToolbarOptions,
 				injections?: () => Children) {
@@ -54,8 +56,9 @@ export class HtmlEditor implements Component<void> {
 		this._mode.map(v => {
 			this.setValue(this._value())
 			this._editor.initialized.promise.then(() => {
-				this._editor._domElement.onfocus = (e) => focus()
-				this._editor._domElement.onblur = (e) => blur()
+				const dom = assertNotNull(this._editor?._domElement)
+				dom.onfocus = (_) => focus()
+				dom.onblur = (_) => blur()
 			})
 		})
 
@@ -69,7 +72,7 @@ export class HtmlEditor implements Component<void> {
 			if (this._mode() === HtmlEditorMode.WYSIWYG) {
 				this._value(this._editor.getValue())
 			} else {
-				this._value(this._domTextArea.value)
+				this._value(assertNotNull(this._domTextArea).value)
 			}
 		}
 
@@ -77,8 +80,8 @@ export class HtmlEditor implements Component<void> {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					oncreate: vnode => this._placeholderDomElement = vnode.dom as HTMLElement,
 					onclick: () => this._mode() === HtmlEditorMode.WYSIWYG
-						? this._editor._domElement.focus()
-						: this._domTextArea.focus()
+						? assertNotNull(this._editor._domElement).focus()
+						: assertNotNull(this._domTextArea).focus()
 				},
 				(this._placeholderId ? lang.get(this._placeholderId) : "")
 			) : null
@@ -118,8 +121,12 @@ export class HtmlEditor implements Component<void> {
 								: null,
 							m(this._editor,
 								{
-									oncreate: () => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
-									onremove: () => this._value(this.getValue())
+									oncreate: (_) => {
+										this._editor.initialized.promise.then(() => this._editor.setHTML(this._value()))
+									},
+									onremove: (_) => {
+										this._value(this.getValue())
+									}
 								}
 							)
 						])
@@ -133,8 +140,10 @@ export class HtmlEditor implements Component<void> {
 							onfocus: () => focus(),
 							onblur: () => blur(),
 							oninput: () => {
-								this._domTextArea.style.height = '0px';
-								this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
+								if (this._domTextArea) {
+									this._domTextArea.style.height = '0px'
+									this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px'
+								}
 							},
 							style: {
 								'font-family': this._htmlMonospace ? 'monospace' : 'inherit',

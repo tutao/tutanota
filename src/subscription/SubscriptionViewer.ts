@@ -74,32 +74,32 @@ assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
 
 export class SubscriptionViewer implements UpdatableSettingsViewer {
-	view: () => Children
-	_subscriptionFieldValue: Stream<string>
-	_usageTypeFieldValue: Stream<string>
-	_orderAgreementFieldValue: Stream<string>
-	_selectedSubscriptionInterval: Stream<number | null>
-	_currentPriceFieldValue: Stream<string>
-	_nextPriceFieldValue: Stream<string>
-	_usersFieldValue: Stream<string>
-	_storageFieldValue: Stream<string>
-	_emailAliasFieldValue: Stream<string>
-	_groupsFieldValue: Stream<string>
-	_contactFormsFieldValue: Stream<string>
-	_whitelabelFieldValue: Stream<string>
-	_sharingFieldValue: Stream<string>
-	_businessFeatureFieldValue: Stream<string>
-	_periodEndDate: Date | null
-	_nextPeriodPriceVisible: boolean
-	_customer: Customer | null
-	_customerInfo: CustomerInfo | null
-	_accountingInfo: AccountingInfo | null
-	_lastBooking: Booking | null
-	_orderAgreement: OrderProcessingAgreement | null
-	_currentSubscription: SubscriptionType
-	_isCancelled: boolean
-	_giftCards: Map<Id, GiftCard>
-	_giftCardsExpanded: Stream<boolean>
+	readonly view: UpdatableSettingsViewer["view"]
+	private _subscriptionFieldValue: Stream<string>
+	private _usageTypeFieldValue: Stream<string>
+	private _orderAgreementFieldValue: Stream<string>
+	private _selectedSubscriptionInterval: Stream<number | null>
+	private _currentPriceFieldValue: Stream<string>
+	private _nextPriceFieldValue: Stream<string>
+	private _usersFieldValue: Stream<string>
+	private _storageFieldValue: Stream<string>
+	private _emailAliasFieldValue: Stream<string>
+	private _groupsFieldValue: Stream<string>
+	private _contactFormsFieldValue: Stream<string>
+	private _whitelabelFieldValue: Stream<string>
+	private _sharingFieldValue: Stream<string>
+	private _businessFeatureFieldValue: Stream<string>
+	private _periodEndDate: Date | null = null
+	private _nextPeriodPriceVisible: boolean | null = null
+	private _customer: Customer | null = null
+	private _customerInfo: CustomerInfo | null = null
+	private _accountingInfo: AccountingInfo | null = null
+	private _lastBooking: Booking | null = null
+	private _orderAgreement: OrderProcessingAgreement | null = null
+	private _currentSubscription: SubscriptionType | null = null
+	private _isCancelled: boolean | null = null
+	private _giftCards: Map<Id, GiftCard>
+	private _giftCardsExpanded: Stream<boolean>
 
 	constructor() {
 		let subscriptionAction = new Button(
@@ -555,7 +555,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				: ""
 		const accountType: AccountType = downcast(logins.getUserController().user.accountType)
 
-		this._subscriptionFieldValue(_getAccountTypeName(accountType, this._currentSubscription) + cancelledText)
+		this._subscriptionFieldValue(_getAccountTypeName(accountType, assertNotNull(this._currentSubscription)) + cancelledText)
 	}
 
 	_updateBookings(): Promise<void> {

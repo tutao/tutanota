@@ -1,4 +1,4 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Component} from "mithril"
 import SquireEditor from "squire-rte"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
@@ -20,20 +20,19 @@ type Styles = {
 	listing: Listing | null
 }
 
-export class Editor implements ImageHandler {
+export class Editor implements ImageHandler, Component {
 	_squire: Squire
-	view: (vnode: Vnode<any>) => Children | Children[]
-	onbeforeupdate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+	view: Component["view"]
+	onbeforeupdate: Component["onbeforeupdate"]
+	onremove: Component["onremove"]
 	initialized: DeferredObject<void>
-	_domElement: HTMLElement
+	_domElement: HTMLElement | null = null
 	_enabled: boolean
-	_active: boolean
-	_createsLists: boolean
-	_minHeight: number | null
-	_sanitizer: SanitizerFn
-	// _tutanotaProperties: TutanotaProperties;
-	_styleActions: Record<Style, Array<(...args: Array<any>) => any>>
+	private _active: boolean
+	private _createsLists: boolean
+	private _minHeight: number | null
+	private _sanitizer: SanitizerFn
+	private _styleActions: Record<Style, Array<(...args: Array<any>) => any>>
 	styles: Styles = {
 		b: false,
 		i: false,

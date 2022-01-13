@@ -108,7 +108,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
-	openKnowledgeBaseButtonAttrs: ButtonAttrs | null
+	openKnowledgeBaseButtonAttrs: ButtonAttrs | null = null
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		this.inlineImageElements = []
@@ -254,7 +254,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			})
 		}
 
-		const shortcuts = [
+		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.SPACE,
 				ctrl: true,

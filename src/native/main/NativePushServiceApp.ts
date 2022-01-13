@@ -18,9 +18,9 @@ import type {NativeInterface} from "../common/NativeInterface"
 import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
 
 export class NativePushServiceApp {
-	_pushNotification: Record<string, any> | null
-	_currentIdentifier: string | null
-	_native: NativeInterface
+	private _pushNotification: Record<string, any> | null
+	private _currentIdentifier: string | null = null
+	private _native: NativeInterface
 
 	constructor(nativeInterface: NativeInterface) {
 		this._pushNotification = null

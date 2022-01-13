@@ -176,36 +176,33 @@ export interface LoginFacade {
 }
 
 export class LoginFacadeImpl implements LoginFacade {
-	_user: User | null
-	_userGroupInfo: GroupInfo | null
-	_accessToken: string | null
-	groupKeys: Record<Id, Aes128Key>
-	_eventBusClient: EventBusClient
-	_worker: WorkerImpl
-	_indexer: Indexer
+	_user: User | null = null
+	private _userGroupInfo: GroupInfo | null = null
+	private _accessToken: string | null = null
+	private groupKeys!: Record<Id, Aes128Key>
+	private _eventBusClient!: EventBusClient
+	private _worker: WorkerImpl
+	private _indexer!: Indexer
 
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
-	_loginRequestSessionId: IdTuple | null
+	private _loginRequestSessionId: IdTuple | null = null
 
 	/**
 	 * Used for cancelling second factor immediately
 	 */
-	_loggingInPromiseWrapper:
-		| {
-		promise: Promise<void>
-		reject: (arg0: Error) => void
-	}
+	private _loggingInPromiseWrapper:
+		| {promise: Promise<void>, reject: (arg0: Error) => void}
 		| null
 		| undefined
-	_restClient: RestClient
-	_entityClient: EntityClient
-	_leaderStatus: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
+	private readonly _restClient: RestClient
+	private readonly _entityClient: EntityClient
+	private _leaderStatus!: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
 
-	_secondFactorAuthHandler: SecondFactorAuthHandler
-	_instanceMapper: InstanceMapper
-	_cryptoFacade: lazy<CryptoFacade>
+	private _secondFactorAuthHandler: SecondFactorAuthHandler
+	private _instanceMapper: InstanceMapper
+	private _cryptoFacade: lazy<CryptoFacade>
 
 	constructor(
 		worker: WorkerImpl,

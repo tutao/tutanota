@@ -6,6 +6,7 @@ import type {keyHandler} from "../../misc/KeyManager"
 import {theme} from "../../gui/theme"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type TemplateSearchBarAttrs = {
 	value: Stream<string>
@@ -15,7 +16,7 @@ export type TemplateSearchBarAttrs = {
 }
 
 export class TemplateSearchBar implements Component<TemplateSearchBarAttrs> {
-	domInput: HTMLInputElement
+	domInput: HTMLInputElement | null = null
 
 	view(vnode: Vnode<TemplateSearchBarAttrs>): Children {
 		const a = vnode.attrs
@@ -48,8 +49,9 @@ export class TemplateSearchBar implements Component<TemplateSearchBarAttrs> {
 				return a.keyHandler != null ? a.keyHandler(key) : true
 			},
 			oninput: () => {
-				a.value(this.domInput.value)
-				a.oninput && a.oninput(this.domInput.value, this.domInput)
+				const domInput = assertNotNull(this.domInput)
+				a.value(domInput.value)
+				a.oninput && a.oninput(domInput.value, domInput)
 			},
 			style: {
 				lineHeight: px(inputLineHeight),

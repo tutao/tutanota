@@ -9,20 +9,20 @@ import {LayerType} from "../../RootView"
 import {assertMainOrNodeBoot} from "../../api/common/Env"
 
 assertMainOrNodeBoot()
+
 type ModalComponentWrapper = {
 	key: number
 	component: ModalComponent
 	needsBg: boolean
 }
 
-class Modal {
+class Modal implements Component {
 	components: Array<ModalComponentWrapper>
 	_uniqueComponent: ModalComponent | null
-	_domModal: HTMLElement
-	view: (...args: Array<any>) => any
+	view: Component["view"]
 	visible: boolean
 	currentKey: number
-	_closingComponents: Array<ModalComponent>
+	private _closingComponents: Array<ModalComponent>
 
 	constructor() {
 		this.currentKey = 0
@@ -37,8 +37,7 @@ class Modal {
 			return m(
 				"#modal.fill-absolute",
 				{
-					oncreate: vnode => {
-						this._domModal = vnode.dom as HTMLElement
+					oncreate: (_) => {
 						// const lastComponent = last(this.components)
 						// if (lastComponent) {
 						// 	lastComponent.component.backgroundClick(e)
@@ -227,7 +226,7 @@ class Modal {
 
 export const modal: Modal = new Modal()
 
-export interface ModalComponent extends Component<void> {
+export interface ModalComponent extends Component {
 	hideAnimation(): Promise<void>
 
 	onClose(): void

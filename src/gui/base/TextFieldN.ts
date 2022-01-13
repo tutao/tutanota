@@ -50,14 +50,14 @@ export const baseLabelPosition = size.text_field_label_top
 
 export class TextFieldN implements Component<TextFieldAttrs> {
 	active: boolean
-	onblur: ((...args: Array<any>) => any) | null
-	domInput: HTMLInputElement
-	_domWrapper: HTMLElement
-	_domLabel: HTMLElement
-	_domInputWrapper: HTMLElement
-	_didAutofill: boolean
+	onblur: EventListener | null = null
+	domInput!: HTMLInputElement
+	private _domWrapper!: HTMLElement
+	private _domLabel!: HTMLElement
+	private _domInputWrapper!: HTMLElement
+	private _didAutofill!: boolean
 
-	constructor(vnode: Vnode<TextFieldAttrs>) {
+	constructor() {
 		this.active = false
 	}
 

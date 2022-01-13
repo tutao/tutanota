@@ -38,19 +38,19 @@ export const enum WsConnectionState {
 }
 
 export class WorkerClient {
-	_deferredInitialized: DeferredObject<void> = defer()
-	_isInitialized: boolean = false
+	private _deferredInitialized: DeferredObject<void> = defer()
+	private _isInitialized: boolean = false
 
 	get initialized(): Promise<void> {
 		return this._deferredInitialized.promise
 	}
 
-	_dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
-	_progressUpdater: progressUpdater | null
+	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
+	private _progressUpdater: progressUpdater | null = null
 	readonly _wsConnection: stream<WsConnectionState> = stream(WsConnectionState.terminated)
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
-	_leaderStatus: WebsocketLeaderStatus
+	private _leaderStatus: WebsocketLeaderStatus
 
 	constructor() {
 		this._leaderStatus = createWebsocketLeaderStatus({

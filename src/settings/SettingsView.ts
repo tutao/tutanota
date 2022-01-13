@@ -65,32 +65,38 @@ import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
 
 assertMainOrNode()
 
-export interface UpdatableSettingsViewer {
-	//this is not the same as Component:view
+/** UI component shown in the second column of settings. */
+export interface UpdatableSettingsViewer extends Component {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
+}
+
+/** UI component shown in the third column of settings. Not actually a Mithril component. */
+export interface UpdatableSettingsDetailsViewer {
+	// not the same as Component.view
 	view(): Children
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 export class SettingsView implements CurrentView {
-	view: CurrentView["view"]
+	readonly view: CurrentView["view"]
 	viewSlider: ViewSlider
-	_settingsFoldersColumn: ViewColumn
-	_settingsColumn: ViewColumn
-	_settingsDetailsColumn: ViewColumn
-	_userFolders: SettingsFolder<void>[]
-	_adminFolders: SettingsFolder<void>[]
-	_templateFolders: SettingsFolder<TemplateGroupInstance>[]
-	_dummyTemplateFolder: SettingsFolder<void>
-	_knowledgeBaseFolders: SettingsFolder<void>[]
-	_selectedFolder: SettingsFolder<any>
-	_currentViewer: UpdatableSettingsViewer | null
-	detailsViewer: UpdatableSettingsViewer | null // the component for the details column. can be set by settings views
+	private readonly _settingsFoldersColumn: ViewColumn
+	private readonly _settingsColumn: ViewColumn
+	private readonly _settingsDetailsColumn: ViewColumn
+	private readonly _userFolders: SettingsFolder<unknown>[]
+	private readonly _adminFolders: SettingsFolder<unknown>[]
+	private _templateFolders: SettingsFolder<TemplateGroupInstance>[]
+	private readonly _dummyTemplateFolder: SettingsFolder<unknown>
+	private _knowledgeBaseFolders: SettingsFolder<unknown>[]
+	private _selectedFolder: SettingsFolder<unknown>
+	private _currentViewer: UpdatableSettingsViewer | null = null
+	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
 
 	_customDomains: LazyLoaded<string[]>
 	_templateInvitations: ReceivedGroupInvitationsModel
 
-	constructor(nativeApp?: NativeInterfaceMain) {
+	constructor() {
 		this._userFolders = [
 			new SettingsFolder(
 				"login_label",
@@ -437,7 +443,7 @@ export class SettingsView implements CurrentView {
 		})
 	}
 
-	_renderSidebarSectionChildren(folders: SettingsFolder<void>[]): Children {
+	_renderSidebarSectionChildren(folders: SettingsFolder<unknown>[]): Children {
 		return m(
 			"",
 			folders
@@ -462,7 +468,7 @@ export class SettingsView implements CurrentView {
 		)
 	}
 
-	_getCurrentViewer(): Component<void> {
+	_getCurrentViewer(): Component {
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()

@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import {PasswordIndicator} from "../gui/PasswordIndicator"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
@@ -24,17 +24,17 @@ assertMainOrNode()
  * A form for entering a new password. Optionally it allows to enter the old password for validation and/or to repeat the new password.
  * showChangeOwnPasswordDialog() and showChangeUserPasswordAsAdminDialog() show this form as dialog.
  */
-export class PasswordForm {
-	view: (...args: Array<any>) => any
-	_oldPassword: string
-	_oldPasswordStatus: Status
-	_newPassword: string
-	_newPasswordStatus: Status
-	_repeatedPassword: string
-	_repeatedPasswordStatus: Status
-	_validateOldPassword: boolean
-	_enforcePasswordStrength: boolean
-	_repeatPassword: boolean
+export class PasswordForm implements Component {
+	readonly view: Component["view"]
+	private _oldPassword!: string
+	private _oldPasswordStatus!: Status
+	private _newPassword!: string
+	private _newPasswordStatus!: Status
+	private _repeatedPassword!: string
+	private _repeatedPasswordStatus!: Status
+	private readonly _validateOldPassword: boolean
+	private readonly _enforcePasswordStrength: boolean
+	private readonly _repeatPassword: boolean
 
 	constructor(
 		validateOldPassword: boolean,

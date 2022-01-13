@@ -6,14 +6,15 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {isKeyPressed} from "../../misc/KeyManager"
 import type {PosRect} from "../../gui/base/Dropdown"
 import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Keys, ShareCapability} from "../../api/common/TutanotaConstants"
 import {TemplatePopupResultRow} from "./TemplatePopupResultRow"
 import {Icons} from "../../gui/base/icons/Icons"
 import {TemplateExpander} from "./TemplateExpander"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {lang, languageByCode} from "../../misc/LanguageViewModel"
+import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
 import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
@@ -31,8 +32,6 @@ import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
-import type {windowSizeListener} from "../../misc/WindowFacade"
-import Stream from "mithril/stream";
 
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
@@ -78,19 +77,17 @@ export function showTemplatePopupInEditor(
 }
 
 export class TemplatePopup implements ModalComponent {
-	_rect: PosRect
-	_filterTextAttrs: TextFieldAttrs
-	_shortcuts: Shortcut[]
-	_onSelect: (arg0: string) => void
-	_initialWindowWidth: number
-	_resizeListener: windowSizeListener
-	_redrawStream: Stream<any>
-	_templateModel: TemplatePopupModel
-	_searchBarValue: Stream<string>
-	_selectTemplateButtonAttrs: ButtonAttrs
-	_inputDom: HTMLElement
-	_selectionChangedListener: Stream<void>
-	_debounceFilter: (arg0: string) => void
+	private _rect: PosRect
+	private _shortcuts: Shortcut[]
+	private _onSelect: (_: string) => void
+	private _initialWindowWidth: number
+	private _resizeListener: windowSizeListener
+	private _redrawStream: Stream<any>
+	private readonly _templateModel: TemplatePopupModel
+	private readonly _searchBarValue: Stream<string>
+	private _selectTemplateButtonAttrs: ButtonAttrs
+	private _inputDom: HTMLElement | null = null
+	private _debounceFilter: (_: string) => void
 
 	constructor(templateModel: TemplatePopupModel, rect: PosRect, onSelect: (arg0: string) => void, initialSearchString: string) {
 		this._rect = rect
@@ -184,7 +181,7 @@ export class TemplatePopup implements ModalComponent {
 					left: px(this._rect.left),
 				},
 				onclick: (e: MouseEvent) => {
-					this._inputDom.focus()
+					this._inputDom?.focus()
 
 					e.stopPropagation()
 				},
@@ -269,7 +266,7 @@ export class TemplatePopup implements ModalComponent {
 				onkeydown: (e: KeyboardEvent) => {
 					// prevents tabbing into the background of the modal
 					if (isKeyPressed(e.keyCode, Keys.TAB) && !this._templateModel.getSelectedTemplate()) {
-						this._inputDom.focus()
+						this._inputDom?.focus()
 
 						e.preventDefault()
 					}
@@ -357,7 +354,8 @@ export class TemplatePopup implements ModalComponent {
 								type: ButtonType.Dropdown,
 								click: (e: MouseEvent) => {
 									e.stopPropagation()
-									this._templateModel.setSelectedContentLanguage(langCode), this._inputDom.focus()
+									this._templateModel.setSelectedContentLanguage(langCode)
+									this._inputDom?.focus()
 								},
 							}
 						}),
@@ -393,7 +391,7 @@ export class TemplatePopup implements ModalComponent {
 					onkeydown: (e: KeyboardEvent) => {
 						// prevents tabbing into the background of the modal
 						if (isKeyPressed(e.keyCode, Keys.TAB)) {
-							this._inputDom.focus()
+							this._inputDom?.focus()
 
 							e.preventDefault()
 						}
@@ -414,7 +412,7 @@ export class TemplatePopup implements ModalComponent {
 				m(TemplatePopupResultRow, {
 					template: template,
 				}),
-			onItemDoubleClicked: template => {
+			onItemDoubleClicked: () => {
 				const selected = this._templateModel.getSelectedContent()
 
 				if (selected) {

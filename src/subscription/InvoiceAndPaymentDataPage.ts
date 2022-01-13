@@ -13,7 +13,7 @@ import {logins, SessionType} from "../api/main/LoginController"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull, noOp} from "@tutao/tutanota-utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -36,18 +36,18 @@ import {Credentials} from "../misc/credentials/Credentials";
  * Wizard page for editing invoice and payment data.
  */
 export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptionData> {
-	_paymentMethodInput: PaymentMethodInput
-	_invoiceDataInput: InvoiceDataInput
-	_availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>>
-	_selectedPaymentMethod: Stream<PaymentMethodType>
-	_upgradeData: UpgradeSubscriptionData
+	private _paymentMethodInput: PaymentMethodInput | null = null
+	private _invoiceDataInput: InvoiceDataInput | null = null
+	private _availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>> | null = null
+	private _selectedPaymentMethod: Stream<PaymentMethodType>
+	private _upgradeData: UpgradeSubscriptionData
 	private dom!: HTMLElement;
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._upgradeData = upgradeData
 		this._selectedPaymentMethod = stream()
 
-		this._selectedPaymentMethod.map(method => this._paymentMethodInput.updatePaymentMethod(method))
+		this._selectedPaymentMethod.map(method => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
 	}
 
 	onremove(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
@@ -119,13 +119,15 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		const a = vnode.attrs
 
 		const onNextClick = () => {
-			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
+			const invoiceDataInput = assertNotNull(this._invoiceDataInput)
+			const paymentMethodInput = assertNotNull(this._paymentMethodInput)
+			let error = invoiceDataInput.validateInvoiceData() || paymentMethodInput.validatePaymentData()
 
 			if (error) {
 				return Dialog.message(error).then(() => null)
 			} else {
-				a.data.invoiceData = this._invoiceDataInput.getInvoiceData()
-				a.data.paymentData = this._paymentMethodInput.getPaymentData()
+				a.data.invoiceData = invoiceDataInput.getInvoiceData()
+				a.data.paymentData = paymentMethodInput.getPaymentData()
 				showProgressDialog(
 					"updatePaymentDataBusy_msg",
 					Promise.resolve()
@@ -172,7 +174,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 									minWidth: "260px",
 								},
 							},
-							m(this._invoiceDataInput),
+							m(neverNull(this._invoiceDataInput)),
 						),
 						m(
 							".flex-grow-shrink-half.plr-l",
@@ -181,7 +183,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 									minWidth: "260px",
 								},
 							},
-							m(this._paymentMethodInput),
+							m(neverNull(this._paymentMethodInput)),
 						),
 					]),
 					m(

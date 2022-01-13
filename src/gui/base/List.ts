@@ -1,9 +1,9 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {Cat, log} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
-import type {DeferredObject, MaybeLazy} from "@tutao/tutanota-utils"
+import type {DeferredObject, MaybeLazy, Thunk} from "@tutao/tutanota-utils"
 import {
 	addAll,
 	arrayEquals,
@@ -132,55 +132,55 @@ type RenderCallbackType =
  * * T is the type of the entity
  * * R is the type of the Row
  */
-export class List<T extends ListElement, R extends VirtualRow<T>> {
+export class List<T extends ListElement, R extends VirtualRow<T>> implements Component {
 	_config: ListConfig<T, R>
 	_loadedEntities: T[] // sorted with _config.sortCompare
 
 	_virtualList: R[] // displays a part of the page, VirtualRows map 1:1 to DOM-Elements
 
-	_domListContainer: HTMLElement
-	_domList: HTMLElement
-	_domInitialized: DeferredObject<void>
+	private _domListContainer!: HTMLElement
+	private _domList!: HTMLElement
+	private _domInitialized!: DeferredObject<void>
 	_width: number
-	_loadedCompletely: boolean
+	private _loadedCompletely: boolean
 	_loading: Promise<void>
 	currentPosition: number
 	lastPosition: number
-	lastUpdateTime: number
+	lastUpdateTime!: number
 	updateLater: boolean // if set, paint operations are executed later, when the scroll speed becomes slower
 
 	repositionTimeout: TimeoutID | null // the id of the timeout to reposition if updateLater == true and scrolling stops abruptly (e.g. end of list or user touch)
 
-	_domStatus: {
+	private _domStatus: {
 		bufferUp: HTMLElement | null
 		bufferDown: HTMLElement | null
 		speed: HTMLElement | null
 		scrollDiff: HTMLElement | null
 		timeDiff: HTMLElement | null
 	}
-	_visibleElementsHeight: number
+	private _visibleElementsHeight: number
 	bufferHeight: number
-	_swipeHandler: ListSwipeHandler<T, R> | null
-	_domSwipeSpacerLeft: HTMLElement
-	_domSwipeSpacerRight: HTMLElement
-	_domLoadingRow: HTMLElement
-	ready: boolean
-	view: (...args: Array<any>) => any
-	onbeforeupdate: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
-	_scrollListener: (...args: Array<any>) => any
-	_selectedEntities: T[] // the selected entities must be sorted the same way the loaded entities are sorted
+	private _swipeHandler: ListSwipeHandler<T, R> | null = null
+	_domSwipeSpacerLeft!: HTMLElement
+	_domSwipeSpacerRight!: HTMLElement
+	private _domLoadingRow!: HTMLElement
+	ready!: boolean
+	view: Component["view"]
+	onbeforeupdate: Component["onbeforeupdate"]
+	oncreate: Component["oncreate"]
+	onremove: Component["onremove"]
+	private _scrollListener: Thunk
+	private _selectedEntities: T[] // the selected entities must be sorted the same way the loaded entities are sorted
 
-	_lastSelectedEntitiesForCallback: T[] = []
-	_lastMultiSelectWasKeyUp: boolean // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
+	private _lastSelectedEntitiesForCallback: T[] = []
+	private _lastMultiSelectWasKeyUp: boolean // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
 
-	_idOfEntityToSelectWhenReceived: Id | null
-	_messageBoxDom: HTMLElement | null
-	_renderCallback: RenderCallbackType | null
+	private _idOfEntityToSelectWhenReceived: Id | null
+	private _messageBoxDom: HTMLElement | null = null
+	private _renderCallback: RenderCallbackType | null = null
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
-	_mobileMultiSelectionActive: boolean = false
-	_displayingProgress: boolean
+	private _mobileMultiSelectionActive: boolean = false
+	private _displayingProgress: boolean
 
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
@@ -1291,9 +1291,9 @@ function resolvedThen<T, R>(promise: Promise<T>, handler: () => R): Promise<R> {
 }
 
 class ListSwipeHandler<T extends ListElement, R extends VirtualRow<T>> extends SwipeHandler {
-	virtualElement: VirtualRow<T> | null
+	virtualElement: VirtualRow<T> | null = null
 	list: List<T, R>
-	xoffset: number
+	xoffset!: number
 
 	constructor(touchArea: HTMLElement, list: List<any, any>) {
 		super(touchArea)

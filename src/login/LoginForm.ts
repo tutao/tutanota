@@ -23,12 +23,12 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements Component<LoginFormAttrs> {
-	mailAddressTextField: TextFieldN
-	passwordTextField: TextFieldN
+	mailAddressTextField!: TextFieldN
+	passwordTextField!: TextFieldN
 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 	// it only sends one input/change event for all fields so we didn't know if fields
 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
-	autofillUpdateHandler: Stream<void>
+	autofillUpdateHandler!: Stream<void>
 
 	oncreate(vnode: Vnode<LoginFormAttrs>) {
 		const a = vnode.attrs

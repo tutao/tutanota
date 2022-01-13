@@ -167,10 +167,10 @@ export type InfoLink = keyof typeof infoLinks
 export class LanguageViewModel {
 	translations: Record<string, any>
 	fallback: Record<string, any>
-	code: LanguageCode
-	languageTag: string
+	code!: LanguageCode
+	languageTag!: string
 	staticTranslations: Record<string, any>
-	formats: {
+	formats!: {
 		simpleDate: Intl.DateTimeFormat
 		dateWithMonth: Intl.DateTimeFormat
 		dateWithoutYear: Intl.DateTimeFormat

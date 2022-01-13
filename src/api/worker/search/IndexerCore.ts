@@ -99,12 +99,12 @@ type WriteOperation = {
 export class IndexerCore {
 	queue: EventQueue
 	db: Db
-	_isStopped: boolean
-	_promiseMapCompat: PromiseMapFn
-	_needsExplicitIds: boolean
-	_explicitIdStart: number
-	_currentWriteOperation: WriteOperation | null
-	_stats: {
+	private _isStopped: boolean
+	private _promiseMapCompat: PromiseMapFn
+	private _needsExplicitIds: boolean
+	private _explicitIdStart: number
+	private _currentWriteOperation: WriteOperation | null = null
+	_stats!: {
 		indexingTime: number
 		storageTime: number
 		preparingTime: number

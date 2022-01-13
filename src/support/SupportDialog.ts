@@ -57,7 +57,7 @@ export function showSupportDialog() {
 		label: () => lang.get("describeProblem_msg"),
 		value: searchValue,
 	}
-	const child: Component<void> = {
+	const child: Component = {
 		view: () => {
 			return [
 				m(".pt"),

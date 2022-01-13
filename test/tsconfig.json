@@ -3,7 +3,10 @@
   "compilerOptions": {
 	"declaration": false,
 	"noEmit": true,
-	"noImplicitAny": false
+	"noImplicitAny": false,
+	"noImplicitThis": false,
+	"strictPropertyInitialization": false,
+	"strictBindCallApply": false
   },
   "include": [
 	"../src/*d.ts",

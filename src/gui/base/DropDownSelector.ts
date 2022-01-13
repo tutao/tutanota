@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import stream from "mithril/stream"
 import {Button} from "./Button"
 import {Icons} from "./icons/Icons"
@@ -13,12 +13,12 @@ import Stream from "mithril/stream";
 
 assertMainOrNode()
 
-export class DropDownSelector<T> {
-	view: (...args: Array<any>) => any
-	selectedValue: Stream<T>
-	_changeHandler: (arg0: T) => unknown
-	_items: {name: string, value: T}[]
-	_selectedValueDisplayValue: string
+export class DropDownSelector<T> implements Component {
+	view: Component["view"]
+	readonly selectedValue: Stream<T>
+	private _changeHandler: ((value: T) => unknown) | null = null
+	private _items: {name: string, value: T}[]
+	private _selectedValueDisplayValue!: string
 
 	constructor(
 		labelIdOrLabelTextFunction: TranslationKey | lazy<string>,

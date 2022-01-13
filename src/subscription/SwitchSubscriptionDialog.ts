@@ -127,7 +127,7 @@ function createSubscriptionPlanButton(
 	dialog: Dialog,
 	targetSubscription: SubscriptionType,
 	currentSubscriptionInfo: CurrentSubscriptionInfo,
-): Component<void> {
+): Component {
 	return {
 		view: () => {
 			return m(ButtonN, {

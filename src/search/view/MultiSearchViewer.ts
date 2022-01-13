@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -30,12 +30,12 @@ import {MailboxDetail} from "../../mail/model/MailModel";
 
 assertMainOrNode()
 
-export class MultiSearchViewer {
-	view: (...args: Array<any>) => any
-	_searchListView: SearchListView
-	_isMailList: boolean
-	_mobileMailActionBarButtons: () => ButtonAttrs[]
-	_mobileContactActionBarButtons: () => ButtonAttrs[]
+export class MultiSearchViewer implements Component {
+	view: Component["view"]
+	private _searchListView: SearchListView
+	private _isMailList!: boolean
+	private _mobileMailActionBarButtons: () => ButtonAttrs[]
+	private _mobileContactActionBarButtons: () => ButtonAttrs[]
 
 	constructor(searchListView: SearchListView) {
 		this._searchListView = searchListView
@@ -58,7 +58,7 @@ export class MultiSearchViewer {
 			return [
 				m(
 					".fill-absolute.mt-xs.plr-l",
-					this._searchListView.list && this._searchListView.list._selectedEntities.length > 0
+					this._searchListView.list && this._searchListView.list.getSelectedEntities().length > 0
 						? this._viewingMails()
 							? [
 								// Add spacing so the buttons are where the mail view are
@@ -105,7 +105,7 @@ export class MultiSearchViewer {
 	}
 
 	_getSearchSelectionMessage(searchListView: SearchListView): string {
-		let nbrOfSelectedSearchEntities = searchListView.list ? searchListView.list._selectedEntities.length : 0
+		let nbrOfSelectedSearchEntities = searchListView.list ? searchListView.list.getSelectedEntities().length : 0
 
 		if (this._isMailList) {
 			if (nbrOfSelectedSearchEntities === 0) {

@@ -29,7 +29,7 @@ import {Icons} from "../../gui/base/icons/Icons";
 assertMainOrNode()
 
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
-	_entityEventListener: EntityEventsListener | null
+	private _entityEventListener: EntityEventsListener | null = null
 
 	oncreate(vnode: Vnode<AddEmailAddressesPageAttrs>) {
 		const wizardAttrs = vnode.attrs
@@ -69,7 +69,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			addButtonAttrs: null,
 			lines: getAliasLineAttrs(a.data.editAliasFormAttrs).map(row => {
 				return {
-					actionButtonAttrs: row.actionButtonAttrs,
+					actionButtonAttrs: row.actionButtonAttrs ?? null,
 					cells: () => [
 						{
 							// @ts-ignore

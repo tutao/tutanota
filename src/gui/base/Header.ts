@@ -25,7 +25,7 @@ const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
-export interface CurrentView extends Component<void> {
+export interface CurrentView extends Component {
 	updateUrl(args: Record<string, any>, requestedPath: String): void
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children
@@ -41,21 +41,23 @@ export interface CurrentView extends Component<void> {
 const PROGRESS_HIDDEN = -1
 const PROGRESS_DONE = 1
 
-class Header {
-	view: (...args: Array<any>) => any
-	_currentView: CurrentView | null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+class Header implements Component {
+	view: Component["view"]
+	private _currentView: CurrentView | null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
-	_shortcuts: Shortcut[]
-	searchBar: SearchBar | null
-	_wsState = WsConnectionState.terminated
-	_loadingProgress: number = PROGRESS_HIDDEN
+	oncreate: Component["oncreate"]
+	onremove: Component["onremove"]
+	private _shortcuts: Shortcut[]
+	searchBar: SearchBar | null = null
+	private _wsState = WsConnectionState.terminated
+	private _loadingProgress: number = PROGRESS_HIDDEN
 
 	constructor() {
 		this._currentView = null
 
-		this._setupShortcuts()
+		this._shortcuts = this._setupShortcuts()
+		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 
 		this.view = (): Children => {
 			// Do not return undefined if headerView is not present
@@ -193,8 +195,8 @@ class Header {
 		)
 	}
 
-	_setupShortcuts() {
-		this._shortcuts = [
+	_setupShortcuts(): Shortcut[] {
+		return [
 			{
 				key: Keys.M,
 				enabled: () => logins.isUserLoggedIn(),
@@ -228,10 +230,6 @@ class Header {
 				help: "logout_label",
 			},
 		]
-
-		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
-
-		this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
 	_getCenterContent(): Children {

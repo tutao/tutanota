@@ -8,6 +8,7 @@ import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconB
 import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -115,7 +116,7 @@ export type ButtonAttrs = {
  * A button.
  */
 export class ButtonN implements Component<ButtonAttrs> {
-	_domButton: HTMLElement
+	private _domButton: HTMLElement | null = null
 
 	view(vnode: Vnode<ButtonAttrs>): Children {
 		const a = vnode.attrs
@@ -126,7 +127,7 @@ export class ButtonN implements Component<ButtonAttrs> {
 			{
 				class: this.getButtonClasses(a).join(" "),
 				style: this._getStyle(a),
-				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
+				onclick: (event: MouseEvent) => this.click(event, a, assertNotNull(this._domButton)),
 				title:
 					type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.Login || type === ButtonType.Floating
 						? lang.getMaybeLazy(a.label)

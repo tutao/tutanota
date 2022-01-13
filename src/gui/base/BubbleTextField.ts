@@ -17,7 +17,7 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
-import {neverNull} from "@tutao/tutanota-utils";
+import {assertNotNull, neverNull} from "@tutao/tutanota-utils";
 
 assertMainOrNode()
 
@@ -79,7 +79,7 @@ export interface Suggestion extends Component<SuggestionAttrs> {
  * We do not add position relative here because it allows us to show the suggestions dropdown even if a parent has overflow hidden
  * by making the element with position relative a parent of that element!
  */
-export class BubbleTextField<T> implements Component<void> {
+export class BubbleTextField<T> implements Component {
 	loading: Promise<void> | null
 	bubbles: Bubble<T>[]
 	previousQuery: string
@@ -88,12 +88,12 @@ export class BubbleTextField<T> implements Component<void> {
 	selectedSuggestion: Stream<Suggestion | null>
 	suggestionAnimation: Promise<void>
 	bubbleHandler: BubbleHandler<T, Suggestion>
-	view: (vnode: Vnode<void>) => Children
-	oncreate: (vnode: VnodeDOM<void>) => void
-	_textField: TextField
-	_domSuggestions: HTMLElement
-	_keyboardHeight: number
-	_selectedSuggestionChangedListener: Stream<void>
+	view: Component["view"]
+	oncreate: Component["oncreate"]
+	private _textField: TextField
+	private _domSuggestions: HTMLElement | null = null
+	private _keyboardHeight: number
+	private _selectedSuggestionChangedListener: Stream<void> | null = null
 
 	constructor(
 		labelIdOrLabelTextFunction: TranslationKey | lazy<string>,
@@ -195,7 +195,7 @@ export class BubbleTextField<T> implements Component<void> {
 							)
 						},
 						onbeforeremove: () => {
-							this._selectedSuggestionChangedListener.end(true)
+							this._selectedSuggestionChangedListener?.end(true)
 						},
 						onmousedown: (e: MouseEvent) => (this._textField.skipNextBlur = true),
 						style: {
@@ -545,18 +545,18 @@ class TextField {
 	active: boolean
 	webkitAutofill: boolean
 	disabled: boolean
-	_injectionsLeft: ((...args: Array<any>) => any) | null // only used by the BubbleTextField to display bubbles
+	_injectionsLeft: (() => Children) | null = null // only used by the BubbleTextField to display bubbles
+	_injectionsRight: (() => Children) | null = null
 
-	_injectionsRight: ((...args: Array<any>) => any) | null
-	_domWrapper: HTMLElement
-	_domLabel: HTMLElement
-	_domInput: HTMLInputElement | null
+	_domWrapper: HTMLElement | null = null
+	_domLabel: HTMLElement | null = null
+	_domInput: HTMLInputElement | null = null
 	view: (...args: Array<any>) => any
 	onblur: Stream<any>
 	skipNextBlur: boolean
 	_keyHandler: keyHandler | null // interceptor used by the BubbleTextField to react on certain keys
 
-	_alignRight: boolean
+	_alignRight: boolean = false
 	_preventAutofill: boolean
 	autocomplete: string
 	isEmpty: (...args: Array<any>) => any
@@ -898,7 +898,7 @@ class TextField {
 			if (this._domInput) {
 				this._domInput.focus()
 
-				this._domWrapper.classList.add("active")
+				this._domWrapper?.classList.add("active")
 
 				this.animate()
 			}
@@ -911,7 +911,7 @@ class TextField {
 				this._domInput.focus()
 			}
 		} else {
-			this._domWrapper.classList.remove("active")
+			this._domWrapper?.classList.remove("active")
 
 			this.animate()
 			this.active = false
@@ -927,16 +927,24 @@ class TextField {
 				let fontSizes = [size.font_size_base, size.font_size_small]
 				let top = [this.baseLabelPosition, 0]
 				this._baseLabel = false
-				return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])], {
-					easing: ease.out,
-				})
+				return animations.add(
+					assertNotNull(this._domLabel),
+					[fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])],
+					{
+						easing: ease.out,
+					},
+				)
 			} else if (!this._baseLabel && this.isEmpty() && !this.disabled && !this.webkitAutofill && !this.active) {
 				let fontSizes = [size.font_size_small, size.font_size_base]
 				let top = [0, this.baseLabelPosition]
 				this._baseLabel = true
-				return animations.add(this._domLabel, [fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])], {
-					easing: ease.out,
-				})
+				return animations.add(
+					assertNotNull(this._domLabel),
+					[fontSize(fontSizes[0], fontSizes[1]), transform(TransformEnum.TranslateY, top[0], top[1])],
+					{
+						easing: ease.out,
+					},
+				)
 			}
 		})
 	}

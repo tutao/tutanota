@@ -78,21 +78,21 @@ export class SearchView implements CurrentView {
 	resultListColumn: ViewColumn
 	resultDetailsColumn: ViewColumn
 	folderColumn: ViewColumn
-	_viewer: SearchResultDetailsViewer
+	private _viewer: SearchResultDetailsViewer
 	viewSlider: ViewSlider
-	_searchList: SearchListView
+	private _searchList: SearchListView
 	view: CurrentView["view"]
 	oncreate: CurrentView["oncreate"]
 	onremove: CurrentView["onremove"]
-	_mailFolder: NavButtonAttrs
-	_contactFolder: NavButtonAttrs
-	_endDate: Date | null // null = today
+	private _mailFolder: NavButtonAttrs
+	private _contactFolder: NavButtonAttrs
+	private _endDate: Date | null // null = today
 
-	_startDate: Date | null // null = current mail index date. this allows us to start the search (and the url) without end date set
+	private _startDate: Date | null // null = current mail index date. this allows us to start the search (and the url) without end date set
 
-	_mailFolderSelection: DropDownSelector<string | null> | null
-	_mailFieldSelection: DropDownSelector<string | null> | null
-	_doNotUpdateQuery: boolean
+	private _mailFolderSelection: DropDownSelector<string | null> | null = null
+	private _mailFieldSelection: DropDownSelector<string | null> | null = null
+	private _doNotUpdateQuery: boolean
 
 	constructor() {
 		this._mailFolder = {

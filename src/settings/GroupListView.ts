@@ -230,14 +230,14 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 export class GroupRow implements VirtualRow<GroupInfo> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: GroupInfo | null
-	_domName: HTMLElement
-	_domAddress: HTMLElement
-	_domDeletedIcon: HTMLElement
-	_domLocalAdminIcon: HTMLElement
-	_domMailIcon: HTMLElement
+	private _domName!: HTMLElement
+	private _domAddress!: HTMLElement
+	private _domDeletedIcon!: HTMLElement
+	private _domLocalAdminIcon!: HTMLElement
+	private _domMailIcon!: HTMLElement
 
 	constructor() {
 		this.top = 0

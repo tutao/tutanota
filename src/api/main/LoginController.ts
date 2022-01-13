@@ -64,11 +64,11 @@ export interface LoginController {
 }
 
 export class LoginControllerImpl implements LoginController {
-	_userController: IUserController | null
-	customizations: NumberString[] | null
+	private _userController: IUserController | null = null
+	customizations: NumberString[] | null = null
 	waitForLogin: DeferredObject<LoggedInEvent> = defer()
-	_isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
-	_loginEventHandlers: Array<LoginEventHandler> = []
+	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
+	private _loginEventHandlers: Array<LoginEventHandler> = []
 
 	async _getLoginFacade(): Promise<LoginFacade> {
 		const {locator} = await import("./MainLocator")

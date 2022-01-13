@@ -1,12 +1,12 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {BootIcons} from "./icons/BootIcons"
 import {Icon} from "./Icon"
 import {addFlash, removeFlash} from "./Flash"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -16,9 +16,9 @@ export type CheckboxAttrs = {
 }
 
 export class CheckboxN implements Component<CheckboxAttrs> {
-	focused: Stream<boolean>
-	_domInput: HTMLElement
-	_domIcon: HTMLElement | null
+	private readonly focused: Stream<boolean>
+	private _domInput: HTMLElement | null = null
+	private _domIcon: HTMLElement | null = null
 
 	constructor() {
 		this.focused = stream(false)
@@ -54,7 +54,7 @@ export class CheckboxN implements Component<CheckboxAttrs> {
 							onremove: e => {
 								// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
 								// TODO test if still needed with mithril 1.1.1
-								this._domInput.onblur = null
+								if (this._domInput) this._domInput.onblur = null
 							},
 							style: {
 								opacity: 0,

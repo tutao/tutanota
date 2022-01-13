@@ -43,7 +43,7 @@ export type SubscriptionSelectorAttr = {
 }
 
 export class SubscriptionSelector implements Component<SubscriptionSelectorAttr> {
-	_containerDOM: Element | null
+	private _containerDOM: Element | null = null
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		let buyBoxesViewPlacement

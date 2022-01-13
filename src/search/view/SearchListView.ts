@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {List} from "../../gui/base/List"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
@@ -24,6 +24,7 @@ import {compareContacts} from "../../contacts/view/ContactGuiUtils"
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
 import type {ListElementEntity} from "../../api/common/EntityTypes"
 import Stream from "mithril/stream";
+import {downcast} from "../../../packages/tutanota-utils/lib"
 
 assertMainOrNode()
 
@@ -37,17 +38,18 @@ export class SearchResultListEntry {
 	}
 }
 
-export class SearchListView {
-	list: List<SearchResultListEntry, SearchResultListRow> | null
-	view: (...args: Array<any>) => any
-	_searchView: SearchView
-	_resultStreamDependency: Stream<any> | null
-	oncreate: (...args: Array<any>) => any
-	onremove: (...args: Array<any>) => any
+export class SearchListView implements Component {
+	list: List<SearchResultListEntry, SearchResultListRow> | null = null
+	readonly view: Component["view"]
+	private _searchView: SearchView
+	private _resultStreamDependency: Stream<any> | null = null
+	readonly oncreate: Component["oncreate"]
+	readonly onremove: Component["onremove"]
+	// currently accessed from outside
 	_lastType: TypeRef<Mail> | TypeRef<Contact>
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
-	_searchResult: SearchResult | null
+	_searchResult: SearchResult | null = null
 	_lastSearchResults: DeferredObject<Array<SearchResultListEntry>> | null = null
 
 	constructor(searchView: SearchView) {
@@ -432,10 +434,10 @@ export class SearchListView {
 
 export class SearchResultListRow {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: SearchResultListEntry | null
-	_delegate: MailRow | ContactRow
+	private _delegate: MailRow | ContactRow
 
 	constructor(delegate: MailRow | ContactRow) {
 		this._delegate = delegate
@@ -446,7 +448,7 @@ export class SearchResultListRow {
 	update(entry: SearchResultListEntry, selected: boolean): void {
 		this._delegate.domElement = this.domElement
 
-		this._delegate.update(entry.entry as any, selected)
+		this._delegate.update(downcast(entry.entry), selected)
 	}
 
 	render(): Children {

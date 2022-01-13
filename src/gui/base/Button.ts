@@ -10,6 +10,7 @@ import {ButtonColor, ButtonType, getColors} from "./ButtonN"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -21,8 +22,8 @@ const FALSE_CLOSURE: lazy<boolean> = () => false
 /**
  * A button.
  */
-export class Button implements Component<void> {
-	_type: ButtonType;
+export class Button implements Component {
+	private _type: ButtonType;
 	clickHandler: clickHandler;
 	propagateClickEvents: boolean;
 	icon: lazyIcon | null;
@@ -30,10 +31,11 @@ export class Button implements Component<void> {
 	isActive: boolean;
 	isSelected: lazy<boolean>;
 	getLabel: lazy<string>;
-	_domButton: HTMLElement;
-	view: () => Children;
-	_staticRightText: string | null;
-	_colors: ButtonColor;
+	/// used by Dropdown
+	_domButton: HTMLElement | null = null
+	view: Component["view"];
+	private _staticRightText: string | null;
+	private _colors: ButtonColor;
 
 	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon?: lazyIcon) {
 		this._type = ButtonType.Action
@@ -246,7 +248,7 @@ export class Button implements Component<void> {
 	}
 
 	click(event: MouseEvent) {
-		this.clickHandler(event, this._domButton)
+		this.clickHandler(event, assertNotNull(this._domButton))
 		// in IE the activeElement might not be defined and blur might not exist
 		if (!this.propagateClickEvents) {
 			event.stopPropagation()

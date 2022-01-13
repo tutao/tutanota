@@ -20,15 +20,15 @@ export type CustomColor = {
 }
 
 export class CustomColorsEditorViewModel {
-	_customizations: ThemeCustomizations
-	readonly _whitelabelConfig: WhitelabelConfig
-	readonly _whitelabelDomainInfo: DomainInfo
-	_accentColor: string
-	_baseTheme: BaseThemeId
-	_themeController: ThemeController
-	_entityClient: EntityClient
-	_loginController: LoginController
-	readonly _themeBeforePreview: Theme
+	private _customizations: ThemeCustomizations
+	private readonly _whitelabelConfig: WhitelabelConfig
+	private readonly _whitelabelDomainInfo: DomainInfo
+	private _accentColor!: string
+	private _baseTheme!: BaseThemeId
+	private readonly _themeController: ThemeController
+	private readonly _entityClient: EntityClient
+	private readonly _loginController: LoginController
+	private readonly _themeBeforePreview: Theme
 	readonly builtTheme: Stream<Theme>
 
 	constructor(

@@ -17,12 +17,11 @@ export type TimePickerAttrs = {
 }
 
 export class TimePicker implements Component<TimePickerAttrs> {
-	_values: ReadonlyArray<string>
-	_focused: boolean
-	_previousSelectedIndex: number
-	_selectedIndex: number
-	_oldValue: string
-	_value: Stream<string>
+	private _values: ReadonlyArray<string>
+	private _focused: boolean
+	private _selectedIndex!: number
+	private _oldValue!: string
+	private _value: Stream<string>
 
 	constructor({attrs}: Vnode<TimePickerAttrs>) {
 		this._focused = false
@@ -41,7 +40,6 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	view({attrs}: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
 			const timeAsString = attrs.time?.toString(attrs.amPmFormat) ?? ""
-			this._previousSelectedIndex = this._selectedIndex
 			this._selectedIndex = this._values.indexOf(timeAsString)
 
 			if (!this._focused) {

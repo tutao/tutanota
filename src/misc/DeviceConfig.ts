@@ -18,16 +18,16 @@ export const defaultThemeId: ThemeId = "light"
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements CredentialsStorage {
-	_version: number
-	_credentials: Map<Id, PersistentCredentials>
-	_scheduledAlarmUsers: Id[]
-	_themeId: ThemeId
-	_language: LanguageCode | null
-	_defaultCalendarView: Record<Id, CalendarViewType | null>
-	_hiddenCalendars: Record<Id, Id[]>
-	_signupToken: string
-	_credentialEncryptionMode: CredentialEncryptionMode | null
-	_encryptedCredentialsKey: Base64 | null
+	private _version: number
+	private _credentials!: Map<Id, PersistentCredentials>
+	private _scheduledAlarmUsers!: Id[]
+	private _themeId!: ThemeId
+	private _language!: LanguageCode | null
+	private _defaultCalendarView!: Record<Id, CalendarViewType | null>
+	private _hiddenCalendars!: Record<Id, Id[]>
+	private _signupToken!: string
+	private _credentialEncryptionMode!: CredentialEncryptionMode | null
+	private _encryptedCredentialsKey!: Base64 | null
 
 	constructor() {
 		this._version = ConfigVersion

@@ -121,11 +121,11 @@ export class ContactListView {
 
 export class ContactRow implements VirtualRow<Contact> {
 	top: number
-	domElement: HTMLElement | null // set from List
+	domElement: HTMLElement | null = null // set from List
 
 	entity: Contact | null
-	_domName: HTMLElement
-	_domAddress: HTMLElement
+	private _domName!: HTMLElement
+	private _domAddress!: HTMLElement
 
 	constructor() {
 		this.top = 0

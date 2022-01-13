@@ -22,9 +22,9 @@ interface ProgressListener {
 export class RestClient {
 	url: string
 	id: number
-	_suspensionHandler: SuspensionHandler
+	private _suspensionHandler: SuspensionHandler
 	// accurate to within a few seconds, depending on network speed
-	_serverTimeOffsetMs: number | null
+	private _serverTimeOffsetMs: number | null = null
 
 	constructor(suspensionHandler: SuspensionHandler) {
 		this.url = getHttpOrigin()

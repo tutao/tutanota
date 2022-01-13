@@ -14,9 +14,9 @@ type Attrs = {
 }
 
 export class PageView implements Component<Attrs> {
-	_viewDom: HTMLElement | null
-	_swipeHandler: PageSwipeHandler
-	_onChangePage: (arg0: boolean) => unknown
+	private _viewDom: HTMLElement | null = null
+	private _swipeHandler!: PageSwipeHandler
+	private _onChangePage!: (_: boolean) => unknown
 
 	view({attrs}: Vnode<Attrs>): Children {
 		this._onChangePage = next => attrs.onChangePage(next)

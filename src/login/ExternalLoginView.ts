@@ -1,5 +1,6 @@
-import m, {Children, Vnode, VnodeDOM} from "mithril"
+import m, {Children} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -8,7 +9,7 @@ import {
 	NotAuthenticatedError,
 	TooManyRequestsError,
 } from "../api/common/error/RestError"
-import {base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Shortcut} from "../misc/KeyManager"
@@ -30,23 +31,21 @@ import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 
 export class ExternalLoginView implements CurrentView {
-	readonly _credentialsProvider: ICredentialsProvider
-	_password: Stream<string>
-	_savePassword: Stream<boolean>
-	_helpText: TranslationText
-	_errorMessageId: TranslationText | null
-	_userId: Id
-	_salt: Uint8Array
-	view: (vnode: Vnode<void>) => Children
-	oncreate: (vnode: VnodeDOM<void>) => void
-	onremove: (vnode: VnodeDOM<void>) => void
-	_symKeyForPasswordTransmission: Aes128Key | null
-	_autologinInProgress: boolean
+	private readonly _credentialsProvider: ICredentialsProvider
+	private _password: Stream<string>
+	private _savePassword: Stream<boolean>
+	private _helpText: TranslationText
+	private _errorMessageId: TranslationText | null
+	private _urlData: {userId: Id, salt: Uint8Array} | null = null
+	view: CurrentView["view"]
+	oncreate: CurrentView["oncreate"]
+	onremove: CurrentView["onremove"]
+	private _symKeyForPasswordTransmission: Aes128Key | null
+	private _autologinInProgress: boolean
 
 	constructor() {
 		this._autologinInProgress = false
@@ -122,10 +121,12 @@ export class ExternalLoginView implements CurrentView {
 		try {
 			let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
 
-			this._userId = id.substring(0, userIdLength)
-			this._salt = base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
+			this._urlData = {
+				userId: id.substring(0, userIdLength),
+				salt: base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
+			}
 
-			this._credentialsProvider.getCredentialsByUserId(this._userId).then(credentials => {
+			this._credentialsProvider.getCredentialsByUserId(this._urlData.userId).then(credentials => {
 				if (credentials && args.noAutoLogin !== true) {
 					this._autologin(credentials)
 				} else {
@@ -142,7 +143,7 @@ export class ExternalLoginView implements CurrentView {
 		this._autologinInProgress = true
 		showProgressDialog(
 			"login_msg",
-			this._handleSession(logins.resumeSession(credentials, this._salt), () => {
+			this._handleSession(logins.resumeSession(credentials, assertNotNull(this._urlData).salt), () => {
 				this._autologinInProgress = false
 				m.redraw()
 			}),
@@ -171,11 +172,12 @@ export class ExternalLoginView implements CurrentView {
 		let persistentSession = this._savePassword()
 
 		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
-		const newCredentials = await logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, sessionType)
+		const {userId, salt} = assertNotNull(this._urlData)
+		const newCredentials = await logins.createExternalSession(userId, pw, salt, clientIdentifier, sessionType)
 
 		this._password("")
 
-		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(this._userId)
+		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(userId)
 
 		// For external users userId is used instead of email address
 		if (persistentSession) {
@@ -187,7 +189,7 @@ export class ExternalLoginView implements CurrentView {
 			await logins.deleteOldSession(storedCredentials)
 
 			if (!persistentSession) {
-				await this._credentialsProvider.deleteByUserId(this._userId)
+				await this._credentialsProvider.deleteByUserId(userId)
 			}
 		}
 	}

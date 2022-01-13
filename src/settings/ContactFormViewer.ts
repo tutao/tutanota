@@ -17,19 +17,19 @@ import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import stream from "mithril/stream"
 import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
-import type {UpdatableSettingsViewer} from "./SettingsView"
+import {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {ButtonAttrs} from "../gui/base/ButtonN";
 
 assertMainOrNode()
 
-export class ContactFormViewer implements UpdatableSettingsViewer {
-	view: (...args: Array<any>) => any
+export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
+	view: UpdatableSettingsDetailsViewer["view"]
 	contactForm: ContactForm
-	_newContactFormIdReceiver: (...args: Array<any>) => any
+	private readonly _newContactFormIdReceiver: (id: Id) => unknown
 
-	constructor(contactForm: ContactForm, brandingDomain: string, newContactFormIdReceiver: (...args: Array<any>) => any) {
+	constructor(contactForm: ContactForm, brandingDomain: string, newContactFormIdReceiver: (id: Id) => unknown) {
 		this.contactForm = contactForm
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 		const actionBarButtons: ButtonAttrs[] = [

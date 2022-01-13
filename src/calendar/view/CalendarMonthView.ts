@@ -70,19 +70,19 @@ const spaceBetweenEvents = () => (styles.isDesktopLayout() ? 2 : 1)
 const EVENT_BUBBLE_VERTICAL_OFFSET = 5
 
 export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassComponent<CalendarMonthAttrs> {
-	_monthDom: HTMLElement | null
-	_resizeListener: () => unknown
-	_zone: string
-	_lastWidth: number
-	_lastHeight: number
-	_eventDragHandler: EventDragHandler
-	_dayUnderMouse: Date | null = null
-	_lastMousePos: MousePos | null = null
+	private _monthDom: HTMLElement | null = null
+	private _resizeListener: () => unknown
+	private _zone: string
+	private _lastWidth: number
+	private _lastHeight: number
+	private _eventDragHandler: EventDragHandler
+	private _dayUnderMouse: Date | null = null
+	private _lastMousePos: MousePos | null = null
 
 	constructor({attrs}: Vnode<CalendarMonthAttrs>) {
 		this._resizeListener = m.redraw
 		this._zone = getTimeZone()
-		this._lastHeight = 0
+		this._lastWidth = 0
 		this._lastHeight = 0
 		this._eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
 	}

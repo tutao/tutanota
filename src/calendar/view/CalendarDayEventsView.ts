@@ -44,7 +44,7 @@ export const calendarDayTimes: Array<Time> = numberRange(0, 23).map(number => ne
 const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
 
 export class CalendarDayEventsView implements Component<Attrs> {
-	_dayDom: HTMLElement | null
+	private _dayDom: HTMLElement | null = null
 
 	view({attrs}: Vnode<Attrs>): Children {
 		return m(

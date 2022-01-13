@@ -21,11 +21,11 @@ import {assertMainOrNode} from "../../api/common/Env"
 assertMainOrNode()
 
 class ContactFormView implements CurrentView {
-	view: (vnode: Vnode<void>) => Children
+	view: CurrentView["view"]
 	private _contactForm: ContactForm | null
 	private _moreInformationDialog: Dialog
-	private _formId: string
-	private _loading: boolean
+	private _formId: string | null = null
+	private _loading: boolean | null = null
 	private _helpHtml: string | null
 	private _headerHtml: string | null
 	private _footerHtml: string | null
@@ -163,7 +163,7 @@ class ContactFormView implements CurrentView {
 					   })
 				   })
 				   .catch(
-					   ofClass(NotFoundError, e => {
+					   ofClass(NotFoundError, () => {
 						   this._loading = false
 						   this._contactForm = null
 						   m.redraw()

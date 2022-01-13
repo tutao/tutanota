@@ -10,6 +10,7 @@ import {px} from "../size"
 import {DefaultAnimationTime} from "../animation/Animations"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
@@ -78,16 +79,16 @@ export class ExpanderButtonN implements Component<ExpanderAttrs> {
  * Panel which shows or hides content depending on the attrs.expanded and animates transitions.
  */
 export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
-	childDiv: HTMLElement
+	childDiv: HTMLElement | null = null
 	// There are some cases where the child div will be added to and a redraw won't be triggered, in which case
 	// the expander panel wont update until some kind of interaction happens
-	observer: MutationObserver
+	observer: MutationObserver | null = null
 	// We calculate the height manually because we need concrete values for the transition (can't just transition from 0px to 100%)
-	lastCalculatedHeight: number
+	lastCalculatedHeight: number | null = null
 	// We remove the children from the DOM to take them out of the taborder. Setting "tabindex = -1" on the element will not work because
 	// it does not apply to any children
-	childrenInDom: boolean
-	expandedStreamListenerHandle: Stream<void>
+	childrenInDom: boolean | null = null
+	expandedStreamListenerHandle: Stream<void> | null = null
 	setChildrenInDomTimeout: TimeoutID | null
 
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
@@ -114,7 +115,7 @@ export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
 				this._handleExpansionStateChanged(currentExpanded())
 			}
 
-			this.expandedStreamListenerHandle.end(true)
+			this.expandedStreamListenerHandle?.end(true)
 			this.expandedStreamListenerHandle = vnode.attrs.expanded.map(expanded => this._handleExpansionStateChanged(expanded))
 		}
 
@@ -142,13 +143,13 @@ export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
 					{
 						oncreate: vnode => {
 							this.childDiv = vnode.dom as HTMLElement
-							this.observer.observe(this.childDiv, {
+							assertNotNull(this.observer).observe(this.childDiv, {
 								childList: true,
 								subtree: true,
 							})
 						},
 						onremove: () => {
-							this.observer.disconnect()
+							this.observer?.disconnect()
 						},
 					},
 					this.childrenInDom ? vnode.children : null,

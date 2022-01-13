@@ -31,8 +31,8 @@ export const CATEGORY_WIDTH = 750
  *  Editor that simplifies the existing whitelabel editor, allowing for easy changes to accent color and base theme, also showing a preview
  */
 export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs> {
-	_colorPickerDom: HTMLInputElement | null
-	_advancedSettingsEnabled: Stream<boolean>
+	private _colorPickerDom: HTMLInputElement | null = null
+	private readonly _advancedSettingsEnabled: Stream<boolean>
 
 	constructor() {
 		this._advancedSettingsEnabled = stream(false)

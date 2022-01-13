@@ -3,15 +3,15 @@ import {lang} from "../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
-import type {lazy} from "@tutao/tutanota-utils"
+import type {lazy, Thunk} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
 
 export type SettingsExpanderAttrs = {
 	title: TranslationKey | lazy<string>
 	buttonText?: TranslationKey | lazy<string>
 	infoMsg?: TranslationKey | lazy<string>
-	infoLinkId?: InfoLink
-	onExpand?: () => void
+	infoLinkId?: InfoLink | undefined
+	onExpand?: Thunk | undefined
 	expanded: Stream<boolean>
 }
 

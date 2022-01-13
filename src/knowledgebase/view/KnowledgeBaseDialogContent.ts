@@ -23,11 +23,11 @@ export type KnowledgebaseDialogContentAttrs = {
  *  Renders the SearchBar and the pages (list, entry, template) of the knowledgeBase besides the MailEditor
  */
 export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialogContentAttrs> {
-	_streams: Array<Stream<any>>
-	_filterInputFieldAttrs: TextFieldAttrs
-	_selectionChangedListener: Stream<void>
+	private _streams: Array<Stream<any>>
+	private _filterInputFieldAttrs: TextFieldAttrs
+	private _selectionChangedListener!: Stream<void>
 
-	constructor({attrs}: Vnode<KnowledgebaseDialogContentAttrs>) {
+	constructor() {
 		this._streams = []
 		this._filterInputFieldAttrs = {
 			label: () => lang.get("filter_label"),

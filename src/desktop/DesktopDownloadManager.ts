@@ -1,7 +1,7 @@
 import type {Session} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
-import {assertNotNull, downcast, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, noOp} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -25,15 +25,15 @@ type DownloadNativeResult = {
 };
 
 export class DesktopDownloadManager {
-	_conf: DesktopConfig
-	_net: DesktopNetworkClient
-	_dateProvider: DateProvider
+	private readonly _conf: DesktopConfig
+	private readonly _net: DesktopNetworkClient
+	private readonly _dateProvider: DateProvider
 
 	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
-	_lastOpenedFileManagerAt: number | null
-	_desktopUtils: DesktopUtils
-	_fs: FsExports
-	_electron: ElectronExports
+	private _lastOpenedFileManagerAt: number | null
+	private readonly _desktopUtils: DesktopUtils
+	private readonly _fs: FsExports
+	private readonly _electron: ElectronExports
 
 	constructor(
 		conf: DesktopConfig,

@@ -79,16 +79,16 @@ const SMALL_RECONNECT_INTERVAL = [5, 10] as const
 const MEDIUM_RECONNECT_INTERVAL = [20, 40] as const
 
 export class EventBusClient {
-	_MAX_EVENT_IDS_QUEUE_LENGTH: number
-	readonly _indexer: Indexer
-	readonly _cache: EntityRestInterface
-	readonly _entity: EntityClient
-	readonly _worker: WorkerImpl
-	readonly _mail: MailFacade
-	readonly _login: LoginFacadeImpl
-	_state: EventBusState
-	_socket: WebSocket | null
-	_immediateReconnect: boolean // if true tries to reconnect immediately after the websocket is closed
+	private _MAX_EVENT_IDS_QUEUE_LENGTH: number
+	private readonly _indexer: Indexer
+	private readonly _cache: EntityRestInterface
+	private readonly _entity: EntityClient
+	private readonly _worker: WorkerImpl
+	private readonly _mail: MailFacade
+	private readonly _login: LoginFacadeImpl
+	private _state: EventBusState
+	private _socket: WebSocket | null
+	private _immediateReconnect: boolean = false // if true tries to reconnect immediately after the websocket is closed
 
 	/**
 	 * Map from group id to last event ids (max. _MAX_EVENT_IDS_QUEUE_LENGTH). We keep them to avoid processing the same event twice if
@@ -97,35 +97,35 @@ export class EventBusClient {
 	 * We do not have to update these event ids if the groups of the user change because we always take the current users groups from the
 	 * LoginFacade.
 	 */
-	_lastEntityEventIds: Map<Id, Array<Id>>
+	private _lastEntityEventIds: Map<Id, Array<Id>>
 
 	/**
 	 * Last batch which was actually added to the queue. We need it to find out when the group is processed
 	 */
-	_lastAddedBatchForGroup: Map<Id, Id>
+	private _lastAddedBatchForGroup: Map<Id, Id>
 
 	/**
 	 * The last time we received an EntityEventBatch or checked for updates. we use this to find out if our data has expired.
 	 * see ENTITY_EVENT_BATCH_EXPIRE_MS
 	 */
-	_lastUpdateTime: number
-	_lastAntiphishingMarkersId: Id | null
+	private _lastUpdateTime: number = 0
+	private _lastAntiphishingMarkersId: Id | null = null
 
 	/* queue to process all events. */
-	readonly _eventQueue: EventQueue
+	private readonly _eventQueue: EventQueue
 
 	/* queue that handles incoming websocket messages while. */
-	readonly _entityUpdateMessageQueue: EventQueue
-	_reconnectTimer: TimeoutID | null
-	_connectTimer: TimeoutID | null
+	private readonly _entityUpdateMessageQueue: EventQueue
+	private _reconnectTimer: TimeoutID | null
+	private _connectTimer: TimeoutID | null
 
 	/**
 	 * Represents a currently retried executing due to a ServiceUnavailableError
 	 */
-	_serviceUnavailableRetry: Promise<void> | null
-	_failedConnectionAttempts: number = 0
-	_progressMonitor: IProgressMonitor
-	_instanceMapper: InstanceMapper
+	private _serviceUnavailableRetry: Promise<void> | null = null
+	private _failedConnectionAttempts: number = 0
+	private _progressMonitor: IProgressMonitor
+	private _instanceMapper: InstanceMapper
 
 	constructor(
 		worker: WorkerImpl,

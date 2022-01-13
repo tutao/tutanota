@@ -9,7 +9,7 @@ import {noOp} from "@tutao/tutanota-utils"
 export const COMPONENT_PREVIEW_HEIGHT = 300
 export const BUTTON_WIDTH = 270
 
-export class CustomColorEditorPreview implements Component<void> {
+export class CustomColorEditorPreview implements Component {
 	_mailRow: MailRow
 	_mailRow2: MailRow
 
