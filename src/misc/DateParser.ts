@@ -179,6 +179,6 @@ export function _cleanupAndSplit(dateString: string): number[] {
 	dateString = dateString.replace(/[^ 0-9.\/-]/g, "")
 	return dateString
 		.split(/[.\/-]/g)
-		.filter((part, index) => index < 3)
+		.slice(0, 3) // keep at most three date parts even if the string contains more than two separators (e.g., extra '.' at the end)
 		.map(part => parseInt(part))
 }
