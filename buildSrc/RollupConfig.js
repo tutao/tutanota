@@ -6,7 +6,7 @@ export const dependencyMap = {
 	"mithril/stream": path.normalize("./libs/stream.js"),
 	"squire-rte": path.normalize("./libs/squire-raw.js"),
 	"dompurify": path.normalize("./libs/purify.js"),
-	"qrcode": path.normalize("./libs/qrcode.js"),
+	"qrcode-svg": path.normalize("./libs/qrcode.js"),
 	"jszip": path.normalize("./libs/jszip.js"),
 	"luxon": path.normalize("./libs/luxon.js"),
 	"linkifyjs": path.normalize("./libs/linkify.js"),

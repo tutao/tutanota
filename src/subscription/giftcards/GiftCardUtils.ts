@@ -1,5 +1,5 @@
 import m, {ChildArray, Children, VnodeDOM} from "mithril"
-import QRCode from "qrcode"
+import QRCode from "qrcode-svg"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
@@ -262,13 +262,11 @@ export function renderGiftCardSvg(price: number, country: Country, link: string 
 			content: link,
 			background: theme.content_accent,
 			color: theme.content_bg,
+			xmlDeclaration: false,
+			container: "none",
 		})
-		const svg = qrcodeGenerator.svg({
-			container: null,
-		})
-		qrCode = htmlSanitizer.sanitizeSVG(svg, {
-			blockExternalContent: false,
-		}).text
+		const svg = qrcodeGenerator.svg()
+		qrCode = htmlSanitizer.sanitizeSVG(svg).text
 	}
 
 	const formattedPrice = formatPrice(price, true)

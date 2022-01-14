@@ -48,6 +48,7 @@
 		"@types/luxon": "1.27.1",
 		"@types/mithril": "^2.0.8",
 		"@types/node-forge": "^1.0.0",
+		"@types/qrcode-svg": "^1.1.1",
 		"@types/systemjs": "^6.1.1",
 		"@types/winreg": "^1.2.31",
 		"body-parser": "1.19.0",
