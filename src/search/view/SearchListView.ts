@@ -12,7 +12,7 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {locator} from "../../api/main/MainLocator"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, flat, groupBy, isSameTypeRef, neverNull, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
+import {defer, downcast, flat, groupBy, isSameTypeRef, neverNull, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import type {OperationType} from "../../api/common/TutanotaConstants"
 import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
@@ -24,7 +24,6 @@ import {compareContacts} from "../../contacts/view/ContactGuiUtils"
 import type {SearchResult} from "../../api/worker/search/SearchTypes"
 import type {ListElementEntity} from "../../api/common/EntityTypes"
 import Stream from "mithril/stream";
-import {downcast} from "../../../packages/tutanota-utils/lib"
 
 assertMainOrNode()
 
