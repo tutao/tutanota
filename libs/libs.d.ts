@@ -7,7 +7,3 @@ declare type Squire = any
 declare module 'squire-rte' {
 	declare var Squire: any;
 }
-
-declare module 'qrcode' {
-	export default any;
-}

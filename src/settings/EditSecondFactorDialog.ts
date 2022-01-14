@@ -13,7 +13,7 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {Icons} from "../gui/base/icons/Icons"
-import QRCode from "qrcode"
+import QRCode from "qrcode-svg"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {Icon, progressIcon} from "../gui/base/Icon"
@@ -81,10 +81,10 @@ export class EditSecondFactorDialog {
 					height: 150,
 					width: 150,
 					content: url,
+					// We don't want <xml> around the content, we actually enforce <svg> namespace and we want it to be parsed as such.
+					xmlDeclaration: false,
 				})
-				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg(), {
-					blockExternalContent: false,
-				}).text
+				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg()).text
 			} else {
 				totpQRCodeSvg = null
 			}
