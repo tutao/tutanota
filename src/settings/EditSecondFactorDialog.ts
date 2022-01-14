@@ -81,6 +81,7 @@ export class EditSecondFactorDialog {
 					height: 150,
 					width: 150,
 					content: url,
+					padding: 2,
 					// We don't want <xml> around the content, we actually enforce <svg> namespace and we want it to be parsed as such.
 					xmlDeclaration: false,
 				})
@@ -258,7 +259,7 @@ export class EditSecondFactorDialog {
 		if (otpInfo) {
 			const qrCodeSvg = assertNotNull(otpInfo.qrCodeSvg)
 			// sanitized above
-			return m(".flex-center", m.trust(qrCodeSvg))
+			return m(".flex-center.pt-m", m.trust(qrCodeSvg))
 		} else {
 			return null
 		}
