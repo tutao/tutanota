@@ -121,6 +121,7 @@ public class SseClient {
 		} catch (Exception exception) {
 			handleException(random, exception, connectionData.userId);
 		} finally {
+			Log.d(TAG, "It turns finally");
 			if (reader != null) {
 				try {
 					reader.close();
@@ -128,6 +129,8 @@ public class SseClient {
 				}
 			}
 			httpsURLConnectionRef.set(null);
+			Log.d(TAG, "ConnectionRef not available, schedule connect");
+			reschedule(0);
 		}
 	}
 
