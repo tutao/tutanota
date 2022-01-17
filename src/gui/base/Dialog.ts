@@ -37,7 +37,7 @@ import {$Promisable, assertNotNull, getAsLazy, mapLazily, noOp} from "@tutao/tut
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
+import type Stream from "mithril/stream"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -137,7 +137,7 @@ export class Dialog implements ModalComponent {
 										animation = animations.add(this._domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
 									} else {
 										const bgcolor = getElevatedBackground()
-										const children = Array.from(this._domDialog.children) as Array<HTMLElement>;
+										const children = Array.from(this._domDialog.children) as Array<HTMLElement>
 										for (let child of children) {
 											child.style.opacity = "0"
 										}
@@ -448,8 +448,6 @@ export class Dialog implements ModalComponent {
 	 * @param messageIdOrMessageFunction which displayed in the body
 	 * @param buttons which are displayed below
 	 * @param onclose which is called on shortcut or when dialog is closed any other way (e.g. back navigation). Not called when pressing
-	 * @param enableConfirmShortcut whether or not the enter key should be a shortcut to trigger confirmation, otherwise it will count as a
-	 *                              click on whichever button is selected
 	 * one of the buttons.
 	 * @param infoToAppend additional UI elements to show below the message
 	 */
@@ -466,22 +464,18 @@ export class Dialog implements ModalComponent {
 			setTimeout(() => onclose && onclose(positive), DefaultAnimationTime)
 		}
 
-		// ensure that m() is called in every view() update for the infoToAppend
-		let getContent = () => {
-			let content = [
-				lang.getMaybeLazy(messageIdOrMessageFunction),
-				infoToAppend && (typeof infoToAppend === "function"
+		// Wrap in a function to ensure that m() is called in every view() update for the infoToAppend
+		function getContent(): Children {
+			const additionalChild = typeof infoToAppend === "string"
+				? m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend)
+				: typeof infoToAppend === "function"
 					? infoToAppend()
-					: m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend))
+					: null
+
+			return [
+				lang.getMaybeLazy(messageIdOrMessageFunction),
+				additionalChild
 			]
-
-			if (typeof infoToAppend === "string") {
-				content = content.concat()
-			} else if (typeof infoToAppend === "function") {
-				content = content.concat(infoToAppend())
-			}
-
-			return content
 		}
 
 		dialog = new Dialog(DialogType.Alert, {
