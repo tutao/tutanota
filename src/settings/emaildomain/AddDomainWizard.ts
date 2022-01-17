@@ -1,9 +1,10 @@
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {logins} from "../../api/main/LoginController"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {DnsRecord} from "../../api/entities/sys/DnsRecord"
 import {createDnsRecord} from "../../api/entities/sys/DnsRecord"
-import {DnsRecordType, DnsRecordTypeToName} from "../../api/common/TutanotaConstants"
+import {DnsRecordType} from "../../api/common/TutanotaConstants"
 import m, {Children} from "mithril"
 import {ColumnWidth, TableN} from "../../gui/base/TableN"
 import type {EditAliasesFormAttrs} from "../EditAliasesFormN"
@@ -14,10 +15,8 @@ import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPa
 import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecordsPage"
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {createWizardDialog, wizardPageWrapper, WizardPageWrapper} from "../../gui/base/WizardDialogN"
+import {createWizardDialog, wizardPageWrapper} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
-import {downcast} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -76,6 +75,21 @@ export type ValidatedDnSRecord = {
 	helpInfo: string[]
 }
 
+const enum ActualDnsRecordType {
+	MX = "MX",
+	TXT = "TXT",
+	CNAME = "CNAME",
+}
+
+export const DnsRecordTypeToDnsType: Record<DnsRecordType, ActualDnsRecordType> = Object.freeze({
+	[DnsRecordType.DNS_RECORD_TYPE_MX]: ActualDnsRecordType.MX,
+	[DnsRecordType.DNS_RECORD_TYPE_TXT_SPF]: ActualDnsRecordType.TXT,
+	[DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM]: ActualDnsRecordType.CNAME,
+	[DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC]: ActualDnsRecordType.TXT,
+	[DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS]: ActualDnsRecordType.CNAME,
+	[DnsRecordType.DNS_RECORD_TYPE_TXT_VERIFY]: ActualDnsRecordType.TXT,
+})
+
 export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs | null): Children {
 	return m(TableN, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
@@ -86,7 +100,7 @@ export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButt
 			return {
 				cells: () => [
 					{
-						main: DnsRecordTypeToName[r.record.type as DnsRecordType],
+						main: DnsRecordTypeToDnsType[r.record.type as DnsRecordType],
 					},
 					{
 						main: r.record.subdomain ? r.record.subdomain : "@",
@@ -107,7 +121,7 @@ export function createDnsRecordTable(records: DnsRecord[]): Children {
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
 		showActionButtonColumn: false,
 		lines: records.map(r => ({
-			cells: [DnsRecordTypeToName[r.type as DnsRecordType], r.subdomain ? r.subdomain : "@", r.value],
+			cells: [DnsRecordTypeToDnsType[r.type as DnsRecordType], r.subdomain ? r.subdomain : "@", r.value],
 		})),
 	})
 }
