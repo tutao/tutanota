@@ -4,10 +4,11 @@ import {lang} from "../misc/LanguageViewModel"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
-import {EditAliasesFormN} from "./EditAliasesFormN"
+import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
+import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {logins} from "../api/main/LoginController"
@@ -17,6 +18,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import {locator} from "../api/main/MainLocator"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
@@ -33,22 +35,17 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {LockedError} from "../api/common/error/RestError"
-import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
-import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils"
 import {isSameId} from "../api/common/utils/EntityUtils"
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {formatActivateState, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {MailboxProperties} from "../api/entities/tutanota/MailboxProperties"
 import {MailboxPropertiesTypeRef} from "../api/entities/tutanota/MailboxProperties"
 import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 
@@ -396,17 +393,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
-			let p = Promise.resolve()
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
 			const {instanceListId, instanceId, operation} = update
-
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				p = locator.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
-					this._updateTutanotaPropertiesSettings(props)
-
-					this._updateInboxRules(props)
-				})
+				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, logins.getUserController().props._id)
+				this._updateTutanotaPropertiesSettings(props)
+				this._updateInboxRules(props)
 			} else if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				this._updateInboxRules(logins.getUserController().props)
 			} else if (
@@ -414,22 +407,18 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				operation === OperationType.UPDATE &&
 				isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])
 			) {
-				p = locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
-					this._senderName(groupInfo.name)
+				const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId])
+				this._senderName(groupInfo.name)
 
-					this._editAliasFormAttrs.userGroupInfo = groupInfo
-					m.redraw()
-				})
+				this._editAliasFormAttrs.userGroupInfo = groupInfo
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
 				this._mailboxProperties.reload().then(() => this._updateMailboxPropertiesSettings())
 			}
-
-			return p.then(() => {
-				this._identifierListViewer.entityEventReceived(update)
-			})
-		}).then(() => m.redraw())
+			await this._identifierListViewer.entityEventReceived(update)
+		}
+		m.redraw()
 	}
 }
 

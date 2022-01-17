@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import {isApp, isDesktop} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {logins} from "../api/main/LoginController"
@@ -79,12 +79,12 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 export class IdentifierListViewer {
 	private _currentIdentifier: string | null = null
 	private readonly _expanded: Stream<boolean>
-	private readonly _user: User | null
-	private readonly _identifiers: Stream<PushIdentifier[]>
+	private readonly _user: User
+	private _identifiers: PushIdentifier[]
 
-	constructor(user: User | null) {
+	constructor(user: User) {
 		this._expanded = stream(false)
-		this._identifiers = stream([])
+		this._identifiers = []
 		this._user = user
 
 		this._loadPushIdentifiers()
@@ -109,7 +109,7 @@ export class IdentifierListViewer {
 				}
 				const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [lang.get("emailPushNotification_action"), m(ButtonN, buttonAddAttrs)])
 
-				const rows = this._identifiers()
+				const rows = this._identifiers
 								 .map(identifier => {
 									 const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this._currentIdentifier
 
@@ -135,9 +135,7 @@ export class IdentifierListViewer {
 				m(".h4", lang.get("notificationSettings_action")),
 				m(ExpanderButtonN, pushIdentifiersExpanderAttrs),
 			]),
-			m(
-				ExpanderPanelN,
-				{
+			m(ExpanderPanelN, {
 					expanded: this._expanded,
 				},
 				m(expanderContent),
@@ -162,12 +160,10 @@ export class IdentifierListViewer {
 		}
 
 		this._currentIdentifier = this.getCurrentIdentifier()
-		const list = neverNull(this._user).pushIdentifierList
+		const list = this._user.pushIdentifierList
 
 		if (list) {
-			const identifiers = await locator.entityClient.loadAll(PushIdentifierTypeRef, list.list)
-
-			this._identifiers(identifiers)
+			this._identifiers = await locator.entityClient.loadAll(PushIdentifierTypeRef, list.list)
 
 			m.redraw()
 		}
@@ -177,11 +173,7 @@ export class IdentifierListViewer {
 		return isApp() || isDesktop() ? locator.pushService.getPushIdentifier() : null
 	}
 
-	_showAddNotificationEmailAddressDialog(user: User | null) {
-		if (!user) {
-			return
-		}
-
+	_showAddNotificationEmailAddressDialog(user: User) {
 		const mailAddress = stream("")
 
 		if (logins.getUserController().isFreeAccount()) {
@@ -196,7 +188,6 @@ export class IdentifierListViewer {
 			}
 
 			let addNotificationEmailAddressOkAction = (dialog: Dialog) => {
-				user = neverNull(user)
 				let pushIdentifier = createPushIdentifier()
 				pushIdentifier.displayName = lang.get("adminEmailSettings_action")
 				pushIdentifier.identifier = neverNull(getCleanedMailAddress(mailAddress()))
@@ -207,7 +198,7 @@ export class IdentifierListViewer {
 
 				pushIdentifier._area = "0" // legacy
 
-				let p = locator.entityClient.setup(neverNull(user.pushIdentifierList).list, pushIdentifier)
+				let p = locator.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier)
 				showProgressDialog("pleaseWait_msg", p)
 				dialog.close()
 			}
@@ -226,9 +217,9 @@ export class IdentifierListViewer {
 		return getCleanedMailAddress(emailAddress) == null ? "mailAddressInvalid_msg" : null // TODO check if it is a Tutanota mail address
 	}
 
-	entityEventReceived(update: EntityUpdateData): void {
+	async entityEventReceived(update: EntityUpdateData): Promise<void> {
 		if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
-			this._loadPushIdentifiers()
+			await this._loadPushIdentifiers()
 		}
 	}
 }
