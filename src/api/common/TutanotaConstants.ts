@@ -286,7 +286,7 @@ export enum CustomDomainCheckResult {
 	CUSTOM_DOMAIN_CHECK_RESULT_NAMESERVER_NOT_FOUND = "3",
 }
 
-export enum DnsRecordType {
+export const enum DnsRecordType {
 	DNS_RECORD_TYPE_MX = "0",
 	DNS_RECORD_TYPE_TXT_SPF = "1",
 	DNS_RECORD_TYPE_CNAME_DKIM = "2",
@@ -294,8 +294,6 @@ export enum DnsRecordType {
 	DNS_RECORD_TYPE_CNAME_MTA_STS = "4",
 	DNS_RECORD_TYPE_TXT_VERIFY = "5",
 }
-
-export const DnsRecordTypeToName = reverse(DnsRecordType)
 
 export const enum SessionState {
 	SESSION_STATE_ACTIVE = "0",
