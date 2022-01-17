@@ -23,7 +23,7 @@ import {bundleDependencyCheckPlugin, getChunkName, resolveLibs} from "./buildSrc
 import {terser} from "rollup-plugin-terser"
 import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
-import nodeResolve from "@rollup/plugin-node-resolve"
+import {nodeResolve} from "@rollup/plugin-node-resolve"
 import {visualizer} from "rollup-plugin-visualizer"
 import glob from "glob"
 import typescript from "@rollup/plugin-typescript"
