@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {isApp, isDesktop, isBrowser} from "../api/common/Env"
+import {isApp, isDesktop} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -17,6 +17,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -25,7 +26,6 @@ import type {User} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {locator} from "../api/main/MainLocator"
-import Stream from "mithril/stream";
 
 type IdentifierRowAttrs = {
 	name: string
@@ -157,11 +157,11 @@ export class IdentifierListViewer {
 	}
 
 	async _loadPushIdentifiers() {
-		if (isBrowser() || !this._user) {
+		if (!this._user) {
 			return
 		}
 
-		this._currentIdentifier = locator.pushService.getPushIdentifier()
+		this._currentIdentifier = this.getCurrentIdentifier()
 		const list = neverNull(this._user).pushIdentifierList
 
 		if (list) {
@@ -171,6 +171,10 @@ export class IdentifierListViewer {
 
 			m.redraw()
 		}
+	}
+
+	private getCurrentIdentifier(): string | null {
+		return isApp() || isDesktop() ? locator.pushService.getPushIdentifier() : null
 	}
 
 	_showAddNotificationEmailAddressDialog(user: User | null) {
