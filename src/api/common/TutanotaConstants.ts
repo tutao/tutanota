@@ -139,7 +139,13 @@ export enum AccountType {
 	EXTERNAL = "5",
 }
 
-export const AccountTypeNames = reverse(AccountType)
+export const AccountTypeNames: Record<AccountType, string> = {
+	[AccountType.SYSTEM]: "System",
+	[AccountType.FREE]: "Free",
+	[AccountType.STARTER]: "Outlook",
+	[AccountType.PREMIUM]: "Premium",
+	[AccountType.EXTERNAL]: "External",
+}
 
 export const enum PaidSubscriptionType {
 	Premium = "0",
