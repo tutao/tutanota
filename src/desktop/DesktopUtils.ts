@@ -7,7 +7,7 @@ import {log} from "./DesktopLog"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
-import {makeRegisterKeysScript, makeUnregisterKeys, RegistryRoot} from "./reg-templater"
+import {makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot} from "./reg-templater"
 import type {ElectronExports, FsExports} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
@@ -209,7 +209,7 @@ export class DesktopUtils {
 		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
 		const filePath = swapFilename(process.execPath, filename)
 
-		this._fs.promises.writeFile(filePath, contents, {
+		await this._fs.promises.writeFile(filePath, contents, {
 			encoding: "utf-8",
 			mode: 0o400,
 		})
@@ -245,7 +245,7 @@ export class DesktopUtils {
 			throw new ProgrammingError("Not win32")
 		}
 		app.removeAsDefaultProtocolClient('mailto')
-		const tmpRegScript = makeUnregisterKeys(RegistryRoot.CURRENT_USER)
+		const tmpRegScript = makeUnregisterKeysScript(RegistryRoot.CURRENT_USER)
 		await this._executeRegistryScript(tmpRegScript)
 		await this._openDefaultAppsSettings()
 	}
