@@ -1,6 +1,7 @@
 import m, {Children} from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Request} from "../api/common/MessageDispatcher"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {noOp} from "@tutao/tutanota-utils"
@@ -22,13 +23,13 @@ import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
-const DownloadLocationStrategy = Object.freeze({
-	ALWAYS_ASK: 0,
-	CHOOSE_DIRECTORY: 1,
-})
+
+enum DownloadLocationStrategy {
+	ALWAYS_ASK,
+	CHOOSE_DIRECTORY,
+}
 
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _isDefaultMailtoHandler: Stream<boolean | null>
@@ -123,7 +124,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._runOnStartup,
 			selectionChangedHandler: v => {
 				// this may take a while
-				showProgressDialog("pleaseWait_msg", this._toggeAutoLaunchInNative(v)).then(() => {
+				showProgressDialog("pleaseWait_msg", this._toggleAutoLaunchInNative(v)).then(() => {
 					this._runOnStartup(v)
 
 					m.redraw()
@@ -240,23 +241,27 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("desktopSettings_label")),
-				env.platformId !== "darwin" ? m(TextFieldN, spellcheckLanguageAttrs) : null,
+				// spell check is done via OS on mac
+				env.platformId === "darwin" ? null : m(TextFieldN, spellcheckLanguageAttrs),
+				// setting protocol handler via Electron does not work on Linux
 				env.platformId === "linux" ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
+				// mac doesn't really have run in background, you can just close a window
 				env.platformId === "darwin" ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
 				m(DropDownSelectorN, setMailExportModeAttrs),
+				// AppImage is kind of a portable install so we optionally add desktop icons etc
 				env.platformId === "linux" ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
 				this._showAutoUpdateOption ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
 			]),
 		]
 	}
 
-	_toggeAutoLaunchInNative(enable: boolean): Promise<any> {
+	private _toggleAutoLaunchInNative(enable: boolean): Promise<any> {
 		return locator.native.invokeNative(new Request(enable ? "enableAutoLaunch" : "disableAutoLaunch", []))
 	}
 
-	_updateDefaultMailtoHandler(shouldBeDefaultMailtoHandler: boolean): Promise<void> {
+	private _updateDefaultMailtoHandler(shouldBeDefaultMailtoHandler: boolean): Promise<void> {
 		if (shouldBeDefaultMailtoHandler) {
 			return locator.native.invokeNative(new Request("registerMailto", []))
 		} else {
@@ -264,7 +269,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateDesktopIntegration(shouldIntegrate: boolean): Promise<void> {
+	private _updateDesktopIntegration(shouldIntegrate: boolean): Promise<void> {
 		if (shouldIntegrate) {
 			return locator.native.invokeNative(new Request("integrateDesktop", []))
 		} else {
@@ -272,7 +277,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async _requestDesktopConfig() {
+	private async _requestDesktopConfig() {
 		this._defaultDownloadPath = stream(lang.get("alwaysAsk_action"))
 		const [
 			integrationInfo,
@@ -325,13 +330,20 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	async setDefaultDownloadPath(v: Values<typeof DownloadLocationStrategy>): Promise<void> {
+	async setDefaultDownloadPath(v: DownloadLocationStrategy): Promise<void> {
 		this._isPathDialogOpen = true
-		const newPaths = v === DownloadLocationStrategy.ALWAYS_ASK ? [null] : await locator.fileApp.openFolderChooser()
 
-		this._defaultDownloadPath(newPaths[0] ? newPaths[0] : lang.get("alwaysAsk_action"))
+		let savePath: string | null
+		if (v === DownloadLocationStrategy.ALWAYS_ASK) {
+			savePath = null
+		} else {
+			const chosenPaths = await locator.fileApp.openFolderChooser()
+			savePath = chosenPaths[0] ?? null
+		}
 
-		await this.updateConfig(DesktopConfigKey.defaultDownloadPath, newPaths[0])
+		this._defaultDownloadPath(savePath ? savePath : lang.get("alwaysAsk_action"))
+
+		await this.updateConfig(DesktopConfigKey.defaultDownloadPath, savePath)
 		this._isPathDialogOpen = false
 	}
 
