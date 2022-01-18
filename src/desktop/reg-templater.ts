@@ -142,7 +142,7 @@ export function makeRegisterKeysScript(registryRoot: RegistryRoot, opts: Registr
  * produce a tmp windows registry script to unregister tutanota as a mailto handler
  * @returns {string} registry script
  */
-export function makeUnregisterKeys(registryRoot: RegistryRoot): string {
+export function makeUnregisterKeysScript(registryRoot: RegistryRoot): string {
 	// the removal script generator doesn't care about values
 	const template = getTemplate(
 		{

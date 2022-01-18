@@ -341,7 +341,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			savePath = chosenPaths[0] ?? null
 		}
 
-		this._defaultDownloadPath(savePath ? savePath : lang.get("alwaysAsk_action"))
+		this._defaultDownloadPath(savePath ?? lang.get("alwaysAsk_action"))
 
 		await this.updateConfig(DesktopConfigKey.defaultDownloadPath, savePath)
 		this._isPathDialogOpen = false
