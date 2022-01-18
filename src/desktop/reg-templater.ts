@@ -1,11 +1,20 @@
 import type {RegistryTemplateDefinition} from "./integration/RegistryScriptGenerator"
 import {applyScriptBuilder, removeScriptBuilder} from "./integration/RegistryScriptGenerator"
 
-const esc = (s: string) => s.replace(/\\/g, "\\\\")
+export enum RegistryRoot {
+	/** Global (per-device) registry keys */
+	LOCAL_MACHINE = "HKEY_LOCAL_MACHINE",
+	/** Per-user registry keys */
+	CURRENT_USER = "HKEY_CURRENT_USER",
+}
 
-const hklm = "HKEY_LOCAL_MACHINE"
-const hkcu = "HKEY_CURRENT_USER"
-const hkcr = "HKEY_CLASSES_ROOT"
+/**
+ * > The HKEY_CLASSES_ROOT (HKCR) key contains file name extension associations and COM class registration information such as ProgIDs, CLSIDs, and IIDs.
+ * > It is primarily intended for compatibility with the registry in 16-bit Windows.
+ *
+ * see https://docs.microsoft.com/en-us/windows/win32/sysinfo/hkey-classes-root-key
+ */
+const HKCR = "HKEY_CLASSES_ROOT"
 
 /**
  * execPath: path for the dll to this executable
@@ -24,7 +33,7 @@ export type RegistryPaths = {
  * get a registry template specific to tutanota desktop
  * https://docs.microsoft.com/en-us/windows/win32/msi/installation-context#registry-redirection
  */
-function getTemplate(opts: RegistryPaths, local: boolean): RegistryTemplateDefinition {
+function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryTemplateDefinition {
 	const {execPath, dllPath, logPath, tmpPath} = opts
 	const client_template = {
 		tutanota: {
@@ -61,65 +70,70 @@ function getTemplate(opts: RegistryPaths, local: boolean): RegistryTemplateDefin
 			},
 		},
 	}
-	const r = local ? hkcu : hklm
+
 	return [
 		{
-			root: `${r}\\SOFTWARE\\Clients\\Mail`,
+			root: `${registryRoot}\\SOFTWARE\\Clients\\Mail`,
 			value: client_template,
 		},
 		{
-			root: `${r}\\SOFTWARE\\CLASSES`,
+			root: `${registryRoot}\\SOFTWARE\\CLASSES`,
 			value: {
 				mailto: mailto_template,
 				"tutanota.Mailto": mailto_template,
 			},
 		},
 		{
-			root: hkcr,
+			root: HKCR,
 			value: {
 				mailto: mailto_template,
 				"tutanota.Mailto": mailto_template,
 			},
 		},
 		{
-			root: `${r}\\SOFTWARE\\RegisteredApplications`,
+			root: `${registryRoot}\\SOFTWARE\\RegisteredApplications`,
 			value: {
 				tutanota: "SOFTWARE\\\\tutao\\\\tutanota\\\\Capabilities",
 			},
 		},
 		{
-			root: `${r}\\SOFTWARE\\Wow6432Node\\RegisteredApplications`,
+			root: `${registryRoot}\\SOFTWARE\\Wow6432Node\\RegisteredApplications`,
 			value: {
 				tutanota: "SOFTWARE\\\\Wow6432Node\\\\tutao\\\\tutanota\\\\Capabilities",
 			},
 		},
 		{
-			root: `${r}\\SOFTWARE`,
+			root: `${registryRoot}\\SOFTWARE`,
 			value: capabilities_template,
 		},
 		{
-			root: `${r}\\SOFTWARE\\Wow6432Node`,
+			root: `${registryRoot}\\SOFTWARE\\Wow6432Node`,
 			value: capabilities_template,
 		},
 	]
 }
 
+function escape(s: string): string {
+	return s.replace(/\\/g, "\\\\")
+}
+
+
 /**
  * produce a tmp windows registry script to register an executable as a mailto handler
+ * @param registryRoot
  * @param opts {RegistryPaths}
- * @param local set to true if the app was installed per-user
  * @returns {string} registry script
  */
-export function registerKeys(opts: RegistryPaths, local: boolean): string {
+export function makeRegisterKeysScript(registryRoot: RegistryRoot, opts: RegistryPaths): string {
 	const {execPath, dllPath, logPath, tmpPath} = opts
 	const template = getTemplate(
 		{
-			execPath: esc(execPath),
-			dllPath: esc(dllPath),
-			logPath: esc(logPath),
-			tmpPath: esc(tmpPath),
+			execPath: escape(execPath),
+			dllPath: escape(dllPath),
+			logPath: escape(logPath),
+			tmpPath: escape(tmpPath),
 		},
-		local,
+		registryRoot,
 	)
 	return applyScriptBuilder(template)
 }
@@ -128,7 +142,7 @@ export function registerKeys(opts: RegistryPaths, local: boolean): string {
  * produce a tmp windows registry script to unregister tutanota as a mailto handler
  * @returns {string} registry script
  */
-export function unregisterKeys(local: boolean): string {
+export function makeUnregisterKeys(registryRoot: RegistryRoot): string {
 	// the removal script generator doesn't care about values
 	const template = getTemplate(
 		{
@@ -137,7 +151,7 @@ export function unregisterKeys(local: boolean): string {
 			logPath: "logPath",
 			tmpPath: "tmpPath",
 		},
-		local,
+		registryRoot,
 	)
 	return removeScriptBuilder(template)
 }

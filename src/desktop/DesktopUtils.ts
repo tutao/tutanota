@@ -1,6 +1,5 @@
 import path from "path"
-import {exec, spawn} from "child_process"
-import {promisify} from "util"
+import {spawn} from "child_process"
 import type {Rectangle} from "electron"
 import {app} from "electron"
 import {defer, delay, noOp, uint8ArrayToHex} from "@tutao/tutanota-utils"
@@ -8,16 +7,16 @@ import {log} from "./DesktopLog"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
-import {registerKeys, unregisterKeys} from "./reg-templater"
+import {makeRegisterKeysScript, makeUnregisterKeys, RegistryRoot} from "./reg-templater"
 import type {ElectronExports, FsExports} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 export class DesktopUtils {
-	readonly _fs: FsExports
-	readonly _electron: ElectronExports
-	readonly _desktopCrypto: DesktopCryptoFacade
-	readonly _topLevelDownloadDir: string = "tutanota"
+	private readonly _fs: FsExports
+	private readonly _electron: ElectronExports
+	private readonly _desktopCrypto: DesktopCryptoFacade
+	private readonly _topLevelDownloadDir: string = "tutanota"
 
 	constructor(fs: FsExports, electron: ElectronExports, desktopCrypto: DesktopCryptoFacade) {
 		this._fs = fs
@@ -75,27 +74,18 @@ export class DesktopUtils {
 
 		switch (process.platform) {
 			case "win32":
-				const isLocal = await this.checkIsPerUserInstall()
-				if (isLocal) {
-					await this.doRegisterMailtoOnWin32WithCurrentUser()
-				} else {
-					const isAdmin = await checkForAdminStatus()
-					if (!isAdmin) {
-						// We require admin rights in windows, so we will recursively run the tutanota client with admin privileges
-						// and then call doRegisterMailtoOnWin32WithCurrentUser() from that process
-						await elevatePermissions(["-r"])
-					} else {
-						await this.doRegisterMailtoOnWin32WithCurrentUser()
-					}
-				}
+				await this.doRegisterMailtoOnWin32WithCurrentUser()
 				break
 			case "darwin":
+				const didRegister = app.setAsDefaultProtocolClient("mailto")
+				if (!didRegister) {
+					throw new Error("Could not register as mailto handler")
+				}
+				break
 			case "linux":
-				return app.setAsDefaultProtocolClient("mailto")
-					? Promise.resolve()
-					: Promise.reject()
+				throw new Error("Registering protocols on Linux does not work")
 			default:
-				return Promise.reject(new Error("Invalid process.platform"))
+				throw new Error(`Invalid process.platform: ${process.platform}`)
 		}
 	}
 
@@ -103,25 +93,18 @@ export class DesktopUtils {
 		log.debug("trying to unregister mailto...")
 		switch (process.platform) {
 			case "win32":
-				const isLocal = await this.checkIsPerUserInstall()
-				if (isLocal) {
-					await this.doUnregisterMailtoOnWin32WithCurrentUser()
-				} else {
-					const isAdmin = await checkForAdminStatus()
-					if (!isAdmin) {
-						await elevatePermissions(["-u"])
-					} else {
-						await this.doUnregisterMailtoOnWin32WithCurrentUser()
-					}
-				}
+				await this.doUnregisterMailtoOnWin32WithCurrentUser()
 				break
 			case "darwin":
+				const didUnregister = app.removeAsDefaultProtocolClient("mailto")
+				if (!didUnregister) {
+					throw new Error("Could not unregister as mailto handler")
+				}
+				break
 			case "linux":
-				return app.removeAsDefaultProtocolClient("mailto")
-					? Promise.resolve()
-					: Promise.reject()
+				throw new Error("Registering protocols on Linux does not work")
 			default:
-				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
+				throw new Error(`Invalid process.platform: ${process.platform}`)
 		}
 	}
 
@@ -197,10 +180,10 @@ export class DesktopUtils {
 	 * @param script: source of the registry script
 	 * @private
 	 */
-	_executeRegistryScript(script: string): Promise<void> {
+	private async _executeRegistryScript(script: string): Promise<void> {
 		const deferred = defer<void>()
 
-		const file = this._writeToDisk(script)
+		const file = await this._writeToDisk(script)
 
 		spawn("reg.exe", ["import", file], {
 			stdio: ["ignore", "inherit", "inherit"],
@@ -220,27 +203,18 @@ export class DesktopUtils {
 	/**
 	 * Writes contents with a random file name into the directory of the executable
 	 * @param contents
-	 * @returns {string} path  to the written file
-	 * @private
+	 * @returns path to the written file
 	 */
-	_writeToDisk(contents: string): string {
+	private async _writeToDisk(contents: string): Promise<string> {
 		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
 		const filePath = swapFilename(process.execPath, filename)
 
-		this._fs.writeFileSync(filePath, contents, {
+		this._fs.promises.writeFile(filePath, contents, {
 			encoding: "utf-8",
 			mode: 0o400,
 		})
 
 		return filePath
-	}
-
-	readJSONSync(absolutePath: string): Record<string, unknown> {
-		return JSON.parse(
-			this._fs.readFileSync(absolutePath, {
-				encoding: "utf8",
-			}),
-		)
 	}
 
 	async doRegisterMailtoOnWin32WithCurrentUser(): Promise<void> {
@@ -260,16 +234,7 @@ export class DesktopUtils {
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", app.getName(), "logs")
 		const tmpPath = path.join(appData, "Local", "Temp", this._topLevelDownloadDir, "attach")
-		const isLocal = await this.checkIsPerUserInstall()
-		const tmpRegScript = registerKeys(
-			{
-				execPath,
-				dllPath,
-				logPath,
-				tmpPath,
-			},
-			isLocal,
-		)
+		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, {execPath, dllPath, logPath, tmpPath})
 		await this._executeRegistryScript(tmpRegScript)
 		app.setAsDefaultProtocolClient("mailto")
 		await this._openDefaultAppsSettings()
@@ -280,13 +245,12 @@ export class DesktopUtils {
 			throw new ProgrammingError("Not win32")
 		}
 		app.removeAsDefaultProtocolClient('mailto')
-		const isLocal = await this.checkIsPerUserInstall()
-		const tmpRegScript = unregisterKeys(isLocal)
+		const tmpRegScript = makeUnregisterKeys(RegistryRoot.CURRENT_USER)
 		await this._executeRegistryScript(tmpRegScript)
 		await this._openDefaultAppsSettings()
 	}
 
-	async _openDefaultAppsSettings(): Promise<void> {
+	private async _openDefaultAppsSettings(): Promise<void> {
 		try {
 			await this._electron.shell.openExternal("ms-settings:defaultapps")
 		} catch (e) {
@@ -305,48 +269,10 @@ export class DesktopUtils {
 	}
 }
 
-/**
- * Checks if the user has admin privileges
- * @returns {Promise<boolean>} true if user has admin privileges
- */
-function checkForAdminStatus(): Promise<boolean> {
-	if (process.platform === "win32") {
-		return promisify(exec)("NET SESSION")
-			.then(() => true)
-			.catch(() => false)
-	} else {
-		return Promise.reject(new Error(`No NET SESSION on ${process.platform}`))
-	}
-}
-
 function getLockFilePath() {
 	// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
 	// we want to put the lockfile in root tmp so it persists
 	return path.join(app.getPath("temp"), "tutanota_desktop_lockfile")
-}
-
-/**
- * Uses the bundled elevate.exe to show a UAC dialog to the user and execute command with elevated permissions.
- * @private
- */
-function elevatePermissions(args: Array<string>) {
-	if (process.platform !== "win32") {
-		throw new ProgrammingError("Trying to elevate permissions but not on win32")
-	}
-	const deferred = defer()
-	const elevateExe = path.join((process as any).resourcesPath, "elevate.exe")
-	let elevateArgs = ["-wait", process.execPath].concat(args)
-	spawn(elevateExe, elevateArgs, {
-		stdio: ["ignore", "inherit", "inherit"],
-		detached: false,
-	}).on("exit", (code, signal) => {
-		if (code === 0) {
-			deferred.resolve(undefined)
-		} else {
-			deferred.reject(new Error("couldn't elevate permissions"))
-		}
-	})
-	return deferred.promise
 }
 
 export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
