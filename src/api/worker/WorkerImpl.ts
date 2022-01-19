@@ -41,6 +41,7 @@ import type {NativeInterface} from "../../native/common/NativeInterface"
 import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {WsConnectionState} from "../main/WorkerClient";
+import {RestClient} from "./rest/RestClient"
 
 assertWorkerOrNode()
 
@@ -74,16 +75,16 @@ export interface MainInterface {
 type WorkerRequest = Request<WorkerRequestType>
 
 export class WorkerImpl implements NativeInterface {
-	_scope: DedicatedWorkerGlobalScope | null
-	_dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
-	_newEntropy: number
-	_lastEntropyUpdate: number
+	private readonly _scope: DedicatedWorkerGlobalScope
+	private readonly _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
+	private _newEntropy: number
+	private _lastEntropyUpdate: number
 
-	constructor(self: DedicatedWorkerGlobalScope | null) {
+	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
-		this._dispatcher = new MessageDispatcher(this._scope && new WorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
+		this._dispatcher = new MessageDispatcher(new WorkerTransport(this._scope), this.queueCommands(this.exposedInterface))
 	}
 
 	async init(browserData: BrowserData): Promise<void> {
@@ -198,14 +199,14 @@ export class WorkerImpl implements NativeInterface {
 
 	queueCommands(exposedWorker: WorkerInterface): Commands<WorkerRequestType> {
 		return {
-			setup: async (message: any) => {
+			setup: async (message) => {
 				console.error("WorkerImpl: setup was called after bootstrap! message: ", message)
 			},
-			testEcho: (message: any) =>
+			testEcho: (message) =>
 				Promise.resolve({
 					msg: ">>> " + message.args[0].msg,
 				}),
-			testError: (message: any) => {
+			testError: (message) => {
 				const errorTypes = {
 					ProgrammingError,
 					CryptoError,
@@ -220,19 +221,12 @@ export class WorkerImpl implements NativeInterface {
 			},
 			restRequest: (message: WorkerRequest) => {
 				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
-				return locator.restClient.request(
-					message.args[0],
-					message.args[1],
-					message.args[2],
-					message.args[3],
-					message.args[4],
-					message.args[5],
-					message.args[6],
-					message.args[7],
-				)
+				const args = message.args as Parameters<RestClient["request"]>
+				return locator.restClient.request(...args)
 			},
 			serviceRequest: (message: WorkerRequest) => {
-				return _service.apply(null, message.args)
+				const args = message.args as Parameters<typeof _service>
+				return _service(...args)
 			},
 			entropy: (message: WorkerRequest) => {
 				return this.addEntropy(message.args[0])
@@ -258,7 +252,7 @@ export class WorkerImpl implements NativeInterface {
 				return resolveSessionKey.apply(null, message.args).then((sk: BitArray) => (sk ? keyToBase64(sk) : null))
 			},
 			getLog: () => {
-				const global = downcast(self)
+				const global = self as any
 
 				if (global.logger) {
 					return Promise.resolve(global.logger.getEntries())
