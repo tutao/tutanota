@@ -123,19 +123,26 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 	handleMessage(message: Message<IncomingRequestType>) {
 		if (message.type === "response") {
-			this._messages[message.id].resolve(message.value)
-
-			delete this._messages[message.id]
+			const pendingRequest = this._messages[message.id]
+			if (pendingRequest != null) {
+				pendingRequest.resolve(message.value)
+				delete this._messages[message.id]
+			} else {
+				console.warn(`Unexpected response: ${message.id} (was the page reloaded?)`)
+			}
 		} else if (message.type === "requestError") {
-			this._messages[message.id].reject(objToError(downcast(message).error))
-
-			delete this._messages[message.id]
-		} else {
+			const pendingRequest = this._messages[message.id]
+			if (pendingRequest != null) {
+				pendingRequest.reject(objToError(message.error))
+				delete this._messages[message.id]
+			} else {
+				console.warn(`Unexpected error response: ${message.id} (was the page reloaded?)`)
+			}
+		} else if (message.type === "request") {
 			let command = this._commands[message.requestType]
-			let request = message as any
 
 			if (command != null) {
-				const commandResult = command(request)
+				const commandResult = command(message)
 
 				// Every method exposed via worker protocol must return a promise. Failure to do so is a violation of contract so we
 				// try to catch it early and throw an error.
@@ -145,20 +152,22 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 				commandResult
 					.then(value => {
-						this._transport.postMessage(new Response(request, value))
+						this._transport.postMessage(new Response(message, value))
 					})
 					.catch(e => {
-						this._transport.postMessage(new RequestError(request, e))
+						this._transport.postMessage(new RequestError(message, e))
 					})
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
 				if (isWorker()) {
-					this._transport.postMessage(new RequestError(request, error))
+					this._transport.postMessage(new RequestError(message, error))
 				} else {
 					throw error
 				}
 			}
+		} else {
+			throw new Error(`Unexpected request type: ${JSON.stringify(message)}`)
 		}
 	}
 }
