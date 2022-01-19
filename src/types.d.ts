@@ -10,12 +10,10 @@ declare type Dict = {[key: string]: string}
 /** Requests from main web thread to worker */
 declare type WorkerRequestType =
 	| 'setup'
-	// | 'generateSignupKeys'
 	| 'reset'
 	| 'testEcho'
 	| 'testError'
 	| 'restRequest'
-	// | 'entityRequest'
 	| 'serviceRequest'
 	| 'entropy'
 	| 'tryReconnectEventBus'

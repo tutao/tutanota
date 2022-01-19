@@ -6,15 +6,16 @@ import {SysService} from "../entities/sys/Services";
 import {TutanotaService} from "../entities/tutanota/Services";
 import {MonitorService} from "../entities/monitor/Services";
 import {AccountingService} from "../entities/accounting/Services";
+import type {Entity} from "../common/EntityTypes"
 
 assertMainOrNode()
 
 type Service = SysService | TutanotaService | MonitorService | AccountingService
 
-export function serviceRequest<T>(
+export function serviceRequest<T extends Entity>(
 	service: Service,
 	method: HttpMethod,
-	requestEntity?: any,
+	requestEntity?: Entity | undefined | null,
 	responseTypeRef?: TypeRef<T>,
 	queryParams?: Dict,
 	sk?: Aes128Key,
@@ -23,10 +24,10 @@ export function serviceRequest<T>(
 	return locator.worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 
-export function serviceRequestVoid<T>(
+export function serviceRequestVoid(
 	service: Service,
 	method: HttpMethod,
-	requestEntity?: any,
+	requestEntity?: Entity | undefined | null,
 	queryParams?: Dict,
 	sk?: Aes128Key,
 	extraHeaders?: Dict,

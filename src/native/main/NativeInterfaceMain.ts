@@ -8,8 +8,10 @@ import {appCommands, desktopCommands} from "./NativeWrapperCommands"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 assertMainOrNode()
+
 type NativeMessage = Message<NativeRequestType>
 type JsMessage = Message<JsRequestType>
+type JsMessageHandler = (message: JsMessage) => unknown
 
 /**
  * Transport for communication between android native and webview, using WebMessagePorts for two-way communication.
@@ -17,8 +19,8 @@ type JsMessage = Message<JsRequestType>
  */
 
 class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestType> {
-	_messageHandler: ((arg0: JsMessage) => unknown) | null = null
-	_deferredPort: DeferredObject<MessagePort> = defer()
+	private _messageHandler: JsMessageHandler | null = null
+	private _deferredPort: DeferredObject<MessagePort> = defer()
 
 	get port(): Promise<MessagePort> {
 		return this._deferredPort.promise
@@ -30,17 +32,17 @@ class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestTy
 	start() {
 		// We will receive a message from native after the call to
 		// window.nativeApp.startWebMessageChannel
-		window.onmessage = message => {
+		window.onmessage = (message: MessageEvent) => {
 			// All further messages to and from native will be via this port
 			const port = message.ports[0]
 
-			port.onmessage = messageEvent => {
+			port.onmessage = (messageEvent: MessageEvent) => {
 				const handler = this._messageHandler
 
 				if (handler) {
 					// We can be sure we have a string here, because
 					// Android only allows sending strings across MessagePorts
-					const response = JSON.parse(downcast<string>(messageEvent.data))
+					const response = JSON.parse(messageEvent.data)
 					handler(response)
 				}
 			}
@@ -58,7 +60,7 @@ class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestTy
 		this.port.then(port => port.postMessage(JSON.stringify(message)))
 	}
 
-	setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
+	setMessageHandler(handler: JsMessageHandler): void {
 		this._messageHandler = handler
 	}
 }
@@ -70,7 +72,7 @@ class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestTy
  */
 
 class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> {
-	_messageHandler: ((arg0: JsMessage) => unknown) | null = null
+	private _messageHandler: JsMessageHandler | null = null
 
 	constructor() {
 		window.tutao.nativeApp = this
@@ -80,7 +82,7 @@ class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> 
 		window.nativeApp.invoke(JSON.stringify(message))
 	}
 
-	setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
+	setMessageHandler(handler: JsMessageHandler): void {
 		this._messageHandler = handler
 	}
 
@@ -105,14 +107,14 @@ class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
 		window.nativeApp.invoke(message)
 	}
 
-	setMessageHandler(handler: (arg0: JsMessage) => unknown): void {
+	setMessageHandler(handler: JsMessageHandler): void {
 		window.nativeApp.attach(handler)
 	}
 }
 
 export class NativeInterfaceMain implements NativeInterface {
-	readonly _dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer()
-	_appUpdateListener: (() => void) | null = null
+	private readonly _dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer()
+	private _appUpdateListener: (() => void) | null = null
 
 	async init() {
 		let transport
@@ -144,7 +146,7 @@ export class NativeInterfaceMain implements NativeInterface {
 	}
 
 	/**
-	 * Send a request to the native side
+	 * Send a request to the native side.
 	 */
 	async invokeNative(msg: Request<NativeRequestType>): Promise<any> {
 		const dispatch = await this._dispatchDeferred.promise
@@ -152,15 +154,14 @@ export class NativeInterfaceMain implements NativeInterface {
 	}
 
 	/**
-	 * saves a listener method to be called when an
-	 * app update has been downloaded on the native side
+	 * Saves a listener method to be called when an app update has been downloaded on the native side.
 	 */
 	setAppUpdateListener(listener: () => void): void {
 		this._appUpdateListener = listener
 	}
 
 	/**
-	 * call the update listener if set
+	 * Call the update listener if set.
 	 */
 	handleUpdateDownload(): void {
 		this._appUpdateListener?.()

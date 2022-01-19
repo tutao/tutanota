@@ -1,7 +1,7 @@
 import {CryptoError} from "../common/error/CryptoError"
 import type {Commands} from "../common/MessageDispatcher"
 import {MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
-import type {HttpMethod, MediaType} from "../common/EntityFunctions"
+import type {HttpMethod} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
@@ -10,27 +10,26 @@ import {defer, downcast, identity, TypeRef} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
-import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
-import type {TypeModel} from "../common/EntityTypes"
+import type {Entity, TypeModel} from "../common/EntityTypes"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import type {CloseEventBusOption} from "../common/TutanotaConstants"
 import stream from "mithril/stream"
-import {TutanotaService} from "../entities/tutanota/Services";
-import {SysService} from "../entities/sys/Services";
-import {AccountingService} from "../entities/accounting/Services";
-import {ProgressListener} from "../common/utils/ProgressMonitor";
-import {MonitorService} from "../entities/monitor/Services";
-import {StorageService} from "../entities/storage/Services";
-import {User} from "../entities/sys/User";
+import type {TutanotaService} from "../entities/tutanota/Services";
+import type {SysService} from "../entities/sys/Services";
+import type {AccountingService} from "../entities/accounting/Services";
+import type {MonitorService} from "../entities/monitor/Services";
+import type {StorageService} from "../entities/storage/Services";
+import {User} from "../entities/sys/User"
+import type {RestClient} from "../worker/rest/RestClient"
 
 assertMainOrNode()
 
-type progressUpdater = (arg0: number) => unknown
+type ProgressUpdater = (progress: number) => unknown
 type MainRequest = Request<MainRequestType>
 
 export const enum WsConnectionState {
@@ -41,12 +40,8 @@ export class WorkerClient {
 	private _deferredInitialized: DeferredObject<void> = defer()
 	private _isInitialized: boolean = false
 
-	get initialized(): Promise<void> {
-		return this._deferredInitialized.promise
-	}
-
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
-	private _progressUpdater: progressUpdater | null = null
+	private _progressUpdater: ProgressUpdater | null = null
 	readonly _wsConnection: stream<WsConnectionState> = stream(WsConnectionState.terminated)
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
@@ -60,6 +55,10 @@ export class WorkerClient {
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
+	}
+
+	get initialized(): Promise<void> {
+		return this._deferredInitialized.promise
 	}
 
 	async init(locator: IMainLocator): Promise<void> {
@@ -174,58 +173,47 @@ export class WorkerClient {
 		return this._postRequest(new Request("tryReconnectEventBus", [closeIfOpen, enableAutomaticState, delay]))
 	}
 
-	restRequest<T>(
-		path: string,
-		method: HttpMethod,
-		queryParams: Dict,
-		headers: Dict,
-		body: (string | null) | (Uint8Array | null),
-		responseType: MediaType | null,
-		progressListener?: ProgressListener,
-	): Promise<any> {
+	/** Only used in admin client, */
+	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
 
 	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<string | null> {
-		return this._postRequest(new Request("resolveSessionKey", [...arguments]))
+		return this._postRequest(new Request("resolveSessionKey", [typeModel, instance]))
 	}
 
-	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
-		throw new Error("must not be used")
-	}
-
+	/**
+	 * @deprecated expose service calls via facades on the server side
+	 *
+	 * Make sure that it matches interface of service request functions
+	 */
 	serviceRequest<T>(
 		service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
 		method: HttpMethod,
-		requestEntity?: any,
+		requestEntity?: Entity | undefined | null,
 		responseTypeRef?: TypeRef<T>,
 		queryParameter?: Dict,
 		sk?: Aes128Key,
 		extraHeaders?: Dict,
-	): Promise<any> {
-		return this._postRequest(new Request("serviceRequest", Array.from(arguments)))
+	): Promise<T> {
+		return this._postRequest(new Request("serviceRequest", [service, method, requestEntity, responseTypeRef, queryParameter, sk, extraHeaders]))
 	}
 
-	entropy(
-		entropyCache: {
-			source: EntropySource
-			entropy: number
-			data: number
-		}[],
-	): Promise<void> {
-		return this._postRequest(new Request("entropy", Array.from(arguments)))
+	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {
+		return this._postRequest(new Request("entropy", [entropyCache]))
 	}
 
+	/** @private visible for tests */
 	async _postRequest(msg: Request<WorkerRequestType>): Promise<any> {
 		await this.initialized
 		return this._dispatcher.postRequest(msg)
 	}
 
-	registerProgressUpdater(updater: progressUpdater | null) {
+	registerProgressUpdater(updater: ProgressUpdater | null) {
 		this._progressUpdater = updater
 	}
 
-	unregisterProgressUpdater(updater: progressUpdater | null) {
+	unregisterProgressUpdater(updater: ProgressUpdater | null) {
 		// another one might have been registered in the mean time
 		if (this._progressUpdater === updater) {
 			this._progressUpdater = null
@@ -257,7 +245,7 @@ export class WorkerClient {
 	}
 
 	urlify(html: string): Promise<string> {
-		return this._postRequest(new Request("urlify", [...arguments]))
+		return this._postRequest(new Request("urlify", [html]))
 	}
 
 	/**

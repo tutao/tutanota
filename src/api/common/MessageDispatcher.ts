@@ -21,7 +21,7 @@ export interface Transport<RequestCommandType, ResponseCommandType> {
 	/**
 	 * Set the handler for messages coming from the other end of the transport
 	 */
-	setMessageHandler(message: (arg0: Message<ResponseCommandType>) => unknown): unknown
+	setMessageHandler(handler: (message: Message<ResponseCommandType>) => unknown): unknown
 }
 
 /**
@@ -38,29 +38,29 @@ export class WorkerTransport<RequestType, ResponseType> implements Transport<Req
 		return this._worker.postMessage(message)
 	}
 
-	setMessageHandler(handler: (arg0: Message<ResponseType>) => unknown) {
+	setMessageHandler(handler: (message: Message<ResponseType>) => unknown) {
 		this._worker.onmessage = (ev: MessageEvent) => handler(downcast(ev.data))
 	}
 }
 
 export class Request<T> {
-	type: "request"
+	readonly type: "request"
 	readonly requestType: T
-	id: string
-	args: any[]
+	readonly id: string
+	readonly args: any[]
 
 	constructor(type: T, args: ReadonlyArray<unknown>, requestId: string | null = null) {
 		this.type = "request"
 		this.requestType = type
 		this.id = requestId ?? _createRequestId()
-		this.args = Array.from(args)
+		this.args = args.slice()
 	}
 }
 
 export class Response<T> {
-	type: "response"
-	id: string
-	value: any
+	readonly type: "response"
+	readonly id: string
+	readonly value: any
 
 	constructor(request: Request<T>, value: any) {
 		this.type = "response"
@@ -70,9 +70,9 @@ export class Response<T> {
 }
 
 export class RequestError<T> {
-	type: "requestError"
-	id: string
-	error: Record<string, any>
+	readonly type: "requestError"
+	readonly id: string
+	readonly error: Record<string, any>
 
 	constructor(request: Request<T>, error: Error) {
 		this.type = "requestError"
@@ -82,8 +82,8 @@ export class RequestError<T> {
 }
 
 type MessageCallbacks = {
-	resolve: (arg0: any) => void
-	reject: (arg0: any) => void
+	resolve: (value: any) => void
+	reject: (error: Error) => void
 }
 
 /**
@@ -94,15 +94,15 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 	 * Map from request id that have been sent to the callback that will be
 	 * executed on the results sent by the worker.
 	 */
-	_messages: Record<string, MessageCallbacks>
-	_commands: Commands<IncomingRequestType>
+	private readonly _messages: Record<string, MessageCallbacks>
+	private readonly _commands: Commands<IncomingRequestType>
 	readonly _transport: Transport<OutgoingRequestType, IncomingRequestType>
 
-	constructor(transport: Transport<OutgoingRequestType, IncomingRequestType> | null, commands: Commands<IncomingRequestType>) {
+	constructor(transport: Transport<OutgoingRequestType, IncomingRequestType>, commands: Commands<IncomingRequestType>) {
 		this._messages = {}
 		this._commands = commands
-		this._transport = transport as any
-		this._transport?.setMessageHandler(msg => this.handleMessage(msg))
+		this._transport = transport
+		this._transport.setMessageHandler(msg => this.handleMessage(msg))
 	}
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
@@ -139,7 +139,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 				console.warn(`Unexpected error response: ${message.id} (was the page reloaded?)`)
 			}
 		} else if (message.type === "request") {
-			let command = this._commands[message.requestType]
+			const command = this._commands[message.requestType]
 
 			if (command != null) {
 				const commandResult = command(message)
@@ -151,12 +151,13 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 				}
 
 				commandResult
-					.then(value => {
-						this._transport.postMessage(new Response(message, value))
-					})
-					.catch(e => {
-						this._transport.postMessage(new RequestError(message, e))
-					})
+					.then(
+						(value) => {
+							this._transport.postMessage(new Response(message, value))
+						},
+						(error) => {
+							this._transport.postMessage(new RequestError(message, error))
+						})
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
@@ -179,7 +180,7 @@ function _createRequestId() {
 		requestId = 0
 	}
 
-	let prefix = ""
+	let prefix: string
 
 	if (isWorker()) {
 		prefix = "worker"
@@ -199,10 +200,11 @@ export function errorToObj(
 	name: any
 	stack: any
 } {
+	const errorErased = error as any
 	return {
-		name: (error as any)["name"],
-		message: (error as any)["message"],
-		stack: (error as any)["stack"],
-		data: (error as any)["data"],
+		name: errorErased.name,
+		message: errorErased.message,
+		stack: errorErased.stack,
+		data: errorErased.data,
 	}
 }
