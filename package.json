@@ -19,7 +19,7 @@
 		"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 		"postinstall": "node ./buildSrc/compileKeytar",
 		"types": "tsc",
-		"prebuild": "npm run build-packages && tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true && cp src/*.d.ts build/prebuilt"
+		"prebuild": "tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true && cp src/*.d.ts build/prebuilt"
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
