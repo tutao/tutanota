@@ -208,11 +208,11 @@ pipeline {
 			}
 
 			steps {
+				sh "npm ci && npm run build-packages"
+				// .npmrc expects $NPM_TOKEN
 				withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-					sh "echo -e '\n//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> .npmrc"
+					sh "npm --workspaces publish"
 				}
-				sh "npm --workspaces publish"
-				sh "rm .npmrc"
 			}
         }
     }
