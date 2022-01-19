@@ -1,7 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 /**
  * Finite State Machine generation utilities
  */
@@ -2962,12 +2958,4 @@ function test(str) {
   return tokens.length === 1 && tokens[0].isLink && (!type || tokens[0].t === type);
 }
 
-exports.Options = Options;
-exports.find = find;
-exports.init = init;
-exports.options = options;
-exports.registerCustomProtocol = registerCustomProtocol;
-exports.registerPlugin = registerPlugin;
-exports.reset = reset;
-exports.test = test;
-exports.tokenize = tokenize;
+export { Options, find, init, options, registerCustomProtocol, registerPlugin, reset, test, tokenize };

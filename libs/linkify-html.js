@@ -1,26 +1,4 @@
-'use strict';
-
-var linkify = require('linkifyjs');
-
-function _interopNamespace(e) {
-    if (e && e.__esModule) return e;
-    var n = Object.create(null);
-    if (e) {
-        Object.keys(e).forEach(function (k) {
-            if (k !== 'default') {
-                var d = Object.getOwnPropertyDescriptor(e, k);
-                Object.defineProperty(n, k, d.get ? d : {
-                    enumerable: true,
-                    get: function () { return e[k]; }
-                });
-            }
-        });
-    }
-    n["default"] = e;
-    return Object.freeze(n);
-}
-
-var linkify__namespace = /*#__PURE__*/_interopNamespace(linkify);
+import * as linkify from 'linkifyjs';
 
 /**
  * generated from https://raw.githubusercontent.com/w3c/html/26b5126f96f736f796b9e29718138919dd513744/entities.json
@@ -1144,7 +1122,7 @@ function tokenize(input, options) {
   return tokenizer.tokenize(input);
 }
 
-var Options = linkify__namespace.Options;
+var Options = linkify.Options;
 var StartTag = 'StartTag';
 var EndTag = 'EndTag';
 var Chars = 'Chars';
@@ -1251,7 +1229,7 @@ function linkifyHtml(str) {
 */
 
 function linkifyChars(str, opts) {
-  var tokens = linkify__namespace.tokenize(str);
+  var tokens = linkify.tokenize(str);
   var result = [];
 
   for (var i = 0; i < tokens.length; i++) {
@@ -1385,4 +1363,4 @@ function attrsToStrings(attrs) {
   return attrStrs;
 }
 
-module.exports = linkifyHtml;
+export { linkifyHtml as default };

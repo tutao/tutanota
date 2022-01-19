@@ -24,8 +24,8 @@ const clientDependencies = [
 	"../node_modules/mithril/stream/stream.js",
 	"../node_modules/squire-rte/build/squire-raw.js",
 	"../node_modules/dompurify/dist/purify.js",
-	"../node_modules/linkifyjs/lib/linkify.js",
-	"../node_modules/linkifyjs/lib/linkify-html.js",
+	{src: "../node_modules/linkifyjs/dist/linkify.module.js", target: "linkify.js"},
+	{src: "../node_modules/linkifyjs/dist/linkify-html.module.js", target: "linkify-html.js"},
 	"../node_modules/luxon/build/cjs-browser/luxon.js",
 	{src: "../node_modules/cborg/lib/decode.js", target: "cborg-decode.js", rollup: true},
 ]
