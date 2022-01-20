@@ -55,7 +55,7 @@ pipeline {
 					sh "echo $PATH"
 					sh "npm ci"
 					sh 'npm run build-packages'
-					sh "node dist ${stage}"
+					sh "node --max-old-space-size=8192 dist ${stage}"
 					sh "node buildSrc/prepareMobileBuild.js dist"
 
 					withCredentials([
