@@ -1845,7 +1845,8 @@ export class MailViewer implements Component {
 
 	_downloadAll() {
 		this._referencedCids
-			.then(inlineFileIds => this._attachments.filter(a => !inlineFileIds.includes(assertNotNull(a.cid))))
+			// Skip inline images (they have cid and it is referenced)
+			.then(inlineFileIds => this._attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid)))
 			.then(nonInlineFiles => showProgressDialog("pleaseWait_msg", locator.fileController.downloadAll(nonInlineFiles)))
 	}
 
