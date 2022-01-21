@@ -70,8 +70,8 @@ export function spyify<T>(obj: T): T {
 	}
 }
 
-export type Mocked<T> = Class<T> & {
-	mockedInstances: Array<T>;
+type Mocked<T> = Class<T> & {
+	mockedInstances: Array<any>;
 }
 
 /**

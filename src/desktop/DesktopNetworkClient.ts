@@ -1,5 +1,6 @@
 import http from "http"
 import https from "https"
+import {downcast} from "@tutao/tutanota-utils"
 
 /**
  * Manually re-doing http$requestOptions because built-in definition is crap.
@@ -23,23 +24,12 @@ export type ClientRequestOptions = {
 
 export class DesktopNetworkClient {
 	request(url: string, opts: ClientRequestOptions): http.ClientRequest {
-		return this.getModule(url).request(url, opts)
-	}
-
-	executeRequest(url: string, opts: ClientRequestOptions): Promise<http.IncomingMessage> {
-		return new Promise<http.IncomingMessage>((resolve, reject) => {
-			this.request(url, opts)
-				.on("response", resolve)
-				.on("error", reject)
-				.end()
-		})
-	}
-
-	private getModule(url: string): typeof import("http") | typeof import("https") {
+		// It's impossible to play smart here, you can't satisfy type constraints with all
+		// the Object.assign() in the world.
 		if (url.startsWith("https")) {
-			return https
+			return https.request(url, downcast(opts))
 		} else {
-			return http
+			return http.request(url, downcast(opts))
 		}
 	}
 }
