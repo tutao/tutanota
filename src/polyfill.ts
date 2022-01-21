@@ -27,12 +27,14 @@ if (typeof performance.measure !== "function") {
 	performance.measure = noOp
 }
 
-if (typeof Uint8Array.prototype.slice === "undefined") {
-	Uint8Array.prototype.slice = function (from, to) {
-		if (!to) {
-			to = this.byteLength
-		}
+// We need BigInt stub for cborg
+if (typeof BigInt === "undefined") {
+	console.log("No BigInt support in browser, stubbing...")
 
-		return new Uint8Array(this.subarray(from, to))
+	function BigInt(arg: any) {
+		return arg
 	}
+	BigInt.polyfilled = true
+	// @ts-ignore
+	globalContext.BigInt = BigInt
 }

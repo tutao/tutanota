@@ -50,7 +50,11 @@ export class WebauthnClient {
 	isSupported(): boolean {
 		// We explicitly disable apps and desktop because even if webauthn somehow works there it won't match our domain.
 		// For those platforms another implementation with separate webview should be used instead.
-		return !isDesktop() && !isApp() && this.api != null
+		return !isDesktop() && !isApp() &&
+			this.api != null &&
+			// @ts-ignore see polyfill.js
+			// We just stub BigInt in order to import cborg without issues but we can't actually use it
+			!BigInt.polyfilled
 	}
 
 	async register(userId: Id, name: string, mailAddress: string, signal: AbortSignal): Promise<U2fRegisteredDevice> {
