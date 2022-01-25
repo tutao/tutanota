@@ -1,7 +1,7 @@
 import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
-import {isAdminClient, isApp, isDesktop} from "../../api/common/Env"
+import {isApp, isDesktop} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
@@ -11,7 +11,7 @@ import type {NativeInterface} from "../../native/common/NativeInterface"
 import {assertNotNull} from "@tutao/tutanota-utils"
 
 export function usingKeychainAuthentication(): boolean {
-	return isApp()
+	return isApp() || isDesktop()
 }
 
 /**

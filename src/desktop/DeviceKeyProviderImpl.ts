@@ -7,64 +7,79 @@ import {defer} from "@tutao/tutanota-utils"
 import {base64ToKey, keyToBase64} from "@tutao/tutanota-crypto"
 // exported for testing
 export const SERVICE_NAME = "tutanota-vault"
-export const ACCOUNT_NAME = "tuta"
+
+export enum KeyAccountName {
+	DEVICE_KEY = "tuta",
+	CREDENTIALS_KEY = "credentials-device-lock-key"
+}
 
 export interface DesktopDeviceKeyProvider {
 	getDeviceKey(): Promise<Aes256Key>
+
+	getCredentialsKey(): Promise<Aes256Key>
 }
 
 export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
 	_secretStorage: SecretStorage
-	_deviceKey: DeferredObject<Aes256Key>
-	_keyResolved: boolean = false
+	_resolvedKeys: Record<string, DeferredObject<Aes256Key>>
 	_crypto: DesktopCryptoFacade
 
 	constructor(secretStorage: SecretStorage, crypto: DesktopCryptoFacade) {
 		this._secretStorage = secretStorage
 		this._crypto = crypto
-		this._deviceKey = defer()
+		this._resolvedKeys = {}
 	}
 
+	/**
+	 * get the key used to encrypt alarms and settings
+	 */
 	async getDeviceKey(): Promise<Aes256Key> {
-		// we want to retrieve the key exactly once
-		if (!this._keyResolved) {
-			this._keyResolved = true
-
-			this._resolveDeviceKey().then()
-		}
-
-		return this._deviceKey.promise
+		return this._resolveKey(KeyAccountName.DEVICE_KEY)
 	}
 
-	async _resolveDeviceKey(): Promise<void> {
-		let storedKey: Base64 | null = null
+	/**
+	 * get the key used to encrypt saved credentials
+	 */
+	async getCredentialsKey(): Promise<Aes256Key> {
+		return this._resolveKey(KeyAccountName.CREDENTIALS_KEY)
+	}
 
-		try {
-			storedKey = await this._secretStorage.getPassword(SERVICE_NAME, ACCOUNT_NAME)
-		} catch (e) {
-			this._deviceKey.reject(new DeviceStorageUnavailableError("could not retrieve device key from device secret storage", e))
-			return
-		}
+	async _resolveKey(account: KeyAccountName): Promise<Aes256Key> {
 
-		if (storedKey) {
-			this._deviceKey.resolve(base64ToKey(storedKey))
-		} else {
+		// make sure keys are resolved exactly once
+		if (!this._resolvedKeys[account]) {
+			const deferred = defer<BitArray>()
+			this._resolvedKeys[account] = deferred
+			let storedKey: Base64 | null = null
+
 			try {
-				const newKey = await this._generateAndStoreDeviceKey()
-				this._deviceKey.resolve(newKey)
+				storedKey = await this._secretStorage.getPassword(SERVICE_NAME, account)
 			} catch (e) {
-				this._deviceKey.reject(new DeviceStorageUnavailableError("could not create new device key", e))
+				deferred.reject(new DeviceStorageUnavailableError(`could not retrieve key ${account} from device secret storage`, e))
+			}
+
+			if (storedKey) {
+				deferred.resolve(base64ToKey(storedKey))
+			} else {
+				try {
+					const newKey = await this._generateAndStoreKey(account)
+					deferred.resolve(newKey)
+				} catch (e) {
+					deferred.reject(new DeviceStorageUnavailableError(`could not create new ${account} key`, e))
+				}
 			}
 		}
+
+		return this._resolvedKeys[account].promise
 	}
 
-	async _generateAndStoreDeviceKey(): Promise<Aes256Key> {
-		log.warn("device key not found, generating a new one")
+	async _generateAndStoreKey(account: KeyAccountName): Promise<Aes256Key> {
+		log.warn(`key ${account} not found, generating a new one`)
 
 		// save key entry in keychain
 		const key: Aes256Key = this._crypto.generateDeviceKey()
 
-		await this._secretStorage.setPassword(SERVICE_NAME, ACCOUNT_NAME, keyToBase64(key))
+		await this._secretStorage.setPassword(SERVICE_NAME, account, keyToBase64(key))
 		return key
 	}
 }

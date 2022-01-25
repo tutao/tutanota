@@ -1,6 +1,6 @@
 import o from "ospec"
 import n from "../../nodemocker"
-import { getDesktopIntegratorForPlatform} from "../../../../src/desktop/integration/DesktopIntegrator"
+import {getDesktopIntegratorForPlatform} from "../../../../src/desktop/integration/DesktopIntegrator"
 import {downcast} from "@tutao/tutanota-utils"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager"
 import {lang} from "../../../../src/misc/LanguageViewModel"
@@ -28,7 +28,8 @@ lang.init(en)
 
 o.spec("DesktopIntegrator Test", () => {
 	const cp = {
-		exec: () => {}
+		exec: () => {
+		}
 	}
 
 	const oldDataHome = process.env.XDG_DATA_HOME
@@ -53,17 +54,26 @@ o.spec("DesktopIntegrator Test", () => {
 	const electron = {
 		app: {
 			name: "appName",
-			getLoginItemSettings() {return {openAtLogin: false}},
-			setLoginItemSettings() {},
-			getPath() {return "/app/path/file"},
-			getVersion() {return "appVersion"}
+			getLoginItemSettings() {
+				return {openAtLogin: false}
+			},
+			setLoginItemSettings() {
+			},
+			getPath() {
+				return "/app/path/file"
+			},
+			getVersion() {
+				return "appVersion"
+			}
 		},
 		dialog: {
 			showMessageBox: () => Promise.resolve({response: 1, checkboxChecked: false})
 		},
 		Menu: {
-			buildFromTemplate: () => {},
-			setApplicationMenu: () => {}
+			buildFromTemplate: () => {
+			},
+			setApplicationMenu: () => {
+			}
 		}
 	}
 	let writtenFiles, copiedFiles, deletedFiles, createdDirectories
@@ -139,9 +149,15 @@ o.spec("DesktopIntegrator Test", () => {
 
 		const winreg = n.classify({
 			prototype: {
-				get(key, cb) {setImmediate(() => cb(null, itemToReturn))},
-				set(key, reg, val, cb) { setImmediate(() => cb(null))},
-				remove(key, cb) {setImmediate(() => cb(null))}
+				get(key, cb) {
+					setImmediate(() => cb(null, itemToReturn))
+				},
+				set(key, reg, val, cb) {
+					setImmediate(() => cb(null))
+				},
+				remove(key, cb) {
+					setImmediate(() => cb(null))
+				}
 			},
 			statics: {}
 		})
@@ -149,7 +165,7 @@ o.spec("DesktopIntegrator Test", () => {
 		// node modules
 		const electronMock = n.mock<typeof import("electron")>('electron', electron).set()
 		const fsExtraMock = n.mock<typeof import("fs")>('fs-extra', fsExtra).set()
-		const winregMock = n.mock< WinregStatic & {mockedInstances: Array<any>}>('winreg', winreg).set()
+		const winregMock = n.mock<WinregStatic & {mockedInstances: Array<any>}>('winreg', winreg).set()
 		const cpMock = n.mock<typeof import("child_process")>("child_process", cp).set()
 		const wmMock = n.mock<WindowManager>("wm", wm).set()
 
@@ -190,7 +206,9 @@ o.spec("DesktopIntegrator Test", () => {
 		o("enable when on", async function () {
 			const electronMock = n.mock<typeof import("electron")>('electron', electron).with({
 				app: {
-					getLoginItemSettings() {return {openAtLogin: true}}
+					getLoginItemSettings() {
+						return {openAtLogin: true}
+					}
 				}
 			}).set()
 			const integrator = new DesktopIntegratorDarwin(electronMock)
@@ -203,7 +221,9 @@ o.spec("DesktopIntegrator Test", () => {
 		o("disable when on", async function () {
 			const electronMock = n.mock<typeof import("electron")>('electron', electron).with({
 				app: {
-					getLoginItemSettings() {return {openAtLogin: true}}
+					getLoginItemSettings() {
+						return {openAtLogin: true}
+					}
 				}
 			}).set()
 			const integrator = new DesktopIntegratorDarwin(electronMock)
@@ -220,7 +240,10 @@ o.spec("DesktopIntegrator Test", () => {
 			const {electronMock} = standardMocks()
 			const integrator = new DesktopIntegratorDarwin(electronMock)
 
-			const wmMock = downcast<WindowManager>({newWindow: o.spy(() => {})})
+			const wmMock = downcast<WindowManager>({
+				newWindow: o.spy(() => {
+				})
+			})
 			await integrator.runIntegration(wmMock)
 			o(electronMock.Menu.buildFromTemplate.callCount).equals(1)
 			o(electronMock.Menu.buildFromTemplate.args.length).equals(1)
@@ -482,7 +505,7 @@ o.spec("DesktopIntegrator Test", () => {
 			await integrator.integrate()
 			await integrator.unintegrate()
 			const addedFiles = writtenFiles.map(f => f.file)
-			                               .concat(copiedFiles.map(f => f.to)).sort()
+										   .concat(copiedFiles.map(f => f.to)).sort()
 			o(addedFiles).deepEquals(deletedFiles.sort())
 			delete process.env.APPIMAGE
 		})

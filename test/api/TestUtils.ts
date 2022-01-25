@@ -68,6 +68,9 @@ export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DesktopDeviceK
 	return {
 		getDeviceKey() {
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
+		},
+		getCredentialsKey(): Promise<Aes256Key> {
+			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
 		}
 	}
 }
