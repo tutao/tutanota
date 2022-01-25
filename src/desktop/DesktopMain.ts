@@ -37,6 +37,7 @@ import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
+import {ElectronCredentialsEncryption, ElectronCredentialsEncryptionImpl} from "./credentials/ElectronCredentialsEncryption"
 
 mp()
 type Components = {
@@ -52,6 +53,7 @@ type Components = {
 	readonly integrator: DesktopIntegrator
 	readonly tray: DesktopTray
 	readonly themeManager: ThemeManager
+	readonly credentialsEncryption: ElectronCredentialsEncryption
 }
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
 const desktopUtils = new DesktopUtils(fs, electron, desktopCrypto)
@@ -72,19 +74,19 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 } else if (opts.registerAsMailHandler) {
 	//register as mailto handler, then quit
 	desktopUtils.doRegisterMailtoOnWin32WithCurrentUser()
-	            .then(() => app.exit(0))
-	            .catch(e => {
-		            log.error("there was a problem with registering as default mail app:", e)
-		            app.exit(1)
-	            })
+				.then(() => app.exit(0))
+				.catch(e => {
+					log.error("there was a problem with registering as default mail app:", e)
+					app.exit(1)
+				})
 } else if (opts.unregisterAsMailHandler) {
 	//unregister as mailto handler, then quit
 	desktopUtils.doUnregisterMailtoOnWin32WithCurrentUser()
-	            .then(() => app.exit(0))
-	            .catch(e => {
-		            log.error("there was a problem with unregistering as default mail app:", e)
-		            app.exit(1)
-	            })
+				.then(() => app.exit(0))
+				.catch(e => {
+					log.error("there was a problem with unregistering as default mail app:", e)
+					app.exit(1)
+				})
 } else {
 	createComponents().then(startupInstance)
 }
@@ -110,6 +112,7 @@ async function createComponents(): Promise<Components> {
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
 	const themeManager = new ThemeManager(conf)
+	const credentialsEncryption = new ElectronCredentialsEncryptionImpl(deviceKeyProvider, desktopCrypto)
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -137,6 +140,7 @@ async function createComponents(): Promise<Components> {
 		integrator,
 		desktopAlarmScheduler,
 		themeManager,
+		credentialsEncryption,
 	)
 	wm.setIPC(ipc)
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
@@ -156,6 +160,7 @@ async function createComponents(): Promise<Components> {
 		integrator,
 		tray,
 		themeManager,
+		credentialsEncryption
 	}
 }
 

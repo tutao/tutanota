@@ -3,8 +3,8 @@ import type {WindowManager} from "./DesktopWindowManager"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
-import {Request, Response, RequestError} from "../api/common/MessageDispatcher"
-import type {AllConfigKeys, DesktopConfig} from "./config/DesktopConfig"
+import {Request, RequestError, Response} from "../api/common/MessageDispatcher"
+import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from "./sse/DesktopSseClient"
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
@@ -26,6 +26,7 @@ import type {ThemeId} from "../gui/theme"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
+import {ElectronCredentialsEncryption} from "./credentials/ElectronCredentialsEncryption"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -46,6 +47,7 @@ export class IPC {
 	readonly _err: DesktopErrorHandler
 	readonly _integrator: DesktopIntegrator
 	readonly _themeManager: ThemeManager
+	readonly _credentialsEncryption: ElectronCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
 	readonly _queue: Record<string, (...args: Array<any>) => any>
@@ -66,6 +68,7 @@ export class IPC {
 		integrator: DesktopIntegrator,
 		alarmScheduler: DesktopAlarmScheduler,
 		themeManager: ThemeManager,
+		credentialsEncryption: ElectronCredentialsEncryption
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -82,6 +85,7 @@ export class IPC {
 		this._integrator = integrator
 		this._alarmScheduler = alarmScheduler
 		this._themeManager = themeManager
+		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
 			this._updater.setUpdateDownloadedListener(() => {
@@ -143,14 +147,14 @@ export class IPC {
 
 			case "stopFindInPage":
 				return this.initialized(windowId)
-					.then(() => {
-						const w = this._wm.get(windowId)
+						   .then(() => {
+							   const w = this._wm.get(windowId)
 
-						if (w) {
-							w.stopFindInPage()
-						}
-					})
-					.catch(noOp)
+							   if (w) {
+								   w.stopFindInPage()
+							   }
+						   })
+						   .catch(noOp)
 
 			case "setSearchOverlayState": {
 				const w = this._wm.get(windowId)
@@ -202,10 +206,10 @@ export class IPC {
 				if (args[1]) {
 					// open folder dialog
 					return this._electron.dialog
-						.showOpenDialog({
-							properties: ["openDirectory"],
-						})
-						.then(({filePaths}) => filePaths)
+							   .showOpenDialog({
+								   properties: ["openDirectory"],
+							   })
+							   .then(({filePaths}) => filePaths)
 				} else {
 					// open file
 					return Promise.resolve([])
@@ -400,6 +404,20 @@ export class IPC {
 				await this._themeManager.setThemes(themes)
 				await mapNullable(await this._themeManager.getSelectedThemeId(), id => this._applyTheme(id))
 				return
+			}
+
+			case "encryptUsingKeychain": {
+				const [mode, decryptedKey] = args
+				return this._credentialsEncryption.encryptUsingKeychain(decryptedKey, mode)
+			}
+
+			case "decryptUsingKeychain": {
+				const [mode, encryptedKey] = args
+				return this._credentialsEncryption.decryptUsingKeychain(encryptedKey, mode)
+			}
+
+			case "getSupportedEncryptionModes": {
+				return this._credentialsEncryption.getSupportedEncryptionModes()
 			}
 
 			default:
