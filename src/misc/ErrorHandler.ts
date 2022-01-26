@@ -14,7 +14,7 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 		let previousTry = lastTry
 		lastTry = Date.now()
 
-		if (previousTry - Date.now() < ms) {
+		if (previousTry !== 0 && previousTry - Date.now() < ms) {
 			await delay(previousTry - Date.now())
 		}
 

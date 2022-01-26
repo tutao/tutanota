@@ -96,6 +96,9 @@ export class PromisableWrapper<T> {
 }
 
 export function delay(ms: number): Promise<void> {
+	if (Number.isNaN(ms) || ms < 0) {
+		throw new Error(`Invalid delay: ${ms}`)
+	}
 	return new Promise(resolve => {
 		setTimeout(resolve, ms)
 	})
