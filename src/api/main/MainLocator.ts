@@ -44,6 +44,7 @@ import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
 import {IWebauthnClient, WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
 import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
+import {WorkerRandomizer} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface, ExposedWebInterface} from "../../native/common/NativeInterface"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
@@ -122,6 +123,7 @@ export interface IMainLocator {
 	readonly searchTextFacade: SearchTextInAppFacade
 	readonly desktopSettingsFacade: SettingsFacade
 	readonly desktopSystemFacade: DesktopSystemFacade
+	readonly random: WorkerRandomizer;
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -169,6 +171,7 @@ class MainLocator implements IMainLocator {
 	cacheStorage!: ExposedCacheStorage
 	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
+	random!:WorkerRandomizer
 
 	/**
 	 * @deprecated
@@ -288,7 +291,8 @@ class MainLocator implements IMainLocator {
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
-			cacheStorage
+			cacheStorage,
+			random,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -355,6 +359,7 @@ class MainLocator implements IMainLocator {
 		this.loginListener = new LoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null, isDesktop() ? this.interWindowEventBus : null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
+		this.random = random
 		this.usageTestModel = new UsageTestModel(
 			deviceConfig, {
 				now(): number {

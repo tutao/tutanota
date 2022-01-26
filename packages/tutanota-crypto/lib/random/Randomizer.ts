@@ -62,6 +62,19 @@ export class Randomizer {
             throw new CryptoError("error during random number generation", e as Error)
         }
     }
+
+	/**
+	 * Generate a number that fits in the range of an n-byte integer
+	 */
+	generateRandomNumber(nbrOfBytes: number): number {
+		const bytes = this.generateRandomData(nbrOfBytes)
+		let result = 0
+
+		for (let i = 0; i < bytes.length; ++i) {
+			result += bytes[i] << (i * 8)
+		}
+		return result
+	}
 }
 // TODO singleton should be created in the app?
 // the randomizer instance (singleton) that should be used throughout the app

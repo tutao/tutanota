@@ -157,7 +157,6 @@ export class WorkerClient {
 		return this._postRequest(new Request("tryReconnectEventBus", [closeIfOpen, enableAutomaticState, delay]))
 	}
 
-	/** Only used in admin client, */
 	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
