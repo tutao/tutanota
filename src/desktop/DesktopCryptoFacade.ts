@@ -6,7 +6,6 @@ import {
 	utf8Uint8ArrayToString
 } from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "./CryptoFns"
-import {cryptoFns} from "./CryptoFns"
 import type {TypeModel} from "../api/common/EntityTypes"
 import {base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
 import type * as FsModule from "fs"
@@ -101,6 +100,6 @@ export class DesktopCryptoFacade {
 	}
 
 	randomBytes(count: number): Uint8Array {
-		return cryptoFns.randomBytes(count)
+		return this.cryptoFns.randomBytes(count)
 	}
 }
