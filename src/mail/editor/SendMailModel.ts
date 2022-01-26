@@ -9,12 +9,11 @@ import {
 	TooManyRequestsError,
 } from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
-import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
+import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
 import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
 import {
 	checkAttachmentSize,
 	getDefaultSender,
-	getEnabledMailAddressesWithUser,
 	getSenderNameForUser,
 	getTemplateLanguages,
 	RecipientField,
@@ -222,10 +221,6 @@ export class SendMailModel {
 	 */
 	getPasswordStrength(recipient: PartialRecipient): number {
 		return getPasswordStrengthForUser(this.getPassword(recipient.address), recipient, this.mailboxDetails, this.logins)
-	}
-
-	getEnabledMailAddresses(): Array<string> {
-		return getEnabledMailAddressesWithUser(this.mailboxDetails, this.user().userGroupInfo)
 	}
 
 	hasMailChanged(): boolean {

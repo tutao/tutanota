@@ -191,7 +191,8 @@ export async function prepareAssets(stage, host, version) {
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/desktop-icons'), path.join(root, '/build/icons')),
-		fs.copy(path.join(root, '/src/braintree.html'), path.join(root, 'build/braintree.html'))
+		fs.copy(path.join(root, '/resources/wordlibrary.json'), path.join(root, 'build/wordlibrary.json')),
+		fs.copy(path.join(root, '/src/braintree.html'), path.join(root, 'build/braintree.html')),
 	])
 
 	// write empty file

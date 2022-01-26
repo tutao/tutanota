@@ -11,7 +11,7 @@ import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {CryptoFacade} from "./crypto/CryptoFacade"
 import {delay} from "@tutao/tutanota-utils"
-import type {EntityUpdate, User, WebsocketCounterData, WebsocketLeaderStatus} from "../entities/sys/TypeRefs.js"
+import type {EntityUpdate, WebsocketCounterData, WebsocketLeaderStatus} from "../entities/sys/TypeRefs.js"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
 import {urlify} from "./Urlifier"
 import type {GiftCardFacade} from "./facades/GiftCardFacade"
@@ -44,6 +44,10 @@ import {ILoginListener} from "../main/LoginListener"
 
 assertWorkerOrNode()
 
+export interface WorkerRandomizer {
+	generateRandomNumber(numBytes: number): Promise<number>
+}
+
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
 export interface WorkerInterface {
 	readonly loginFacade: LoginFacade
@@ -68,6 +72,7 @@ export interface WorkerInterface {
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
 	readonly cacheStorage: ExposedCacheStorage
+	readonly random: WorkerRandomizer
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -209,6 +214,13 @@ export class WorkerImpl implements NativeInterface {
 			},
 			get cacheStorage() {
 				return locator.cacheStorage
+			},
+			get random() {
+				return {
+					async generateRandomNumber(nbrOfBytes: number) {
+						return random.generateRandomNumber(nbrOfBytes)
+					}
+				}
 			}
 		}
 	}

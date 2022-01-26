@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
-import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
+import {getPasswordStrength, isSecurePassword} from "../misc/passwords/PasswordUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Status} from "../gui/base/StatusField"
@@ -9,6 +9,11 @@ import {StatusField} from "../gui/base/StatusField"
 import {LoginController} from "../api/main/LoginController"
 import {assertMainOrNode} from "../api/common/Env"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils.js"
+import {showPasswordGeneratorDialog} from "../misc/passwords/PasswordGeneratorDialog"
+import {theme} from "../gui/theme"
+import {px} from "../gui/size"
+import {Icons} from "../gui/base/icons/Icons"
+import {Icon} from "../gui/base/Icon"
 
 assertMainOrNode()
 
@@ -28,6 +33,7 @@ export class PasswordModel {
 	private oldPassword = ""
 	private repeatedPassword = ""
 	private passwordStrength: number
+	private revealPassword: boolean = false
 
 	constructor(
 		private readonly logins: LoginController,
@@ -169,6 +175,14 @@ export class PasswordModel {
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
 		return getPasswordStrength(this.newPassword, reserved)
 	}
+
+	toggleRevealPassword(): void {
+		this.revealPassword = !this.revealPassword
+	}
+
+	getRevealPassword(): boolean {
+		return this.revealPassword
+	}
 }
 
 /**
@@ -195,13 +209,17 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				m(TextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
-					helpLabel: () => m(StatusField, {
-						status: attrs.model.getNewPasswordStatus(),
-					}),
+					helpLabel: () => m("", [
+						m(StatusField, {status: attrs.model.getNewPasswordStatus()}),
+						this.renderPasswordGeneratorHelp(attrs)
+					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					type: TextFieldType.Password,
 					preventAutofill: true,
-					injectionsRight: () => m(".mb-s.mlr", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
+					injectionsRight: () => m(".mb-s.mlr", [
+						this.renderRevealIcon(attrs),
+						m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()}),
+					]),
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.config.repeatInput
@@ -219,5 +237,35 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 			],
 		)
 
+	}
+
+	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
+		return m("", [
+			m(".mr-xs", {style: {display: "inline-block"}}, "Having trouble creating a password?"),
+			m(".b.mr-xs.hover.click.darkest-hover", {
+				style: {display: "inline-block", color: theme.navigation_button_selected},
+				onclick: async () => {
+					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
+					m.redraw()
+				}
+			}, "Generate"),
+			m("", {style: {display: "inline-block"}}, "a passphrase!")
+		])
+	}
+
+	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
+		return m("span.click.ml-s", {
+			style: {
+				// Needs to be exactly 4px as pt-xs is 3px and its 1px too high
+				paddingTop: px(4)
+			},
+			onclick: () => {
+				attrs.model.toggleRevealPassword()
+				m.redraw()
+			}
+		}, m(Icon, {
+			icon: Icons.Eye,
+			class: attrs.model.getRevealPassword() ? "translucent" : "opaque",
+		}))
 	}
 }

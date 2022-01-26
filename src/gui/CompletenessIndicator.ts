@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {scaleToVisualPasswordStrength} from "../misc/PasswordUtils"
+import {scaleToVisualPasswordStrength} from "../misc/passwords/PasswordUtils"
 import {theme} from "./theme.js"
 
 export interface CompletenessIndicatorAttrs {

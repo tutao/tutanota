@@ -1005,6 +1005,12 @@ styles.registerStyle("main", () => {
 			"transform-origin": "50% 50%",
 			display: "inline-block",
 		},
+		".translucent": {
+			opacity: "0.4"
+		},
+		".opaque": {
+			opacity: "1"
+		},
 		"@keyframes rotate-icon": {
 			"0%": {
 				transform: "rotate(0deg)",
@@ -1676,6 +1682,9 @@ styles.registerStyle("main", () => {
 		},
 		".darker-hover:hover": {
 			filter: "brightness(95%)",
+		},
+		'.darkest-hover:hover': {
+			'filter': 'brightness(70%)',
 		},
 		".event-continues-left": {
 			"border-top-left-radius": 0,

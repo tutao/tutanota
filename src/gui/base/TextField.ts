@@ -128,7 +128,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				]),
 				a.helpLabel
 					? m(
-						"small.noselect.click",
+						"small.noselect",
 						{
 							onclick: (e: MouseEvent) => {
 								e.stopPropagation()
