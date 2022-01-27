@@ -201,13 +201,15 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * Writes contents with a random file name into the directory of the executable
+	 * Writes contents with a random file name into the tmp directory
 	 * @param contents
 	 * @returns path to the written file
 	 */
 	private async _writeToDisk(contents: string): Promise<string> {
 		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
-		const filePath = swapFilename(process.execPath, filename)
+		const tmpPath = this.getTutanotaTempPath("reg")
+		await this._fs.promises.mkdir(tmpPath, {recursive: true})
+		const filePath = path.join(tmpPath, filename)
 
 		await this._fs.promises.writeFile(filePath, contents, {
 			encoding: "utf-8",
