@@ -124,7 +124,7 @@ pipeline {
 					   		]
 						)
 						{
-							sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
+							sh 'security unlock-keychain -p $FASTLANE_KEYCHAIN_PASSWORD'
 							script {
 								def stage = params.RELEASE ? 'release' : 'prod'
 								sh '''
