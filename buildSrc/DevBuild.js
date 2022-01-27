@@ -24,7 +24,6 @@ export async function runDevBuild({stage, host, desktop, clean, watch, serve}) {
 		desktop: desktop ?? false,
 		stage: stage ?? "local",
 		host,
-		clean: doClean
 	}
 
 	if (serve) {

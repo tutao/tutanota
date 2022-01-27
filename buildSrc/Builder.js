@@ -103,15 +103,13 @@ function debugModels() {
 	}
 }
 
-export async function preBuild({clean}, {}, log) {
-	// await typecheck(clean, log)
+export async function preBuild({}, {}, log) {
 }
 
-export async function postBuild({clean}, {}, log) {
-
+export async function postBuild({}, {}, log) {
 }
 
-export async function build({desktop, stage, host, clean}, {devServerPort, watchFolders}, log) {
+export async function build({desktop, stage, host}, {devServerPort, watchFolders}, log) {
 	log("Building app")
 
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
