@@ -268,7 +268,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					 }: CalendarDay, today: Date, onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown): Children {
 		return m(".flex-center", [
 			m(
-				(client.isDesktopDevice() ? ".calendar-day-indicator.circle" : "") + getDateIndicator(date, today),
+				".calendar-day-indicator.circle" + getDateIndicator(date, today),
 				{
 					onclick: (e: MouseEvent) => {
 						onDateSelected(new Date(date), CalendarViewType.DAY)
