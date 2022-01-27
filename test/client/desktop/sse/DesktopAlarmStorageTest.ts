@@ -5,8 +5,8 @@ import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStora
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
 import {downcast} from "@tutao/tutanota-utils"
 import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
-import type {DesktopDeviceKeyProvider} from "../../../../src/desktop/DeviceKeyProviderImpl"
-import {makeDeviceKeyProvider} from "../../../api/TestUtils"
+import type {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl"
+import {makeKeyStoreFacade} from "../../../api/TestUtils"
 import {uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 
 o.spec("DesktopAlarmStorageTest", function () {
@@ -75,12 +75,12 @@ o.spec("DesktopAlarmStorageTest", function () {
 		}
 	}
 
-	const deviceKeyProvider: DesktopDeviceKeyProvider = makeDeviceKeyProvider(new Uint8Array([1, 2, 3]))
+	const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(new Uint8Array([1, 2, 3]))
 
 	o("getPushIdentifierSessionKey with uncached sessionKey", async function () {
 		const {confMock, cryptoMock} = standardMocks()
 
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		const key1 = await desktopStorage.getPushIdentifierSessionKey({
 			pushIdentifierSessionEncSessionKey: "abc",
 			pushIdentifier: ["oneId", "twoId"]
@@ -96,7 +96,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 				getVar: key => {}
 			}).set()
 		)
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
 
 		o(confMock.setVar.callCount).equals(1)
@@ -113,7 +113,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 	o("getPushIdentifierSessionKey when sessionKey is unavailable", async function () {
 		const {cryptoMock, confMock} = standardMocks()
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, deviceKeyProvider)
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade)
 		const key1 = await desktopStorage.getPushIdentifierSessionKey({
 			pushIdentifierSessionEncSessionKey: "def",
 			pushIdentifier: ["fiveId", "sixId"]

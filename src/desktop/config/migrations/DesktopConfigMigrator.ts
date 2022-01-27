@@ -11,19 +11,19 @@ import * as migration0004 from "./migration-0004"
 import * as migration0005 from "./migration-0005"
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
-import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "../../KeyStoreFacadeImpl"
 
 export type MigrationKind = "migrateClient" | "migrateAdmin"
 export type ElectronExports = typeof Electron.CrossProcessExports;
 
 export class DesktopConfigMigrator {
 	readonly crypto: DesktopCryptoFacade
-	_deviceKeyProvider: DesktopDeviceKeyProvider
+	_keyStoreFacade: DesktopKeyStoreFacade
 	_electron: ElectronExports
 
-	constructor(crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider, electron: ElectronExports) {
+	constructor(crypto: DesktopCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade, electron: ElectronExports) {
 		this.crypto = crypto
-		this._deviceKeyProvider = deviceKeyProvider
+		this._keyStoreFacade = keyStoreFacade
 		this._electron = electron
 	}
 
@@ -41,7 +41,7 @@ export class DesktopConfigMigrator {
 				await applyMigration(migration0002[migrationFunction], oldConfig)
 
 			case 2:
-				await applyMigration(config => migration0003[migrationFunction](config, this.crypto, this._deviceKeyProvider), oldConfig)
+				await applyMigration(config => migration0003[migrationFunction](config, this.crypto, this._keyStoreFacade), oldConfig)
 
 			case 3:
 				await applyMigration(migration0004[migrationFunction], oldConfig)

@@ -30,8 +30,8 @@ import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {cryptoFns} from "./CryptoFns"
 import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
-import type {DesktopDeviceKeyProvider} from "./DeviceKeyProviderImpl"
-import {DeviceKeyProviderImpl} from "./DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "./KeyStoreFacadeImpl"
+import {KeyStoreFacadeImpl} from "./KeyStoreFacadeImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
@@ -46,7 +46,7 @@ type Components = {
 	readonly dl: DesktopDownloadManager
 	readonly sse: DesktopSseClient
 	readonly conf: DesktopConfig
-	readonly deviceKeyProvider: DesktopDeviceKeyProvider
+	readonly keyStoreFacade: DesktopKeyStoreFacade
 	readonly notifier: DesktopNotifier
 	readonly sock: Socketeer
 	readonly updater: ElectronUpdater
@@ -94,9 +94,9 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 async function createComponents(): Promise<Components> {
 	lang.init(en)
 	const secretStorage = new KeytarSecretStorage()
-	const deviceKeyProvider = new DeviceKeyProviderImpl(secretStorage, desktopCrypto)
-	const configMigrator = new DesktopConfigMigrator(desktopCrypto, deviceKeyProvider, electron)
-	const conf = new DesktopConfig(app, configMigrator, deviceKeyProvider, desktopCrypto)
+	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
+	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
+	const conf = new DesktopConfig(app, configMigrator, keyStoreFacade, desktopCrypto)
 	// Fire config loading, dont wait for it
 	conf.init().catch(e => {
 		console.error("Could not load config", e)
@@ -108,11 +108,11 @@ async function createComponents(): Promise<Components> {
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DateProviderImpl()
 	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, deviceKeyProvider)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
 	const themeManager = new ThemeManager(conf)
-	const credentialsEncryption = new ElectronCredentialsEncryptionImpl(deviceKeyProvider, desktopCrypto)
+	const credentialsEncryption = new ElectronCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -153,7 +153,7 @@ async function createComponents(): Promise<Components> {
 		dl,
 		sse,
 		conf,
-		deviceKeyProvider,
+		keyStoreFacade: keyStoreFacade,
 		sock,
 		notifier,
 		updater,
@@ -205,8 +205,8 @@ async function startupInstance(components: Components) {
 }
 
 async function onAppReady(components: Components) {
-	const {ipc, wm, deviceKeyProvider, conf} = components
-	deviceKeyProvider.getDeviceKey().catch(() => {
+	const {ipc, wm, keyStoreFacade, conf} = components
+	keyStoreFacade.getDeviceKey().catch(() => {
 		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
 	})
 	app.on("window-all-closed", async () => {

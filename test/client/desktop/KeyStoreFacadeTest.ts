@@ -1,16 +1,16 @@
 import o from "ospec"
-import {DeviceKeyProviderImpl, KeyAccountName, SERVICE_NAME} from "../../../src/desktop/DeviceKeyProviderImpl"
+import {KeyAccountName, KeyStoreFacadeImpl, SERVICE_NAME} from "../../../src/desktop/KeyStoreFacadeImpl"
 import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade"
 import type {SecretStorage} from "../../../src/desktop/sse/SecretStorage"
 import {spyify} from "../nodemocker"
 import {downcast} from "@tutao/tutanota-utils"
 import {keyToBase64, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 
-function initDeviceKeyProvider(secretStorage: SecretStorage, crypto: DesktopCryptoFacade): DeviceKeyProviderImpl {
-	return new DeviceKeyProviderImpl(secretStorage, crypto)
+function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopCryptoFacade): KeyStoreFacadeImpl {
+	return new KeyStoreFacadeImpl(secretStorage, crypto)
 }
 
-o.spec("DeviceKeyProvider test", function () {
+o.spec("KeyStoreFacade test", function () {
 	const aes256Key = uint8ArrayToKey(new Uint8Array([1, 2]))
 	o("getDeviceKey should return stored key", async function () {
 		const secretStorageSpy: SecretStorage = spyify({
@@ -22,8 +22,8 @@ o.spec("DeviceKeyProvider test", function () {
 			},
 		})
 		const cryptoFacadeSpy: DesktopCryptoFacade = spyify(downcast({}))
-		const deviceKeyProvider = initDeviceKeyProvider(secretStorageSpy, cryptoFacadeSpy)
-		const actualKey = await deviceKeyProvider.getDeviceKey()
+		const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+		const actualKey = await keyStoreFacade.getDeviceKey()
 		o(actualKey).deepEquals(aes256Key)
 		o(secretStorageSpy.getPassword.callCount).equals(1)
 		o(secretStorageSpy.getPassword.calls[0].args).deepEquals([SERVICE_NAME, KeyAccountName.DEVICE_KEY])
@@ -42,8 +42,8 @@ o.spec("DeviceKeyProvider test", function () {
 				return aes256Key
 			},
 		})
-		const deviceKeyProvider = initDeviceKeyProvider(secretStorageSpy, cryptoFacadeSpy)
-		await deviceKeyProvider.getDeviceKey()
+		const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+		await keyStoreFacade.getDeviceKey()
 		o(secretStorageSpy.setPassword.args).deepEquals([SERVICE_NAME, KeyAccountName.DEVICE_KEY, keyToBase64(aes256Key)])
 	})
 })

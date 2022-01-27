@@ -5,7 +5,7 @@ import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbFacade, DbTransaction} from "../../src/api/worker/search/DbFacade"
 import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import type {DesktopDeviceKeyProvider} from "../../src/desktop/DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "../../src/desktop/KeyStoreFacadeImpl"
 import {mock} from "@tutao/tutanota-test-utils"
 import {aes256RandomKey, fixedIv, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 
@@ -64,7 +64,7 @@ export function reportTest(results: any, stats: any) {
 	})()
 }
 
-export function makeDeviceKeyProvider(uint8ArrayKey: Uint8Array): DesktopDeviceKeyProvider {
+export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {
 	return {
 		getDeviceKey() {
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
