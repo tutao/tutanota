@@ -25,7 +25,7 @@ import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
-import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
+import {hasKeychainAuthenticationOptions} from "../misc/credentials/CredentialsProviderFactory"
 import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
@@ -140,7 +140,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private _renderEncryptionModeField(): Children {
-		if (!usingKeychainAuthentication()) {
+		if (!hasKeychainAuthenticationOptions()) {
 			return null
 		}
 

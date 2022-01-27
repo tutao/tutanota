@@ -14,6 +14,10 @@ export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
 }
 
+export function hasKeychainAuthenticationOptions(): boolean {
+	return isApp()
+}
+
 /**
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
