@@ -7,7 +7,7 @@ import fs from "fs"
 import type {Config} from "./ConfigCommon"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./ConfigKeys"
 import type {App} from "electron"
-import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
@@ -28,14 +28,14 @@ export class DesktopConfig {
 	_buildConfig: DeferredObject<Config>;
 	_desktopConfig: DeferredObject<Config>; // user preferences as set for this installation
 	_desktopConfigFile: ConfigFileType;
-	_deviceKeyProvider: DesktopDeviceKeyProvider
+	_keyStoreFacade: DesktopKeyStoreFacade
 	_cryptoFacade: DesktopCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
 	_onValueSetListeners: OnValueSetListeners
 
-	constructor(app: App, migrator: DesktopConfigMigrator, deviceKeyProvider: DesktopDeviceKeyProvider, cryptFacade: DesktopCryptoFacade) {
-		this._deviceKeyProvider = deviceKeyProvider
+	constructor(app: App, migrator: DesktopConfigMigrator, keyStoreFacade: DesktopKeyStoreFacade, cryptFacade: DesktopCryptoFacade) {
+		this._keyStoreFacade = keyStoreFacade
 		this._cryptoFacade = cryptFacade
 		this._app = app
 		this._migrator = migrator
@@ -94,7 +94,7 @@ export class DesktopConfig {
 			return null
 		}
 
-		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
+		const deviceKey = await this._keyStoreFacade.getDeviceKey()
 		try {
 			return this._cryptoFacade.aesDecryptObject(deviceKey, downcast<string>(encryptedValue))
 		} catch (e) {
@@ -107,7 +107,7 @@ export class DesktopConfig {
 	}
 
 	async _setEncryptedVar(key: DesktopConfigEncKey, value: ConfigValue | null) {
-		const deviceKey = await this._deviceKeyProvider.getDeviceKey()
+		const deviceKey = await this._keyStoreFacade.getDeviceKey()
 		let encryptedValue
 		if (value != null) {
 			encryptedValue = this._cryptoFacade.aesEncryptObject(deviceKey, value)

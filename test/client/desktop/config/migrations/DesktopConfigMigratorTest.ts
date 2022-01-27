@@ -2,13 +2,13 @@ import o from "ospec"
 import {DesktopConfigMigrator} from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator"
 import {DesktopCryptoFacade} from "../../../../../src/desktop/DesktopCryptoFacade"
 import {downcast} from "@tutao/tutanota-utils"
-import {makeDeviceKeyProvider} from "../../../../api/TestUtils"
-import {DesktopDeviceKeyProvider} from "../../../../../src/desktop/DeviceKeyProviderImpl";
+import {makeKeyStoreFacade} from "../../../../api/TestUtils"
+import {DesktopKeyStoreFacade} from "../../../../../src/desktop/KeyStoreFacadeImpl";
 
 o.spec('desktop config migrator test', function () {
 	let migrator
 	let crypto: DesktopCryptoFacade
-	let deviceKeyProvider: DesktopDeviceKeyProvider
+	let keyStoreFacade: DesktopKeyStoreFacade
 	const key = new Uint8Array([1, 2, 3])
 
 	o.before(function () {
@@ -27,8 +27,8 @@ o.spec('desktop config migrator test', function () {
 		})
 
 
-		deviceKeyProvider = makeDeviceKeyProvider(key)
-		migrator = new DesktopConfigMigrator(crypto, deviceKeyProvider, electron)
+		keyStoreFacade = makeKeyStoreFacade(key)
+		migrator = new DesktopConfigMigrator(crypto, keyStoreFacade, electron)
 	})
 	o("migrations result in correct default config, client", async function () {
 		const oldConfig = {

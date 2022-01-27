@@ -1,17 +1,17 @@
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {Config} from "../ConfigCommon"
 import {downcast} from "@tutao/tutanota-utils"
-import type {DesktopDeviceKeyProvider} from "../../DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "../../KeyStoreFacadeImpl"
 import {log} from "../../DesktopLog"
 
-async function migrate(oldConfig: Config, crypto: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider): Promise<void> {
+async function migrate(oldConfig: Config, crypto: DesktopCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade): Promise<void> {
 	Object.assign(oldConfig, {
 		desktopConfigVersion: 3,
 	})
 
 	if (oldConfig.pushIdentifier) {
 		try {
-			const deviceKey = await deviceKeyProvider.getDeviceKey()
+			const deviceKey = await keyStoreFacade.getDeviceKey()
 			Object.assign(oldConfig, {
 				sseInfo: crypto.aesEncryptObject(deviceKey, downcast(oldConfig.pushIdentifier)),
 			})

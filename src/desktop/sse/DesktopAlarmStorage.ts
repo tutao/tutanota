@@ -3,7 +3,7 @@ import type {EncryptedAlarmNotification, NotificationSessionKey} from "./Desktop
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
-import type {DesktopDeviceKeyProvider} from "../DeviceKeyProviderImpl"
+import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
 import type {Base64} from "@tutao/tutanota-utils"
 import {findAllAndRemove} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog"
@@ -12,13 +12,13 @@ import {log} from "../DesktopLog"
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
  */
 export class DesktopAlarmStorage {
-	_deviceKeyProvider: DesktopDeviceKeyProvider
+	_desktopKeyStoreFacade: DesktopKeyStoreFacade
 	_conf: DesktopConfig
 	_crypto: DesktopCryptoFacade
 	_sessionKeysB64: Record<string, string>
 
-	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, deviceKeyProvider: DesktopDeviceKeyProvider) {
-		this._deviceKeyProvider = deviceKeyProvider
+	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade) {
+		this._desktopKeyStoreFacade = keyStoreFacade
 		this._conf = conf
 		this._crypto = desktopCryptoFacade
 		this._sessionKeysB64 = {}
@@ -35,7 +35,7 @@ export class DesktopAlarmStorage {
 
 		if (!keys[pushIdentifierId]) {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
-			return this._deviceKeyProvider.getDeviceKey().then(pw => {
+			return this._desktopKeyStoreFacade.getDeviceKey().then(pw => {
 				keys[pushIdentifierId] = this._crypto.aes256EncryptKeyToB64(pw, pushIdentifierSessionKeyB64)
 				return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, keys)
 			})
@@ -61,7 +61,7 @@ export class DesktopAlarmStorage {
 	 * @return {Promise<?Base64>} a stored pushIdentifierSessionKey that should be able to decrypt the given notificationSessionKey
 	 */
 	async getPushIdentifierSessionKey(notificationSessionKey: NotificationSessionKey): Promise<Base64 | null> {
-		const pw = await this._deviceKeyProvider.getDeviceKey()
+		const pw = await this._desktopKeyStoreFacade.getDeviceKey()
 		const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
 
 		if (this._sessionKeysB64[pushIdentifierId]) {

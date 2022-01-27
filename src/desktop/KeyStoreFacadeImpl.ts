@@ -13,13 +13,13 @@ export enum KeyAccountName {
 	CREDENTIALS_KEY = "credentials-device-lock-key"
 }
 
-export interface DesktopDeviceKeyProvider {
+export interface DesktopKeyStoreFacade {
 	getDeviceKey(): Promise<Aes256Key>
 
 	getCredentialsKey(): Promise<Aes256Key>
 }
 
-export class DeviceKeyProviderImpl implements DesktopDeviceKeyProvider {
+export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 	_secretStorage: SecretStorage
 	_resolvedKeys: Record<string, DeferredObject<Aes256Key>>
 	_crypto: DesktopCryptoFacade

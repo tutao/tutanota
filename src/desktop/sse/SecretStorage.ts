@@ -11,7 +11,9 @@ export class KeytarSecretStorage implements SecretStorage {
 	getPassword(service: string, account: string): Promise<string | null> {
 		return getPassword(service, account)
 			.catch(e => {
-				if (e.message === CANCELLED) throw new CancelledError("user cancelled keychain unlock")
+				if (e.message === CANCELLED) {
+					throw new CancelledError("user cancelled keychain unlock")
+				}
 				throw e
 			})
 	}
