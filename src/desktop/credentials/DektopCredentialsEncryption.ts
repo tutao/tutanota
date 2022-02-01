@@ -3,7 +3,7 @@ import {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {assert} from "@tutao/tutanota-utils"
 
-export interface ElectronCredentialsEncryption {
+export interface DektopCredentialsEncryption {
 	/**
 	 * Decrypts arbitrary data using keychain keys, prompting for authentication if needed.
 	 */
@@ -18,7 +18,7 @@ export interface ElectronCredentialsEncryption {
 
 }
 
-export class ElectronCredentialsEncryptionImpl implements ElectronCredentialsEncryption {
+export class DesktopCredentialsEncryptionImpl implements DektopCredentialsEncryption {
 
 	private readonly _desktopKeyStoreFacade: DesktopKeyStoreFacade
 	private readonly _crypto: DesktopCryptoFacade
@@ -50,7 +50,7 @@ export class ElectronCredentialsEncryptionImpl implements ElectronCredentialsEnc
 
 }
 
-export class ElectronCredentialsEncryptionStub implements ElectronCredentialsEncryption {
+export class DesktopCredentialsEncryptionStub implements DektopCredentialsEncryption {
 	decryptUsingKeychain(base64EncodedEncryptedData: string, encryptionMode: CredentialEncryptionMode): Promise<string> {
 		return Promise.resolve(base64EncodedEncryptedData)
 	}
