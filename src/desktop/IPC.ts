@@ -26,7 +26,7 @@ import type {ThemeId} from "../gui/theme"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
-import {ElectronCredentialsEncryption} from "./credentials/ElectronCredentialsEncryption"
+import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
@@ -47,7 +47,7 @@ export class IPC {
 	readonly _err: DesktopErrorHandler
 	readonly _integrator: DesktopIntegrator
 	readonly _themeManager: ThemeManager
-	readonly _credentialsEncryption: ElectronCredentialsEncryption
+	readonly _credentialsEncryption: DektopCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
 	readonly _queue: Record<string, (...args: Array<any>) => any>
@@ -68,7 +68,7 @@ export class IPC {
 		integrator: DesktopIntegrator,
 		alarmScheduler: DesktopAlarmScheduler,
 		themeManager: ThemeManager,
-		credentialsEncryption: ElectronCredentialsEncryption
+		credentialsEncryption: DektopCredentialsEncryption
 	) {
 		this._conf = conf
 		this._sse = sse

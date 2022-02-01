@@ -37,7 +37,7 @@ import {SchedulerImpl} from "../misc/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
-import {ElectronCredentialsEncryption, ElectronCredentialsEncryptionImpl} from "./credentials/ElectronCredentialsEncryption"
+import {DektopCredentialsEncryption, DesktopCredentialsEncryptionImpl} from "./credentials/DektopCredentialsEncryption"
 
 mp()
 type Components = {
@@ -53,7 +53,7 @@ type Components = {
 	readonly integrator: DesktopIntegrator
 	readonly tray: DesktopTray
 	readonly themeManager: ThemeManager
-	readonly credentialsEncryption: ElectronCredentialsEncryption
+	readonly credentialsEncryption: DektopCredentialsEncryption
 }
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
 const desktopUtils = new DesktopUtils(fs, electron, desktopCrypto)
@@ -112,7 +112,7 @@ async function createComponents(): Promise<Components> {
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
 	const themeManager = new ThemeManager(conf)
-	const credentialsEncryption = new ElectronCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
+	const credentialsEncryption = new DesktopCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)

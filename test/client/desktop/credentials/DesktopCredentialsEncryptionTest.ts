@@ -1,14 +1,14 @@
 import o from "ospec"
 import n from "../../nodemocker"
 
-import {ElectronCredentialsEncryptionImpl} from "../../../../src/desktop/credentials/ElectronCredentialsEncryption"
+import {DesktopCredentialsEncryptionImpl} from "../../../../src/desktop/credentials/DektopCredentialsEncryption"
 import {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl"
 import {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import {makeKeyStoreFacade} from "../../../api/TestUtils"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 
-o.spec("ElectronCredentialsEncryption Test", () => {
+o.spec("DesktopCredentialsEncryption Test", () => {
 	const crypto = {
 		aes256DecryptKeyToB64: (key, b64keyToEncrypt) => "decryptedB64Key",
 		aes256EncryptKeyToB64: (key, b64KeyToDecrypt) => "encryptedB64Key",
@@ -16,7 +16,7 @@ o.spec("ElectronCredentialsEncryption Test", () => {
 	const key = new Uint8Array([1, 2, 3])
 	const keyStoreFacade = makeKeyStoreFacade(key)
 
-	const getSubject = (): ElectronCredentialsEncryptionImpl => new ElectronCredentialsEncryptionImpl(
+	const getSubject = (): DesktopCredentialsEncryptionImpl => new DesktopCredentialsEncryptionImpl(
 		n.mock<DesktopKeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
 		n.mock<DesktopCryptoFacade>("__crypto", crypto).set()
 	)

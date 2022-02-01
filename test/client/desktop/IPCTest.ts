@@ -19,7 +19,7 @@ import {DesktopErrorHandler} from "../../../src/desktop/DesktopErrorHandler";
 import {DesktopIntegrator} from "../../../src/desktop/integration/DesktopIntegrator";
 import {DesktopAlarmScheduler} from "../../../src/desktop/sse/DesktopAlarmScheduler";
 import {ThemeManager} from "../../../src/desktop/ThemeManager";
-import {ElectronCredentialsEncryption, ElectronCredentialsEncryptionStub} from "../../../src/desktop/credentials/ElectronCredentialsEncryption"
+import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption"
 
 o.spec("IPC tests", function () {
 	const CALLBACK_ID = "to-main"
@@ -196,7 +196,7 @@ o.spec("IPC tests", function () {
 			autoUpdaterMock: n.mock<ElectronUpdater>("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock<DesktopAlarmScheduler>("__alarmScheduler", alarmScheduler).set(),
 			themeManagerMock: n.mock<ThemeManager>("__themeManager", themeManager).set(),
-			credentialsEncryption: n.mock<ElectronCredentialsEncryption>("__credentialsEncryption", new ElectronCredentialsEncryptionStub()).set()
+			credentialsEncryption: n.mock<DektopCredentialsEncryption>("__credentialsEncryption", new DesktopCredentialsEncryptionStub()).set()
 		}
 	}
 
