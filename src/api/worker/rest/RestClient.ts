@@ -81,12 +81,15 @@ export class RestClient {
 				let timeout = setTimeout(t.abortFunction, env.timeout)
 				t.timeoutId = timeout
 
+				// self.debug doesn't typecheck in the fdroid build, but it does when running locally due to devDependencies
+				// @ts-ignore
 				if (isWorker() && self.debug) {
 					console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
 				xhr.onload = () => {
 					// XMLHttpRequestProgressEvent, but not needed
+					// @ts-ignore
 					if (isWorker() && self.debug) {
 						console.log(`${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
 					}
@@ -129,6 +132,7 @@ export class RestClient {
 
 				try {
 					xhr.upload.onprogress = (pe: any) => {
+						// @ts-ignore
 						if (isWorker() && self.debug) {
 							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 						}
@@ -138,6 +142,7 @@ export class RestClient {
 						timeout = setTimeout(t.abortFunction, env.timeout)
 						t.timeoutId = timeout
 
+						// @ts-ignore
 						if (isWorker() && self.debug) {
 							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 						}
@@ -153,6 +158,7 @@ export class RestClient {
 				}
 
 				xhr.onprogress = (pe: any) => {
+					// @ts-ignore
 					if (isWorker() && self.debug) {
 						console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
@@ -162,6 +168,7 @@ export class RestClient {
 					timeout = setTimeout(t.abortFunction, env.timeout)
 					t.timeoutId = timeout
 
+					// @ts-ignore
 					if (isWorker() && self.debug) {
 						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
