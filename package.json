@@ -27,7 +27,7 @@
 		"@tutao/tutanota-utils": "3.91.6",
 		"cborg": "^1.5.4",
 		"dompurify": "2.3.0",
-		"keytar": "github:tutao/node-keytar#8a2eed049a2871837d432ae6ed10e372ccd93f8d",
+		"keytar": "github:tutao/node-keytar#1a837c8bd7dbfc3773fbbde01877a304473edb6b",
 		"linkifyjs": "3.0.5",
 		"luxon": "1.28.0",
 		"mithril": "2.0.4",
@@ -37,8 +37,8 @@
 		"node-forge": "1.2.1"
 	},
 	"devDependencies": {
-		"@octokit/auth-token": "^2.4.5",
-		"@octokit/rest": "^18.6.1",
+		"@octokit/auth-token": "2.5.0",
+		"@octokit/rest": "18.12.0",
 		"@rollup/plugin-commonjs": "18.1.0",
 		"@rollup/plugin-node-resolve": "13.1.3",
 		"@rollup/plugin-typescript": "8.3.0",
@@ -56,7 +56,7 @@
 		"chokidar": "3.5.2",
 		"commander": "5.0.0-2",
 		"electron": "15.3.1",
-		"electron-builder": "22.13.1",
+		"electron-builder": "22.14.5",
 		"electron-notarize": "1.1.1",
 		"electron-packager": "15.4.0",
 		"electron-updater": "4.3.9",
