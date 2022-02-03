@@ -3,7 +3,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
+import {serviceRequest, serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {Button} from "../../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -118,6 +118,13 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import {copyToClipboard} from "../../misc/ClipboardUtils";
+import {SysService} from "../../api/entities/sys/Services"
+import {createUsageTestAssignmentPostIn} from "../../api/entities/sys/UsageTestAssignmentPostIn"
+import {UsageTestAssignmentPostOutTypeRef} from "../../api/entities/sys/UsageTestAssignmentPostOut"
+import {createUsageTestParticipationPostIn} from "../../api/entities/sys/UsageTestParticipationPostIn"
+import {UsageTestParticipationPostOutTypeRef} from "../../api/entities/sys/UsageTestParticipationPostOut.js"
+import {createUsageTestParticipationPutIn} from "../../api/entities/sys/UsageTestParticipationPutIn.js"
+import {createUsageTestPingData} from "../../api/entities/sys/UsageTestPingData"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -446,12 +453,47 @@ export class MailViewer implements Component {
 						),
 					],
 				),
+
+
+				m(ButtonN, {
+					icon: () => BootIcons.Heart,
+					label: () => "Download assignments",
+					click: () => this.testPing(),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColor.DrawerNav,
+				}),
+
 			]
 		}
 
 		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
 
 		this._setupShortcuts()
+	}
+
+	async testPing() {
+		let assignments = (await serviceRequest(SysService.UsageTestAssignmentService, HttpMethod.POST, createUsageTestAssignmentPostIn(), UsageTestAssignmentPostOutTypeRef)).assignments
+		console.log("Assignments", assignments)
+		let postData = createUsageTestParticipationPostIn()
+		postData.testId = assignments[0].testId
+		let pingData1 = createUsageTestPingData()
+		pingData1.type = "timeInSec"
+		pingData1.value = "10"
+		postData.pingData = [pingData1]
+		console.log("Starting first ping test", postData)
+		let participationId = neverNull((await serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, postData, UsageTestParticipationPostOutTypeRef)).participationId)
+		console.log("Participation ID", participationId)
+
+		let putData = createUsageTestParticipationPutIn()
+		putData.testId = assignments[0].testId
+		putData.participationId = participationId
+		putData.stage = "0" // not used yet
+		let pingData2 = createUsageTestPingData()
+		pingData2.type = "timeInSec"
+		pingData2.value = "15"
+		putData.pingData = [pingData2]
+		console.log("Second ping", putData)
+		await serviceRequestVoid(SysService.UsageTestParticipationService, HttpMethod.PUT, putData)
 	}
 
 	_renderBanners(mail: Mail): Children {
